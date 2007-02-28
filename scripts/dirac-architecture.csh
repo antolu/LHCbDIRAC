@@ -11,6 +11,7 @@ if ("$comp" >= "340") then
   set comp = `echo $gcc | tr -d " "`
 endif
 
+set nativehw = `uname -m`
 
 set compdef = gcc$comp
 set nativehw = `uname -m` 
@@ -37,6 +38,7 @@ endif
 # deal with OS type ===========================================
 if ( "$OSTYPE" == "darwin" ) then
   set rh = `sw_vers | grep ProductVersion | awk '{print $2}' | awk -F. '{print $1 $2}'`
+  setenv CMTOPT osx$rh
   set rh = "osx$rh"
 #
 else if ( "$OSTYPE" == "linux" ) then
