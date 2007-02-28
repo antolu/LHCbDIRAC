@@ -36,7 +36,7 @@ if (-e /etc/redhat-release) then
 endif
 # deal with OS type ===========================================
 if ( "$OSTYPE" == "darwin" ) then
-  set rh = `sw_vers | grep ProductVersion | awk '{print $2}' | awk -F . '{print $1 $2}'`
+  set rh = `sw_vers | grep ProductVersion | awk '{print $2}' | awk -F. '{print $1 $2}'`
   set rh = "osx$rh"
 #
 else if ( "$OSTYPE" == "linux" ) then
