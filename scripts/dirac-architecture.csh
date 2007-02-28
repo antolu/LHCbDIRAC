@@ -55,8 +55,8 @@ else if ( "$OSTYPE" == "linux" ) then
     set rh = "slc3_ia32"
   endif
 
-  set binary =  ${rh}_${comp}
-  if ($hw == "ia64") set binary = `echo $binary | sed -e 's/ia64/amd64/'`
+  set binary =  ${nativehw}_${comp}
+  if ($nativehw == "ia64") set binary = `echo $binary | sed -e 's/ia64/amd64/'`
   setenv CMTOPT  ${binary}
 endif
 
