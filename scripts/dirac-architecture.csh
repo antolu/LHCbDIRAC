@@ -13,15 +13,15 @@ endif
 
 
 set compdef = gcc$comp
+set nativehw = `uname -m`
 #==============================================================
 # deal with different linux distributions
 if (-e /etc/redhat-release) then
   set distrib = `cat /etc/redhat-release | awk '{print $1}'`
   set rhv = `cat /etc/redhat-release | tr -d '[a-z][A-Z]()'`
   if ("$distrib" == "Scientific") then
-    set nativehw = `uname -i`
     set hw = $nativehw
-    if ($hw == "i386") set hw = "ia32"
+    if ($hw == "i?86") set hw = "ia32"
     # for the moment use ia32 even on amd64
     # if ($hw == "x86_64") set hw = "amd64"
     if ($hw == "x86_64") set hw = "ia32"
@@ -47,12 +47,10 @@ else if ( "$OSTYPE" == "linux" ) then
 
   if ( $nativehw == "x86_64" && $comp == "gcc323") then
 
-#======= compile on SLC4 pretending it is SLC3
     setenv CMTOPT "slc3_ia32_${comp}"
     set rh = "slc3_ia32"
- endif
+  endif
 
-#==========================
   set binary =  ${rh}_${comp}
   if ($hw == "ia64") set binary = `echo $binary | sed -e 's/ia64/amd64/'`
   setenv CMTOPT  ${binary}
