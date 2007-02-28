@@ -13,7 +13,9 @@ endif
 
 
 set compdef = gcc$comp
-set nativehw = `uname -m`
+set nativehw = `uname -m` 
+[ "$nativehw" = "unknown" ] && set nativehw = `uname -p` 
+
 #==============================================================
 # deal with different linux distributions
 if (-e /etc/redhat-release) then
