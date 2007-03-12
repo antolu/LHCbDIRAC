@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.4 2007/03/09 16:28:10 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.5 2007/03/12 09:46:48 joel Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
@@ -118,6 +118,12 @@ def guessPlatform() :
                  string.find(lines, "test") != -1 ) : opSys = "cel3-i386"
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "3.0.2") != -1 ) : opSys = "cel3-i386"
+            elif ( string.find(lines, "CentOS") != -1 and
+                 string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
+            elif ( string.find(lines, "CentOS") != -1 and
+                 string.find(lines, "4") != -1 ) : opSys = "slc4_" + guessHWArch()
+            elif ( string.find(lines, "Red Hat Enterprise") != -1 and
+                 string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "3.0.") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "Scientific Linux") != -1 and
@@ -144,6 +150,8 @@ def guessPlatform() :
                  string.find(lines, "10.1") != -1 ) : opSys = "suse101"  # not compatible 
             elif ( string.find(lines, "SUSE") != -1 and
                  string.find(lines, "10.2") != -1 ) : opSys = "suse102"  # not compatible 
+            elif ( string.find(lines, "Mandriva Linux") != -1 and
+                 string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible 
     
         if not opSys :
             # errLog = open(".guessPlatf-os.err",'w')
