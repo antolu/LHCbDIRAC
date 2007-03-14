@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.5 2007/03/12 09:46:48 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.6 2007/03/14 09:50:12 joel Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
@@ -122,12 +122,16 @@ def guessPlatform() :
                  string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "CentOS") != -1 and
                  string.find(lines, "4") != -1 ) : opSys = "slc4_" + guessHWArch()
+            elif ( string.find(lines, "Linux for High Performance Computing") != -1 and
+                 string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "Red Hat Enterprise") != -1 and
                  string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "3.0.") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "4.") != -1 ) : opSys = "slc4_" + guessHWArch()
+            elif ( string.find(lines, "Debian") != -1 and
+                 string.find(lines, "4") != -1 ) : opSys = "slc4_"  + guessHWArch()
             elif ( string.find(lines, "SuSE") != -1 and
                  string.find(lines, "8.0") != -1 ) : opSys = "rh73"
             elif ( string.find(lines, "SuSE") != -1 and
