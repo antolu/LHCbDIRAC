@@ -1,0 +1,59 @@
+#!/bin/csh
+#
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.1 2007/05/16 12:04:42 joel Exp $
+#
+# preliminary version to prepare external package needed for DIRAC3
+
+__RCSID__="$id$"
+
+setenv CVSROOT :kserver:isscvs.cern.ch:/local/reps/dirac
+
+set TMP_DIR=/tmp/joel
+
+cd ${TMP_DIR}
+cvs co DIRAC3/scripts
+cvs co DIRAC3/external/Python-2.4.4
+cvs co DIRAC3/external/openssl-0.9.7m
+cvs co DIRAC3/external/MySQL-python
+cvs co DIRAC3/contrib/pyOpenSSL
+#cvs co DIRAC3/external/MySQL
+
+cd ${TMP_DIR}/DIRAC3/external/Python-2.4.4
+./dirac-make
+ln -s ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python2.4 ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+
+cd ${TMP_DIR}/DIRAC3/contrib/pyOpenSSL
+./dirac-make
+
+cd ${TMP_DIR}/DIRAC3/external/MySQL-python
+./dirac-make
+
+rm -f ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+
+cd ${TMP_DIR}
+rm -rf DIRAC3/external DIRAC3/contrib
+cvs co DIRAC3/scripts
+cvs co DIRAC3/external/Python-2.5
+cvs co DIRAC3/external/openssl-0.9.7m
+cvs co DIRAC3/external/MySQL-python
+cvs co DIRAC3/contrib/pyOpenSSL
+#cvs co DIRAC3/external/MySQL
+
+cd ${TMP_DIR}/DIRAC3/external/Python-2.5
+./dirac-make
+ln -s ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python2.5 ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+
+cd ${TMP_DIR}/DIRAC3/contrib/pyOpenSSL
+./dirac-make
+
+cd ${TMP_DIR}/DIRAC3/external/MySQL-python
+./dirac-make
+
+rm -f ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+
+#cd ${TMP_DIR}/DIRAC3/external/MySQL
+#./dirac-make
+cd ${TMP_DIR}/DIRAC3
+tar zcf slc4.tar.gz slc4_ia32_gcc34
+
+exit 0
