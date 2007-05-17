@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.2 2007/05/17 14:58:28 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.3 2007/05/17 17:32:14 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$id$'
+# __RCSID__='$Id: dirac-external,v 1.3 2007/05/17 17:32:14 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -18,7 +18,7 @@ mkdir -p ${TMP_DIR}
 cd $TMP_DIR
 
 echo
-echo "Preparing DIRAC external distribution at ${TMP_DIR}"
+echo "Preparing DIRAC distribution at ${TMP_DIR}"
 echo
 echo "  type any password"
 echo
@@ -31,7 +31,6 @@ echo
 
 DIRAC_MAKE    DIRAC3/external/Python-2.4.4
 
-ln -s python2.4 ${TMP_DIR}/DIRAC3/${arch}/bin/python
 export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
 
 DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m
@@ -40,6 +39,8 @@ DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL
 DIRAC_MAKE    DIRAC3/external/MySQL
 
 DIRAC_MAKE    DIRAC3/external/MySQL-python
+
+DIRAC_TAR     DIRAC-external-${DIRAC_CVS_TAG}.${arch}.tar.gz etc ${arch}
 
 exit
 
