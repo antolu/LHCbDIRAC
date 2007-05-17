@@ -23,3 +23,23 @@ DIRAC_MAKE() {
     fi
   )
 }
+
+DIRAC_TAR() {
+
+  tarfile=$1
+  shift
+
+  (
+    cd DIRAC3
+    echo 
+    echo "Creating tar file $tarfile"
+    echo " using: $*"
+    echo -n "..."
+    if tar -cfz $tarfile $* ; then
+			echo "Done"
+    else
+      echo " Failed to create $tarfile"
+      exit -1
+    fi
+  )
+}
