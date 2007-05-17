@@ -35,7 +35,7 @@ DIRAC_TAR() {
     echo "Creating tar file $tarfile"
     echo " using: $*"
     echo -n "..."
-    if tar -cfz $tarfile $* ; then
+    if tar -czf $tarfile $* ; then
 			echo "Done"
     else
       echo " Failed to create $tarfile"
