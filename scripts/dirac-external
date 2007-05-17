@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.3 2007/05/17 17:32:14 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.4 2007/05/17 17:39:39 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.3 2007/05/17 17:32:14 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.4 2007/05/17 17:39:39 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -26,7 +26,7 @@ echo
 DIRAC_CVS_GET DIRAC3/scripts
 export arch=`DIRAC3/scripts/dirac-architecture`
 echo
-echo "   building DIRAC external for architecture: ${arch}"
+echo "   building DIRAC-external from CVS tag ${DIRAC_CVS_TAG} for architecture: ${arch}"
 echo
 
 DIRAC_MAKE    DIRAC3/external/Python-2.4.4
