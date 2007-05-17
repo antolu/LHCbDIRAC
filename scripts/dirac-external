@@ -1,34 +1,47 @@
-#!/bin/csh
+#!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.1 2007/05/16 12:04:42 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.2 2007/05/17 14:58:28 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
+# 
+# __RCSID__='$id$'
 
-__RCSID__="$id$"
+source `dirname $0`/dirac-functions.sh
 
-setenv CVSROOT :kserver:isscvs.cern.ch:/local/reps/dirac
+export DIRAC_CVS_TAG=HEAD
+export DIRAC_CVS_LOGIN=0
+export CVSROOT=':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
 
-set TMP_DIR=/tmp/joel
+TMP_DIR=/tmp/${USER}/$$
+rm -rf ${TMP_DIR}
+mkdir -p ${TMP_DIR}
+cd $TMP_DIR
 
-cd ${TMP_DIR}
-cvs co DIRAC3/scripts
-cvs co DIRAC3/external/Python-2.4.4
-cvs co DIRAC3/external/openssl-0.9.7m
-cvs co DIRAC3/external/MySQL-python
-cvs co DIRAC3/contrib/pyOpenSSL
-#cvs co DIRAC3/external/MySQL
+echo
+echo "Preparing DIRAC external distribution at ${TMP_DIR}"
+echo
+echo "  type any password"
+echo
 
-cd ${TMP_DIR}/DIRAC3/external/Python-2.4.4
-./dirac-make
-ln -s ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python2.4 ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+DIRAC_CVS_GET DIRAC3/scripts
+export arch=`DIRAC3/scripts/dirac-architecture`
+echo
+echo "   building DIRAC external for architecture: ${arch}"
+echo
 
-cd ${TMP_DIR}/DIRAC3/contrib/pyOpenSSL
-./dirac-make
+DIRAC_MAKE    DIRAC3/external/Python-2.4.4
 
-cd ${TMP_DIR}/DIRAC3/external/MySQL-python
-./dirac-make
+ln -s python2.4 ${TMP_DIR}/DIRAC3/${arch}/bin/python
+export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
 
-rm -f ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
+DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m
+DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL
+
+DIRAC_MAKE    DIRAC3/external/MySQL
+
+DIRAC_MAKE    DIRAC3/external/MySQL-python
+
+exit
 
 cd ${TMP_DIR}
 rm -rf DIRAC3/external DIRAC3/contrib
@@ -51,9 +64,10 @@ cd ${TMP_DIR}/DIRAC3/external/MySQL-python
 
 rm -f ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
 
-#cd ${TMP_DIR}/DIRAC3/external/MySQL
-#./dirac-make
+cd ${TMP_DIR}/DIRAC3/external/MySQL
+./dirac-make
 cd ${TMP_DIR}/DIRAC3
 tar zcf slc4.tar.gz slc4_ia32_gcc34
 
 exit 0
+)
