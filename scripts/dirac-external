@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.5 2007/05/17 17:58:24 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.6 2007/05/17 19:06:02 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.5 2007/05/17 17:58:24 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.6 2007/05/17 19:06:02 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -40,7 +40,43 @@ DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit
 
 DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
 
-DIRAC_TAR     DIRAC-external-${DIRAC_CVS_TAG}.${arch}.tar.gz etc ${arch} || exit
+tarfile=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
+
+DIRAC_TAR     ${tarfile} etc ${arch} || exit
+
+echo
+echo
+echo "scp ${tarfile} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
+echo
+echo
+
+
+rm -rf DIRAC3
+
+
+DIRAC_CVS_GET DIRAC3/scripts                                             || exit
+export arch=`DIRAC3/scripts/dirac-architecture`
+echo
+echo "   building DIRAC-external from CVS tag ${DIRAC_CVS_TAG} for architecture: ${arch}"
+echo
+
+DIRAC_MAKE    DIRAC3/external/Python-2.5                               || exit
+
+# export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
+
+DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit
+DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit
+
+DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit
+
+DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
+
+tarfile=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
+
+DIRAC_TAR     ${tarfile} etc ${arch} || exit
+
+echo "scp ${tarfile} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
+
 
 exit
 
