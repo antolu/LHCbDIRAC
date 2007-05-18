@@ -1,21 +1,12 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.7 2007/05/17 22:12:15 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.8 2007/05/18 09:19:52 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.7 2007/05/17 22:12:15 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.8 2007/05/18 09:19:52 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
-
-export DIRAC_CVS_TAG=HEAD
-export DIRAC_CVS_LOGIN=0
-export CVSROOT=':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
-
-TMP_DIR=/tmp/${USER}/$$
-rm -rf ${TMP_DIR}
-mkdir -p ${TMP_DIR}
-cd $TMP_DIR
 
 echo
 echo "Preparing DIRAC distribution at ${TMP_DIR}"
@@ -23,28 +14,28 @@ echo
 echo "  type any password"
 echo
 
-DIRAC_CVS_GET DIRAC3/scripts                                             || exit
+DIRAC_CVS_GET DIRAC3/scripts                                             || exit 1
 export arch=`DIRAC3/scripts/dirac-architecture`
 echo
 echo "   building DIRAC-external from CVS tag ${DIRAC_CVS_TAG} for architecture: ${arch}"
 echo
 
-DIRAC_MAKE    DIRAC3/external/Python-2.4.4                               || exit
+DIRAC_MAKE    DIRAC3/external/Python-2.4.4                               || exit 1
 
 export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
 
-DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit
-DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit
+DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit 1
+DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit 1
 
-DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit
+DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit 1
 
-DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
+DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit 1
 
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
-DIRAC_TAR     ${tarfile1} etc ${arch} || exit
+DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
 
 tarfile2=DIRAC-contrib-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
-DIRAC_TAR     ${tarfile2} contrib || exit
+DIRAC_TAR     ${tarfile2} contrib                                        || exit 1
 
 echo
 echo
@@ -53,32 +44,28 @@ echo "scp ${TMP_DIR}/DIRAC3/${tarfile2} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhc
 echo
 echo
 
+rm -rf DIRAC3/${arch}
 
-rm -rf DIRAC3
+#
+#  Only python packages need to be recompiled.
+#  MySQL needs to be reinstalled, but will not be recompiled
+#
 
-
-DIRAC_CVS_GET DIRAC3/scripts                                             || exit
-export arch=`DIRAC3/scripts/dirac-architecture`
-echo
-echo "   building DIRAC-external from CVS tag ${DIRAC_CVS_TAG} for architecture: ${arch}"
-echo
-
-DIRAC_MAKE    DIRAC3/external/Python-2.5                               || exit
+DIRAC_MAKE    DIRAC3/external/Python-2.5                                 || exit 1
 
 # export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
 
-DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit
-DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit
+DIRAC_INSTALL DIRAC3/contrib/pyOpenSSL                                   || exit 1
 
-DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit
+DIRAC_INSTALL DIRAC3/external/MySQL                                      || exit 1
 
-DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
+DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit 1
 
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
-DIRAC_TAR     ${tarfile1} etc ${arch} || exit
+DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
 
 tarfile2=DIRAC-contrib-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
-DIRAC_TAR     ${tarfile2} contrib || exit
+DIRAC_TAR     ${tarfile2} contrib                                        || exit 1
 
 echo
 echo
@@ -89,32 +76,3 @@ echo
 
 
 exit
-
-cd ${TMP_DIR}
-rm -rf DIRAC3/external DIRAC3/contrib
-cvs co DIRAC3/scripts
-cvs co DIRAC3/external/Python-2.5
-cvs co DIRAC3/external/openssl-0.9.7m
-cvs co DIRAC3/external/MySQL-python
-cvs co DIRAC3/contrib/pyOpenSSL
-#cvs co DIRAC3/external/MySQL
-
-cd ${TMP_DIR}/DIRAC3/external/Python-2.5
-./dirac-make
-ln -s ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python2.5 ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
-
-cd ${TMP_DIR}/DIRAC3/contrib/pyOpenSSL
-./dirac-make
-
-cd ${TMP_DIR}/DIRAC3/external/MySQL-python
-./dirac-make
-
-rm -f ${TMP_DIR}/DIRAC3/slc4_ia32_gcc34/bin/python
-
-cd ${TMP_DIR}/DIRAC3/external/MySQL
-./dirac-make
-cd ${TMP_DIR}/DIRAC3
-tar zcf slc4.tar.gz slc4_ia32_gcc34
-
-exit 0
-)
