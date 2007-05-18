@@ -36,7 +36,10 @@ DIRAC_MAKE() {
 
 DIRAC_INSTALL() {
 
-  [ -d $1 ] || DIRAC_MAKE $1 && return
+  if [ -d $1 ] ; then
+    DIRAC_MAKE $1
+    return
+  fi
   ( 
     cd $1
     if ./dirac-install 1>> dirac-install.log 2>> dirac-install.log ; then
