@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.6 2007/03/14 09:50:12 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.7 2007/05/18 14:03:58 rgracian Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
@@ -60,8 +60,8 @@ def guessHWArch() :
     arch = os.uname()[-1]
 
     if re.compile(  'i\d86').match(arch) : hwArch = "ia32"
-#    if re.compile( 'x86_64').match(arch) : hwArch = "amd64"
-    if re.compile( 'x86_64').match(arch) : hwArch = "ia32"
+    if re.compile( 'x86_64').match(arch) : hwArch = "amd64"
+#    if re.compile( 'x86_64').match(arch) : hwArch = "ia32"
     if re.compile(   'ia64').match(arch) : hwArch = "ia64"
     if re.compile('power mac', re.I).match(arch) : hwArch = "ppc"
 
