@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.1 2007/05/18 09:18:11 rgracian Exp $
+#
+# preliminary version to prepare external package needed for DIRAC3
+# 
+# __RCSID__='$Id: dirac-distribution,v 1.1 2007/05/18 09:18:11 rgracian Exp $'
+
+source `dirname $0`/dirac-functions.sh
+
+echo
+echo "Preparing DIRAC distribution at ${TMP_DIR}"
+echo
+echo "  type any password"
+echo
+
+DIRAC_CVS_GET DIRAC3/scripts                                             || exit 1
+echo
+echo "   building DIRAC from CVS tag ${DIRAC_CVS_TAG}"
+echo
+
+DIRAC_MAKE    DIRAC3/DIRAC                                               || exit 1
+
+tarfile=DIRAC-${DIRAC_CVS_TAG}.tar.gz
+DIRAC_TAR     ${tarfile} scripts DIRAC                                   || exit 1
+
+echo
+echo
+echo "scp ${TMP_DIR}/DIRAC3/${tarfile} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
+echo
+echo
+
+exit
