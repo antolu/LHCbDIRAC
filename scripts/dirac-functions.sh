@@ -1,4 +1,14 @@
+export DIRAC_CVS_TAG=HEAD
+export DIRAC_CVS_LOGIN=0
+export CVSROOT=':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
+
+TMP_DIR=/tmp/${USER}/$$
+rm -rf ${TMP_DIR}
+mkdir -p ${TMP_DIR}
+cd $TMP_DIR
+
 DIRAC_CVS_GET() {
+  rm -rf $1
   if [ $DIRAC_CVS_LOGIN -eq 0 ] ; then
     cvs login && export DIRAC_CVS_LOGIN=1
   fi
@@ -12,7 +22,7 @@ DIRAC_CVS_GET() {
 
 DIRAC_MAKE() {
 
-  DIRAC_CVS_GET $1
+  [ -d $1 ] || DIRAC_CVS_GET $1
   ( 
     cd $1
     if ./dirac-make 1>> dirac-make.log 2>> dirac-make.log ; then
@@ -23,6 +33,21 @@ DIRAC_MAKE() {
     fi
   )
 }
+
+DIRAC_INSTALL() {
+
+  [ -d $1 ] || DIRAC_MAKE $1 && return
+  ( 
+    cd $1
+    if ./dirac-install 1>> dirac-install.log 2>> dirac-install.log ; then
+      echo " $1 successfully installed"
+    else
+      echo " Failed to run dirac-install for $1"
+      exit -1
+    fi
+  )
+}
+
 
 DIRAC_TAR() {
 
