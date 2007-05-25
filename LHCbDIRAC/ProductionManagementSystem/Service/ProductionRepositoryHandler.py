@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.1 2007/05/17 11:09:54 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.2 2007/05/25 10:25:01 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.1 $"
+__RCSID__ = "$Revision: 1.2 $"
 
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
@@ -30,7 +30,7 @@ class ProductionRepositoryHandler( RequestHandler ):
     result = ProductionRepositoryDB.publishWorkflow(wf_body, self.sDN)
     if not result['OK']:
         return result
-    gLogger.info('Workflow '+wf_name+' of type '+ wf_type+' added to the Production Repository by the '+self.sDN )
+    gLogger.info('Workflow %s of type %s added to the Production Repository by the '%(wf_name, wf_type, self.sDN) )
     return S_OK()
 
   types_getWorkflow = [ StringType ]
@@ -62,3 +62,11 @@ class ProductionRepositoryHandler( RequestHandler ):
         return S_ERROR(error)
     gLogger.info('Workflow Info %s sucessfully read from the Production Repository' % wf_name)
     return S_OK(result['Value'])
+
+  types_updateWorkflow = [ StringType ]
+  def export_updateWorkflow( self, wf_body ):
+    result = ProductionRepositoryDB.publishWorkflow(wf_body, self.sDN, True)
+    if not result['OK']:
+        return result
+    gLogger.info('Workflow %s of type %s updates in the Production Repository by the ' % (wf_name, wf_type, self.sDN) )
+    return S_OK()

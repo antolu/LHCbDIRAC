@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.2 2007/05/17 11:09:16 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.3 2007/05/25 10:25:01 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -12,32 +12,52 @@
     updateWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.2 $"
+__RCSID__ = "$Revision: 1.3 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
 
 class ProductionRepositoryDB(BaseDB):
 
-  def __init__( self, maxQueueSize=10 ):
+  def __init__( self, maxQueueSize=4 ):
     """ Constructor
     """
 
     BaseDB.__init__(self,'ProductionRepositoryDB', 'ProductionManagement/ProductionRepositoryDB', maxQueueSize)
 
-  def publishWorkflow(self, wf_body, publisherDN):
+  def publishWorkflow(self, wf_body, publisherDN, update=False):
     wf = Workflow(wf_body)
     wf_name = wf.getName()
     wf_type = wf.getType()
-    cmd = 'INSERT INTO Workflows ( WFName, WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
-            '(\'%s\', \'%s\', \'%s\', NOW(), \'%s\')' % (wf_name, wf_type, publisherDN, wf_body)
-    result = self._update( cmd )
+    # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
+    result = getWorkflowInfo(wf_name)
     if result['OK']:
-      self.log.info( 'Workflow "%s" Type "%s" published by DN="%s"' % (wf_name, wf_type, publisherDN) )
+      # workflow already exists
+      if update: # but we wore asked to update
+        cmd = "UPDATE Workflows set WFType='%s', PublisherDN='%s', PublishingTime=NOW(), Body='%s' WHERE WFName='%s'" \
+              % (wf_type, publisherDN, wf_body, wf_name)
+        result = self._update( cmd )
+        if result['OK']:
+          self.log.info( 'Workflow "%s" Type "%s" updated by DN="%s"' % (wf_name, wf_type, publisherDN) )
+        else:
+          error = 'Workflow "%s" Type "%s" FAILED on update by DN="%s"' % (wf_name, wf_type, publisherDN)
+          self.log.error( error )
+          return S_ERROR( error )
+      else: # update was not requested
+        error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_name, wf_type, publisherDN)
+        self.log.error( error )
+        return S_ERROR( error )
     else:
-      error = 'Workflow "%s" Type "%s" FAILED to be published by DN="%s"' % (wf_name, wf_type, publisherDN)
-      self.log.error( error )
-      return S_ERROR( error )
+      # it is a new workflow
+      cmd = 'INSERT INTO Workflows ( WFName, WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
+              '(\'%s\', \'%s\', \'%s\', NOW(), \'%s\')' % (wf_name, wf_type, publisherDN, wf_body)
+      result = self._update( cmd )
+      if result['OK']:
+        self.log.info( 'Workflow "%s" Type "%s" published by DN="%s"' % (wf_name, wf_type, publisherDN) )
+      else:
+        error = 'Workflow "%s" Type "%s" FAILED to be published by DN="%s"' % (wf_name, wf_type, publisherDN)
+        self.log.error( error )
+        return S_ERROR( error )
     return S_OK()
 
   def getWorkflow(self, wf_name):
@@ -69,17 +89,3 @@ class ProductionRepositoryDB(BaseDB):
     else:
       return S_ERROR('Failed to retrive Workflow with the name '+wf_name) #KGG need to check logic
 
-  def updateWorkflow(self, wf_body, publisherDN):
-    wf = Workflow(wf_body)
-    wf_name = wf.getName()
-    wf_type = wf.getType()
-    cmd = "UPDATE Workflows set WFType='%s', PublisherDN='%s', PublishingTime=NOW(), Body='%s' WHERE WFName='%s'" \
-            % (wf_type, publisherDN, wf_body, wf_name)
-    result = self._update( cmd )
-    if result['OK']:
-      self.log.info( 'Workflow "%s" Type "%s" updated by DN="%s"' % (wf_name, wf_type, publisherDN) )
-    else:
-      error = 'Workflow "%s" Type "%s" FAILED on update by DN="%s"' % (wf_name, wf_type, publisherDN)
-      self.log.error( error )
-      return S_ERROR( error )
-    return S_OK()

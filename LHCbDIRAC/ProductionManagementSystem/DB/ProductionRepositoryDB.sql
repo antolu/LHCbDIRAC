@@ -27,32 +27,32 @@ DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
     WFName VARCHAR(255) NOT NULL,
     WFType VARCHAR(255) NOT NULL,
-	PublisherDN VARCHAR(255) NOT NULL,
-	PublishingTime DATETIME,
-	Body BLOB NOT NULL,
+    PublisherDN VARCHAR(255) NOT NULL,
+    PublishingTime DATETIME,
+    Body BLOB NOT NULL,
     PRIMARY KEY(WFName)
 );
 
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Productions;
 CREATE TABLE Productions (
-	ProductionID VARCHAR(32) NOT NULL DEFAULT '00000000',
+    ProductionID VARCHAR(32) NOT NULL DEFAULT '00000000',
     WFName VARCHAR(255) NOT NULL,
-	PublisherDN VARCHAR(255) NOT NULL,
-	PublishingTime DATETIME,
-	JobsTotal INTEGER NOT NULL DEFAULT 0,
-	JobsSubmitted INTEGER NOT NULL DEFAULT 0,
-	LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
-	Status  VARCHAR(255) NOT NULL,
-	Body BLOB NOT NULL,
-	PRIMARY KEY(ProductionID)
+    PublisherDN VARCHAR(255) NOT NULL,
+    PublishingTime DATETIME,
+    JobsTotal INTEGER NOT NULL DEFAULT 0,
+    JobsSubmitted INTEGER NOT NULL DEFAULT 0,
+    LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
+    Status  VARCHAR(255) NOT NULL,
+    Body BLOB NOT NULL,
+    PRIMARY KEY(ProductionID)
 );
 
 --------------------------------------------------------------------------------
 --- this will be a dynamic table one per Production
 DROP TABLE IF EXISTS InputViectors_<ProductionID>;
 CREATE TABLE InputViectors (
-	vectorID INTEGER NOT NULL AUTO_INCREMENT,
-	vector_body BLOB NOT NULL,
+    vectorID INTEGER NOT NULL AUTO_INCREMENT,
+    vector_body BLOB NOT NULL,
     PRIMARY KEY (vectorID)
 );
