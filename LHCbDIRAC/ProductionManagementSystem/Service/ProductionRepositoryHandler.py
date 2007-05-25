@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.5 2007/05/25 13:26:15 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.6 2007/05/25 13:28:07 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.5 $"
+__RCSID__ = "$Revision: 1.6 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -21,7 +21,7 @@ from DIRAC.ProductionManagementSystem.DB.ProductionRepositoryDB import Productio
 productionRepositoryDB = False
 
 def initializeProductionRepositoryHandler( serviceInfo ):
-  global ProductionRepositoryDB
+  global productionRepositoryDB
   productionRepositoryDB = ProductionRepositoryDB()
   return S_OK()
 
