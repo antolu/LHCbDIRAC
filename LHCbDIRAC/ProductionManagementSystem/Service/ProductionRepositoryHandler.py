@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.4 2007/05/25 13:23:59 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.5 2007/05/25 13:26:15 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision: 1.5 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -18,18 +18,18 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionRepositoryDB import ProductionRepositoryDB
 
 # This is a global instance of the ProductionRepositoryDB class
-ProductionRepositoryDB = False
+productionRepositoryDB = False
 
 def initializeProductionRepositoryHandler( serviceInfo ):
   global ProductionRepositoryDB
-  ProductionRepositoryDB = ProductionRepositoryDB()
+  productionRepositoryDB = ProductionRepositoryDB()
   return S_OK()
 
 class ProductionRepositoryHandler( RequestHandler ):
 
   types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, wf_body ):
-    result = ProductionRepositoryDB.publishWorkflow(wf_body, self.sDN)
+    result = productionRepositoryDB.publishWorkflow(wf_body, self.sDN)
     if not result['OK']:
         return result
     gLogger.info('Workflow %s of type %s added to the Production Repository by the '%(wf_name, wf_type, self.sDN) )
@@ -37,7 +37,7 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_getWorkflow = [ StringType ]
   def export_getWorkflow( self, wf_name ):
-    result = ProductionRepositoryDB.getWorkflow(wf_name)
+    result = productionRepositoryDB.getWorkflow(wf_name)
     if not result['OK']:
         error = 'Failed to read Workflow with the name %s from the repository' % wf_name
         gLogger.error(error)
@@ -47,7 +47,7 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_getWorkflowsList = [ ]
   def export_getWorkflowsList(self):
-    result = ProductionRepositoryDB.getWorkflowsList()
+    result = productionRepositoryDB.getWorkflowsList()
     if not result['OK']:
       error = 'Failed to read List of Workflows from the repository'
       gLogger.error(error)
@@ -57,7 +57,7 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_getWorkflow = [ StringType ]
   def export_getWorkflowInfo( self, wf_name ):
-    result = ProductionRepositoryDB.getWorkflowInfo(wf_name)
+    result = productionRepositoryDB.getWorkflowInfo(wf_name)
     if not result['OK']:
         error = 'Failed to read Workflow Info with the name %s from the repository' % wf_name
         gLogger.error(error)
@@ -67,7 +67,7 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_updateWorkflow = [ StringType ]
   def export_updateWorkflow( self, wf_body ):
-    result = ProductionRepositoryDB.publishWorkflow(wf_body, self.sDN, True)
+    result = productionRepositoryDB.publishWorkflow(wf_body, self.sDN, True)
     if not result['OK']:
         return result
     gLogger.info('Workflow %s of type %s updates in the Production Repository by the ' % (wf_name, wf_type, self.sDN) )
