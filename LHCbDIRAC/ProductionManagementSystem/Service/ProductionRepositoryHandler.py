@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.3 2007/05/25 13:11:05 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.4 2007/05/25 13:23:59 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,8 +9,9 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.3 $"
+__RCSID__ = "$Revision: 1.4 $"
 
+from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC import gLogger, S_OK, S_ERROR
