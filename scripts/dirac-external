@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.8 2007/05/18 09:19:52 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.9 2007/05/28 13:34:43 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.8 2007/05/18 09:19:52 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.9 2007/05/28 13:34:43 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -34,13 +34,9 @@ DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
 DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
 
-tarfile2=DIRAC-contrib-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
-DIRAC_TAR     ${tarfile2} contrib                                        || exit 1
-
 echo
 echo
 echo "scp ${TMP_DIR}/DIRAC3/${tarfile1} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
-echo "scp ${TMP_DIR}/DIRAC3/${tarfile2} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
 echo
 echo
 
@@ -64,12 +60,13 @@ DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
 DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
 
-tarfile2=DIRAC-contrib-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
-DIRAC_TAR     ${tarfile2} contrib                                        || exit 1
+tarfile2=DIRAC-contrib-${DIRAC_CVS_TAG}.${arch}.tar.gz
+DIRAC_TAR     ${tarfile2} contrib/python*                                || exit 1
 
 echo
 echo
 echo "scp ${TMP_DIR}/DIRAC3/${tarfile1} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
+echo
 echo "scp ${TMP_DIR}/DIRAC3/${tarfile2} lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/production_tools"
 echo
 echo
