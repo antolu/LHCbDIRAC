@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.6 2007/05/25 13:27:57 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.7 2007/05/29 15:52:11 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -9,10 +9,9 @@
     getWorkflow()
     getWorkglowsList()
     getWorkflowInfo()
-    updateWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
