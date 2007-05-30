@@ -1,5 +1,6 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/Attic/dirac-production-repository-cli.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $
-__RCSID__ = "$Id: dirac-production-repository-cli.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $"
+# $Id: dirac-production-repository-cli.py,v 1.2 2007/05/30 17:25:14 gkuznets Exp $
+__RCSID__ = "$Revision: 1.2 $"
+
 import cmd
 import sys
 import signal

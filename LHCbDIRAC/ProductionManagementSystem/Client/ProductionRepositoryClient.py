@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/Attic/ProductionRepositoryClient.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $
-__RCSID__ = "$Id: ProductionRepositoryClient.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $"
+# $Id: ProductionRepositoryClient.py,v 1.2 2007/05/30 17:25:15 gkuznets Exp $
+__RCSID__ = "$Revision: 1.2 $"
 
 import dirac
 from DIRAC.Core.DISET.RPCClient import RPCClient
