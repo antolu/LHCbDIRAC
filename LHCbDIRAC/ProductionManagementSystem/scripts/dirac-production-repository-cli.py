@@ -1,0 +1,67 @@
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/Attic/dirac-production-repository-cli.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $
+__RCSID__ = "$Id: dirac-production-repository-cli.py,v 1.1 2007/05/30 17:22:11 gkuznets Exp $"
+import cmd
+import sys
+import signal
+#import dirac
+
+from DIRAC.ProductionManagementSystem.Client.ProductionRepositoryClient import ProductionRepositoryClient
+
+class ProductionRepositoryCLI( cmd.Cmd ):
+
+  def __init__( self ):
+    cmd.Cmd.__init__( self )
+    self.identSpace = 20
+    self.repository = ProductionRepositoryClient()
+
+  def printPair( self, key, value, separator=":" ):
+    valueList = value.split( "\n" )
+    print "%s%s%s %s" % ( key, " " * ( self.identSpace - len( key ) ), separator, valueList[0].strip() )
+    for valueLine in valueList[ 1:-1 ]:
+      print "%s  %s" % ( " " * self.identSpace, valueLine.strip() )
+
+  def do_quit( self, *args ):
+    """
+    Exits the application
+        Usage: quit
+    """
+    #if self.modifiedData:
+    #  print "Changes are about to be written to file for later use."
+    #  self.do_writeToFile( self.backupFilename )
+    #  print "Changes written to %s.cfg" % self.backupFilename
+    sys.exit( 0 )
+
+  def do_help( self, args ):
+    """
+    Shows help information
+        Usage: help <command>
+        If no command is specified all commands are shown
+    """
+    if len( args ) == 0:
+      print "\nAvailable commands:\n"
+      attrList = dir( self )
+      attrList.sort()
+      for attribute in attrList:
+        if attribute.find( "do_" ) == 0:
+          self.printPair( attribute[ 3: ], getattr( self, attribute ).__doc__[ 1: ] )
+          print ""
+    else:
+      command = args.split()[0].strip()
+      try:
+        obj = getattr( self, "do_%s" % command )
+      except:
+        print "There's no such %s command" % command
+        return
+      self.printPair( command, obj.__doc__[1:] )
+
+  def do_publish(self, args):
+    """
+    Publish Workflow in the repository
+      Usage: publish <filename>
+      <filename> is a path to the file with the xml description of the workflow
+    """
+    print args
+
+if __name__=="__main__":
+    cli = ProductionRepositoryCLI()
+    cli.cmdloop()
