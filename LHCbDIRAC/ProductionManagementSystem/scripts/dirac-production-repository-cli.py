@@ -1,10 +1,9 @@
-# $Id: dirac-production-repository-cli.py,v 1.2 2007/05/30 17:25:14 gkuznets Exp $
-__RCSID__ = "$Revision: 1.2 $"
+# $Id: dirac-production-repository-cli.py,v 1.3 2007/05/31 09:57:02 gkuznets Exp $
+__RCSID__ = "$Revision: 1.3 $"
 
 import cmd
 import sys
 import signal
-#import dirac
 
 from DIRAC.ProductionManagementSystem.Client.ProductionRepositoryClient import ProductionRepositoryClient
 
