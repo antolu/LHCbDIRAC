@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.3 2007/05/31 09:57:02 gkuznets Exp $
-__RCSID__ = "$Revision: 1.3 $"
+# $Id: dirac-production-repository-cli.py,v 1.4 2007/05/31 13:26:23 gkuznets Exp $
+__RCSID__ = "$Revision: 1.4 $"
 
 import cmd
 import sys
@@ -12,7 +12,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
   def __init__( self ):
     cmd.Cmd.__init__( self )
     self.identSpace = 20
-    self.repository = ProductionRepositoryClient()
+    self.repository = ProductionRepositoryClient(1,2)
 
   def printPair( self, key, value, separator=":" ):
     valueList = value.split( "\n" )
@@ -60,7 +60,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
       Usage: publish <filename>
       <filename> is a path to the file with the xml description of the workflow
     """
-    print args
+    self.repository.publishWorkflow(args)
 
 if __name__=="__main__":
     cli = ProductionRepositoryCLI()
