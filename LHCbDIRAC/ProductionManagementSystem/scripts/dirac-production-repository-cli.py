@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.4 2007/05/31 13:26:23 gkuznets Exp $
-__RCSID__ = "$Revision: 1.4 $"
+# $Id: dirac-production-repository-cli.py,v 1.5 2007/06/01 12:49:03 gkuznets Exp $
+__RCSID__ = "$Revision: 1.5 $"
 
 import cmd
 import sys
@@ -12,7 +12,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
   def __init__( self ):
     cmd.Cmd.__init__( self )
     self.identSpace = 20
-    self.repository = ProductionRepositoryClient(1,2)
+    self.repository = ProductionRepositoryClient()
 
   def printPair( self, key, value, separator=":" ):
     valueList = value.split( "\n" )
