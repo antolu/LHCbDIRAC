@@ -1,11 +1,11 @@
-# $Id: ProductionRepositoryClient.py,v 1.6 2007/06/01 13:08:54 gkuznets Exp $
-__RCSID__ = "$Revision: 1.6 $"
+# $Id: ProductionRepositoryClient.py,v 1.7 2007/06/01 13:11:18 gkuznets Exp $
+__RCSID__ = "$Revision: 1.7 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 from DIRAC import gLogger, S_OK, S_ERROR
 
-class ProductionRepositoryClient():
+class ProductionRepositoryClient:
 
   def __init__(self, *args, **kwargs):
     print "KGG"
