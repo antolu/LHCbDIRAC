@@ -1,11 +1,12 @@
-# $Id: dirac-production-repository-cli.py,v 1.5 2007/06/01 12:49:03 gkuznets Exp $
-__RCSID__ = "$Revision: 1.5 $"
+# $Id: dirac-production-repository-cli.py,v 1.6 2007/06/01 13:58:58 gkuznets Exp $
+__RCSID__ = "$Revision: 1.6 $"
 
 import cmd
 import sys
 import signal
 
 from DIRAC.ProductionManagementSystem.Client.ProductionRepositoryClient import ProductionRepositoryClient
+from DIRAC.ConfigurationSystem.Client.Config import gConfig
 
 class ProductionRepositoryCLI( cmd.Cmd ):
 
@@ -63,5 +64,6 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     self.repository.publishWorkflow(args)
 
 if __name__=="__main__":
-    cli = ProductionRepositoryCLI()
-    cli.cmdloop()
+    #cli = ProductionRepositoryCLI()
+    #cli.cmdloop()
+    print gConfig.getValue( "/DIRAC/Setup", "Production" )
