@@ -1,14 +1,27 @@
-# $Id: dirac-production-repository-cli.py,v 1.7 2007/06/05 10:25:30 gkuznets Exp $
-__RCSID__ = "$Revision: 1.7 $"
+# $Id: dirac-production-repository-cli.py,v 1.8 2007/06/05 15:06:50 gkuznets Exp $
+__RCSID__ = "$Revision: 1.8 $"
 
 import cmd
 import sys
 import signal
 
+import os, new
+def getuid():
+  return 15614
+os.getuid=getuid
+
+
+
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Base.Script import localCfg
 from DIRAC.ProductionManagementSystem.Client.ProductionRepositoryClient import ProductionRepositoryClient
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
+from DIRAC.LoggingSystem.Client.Logger import gLogger
 
+localCfg.addDefaultEntry("LogLevel", "DEBUG")
+
+gLogger._minLevel=30
+gLogger.error("bla bla bla")
 Script.parseCommandLine()
 
 class ProductionRepositoryCLI( cmd.Cmd ):
@@ -67,6 +80,6 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     self.repository.publishWorkflow(args)
 
 if __name__=="__main__":
-    #cli = ProductionRepositoryCLI()
-    #cli.cmdloop()
-    print gConfig.getValue( "/DIRAC/Setup", "Production" )
+    cli = ProductionRepositoryCLI()
+    cli.cmdloop()
+    #print gConfig.getValue( "/DIRAC/Setup", "Production" )
