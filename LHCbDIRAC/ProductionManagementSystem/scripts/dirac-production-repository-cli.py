@@ -1,12 +1,15 @@
-# $Id: dirac-production-repository-cli.py,v 1.6 2007/06/01 13:58:58 gkuznets Exp $
-__RCSID__ = "$Revision: 1.6 $"
+# $Id: dirac-production-repository-cli.py,v 1.7 2007/06/05 10:25:30 gkuznets Exp $
+__RCSID__ = "$Revision: 1.7 $"
 
 import cmd
 import sys
 import signal
 
+from DIRAC.Core.Base import Script
 from DIRAC.ProductionManagementSystem.Client.ProductionRepositoryClient import ProductionRepositoryClient
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
+
+Script.parseCommandLine()
 
 class ProductionRepositoryCLI( cmd.Cmd ):
 
