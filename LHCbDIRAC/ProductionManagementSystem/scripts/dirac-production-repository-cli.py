@@ -1,16 +1,14 @@
-# $Id: dirac-production-repository-cli.py,v 1.8 2007/06/05 15:06:50 gkuznets Exp $
-__RCSID__ = "$Revision: 1.8 $"
+# $Id: dirac-production-repository-cli.py,v 1.9 2007/06/11 16:10:43 gkuznets Exp $
+__RCSID__ = "$Revision: 1.9 $"
 
 import cmd
 import sys
 import signal
 
 import os, new
-def getuid():
-  return 15614
-os.getuid=getuid
-
-
+#def getuid():
+#  return 15614
+#os.getuid=getuid
 
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Base.Script import localCfg
