@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.6 2007/05/25 13:28:07 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.7 2007/06/12 13:30:00 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -29,7 +29,7 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, wf_body ):
-    result = productionRepositoryDB.publishWorkflow(wf_body, self.sDN)
+    result = productionRepositoryDB.publishWorkflow(wf_body, self.transport.peerCredentials['DN'])
     if not result['OK']:
         return result
     gLogger.info('Workflow %s of type %s added to the Production Repository by the '%(wf_name, wf_type, self.sDN) )
