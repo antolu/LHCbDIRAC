@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.8 2007/06/28 14:14:25 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.9 2007/06/28 15:26:31 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.8 $"
+__RCSID__ = "$Revision: 1.9 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -27,7 +27,7 @@ class ProductionRepositoryDB(DB):
     DB.__init__(self,'ProductionRepositoryDB', 'ProductionManagement/ProductionRepositoryDB', maxQueueSize)
 
   def publishWorkflow(self, wf_body, publisherDN, update=False):
-    wf = WorkflowReader.fromXMLString(wf_body)
+    wf = fromXMLString(wf_body)
     wf_name = wf.getName()
     wf_type = wf.getType()
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
