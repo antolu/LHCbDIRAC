@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.9 2007/06/28 15:26:31 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.10 2007/06/28 15:29:33 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -31,7 +31,7 @@ class ProductionRepositoryDB(DB):
     wf_name = wf.getName()
     wf_type = wf.getType()
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
-    result = getWorkflowInfo(wf_name)
+    result = self.getWorkflowInfo(wf_name)
     if result['OK']:
       # workflow already exists
       if update: # but we wore asked to update
