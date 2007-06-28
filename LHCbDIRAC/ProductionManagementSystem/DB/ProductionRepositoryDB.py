@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.11 2007/06/28 17:13:31 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.12 2007/06/28 17:44:41 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.11 $"
+__RCSID__ = "$Revision: 1.12 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -36,9 +36,10 @@ class ProductionRepositoryDB(DB):
       # workflow already exists
       if result['Value'] == ():
         # it is a new workflow
-        cmd = 'INSERT INTO Workflows ( WFName, WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
-                '(\'%s\', \'%s\', \'%s\', NOW(), \'%s\')' % (wf_name, wf_type, publisherDN, wf_body)
-        result = self._update( cmd )
+        #cmd = 'INSERT INTO Workflows ( WFName, WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
+        #        '(\'%s\', \'%s\', \'%s\', NOW(), \'%s\')' % (wf_name, wf_type, publisherDN, wf_body)
+
+        result = self._insert('Workflows', [ 'WFName', 'WFType', 'PublisherDN', 'Body' ], [wf_name, wf_type, publisherDN, wf_body])
         if result['OK']:
           self.log.info( 'Workflow "%s" Type "%s" published by DN="%s"' % (wf_name, wf_type, publisherDN) )
         else:
