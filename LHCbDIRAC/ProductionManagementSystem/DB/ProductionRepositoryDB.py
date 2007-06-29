@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.21 2007/06/29 15:27:17 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.22 2007/06/29 20:04:58 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.21 $"
+__RCSID__ = "$Revision: 1.22 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -35,10 +35,12 @@ class ProductionRepositoryDB(DB):
       # workflow already exists
       if result['Value'] == ():
         # it is a new workflow
+        #cmd = "INSERT INTO `Workflows` ( `WFType`, `PublisherDN`, `PublishingTime`, `Body` ) VALUES ( 'TotalSumm', '/C=UK/O=eScience/OU=CLRC/L=RAL/CN=gennady kuznetsov', 'NEW()', '<Workflow>'"
         #cmd = 'INSERT INTO Workflows ( WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
         #        '(\'%s\', \'%s\', NOW(), \'%s\')' % (wf_type, publisherDN, wf_body)
 
-        result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'PublishingTime', 'Body' ], [wf_type, publisherDN, "NEW()", wf_body])
+        result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'Body' ], [wf_type, publisherDN, wf_body])
+        #result = self._update(cmd)
         if result['OK']:
           self.log.info( 'Workflow Type "%s" published by DN="%s"' % (wf_type, publisherDN) )
         else:
@@ -47,7 +49,7 @@ class ProductionRepositoryDB(DB):
           return S_ERROR( error )
       else:
         if update: # we were asked to update
-          cmd = "UPDATE Workflows set PublisherDN='%s', PublishingTime=NOW(), Body='%s' WHERE WFType='%s'" \
+          cmd = "UPDATE Workflows set PublisherDN='%s', Body='%s' WHERE WFType='%s'" \
                 % (publisherDN, wf_body, wf_type)
           result = self._update( cmd )
           if result['OK']:
