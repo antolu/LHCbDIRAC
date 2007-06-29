@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.17 2007/06/29 14:59:49 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.18 2007/06/29 15:02:52 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.17 $"
+__RCSID__ = "$Revision: 1.18 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -67,7 +67,7 @@ class ProductionRepositoryDB(DB):
     return S_OK()
 
   def getWorkflow(self, wf_type):
-    cmd = "SELECT WFType, PublisherDN, PublishingTime Body from Workflows WHERE WFName='%s'" % wf_type
+    cmd = "SELECT WFType, PublisherDN, PublishingTime Body from Workflows WHERE WFType='%s'" % wf_type
     result = self._query(cmd)
     if result['OK']:
       return S_OK(result['Value'])
@@ -76,7 +76,7 @@ class ProductionRepositoryDB(DB):
 
   def getWorkflowsList(self):
     #KGG we need to adjust code for the empty list!!!!
-    cmd = "SELECT  WFName, WFType, PublisherDN, PublishingTime from Workflows"
+    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows"
     result = self._query(cmd)
     if not result['OK']:
       return result
@@ -87,8 +87,8 @@ class ProductionRepositoryDB(DB):
     except:
       return S_ERROR('Failed to get Workflow list from the Production Repository')
 
-  def getWorkflowInfo(self, wf_name):
-    cmd = "SELECT  WFName, WFType, PublisherDN, PublishingTime from Workflows WHERE WFName='%s'" % wf_name
+  def getWorkflowInfo(self, wf_type):
+    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows WHERE WFType='%s'" % wf_type
     result = self._query(cmd)
     if result['OK']:
       return S_OK(result['Value'])
