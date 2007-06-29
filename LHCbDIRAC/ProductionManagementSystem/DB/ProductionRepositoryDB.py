@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.15 2007/06/29 14:55:36 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.16 2007/06/29 14:56:49 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.15 $"
+__RCSID__ = "$Revision: 1.16 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -40,9 +40,9 @@ class ProductionRepositoryDB(DB):
 
         result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'PublishingTime', 'Body' ], [wf_type, publisherDN, 'NOW()',wf_body])
         if result['OK']:
-          self.log.info( 'Workflow "%s" Type "%s" published by DN="%s"' % (wf_name, wf_type, publisherDN) )
+          self.log.info( 'Workflow Type "%s" published by DN="%s"' % (wf_type, publisherDN) )
         else:
-          error = 'Workflow "%s" Type "%s" FAILED to be published by DN="%s"' % (wf_name, wf_type, publisherDN)
+          error = 'Workflow Type "%s" FAILED to be published by DN="%s"' % (wf_type, publisherDN)
           self.log.error( error )
           return S_ERROR( error )
       else:

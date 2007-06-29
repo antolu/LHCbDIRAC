@@ -25,12 +25,11 @@ USE ProductionRepositoryDB;
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
-    WFName VARCHAR(255) NOT NULL,
     WFType VARCHAR(255) NOT NULL,
     PublisherDN VARCHAR(255) NOT NULL,
     PublishingTime DATETIME,
     Body BLOB NOT NULL,
-    PRIMARY KEY(WFName)
+    PRIMARY KEY(WFType)
 );
 
 --------------------------------------------------------------------------------
@@ -38,6 +37,7 @@ DROP TABLE IF EXISTS Productions;
 CREATE TABLE Productions (
     ProductionID VARCHAR(32) NOT NULL DEFAULT '00000000',
     WFName VARCHAR(255) NOT NULL,
+    WFType VARCHAR(255) NOT NULL,
     PublisherDN VARCHAR(255) NOT NULL,
     PublishingTime DATETIME,
     JobsTotal INTEGER NOT NULL DEFAULT 0,
