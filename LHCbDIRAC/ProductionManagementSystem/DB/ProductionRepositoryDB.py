@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.16 2007/06/29 14:56:49 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.17 2007/06/29 14:59:49 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.16 $"
+__RCSID__ = "$Revision: 1.17 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -30,7 +30,7 @@ class ProductionRepositoryDB(DB):
     wf = fromXMLString(wf_body)
     wf_type = wf.getType()
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
-    result = self.getWorkflowInfo(wf_name)
+    result = self.getWorkflowInfo(wf_type)
     if result['OK']:
       # workflow already exists
       if result['Value'] == ():
@@ -61,18 +61,18 @@ class ProductionRepositoryDB(DB):
           self.log.error( error )
           return S_ERROR( error )
     else:
-      error = 'Workflow "%s" Type "%s" FAILED to be published by DN="%s"' % (wf_name, wf_type, publisherDN)
+      error = 'Workflow Type "%s" FAILED to be published by DN="%s"' % (wf_type, publisherDN)
       self.log.error( error )
       return S_ERROR( error )
     return S_OK()
 
-  def getWorkflow(self, wf_name):
-    cmd = "SELECT WFName, WFType, PublisherDN, PublishingTime Body from Workflows WHERE WFName='%s'" % wf_name
+  def getWorkflow(self, wf_type):
+    cmd = "SELECT WFType, PublisherDN, PublishingTime Body from Workflows WHERE WFName='%s'" % wf_type
     result = self._query(cmd)
     if result['OK']:
       return S_OK(result['Value'])
     else:
-      return S_ERROR('Failed to retrive Workflow with the name '+wf_name)
+      return S_ERROR('Failed to retrive Workflow of type '+wf_type)
 
   def getWorkflowsList(self):
     #KGG we need to adjust code for the empty list!!!!
