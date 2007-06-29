@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.14 2007/06/29 14:48:59 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.15 2007/06/29 14:55:36 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.14 $"
+__RCSID__ = "$Revision: 1.15 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -28,7 +28,6 @@ class ProductionRepositoryDB(DB):
 
   def publishWorkflow(self, wf_body, publisherDN, update=False):
     wf = fromXMLString(wf_body)
-    wf_name = wf.getName()
     wf_type = wf.getType()
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
     result = self.getWorkflowInfo(wf_name)
@@ -36,10 +35,10 @@ class ProductionRepositoryDB(DB):
       # workflow already exists
       if result['Value'] == ():
         # it is a new workflow
-        #cmd = 'INSERT INTO Workflows ( WFName, WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
-        #        '(\'%s\', \'%s\', \'%s\', NOW(), \'%s\')' % (wf_name, wf_type, publisherDN, wf_body)
+        #cmd = 'INSERT INTO Workflows ( WFType, PublisherDN, PublishingTime, Body ) VALUES ' \
+        #        '(\'%s\', \'%s\', NOW(), \'%s\')' % (wf_type, publisherDN, wf_body)
 
-        result = self._insert('Workflows', [ 'WFName', 'WFType', 'PublisherDN', 'PublishingTime', 'Body' ], [wf_name, wf_type, publisherDN, 'NOW()',wf_body])
+        result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'PublishingTime', 'Body' ], [wf_type, publisherDN, 'NOW()',wf_body])
         if result['OK']:
           self.log.info( 'Workflow "%s" Type "%s" published by DN="%s"' % (wf_name, wf_type, publisherDN) )
         else:
