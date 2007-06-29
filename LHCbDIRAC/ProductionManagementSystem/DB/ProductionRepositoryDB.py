@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.20 2007/06/29 15:14:12 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.21 2007/06/29 15:27:17 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.20 $"
+__RCSID__ = "$Revision: 1.21 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -47,17 +47,17 @@ class ProductionRepositoryDB(DB):
           return S_ERROR( error )
       else:
         if update: # we were asked to update
-          cmd = "UPDATE Workflows set WFType='%s', PublisherDN='%s', PublishingTime=NOW(), Body='%s' WHERE WFName='%s'" \
-                % (wf_type, publisherDN, wf_body, wf_name)
+          cmd = "UPDATE Workflows set PublisherDN='%s', PublishingTime=NOW(), Body='%s' WHERE WFType='%s'" \
+                % (publisherDN, wf_body, wf_type)
           result = self._update( cmd )
           if result['OK']:
-            self.log.info( 'Workflow "%s" Type "%s" updated by DN="%s"' % (wf_name, wf_type, publisherDN) )
+            self.log.info( 'Workflow Type "%s" updated by DN="%s"' % (wf_type, publisherDN) )
           else:
-            error = 'Workflow "%s" Type "%s" FAILED on update by DN="%s"' % (wf_name, wf_type, publisherDN)
+            error = 'Workflow Type "%s" FAILED on update by DN="%s"' % (wf_type, publisherDN)
             self.log.error( error )
             return S_ERROR( error )
         else: # update was not requested
-          error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_name, wf_type, publisherDN)
+          error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_type, publisherDN)
           self.log.error( error )
           return S_ERROR( error )
     else:
