@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-embedded-external,v 1.1 2007/05/28 13:51:31 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-embedded-external,v 1.2 2007/07/11 14:20:19 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3 with embedded MySQL server
 # 
-# __RCSID__='$Id: dirac-embedded-external,v 1.1 2007/05/28 13:51:31 rgracian Exp $'
+# __RCSID__='$Id: dirac-embedded-external,v 1.2 2007/07/11 14:20:19 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -23,6 +23,8 @@ echo
 DIRAC_MAKE    DIRAC3/external/Python-2.4.4                               || exit 1
 
 export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
+
+DIRAC_MAKE    DIRAC3/external/runit                                      || exit 1
 
 DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit 1
 DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit 1
@@ -50,6 +52,8 @@ rm -rf DIRAC3/${arch}
 DIRAC_MAKE    DIRAC3/external/Python-2.5                                 || exit 1
 
 # export PATH="${TMP_DIR}/DIRAC3/${arch}/bin:$PATH"
+
+DIRAC_INSTALL DIRAC3/external/runit                                      || exit 1
 
 DIRAC_INSTALL DIRAC3/contrib/pyOpenSSL                                   || exit 1
 
