@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/DIRACEnvironment.py,v 1.1 2007/05/16 12:45:35 acasajus Exp $
-__RCSID__ = "$Id: DIRACEnvironment.py,v 1.1 2007/05/16 12:45:35 acasajus Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/DIRACEnvironment.py,v 1.2 2007/07/11 14:08:11 rgracian Exp $
+__RCSID__ = "$Id: DIRACEnvironment.py,v 1.2 2007/07/11 14:08:11 rgracian Exp $"
 """
    Magic file to be imported by all python scripts to properly discover and 
    setup the DIRAC environment
@@ -15,7 +15,7 @@ except ImportError:
      possible if they are in the same directory) tries to setup the PYTHONPATH
   """
   scriptsPath = os.path.realpath( os.path.dirname( __file__ ) )
-  rootPath = os.path.realpath( "%s/.." % scriptsPath )  
+  rootPath = os.path.dirname( scriptsPath )  
 
   sys.path.insert( 0, rootPath )
 
