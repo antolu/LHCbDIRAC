@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.22 2007/06/29 20:04:58 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.23 2007/08/09 18:47:28 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.22 $"
+__RCSID__ = "$Revision: 1.23 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -95,5 +95,5 @@ class ProductionRepositoryDB(DB):
     if result['OK']:
       return S_OK(result['Value'])
     else:
-      return S_ERROR('Failed to retrive Workflow with the name '+wf_name) #KGG need to check logic
+      return S_ERROR('Failed to retrive Workflow with the name '+wf_type) #KGG need to check logic
 
