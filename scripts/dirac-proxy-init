@@ -116,17 +116,17 @@ distinguished_name = dn_section
   psubject = subject+"/CN=proxy"
   fields = string.split(psubject,'/')
   iter = 0
-  lastField = ""
-  for field in fields:
-    if len( field ) == 0:
+  lastOID = ""
+  for OID in fields:
+    if len( OID ) == 0:
       continue
-    fTuple = field.split( "=" )
-    if fTuple[0] == lastField:
+    oidTuple = OID.split( "=" )
+    if oidTuple[0] == lastOID:
       iter += 1
     else:
       iter = 0
-      lastField = fTuple[0]
-    cf.write( "%s.%s = %s\n" % ( iter, fTuple[0], fTuple[1] ) )
+      lastOID = oidTuple[0]
+    cf.write( "%s.%s = %s\n" % ( iter, oidTuple[0], oidTuple[1] ) )
 
   cf.write('\n')
   cf.close()
