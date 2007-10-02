@@ -115,26 +115,18 @@ distinguished_name = dn_section
   subject = getSubject(certfile)
   psubject = subject+"/CN=proxy"
   fields = string.split(psubject,'/')
-  o = 0
-  c = 0
-  ou = 0
-  cn = 0
-  for f in fields :
-    if f:
-      k,v = string.split(f,"=")
-      if k == "O":
-      	k = "%s." % (o,)+k
-	o+=1
-      elif k=="C":
-      	k = "%s." % (c,)+k
-	c+=1
-      elif k=="OU":
-      	k = "%s." % (ou,)+k
-      	ou+=1
-      elif k=="CN":
-      	k = "%s." % (cn,)+k
-	cn+=1
-      cf.write(k+" = "+v+'\n')
+  iter = 0
+  lastField = ""
+  for field in fields:
+    if len( field ) == 0:
+      continue
+    fTuple = field.split( "=" )
+    if fTuple[0] == lastField:
+      iter += 1
+    else:
+      iter = 0
+      lastField = fTuple[0]
+    cf.write( "%s.%s = %s\n" % ( iter, fTuple[0], fTuple[1] ) )
 
   cf.write('\n')
   cf.close()
