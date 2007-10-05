@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.9 2007/06/11 16:10:43 gkuznets Exp $
-__RCSID__ = "$Revision: 1.9 $"
+# $Id: dirac-production-repository-cli.py,v 1.10 2007/10/05 14:39:38 gkuznets Exp $
+__RCSID__ = "$Revision: 1.10 $"
 
 import cmd
 import sys
@@ -19,7 +19,6 @@ from DIRAC.LoggingSystem.Client.Logger import gLogger
 localCfg.addDefaultEntry("LogLevel", "DEBUG")
 
 gLogger._minLevel=30
-gLogger.error("bla bla bla")
 Script.parseCommandLine()
 
 class ProductionRepositoryCLI( cmd.Cmd ):
@@ -76,6 +75,13 @@ class ProductionRepositoryCLI( cmd.Cmd ):
       <filename> is a path to the file with the xml description of the workflow
     """
     self.repository.publishWorkflow(args)
+
+  def do_workflows(self, args):
+    """
+    List all Workflows in the repository
+      Usage: workflows
+    """
+    self.repository.getListWorkflows()
 
 if __name__=="__main__":
     cli = ProductionRepositoryCLI()

@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.23 2007/08/09 18:47:28 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.24 2007/10/05 14:39:37 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.23 $"
+__RCSID__ = "$Revision: 1.24 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -26,11 +26,20 @@ class ProductionRepositoryDB(DB):
 
     DB.__init__(self,'ProductionRepositoryDB', 'ProductionManagement/ProductionRepositoryDB', maxQueueSize)
 
-  def publishWorkflow(self, wf_body, publisherDN, update=False):
-    wf = fromXMLString(wf_body)
-    wf_type = wf.getType()
+  def publishWorkflow(self, wf_type, wf_body, publisherDN, update=False):
+    result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'Body' ], [wf_type, publisherDN, wf_body])
+    if result['OK']:
+      gLogger.verbose('Workflow Type "%s" published by DN="%s"' % (wf_type, publisherDN))
+    else:
+      errKey = 'Workflow Type "%s" FAILED to be published by DN="%s"' % (wf_type, publisherDN)
+      errExpl = " because %s" % (result['Message'])
+      gLogger.error(errKey, errExpl)
+    return result
+
+  def publishWorkflow_(self, wf_type, wf_body, publisherDN, update=False):
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
-    result = self.getWorkflowInfo(wf_type)
+    #result = self.getWorkflowInfo(wf_type)
+    #print "KGG", result
     if result['OK']:
       # workflow already exists
       if result['Value'] == ():
@@ -69,25 +78,20 @@ class ProductionRepositoryDB(DB):
     return S_OK()
 
   def getWorkflow(self, wf_type):
-    cmd = "SELECT WFType, PublisherDN, PublishingTime Body from Workflows WHERE WFType='%s'" % wf_type
+    cmd = "SELECT WFType, PublisherDN, PublishingTime, Body from Workflows WHERE WFType='%s'" % wf_type
     result = self._query(cmd)
     if result['OK']:
       return S_OK(result['Value'])
     else:
       return S_ERROR('Failed to retrive Workflow of type '+wf_type)
 
-  def getWorkflowsList(self):
+  def getListWorkflows(self):
     #KGG we need to adjust code for the empty list!!!!
-    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows"
+    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows;"
     result = self._query(cmd)
-    if not result['OK']:
-      return result
-    try:
-      wf_list = result['Value']
-      result_list = [ (x[0],x[1],x[2],x[3]) for x in wf_list]
-      return S_OK(result_list)
-    except:
-      return S_ERROR('Failed to get Workflow list from the Production Repository')
+    print "===KGG ", result
+    #if result['OK']:
+    return result
 
   def getWorkflowInfo(self, wf_type):
     cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows WHERE WFType='%s'" % wf_type

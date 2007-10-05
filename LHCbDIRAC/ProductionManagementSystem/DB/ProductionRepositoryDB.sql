@@ -27,7 +27,7 @@ DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
     WFType VARCHAR(255) NOT NULL,
     PublisherDN VARCHAR(255) NOT NULL,
-    PublishingTime DATETIME,
+    PublishingTime TIMESTAMP,
     Body BLOB NOT NULL,
     PRIMARY KEY(WFType)
 );
@@ -39,7 +39,7 @@ CREATE TABLE Productions (
     WFName VARCHAR(255) NOT NULL,
     WFType VARCHAR(255) NOT NULL,
     PublisherDN VARCHAR(255) NOT NULL,
-    PublishingTime DATETIME,
+    PublishingTime TIMESTAMP,
     JobsTotal INTEGER NOT NULL DEFAULT 0,
     JobsSubmitted INTEGER NOT NULL DEFAULT 0,
     LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
