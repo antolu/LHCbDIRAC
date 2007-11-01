@@ -55,27 +55,27 @@ def getProxyFile():
 
 def getOptions():
 
-	global debug, proxyfile
+  global debug, proxyfile
 
-	try:
-		opts,args = getopt.getopt(sys.argv[1:], "hdf:", ["help","version","debug","usage","file="])
+  try:
+    opts,args = getopt.getopt(sys.argv[1:], "hdf:", ["help","version","debug","usage","file="])
 
-	except getopt.GetoptError:
-	# print help information and exit:
-		printUsage()
-		sys.exit(2)
+  except getopt.GetoptError:
+  # print help information and exit:
+    printUsage()
+    sys.exit(2)
 
-	for o, a in opts:
-		if o in ("-d","--debug"):
-			debug = 1
-		if o in ("-h", "--help", "--usage"):
-			printUsage()
-			sys.exit()
-		if o == "--version":
-			print __VERSION__
-			sys.exit()
-		if o in ("-f", "--file"):
-			proxyfile = a
+  for o, a in opts:
+    if o in ("-d","--debug"):
+      debug = 1
+    if o in ("-h", "--help", "--usage"):
+      printUsage()
+      sys.exit()
+    if o == "--version":
+      print __VERSION__
+      sys.exit()
+    if o in ("-f", "--file"):
+      proxyfile = a
 from popen2 import Popen3
 
 def exeCommand(cmd):
@@ -98,51 +98,54 @@ if debug:
   print "\n",comm,"\n"
 status,output = commands.getstatusoutput(comm)
 if status:
-	print "--- Error testing proxy certificate!"
-	print output
-	sys.exit(1)
+  print "--- Error testing proxy certificate!"
+  print output
+  sys.exit(1)
 
 output = string.split(output,"\n")
 for f in output:
-	li = string.split(f,":")
-	if len(li) < 5 and len(li) > 1:
-		w = li[0].strip()
-		if w == "Subject":
-			subject = li[1].replace(", ","/").strip()
-		if w == "Issuer":
-			issuer = li[1].replace(", ","/").strip()
-		if w == "RSA Public Key":
-			key = li[1].replace(")","").strip()
-			key = key.replace("(","").strip()
-		if w == "Not After":
-			date = li[3].split(" ")[1],li[1].split(" ")[1],li[1].split(" ")[2],li[3].split(" ")[2]
-			t = li[1].split(" ")[3],li[2],li[3].split(" ")[0]
-			t = " ".join(date),":".join(t)
-			t = " ".join(t).strip()
-			date1 = time.strptime(t,"%Y %b %d %Z %H:%M:%S")
-			date2 = time.gmtime()
-			date1 = datetime.datetime(date1[0],date1[1],date1[2],date1[3],date1[4])
-			date2 = datetime.datetime(date2[0],date2[1],date2[2],date2[3],date2[4])
-			if date2 > date1:
-				t = "0:00:00"
-			else:
-				t = date1 - date2
+  li = string.split(f,":")
+  if len(li) < 5 and len(li) > 1:
+    w = li[0].strip()
+    if w == "Subject":
+      subject = li[1].replace(", ","/").strip()
+    if w == "Issuer":
+      issuer = li[1].replace(", ","/").strip()
+    if w == "RSA Public Key":
+      key = li[1].replace(")","").strip()
+      key = key.replace("(","").strip()
+    if w == "Not After":
+      ind = f.find(':')
+      date = f[ind+1:].strip()
+#      date = li[3].split(" ")[1],li[1].split(" ")[1],li[1].split(" ")[2],li[3].split(" ")[2]
+#      t = li[1].split(" ")[3],li[2],li[3].split(" ")[0]
+#      t = " ".join(date),":".join(t)
+#      t = " ".join(t).strip()
+      date1 = time.strptime(date,"%b %d %H:%M:%S %Y %Z")
+#      date1 = time.strptime(t,"%Y %b %d %Z %H:%M:%S")
+      date2 = time.gmtime()
+      date1 = datetime.datetime(date1[0],date1[1],date1[2],date1[3],date1[4])
+      date2 = datetime.datetime(date2[0],date2[1],date2[2],date2[3],date2[4])
+      if date2 > date1:
+        t = "0:00:00"
+      else:
+        t = date1 - date2
 #				print t
 #				print t.days
 #				t = str(t.days*24),":00:00"
 #				print t
 #				t = time.strptime(t,"%H:%M:%S")
 #				print t
-				m,d = divmod(t.days,24)
-				t = t.seconds
-				h, t = divmod(t, 3600)
-				h = h + d*24
-				m, s = divmod(t, 60)
-				if h > 24:
-					d = float(h)/24
-					t = "%s (%1.1f days)" % (t,d)
-				else:
-					t = "%s:%s:%s" % (h,m,s)
+        m,d = divmod(t.days,24)
+        t = t.seconds
+        h, t = divmod(t, 3600)
+        h = h + d*24
+        m, s = divmod(t, 60)
+        if h > 24:
+          d = float(h)/24
+          t = "%s (%1.1f days)" % (t,d)
+        else:
+          t = "%s:%s:%s" % (str(h).zfill(2),str(m).zfill(2),str(s).zfill(2))
 print """subject  : /%s
 issuer   : /%s
 strength : %ss
