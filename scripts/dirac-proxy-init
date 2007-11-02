@@ -19,6 +19,7 @@ home = os.environ["HOME"]
 
 certfile = home+"/.globus/usercert.pem"
 keyfile = home+"/.globus/userkey.pem"
+serialfile = home+"/.globus/cert_serial"
 bits = '512'
 hours = '12'
 debug = 0
@@ -70,7 +71,15 @@ def getSerial(certfile):
   status,serial_line = commands.getstatusoutput(
                          openssl+" x509 -serial -in "+certfile+" -noout")
   serial = serial_line.replace("serial=",'')
-  return int(serial,16)
+  return serial
+
+def getOpenSSLVersion():
+  """Get version of the openssl binary
+  """
+
+  status,version = commands.getstatusoutput(openssl+" version")
+  return version.split()[1]
+
 
 def getEmail(certfile):
   """Get email field from the certificate subject
@@ -220,6 +229,9 @@ if (quiet == 0) or (debug == 1):
   print "Your identity: ",getSubject(certfile)
 
 serial = getSerial(certfile)
+sfile = open(serialfile,'w')
+sfile.write(str(serial))
+sfile.close()
 
 uid = os.getuid()
 configfile = mktemp('.proxy_init_'+`uid`)
@@ -249,12 +261,17 @@ days = int(hours)/24 + 1
 
 comm = openssl+" x509 -req -in %s.req -CAkey %s " % (configfile,keyfile)
 comm = comm + "-extfile %s -extensions ext_section -days %s " % (configfile,days)
-comm = comm + "-CA %s -set_serial %d" % (certfile,serial)
+comm = comm + "-CA %s -CAcreateserial -CAserial %s" % (certfile,serialfile)
 
 if debug:
   print "\n",comm,"\n"
-print "Enter PEM pass phrase: ",
-sys.stdout.flush()
+
+version = getOpenSSLVersion()
+if debug:
+  print "OpenSSL version: ",version,'\n'
+if version.find('0.9.6') != -1:
+  print "Enter PEM pass phrase: ",
+  sys.stdout.flush()
 status,output,error = exeCommand(comm)
 
 if status:
