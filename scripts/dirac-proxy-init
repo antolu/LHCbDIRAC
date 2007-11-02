@@ -19,7 +19,6 @@ home = os.environ["HOME"]
 
 certfile = home+"/.globus/usercert.pem"
 keyfile = home+"/.globus/userkey.pem"
-certdir = "/etc/grid-security/certificates"
 bits = '512'
 hours = '12'
 debug = 0
@@ -52,13 +51,22 @@ def printUsage():
     """
 
 def getSubject(certfile):
-  """Get subject from the certicicate
+  """Get subject from the certificate
   """
 
   status,subjectline = commands.getstatusoutput(
                          "openssl x509 -subject -in "+certfile+" -noout")
   subject = string.replace(subjectline,"subject= ",'')
   return subject
+
+def getSerial(certfile):
+  """Get serial from the certificate
+  """
+
+  status,serial_line = commands.getstatusoutput(
+                         "openssl x509 -serial -in "+certfile+" -noout")
+  serial = serial_line.replace("serial=",'')
+  return int(serial,16)
 
 def getEmail(certfile):
   """Get email field from the certificate subject
@@ -102,7 +110,7 @@ distinguished_name = dn_section
 
 [ ext_section ]
 #basicConstraints = CA:false
-#keyUsage = critical, digitalSignature, keyEncipherment, digitalSignature, dataEncipherment, nonRepudiation
+keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment
 #nsCertType = server, client, email
 #nsComment = "Dirac-generated client and server authentication certificate"
 #authorityKeyIdentifier = issuer:always
@@ -115,18 +123,18 @@ distinguished_name = dn_section
   subject = getSubject(certfile)
   psubject = subject+"/CN=proxy"
   fields = string.split(psubject,'/')
-  iter = 0
-  lastOID = ""
+  fieldKeys = {}
   for OID in fields:
     if len( OID ) == 0:
       continue
-    oidTuple = OID.split( "=" )
-    if oidTuple[0] == lastOID:
-      iter += 1
+    key,value = OID.split( "=" )
+    if key in fieldKeys:
+      count = fieldKeys[key]+1
+      fieldKeys[key] = count
     else:
-      iter = 0
-      lastOID = oidTuple[0]
-    cf.write( "%s.%s = %s\n" % ( iter, oidTuple[0], oidTuple[1] ) )
+      fieldKeys[key] = 0
+      count = 0
+    cf.write( "%s.%s = %s\n" % ( count, key,value ) )
 
   cf.write('\n')
   cf.close()
@@ -140,7 +148,7 @@ def getOptions():
     opts, args = getopt.getopt(sys.argv[1:], "hdq", ["help",
                                                     "version",
                                                     "debug",
-						    "quiet",
+                                                    "quiet",
                                                     "verify",
                                                     "pwstdin",
                                                     "hours=",
@@ -161,7 +169,7 @@ def getOptions():
         printUsage()
         sys.exit()
     if o in ("-q", "--quiet"):
-    	quiet = 1
+      quiet = 1
     if o == "--version":
         print __VERSION__
         sys.exit()
@@ -207,6 +215,8 @@ if os.path.exists(outputfile): os.remove(outputfile)
 if (quiet == 0) or (debug == 1):
   print "Your identity: ",getSubject(certfile)
 
+serial = getSerial(certfile)
+
 uid = os.getuid()
 configfile = mktemp('.proxy_init_'+`uid`)
 if debug:
@@ -235,7 +245,7 @@ days = int(hours)/24 + 1
 
 comm = "openssl x509 -req -in %s.req -CAkey %s " % (configfile,keyfile)
 comm = comm + "-extfile %s -extensions ext_section -days %s " % (configfile,days)
-comm = comm + "-CA %s -CAcreateserial -CAserial $HOME/.globus/dirac_serial" % (certfile,)
+comm = comm + "-CA %s -set_serial %d" % (certfile,serial)
 
 if debug:
   print "\n",comm,"\n"
@@ -281,10 +291,10 @@ for f in output:
   a = string.split(f,"Not After :")
   a = len(a)
   if a == 2:
-  	k,v = string.split(f,"Not After :")
-  	v = v.strip(" ")
-  	if (quiet == 0) or (debug == 1):
-  		print "\nYour proxy is valid until: ",v
+    k,v = string.split(f,"Not After :")
+    v = v.strip(" ")
+    if (quiet == 0) or (debug == 1):
+      print "\nYour proxy is valid until: ",v
 
 os.remove(configfile)
 os.remove(configfile+'.req')
