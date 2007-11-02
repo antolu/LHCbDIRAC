@@ -25,8 +25,12 @@ debug = 0
 verify = 0
 pwstdin = 0
 quiet = 0
+if os.path.exists('/usr/bin/openssl'):
+  openssl = '/usr/bin/openssl'
+else:
+  openssl = 'openssl'
 
-__VERSION__ = 0.2
+__VERSION__ = 0.3
 
 
 def printUsage():
@@ -55,7 +59,7 @@ def getSubject(certfile):
   """
 
   status,subjectline = commands.getstatusoutput(
-                         "openssl x509 -subject -in "+certfile+" -noout")
+                         openssl+" x509 -subject -in "+certfile+" -noout")
   subject = string.replace(subjectline,"subject= ",'')
   return subject
 
@@ -64,7 +68,7 @@ def getSerial(certfile):
   """
 
   status,serial_line = commands.getstatusoutput(
-                         "openssl x509 -serial -in "+certfile+" -noout")
+                         openssl+" x509 -serial -in "+certfile+" -noout")
   serial = serial_line.replace("serial=",'')
   return int(serial,16)
 
@@ -73,7 +77,7 @@ def getEmail(certfile):
   """
 
   status,emailline = commands.getstatusoutput(
-                         "openssl x509 -email -in "+certfile+" -noout")
+                         openssl+" x509 -email -in "+certfile+" -noout")
   email = string.replace(emailline,"email= ",'')
   return email
 
@@ -225,7 +229,7 @@ if debug:
 
 configfile = makeConfigFile(configfile,bits)
 
-comm = "openssl req -new -nodes -config %s -keyout %s.key " % (configfile,outputfile)
+comm = openssl+" req -new -nodes -config %s -keyout %s.key " % (configfile,outputfile)
 if debug:
   print "\n",comm
 status,output = commands.getstatusoutput(comm)
@@ -243,7 +247,7 @@ if debug:
 
 days = int(hours)/24 + 1
 
-comm = "openssl x509 -req -in %s.req -CAkey %s " % (configfile,keyfile)
+comm = openssl+" x509 -req -in %s.req -CAkey %s " % (configfile,keyfile)
 comm = comm + "-extfile %s -extensions ext_section -days %s " % (configfile,days)
 comm = comm + "-CA %s -set_serial %d" % (certfile,serial)
 
@@ -274,14 +278,14 @@ if debug:
   print "\nAppending user certificate to",outputfile,":"
   print "\nopenssl x509 -in "+certfile
 of = open(outputfile,'a')
-status,cert = commands.getstatusoutput('openssl x509 -in '+certfile)
+status,cert = commands.getstatusoutput(openssl+' x509 -in '+certfile)
 of.write(cert)
 of.write('\n')
 of.close()
 
 if debug:
   print "\nPrinting timelife message for",outputfile,":"
-comm = "openssl x509 -noout -text -in %s" % (outputfile,)
+comm = openssl+" x509 -noout -text -in %s" % (outputfile,)
 if debug:
   print "\n",comm,"\n"
 status,output = commands.getstatusoutput(comm)
