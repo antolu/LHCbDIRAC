@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.9 2007/10/05 14:39:35 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.10 2007/11/12 17:29:51 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -27,8 +27,8 @@ def initializeProductionRepositoryHandler( serviceInfo ):
 
 class ProductionRepositoryHandler( RequestHandler ):
 
-  types_publishWorkflow = [ StringType ]
-  def export_publishWorkflow( self, wf_body ):
+  types_publishWorkflow = [ StringType, BooleanType ]
+  def export_publishWorkflow( self, wf_body, update=False):
     """ Publish new workflow in the repositiry taking WFtype from the workflow itself
     """
     errKey = "Publishing workflow failed:"
@@ -37,18 +37,22 @@ class ProductionRepositoryHandler( RequestHandler ):
     try:
       wf = fromXMLString(wf_body)
       wf_type = wf.getType()
-      result = productionRepositoryDB.publishWorkflow(wf_type, wf_body, sDN, update=True)
+      result = productionRepositoryDB.publishWorkflow(wf_type, wf_body, sDN, update)
       if not result['OK']:
         errExpl = " type=%s because %s" % (wf_type, result['Message'])
         gLogger.error(errKey, errExpl)
       else:
-        gLogger.verbose('Workflow %s is added to the Production Repository by the %s'%(wf_type, sDN) )
+        if update:
+          gLogger.verbose('Workflow %s is updated in the Production Repository by the %s'%(wf_type, sDN) )
+        else:
+          gLogger.verbose('Workflow %s is added to the Production Repository by the %s'%(wf_type, sDN) )
       return result
 
     except Exception,x:
       errExpl = " type=%s because %s" % (wf_type, str(x))
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
+
 
   types_getWorkflow = [ StringType ]
   def export_getWorkflow( self, wf_name ):
@@ -58,7 +62,12 @@ class ProductionRepositoryHandler( RequestHandler ):
         gLogger.error(error)
         return S_ERROR(error)
     gLogger.info('Workflow %s sucessfully read from the Production Repository' % wf_name)
-    return S_OK(result['Value'])
+    return result
+
+  types_deleteWorkflow = [ StringType ]
+  def export_deleteWorkflow( self, wf_name ):
+    result = productionRepositoryDB.deleteWorkflow(wf_name)
+    return result
 
   types_getListWorkflows = [ ]
   def export_getListWorkflows(self):
@@ -68,9 +77,8 @@ class ProductionRepositoryHandler( RequestHandler ):
       gLogger.error(error)
       return S_ERROR(error)
     gLogger.info('List of Workflows requested from the Production Repository')
-    print "----KGG ", result['Value']
     #return S_OK()
-    return S_OK(result['Value'])
+    return result
 
   types_getWorkflow = [ StringType ]
   def export_getWorkflowInfo( self, wf_name ):
@@ -80,14 +88,5 @@ class ProductionRepositoryHandler( RequestHandler ):
         gLogger.error(error)
         return S_ERROR(error)
     gLogger.info('Workflow Info %s sucessfully read from the Production Repository' % wf_name)
-    return S_OK(result['Value'])
+    return result
 
-  types_updateWorkflow = [ StringType ]
-  def export_updateWorkflow( self, wf_body ):
-    result = productionRepositoryDB.publishWorkflow(wf_body, self.sDN, True)
-    if not result['OK']:
-        return result
-    gLogger.info('Workflow %s of type %s updates in the Production Repository by the ' % (wf_name, wf_type, self.sDN) )
-    return S_OK()
-
-  types_getWorkflow = [ ]

@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.10 2007/10/05 14:39:38 gkuznets Exp $
-__RCSID__ = "$Revision: 1.10 $"
+# $Id: dirac-production-repository-cli.py,v 1.11 2007/11/12 17:26:31 gkuznets Exp $
+__RCSID__ = "$Revision: 1.11 $"
 
 import cmd
 import sys
@@ -68,18 +68,37 @@ class ProductionRepositoryCLI( cmd.Cmd ):
         return
       self.printPair( command, obj.__doc__[1:] )
 
-  def do_publish(self, args):
+  def do_wf_publish(self, args):
     """
     Publish Workflow in the repository
-      Usage: publish <filename>
+      Usage: wf_publish <filename>
       <filename> is a path to the file with the xml description of the workflow
+      If workflow already exists, publishing will be refused.
     """
-    self.repository.publishWorkflow(args)
+    self.repository.publishWorkflow(args, False)
 
-  def do_workflows(self, args):
+  def do_wf_delete(self, args):
+    """
+    Delete Workflow from the the repository
+      Usage: wf_delete <filename>
+      <filename> is a path to the file with the xml description of the workflow
+      If workflow already exists, publishing will be refused.
+    """
+    self.repository.deleteWorkflow(args)
+
+  def do_wf_update(self, args):
+    """
+    Publish or Update Workflow in the repository
+      Usage: wf_update <filename>
+      <filename> is a path to the file with the xml description of the workflow
+      If workflow already exists, it will be replaced.
+    """
+    self.repository.publishWorkflow(args, True)
+
+  def do_wf_list(self, args):
     """
     List all Workflows in the repository
-      Usage: workflows
+      Usage: wf_list
     """
     self.repository.getListWorkflows()
 
