@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.7 2007/05/18 14:03:58 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.8 2007/11/12 19:02:11 acasajus Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
@@ -10,7 +10,7 @@ __RCSID__="$id$"
 import sys, os, string, re
 
 # History:
-# ap, 11-aug-2004 : initial version 
+# ap, 11-aug-2004 : initial version
 # ap, 18-aug-2004 : check gcc version also on mac (Darwin)
 # jc, 9-mar-2007  : adapted for LHCb
 
@@ -22,7 +22,7 @@ def checkGcc() :
     compString = string.join(chOutErr.readlines())[:-1]  # skip \n
     chOutErr.close()
     # print "got: '" + compString + "'"
-     
+
     # On Mac OS X 10.4 the compiler is 4.0 (or 3.3) ...
     compRe = re.compile('.* \(GCC\) (\d\.\d\.\d) .*')
     compMat = compRe.match(compString)
@@ -34,7 +34,7 @@ def checkGcc() :
     if ( string.find(compString, "g++ (GCC) 3.2.3") != -1 ) : comp = "gcc323"
 
     if ( string.find(compString, "g++ (GCC) 3.4") != -1 ) : comp = "gcc34"
-    
+
     # On Mac OS X 10.3 (and SuSE 8.2) the compiler is 3.3 ...
     if ( string.find(compString, "g++ (GCC) 3.3") != -1 ) : comp = "gcc33"
 
@@ -54,7 +54,7 @@ def checkGcc() :
 
 
 def guessHWArch() :
-    
+
     hwArch = "ia32" # set some default to make it work ...
 
     arch = os.uname()[-1]
@@ -143,20 +143,22 @@ def guessPlatform() :
             elif ( string.find(lines, "SuSE") != -1 and
                  string.find(lines, "9.0") != -1 ) : opSys = "slc3_" + guessHWArch()    # guess !
             elif ( string.find(lines, "SuSE") != -1 and
-                 string.find(lines, "9.1") != -1 ) : opSys = "suse91"  # not compatible 
+                 string.find(lines, "9.1") != -1 ) : opSys = "suse91"  # not compatible
             elif ( string.find(lines, "SuSE") != -1 and
-                 string.find(lines, "9.2") != -1 ) : opSys = "suse92"  # not compatible 
+                 string.find(lines, "9.2") != -1 ) : opSys = "suse92"  # not compatible
             elif ( string.find(lines, "SuSE") != -1 and
-                 string.find(lines, "9.3") != -1 ) : opSys = "suse93"  # not compatible 
+                 string.find(lines, "9.3") != -1 ) : opSys = "suse93"  # not compatible
             elif ( string.find(lines, "SUSE") != -1 and
                  string.find(lines, "10.0") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "SUSE") != -1 and
-                 string.find(lines, "10.1") != -1 ) : opSys = "suse101"  # not compatible 
+                 string.find(lines, "10.1") != -1 ) : opSys = "suse101"  # not compatible
             elif ( string.find(lines, "SUSE") != -1 and
-                 string.find(lines, "10.2") != -1 ) : opSys = "suse102"  # not compatible 
+                 string.find(lines, "10.2") != -1 ) : opSys = "suse102"  # not compatible
             elif ( string.find(lines, "Mandriva Linux") != -1 and
-                 string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible 
-    
+                 string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible
+            elif string.find(lines, "Ubuntu" ) != -1:
+            	 opSys = "ubu_%s" % lines.split()[1]
+
         if not opSys :
             # errLog = open(".guessPlatf-os.err",'w')
             # errLog.write("\nUnknown operating system found, please report:\n" + lines + "\n")
@@ -180,4 +182,4 @@ if __name__ == "__main__" :
         print "ERROR"
     else:
         print os+'_'+com
-    
+
