@@ -35,15 +35,16 @@ CREATE TABLE Workflows (
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Productions;
 CREATE TABLE Productions (
-    ProductionID VARCHAR(32) NOT NULL DEFAULT '00000000',
-    WFName VARCHAR(255) NOT NULL,
-    WFType VARCHAR(255) NOT NULL,
+    ProductionID INTEGER NOT NULL AUTO_INCREMENT,
+    PRName VARCHAR(255) NOT NULL,
+    PRParent VARCHAR(255) NOT NULL,
     PublisherDN VARCHAR(255) NOT NULL,
     PublishingTime TIMESTAMP,
     JobsTotal INTEGER NOT NULL DEFAULT 0,
     JobsSubmitted INTEGER NOT NULL DEFAULT 0,
     LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
     Status  VARCHAR(255) NOT NULL,
+    Comment  VARCHAR(255) NOT NULL,
     Body BLOB NOT NULL,
     PRIMARY KEY(ProductionID)
 );

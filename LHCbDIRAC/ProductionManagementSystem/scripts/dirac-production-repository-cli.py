@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.11 2007/11/12 17:26:31 gkuznets Exp $
-__RCSID__ = "$Revision: 1.11 $"
+# $Id: dirac-production-repository-cli.py,v 1.12 2007/11/13 20:35:06 gkuznets Exp $
+__RCSID__ = "$Revision: 1.12 $"
 
 import cmd
 import sys
@@ -100,7 +100,53 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     List all Workflows in the repository
       Usage: wf_list
     """
-    self.repository.getListWorkflows()
+    ret = self.repository.getListWorkflows()
+    if not ret['OK']:
+      print "Error during command execution: %s" % ret['Message']
+    else:
+      print ret['Value']
+      print "----------------------------------------------------------------------------------"
+      print "|    Name    |   Parent   |         Time        |          DN          | Comment |"
+      print "----------------------------------------------------------------------------------"
+      for wf in ret['Value']:
+        print "| %010s | %010s | %014s | %s | %s |" % (wf[0],'',wf[2],wf[1][wf[1].rfind('/CN=')+4:],'')
+      print "----------------------------------------------------------------------------------"
+
+# Production part
+
+  def do_pr_submit(self, args):
+    """
+    Submit Production to the repository
+      Usage: pr_submit <filename>
+      <filename> is a path to the file with the xml description of the workflow
+      If production already exists, submission will be refused.
+    """
+    self.repository.submitProduction(args, False)
+
+  def do_pr_update(self, args):
+    """
+    Update Production in the repository
+      Usage: pr_update <filename>
+      <filename> is a path to the file with the xml description of the workflow
+      If production already exists, submission will be refused.
+    """
+    self.repository.submitProduction(args, True)
+
+  def do_pr_list(self, args):
+    """
+    List all Productions in the repository
+      Usage: pr_list
+    """
+    ret = self.repository.getListProductions()
+    if not ret['OK']:
+      print "Error during command execution: %s" % ret['Message']
+    else:
+      print "-----------------------------------------------------------------------------------------------------------------------------------------"
+      print "|    ID    |    Name    |  Status  |   Parent   |   Total  | Submited |   Last   |         Time        |          DN          | Comment |"
+      print "-----------------------------------------------------------------------------------------------------------------------------------------"
+      for production in ret['Value']:
+        print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (production[0:8]+(production[8][production[8].rfind('/CN=')+4:],production[9]))
+      print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
 if __name__=="__main__":
     cli = ProductionRepositoryCLI()

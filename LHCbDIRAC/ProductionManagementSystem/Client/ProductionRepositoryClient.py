@@ -1,5 +1,5 @@
-# $Id: ProductionRepositoryClient.py,v 1.11 2007/11/12 17:12:54 gkuznets Exp $
-__RCSID__ = "$Revision: 1.11 $"
+# $Id: ProductionRepositoryClient.py,v 1.12 2007/11/13 20:35:05 gkuznets Exp $
+__RCSID__ = "$Revision: 1.12 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
@@ -29,3 +29,11 @@ class ProductionRepositoryClient:
   def getListWorkflows(self):
     return self.rpcClient.getListWorkflows()
 
+  def submitProduction(self, path, update=False):
+    fd = file( path )
+    body = fd.read()
+    fd.close()
+    return self.rpcClient.submitProduction(body, update)
+
+  def getListProductions(self):
+    return self.rpcClient.getListProductions()
