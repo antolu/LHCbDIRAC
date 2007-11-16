@@ -57,3 +57,22 @@ CREATE TABLE InputViectors (
     vector_body BLOB NOT NULL,
     PRIMARY KEY (vectorID)
 );
+
+
+-    self.always    = 'ALWAYS'
+-    self.info      = 'INFO'
+-    self.verbose   = 'VERB'
+-    self.debug     = 'DEBUG'
+-    self.warn      = 'WARN'
+-    self.error     = 'ERROR'
+-    self.exception = 'EXCEPT'
+-    self.fatal     = 'FATAL'
+-    self.__levelDict = {
+-       self.always    : 30,
+-       self.info      : 20,
+-       self.verbose   : 10,
+-       self.debug     : 0,
+-       self.warn      : -10,
+-       self.error     : -20,
+-       self.exception : -20,
+-       self.fatal     : -30

@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.11 2007/11/13 20:35:05 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.12 2007/11/16 18:54:49 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,13 +9,14 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.11 $"
+__RCSID__ = "$Revision: 1.12 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionRepositoryDB import ProductionRepositoryDB
 from DIRAC.Core.Workflow.WorkflowReader import *
+#from DIRAC.Interfaces.API.Dirac import Dirac # job submission
 
 # This is a global instance of the ProductionRepositoryDB class
 productionRepositoryDB = False
@@ -23,6 +24,8 @@ productionRepositoryDB = False
 def initializeProductionRepositoryHandler( serviceInfo ):
   global productionRepositoryDB
   productionRepositoryDB = ProductionRepositoryDB()
+#  global wms
+#  wms = Dirac()
   return S_OK()
 
 class ProductionRepositoryHandler( RequestHandler ):
@@ -67,6 +70,8 @@ class ProductionRepositoryHandler( RequestHandler ):
   types_deleteWorkflow = [ StringType ]
   def export_deleteWorkflow( self, wf_name ):
     result = productionRepositoryDB.deleteWorkflow(wf_name)
+    if not result['OK']:
+      gLogger.error(result['Message'])
     return result
 
   types_getListWorkflows = [ ]
@@ -121,11 +126,58 @@ class ProductionRepositoryHandler( RequestHandler ):
 
   types_getListProductions = [ ]
   def export_getListProductions(self):
+    gLogger.verbose('Getting list of Productions')
     result = productionRepositoryDB.getListProductions()
     if not result['OK']:
-      error = 'Failed to read List of Productions from the repository'
-      gLogger.error(error)
-      return S_ERROR(error)
-    gLogger.info('List of Productions requested from the Production Repository')
-    #return S_OK()
+      error = 'Can not get list of Productions because %s' % result['Message']
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  types_deleteProduction = [ StringType ]
+  def export_deleteProduction( self, pr_name ):
+    result = productionRepositoryDB.deleteProduction(pr_name)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_deleteProductionID = [ IntType ]
+  def export_deleteProductionID( self, id ):
+    result = productionRepositoryDB.deleteProductionID(id)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_submitJobs = [ IntType, IntType ]
+  def export_submitJobs( self, id, njobs ):
+    result = productionRepositoryDB.getProductionID(id)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+      return result
+    body = result['Value']
+    while njobs > 0:
+      pass
+      #result = wms.submit(body)
+      #if not result['OK']:
+      #  gLogger.error('Can not submit job bacause %s' % result['Message'])
+    return result
+
+  types_getProductionID = [ IntType ]
+  def export_getProductionID( self, id ):
+    result = productionRepositoryDB.getProductionID(id)
+    if not result['OK']:
+        error = 'Failed to read Production with the id %d from the repository' % id
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.verbose('Production %d sucessfully read from the Production Repository' % id)
+    return result
+
+  types_getProduction = [ StringType ]
+  def export_getProduction( self, pr_name ):
+    result = productionRepositoryDB.getProduction(pr_name)
+    if not result['OK']:
+        error = 'Failed to read Production with the name %s from the repository' % pr_name
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.verbose('Production %s sucessfully read from the Production Repository' % pr_name)
     return result
