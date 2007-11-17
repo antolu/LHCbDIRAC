@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.12 2007/11/16 18:54:49 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.13 2007/11/17 01:48:21 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,14 +9,14 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.12 $"
+__RCSID__ = "$Revision: 1.13 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionRepositoryDB import ProductionRepositoryDB
 from DIRAC.Core.Workflow.WorkflowReader import *
-#from DIRAC.Interfaces.API.Dirac import Dirac # job submission
+from DIRAC.Interfaces.API.Dirac import Dirac # job submission
 
 # This is a global instance of the ProductionRepositoryDB class
 productionRepositoryDB = False
@@ -24,8 +24,8 @@ productionRepositoryDB = False
 def initializeProductionRepositoryHandler( serviceInfo ):
   global productionRepositoryDB
   productionRepositoryDB = ProductionRepositoryDB()
-#  global wms
-#  wms = Dirac()
+  global wms
+  wms = Dirac()
   return S_OK()
 
 class ProductionRepositoryHandler( RequestHandler ):
@@ -156,10 +156,11 @@ class ProductionRepositoryHandler( RequestHandler ):
       return result
     body = result['Value']
     while njobs > 0:
-      pass
-      #result = wms.submit(body)
-      #if not result['OK']:
-      #  gLogger.error('Can not submit job bacause %s' % result['Message'])
+      result = wms.submit(body)
+      if not result['OK']:
+        gLogger.error('Can not submit job bacause %s' % result['Message'])
+      njobs=njobs-1
+      print result
     return result
 
   types_getProductionID = [ IntType ]
