@@ -1,0 +1,229 @@
+#!/usr/bin/env python
+"""
+    usage: dirac-install [options]
+
+    Default operation is to install DIRAC from a downloaded package
+
+    options:
+
+        help     h  help
+        debug    d  debug
+        version  v  version
+
+        update   u  update DIRAC Agent Software
+        cvs      c  use CVS for software install/update
+        grid     g  install LCG utilities
+        root     r  directory to install Dirac
+
+        account  a  <acct> CVS account name (e.g. :ext:ijstokes)
+        package  p  <url> use specified package instead of default
+
+    NOTE: use "--" for long options, and "-" for short options
+"""
+
+__RCSID__   = "$Id"
+__VERSION__ = "$Revision"
+
+defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
+defaultPackage = "DIRAC-HEAD.tar.gz"
+
+import os, sys, time
+import getopt, re
+import commands
+import shutil
+import urllib
+
+def doc():
+    print __doc__
+    print """
+documentation to be provided
+    """
+
+def main(argv):
+    opts = procOpts(argv)
+    rootdir = opts['root']
+    if not os.path.isdir(rootdir):
+        try:
+            os.mkdir(rootdir)
+        except:
+            print " can not create this directory : ",rootdir
+            sys.exit(2)
+
+    os.chdir(rootdir)
+    print "You will install DIRAC in",os.getcwd()
+    
+    if (opts['cvs']):
+        cvsroot = opts['account']
+        print "Installing from CVS: %s " % (cvsroot)
+        os.environ['CVSROOT']=cvsroot
+        if opts['update']:
+          status, output = commands.getstatusoutput ("cvs -z3 up DIRAC3")
+        else:
+          status, output = commands.getstatusoutput ("cvs -z3 co DIRAC3")
+    else:
+        package = opts['package']
+        if not os.path.isdir('distribution'):
+          os.mkdir('distribution')
+        os.chdir("distribution")
+
+        print "Installing DIRAC software "
+        if not getRemoteFile(package):
+          print "Failed to get package %s, aborting installation."  % package
+          sys.exit(1)
+
+        os.chdir("..")
+        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
+
+    if (opts['lcg']):
+        package = defaultURL + "lcg_utils.tar.gz"
+        os.chdir("distribution")
+        print "Installing LCG utility software "
+        if not getRemoteFile(package):
+          print "Failed to get package %s, aborting installation."  % package
+          sys.exit(1)
+          
+        os.chdir("..")
+        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))  
+
+    if (opts['full']):
+        packages = ['DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
+        for soft_package in packages:
+            package = defaultURL + soft_package
+            os.chdir("distribution")
+            print "Installing LCG utility software "
+            if not getRemoteFile(package):
+                print "Failed to get package %s, aborting installation."  % package
+                sys.exit(1)
+          
+            os.chdir("..")
+            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))  
+
+def procOpts(argv):
+    ########################################################################
+    # Step 0: Process command line options and arguments
+    ########################################################################
+
+    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full", "package=", "account=", "root="]
+    opts       = {} # this is what we return to the caller
+    opt_dict   = {}
+    opt_string = ""
+    for o in opt_list:
+        char = re.match("\w", o).group()
+        word = re.match("\w+",o).group()
+        val = ""
+        if (re.search("=$", o)):
+            val = ":"
+        opt_dict[char] = ("-" + char, "--" + word)
+        opt_string = opt_string + char + val
+    #print opt_dict
+
+    try:
+        opt_list, remaining_argv   = getopt.getopt(argv[1:], opt_string, opt_list)
+    except getopt.GetoptError:
+        # print help information and exit:
+        print __doc__
+        sys.exit(2)
+
+    opts['update']  = 0
+    opts['cvs']     = 0
+    opts['lcg']     = 0
+    opts['full']     = 0
+    opts['account'] = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
+    opts['package'] = defaultURL + defaultPackage
+    opts['root'] = '.'
+    for opt,val in opt_list:
+        if opt in opt_dict['h']:
+            print __doc__
+            sys.exit(0)
+        elif opt in opt_dict['v']:
+            print __VERSION__
+            sys.exit(0)
+        elif opt in opt_dict['d']:
+            opts['debug']    = 1
+        elif opt in opt_dict['u']:
+             opts['update']  = 1
+        elif opt in opt_dict['c']:
+             opts['cvs']     = 1
+        elif opt in opt_dict['g']:
+             opts['lcg']     = 1     
+        elif opt in opt_dict['f']:
+             opts['full']     = 1     
+        elif opt in opt_dict['a']:
+             opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
+        elif opt in opt_dict['p']:
+             opts['package'] = val
+        elif opt in opt_dict['r']:
+             opts['root'] = val
+        else:
+            print "ERROR: Option %s unknown" % (opt)
+            print __doc__
+            sys.exit(2)
+    if (remaining_argv):
+        print "ERROR: Argument %s unknown" % (remaining_argv)
+        print __doc__
+        sys.exit(2)
+
+    return opts
+
+import signal
+
+def alarmHandler(*args):
+    """
+    signal handler for SIGALRM, just raise an exception
+    """
+    raise "TimeOut"
+
+def urlretrieveTimeout(fname,lname,timeout):
+# NOTE: Not thread-safe, since all threads will catch same alarm.
+#       This is OK for dirac-install, since there are no threads.
+
+  signal.signal(signal.SIGALRM, alarmHandler)
+  try:
+    # set timeout alarm
+    signal.alarm(timeout)
+    localname,headers = urllib.urlretrieve(fname,lname)
+  except "TimeOut":
+    print "Timeout after %s seconds on transfer request for %s" % \
+          (str(timeout), fname)
+
+  # clear timeout alarm
+  signal.alarm(0)
+
+
+def getRemoteFile(fname):
+
+  lname = os.path.basename(fname)  
+  proxy = None
+  try:
+    urlretrieveTimeout(fname,lname,600)
+  except Exception, x :
+    print "Failed to get file",fname
+    print str(x)
+    print "Retrying..."  
+
+  # If the file isn't there, and http_proxy is defined, try unsetting
+  # http_proxy and retry transfer.
+  if not os.path.exists(lname) and os.environ.has_key('http_proxy'):
+    proxy = os.environ['http_proxy']
+    del os.environ['http_proxy']
+    try:
+      urlretrieveTimeout(fname,lname,600)
+    except Exception, x :
+      print "Failed to get file",fname
+      print str(x)  
+
+  if proxy:
+    os.environ['http_proxy'] = proxy
+
+  # If it still isn't there, then the operation failed.
+  if not os.path.exists(lname):
+    print "ERROR: Getting ",fname," failed" 
+    return 0
+  else: # otherwise successful, return non-zero.
+    return 1
+
+############################################# END getRemoteFile
+
+
+if __name__ == "__main__":
+    main(sys.argv)
