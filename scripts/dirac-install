@@ -40,6 +40,9 @@ documentation to be provided
     """
 
 def main(argv):
+    """  Main module to read the options provided to the command line
+         install of DIRAC in the rootdir
+    """
     opts = procOpts(argv)
     rootdir = opts['root']
     if not os.path.isdir(rootdir):
@@ -51,7 +54,7 @@ def main(argv):
 
     os.chdir(rootdir)
     print "You will install DIRAC in",os.getcwd()
-    
+
     if (opts['cvs']):
         cvsroot = opts['account']
         print "Installing from CVS: %s " % (cvsroot)
@@ -81,9 +84,9 @@ def main(argv):
         if not getRemoteFile(package):
           print "Failed to get package %s, aborting installation."  % package
           sys.exit(1)
-          
+
         os.chdir("..")
-        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))  
+        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
     if (opts['full']):
         packages = ['DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
@@ -94,11 +97,13 @@ def main(argv):
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
-          
+
             os.chdir("..")
-            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))  
+            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
 def procOpts(argv):
+    """  Analyse the options coming from the command line
+    """
     ########################################################################
     # Step 0: Process command line options and arguments
     ########################################################################
@@ -145,9 +150,9 @@ def procOpts(argv):
         elif opt in opt_dict['c']:
              opts['cvs']     = 1
         elif opt in opt_dict['g']:
-             opts['lcg']     = 1     
+             opts['lcg']     = 1
         elif opt in opt_dict['f']:
-             opts['full']     = 1     
+             opts['full']     = 1
         elif opt in opt_dict['a']:
              opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
         elif opt in opt_dict['p']:
@@ -191,15 +196,17 @@ def urlretrieveTimeout(fname,lname,timeout):
 
 
 def getRemoteFile(fname):
+   """ Download file from a web adress
+   """
 
-  lname = os.path.basename(fname)  
+  lname = os.path.basename(fname)
   proxy = None
   try:
     urlretrieveTimeout(fname,lname,600)
   except Exception, x :
     print "Failed to get file",fname
     print str(x)
-    print "Retrying..."  
+    print "Retrying..."
 
   # If the file isn't there, and http_proxy is defined, try unsetting
   # http_proxy and retry transfer.
@@ -210,14 +217,14 @@ def getRemoteFile(fname):
       urlretrieveTimeout(fname,lname,600)
     except Exception, x :
       print "Failed to get file",fname
-      print str(x)  
+      print str(x)
 
   if proxy:
     os.environ['http_proxy'] = proxy
 
   # If it still isn't there, then the operation failed.
   if not os.path.exists(lname):
-    print "ERROR: Getting ",fname," failed" 
+    print "ERROR: Getting ",fname," failed"
     return 0
   else: # otherwise successful, return non-zero.
     return 1
