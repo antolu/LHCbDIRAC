@@ -16,8 +16,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id"
-__VERSION__ = "$Revision"
+__RCSID__   = "$Id: dirac-setup,v 1.3 2007/11/27 14:45:01 joel Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import os, sys, time
 import getopt, re
@@ -30,7 +30,7 @@ except ImportError:
      possible if they are in the same directory) tries to setup the PYTHONPATH
   """
   scriptsPath = os.path.realpath( os.path.dirname( __file__ ) )
-  rootPath = os.path.realpath( "%s/.." % scriptsPath )  
+  rootPath = os.path.realpath( "%s/.." % scriptsPath )
 
   sys.path.insert( 0, rootPath )
 
@@ -73,7 +73,7 @@ def createAgentCFG(opts,site,mode,architecture,platform):
     if not cfgLocal.isSection('DIRAC'):
         print "Creating local section DIRAC"
         cfgLocal.createNewSection('DIRAC','local section')
-       
+
     cfgAgent = cfgLocal["DIRAC"]
     cfgAgent.setOption('Site',site)
     cfgAgent.setOption('Setup',mode)
@@ -85,19 +85,19 @@ def createAgentCFG(opts,site,mode,architecture,platform):
     cfgAgentCS.setOption('Servers','dips://volhcb03.cern.ch:9135/Configuration/Server')
     cfgAgentCS.setOption('Name','LHCb-Devel')
 
-    parts = site.split('.')   
+    parts = site.split('.')
     if len(parts) != 3:
       print " The site name is not correct. Should be DIRAC.<site>.<country code>"
       sys.exit(-1)
     else:
-      sitename = parts[1]  
+      sitename = parts[1]
 
     # write the configuration to a file
-    inifile = 'etc/dirac.cfg'  
+    inifile = 'etc/dirac.cfg'
     if not os.path.exists('etc'):
-      os.mkdir('etc') 
+      os.mkdir('etc')
     if os.path.exists(inifile):
-      os.remove(inifile)     
+      os.remove(inifile)
 
     fd = open(inifile,'w')
     fd.write(str(cfgLocal))
@@ -129,12 +129,12 @@ def procOpts(argv,site,mode,architecture,platform):
         # print help information and exit:
         print __doc__
         sys.exit(2)
-    
+
     if (len(remaining_argv) >= 1):
         for j in remaining_argv:
             print j
             cfgLocal.loadFromFile(j)
-        
+
     ########################################################################
     # Step 1: Use values from command line options
     ########################################################################
@@ -152,7 +152,7 @@ def procOpts(argv,site,mode,architecture,platform):
         elif opt in opt_dict['a']:
              architecture   = val
         elif opt in opt_dict['p']:
-             platform   = val             
+             platform   = val
         else:
              print "ERROR: Option %s unknown" % (opt)
              print __doc__
