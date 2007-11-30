@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function canonicalize
+{
+        cd -P -- "$(dirname -- "$1")" &&
+        printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
+}
+
+basedir=`canonicalize $0`
+basedir=`dirname $basedir`
+basedir=`dirname $basedir`
+`$basedir/scripts/dirac-architecture python` $basedir/DIRAC/Core/Scripts/dirac-jobexec $1
