@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.1 2007/11/29 16:14:58 joel Exp $
+# $Id: GaudiApplication.py,v 1.2 2007/12/05 08:26:45 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.1 2007/11/29 16:14:58 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.2 2007/12/05 08:26:45 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Os import fixLDPath
@@ -24,6 +24,49 @@ class GaudiApplication(object):
     self.result = S_ERROR()
     self.logfile = 'None'
     self.generator_name=''
+    self.optfile_extra = ''
+    self.optfile = ''
+
+  def manage_OPTS(self):
+    print "manage options OPTS",self.optfile
+    options = open('gaudi.opts','w')
+    options.write('\n\n//////////////////////////////////////////////////////\n')
+    options.write('// Dynamically generated options in a production or analysis job\n\n')
+    if os.path.exists('gaudirun.opts'): os.remove('gaudirun.opts')
+    if os.path.exists('gaudiruntmp.opts'): os.remove('gaudiruntmp.opts')
+    if re.search('\$',self.optfile) is None:
+      comm = 'cat '+self.optfile+' > gaudiruntmp.opts'
+      output = shellCall(0,comm)
+    else:
+      comm = 'echo "#include '+self.optfile+'" > gaudiruntmp.opts'
+      commtmp = open('gaudiruntmp.opts','w')
+      newline = '#include "'+self.optfile+'"'
+      commtmp.write(newline)
+      commtmp.close()
+
+    self.optfile = 'gaudiruntmp.opts'
+    for opt in self.optionsLine.split(';'):
+      options.write(opt+';\n')
+    options.close()
+
+    comm = 'cat '+self.optfile+' gaudi.opts > gaudirun.opts'
+    output = shellCall(0,comm)
+    os.environ['JOBOPTPATH'] = 'gaudirun.opts'
+
+  def manage_PY(self):
+    if os.path.exists(self.optfile_extra): os.remove(self.optfile_extra)
+
+    try:
+        self.log.info("Adding extra options : %s" % (self.optionsLine))
+        options = open(self.optfile_extra,'a')
+        options.write('\n\n#//////////////////////////////////////////////////////\n')
+        options.write('# Dynamically generated options in a production or analysis job\n\n')
+        options.write('from Gaudi.Configuration import *\n')
+        for opt in self.optionsLine.split(';'):
+            options.write(opt+'\n')
+        options.close()
+    except Exception, x:
+        print "No additonnal option"
 
 
   def execute(self):
@@ -53,37 +96,31 @@ class GaudiApplication(object):
 
     app_dir_path = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
                    string.upper(self.appName)+'_'+self.appVersion+'/'+prefix+'/' \
-                   +self.appName+'/'+self.appVersion
+                   +self.appVersion
     app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
                    string.upper(self.appName)+'_'+self.appVersion+'/InstallArea'
 
     #TO FIX
     mysiteroot = self.root
     if os.path.exists(mysiteroot+'/'+self.optionsFile):
-      optfile = mysiteroot+'/'+self.optionsFile
+      self.optfile = mysiteroot+'/'+self.optionsFile
 
     # Otherwise take the one from the application options directory
     else:
       optpath = app_dir_path+'/options'
       if os.path.exists(optpath+'/'+self.optionsFile):
-        optfile = optpath+'/'+self.optionsFile
+        self.optfile = optpath+'/'+self.optionsFile
       else:
-        optfile = self.optionsFile
+        self.optfile = self.optionsFile
 
-    optfile_extra = 'gaudi_extra_options.py'
-    if os.path.exists(optfile_extra): os.remove(optfile_extra)
-
-    try:
-        self.log.info("Adding extra options : %s" % (self.optionsLine))
-        options = open(optfile_extra,'a')
-        options.write('\n\n#//////////////////////////////////////////////////////\n')
-        options.write('# Dynamically generated options in a production or analysis job\n\n')
-        options.write('from Gaudi.Configuration import *\n')
-        for opt in self.optionsLine.split(';'):
-            options.write(opt+'\n')
-        options.close()
-    except Exception, x:
-        print "No additonnal option"
+    if self.optionsFile.find('.opts') > 0:
+      self.optfile_extra = 'gaudi_extra_options.opts'
+      optionsType = 'opts'
+      self.manage_OPTS()
+    else:
+      optionsType = 'py'
+      self.optfile_extra = 'gaudi_extra_options.py'
+      self.manage_PY()
 
 #    comm = open(optfile,'a')
 #    newline = """OutputStream("DstWriter").Output = "DATAFILE='PFN:joel.dst' TYPE='POOL_ROOTTREE' OPT='REC'"\n """
@@ -107,12 +144,8 @@ class GaudiApplication(object):
       orig_ld_path = os.environ['LD_LIBRARY_PATH']
       self.log.info('original ld lib path is: '+orig_ld_path)
 
-#    fixLDPath(self.root,orig_ld_path,'localinis')
-
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
- #   script.write('declare -x CMTROOT='+self.root+'/'+localDir+'\n')
-#    script.write('declare -x JOBOPTPATH='+os.environ['JOBOPTPATH']+'\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
 
     # DLL fix which creates fake CMT package
@@ -134,10 +167,10 @@ class GaudiApplication(object):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.appName+' '+self.appVersion+' gfal lfc CASTOR dcache_client oracle -v \n')
+                 +self.appName+' '+self.appVersion+' gfal lfc CASTOR dcache_client oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
-                 self.appName+' '+self.appVersion+' gfal lfc CASTOR dcache_client oracle -verbose \n')
+                 self.appName+' '+self.appVersion+' gfal lfc CASTOR dcache_client oracle\n')
 
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     #To handle oversized LD_LIBARARY_PATHs
@@ -179,22 +212,6 @@ done
     #Finally prepend directory for user libraries
     script.write('declare -x LD_LIBRARY_PATH='+ld_base_path+'/lib:${LD_LIBRARY_PATH}\n') #DLLs always in lib dir
 
-    #Check for user shipped executable, to solve linker and component library problem
-    if self.generator_name == '':
-      exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe ' #default
-      if os.path.exists('lib/'+self.appName+'.exe'):
-        exe_path = 'lib/'+self.appName+'.exe '
-        print 'Found user shipped executable '+self.appName+'.exe...'
-      else:
-        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe '
-    else:
-      exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+self.generator_name+'.exe ' #default
-      if os.path.exists('lib/'+self.appName+self.generator_name+'.exe'):
-        exe_path = 'lib/'+self.appName+self.generator_name+'.exe '
-        print 'Found user shipped executable '+self.appName+self.generator_name+'.exe...'
-      else:
-        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+self.generator_name+'.exe '
-
     script.write('echo LD_LIBRARY_PATH is\n')
     script.write('echo $LD_LIBRARY_PATH\n')
     script.write('echo PATH is\n')
@@ -206,7 +223,18 @@ done
     if os.path.exists(comp_path):
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
-      comm = 'gaudirun.py  '+optfile+' ./'+optfile_extra+'\n'
+      if optionsType == 'py':
+        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
+      else:
+        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe ' #default
+        if os.path.exists('lib/'+self.appName+'.exe'):
+          exe_path = 'lib/'+self.appName+'.exe '
+          print 'Found user shipped executable '+self.appName+'.exe...'
+        else:
+          exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe '
+
+        comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+exe_path+' '+os.environ['JOBOPTPATH']+'\n'
+
       print 'Command = ',comm
       script.write(comm)
 
@@ -229,6 +257,7 @@ done
     status = resultTuple[0]
     stdOutput = resultTuple[1]
     stdError = resultTuple[2]
+    print "DEBUGstat",status
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
@@ -244,8 +273,7 @@ done
       self.log.error( "%s execution completed with errors:" % self.appName )
       failed = True
     elif stdError:
-      self.log.error( "%s execution completed with application errors:" % self.appName )
-      failed = True
+      self.log.error( "%s execution completed with application Warning:" % self.appName )
     else:
       self.log.info( "%s execution completed succesfully:" % self.appName )
 
@@ -268,7 +296,7 @@ done
 
     else:
       self.log.info( "==================================\n StdOutput (last 100 lines) :\n" )
-      lines = output.split('\n')
+      lines = stdOutput.split('\n')
       if len(lines) > 100:
         self.log.info( string.join( lines[ -100: ],'\n')  )
       else:
