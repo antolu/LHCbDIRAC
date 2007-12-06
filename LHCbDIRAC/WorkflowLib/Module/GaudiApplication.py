@@ -1,12 +1,11 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.2 2007/12/05 08:26:45 joel Exp $
+# $Id: GaudiApplication.py,v 1.3 2007/12/06 12:31:34 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.2 2007/12/05 08:26:45 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.3 2007/12/06 12:31:34 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Os import fixLDPath
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
 import shutil, re, string, os
