@@ -16,8 +16,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-setup,v 1.5 2007/12/06 15:15:49 joel Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-setup,v 1.6 2007/12/06 16:16:43 joel Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import os, sys, time
 import getopt, re
@@ -77,10 +77,10 @@ def createAgentCFG(opts,site,mode,architecture,platform,root):
         cfgLocal.createNewSection('DIRAC','local section')
 
     cfgAgent = cfgLocal["DIRAC"]
-    cfgAgent.createNewSection('ConfigurationService')
-    cfgAgentCS = cfgAgent["ConfigurationService"]
+    cfgAgent.setOption('Setup',mode)
+    cfgAgent.createNewSection('Configuration')
+    cfgAgentCS = cfgAgent["Configuration"]
     cfgAgentCS.setOption('Servers','dips://volhcb03.cern.ch:9135/Configuration/Server')
-    cfgAgentCS.setOption('Name','LHCb-Devel')
 
     if not cfgLocal.isSection('LocalSite'):
         print "Creating local section LocalSite"
@@ -88,7 +88,6 @@ def createAgentCFG(opts,site,mode,architecture,platform,root):
 
     cfgAgent = cfgLocal["LocalSite"]
     cfgAgent.setOption('Site',site)
-    cfgAgent.setOption('Setup',mode)
     cfgAgent.setOption('Root',root)
     cfgAgent.setOption('Architecture',architecture)
     cfgAgent.setOption('Platform',platform)
