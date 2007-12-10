@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.2 2007/12/10 09:00:15 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.3 2007/12/10 09:09:34 joel Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 #
-# __RCSID__='$Id: dirac-distribution,v 1.2 2007/12/10 09:00:15 joel Exp $'
+# __RCSID__='$Id: dirac-distribution,v 1.3 2007/12/10 09:09:34 joel Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -27,7 +27,7 @@ echo
 DIRAC_MAKE    DIRAC3/DIRAC                                               || exit 1
 
 tarfile=DIRAC-${DIRAC_CVS_TAG}.tar.gz
-DIRAC_TAR     ${tarfile} scripts DIRAC                                   || exit 1
+DIRAC_TAR     ${tarfile} scripts DIRAC WorkflowLib                                   || exit 1
 
 echo
 echo
