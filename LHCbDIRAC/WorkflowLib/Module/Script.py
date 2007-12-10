@@ -1,24 +1,48 @@
 
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
-import sys,re
+import os,sys,re
 
 class Script(object):
 
   def __init__(self):
     # constructor code
-    self.Result = 'None'
-    self.Name = ''
+    self.Name = 'Name'
     self.Executable = ''
+    self.LogFile = 'None'
+    self.Output = 'None'
 
   def execute(self):
     # main execution function
-    print 'Executing Module = ',str(type(self))
-    print 'Executable is: ',self.Name
-    print 'The following is to be executed: ',self.Executable
-
+    print '---------------------------------------------------------------'
+    print 'Executable Name: %s' %(self.Name)
     cmd = self.Executable
     if re.search('.py$',self.Executable):
-      cmd = sys.executable+' '+self.Executable
-    self.Result = shellCall(0,cmd)
-    print "OUTPUT is",self.Result
+      cmd = '%s %s' %(sys.executable,self.Executable)
+    print cmd
+    outputDict = shellCall(0,cmd)
+    print '---------------------------------------------------------------'
+    if not outputDict:
+      print 'ERROR: Could not execute script %s' %(self.Executable)
+    if not outputDict['OK']:
+      print 'ERROR: Shell call execution failed:'
+      print outputDict['Message']
+    resTuple = outputDict['Value']
+    status = resTuple[0]
+    stdout = resTuple[1]
+    stderr = resTuple[2]
+    print 'Execution completed with status %s' %(status)
+    print stdout
+    print stderr
+    if os.path.exists(self.LogFile):
+      print 'Removing existing %s' % self.LogFile
+      os.remove(self.LogFile)
+    fopen = open(self.LogFile,'w')
+    fopen.write('<<<<<<<<<< Standard Output>>>>>>>>>>\n\n%s ' % stdout)
+    if stderr:
+      fopen.write('<<<<<<<<<< Standard Error: >>>>>>>>>>\n\n%s ' % stderr)
+    fopen.close()
+    print 'Output written to %s' % (self.LogFile)
+    self.Output = '%s\n%s' %(stdout,stderr)
+
+
