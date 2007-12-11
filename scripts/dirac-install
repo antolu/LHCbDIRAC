@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.3 2007/11/27 14:44:21 joel Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-install,v 1.4 2007/12/11 15:14:03 joel Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -89,7 +89,7 @@ def main(argv):
         out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
     if (opts['full']):
-        packages = ['DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
+        packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
