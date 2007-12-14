@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.5 2007/12/14 16:39:02 joel Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-install,v 1.6 2007/12/14 16:41:02 joel Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -93,7 +93,7 @@ def main(argv):
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software "
+            print "Installing External utility software for 32 bits"
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
@@ -106,7 +106,7 @@ def main(argv):
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software "
+            print "Installing External utility software for 64 bits"
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
