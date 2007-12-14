@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.4 2007/12/11 15:14:03 joel Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-install,v 1.5 2007/12/14 16:39:02 joel Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -88,7 +88,20 @@ def main(argv):
         os.chdir("..")
         out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
-    if (opts['full']):
+    if (opts['full32']):
+        packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_ia32_gcc34.tar.gz','DIRAC-external-HEAD.slc4_ia32_gcc34-python24.tar.gz']
+        for soft_package in packages:
+            package = defaultURL + soft_package
+            os.chdir("distribution")
+            print "Installing External utility software "
+            if not getRemoteFile(package):
+                print "Failed to get package %s, aborting installation."  % package
+                sys.exit(1)
+
+            os.chdir("..")
+            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
+
+    if (opts['full64']):
         packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
@@ -101,6 +114,7 @@ def main(argv):
             os.chdir("..")
             out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
+
 def procOpts(argv):
     """  Analyse the options coming from the command line
     """
@@ -108,7 +122,7 @@ def procOpts(argv):
     # Step 0: Process command line options and arguments
     ########################################################################
 
-    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full", "package=", "account=", "root="]
+    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full=", "package=", "account=", "root="]
     opts       = {} # this is what we return to the caller
     opt_dict   = {}
     opt_string = ""
@@ -152,7 +166,7 @@ def procOpts(argv):
         elif opt in opt_dict['g']:
              opts['lcg']     = 1
         elif opt in opt_dict['f']:
-             opts['full']     = 1
+             opts['full']     = 'full'+val
         elif opt in opt_dict['a']:
              opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
         elif opt in opt_dict['p']:
