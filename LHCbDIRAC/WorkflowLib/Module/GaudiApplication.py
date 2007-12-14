@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.3 2007/12/06 12:31:34 joel Exp $
+# $Id: GaudiApplication.py,v 1.4 2007/12/14 13:42:18 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.3 2007/12/06 12:31:34 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.4 2007/12/14 13:42:18 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -46,6 +46,8 @@ class GaudiApplication(object):
     self.optfile = 'gaudiruntmp.opts'
     for opt in self.optionsLine.split(';'):
       options.write(opt+';\n')
+#    for opt in self.outputData.split(';'):
+#      options.write("""DigiWriter.Output = "DATAFILE='PFN:"""+opt+"""' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""")
     options.close()
 
     comm = 'cat '+self.optfile+' gaudi.opts > gaudirun.opts'
@@ -63,6 +65,10 @@ class GaudiApplication(object):
         options.write('from Gaudi.Configuration import *\n')
         for opt in self.optionsLine.split(';'):
             options.write(opt+'\n')
+#        for opt in self.inputData.split(';'):
+#            options.write("""EventSelector().Input = ["Datafile=''+opt+'' TYP='POOL_ROOTTREE' OPT='READ'" ]""")
+#        for opt in self.outputData.split(';'):
+#            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
         options.close()
     except Exception, x:
         print "No additonnal option"
@@ -91,7 +97,6 @@ class GaudiApplication(object):
 
     #will think about this later
     #############################################################
-    self.appOutputData = 'DST'
 
     app_dir_path = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
                    string.upper(self.appName)+'_'+self.appVersion+'/'+prefix+'/' \
@@ -143,6 +148,7 @@ class GaudiApplication(object):
       orig_ld_path = os.environ['LD_LIBRARY_PATH']
       self.log.info('original ld lib path is: '+orig_ld_path)
 
+    os.system('python '+self.root+'/DIRAC/scripts/fixLDpath.py '+orig_ld_path+' None localinis')
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
@@ -173,7 +179,8 @@ class GaudiApplication(object):
 
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     #To handle oversized LD_LIBARARY_PATHs
-#    script.write('../scripts/dirac-fix-ld-library-path '+self.root+' $LD_LIBRARY_PATH inis\n')
+    script.write('python ../scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
+#    script.write('python '+self.root+'/DIRAC/scripts/fixLDpath.py $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
 
    #To fix Shr variable problem with component libraries
     if os.path.exists(ld_base_path+'/lib'):
