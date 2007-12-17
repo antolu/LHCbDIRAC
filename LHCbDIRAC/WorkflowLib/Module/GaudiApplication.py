@@ -1,14 +1,15 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.4 2007/12/14 13:42:18 joel Exp $
+# $Id: GaudiApplication.py,v 1.5 2007/12/17 14:44:26 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.4 2007/12/14 13:42:18 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.5 2007/12/17 14:44:26 paterson Exp $"
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
-import shutil, re, string, os
+import shutil, re, string, os, sys
 
 class GaudiApplication(object):
 
@@ -22,9 +23,44 @@ class GaudiApplication(object):
     self.appInputData = 'NoInputName'
     self.result = S_ERROR()
     self.logfile = 'None'
+    self.inputData = ''
+    self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
     self.optfile_extra = ''
     self.optfile = ''
+
+  def resolveInputDataOpts(self,options):
+    """ Input data resolution has two cases. Either there is explicitly defined
+        input data for the application step (a subset of total workflow input data reqt)
+        *or* this is defined at the job level and the job wrapper has created a
+        pool_xml_catalog.xml slice for all requested files.
+
+        Could be overloaded for python / standard options in the future.
+    """
+    if self.inputData:
+      self.log.info('Input data defined in workflow for this Gaudi Application step')
+      if type(self.inputData) != type([]):
+        self.inputData = self.inputData.split(';')
+    elif os.path.exists(self.poolXMLCatName):
+      inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
+      inputDataList = inputDataCatalog.getLfnsList()
+      self.inputData = inputDataList
+    else:
+      self.log.verbose('Job has no input data requirement')
+
+    if self.inputData:
+      #write opts
+      lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
+      inputDataFiles = []
+      for lfn in lfns: inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+      inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
+      evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
+      options.write(evtSelOpt)
+
+    if os.path.exists(self.poolXMLCatName):
+      poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+      options.write(poolOpt)
+
 
   def manage_OPTS(self):
     print "manage options OPTS",self.optfile
@@ -45,9 +81,16 @@ class GaudiApplication(object):
 
     self.optfile = 'gaudiruntmp.opts'
     for opt in self.optionsLine.split(';'):
-      options.write(opt+';\n')
+      if not re.search('tring',opt):
+        options.write(opt+';\n')
+      else:
+        self.log.warn('Options line not in correct format ignoring string')
+
+    self.resolveInputDataOpts(options)
+
 #    for opt in self.outputData.split(';'):
 #      options.write("""DigiWriter.Output = "DATAFILE='PFN:"""+opt+"""' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""")
+    options.write('\n//EOF\n')
     options.close()
 
     comm = 'cat '+self.optfile+' gaudi.opts > gaudirun.opts'
@@ -71,11 +114,12 @@ class GaudiApplication(object):
 #            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
         options.close()
     except Exception, x:
-        print "No additonnal option"
+        print "No additional options"
 
 
   def execute(self):
-    self.root = os.getcwd() #TO FIX...
+    cwd = os.getcwd()
+    self.root = gConfig.getValue('/LocalSite/Root',cwd)
     self.log.debug(self.version)
     self.log.info( "Executing application %s %s" % ( self.appName, self.appVersion ) )
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
@@ -148,7 +192,8 @@ class GaudiApplication(object):
       orig_ld_path = os.environ['LD_LIBRARY_PATH']
       self.log.info('original ld lib path is: '+orig_ld_path)
 
-    os.system('python '+self.root+'/DIRAC/scripts/fixLDpath.py '+orig_ld_path+' None localinis')
+    #os.system('python '+self.root+'/scripts/fixLDpath.py '+orig_ld_path+' None localinis')
+    os.system('%s %s/scripts/dirac-fix-ld-library-path %s None localinis\n' %(sys.executable,self.root,orig_ld_path))
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
@@ -179,7 +224,7 @@ class GaudiApplication(object):
 
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     #To handle oversized LD_LIBARARY_PATHs
-    script.write('python ../scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
+    script.write('%s %s/scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH %s inis\n' %(sys.executable,self.root,orig_ld_path))
 #    script.write('python '+self.root+'/DIRAC/scripts/fixLDpath.py $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
 
    #To fix Shr variable problem with component libraries
