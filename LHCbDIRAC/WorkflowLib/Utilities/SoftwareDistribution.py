@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SoftwareDistribution.py,v 1.1 2007/12/13 20:46:12 paterson Exp $
+# $Id: SoftwareDistribution.py,v 1.2 2007/12/17 16:27:38 paterson Exp $
 # File :   SoftwareDistribution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     as required.
 """
 
-__RCSID__ = "$Id: SoftwareDistribution.py,v 1.1 2007/12/13 20:46:12 paterson Exp $"
+__RCSID__ = "$Id: SoftwareDistribution.py,v 1.2 2007/12/17 16:27:38 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -67,12 +67,12 @@ class SoftwareDistribution:
       self.log.verbose('Found VO_LHCB_SW_DIR = %s' %(voDir))
       sharedArea = voDir+'/lib'
       if os.path.exists(sharedArea):
-        self.log.verbose('Found $VO_LHCB_SW_DIR/lib = %s/lib' %(sharedArea))
+        self.log.verbose('Found $VO_LHCB_SW_DIR/lib = %s' %(sharedArea))
         root = os.getcwd()
         self.__createLink(sharedArea,root+'/lib')
         return S_OK('Created link to VO_LHCB_SW_DIR')
       else:
-        return S_ERROR('Path to $VO_LHCB_SW_DIR/lib = %s/lib does not exist' %(sharedArea))
+        return S_ERROR('Path to $VO_LHCB_SW_DIR/lib = %s does not exist' %(sharedArea))
     else:
       return S_ERROR('No VO_LHCB_SW_DIR defined')
 
