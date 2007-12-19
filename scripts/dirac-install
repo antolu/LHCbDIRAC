@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.8 2007/12/18 14:16:53 joel Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: dirac-install,v 1.9 2007/12/19 14:05:43 joel Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -88,12 +88,12 @@ def main(argv):
         os.chdir("..")
         out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
-    if (opts['full'] == 'full32'):
+    if (opts['full'] == 'slc4_ia32_gcc34'):
         packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_ia32_gcc34.tar.gz','DIRAC-external-HEAD.slc4_ia32_gcc34-python24.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software for 32 bits"
+            print "Installing External utility software for 32 bits : ",soft_package
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
@@ -101,12 +101,12 @@ def main(argv):
             os.chdir("..")
             out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
-    if (opts['full'] == 'full64'):
+    if (opts['full'] == 'slc4_amd64_gcc34'):
         packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software for 64 bits"
+            print "Installing External utility software for 64 bits : ",soft_package
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
@@ -166,7 +166,7 @@ def procOpts(argv):
         elif opt in opt_dict['g']:
              opts['lcg']     = 1
         elif opt in opt_dict['f']:
-             opts['full']     = 'full'+val
+             opts['full']     = val
         elif opt in opt_dict['a']:
              opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
         elif opt in opt_dict['p']:
