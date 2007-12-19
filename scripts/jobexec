@@ -1,12 +1,13 @@
 #!/bin/bash
 
-function canonicalize
-{
-        cd -P -- "$(dirname -- "$1")" &&
-        printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
-}
+if [ -z "$DIRACROOT" ] ; then
+    echo "Variable DIRACROOT (directory containing DIRAC/) is not defined"
+    exit 1
+fi
 
-basedir=`canonicalize $0`
-basedir=`dirname $basedir`
-basedir=`dirname $basedir`
-`$basedir/scripts/dirac-architecture python` $basedir/DIRAC/Core/scripts/dirac-jobexec $1
+if [ -z "$DIRACPYTHON" ] ; then
+    echo "Variable DIRACPYTHON (path to DIRAC python executable) is not defined"
+    exit 1
+fi
+
+$DIRACPYTHON $DIRACROOT/DIRAC/Core/scripts/dirac-jobexec $1
