@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SoftwareDistribution.py,v 1.2 2007/12/17 16:27:38 paterson Exp $
+# $Id: SoftwareDistribution.py,v 1.3 2007/12/20 13:47:48 paterson Exp $
 # File :   SoftwareDistribution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     as required.
 """
 
-__RCSID__ = "$Id: SoftwareDistribution.py,v 1.2 2007/12/17 16:27:38 paterson Exp $"
+__RCSID__ = "$Id: SoftwareDistribution.py,v 1.3 2007/12/20 13:47:48 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -31,6 +31,7 @@ class SoftwareDistribution:
     """ Standard constructor
     """
     self.arguments = argumentsDict
+    self.lhcbConfig = 'LHCb_config.py'
     self.log = gLogger
 
   #############################################################################
@@ -42,6 +43,20 @@ class SoftwareDistribution:
     self.log.debug(cmd)
     outputDict = shellCall(0,cmd)
     return outputDict
+
+  #############################################################################
+  def __checkConfigFile(self,sharedArea):
+    """The Gaudi Application module depends on an LHCb configuration file
+       residing in the shared area.  This function copies the file local to
+       the job.
+    """
+    if os.path.exists(self.lhcbConfig):
+      self.log.verbose('Found local configuration file %s' %(self.lhcbConfig))
+    elif os.path.exists(sharedArea+'/'+self.lhcbConfig):
+      cmd = 'cp %s/%s .' %(sharedArea,self.lhcbConfig)
+      outputDict = shellCall(0,cmd)
+    else:
+      self.log.warn('Could not locate %s' %(self.lhcbConfig))
 
   #############################################################################
   def execute(self):
@@ -70,6 +85,7 @@ class SoftwareDistribution:
         self.log.verbose('Found $VO_LHCB_SW_DIR/lib = %s' %(sharedArea))
         root = os.getcwd()
         self.__createLink(sharedArea,root+'/lib')
+        self.__checkConfigFile(sharedArea)
         return S_OK('Created link to VO_LHCB_SW_DIR')
       else:
         return S_ERROR('Path to $VO_LHCB_SW_DIR/lib = %s does not exist' %(sharedArea))
