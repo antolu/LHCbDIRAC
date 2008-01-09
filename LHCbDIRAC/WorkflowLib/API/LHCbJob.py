@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.1 2007/12/13 20:28:45 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.2 2008/01/09 15:45:58 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
    Helper functions are documented with example usage for the DIRAC API.
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.1 2007/12/13 20:28:45 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.2 2008/01/09 15:45:58 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -167,7 +167,7 @@ class LHCbJob(Job):
     self._addParameter(module,'appName','Parameter','string','Application Name')
     self._addParameter(module,'appVersion','Parameter','string','Application Version')
     self._addParameter(module,'optionsFile','Parameter','string','Options File Name')
-    self._addParameter(module,'optionsLine','','string','Options Line')
+    self._addParameter(module,'optionsLine','String','string','Options Line')
     self._addParameter(module,'systemConfig','Parameter','string','CMTCONFIG Value')
     self._addParameter(module,'logfile','Parameter','string','Log File Name')
     self._addParameter(module,'result','Parameter','string','Execution Result',io='output')
