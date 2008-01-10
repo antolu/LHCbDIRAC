@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.13 2007/11/17 01:48:21 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.14 2008/01/10 20:18:56 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.13 $"
+__RCSID__ = "$Revision: 1.14 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -28,31 +28,38 @@ def initializeProductionRepositoryHandler( serviceInfo ):
   wms = Dirac()
   return S_OK()
 
+
+################ WORKFLOW SECTION ####################################
+
 class ProductionRepositoryHandler( RequestHandler ):
 
   types_publishWorkflow = [ StringType, BooleanType ]
   def export_publishWorkflow( self, wf_body, update=False):
-    """ Publish new workflow in the repositiry taking WFtype from the workflow itself
+    """ Publish new workflow in the repositiry taking WFname from the workflow itself
     """
     errKey = "Publishing workflow failed:"
-    wf_type = "Unknown"
+    wf_name = "Unknown"
+    wf_parent = "Unknown"
+    wf_description = "empty description"
     sDN = self.transport.peerCredentials['DN']
     try:
       wf = fromXMLString(wf_body)
-      wf_type = wf.getType()
-      result = productionRepositoryDB.publishWorkflow(wf_type, wf_body, sDN, update)
+      wf_name = wf.getName()
+      wf_parent = wf.getType()
+      wf_description = wf.getDescrShort()
+      result = productionRepositoryDB.publishWorkflow(wf_name, wf_parent, wf_description, wf_body, sDN, update)
       if not result['OK']:
-        errExpl = " type=%s because %s" % (wf_type, result['Message'])
+        errExpl = " name=%s because %s" % (wf_name, result['Message'])
         gLogger.error(errKey, errExpl)
       else:
         if update:
-          gLogger.verbose('Workflow %s is updated in the Production Repository by the %s'%(wf_type, sDN) )
+          gLogger.verbose('Workflow %s is updated in the Production Repository by the %s'%(wf_name, sDN) )
         else:
-          gLogger.verbose('Workflow %s is added to the Production Repository by the %s'%(wf_type, sDN) )
+          gLogger.verbose('Workflow %s is added to the Production Repository by the %s'%(wf_name, sDN) )
       return result
 
     except Exception,x:
-      errExpl = " type=%s because %s" % (wf_type, str(x))
+      errExpl = " name=%s because %s" % (wf_name, str(x))
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
 
@@ -81,7 +88,7 @@ class ProductionRepositoryHandler( RequestHandler ):
       error = 'Failed to read List of Workflows from the repository'
       gLogger.error(error)
       return S_ERROR(error)
-    gLogger.info('List of Workflows requested from the Production Repository')
+    gLogger.verbose('List of Workflows requested from the Production Repository')
     return result
 
   types_getWorkflow = [ StringType ]
@@ -93,6 +100,9 @@ class ProductionRepositoryHandler( RequestHandler ):
         return S_ERROR(error)
     gLogger.info('Workflow Info %s sucessfully read from the Production Repository' % wf_name)
     return result
+
+
+################ PRODUCTION SECTION ####################################
 
   types_submitProduction = [ StringType, BooleanType ]
   def export_submitProduction( self, wf_body, update=False):

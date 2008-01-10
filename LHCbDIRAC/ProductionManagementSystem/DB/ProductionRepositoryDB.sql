@@ -25,11 +25,13 @@ USE ProductionRepositoryDB;
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
-    WFType VARCHAR(255) NOT NULL,
+    WFName VARCHAR(255) NOT NULL,
+    WFParent VARCHAR(255),
+    Description  VARCHAR(255),
     PublisherDN VARCHAR(255) NOT NULL,
     PublishingTime TIMESTAMP,
     Body BLOB NOT NULL,
-    PRIMARY KEY(WFType)
+    PRIMARY KEY(WFName)
 );
 
 --------------------------------------------------------------------------------
@@ -38,13 +40,13 @@ CREATE TABLE Productions (
     ProductionID INTEGER NOT NULL AUTO_INCREMENT,
     PRName VARCHAR(255) NOT NULL,
     PRParent VARCHAR(255) NOT NULL,
+    Description  VARCHAR(255),
     PublisherDN VARCHAR(255) NOT NULL,
     PublishingTime TIMESTAMP,
     JobsTotal INTEGER NOT NULL DEFAULT 0,
     JobsSubmitted INTEGER NOT NULL DEFAULT 0,
     LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
     Status  VARCHAR(255) NOT NULL,
-    Comment  VARCHAR(255) NOT NULL,
     Body BLOB NOT NULL,
     PRIMARY KEY(ProductionID)
 );

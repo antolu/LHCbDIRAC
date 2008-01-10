@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.13 2007/11/16 18:54:50 gkuznets Exp $
-__RCSID__ = "$Revision: 1.13 $"
+# $Id: dirac-production-repository-cli.py,v 1.14 2008/01/10 20:18:57 gkuznets Exp $
+__RCSID__ = "$Revision: 1.14 $"
 
 import cmd
 import sys
@@ -83,7 +83,24 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd = file( args )
     body = fd.read()
     fd.close()
-    self.repository.publishWorkflow(body, False)
+    result = self.repository.publishWorkflow(body, False)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+
+  def do_wf_update(self, args):
+    """
+    Publish or Update Workflow in the repository
+      Usage: wf_update <filename>
+      <filename> is a path to the file with the xml description of the workflow
+      If workflow already exists, it will be replaced.
+    """
+    fd = file( args )
+    body = fd.read()
+    fd.close()
+    result = self.repository.publishWorkflow(body, True)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+
 
   def do_wf_get(self, args):
     """
@@ -96,8 +113,13 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     wf_name = argss[0]
     path = argss[1]
 
-    body = self.repository.getWorkflow(wf_name)['Value']
-    fd = open( path, 'w' )
+    result = self.repository.getWorkflow(wf_name)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+
+    body = result['Value']
+    fd = open( path, 'wb' )
     fd.write(body)
     fd.close()
 
@@ -106,38 +128,27 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     Delete Workflow from the the repository
       Usage: wf_delete WorkflowName
     """
-    self.repository.deleteWorkflow(args)
-
-  def do_wf_update(self, args):
-    """
-    Publish or Update Workflow in the repository
-      Usage: wf_update <filename>
-      <filename> is a path to the file with the xml description of the workflow
-      If workflow already exists, it will be replaced.
-    """
-    fd = file( args )
-    body = fd.read()
-    fd.close()
-    self.repository.publishWorkflow(args, True)
+    result = self.repository.deleteWorkflow(args)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
 
   def do_wf_list(self, args):
     """
     List all Workflows in the repository
       Usage: wf_list
     """
-    ret = self.repository.getListWorkflows()
-    if not ret['OK']:
-      print "Error during command execution: %s" % ret['Message']
+    result = self.repository.getListWorkflows()
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
     else:
-      print ret['Value']
       print "----------------------------------------------------------------------------------"
       print "|    Name    |   Parent   |         Time        |          DN          | Comment |"
       print "----------------------------------------------------------------------------------"
-      for wf in ret['Value']:
-        print "| %010s | %010s | %014s | %s | %s |" % (wf[0],'',wf[2],wf[1][wf[1].rfind('/CN=')+4:],'')
+      for wf in result['Value']:
+        print "| %010s | %010s | %014s | %s | %s |" % (wf['WFName'],wf['WFParent'],wf['PublishingTime'],wf['PublisherDN'][wf['PublisherDN'].rfind('/CN=')+4:],wf['Description'])
       print "----------------------------------------------------------------------------------"
 
-# Production part
+################ PRODUCTION SECTION ####################################
 
   def do_pr_submit(self, args):
     """

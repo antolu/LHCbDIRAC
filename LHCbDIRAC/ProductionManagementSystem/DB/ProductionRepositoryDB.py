@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.27 2007/11/16 18:54:49 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.28 2008/01/10 20:18:56 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.27 $"
+__RCSID__ = "$Revision: 1.28 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -26,107 +26,81 @@ class ProductionRepositoryDB(DB):
 
     DB.__init__(self,'ProductionRepositoryDB', 'ProductionManagement/ProductionRepositoryDB', maxQueueSize)
 
+################ WORKFLOW SECTION ####################################
 
-  def publishWorkflow(self, wf_type, wf_body, publisherDN, update=False):
-    # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
-    result = self.getWorkflowInfo(wf_type)
-    #print "KGG", result
-    if result['OK']:
+  def publishWorkflow(self, wf_name, wf_parent, wf_descr, wf_body, publisherDN, update=False):
+
+    if not self._isWorkflowExists(wf_name):
       # workflow is not exists
-      if result['Value'] == ():
-        result = self._insert('Workflows', [ 'WFType', 'PublisherDN', 'Body' ], [wf_type, publisherDN, wf_body])
+      result = self._insert('Workflows', [ 'WFName', 'WFParent', 'Description', 'PublisherDN', 'Body' ], [wf_name, wf_parent, wf_descr, publisherDN, wf_body])
+      if result['OK']:
+        gLogger.verbose('Workflow "%s" published by DN="%s"' % (wf_name, publisherDN))
+      else:
+        error = 'Workflow "%s" FAILED to be published by DN="%s" with message "%s"' % (wf_name, publisherDN, result['Message'])
+        gLogger.error(error)
+        return S_ERROR( error )
+    else: # workflow already exists
+      if update: # we were asked to update
+        result = self._escapeString( wf_body )
+        if not result['OK']: return result
+        wf_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+
+        cmd = "UPDATE Workflows Set WFParent='%s', Description='%s', PublisherDN='%s', Body='%s' WHERE WFName='%s' " \
+              % (wf_parent, wf_descr, publisherDN, wf_body_esc, wf_name)
+
+        result = self._update( cmd )
         if result['OK']:
-          gLogger.verbose('Workflow Type "%s" published by DN="%s"' % (wf_type, publisherDN))
+          gLogger.verbose( 'Workflow "%s" updated by DN="%s"' % (wf_name, publisherDN) )
         else:
-          error = 'Workflow Type "%s" FAILED to be published by DN="%s" with message "%s"' % (wf_type, publisherDN, result['Message'])
-          gLogger.error(error)
-          return S_ERROR( error )
-      else: # workflow already exists
-        if update: # we were asked to update
-          result = self._escapeString( wf_body )
-          if not result['OK']: return result
-          wf_body_esc = result['Value']
-
-          cmd = "UPDATE Workflows Set PublisherDN='%s', Body='%s' WHERE WFType='%s' " \
-                % (publisherDN, wf_body_esc, wf_type)
-
-          result = self._update( cmd )
-          if result['OK']:
-            gLogger.info( 'Workflow Type "%s" updated by DN="%s"' % (wf_type, publisherDN) )
-          else:
-            error = 'Workflow Type "%s" FAILED on update by DN="%s"' % (wf_type, publisherDN)
-            gLogger.error( error )
-            return S_ERROR( error )
-        else: # update was not requested
-          error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_type, publisherDN)
+          error = 'Workflow "%s" FAILED on update by DN="%s"' % (wf_name, publisherDN)
           gLogger.error( error )
           return S_ERROR( error )
-    else:
-      error = 'Workflow Type "%s" FAILED to be published by DN="%s" with message "%s"' % (wf_type, publisherDN)
-      gLogger.error( error )
-      return S_ERROR( error )
-    return result
-
-  def getWorkflow(self, wf_type):
-    cmd = "SELECT WFType, PublisherDN, PublishingTime, Body from Workflows WHERE WFType='%s'" % wf_type
-    result = self._query(cmd)
-    if result['OK']:
-      return S_OK(result['Value'][0][3]) # we
-    else:
-      return S_ERROR("Failed to retrive Workflow with name '%s' " % wf_type)
-
-  # KGG NEED TO BE INCORPORATED!!!!
-  def _isWorkflowExists(self, wf_type):
-    cmd = "SELECT  WFType from Workflows WHERE WFType='%s'" % wf_type
-    result = self._query(cmd)
-    if not result['OK']:
-      gLogger.error("Failed to check if Workflow of type %s exists %s" % (wf_type, result['Message']))
-      return False
-    elif result['Value'] == () :
-      gLogger.debug("No workflow with the name '%s' in the Production Repository" % wf_type)
-      return False
-    return True
-
-  def _isProductionExists(self, pr_name):
-    cmd = "SELECT PRName from Productions WHERE PRName='%s'" % pr_name
-    result = self._query(cmd)
-    if not result['OK']:
-      gLogger.error("Failed to check if Production with name %s exists %s" % (pr_name, result['Message']))
-      return False
-    elif result['Value'] == () :
-      gLogger.debug("No Production with the name '%s' in the Production Repository" % pr_name)
-      return False
-    return True
-
-  def _isProductionIDExists(self, id):
-    cmd = "SELECT ProductionID from Productions WHERE ProductionID='%d'" % id
-    result = self._query(cmd)
-    if not result['OK']:
-      gLogger.error("Failed to check if Production with ID %d exists %s" % (id, result['Message']))
-      return False
-    elif result['Value'] == () :
-      gLogger.debug("No Production with the ID '%d' in the Production Repository" % id)
-      return False
-    return True
-
-  def deleteWorkflow(self, wf_type):
-    cmd = "SELECT  WFType from Workflows WHERE WFType='%s'" % wf_type
-    result = self._query(cmd)
-
-    if not result['OK']:
-      return S_ERROR("Failed to check if Workflow of type %s exists %s" % (wf_type, result['Message']))
-    elif result['Value'] == () :
-      return S_ERROR("No workflow with the name '%s' in the Production Repository" % wf_type)
-
-    cmd = "DELETE FROM Workflows WHERE WFType=\'%s\'" % (wf_type)
-    result = self._update(cmd)
-    if not result['OK']:
-      return S_ERROR("Failed to delete Workflow '%s' with the message %s" % (wf_type, result['Message']))
+      else: # update was not requested
+        error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_name, publisherDN)
+        gLogger.error( error )
+        return S_ERROR( error )
     return result
 
   def getListWorkflows(self):
-    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows;"
-    return self._query(cmd)
+    cmd = "SELECT  WFName, WFParent, Description, PublisherDN, PublishingTime from Workflows;"
+    result = self._query(cmd)
+    if result['OK']:
+      newres=[] # repacking
+      for pr in result['Value']:
+        newres.append({'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4]})
+      return S_OK(newres)
+    return result
+
+
+  def getWorkflow(self, wf_name):
+    cmd = "SELECT Body from Workflows WHERE WFName='%s'" % wf_name
+    result = self._query(cmd)
+    if result['OK']:
+      return S_OK(result['Value'][0][0]) # we
+    else:
+      return S_ERROR("Failed to retrive Workflow with name '%s' " % wf_name)
+
+  # KGG NEED TO BE INCORPORATED!!!!
+  def _isWorkflowExists(self, wf_name):
+    cmd = "SELECT COUNT(*) from Workflows WHERE WFName='%s'" % wf_name
+    result = self._query(cmd)
+    if not result['OK']:
+      gLogger.error("Failed to check if Workflow of name %s exists %s" % (wf_name, result['Message']))
+      return False
+    elif result['Value'][0][0] > 0:
+        return True
+    return False
+
+  def deleteWorkflow(self, wf_name):
+
+    if not self._isWorkflowExists(wf_name):
+      return S_ERROR("There is no Workflow with the name '%s' in the repository" % (wf_name))
+
+    cmd = "DELETE FROM Workflows WHERE WFName=\'%s\'" % (wf_name)
+    result = self._update(cmd)
+    if not result['OK']:
+      return S_ERROR("Failed to delete Workflow '%s' with the message %s" % (wf_name, result['Message']))
+    return result
 
   def getWorkflowInfo(self, wf_type):
     cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows WHERE WFType='%s'" % wf_type
@@ -135,6 +109,28 @@ class ProductionRepositoryDB(DB):
       return result
     else:
       return S_ERROR('Failed to retrive Workflow with the name=%s' % (wf_type, result['Message']) )
+
+################ PRODUCTION SECTION ####################################
+
+  def _isProductionExists(self, pr_name):
+    cmd = "SELECT COUNT(*) from Productions WHERE PRName='%s'" % pr_name
+    result = self._query(cmd)
+    if not result['OK']:
+      gLogger.error("Failed to check if Production with name %s exists %s" % (pr_name, result['Message']))
+      return False
+    elif result['Value'][0][0] > 0:
+        return True
+    return False
+
+  def _isProductionIDExists(self, id):
+    cmd = "SELECT COUNT(*) from Productions WHERE ProductionID='%d'" % id
+    result = self._query(cmd)
+    if not result['OK']:
+      gLogger.error("Failed to check if Production with ID %d exists %s" % (id, result['Message']))
+      return False
+    elif result['Value'][0][0] > 0:
+        return True
+    return False
 
   def getProductionInfo(self, pr_name):
     cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Comment from Productions WHERE PRName='%s'" % pr_name
