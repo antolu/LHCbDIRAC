@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.14 2008/01/10 20:18:56 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.15 2008/01/14 21:28:46 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.14 $"
+__RCSID__ = "$Revision: 1.15 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -111,14 +111,14 @@ class ProductionRepositoryHandler( RequestHandler ):
     errKey = "Publishing Production failed:"
     wf_name = "Unknown"
     wf_parrent = ""
-    wf_comment = ""
+    wf_description = ""
     sDN = self.transport.peerCredentials['DN']
     try:
       wf = fromXMLString(wf_body)
       wf_name = wf.getName()
       wf_parent = wf.getType()
-      wf_comment = wf.getDescrShort()
-      result = productionRepositoryDB.publishProduction(wf_name, wf_parent, wf_comment, wf_body, sDN, update)
+      wf_description = wf.getDescrShort()
+      result = productionRepositoryDB.publishProduction(wf_name, wf_parent, wf_description, wf_body, sDN, update)
       if not result['OK']:
         errExpl = " type=%s because %s" % (wf_name, result['Message'])
         gLogger.error(errKey, errExpl)

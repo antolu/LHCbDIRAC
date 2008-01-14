@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.14 2008/01/10 20:18:57 gkuznets Exp $
-__RCSID__ = "$Revision: 1.14 $"
+# $Id: dirac-production-repository-cli.py,v 1.15 2008/01/14 21:28:48 gkuznets Exp $
+__RCSID__ = "$Revision: 1.15 $"
 
 import cmd
 import sys
@@ -18,6 +18,10 @@ from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC.LoggingSystem.Client.Logger import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
+#job submission
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.Job                            import Job
+from DIRAC.Core.Workflow.WorkflowReader import *
 
 localCfg.addDefaultEntry("LogLevel", "DEBUG")
 
@@ -183,13 +187,13 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     if not ret['OK']:
       print "Error during command execution: %s" % ret['Message']
     else:
-      print "-----------------------------------------------------------------------------------------------------------------------------------------"
-      print "|    ID    |    Name    |  Status  |   Parent   |   Total  | Submited |   Last   |         Time        |          DN          | Comment |"
-      print "-----------------------------------------------------------------------------------------------------------------------------------------"
+      print "--------------------------------------------------------------------------------------------------------------------------------------------"
+      print "|    ID    |    Name    |  Status  |   Parent   |   Total  | Submited |   Last   |         Time        |          DN          | Description |"
+      print "--------------------------------------------------------------------------------------------------------------------------------------------"
       for production in ret['Value']:
         print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (production["ProductionID"],
                production['PRName'], production['Status'], production['PRParent'], production['JobsTotal'],
-               production['JobsSubmitted'], production['LastSubmittedJob'], production['PublishingTime'], production['PublisherDN'], production['Comment'])
+               production['JobsSubmitted'], production['LastSubmittedJob'], production['PublishingTime'], production['PublisherDN'], production['Description'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
 
@@ -240,7 +244,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd.write(body)
     fd.close()
 
-  def do_jobs_submit(self, args):
+  def do_jobs_submit_local(self, args):
     """
     Submit N Jobs of the production
       Usage: jobs_submit ProductionID NJobs
@@ -266,9 +270,28 @@ class ProductionRepositoryCLI( cmd.Cmd ):
 
     id = int(argss[0])
     njobs = int(argss[1])
+    wms = Dirac()
 
-    result = self.repository.submitJobs(id, njobs)
-    #print result
+    result = self.repository.getProductionID(id)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+    body = result["Value"]
+    while njobs > 0:
+      #print body
+      wf = fromXMLString(body)
+      job = Job()
+      job.workflow = wf
+      job._dumpParameters()
+      job._Job__setJobDefaults()
+      #stramge fix to avoid error
+      job._addParameter(job.workflow,'requirements','JDL','','Do not know what to add')
+
+      result = wms.submit(job)
+      if not result['OK']:
+        print "Can not submit job bacause %s" % result['Message']
+      njobs=njobs-1
+      print result
 
 
 if __name__=="__main__":

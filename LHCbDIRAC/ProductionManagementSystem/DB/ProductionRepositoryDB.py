@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.28 2008/01/10 20:18:56 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.29 2008/01/14 21:28:47 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.28 $"
+__RCSID__ = "$Revision: 1.29 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -133,18 +133,21 @@ class ProductionRepositoryDB(DB):
     return False
 
   def getProductionInfo(self, pr_name):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Comment from Productions WHERE PRName='%s'" % pr_name
+    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE PRName='%s'" % pr_name
     result = self._query(cmd)
     if result['OK']:
       return result
     else:
       return S_ERROR('Failed to retrive Production with the name=%s message=%s' % (pr_name, result['Message']))
 
-  def publishProduction(self, pr_name, pr_parent, pr_comment, pr_body, publisherDN, update=False):
+  def publishProduction(self, pr_name, pr_parent, pr_description, pr_body, publisherDN, update=False):
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
     if not self._isProductionExists(pr_name): # workflow is not exists
-        result = self._insert('Productions', [ 'PRName','PRParent','PublisherDN','Status','Comment', 'Body' ], \
-                              [pr_name, pr_parent, publisherDN, 'NEW', pr_comment, pr_body])
+        result = self._escapeString( pr_body )
+        if not result['OK']: return result
+        pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+        result = self._insert('Productions', [ 'PRName','PRParent','PublisherDN','Status','Description', 'Body' ], \
+                              [pr_name, pr_parent, publisherDN, 'NEW', pr_description, pr_body_esc])
         if result['OK']:
           gLogger.info('Production "%s" published by DN="%s"' % (pr_name, publisherDN))
           return result
@@ -156,10 +159,10 @@ class ProductionRepositoryDB(DB):
         if update: # we were asked to update
           result = self._escapeString( pr_body )
           if not result['OK']: return result
-          pr_body_esc = result['Value']
+          pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
 
-          cmd = "UPDATE Productions Set PRParent='%s', PublisherDN='%s', Comment='%s', Body='%s' WHERE PRName='%s' " \
-                % (pr_parent, publisherDN, pr_comment, pr_body_esc, pr_name)
+          cmd = "UPDATE Productions Set PRParent='%s', PublisherDN='%s', Description='%s', Body='%s' WHERE PRName='%s' " \
+                % (pr_parent, publisherDN, pr_description, pr_body_esc, pr_name)
 
           result = self._update( cmd )
           if result['OK']:
@@ -175,15 +178,15 @@ class ProductionRepositoryDB(DB):
           return S_ERROR( error )
 
   def getListProductions(self):
-    cmd = "SELECT  ProductionID, PRName, PRParent, PublisherDN, PublishingTime, JobsTotal, JobsSubmitted, LastSubmittedJob,  Status, Comment from Productions;"
+    cmd = "SELECT  ProductionID, PRName, PRParent, PublisherDN, PublishingTime, JobsTotal, JobsSubmitted, LastSubmittedJob,  Status, Description from Productions;"
     result = self._query(cmd)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
         #newres.append(dict.fromkeys(('ProductionID', 'PRName', 'PRParent','PublisherDN', 'PublishingTime',
-        #                    'JobsTotal', 'JobsSubmitted', 'LastSubmittedJob', 'Status', 'Comment'),pr))
+        #                    'JobsTotal', 'JobsSubmitted', 'LastSubmittedJob', 'Status', 'Description'),pr))
         newres.append({'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4],
-                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Comment':pr[9]})
+                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]})
       return S_OK(newres)
     return result
 
