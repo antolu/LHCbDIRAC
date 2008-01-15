@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.29 2008/01/14 21:28:47 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.30 2008/01/15 15:05:18 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.29 $"
+__RCSID__ = "$Revision: 1.30 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -67,7 +67,7 @@ class ProductionRepositoryDB(DB):
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
-        newres.append({'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4]})
+        newres.append({'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' ')})
       return S_OK(newres)
     return result
 
@@ -102,13 +102,16 @@ class ProductionRepositoryDB(DB):
       return S_ERROR("Failed to delete Workflow '%s' with the message %s" % (wf_name, result['Message']))
     return result
 
-  def getWorkflowInfo(self, wf_type):
-    cmd = "SELECT  WFType, PublisherDN, PublishingTime from Workflows WHERE WFType='%s'" % wf_type
+  def getWorkflowInfo(self, wf_name):
+    cmd = "SELECT  WFName, WFParent, Description, PublisherDN, PublishingTime from Workflows WHERE WFname='%s'" % wf_name
     result = self._query(cmd)
     if result['OK']:
-      return result
+      pr=result['Value']
+      newres = {'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' ')}
+      return S_OK(newres)
     else:
-      return S_ERROR('Failed to retrive Workflow with the name=%s' % (wf_type, result['Message']) )
+      return S_ERROR('Failed to retrive Workflow with the name=%s' % (wf_name, result['Message']) )
+
 
 ################ PRODUCTION SECTION ####################################
 
@@ -185,7 +188,7 @@ class ProductionRepositoryDB(DB):
       for pr in result['Value']:
         #newres.append(dict.fromkeys(('ProductionID', 'PRName', 'PRParent','PublisherDN', 'PublishingTime',
         #                    'JobsTotal', 'JobsSubmitted', 'LastSubmittedJob', 'Status', 'Description'),pr))
-        newres.append({'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4],
+        newres.append({'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
                             'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]})
       return S_OK(newres)
     return result
