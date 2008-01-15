@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.9 2007/12/19 14:05:43 joel Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac-install,v 1.10 2008/01/15 16:22:10 joel Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -88,25 +88,13 @@ def main(argv):
         os.chdir("..")
         out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
 
-    if (opts['full'] == 'slc4_ia32_gcc34'):
-        packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_ia32_gcc34.tar.gz','DIRAC-external-HEAD.slc4_ia32_gcc34-python24.tar.gz']
+
+    if opts['full'] in ('slc4_amd64_gcc34','slc4_ia32_gcc34'):
+        packages = ['DIRAC-srm2-'+opts['full']+'.tar.gz','DIRAC-contrib-HEAD.'+opts['full']+'.tar.gz','DIRAC-external-HEAD.'+opts['full']+'-python24.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software for 32 bits : ",soft_package
-            if not getRemoteFile(package):
-                print "Failed to get package %s, aborting installation."  % package
-                sys.exit(1)
-
-            os.chdir("..")
-            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
-
-    if (opts['full'] == 'slc4_amd64_gcc34'):
-        packages = ['DIRAC-srm2.tar.gz','DIRAC-contrib-HEAD.slc4_amd64_gcc34.tar.gz','DIRAC-external-HEAD.slc4_amd64_gcc34-python24.tar.gz']
-        for soft_package in packages:
-            package = defaultURL + soft_package
-            os.chdir("distribution")
-            print "Installing External utility software for 64 bits : ",soft_package
+            print "Installing External utility software for "+opts['full']+" : ",soft_package
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
