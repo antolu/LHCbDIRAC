@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProcessingDB.py,v 1.1 2008/01/16 22:51:07 atsareg Exp $
+# $Id: ProcessingDB.py,v 1.2 2008/01/17 21:42:23 atsareg Exp $
 ########################################################################
 """ DIRAC Processing DB
 
@@ -7,13 +7,13 @@
     in order to automate the task of job preparation for high level transformations.
 """
 
-__RCSID__ = "$Id: ProcessingDB.py,v 1.1 2008/01/16 22:51:07 atsareg Exp $"
+__RCSID__ = "$Id: ProcessingDB.py,v 1.2 2008/01/17 21:42:23 atsareg Exp $"
 
 import re,time,types
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
-from DIRAC.DataManagementSystem.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
 
 DEBUG = 1
 
