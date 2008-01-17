@@ -21,13 +21,13 @@ class FileCatalogCase(ProcDBTestCase):
 
   def test_addFile(self):
 
-    result = self.procDB.addFile()
+    result = self.procDB.addFile('LFN','PFN',123456,'Test-SE','bfad6aae-5787-45fa-a5c0-90d91bd82de1')
     self.assert_( result['OK'])
     self.assertEqual(type(result['Value']),types.IntType)
 
 if __name__ == '__main__':
 
   suite = unittest.defaultTestLoader.loadTestsFromTestCase(TransformationCase)
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase(FileCatalogCase)
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(FileCatalogCase))
 
   testResult = unittest.TextTestRunner(verbosity=2).run(suite)
