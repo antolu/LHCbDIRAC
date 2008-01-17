@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/test/LHCbJobTest.py,v 1.1 2007/12/17 16:16:28 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/test/LHCbJobTest.py,v 1.2 2008/01/17 15:42:23 paterson Exp $
 # File  : TestJob.py
 # Author: Stuart Paterson
 ########################################################################
@@ -32,20 +32,21 @@ class LHCbJobTests:
     j = LHCbJob()
     j.setCPUTime(50000)
     j.setSystemConfig('slc4_ia32_gcc34')
-    j.setApplication('DaVinci','v19r7','/Users/stuart/dirac/workspace/DIRAC3/DIRAC/Interfaces/API/test/DV.opts','srmDVTest.log')
+    j.setApplication('DaVinci','v19r7','DaVinciv19r7.opts','srmDVTest.log')
 #    j.setExecutable('/bin/echo hello')
 #    j.setExecutable('/bin/echo helloagain')
 #    j.setApplication('Boole','v30r11')
 #    j.setExecutable('/bin/echo helloagainforathirdtime')
     j.setOwner('paterson')
-    j.setType('test')
-    j.setName('MyJobName')
+    j.setType('user')
+    j.setName('MySRMTest')
     #j.setAncestorDepth(1)
-    j.setInputSandbox(['/Users/stuart/dirac/workspace/DIRAC3/DIRAC/Interfaces/API/test/DV2.opts'])
-    j.setOutputSandbox(['firstfile.txt','anotherfile.root'])
-    j.setInputData(['/lhcb/production/DC06/phys-v2-lumi5/00001680/DST/0000/00001680_00000490_5.dst'])
+    #j.setInputSandbox(['/Users/stuart/dirac/workspace/DIRAC3/DIRAC/Interfaces/API/test/DV.opts'])
+  #  j.setOutputSandbox(['std.out','std.err'])
+    #j.setInputData(['/lhcb/production/DC06/phys-v2-lumi5/00001680/DST/0000/00001680_00000490_5.dst'])
+    j.setInputData(['/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000054_5.dst','/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000055_5.dst'])
    # j.setOutputData(['my.dst','myfile.log'])
-    j.setOption("""ApplicationMgr.EvtMax = -1""")
+    #j.setOption("""ApplicationMgr.EvtMax = -1""")
     j.setDestination('LCG.CERN.ch')
     j.setPlatform('LCG')
   #  j.setSoftwareTags('VO-lhcb-DaVinci-v19r5')
@@ -54,22 +55,23 @@ class LHCbJobTests:
    # print j._toXML()
     #print j._toJDL()
 
-    xml = j._toXML()
+   # xml = j._toXML()
 #    testFile = '/Users/stuart/Desktop/jobDescription.xml'
-    testFile = os.getcwd()+'/jobDescription.xml'
-    if os.path.exists(testFile):
-      os.remove(testFile)
-    xmlfile = open(testFile,'w')
-    xmlfile.write(xml)
-    xmlfile.close()
+   # testFile = os.getcwd()+'/jobDescription.xml'
+#    if os.path.exists(testFile):
+#      os.remove(testFile)
+ #   xmlfile = open(testFile,'w')
+  #  xmlfile.write(xml)
+   # xmlfile.close()
 
-#    dirac = Dirac()
-#    for i in xrange(1):
-#      jobid = dirac.submit(j)
-#    print 'Returned: ',jobid
+    dirac = Dirac()
+    for i in xrange(1):
+      print j._toJDL()
+      jobid = dirac.submit(j)
+      print 'Returned: ',jobid
 
 #    print j.createCode()
-#    print j._toJDL()
+
 
   #############################################################################
   #############################################################################
