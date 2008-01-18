@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryDB.py,v 1.30 2008/01/15 15:05:18 gkuznets Exp $
+# $Id: ProductionRepositoryDB.py,v 1.31 2008/01/18 17:52:31 gkuznets Exp $
 """
     DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -11,7 +11,7 @@
     getWorkflowInfo()
 
 """
-__RCSID__ = "$Revision: 1.30 $"
+__RCSID__ = "$Revision: 1.31 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -135,14 +135,6 @@ class ProductionRepositoryDB(DB):
         return True
     return False
 
-  def getProductionInfo(self, pr_name):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE PRName='%s'" % pr_name
-    result = self._query(cmd)
-    if result['OK']:
-      return result
-    else:
-      return S_ERROR('Failed to retrive Production with the name=%s message=%s' % (pr_name, result['Message']))
-
   def publishProduction(self, pr_name, pr_parent, pr_description, pr_body, publisherDN, update=False):
     # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
     if not self._isProductionExists(pr_name): # workflow is not exists
@@ -226,3 +218,25 @@ class ProductionRepositoryDB(DB):
       return S_OK(result['Value'][0][0]) # we
     else:
       return S_ERROR("Failed to retrive Production with name '%s' " % pr_name)
+
+  def getProductionInfo(self, pr_name):
+    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE PRName='%s'" % pr_name
+    result = self._query(cmd)
+    if result['OK']:
+      pr=result['Value']
+      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
+                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
+      return S_OK(newres)
+    else:
+      return S_ERROR('Failed to retrive Production with the name=%s message=%s' % (pr_name, result['Message']))
+
+  def getProductionInfoID(self, id):
+    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE ProductionID='%s'" % id
+    result = self._query(cmd)
+    if result['OK']:
+      pr=result['Value']
+      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
+                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
+      return S_OK(newres)
+    else:
+      return S_ERROR('Failed to retrive Production with the id=%s message=%s' % (id, result['Message']))

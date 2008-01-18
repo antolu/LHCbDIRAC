@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.15 2008/01/14 21:28:46 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.16 2008/01/18 17:52:08 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.15 $"
+__RCSID__ = "$Revision: 1.16 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -192,3 +192,24 @@ class ProductionRepositoryHandler( RequestHandler ):
         return S_ERROR(error)
     gLogger.verbose('Production %s sucessfully read from the Production Repository' % pr_name)
     return result
+
+  types_getProductionInfo = [ StringType ]
+  def export_getProductionInfo( self, pr_name ):
+    result = productionRepositoryDB.getProductionInfo(pr_name)
+    if not result['OK']:
+        error = 'Failed to read Production with the name %s from the repository' % pr_name
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.verbose('Production %s sucessfully read from the Production Repository' % pr_name)
+    return result
+
+  types_getProductionInfoID = [ IntType ]
+  def export_getProductionInfoID( self, id ):
+    result = productionRepositoryDB.getProductionInfoID(id)
+    if not result['OK']:
+        error = 'Failed to read Production with the id %d from the repository' % id
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.verbose('Production %d sucessfully read from the Production Repository' % id)
+    return result
+
