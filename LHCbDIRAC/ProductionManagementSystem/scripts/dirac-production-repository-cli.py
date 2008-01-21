@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.15 2008/01/14 21:28:48 gkuznets Exp $
-__RCSID__ = "$Revision: 1.15 $"
+# $Id: dirac-production-repository-cli.py,v 1.16 2008/01/21 09:36:35 gkuznets Exp $
+__RCSID__ = "$Revision: 1.16 $"
 
 import cmd
 import sys
@@ -204,10 +204,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     """
     print self.repository.deleteProduction(args)
 
-  def do_prid_delete(self, args):
+  def do_pr_deleteID(self, args):
     """
     Delete Production from the the repository
-      Usage: prid_delete ProductionID
+      Usage: pr_deleteID ProductionID
       argument is an integer
     """
     print self.repository.deleteProductionID( int(args) )
@@ -228,10 +228,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd.write(body)
     fd.close()
 
-  def do_prid_get(self, args):
+  def do_pr_getID(self, args):
     """
     Read Production from the repository
-      Usage: prid_get <ProductionID> <filename>
+      Usage: pr_getID <ProductionID> <filename>
       <ID> - ID of the production
       <filename> is a path to the file to write xml of the workflow
     """
@@ -240,6 +240,35 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     path = argss[1]
 
     body = self.repository.getProductionID(id)['Value']
+    fd = open( path, 'w' )
+    fd.write(body)
+    fd.close()
+  def do_pr_info(self, args):
+    """
+    Reads information about Production from the repository
+      Usage: pr_info <PRName>
+      <PRName> - the name of the production
+    """
+    argss = string.split(args)
+    pr_name = argss[0]
+    path = argss[1]
+
+    body = self.repository.getProductionInfo(pr_name)['Value']
+    fd = open( path, 'w' )
+    fd.write(body)
+    fd.close()
+
+  def do_pr_infoID(self, args):
+    """
+    Reads information about Production from the repository
+      Usage: pr_infoID <productionID>
+      <ID> - ID of the production
+    """
+    argss = string.split(args)
+    id = int(argss[0])
+    path = argss[1]
+
+    body = self.repository.getProductionInfoID(id)['Value']
     fd = open( path, 'w' )
     fd.write(body)
     fd.close()
