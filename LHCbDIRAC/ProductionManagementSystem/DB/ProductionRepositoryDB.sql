@@ -81,7 +81,7 @@ CREATE TABLE Transformations (
     PublishingTime TIMESTAMP,
     PublisherDN VARCHAR(255) NOT NULL,
     PublisherGroup VARCHAR(255) NOT NULL,
-    Type CHAR(16) DEFAULT 'SIMULATION'
+    Type CHAR(16) DEFAULT 'SIMULATION',
     Mode CHAR(16) DEFAULT 'MANUAL',
     Status  CHAR(16) DEFAULT 'NEW',
     FileMask VARCHAR(255),
