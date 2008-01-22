@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-group-init,v 1.1 2008/01/22 18:19:16 acasajus Exp $
+__RCSID__ = "$Id: dirac-group-init,v 1.1 2008/01/22 18:19:16 acasajus Exp $"
+
+import sys
+
+import DIRACEnvironment
+from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
+
+if len( sys.argv ) < 2:
+  print "Please specify which group to use!"
+else:
+  group = sys.argv[1]
+  print "Setting dirac group %s" % group
+  setDIRACGroup( group )
