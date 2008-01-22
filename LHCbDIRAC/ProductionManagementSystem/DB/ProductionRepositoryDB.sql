@@ -44,17 +44,20 @@ CREATE TABLE Workflows (
 
 --------------------------------------------------------------------------------
 - This table store Productions
-- ProductionID - production index
-- PRName - name of the Production taken from the xml field "name"
-- PRParent - name of the parent Workflow used to create the current one.
--            taken from the XML field "type"
-- Description - short description of the workflow taken from the field "descr_short" of XML
-- PublisherDN - last persone to update Production
+- TransformationID - Transformation index
+- Name - name of the Transformation (taken from the xml field "name")
+- Description - short description of the workflow (taken from the field "descr_short" of XML)
+- LongDescription - short description of the workflow (taken from the field "description" of XML)
 - PublishingTime - time stamp
+- PublisherDN - persone published Production
+- PublisherGroup - group used to publish
 - Type - type of the workflow. At this point is not clear what to put in there
 -   SIMULATION - Montecarlo production, no input data required
 -   PROCESSING - Processing production, input files required
 -   REPLICATION - data replication production, no body required
+- Mode - information about submission mode of the production for the submission agent
+-   MANUAL
+-   AUTOMATIC
 - Status - information about current status of the production
 -   NEW - newly created, equivalent to STOPED
 -   ACTIVE - can submit
@@ -62,32 +65,28 @@ CREATE TABLE Workflows (
 -   DONE - job limits reached, extension is possible
 -   ERROR - Production with error, equivalent to STOPPED
 -   TERMINATED - stopped, extension impossible
-- Mode - information about submission mode of the production for the submission agent
--   MANUAL
--   AUTOMATIC
+- FileMask - filter mask
 - Body - XML body of the Production if required
-- removed from table
---    JobsTotal INTEGER NOT NULL DEFAULT 0,
---    JobsSubmitted INTEGER NOT NULL DEFAULT 0,
---    LastSubmittedJob INTEGER NOT NULL DEFAULT 0,
+---- In the Table Peremeters
+-     PRParent - name of the parent Workflow used to create the current one.
+-            taken from the XML field "type"
+-     GroupSize - number of files per Transformation
 --------------------------------------------------------------------------------
-DROP TABLE IF EXISTS Productions;
-CREATE TABLE Productions (
-    ProductionID INTEGER NOT NULL AUTO_INCREMENT,
-    PRName VARCHAR(255) NOT NULL,
-    PRParent VARCHAR(255),
-    Description  VARCHAR(255),
-    PublisherDN VARCHAR(255) NOT NULL,
+DROP TABLE IF EXISTS Transformations;
+CREATE TABLE Transformations (
+    TransformationID INTEGER NOT NULL AUTO_INCREMENT,
+    Name VARCHAR(255) NOT NULL,
+    Description VARCHAR(255),
+    LongDescription  BLOB,
     PublishingTime TIMESTAMP,
+    PublisherDN VARCHAR(255) NOT NULL,
+    PublisherGroup VARCHAR(255) NOT NULL,
     Type CHAR(16) DEFAULT 'SIMULATION'
-    Status  CHAR(16) DEFAULT 'NEW',
-    Progress FLOAT(6,2) DEFAULT 0.0,
     Mode CHAR(16) DEFAULT 'MANUAL',
-    LFNMask VARCHAR(255),
-    GroupBySiteFlag ENUM ( "True", "False" ) DEFAULT "True" NOT NULL,
-    GroupSize INTEGER NOT NULL DEFAULT 1,
+    Status  CHAR(16) DEFAULT 'NEW',
+    FileMask VARCHAR(255),
     Body BLOB,
-    PRIMARY KEY(ProductionID)
+    PRIMARY KEY(TransformationID)
 );
 
 --------------------------------------------------------------------------------
