@@ -1,4 +1,4 @@
-# $Id: ProductionRepositoryHandler.py,v 1.16 2008/01/18 17:52:08 gkuznets Exp $
+# $Id: ProductionRepositoryHandler.py,v 1.17 2008/01/22 14:15:08 gkuznets Exp $
 """
 ProductionRepositoryHandler is the implementation of the ProductionRepository service
     in the DISET framework
@@ -9,7 +9,7 @@ ProductionRepositoryHandler is the implementation of the ProductionRepository se
     getWorkflow()
 
 """
-__RCSID__ = "$Revision: 1.16 $"
+__RCSID__ = "$Revision: 1.17 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -34,7 +34,7 @@ def initializeProductionRepositoryHandler( serviceInfo ):
 class ProductionRepositoryHandler( RequestHandler ):
 
   types_publishWorkflow = [ StringType, BooleanType ]
-  def export_publishWorkflow( self, wf_body, update=False):
+  def export_submitWorkflow( self, wf_body, update=False):
     """ Publish new workflow in the repositiry taking WFname from the workflow itself
     """
     errKey = "Publishing workflow failed:"
@@ -47,7 +47,7 @@ class ProductionRepositoryHandler( RequestHandler ):
       wf_name = wf.getName()
       wf_parent = wf.getType()
       wf_description = wf.getDescrShort()
-      result = productionRepositoryDB.publishWorkflow(wf_name, wf_parent, wf_description, wf_body, sDN, update)
+      result = productionRepositoryDB.submitWorkflow(wf_name, wf_parent, wf_description, wf_body, sDN, update)
       if not result['OK']:
         errExpl = " name=%s because %s" % (wf_name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -73,6 +73,17 @@ class ProductionRepositoryHandler( RequestHandler ):
         return S_ERROR(error)
     gLogger.info('Workflow %s sucessfully read from the Production Repository' % wf_name)
     return result
+
+  types_getWorkflowFullDescription = [ StringType ]
+  def export_getWorkflowFullDescription( self, wf_name ):
+    result = productionRepositoryDB.getWorkflow(wf_name)
+    if not result['OK']:
+        error = 'Failed to read Workflow with the name %s from the repository' % wf_name
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.info('Workflow %s sucessfully read from the Production Repository' % wf_name)
+    wf = fromXMLString(result["Value"])
+    return S_OK(wf.getDescription())
 
   types_deleteWorkflow = [ StringType ]
   def export_deleteWorkflow( self, wf_name ):
@@ -118,7 +129,7 @@ class ProductionRepositoryHandler( RequestHandler ):
       wf_name = wf.getName()
       wf_parent = wf.getType()
       wf_description = wf.getDescrShort()
-      result = productionRepositoryDB.publishProduction(wf_name, wf_parent, wf_description, wf_body, sDN, update)
+      result = productionRepositoryDB.submitProduction(wf_name, wf_parent, wf_description, wf_body, sDN, update)
       if not result['OK']:
         errExpl = " type=%s because %s" % (wf_name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -213,3 +224,25 @@ class ProductionRepositoryHandler( RequestHandler ):
     gLogger.verbose('Production %d sucessfully read from the Production Repository' % id)
     return result
 
+  types_getProductionFullDescription = [ StringType ]
+  def export_getProductionFullDescription( self, pr_name ):
+    result = productionRepositoryDB.getProduction(pr_name)
+    if not result['OK']:
+        error = 'Failed to read Production with the name %s from the repository' % pr_name
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.info('Production %s sucessfully read from the Production Repository' % pr_name)
+    wf = fromXMLString(result["Value"])
+    return S_OK(wf.getDescription())
+  types_getProductionFullDescription = [ StringType ]
+
+  types_getProductionFullDescriptionID = [ IntType ]
+  def export_getProductionFullDescriptionID( self, id ):
+    result = productionRepositoryDB.getProductionID(id)
+    if not result['OK']:
+        error = 'Failed to read Production with the ID %s from the repository' % id
+        gLogger.error(error)
+        return S_ERROR(error)
+    gLogger.info('Production ID %s sucessfully read from the Production Repository' % id)
+    wf = fromXMLString(result["Value"])
+    return S_OK(wf.getDescription())

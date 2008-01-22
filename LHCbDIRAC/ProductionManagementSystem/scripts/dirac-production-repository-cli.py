@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.16 2008/01/21 09:36:35 gkuznets Exp $
-__RCSID__ = "$Revision: 1.16 $"
+# $Id: dirac-production-repository-cli.py,v 1.17 2008/01/22 14:15:14 gkuznets Exp $
+__RCSID__ = "$Revision: 1.17 $"
 
 import cmd
 import sys
@@ -77,7 +77,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
         return
       self.printPair( command, obj.__doc__[1:] )
 
-  def do_wf_publish(self, args):
+  def do_wf_submit(self, args):
     """
     Publish Workflow in the repository
       Usage: wf_publish <filename>
@@ -87,7 +87,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd = file( args )
     body = fd.read()
     fd.close()
-    result = self.repository.publishWorkflow(body, False)
+    result = self.repository.submitWorkflow(body, False)
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
 
@@ -101,7 +101,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd = file( args )
     body = fd.read()
     fd.close()
-    result = self.repository.publishWorkflow(body, True)
+    result = self.repository.submitWorkflow(body, True)
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
 
@@ -190,10 +190,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
       print "--------------------------------------------------------------------------------------------------------------------------------------------"
       print "|    ID    |    Name    |  Status  |   Parent   |   Total  | Submited |   Last   |         Time        |          DN          | Description |"
       print "--------------------------------------------------------------------------------------------------------------------------------------------"
-      for production in ret['Value']:
-        print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (production["ProductionID"],
-               production['PRName'], production['Status'], production['PRParent'], production['JobsTotal'],
-               production['JobsSubmitted'], production['LastSubmittedJob'], production['PublishingTime'], production['PublisherDN'], production['Description'])
+      for pr in ret['Value']:
+        print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (pr["ProductionID"],
+               pr['PRName'], pr['Status'], pr['PRParent'], pr['JobsTotal'],
+               pr['JobsSubmitted'], pr['LastSubmittedJob'], pr['PublishingTime'], pr['PublisherDN'], pr['Description'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
 
@@ -243,6 +243,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd = open( path, 'w' )
     fd.write(body)
     fd.close()
+
   def do_pr_info(self, args):
     """
     Reads information about Production from the repository
@@ -251,12 +252,15 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     """
     argss = string.split(args)
     pr_name = argss[0]
-    path = argss[1]
 
-    body = self.repository.getProductionInfo(pr_name)['Value']
-    fd = open( path, 'w' )
-    fd.write(body)
-    fd.close()
+    result = self.repository.getProductionInfo(pr_name)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+    pr = result['Value']
+    print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (pr["ProductionID"],
+               pr['PRName'], pr['Status'], pr['PRParent'], pr['JobsTotal'],
+               pr['JobsSubmitted'], pr['LastSubmittedJob'], pr['PublishingTime'], pr['PublisherDN'], pr['Description'])
 
   def do_pr_infoID(self, args):
     """
@@ -266,12 +270,15 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     """
     argss = string.split(args)
     id = int(argss[0])
-    path = argss[1]
 
-    body = self.repository.getProductionInfoID(id)['Value']
-    fd = open( path, 'w' )
-    fd.write(body)
-    fd.close()
+    result = self.repository.getProductionInfoID(id)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+    pr = result['Value']
+    print "| %08i | %010s | %08s | %010s | %08i | %08i | %08i | %014s | %s | %s |" % (pr["ProductionID"],
+               pr['PRName'], pr['Status'], pr['PRParent'], pr['JobsTotal'],
+               pr['JobsSubmitted'], pr['LastSubmittedJob'], pr['PublishingTime'], pr['PublisherDN'], pr['Description'])
 
   def do_jobs_submit_local(self, args):
     """
