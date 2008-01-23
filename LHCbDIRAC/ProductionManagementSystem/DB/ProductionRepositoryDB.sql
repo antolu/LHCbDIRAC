@@ -21,14 +21,14 @@ FLUSH PRIVILEGES;
 
 -------------------------------------------------------------------------------
 USE ProductionRepositoryDB;
-- This table keeps Workflow for the purpose of creating Productions
-- WFName - name of the WF taken from the xml field "name"
-- WFParent - name of the parent Workflow used to create the current one.
--            taken from the XML field "type"
-- Description - short description of the workflow taken from the field "descr_short" of XML
-- PublisherDN - last persone to update WF
-- PublishingTime - time stamp
-- Body - XML body of the Workflow
+-- This table keeps Workflow for the purpose of creating Productions
+-- WFName - name of the WF taken from the xml field "name"
+-- WFParent - name of the parent Workflow used to create the current one.
+--            taken from the XML field "type"
+-- Description - short description of the workflow taken from the field "descr_short" of XML
+-- PublisherDN - last persone to update WF
+-- PublishingTime - time stamp
+-- Body - XML body of the Workflow
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
@@ -43,34 +43,34 @@ CREATE TABLE Workflows (
 
 
 --------------------------------------------------------------------------------
-- This table store Productions
-- TransformationID - Transformation index
-- Name - name of the Transformation (taken from the xml field "name")
-- Description - short description of the workflow (taken from the field "descr_short" of XML)
-- LongDescription - short description of the workflow (taken from the field "description" of XML)
-- PublishingTime - time stamp
-- PublisherDN - persone published Production
-- PublisherGroup - group used to publish
-- Type - type of the workflow. At this point is not clear what to put in there
--   SIMULATION - Montecarlo production, no input data required
--   PROCESSING - Processing production, input files required
--   REPLICATION - data replication production, no body required
-- Mode - information about submission mode of the production for the submission agent
--   MANUAL
--   AUTOMATIC
-- Status - information about current status of the production
--   NEW - newly created, equivalent to STOPED
--   ACTIVE - can submit
--   STOPPED - stopped by manager
--   DONE - job limits reached, extension is possible
--   ERROR - Production with error, equivalent to STOPPED
--   TERMINATED - stopped, extension impossible
-- FileMask - filter mask
-- Body - XML body of the Production if required
+-- This table store Productions
+-- TransformationID - Transformation index
+-- Name - name of the Transformation (taken from the xml field "name")
+-- Description - short description of the workflow (taken from the field "descr_short" of XML)
+-- LongDescription - short description of the workflow (taken from the field "description" of XML)
+-- PublishingTime - time stamp
+-- PublisherDN - persone published Production
+-- PublisherGroup - group used to publish
+-- Type - type of the workflow. At this point is not clear what to put in there
+--   SIMULATION - Montecarlo production, no input data required
+--   PROCESSING - Processing production, input files required
+--   REPLICATION - data replication production, no body required
+-- Mode - information about submission mode of the production for the submission agent
+--   MANUAL
+--   AUTOMATIC
+-- Status - information about current status of the production
+--   NEW - newly created, equivalent to STOPED
+--   ACTIVE - can submit
+--   STOPPED - stopped by manager
+--   DONE - job limits reached, extension is possible
+--   ERROR - Production with error, equivalent to STOPPED
+--   TERMINATED - stopped, extension impossible
+-- FileMask - filter mask
+-- Body - XML body of the Production if required
 ---- In the Table Peremeters
--     PRParent - name of the parent Workflow used to create the current one.
--            taken from the XML field "type"
--     GroupSize - number of files per Transformation
+--     PRParent - name of the parent Workflow used to create the current one.
+--            taken from the XML field "type"
+--     GroupSize - number of files per Transformation
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Transformations;
 CREATE TABLE Transformations (
@@ -90,13 +90,13 @@ CREATE TABLE Transformations (
 );
 
 --------------------------------------------------------------------------------
-- For each row in the Productions table we going to have associated Job table
-- JobID - job index within production
-- WwsStatus - job status in the WMS, for example:
--   CREATED - newly created job
--   SUBMITTED - job submitted to WMS
--   DONE - job finished
-- JobWmsID - index of this job in the WMS
+-- For each row in the Productions table we going to have associated Job table
+-- JobID - job index within production
+-- WwsStatus - job status in the WMS, for example:
+--   CREATED - newly created job
+--   SUBMITTED - job submitted to WMS
+--   DONE - job finished
+-- JobWmsID - index of this job in the WMS
 --------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Jobs_<ProductionID>;
 CREATE TABLE  Jobs_<ProductionID>(
@@ -108,20 +108,20 @@ CREATE TABLE  Jobs_<ProductionID>(
 );
 
 
--    self.always    = 'ALWAYS'
--    self.info      = 'INFO'
--    self.verbose   = 'VERB'
--    self.debug     = 'DEBUG'
--    self.warn      = 'WARN'
--    self.error     = 'ERROR'
--    self.exception = 'EXCEPT'
--    self.fatal     = 'FATAL'
--    self.__levelDict = {
--       self.always    : 30,
--       self.info      : 20,
--       self.verbose   : 10,
--       self.debug     : 0,
--       self.warn      : -10,
--       self.error     : -20,
--       self.exception : -20,
--       self.fatal     : -30
+--    self.always    = 'ALWAYS'
+--    self.info      = 'INFO'
+--    self.verbose   = 'VERB'
+--    self.debug     = 'DEBUG'
+--    self.warn      = 'WARN'
+--    self.error     = 'ERROR'
+--    self.exception = 'EXCEPT'
+--    self.fatal     = 'FATAL'
+--    self.__levelDict = {
+--       self.always    : 30,
+--       self.info      : 20,
+--       self.verbose   : 10,
+--       self.debug     : 0,
+--       self.warn      : -10,
+--       self.error     : -20,
+--       self.exception : -20,
+--       self.fatal     : -30
