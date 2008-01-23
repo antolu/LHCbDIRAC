@@ -21,8 +21,8 @@
     NOTE: use "--" for long options, and "-" for short options
 """
 
-__RCSID__   = "$Id: dirac-install,v 1.10 2008/01/15 16:22:10 joel Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: dirac-install,v 1.11 2008/01/23 09:38:19 joel Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 
 defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
 defaultPackage = "DIRAC-HEAD.tar.gz"
@@ -90,11 +90,11 @@ def main(argv):
 
 
     if opts['full'] in ('slc4_amd64_gcc34','slc4_ia32_gcc34'):
-        packages = ['DIRAC-srm2-'+opts['full']+'.tar.gz','DIRAC-contrib-HEAD.'+opts['full']+'.tar.gz','DIRAC-external-HEAD.'+opts['full']+'-python24.tar.gz']
+        packages = ['DIRAC-srm2-'+opts['full']+'.tar.gz','DIRAC-contrib-HEAD.'+opts['full']+'.tar.gz','DIRAC-external-HEAD.'+opts['full']+'-'+opts['os']+'.tar.gz']
         for soft_package in packages:
             package = defaultURL + soft_package
             os.chdir("distribution")
-            print "Installing External utility software for "+opts['full']+" : ",soft_package
+            print "Installing External utility software for "+opts['full']+" and "+opts['os']+": ",soft_package
             if not getRemoteFile(package):
                 print "Failed to get package %s, aborting installation."  % package
                 sys.exit(1)
@@ -110,7 +110,7 @@ def procOpts(argv):
     # Step 0: Process command line options and arguments
     ########################################################################
 
-    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full=", "package=", "account=", "root="]
+    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full=", "package=", "account=", "root=", "os="]
     opts       = {} # this is what we return to the caller
     opt_dict   = {}
     opt_string = ""
@@ -137,6 +137,7 @@ def procOpts(argv):
     opts['full']     = 0
     opts['account'] = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
     opts['package'] = defaultURL + defaultPackage
+    opts['os'] = 'python24'
     opts['root'] = '.'
     for opt,val in opt_list:
         if opt in opt_dict['h']:
@@ -159,6 +160,8 @@ def procOpts(argv):
              opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
         elif opt in opt_dict['p']:
              opts['package'] = val
+        elif opt in opt_dict['o']:
+             opts['os'] = val
         elif opt in opt_dict['r']:
              opts['root'] = val
         else:
