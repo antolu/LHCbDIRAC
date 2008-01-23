@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.5 2007/12/17 14:44:26 paterson Exp $
+# $Id: GaudiApplication.py,v 1.6 2008/01/23 11:17:59 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.5 2007/12/17 14:44:26 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.6 2008/01/23 11:17:59 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -361,6 +361,7 @@ done
 
 ########################################################################
   def redirectLogOutput(self, fd, message):
+    print message
     if message:
       if self.appLog:
         log = open(self.appLog,'a')
