@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.18 2008/01/23 11:19:56 gkuznets Exp $
-__RCSID__ = "$Revision: 1.18 $"
+# $Id: dirac-production-repository-cli.py,v 1.19 2008/01/23 15:58:35 gkuznets Exp $
+__RCSID__ = "$Revision: 1.19 $"
 
 import cmd
 import sys
@@ -301,6 +301,7 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     self._addParameter(self.workflow,'Origin','JDL',self.origin,'Origin of client')
     self._addParameter(self.workflow,'StdOutput','JDL',self.stdout,'Standard output file')
     self._addParameter(self.workflow,'StdError','JDL',self.stderr,'Standard error file')
+    self._addParameter(self.workflow,'SystemConfig','JDLReqt','ANY')
     """
     argss = string.split(args)
 
