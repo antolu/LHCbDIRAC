@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.19 2008/01/23 15:58:35 gkuznets Exp $
-__RCSID__ = "$Revision: 1.19 $"
+# $Id: dirac-production-repository-cli.py,v 1.20 2008/01/23 17:08:16 gkuznets Exp $
+__RCSID__ = "$Revision: 1.20 $"
 
 import cmd
 import sys
@@ -317,12 +317,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     while njobs > 0:
       #print body
       wf = fromXMLString(body)
-      job = Job()
-      job.workflow = wf
-      job._dumpParameters()
-      job._Job__setJobDefaults()
+      #job = Workflow(wf)
+      #job._Job__setJobDefaults()
       #stramge fix to avoid error
-      job._addParameter(job.workflow,'requirements','JDL','','Do not know what to add')
+      #job._addParameter(job.workflow,'requirements','JDL','','Do not know what to add')
 
       result = wms.submit(job)
       if not result['OK']:
