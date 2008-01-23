@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.6 2008/01/23 11:17:59 paterson Exp $
+# $Id: GaudiApplication.py,v 1.7 2008/01/23 16:46:11 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.6 2008/01/23 11:17:59 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.7 2008/01/23 16:46:11 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -284,7 +284,8 @@ done
         else:
           exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe '
 
-        comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+exe_path+' '+os.environ['JOBOPTPATH']+'\n'
+        #comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+
+        comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'
 
       print 'Command = ',comm
       script.write(comm)
