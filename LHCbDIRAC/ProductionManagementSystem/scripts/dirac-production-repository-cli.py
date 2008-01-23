@@ -1,5 +1,5 @@
-# $Id: dirac-production-repository-cli.py,v 1.17 2008/01/22 14:15:14 gkuznets Exp $
-__RCSID__ = "$Revision: 1.17 $"
+# $Id: dirac-production-repository-cli.py,v 1.18 2008/01/23 11:19:56 gkuznets Exp $
+__RCSID__ = "$Revision: 1.18 $"
 
 import cmd
 import sys
@@ -204,10 +204,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     """
     print self.repository.deleteProduction(args)
 
-  def do_pr_deleteID(self, args):
+  def do_pr_deleteid(self, args):
     """
     Delete Production from the the repository
-      Usage: pr_deleteID ProductionID
+      Usage: pr_deleteid ProductionID
       argument is an integer
     """
     print self.repository.deleteProductionID( int(args) )
@@ -228,10 +228,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
     fd.write(body)
     fd.close()
 
-  def do_pr_getID(self, args):
+  def do_pr_getid(self, args):
     """
     Read Production from the repository
-      Usage: pr_getID <ProductionID> <filename>
+      Usage: pr_getid <ProductionID> <filename>
       <ID> - ID of the production
       <filename> is a path to the file to write xml of the workflow
     """
@@ -262,10 +262,10 @@ class ProductionRepositoryCLI( cmd.Cmd ):
                pr['PRName'], pr['Status'], pr['PRParent'], pr['JobsTotal'],
                pr['JobsSubmitted'], pr['LastSubmittedJob'], pr['PublishingTime'], pr['PublisherDN'], pr['Description'])
 
-  def do_pr_infoID(self, args):
+  def do_pr_infoid(self, args):
     """
     Reads information about Production from the repository
-      Usage: pr_infoID <productionID>
+      Usage: pr_infoid <productionID>
       <ID> - ID of the production
     """
     argss = string.split(args)
