@@ -1,13 +1,13 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.7 2008/01/23 16:46:11 paterson Exp $
+# $Id: GaudiApplication.py,v 1.8 2008/01/24 19:50:05 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.7 2008/01/23 16:46:11 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.8 2008/01/24 19:50:05 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import                                        S_OK, S_ERROR, gLogger
 
 import shutil, re, string, os, sys
 
@@ -62,7 +62,43 @@ class GaudiApplication(object):
       options.write(poolOpt)
 
 
-  def manage_OPTS(self):
+  def resolveInputDataPy(self,options):
+    """ Input data resolution has two cases. Either there is explicitly defined
+        input data for the application step (a subset of total workflow input data reqt)
+        *or* this is defined at the job level and the job wrapper has created a
+        pool_xml_catalog.xml slice for all requested files.
+
+        Could be overloaded for python / standard options in the future.
+    """
+    if self.inputData:
+      self.log.info('Input data defined in workflow for this Gaudi Application step')
+      if type(self.inputData) != type([]):
+        self.inputData = self.inputData.split(';')
+    elif os.path.exists(self.poolXMLCatName):
+      inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
+      inputDataList = inputDataCatalog.getLfnsList()
+      self.inputData = inputDataList
+    else:
+      self.log.verbose('Job has no input data requirement')
+
+    if self.inputData:
+      #write opts
+      lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
+      inputDataFiles = []
+      for lfn in lfns: inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+      inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
+      evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
+      options.write(evtSelOpt)
+
+#        for opt in self.outputData.split(';'):
+#            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
+
+    if os.path.exists(self.poolXMLCatName):
+      poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+      options.write(poolOpt)
+
+
+  def manageOpts(self):
     print "manage options OPTS",self.optfile
     options = open('gaudi.opts','w')
     options.write('\n\n//////////////////////////////////////////////////////\n')
@@ -97,7 +133,7 @@ class GaudiApplication(object):
     output = shellCall(0,comm)
     os.environ['JOBOPTPATH'] = 'gaudirun.opts'
 
-  def manage_PY(self):
+  def managePy(self):
     if os.path.exists(self.optfile_extra): os.remove(self.optfile_extra)
 
     try:
@@ -108,10 +144,7 @@ class GaudiApplication(object):
         options.write('from Gaudi.Configuration import *\n')
         for opt in self.optionsLine.split(';'):
             options.write(opt+'\n')
-#        for opt in self.inputData.split(';'):
-#            options.write("""EventSelector().Input = ["Datafile=''+opt+'' TYP='POOL_ROOTTREE' OPT='READ'" ]""")
-#        for opt in self.outputData.split(';'):
-#            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
+            self.resolveInputDataPy(options)
         options.close()
     except Exception, x:
         print "No additional options"
@@ -164,11 +197,11 @@ class GaudiApplication(object):
     if self.optionsFile.find('.opts') > 0:
       self.optfile_extra = 'gaudi_extra_options.opts'
       optionsType = 'opts'
-      self.manage_OPTS()
+      self.manageOpts()
     else:
       optionsType = 'py'
       self.optfile_extra = 'gaudi_extra_options.py'
-      self.manage_PY()
+      self.managePy()
 
 #    comm = open(optfile,'a')
 #    newline = """OutputStream("DstWriter").Output = "DATAFILE='PFN:joel.dst' TYPE='POOL_ROOTTREE' OPT='REC'"\n """
