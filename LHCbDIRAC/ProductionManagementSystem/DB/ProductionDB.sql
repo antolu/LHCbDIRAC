@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.1 2008/01/23 16:41:38 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.2 2008/01/24 15:11:26 acsmith Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionRepositoryDB database - containing Productions and WorkFlows (Templates)
@@ -11,7 +11,6 @@ CREATE DATABASE ProductionRepositoryDB;
 
 -- Database owner definition
 USE mysql;
-DELETE FROM user WHERE user='Dirac';
 
 -- Must set passwords for database user by replacing "must_be_set".
 GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRepositoryDB.* TO Dirac@localhost IDENTIFIED BY 'must_be_set';
