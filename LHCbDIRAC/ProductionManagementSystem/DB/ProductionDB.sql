@@ -1,21 +1,21 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.2 2008/01/24 15:11:26 acsmith Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.3 2008/01/25 16:10:08 gkuznets Exp $
 --------------------------------------------------------------------------------
 --
---  Schema definition for the ProductionRepositoryDB database - containing Productions and WorkFlows (Templates)
+--  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
 --  history ( logging ) information
 ---
 --------------------------------------------------------------------------------
-DROP DATABASE IF EXISTS ProductionRepositoryDB;
-CREATE DATABASE ProductionRepositoryDB;
+DROP DATABASE IF EXISTS ProductionDB;
+CREATE DATABASE ProductionDB;
 --------------------------------------------------------------------------------
 
 -- Database owner definition
 USE mysql;
 
 -- Must set passwords for database user by replacing "must_be_set".
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRepositoryDB.* TO Dirac@localhost IDENTIFIED BY 'must_be_set';
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRepositoryDB.* TO Dirac@volhcb03.cern.ch IDENTIFIED BY 'must_be_set';
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRepositoryDB.* TO Dirac@'%' IDENTIFIED BY 'must_be_set';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.* TO Dirac@localhost IDENTIFIED BY 'must_be_set';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.* TO Dirac@volhcb03.cern.ch IDENTIFIED BY 'must_be_set';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.* TO Dirac@'%' IDENTIFIED BY 'must_be_set';
 FLUSH PRIVILEGES;
 
 -------------------------------------------------------------------------------
