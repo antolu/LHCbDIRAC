@@ -1,0 +1,44 @@
+Systems
+{
+  ProductionManagement
+  {
+    Development
+    {
+      URLs
+      {
+        ProductionManager=dips://volhcb03.cern.ch:9131/Productionmangement/ProductionManager
+      }
+      Services
+      }
+        ProductionManager
+	{
+          LogLevel = DEBUG
+          LogBackends = stdout
+	  HandlerPath=DIRAC/ProductionManagementSystem/Service/ProductionManagerHandler.py
+	  Port=9131
+	  Protocol = dips
+	  Authorization 
+	  {
+	    Default=all
+	  }
+	}
+      }
+      Databases
+      {
+        ProductionDB
+        {
+          LogLevel = DEBUG
+          LogOutputs = stdout
+          User = Dirac
+          Host = localhost
+          Password = lhcbMySQL
+          DBName = ProductionDB
+        }
+      }
+      Agents 
+      {
+      }
+    }
+  }
+}
+
