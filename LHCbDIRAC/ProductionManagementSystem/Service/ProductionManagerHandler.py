@@ -1,16 +1,16 @@
-# $Id: ProductionManagerHandler.py,v 1.1 2008/01/27 16:45:40 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.2 2008/01/27 16:48:21 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.1 $"
+__RCSID__ = "$Revision: 1.2 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
-from DIRAC.Core.Transformation.TransformationHandler import *
+from DIRAC.Core.Transformation.TransformationHandler import TransformationHandler
 from DIRAC.Core.Workflow.WorkflowReader import *
 from DIRAC.Interfaces.API.Dirac import Dirac # job submission
 
@@ -26,7 +26,7 @@ def initializeProductionManagerHandler( serviceInfo ):
 
 ################ WORKFLOW SECTION ####################################
 
-class ProductionManagerHandler( TransformationDBHandler ):
+class ProductionManagerHandler( TransformationHandler ):
 
   types_publishWorkflow = [ StringType, BooleanType ]
   def export_publishWorkflow( self, wf_body, update=False):
