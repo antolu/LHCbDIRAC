@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.3 2008/01/27 16:50:50 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.4 2008/01/27 16:54:09 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.3 $"
+__RCSID__ = "$Revision: 1.4 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -30,8 +30,8 @@ class ProductionManagerHandler( TransformationHandler ):
 
   def __init__(self,*args,**kargs):
 
-    TransformationHandler.__init__(*args,**kargs)
     self.setDatabase(productionDB)
+    TransformationHandler.__init__(*args,**kargs)
 
 
   types_publishWorkflow = [ StringType, BooleanType ]
