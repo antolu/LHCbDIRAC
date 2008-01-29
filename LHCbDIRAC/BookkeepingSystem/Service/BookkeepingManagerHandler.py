@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.1 2008/01/29 14:05:05 atsareg Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.2 2008/01/29 15:29:20 acsmith Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.1 2008/01/29 14:05:05 atsareg Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.2 2008/01/29 15:29:20 acsmith Exp $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -14,17 +14,9 @@ from DIRAC import gLogger, S_OK, S_ERROR
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
-
   return S_OK()
 
-class BookkeepingManagerHandler( RequestHandler ):
-
-  def __init__(self):
-    """ The new handler instance is created for each service query. Put here neccesary
-        initializations before the uery is executed.
-    """
-
-    pass
+class BookkeepingManagerHandler(RequestHandler):
 
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed 
