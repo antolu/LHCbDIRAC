@@ -1,13 +1,13 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.8 2008/01/24 19:50:05 joel Exp $
+# $Id: GaudiApplication.py,v 1.9 2008/01/31 18:57:42 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.8 2008/01/24 19:50:05 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.9 2008/01/31 18:57:42 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from DIRAC import                                        S_OK, S_ERROR, gLogger
+from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
 import shutil, re, string, os, sys
 
