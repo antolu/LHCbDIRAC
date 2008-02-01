@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.1 2008/02/01 08:10:19 joel Exp $
+# $Id: LogChecker.py,v 1.2 2008/02/01 11:41:58 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.1 2008/02/01 08:10:19 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.2 2008/02/01 11:41:58 joel Exp $"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *
@@ -26,12 +26,9 @@ class LogChecker(object):
     self.log = gLogger.getSubLogger("CheckLogFile")
     self.logChecker = None
     self.appName = None
+    self.OUTPUT_MAX = 'None'
 
   def execute(self):
-
-    self.site = gConfig.getValue('/LocalSite/Site','Site')
-#    print self.JOBID
-    print self.appName,  self.logfile
 
     if self.appName == 'Boole':
         self.logChecker = BooleCheckLogFile()
@@ -52,5 +49,7 @@ class LogChecker(object):
     self.logChecker.prod_id = self.prod_id
     self.logChecker.inputData = self.inputData
     self.logChecker.EMAIL = self.EMAIL
-    self.logChecker.execute()
-    self.logChecker.checkApplicationLog("my error")
+    self.logChecker.OUTPUT_MAX = self.OUTPUT_MAX
+    rc = self.logChecker.execute()
+    if not rc['OK']:
+      self.logChecker.checkApplicationLog(rc['Message'])
