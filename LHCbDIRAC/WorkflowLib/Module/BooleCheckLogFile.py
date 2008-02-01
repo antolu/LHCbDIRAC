@@ -1,5 +1,8 @@
 import os,string
 
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from WorkflowLib.Module.LHCbCheckLogFile import LHCbCheckLogFile
 from WorkflowLib.Module.CheckLogFile import CheckLogFile
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
