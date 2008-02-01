@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.9 2008/01/31 18:57:42 paterson Exp $
+# $Id: GaudiApplication.py,v 1.10 2008/02/01 08:08:18 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.9 2008/01/31 18:57:42 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.10 2008/02/01 08:08:18 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -22,7 +22,7 @@ class GaudiApplication(object):
     self.appOutputData = 'NoOutputName'
     self.appInputData = 'NoInputName'
     self.result = S_ERROR()
-    self.logfile = 'None'
+    self.logfile = None
     self.inputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
@@ -328,8 +328,8 @@ done
     script.close()
 
     self.appLog = self.appName+'_'+self.appVersion+'.log'
-    if self.logfile != 'None':
-      self.appLog = self.logfile
+    if self.logfile != None:
+      self.appLog = self.appName+'_'+self.logfile
 
     if os.path.exists(self.appLog): os.remove(self.appLog)
 
