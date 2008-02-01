@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.11 2008/02/01 08:59:49 paterson Exp $
+# $Id: GaudiApplication.py,v 1.12 2008/02/01 14:56:19 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.11 2008/02/01 08:59:49 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.12 2008/02/01 14:56:19 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -57,9 +57,8 @@ class GaudiApplication(object):
       evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
       options.write(evtSelOpt)
 
-    if os.path.exists(self.poolXMLCatName):
-      poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
-      options.write(poolOpt)
+    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+    options.write(poolOpt)
 
 
   def resolveInputDataPy(self,options):
@@ -93,9 +92,8 @@ class GaudiApplication(object):
 #        for opt in self.outputData.split(';'):
 #            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
 
-    if os.path.exists(self.poolXMLCatName):
-      poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
-      options.write(poolOpt)
+    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+    options.write(poolOpt)
 
 
   def manageOpts(self):
@@ -327,9 +325,10 @@ done
     script.write('#EOF\n')
     script.close()
 
-    self.appLog = self.appName+'_'+self.appVersion+'.log'
     if self.logfile != None:
-      self.appLog = self.appName+'_'+self.logfile
+      self.appLog = self.logfile
+    else:
+      self.appLog = self.appName+'_'+self.appVersion+'.log'
 
     if os.path.exists(self.appLog): os.remove(self.appLog)
 
