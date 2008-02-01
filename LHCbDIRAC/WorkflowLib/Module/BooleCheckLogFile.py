@@ -1,5 +1,10 @@
+########################################################################
+# $Id: BooleCheckLogFile.py,v 1.5 2008/02/01 15:19:12 joel Exp $
+########################################################################
+""" Script Base Class """
 
-__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.4 2008/02/01 15:17:54 joel Exp $"
+
+__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.5 2008/02/01 15:19:12 joel Exp $"
 
 
 import os,string
