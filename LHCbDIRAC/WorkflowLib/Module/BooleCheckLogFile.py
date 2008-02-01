@@ -1,3 +1,7 @@
+
+__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.4 2008/02/01 15:17:54 joel Exp $"
+
+
 import os,string
 
 from DIRAC.Core.Base.Script import parseCommandLine
