@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.13 2008/02/04 17:54:10 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.14 2008/02/04 17:58:49 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.13 2008/02/04 17:54:10 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.14 2008/02/04 17:58:49 zmathe Exp $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -42,8 +42,7 @@ class BookkeepingManagerHandler(RequestHandler):
           
           fileID=int(repr(time.time()).split('.')[1])
           
-          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
-          gLogger.info("------>path"%filePath)
+          filePath ="%s%s.%08d.%s"%("/opt/bookkeeping/XMLProcessing/ToDo"+os.sep, stamp, fileID, name)  
           print "--------------------",filePath
           update_file = open(filePath, "w")
           print >>update_file, data
