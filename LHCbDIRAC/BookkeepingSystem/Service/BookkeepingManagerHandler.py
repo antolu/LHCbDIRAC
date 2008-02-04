@@ -1,16 +1,16 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.3 2008/02/04 09:23:13 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.4 2008/02/04 15:04:45 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.3 2008/02/04 09:23:13 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.4 2008/02/04 15:04:45 zmathe Exp $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Bookkeepingsystem.copyFiles import copyXMLfile
+from DIRAC.Bookkeepingsystem.Service.copyFiles import copyXMLfile
 
 ToDoPath = "/storage/XMLProcessing/ToDo/"
 def initializeBookkeepingManagerHandler( serviceInfo ):
