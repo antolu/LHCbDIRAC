@@ -11,7 +11,6 @@ class BookkeepingClient:
 
   def __init__(self):
     self.server = RPCClient('Bookkeeping/BookkeepingManager')
-    ToDoPath = "/storage/XMLProcessing/"
 
   def echo(self,string):
     res = self.server.echo(string)
