@@ -1,4 +1,4 @@
-from DIRAC.Core.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
 class copyXMLfile:
     def __init__(self):
