@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.6 2008/02/04 15:16:00 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.7 2008/02/04 15:42:31 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.6 2008/02/04 15:16:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.7 2008/02/04 15:42:31 zmathe Exp $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -31,7 +31,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return S_OK(input)
 
   types_sendBookkeeping = [StringType, StringType]
-  def sendBookkeeping(self, name, data):
+  def export_sendBookkeeping(self, name, data):
       """
       This method send XML file to the ToDo directory
       """
