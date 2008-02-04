@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.14 2008/02/04 17:58:49 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.15 2008/02/04 18:01:28 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.14 2008/02/04 17:58:49 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.15 2008/02/04 18:01:28 zmathe Exp $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -13,12 +13,13 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Service.copyFiles import copyXMLfile
 import time,sys,os
 
-ToDoPath = "/opt/bookkeeping/XMLProcessing/ToDo"
 
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
   return S_OK()
+
+ToDoPath = "/opt/bookkeeping/XMLProcessing/ToDo"
     
 class BookkeepingManagerHandler(RequestHandler):
 
@@ -42,7 +43,7 @@ class BookkeepingManagerHandler(RequestHandler):
           
           fileID=int(repr(time.time()).split('.')[1])
           
-          filePath ="%s%s.%08d.%s"%("/opt/bookkeeping/XMLProcessing/ToDo"+os.sep, stamp, fileID, name)  
+          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
           print "--------------------",filePath
           update_file = open(filePath, "w")
           print >>update_file, data
