@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.12 2008/02/01 14:56:19 joel Exp $
+# $Id: GaudiApplication.py,v 1.13 2008/02/06 08:58:43 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.12 2008/02/01 14:56:19 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.13 2008/02/06 08:58:43 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -21,6 +21,7 @@ class GaudiApplication(object):
     self.appLog = None
     self.appOutputData = 'NoOutputName'
     self.appInputData = 'NoInputName'
+    self.inputDataType = 'DST'
     self.result = S_ERROR()
     self.logfile = None
     self.inputData = ''
@@ -52,12 +53,21 @@ class GaudiApplication(object):
       #write opts
       lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
       inputDataFiles = []
-      for lfn in lfns: inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+      for lfn in lfns:
+        if self.inputDataType == "MDF":
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+        else:
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
       options.write(evtSelOpt)
 
-    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+    for opt in self.outputData.split(';'):
+      options.write("""DstWriter.Output = "DATAFILE='PFN:%s' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""" %(opt))
+
+#    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+#    options.write(poolOpt)
+    poolOpt = """\nFileCatalog.Catalogs= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
 
 
@@ -84,15 +94,21 @@ class GaudiApplication(object):
       #write opts
       lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
       inputDataFiles = []
-      for lfn in lfns: inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+      for lfn in lfns:
+        if self.inputDataType == "MDF":
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+        else:
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.write(evtSelOpt)
 
-#        for opt in self.outputData.split(';'):
-#            options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
+    for opt in self.outputData.split(';'):
+      options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
 
-    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+#    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+#    options.write(poolOpt)
+    poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
 
 
@@ -224,7 +240,7 @@ class GaudiApplication(object):
       self.log.info('original ld lib path is: '+orig_ld_path)
 
     #os.system('python '+self.root+'/scripts/fixLDpath.py '+orig_ld_path+' None localinis')
-    os.system('%s %s/scripts/dirac-fix-ld-library-path %s None localinis\n' %(sys.executable,self.root,orig_ld_path))
+##JC    os.system('%s %s/scripts/dirac-fix-ld-library-path %s None localinis\n' %(sys.executable,self.root,orig_ld_path))
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
@@ -255,7 +271,7 @@ class GaudiApplication(object):
 
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     #To handle oversized LD_LIBARARY_PATHs
-    script.write('%s %s/scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH %s inis\n' %(sys.executable,self.root,orig_ld_path))
+##JC    script.write('%s %s/scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH %s inis\n' %(sys.executable,self.root,orig_ld_path))
 #    script.write('python '+self.root+'/DIRAC/scripts/fixLDpath.py $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
 
    #To fix Shr variable problem with component libraries
@@ -325,10 +341,10 @@ done
     script.write('#EOF\n')
     script.close()
 
-    if self.logfile != None:
+    if self.appLog == None:
       self.appLog = self.logfile
-    else:
-      self.appLog = self.appName+'_'+self.appVersion+'.log'
+#    else:
+#      self.appLog = self.appName+'_'+self.appVersion+'.log'
 
     if os.path.exists(self.appLog): os.remove(self.appLog)
 
