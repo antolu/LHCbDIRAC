@@ -1,17 +1,12 @@
-# $Id: ProductionDB.py,v 1.1 2008/01/23 16:41:38 atsareg Exp $
+# $Id: ProductionDB.py,v 1.2 2008/02/06 21:16:06 gkuznets Exp $
 """
-    DIRAC ProductionRepositoryDB class is a front-end to the pepository database containing
+    DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
 
     The following methods are provided for public usage:
 
-    publishWorkflow()
-    getWorkflow()
-    getWorkglowsList()
-    getWorkflowInfo()
-
 """
-__RCSID__ = "$Revision: 1.1 $"
+__RCSID__ = "$Revision: 1.2 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -20,180 +15,300 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 from DIRAC.Core.Transformation.TransformationDB import TransformationDB
 
 class ProductionDB(TransformationDB):
+#class ProductionDB(DB):
 
-  def __init__( self, maxQueueSize=4 ):
+  def __init__( self, maxQueueSize=10 ):
     """ Constructor
     """
-    
+
     TransformationDB.__init__(self,'ProductionDB', 'ProductionManagement/ProductionDB', maxQueueSize)
+    #DB.__init__(self,'ProductionDB', 'ProductionManagement/ProductionDB', maxQueueSize)
 
 ################ WORKFLOW SECTION ####################################
 
-  def publishWorkflow(self, wf_name, wf_parent, wf_descr, wf_body, publisherDN, update=False):
+  def publishWorkflow(self, wf_name, wf_parent, wf_descr, wf_descr_long, wf_body, authorDN, authorGroup, update=False):
 
     if not self._isWorkflowExists(wf_name):
       # workflow is not exists
-      result = self._insert('Workflows', [ 'WFName', 'WFParent', 'Description', 'PublisherDN', 'Body' ], [wf_name, wf_parent, wf_descr, publisherDN, wf_body])
+      result = self._insert('Workflows', [ 'WFName', 'WFParent', 'Description', 'LongDescription','AuthorDN', 'AuthorGroup', 'Body' ],
+                            [wf_name, wf_parent, wf_descr, wf_descr_long, authorDN, authorGroup, wf_body])
       if result['OK']:
-        gLogger.verbose('Workflow "%s" published by DN="%s"' % (wf_name, publisherDN))
+        gLogger.verbose('Workflow "%s" published by DN="%s"' % (wf_name, authorDN))
       else:
-        error = 'Workflow "%s" FAILED to be published by DN="%s" with message "%s"' % (wf_name, publisherDN, result['Message'])
+        error = 'Workflow "%s" FAILED to be published by DN="%s" with message "%s"' % (wf_name, authorDN, result['Message'])
         gLogger.error(error)
         return S_ERROR( error )
     else: # workflow already exists
       if update: # we were asked to update
+
+        # KGG tentative code !!!! have to check (seems working)
         result = self._escapeString( wf_body )
         if not result['OK']: return result
         wf_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+        result = self._escapeString( wf_descr_long )
+        if not result['OK']: return result
+        wf_descr_long_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+        # end of tentative code
 
-        cmd = "UPDATE Workflows Set WFParent='%s', Description='%s', PublisherDN='%s', Body='%s' WHERE WFName='%s' " \
-              % (wf_parent, wf_descr, publisherDN, wf_body_esc, wf_name)
+        cmd = "UPDATE Workflows Set WFParent='%s', Description='%s', LongDescription='%s', AuthorDN='%s', AuthorGroup='%s', Body='%s' WHERE WFName='%s' " \
+              % (wf_parent, wf_descr, wf_descr_long_esc, authorDN, authorGroup, wf_body_esc, wf_name)
 
         result = self._update( cmd )
         if result['OK']:
-          gLogger.verbose( 'Workflow "%s" updated by DN="%s"' % (wf_name, publisherDN) )
+          gLogger.verbose( 'Workflow "%s" updated by DN="%s"' % (wf_name, authorDN) )
         else:
-          error = 'Workflow "%s" FAILED on update by DN="%s"' % (wf_name, publisherDN)
+          error = 'Workflow "%s" FAILED on update by DN="%s"' % (wf_name, authorDN)
           gLogger.error( error )
           return S_ERROR( error )
       else: # update was not requested
-        error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_name, publisherDN)
+        error = 'Workflow "%s" is exist in the repository, it was published by DN="%s"' % (wf_name, authorDN)
         gLogger.error( error )
         return S_ERROR( error )
     return result
 
   def getListWorkflows(self):
-    cmd = "SELECT  WFName, WFParent, Description, PublisherDN, PublishingTime from Workflows;"
+    cmd = "SELECT  WFName, WFParent, Description, LongDescription, AuthorDN, AuthorGroup, PublishingTime from Workflows;"
     result = self._query(cmd)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
-        newres.append({'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' ')})
+        newres.append({'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'LongDescription':pr[3],
+                       'AuthorDN':pr[4], 'AuthorGroup':pr[5], 'PublishingTime':pr[6].isoformat(' ')})
       return S_OK(newres)
     return result
 
 
-  def getWorkflow(self, wf_name):
-    cmd = "SELECT Body from Workflows WHERE WFName='%s'" % wf_name
+  def getWorkflow(self, name):
+    cmd = "SELECT Body from Workflows WHERE WFName='%s'" % name
     result = self._query(cmd)
     if result['OK']:
       return S_OK(result['Value'][0][0]) # we
     else:
-      return S_ERROR("Failed to retrive Workflow with name '%s' " % wf_name)
+      return S_ERROR("Failed to retrive Workflow with name '%s' " % name)
 
-  # KGG NEED TO BE INCORPORATED!!!!
-  def _isWorkflowExists(self, wf_name):
-    cmd = "SELECT COUNT(*) from Workflows WHERE WFName='%s'" % wf_name
+  def _isWorkflowExists(self, name):
+    cmd = "SELECT COUNT(*) from Workflows WHERE WFName='%s'" % name
     result = self._query(cmd)
     if not result['OK']:
-      gLogger.error("Failed to check if Workflow of name %s exists %s" % (wf_name, result['Message']))
+      gLogger.error("Failed to check if Workflow of name %s exists %s" % (name, result['Message']))
       return False
     elif result['Value'][0][0] > 0:
         return True
     return False
 
-  def deleteWorkflow(self, wf_name):
+  def deleteWorkflow(self, name):
 
-    if not self._isWorkflowExists(wf_name):
-      return S_ERROR("There is no Workflow with the name '%s' in the repository" % (wf_name))
+    if not self._isWorkflowExists(name):
+      return S_ERROR("There is no Workflow with the name '%s' in the repository" % (name))
 
-    cmd = "DELETE FROM Workflows WHERE WFName=\'%s\'" % (wf_name)
+    cmd = "DELETE FROM Workflows WHERE WFName=\'%s\'" % (name)
     result = self._update(cmd)
     if not result['OK']:
-      return S_ERROR("Failed to delete Workflow '%s' with the message %s" % (wf_name, result['Message']))
+      return S_ERROR("Failed to delete Workflow '%s' with the message %s" % (name, result['Message']))
     return result
 
-  def getWorkflowInfo(self, wf_name):
-    cmd = "SELECT  WFName, WFParent, Description, PublisherDN, PublishingTime from Workflows WHERE WFname='%s'" % wf_name
+  def getWorkflowInfo(self, name):
+    cmd = "SELECT  WFName, WFParent, Description, LongDescription, AuthorDN, AuthorGroup, PublishingTime from Workflows WHERE WFname='%s'" % name
     result = self._query(cmd)
     if result['OK']:
       pr=result['Value']
-      newres = {'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' ')}
+      newres = {'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'LongDescription':pr[3],
+                'AuthorDN':pr[4], 'AuthorGroup':pr[5], 'PublishingTime':pr[6].isoformat(' ')}
       return S_OK(newres)
     else:
-      return S_ERROR('Failed to retrive Workflow with the name=%s' % (wf_name, result['Message']) )
+      return S_ERROR('Failed to retrive Workflow with the name=%s' % (name, result['Message']) )
 
 
-################ PRODUCTION SECTION ####################################
+################ TRANSFORMATION SECTION ####################################
+#    TransformationID INTEGER NOT NULL AUTO_INCREMENT,
+#    TransformationName VARCHAR(255) NOT NULL,
+#    Description VARCHAR(255),
+#    LongDescription  BLOB,
+#    CreationDate DATETIME,
+#    AuthorDN VARCHAR(255) NOT NULL,
+#    AuthorGroup VARCHAR(255) NOT NULL,
+#    Type CHAR(16) DEFAULT 'Simulation',
+#    Mode CHAR(16) DEFAULT 'Manual',
+#    AgentType CHAR(16) DEFAULT 'Unknown',
+#    Status  CHAR(16) DEFAULT 'New',
+#    FileMask VARCHAR(255),
+#    FileGroupSize INT NOT NULL DEFAULT 0,
 
-  def _isProductionExists(self, pr_name):
-    cmd = "SELECT COUNT(*) from Productions WHERE PRName='%s'" % pr_name
+  def _isTransformationExists(self, name):
+    cmd = "SELECT COUNT(*) from Transformations WHERE TransformationName='%s'" % name
     result = self._query(cmd)
     if not result['OK']:
-      gLogger.error("Failed to check if Production with name %s exists %s" % (pr_name, result['Message']))
+      gLogger.error("Failed to check if Transformation with name %s exists %s" % (name, result['Message']))
       return False
     elif result['Value'][0][0] > 0:
         return True
     return False
 
-  def _isProductionIDExists(self, id):
-    cmd = "SELECT COUNT(*) from Productions WHERE ProductionID='%d'" % id
+  def _isTransformationExistsID(self, id):
+    cmd = "SELECT COUNT(*) from Transformations WHERE TransformationID='%s'" % id
     result = self._query(cmd)
     if not result['OK']:
-      gLogger.error("Failed to check if Production with ID %d exists %s" % (id, result['Message']))
+      gLogger.error("Failed to check if Transformation with id %s exists %s" % (id, result['Message']))
       return False
     elif result['Value'][0][0] > 0:
         return True
     return False
 
-  def publishProduction(self, pr_name, pr_parent, pr_description, pr_body, publisherDN, update=False):
-    # KGG WE HAVE TO CHECK IS WORKFLOW EXISTS
-    if not self._isProductionExists(pr_name): # workflow is not exists
-        result = self._escapeString( pr_body )
-        if not result['OK']: return result
-        pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
-        result = self._insert('Productions', [ 'PRName','PRParent','PublisherDN','Status','Description', 'Body' ], \
-                              [pr_name, pr_parent, publisherDN, 'NEW', pr_description, pr_body_esc])
-        if result['OK']:
-          gLogger.info('Production "%s" published by DN="%s"' % (pr_name, publisherDN))
-          return result
-        else:
-          error = 'Production "%s" FAILED to be published by DN="%s" with message "%s"' % (pr_name, publisherDN, result['Message'])
+  def addTransformation(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup):
+
+    if fileMask == '' or fileMask == None: # if mask is empty it is simulation
+      type = "SIMULATION"
+    else:
+      type = "PROCESSING"
+    mode = "AUTOMATIC"
+    agentType = "UNKNOWN"
+    status = "NEW"
+
+    # WE HAVE TO CHECK IS WORKFLOW EXISTS
+    if not self._isTransformationExists(name): # workflow is not exists
+
+        #result = self._escapeString( body )
+        #if not result['OK']: return result
+        #body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+        #result = self._escapeString( descr_long )
+        #if not result['OK']: return result
+        #descr_long_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+
+        result_step1 = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type, mode, agentType, status, fileMask)
+
+        if result_step1['OK']:
+          TransformationID = result_step1['Value']
+          result_step2 = self.__insertProductionParameters(TransformationID, groupsize, parent)
+          if result_step2['OK']:
+            result_step3 = self.__addJobTable(TransformationID)
+            if not result_step3['OK']:
+              # if for some reason this faled we have to roll back
+              result_rollback2 = self.__removeProductionParameters(TransformationID)
+              result_rollback1 = TransformationDB.removeTranformationID(self, TransformationID)
+              return result_step3
+          else:
+            # if for some reason this faled we have to roll back
+            result_rollback1 = TransformationDB.removeTransformationID(self, TransformationID)
+            return result_step2
+
+        if not (result_step1['OK'] and result_step2['OK'] and result_step1['OK']):
+          error = 'Tansformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
           gLogger.error(error)
           return S_ERROR( error )
-    else: # workflow already exists
-        if update: # we were asked to update
-          result = self._escapeString( pr_body )
-          if not result['OK']: return result
-          pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
 
-          cmd = "UPDATE Productions Set PRParent='%s', PublisherDN='%s', Description='%s', Body='%s' WHERE PRName='%s' " \
-                % (pr_parent, publisherDN, pr_description, pr_body_esc, pr_name)
+        #gLogger.info('Tansformation "%s" published by DN="%s"' % (name, authorDN))
+        # adding additional parameters
 
-          result = self._update( cmd )
-          if result['OK']:
-            gLogger.info( 'Production "%s" updated by DN="%s"' % (pr_name, publisherDN) )
-            return result
-          else:
-            error = 'Production "%s" FAILED on update by DN="%s" with the message="s"' % (pr_name, publisherDN, result['Message'])
-            gLogger.error( error )
-            return S_ERROR( error )
-        else: # update was not requested
-          error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (pr_name, publisherDN)
-          gLogger.error( error )
-          return S_ERROR( error )
+#    else: # workflow already exists
+#        if update: # we were asked to update
+#          result = self._escapeString( pr_body )
+#          if not result['OK']: return result
+#          pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+#
+#          cmd = "UPDATE Productions Set PRParent='%s', authorDN='%s', Description='%s', Body='%s' WHERE PRName='%s' " \
+#                % (pr_parent, authorDN, pr_description, pr_body_esc, pr_name)
+#
+#          result = self._update( cmd )
+#          if result['OK']:
+#            gLogger.info( 'Production "%s" updated by DN="%s"' % (pr_name, authorDN) )
+#            return result
+#          else:
+#            error = 'Production "%s" FAILED on update by DN="%s" with the message="s"' % (pr_name, authorDN, result['Message'])
+#            gLogger.error( error )
+#            return S_ERROR( error )
+#        else: # update was not requested
+#          error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (name, authorDN)
+#          gLogger.error( error )
+#          return S_ERROR( error )
 
-  def getListProductions(self):
-    cmd = "SELECT  ProductionID, PRName, PRParent, PublisherDN, PublishingTime, JobsTotal, JobsSubmitted, LastSubmittedJob,  Status, Description from Productions;"
+  def __insertProductionParameters(self, TransformationID, groupsize, parent):
+    """
+    Inserts additional parameters into ProductionParameters Table
+    """
+    if not isinstance(TransformationID, str):
+      TransformationID = str(TransformationID)
+    #KGG it is not clear yeat
+    #if not isinstance(groupsize, str):
+    #  groupsize = str(TransformationID)
+    inFields = ['TransformationID', 'GroupSize', 'Parent']
+    inValues = [TransformationID, groupsize, parent]
+    result = self._insert('ProductionParameters',inFields,inValues)
+    if not result['OK']:
+      error = "Failed to add production parameters into ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  def __removeProductionParameters(self, TransformationID):
+    """
+    Removes additional parameters into ProductionParameters Table
+    """
+    if not isinstance(TransformationID, str):
+      TransformationID = str(TransformationID)
+    req = "DELETE FROM ProductionParameters WHERE TransformationID='"+TransformationID+"'"
+    result = self._update(req)
+    if not result['OK']:
+      error = "Failed to remove production parameters from the ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  def __addJobTable(self, TransformationID):
+    """ Method to add Job table """
+    if not isinstance(TransformationID, str):
+      TransformationID = str(TransformationID)
+    req = """CREATE TABLE Jobs_%s(
+    JobID INTEGER NOT NULL AUTO_INCREMENT,
+    WmsStatus char(16) DEFAULT 'CREATED',
+    JobWmsID char(16),
+    InputVector BLOB,
+    PRIMARY KEY(JobID)
+    )""" % str(TransformationID)
+    result = self._update(req)
+    if not result['OK']:
+      error = "Failed to add new Job table with the transformationID %s message: %s" % (str(TransformationID), result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  def __removeJobTable(self, TransformationID):
+    """ Method removes Job Table """
+    if not isinstance(TransformationID, str):
+      TransformationID = str(TransformationID)
+    req = "DROP TABLE IF EXISTS Jobs_%s" % TransformationID
+    result = self._update(req)
+    if not result['OK']:
+      error = "Failed to remove Job table for the transformationID %s message: %s" % (TransformationID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  def getListTransformations(self):
+    cmd = "SELECT  TransformationID, TransformationName, Description, LongDescription, CreationDate, AuthorDN, AuthorGroup, Type, Mode, AgentType, Status, FileMask from Transformations;"
     result = self._query(cmd)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
-        #newres.append(dict.fromkeys(('ProductionID', 'PRName', 'PRParent','PublisherDN', 'PublishingTime',
-        #                    'JobsTotal', 'JobsSubmitted', 'LastSubmittedJob', 'Status', 'Description'),pr))
-        newres.append({'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
-                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]})
+        newres.append({'TransformationID':pr[0], 'TransformationName':pr[1], 'Description':pr[2], 'LongDescription':pr[3], 'CreationDate':pr[4],
+                            'AuthorDN':pr[5], 'AuthorGroup':pr[6], 'Type':pr[7], 'Mode':pr[8], 'AgentType':pr[9], 'Status':pr[10], 'FileMask':pr[11] })
       return S_OK(newres)
     return result
 
-  def deleteProduction(self, pr_name):
-    if self._isProductionExists(pr_name):
-      cmd = "DELETE FROM Productions WHERE PRName=\'%s\'" % (pr_name)
-      result = self._update(cmd)
+  def deleteTranformation(self, name):
+    if self._isTransformationExists(name):
+      result = TransformationDB.removeTransformation(self, name)
       if not result['OK']:
-        return S_ERROR("Failed to delete Production '%s' with the message %s" % (pr_name, result['Message']))
+        return S_ERROR("Failed to delete Transformation '%s' with the message %s" % (name, result['Message']))
       return result
-    return S_ERROR("No production with the name '%s' in the Production Repository" % pr_name)
+    return S_ERROR("No Transformation with the name '%s' in the ProductionDB" % name)
+
+  def deleteTranformationID(self, id):
+    if self._isTransformationExistsID(id):
+      result = TransformationDB.removeTransformationID(self, id)
+      if not result['OK']:
+        return S_ERROR("Failed to delete Transformation id '%s' with the message %s" % (id, result['Message']))
+      return result
+    return S_ERROR("No Transformation with the id '%s' in the ProductionDB" % id)
 
   def deleteProductionID(self, id):
     if self._isProductionIDExists(id):
@@ -221,22 +336,22 @@ class ProductionDB(TransformationDB):
       return S_ERROR("Failed to retrive Production with name '%s' " % pr_name)
 
   def getProductionInfo(self, pr_name):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE PRName='%s'" % pr_name
+    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, authorDN, Description from Productions WHERE PRName='%s'" % pr_name
     result = self._query(cmd)
     if result['OK']:
       pr=result['Value']
-      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
+      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'authorDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
                             'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
       return S_OK(newres)
     else:
       return S_ERROR('Failed to retrive Production with the name=%s message=%s' % (pr_name, result['Message']))
 
   def getProductionInfoID(self, id):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, PublisherDN, Description from Productions WHERE ProductionID='%s'" % id
+    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, authorDN, Description from Productions WHERE ProductionID='%s'" % id
     result = self._query(cmd)
     if result['OK']:
       pr=result['Value']
-      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'PublisherDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
+      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'authorDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
                             'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
       return S_OK(newres)
     else:

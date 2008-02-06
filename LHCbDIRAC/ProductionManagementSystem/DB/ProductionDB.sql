@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.3 2008/01/25 16:10:08 gkuznets Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.4 2008/02/06 21:16:06 gkuznets Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -35,17 +35,51 @@ CREATE TABLE Workflows (
     WFName VARCHAR(255) NOT NULL,
     WFParent VARCHAR(255),
     Description  VARCHAR(255),
-    PublisherDN VARCHAR(255) NOT NULL,
+    LongDescription  BLOB,
+    AuthorDN VARCHAR(255) NOT NULL,
+    AuthorGroup VARCHAR(255) NOT NULL,
     PublishingTime TIMESTAMP,
-    Body BLOB NOT NULL,
+    Body BLOB,
     PRIMARY KEY(WFName)
 );
 
+--------------------------------------------------------------------------------
+-- This table store additional fields required by the Production
+-- TransformationID - Transformation ID referes to Transformations table
+-- Parent - name of the Parent Workflow
+-- GroupSize - number of files per Transformation
+-- Body - XML body of the Workflow.
+--------------------------------------------------------------------------------
+DROP TABLE IF EXISTS ProductionParameters;
+CREATE TABLE ProductionParameters (
+    TransformationID INTEGER NOT NULL,
+    GroupSize INT NOT NULL DEFAULT 0,
+    Parent VARCHAR(255) DEFAULT '',
+    Body BLOB,
+    PRIMARY KEY(TransformationID)
+);
+
+--------------------------------------------------------------------------------
+-- For each row in the Productions table we going to have associated Job table
+-- JobID - job index within production
+-- WwsStatus - job status in the WMS, for example:
+--   CREATED - newly created job
+--   SUBMITTED - job submitted to WMS
+--   DONE - job finished
+-- JobWmsID - index of this job in the WMS
+--------------------------------------------------------------------------------
+DROP TABLE IF EXISTS Jobs_<ProductionID>;
+CREATE TABLE  Jobs_<ProductionID>(
+  JobID INTEGER NOT NULL AUTO_INCREMENT,
+  WmsStatus char(16) DEFAULT 'CREATED',
+  JobWmsID char(16),
+  InputVector BLOB DEFAULT 0,
+  PRIMARY KEY(JobID)
+);
 
 --------------------------------------------------------------------------------
 --
 -- Added the standard base class database tables here
 --
 --------------------------------------------------------------------------------
-
 SOURCE TransformationDB.sql
