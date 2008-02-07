@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-service,v 1.1 2007/09/18 07:57:05 atsareg Exp $
-__RCSID__ = "$Id: dirac-service,v 1.1 2007/09/18 07:57:05 atsareg Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-service,v 1.2 2008/02/07 16:33:28 acasajus Exp $
+__RCSID__ = "$Id: dirac-service,v 1.2 2008/02/07 16:33:28 acasajus Exp $"
 
 import sys
 
@@ -26,8 +26,6 @@ localCfg.addMandatoryEntry( "HandlerPath" )
 localCfg.addMandatoryEntry( "/DIRAC/Setup" )
 localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate", "yes" )
 resultDict = localCfg.loadUserData()
-
-print resultDict
 
 if not resultDict[ 'OK' ]:
   gLogger.initialize( serverName, "/" )
