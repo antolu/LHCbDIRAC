@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.1 2008/02/07 07:24:30 joel Exp $
+# $Id: BookkeepingReport.py,v 1.2 2008/02/07 08:41:56 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.1 2008/02/07 07:24:30 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.2 2008/02/07 08:41:56 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC import                                        *
@@ -19,14 +19,14 @@ class BookkeepingReport(object):
     self.FIRST_EVENT_NUMBER = None
     self.NUMBER_OF_EVENTS = None
     self.NUMBER_OF_EVENTS_OUTPUT = None
-    self.NUMBER_OF_EVENTS_INPUT = None
+    self.nb_events_input = None
     pass
 
   def execute(self):
 
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
-    print self.NUMBER_OF_EVENTS_OUTPUT
+    print self.nb_events_input
     print >> bfile,self.makeBookkeepingXMLString()
     bfile.close()
 
@@ -99,7 +99,6 @@ class BookkeepingReport(object):
     # DIRAC version
     s = s+self.__parameter_string('DIRAC_Version',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
 
-    return s
 
     # Data tags defined in the production run
 ##    for pname,par in stepparameters.items():
@@ -115,21 +114,22 @@ class BookkeepingReport(object):
     else:
       s = s+self.__parameter_string('FirstEventNumber',"1","Info")
 
-    if self.number_of_events > 0:
-      s = s+self.__parameter_string('NumberOfEvents',self.number_of_events,"Info")
+    if int(self.NUMBER_OF_EVENTS) > 0:
+      s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
       if self.NUMBER_OF_EVENTS != None:
         s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
 
     elif self.NUMBER_OF_EVENTS != None:
-      if self.NUMBER_OF_EVENTS_OUTPUT!= None:
+      if self.NUMBER_OF_EVENTS_OUTPUT != None:
         s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS_OUTPUT,"Info")
       else:
         s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
-      if self.NUMBER_OF_EVENTS_INPUT != None:
-        s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS_INPUT,"Info")
+      if self.nb_events_input != None:
+        s = s+self.__parameter_string('StatisticsRequested',self.nb_events_input,"Info")
       else:
         s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
 
+    return s
 
     # Extra job parameters
     JobId = os.environ['JOBID']
