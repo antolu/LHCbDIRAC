@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.16 2008/02/07 12:54:10 paterson Exp $
+# $Id: GaudiApplication.py,v 1.17 2008/02/07 15:38:25 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.16 2008/02/07 12:54:10 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.17 2008/02/07 15:38:25 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -360,13 +360,13 @@ done
     status = resultTuple[0]
     stdOutput = resultTuple[1]
     stdError = resultTuple[2]
-    print "DEBUGstat",status
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
     logfile = open(self.appLog,'w')
     logfile.write(stdOutput)
-    if stdError:
+
+    if len(stdError) > 0:
       logfile.write('\n\n\nError log:\n=============\n')
       logfile.write(stdError)
     logfile.close()
@@ -375,7 +375,7 @@ done
     if status > 0:
       self.log.error( "%s execution completed with errors:" % self.appName )
       failed = True
-    elif stdError:
+    elif len(stdError) > 0:
       self.log.error( "%s execution completed with application Warning:" % self.appName )
     else:
       self.log.info( "%s execution completed succesfully:" % self.appName )
@@ -405,8 +405,8 @@ done
       else:
         self.log.info( string.join( lines,'\n'))
 
-      self.log.info( "==================================\n StdError:\n" )
-      self.log.info(stdError)
+#      self.log.info( "==================================\n StdError:\n" )
+#      self.log.info(stdError)
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
     return S_OK()
