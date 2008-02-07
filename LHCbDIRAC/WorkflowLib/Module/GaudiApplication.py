@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.13 2008/02/06 08:58:43 joel Exp $
+# $Id: GaudiApplication.py,v 1.14 2008/02/07 08:42:10 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.13 2008/02/06 08:58:43 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.14 2008/02/07 08:42:10 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -24,6 +24,7 @@ class GaudiApplication(object):
     self.inputDataType = 'DST'
     self.result = S_ERROR()
     self.logfile = None
+    self.NUMBER_OF_EVENTS = None
     self.inputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
@@ -137,7 +138,8 @@ class GaudiApplication(object):
         self.log.warn('Options line not in correct format ignoring string')
 
     self.resolveInputDataOpts(options)
-
+    if self.NUMBER_OF_EVENTS != None:
+        options.write("""ApplicationMgr.EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
 #    for opt in self.outputData.split(';'):
 #      options.write("""DigiWriter.Output = "DATAFILE='PFN:"""+opt+"""' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""")
     options.write('\n//EOF\n')
