@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.14 2008/02/07 08:42:10 joel Exp $
+# $Id: GaudiApplication.py,v 1.15 2008/02/07 09:04:51 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.14 2008/02/07 08:42:10 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.15 2008/02/07 09:04:51 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -26,6 +26,7 @@ class GaudiApplication(object):
     self.logfile = None
     self.NUMBER_OF_EVENTS = None
     self.inputData = ''
+    self.outputData = None
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
     self.optfile_extra = ''
@@ -62,9 +63,9 @@ class GaudiApplication(object):
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
       options.write(evtSelOpt)
-
-    for opt in self.outputData.split(';'):
-      options.write("""DstWriter.Output = "DATAFILE='PFN:%s' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""" %(opt))
+    if self.outputData != None:
+      for opt in self.outputData.split(';'):
+        options.write("""DstWriter.Output = "DATAFILE='PFN:%s' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""" %(opt))
 
 #    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
 #    options.write(poolOpt)
@@ -103,9 +104,9 @@ class GaudiApplication(object):
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.write(evtSelOpt)
-
-    for opt in self.outputData.split(';'):
-      options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
+    if self.outputData != None:
+      for opt in self.outputData.split(';'):
+        options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
 
 #    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
 #    options.write(poolOpt)
