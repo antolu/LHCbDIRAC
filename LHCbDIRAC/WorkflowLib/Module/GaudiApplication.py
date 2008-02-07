@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.15 2008/02/07 09:04:51 joel Exp $
+# $Id: GaudiApplication.py,v 1.16 2008/02/07 12:54:10 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.15 2008/02/07 09:04:51 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.16 2008/02/07 12:54:10 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -21,7 +21,7 @@ class GaudiApplication(object):
     self.appLog = None
     self.appOutputData = 'NoOutputName'
     self.appInputData = 'NoInputName'
-    self.inputDataType = 'DST'
+    self.inputDataType = 'MDF'
     self.result = S_ERROR()
     self.logfile = None
     self.NUMBER_OF_EVENTS = None
