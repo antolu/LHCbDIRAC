@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.2 2008/02/01 15:19:04 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.3 2008/02/07 09:32:33 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.2 2008/02/01 15:19:04 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.3 2008/02/07 09:32:33 joel Exp $"
 
 
 import os,string
@@ -24,7 +24,7 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
     self.info      = 1
 
   def checkApplicationLog(self,error):
-    self.log.info(self.argv0 + '.BrunelCheckLogFile: analyze %s '%(self.logfile))
+    self.log.info(' analyze %s '%(self.logfile))
 
     mailto = self.appName.upper()+'_EMAIL'
 
