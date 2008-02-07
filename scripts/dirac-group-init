@@ -1,15 +1,33 @@
 #!/usr/bin/env python
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-group-init,v 1.1 2008/01/22 18:19:16 acasajus Exp $
-__RCSID__ = "$Id: dirac-group-init,v 1.1 2008/01/22 18:19:16 acasajus Exp $"
 
-import sys
+from DIRACEnvironment import DIRAC
+from DIRAC.ConfigurationSystem.Client.Config import gConfig
+from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.GridCert import setDIRACGroup
 
-import DIRACEnvironment
-from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
+doCheck = True
+def setNoCheck( value ):
+	global doCheck
+	DIRAC.gLogger.info( "Disabling checking the group is valid" )
+	doCheck = False
+	return DIRAC.S_OK()
 
-if len( sys.argv ) < 2:
-  print "Please specify which group to use!"
-else:
-  group = sys.argv[1]
-  print "Setting dirac group %s" % group
-  setDIRACGroup( group )
+Script.registerSwitch( "n", "nocheck", "Don't check that the group is valid", setNoCheck )
+Script.parseCommandLine()
+
+positionalArgs = Script.getPositionalArgs()
+if len( positionalArgs ) == 0:
+	DIRAC.abort( 1, "Must specify which is the role you want" )
+userGroup = positionalArgs[0]
+
+if doCheck:
+	retVal = gConfig.getSections( "/Groups" )
+	if not retVal[ 'OK' ]:
+		DIRAC.abort( 1, "Problem getting available groups (%s)" % retVal[ 'Message' ] )
+	groups = retVal[ 'Value' ]
+
+	if userGroup not in groups:
+		DIRAC.abort( 1, "Selected group is not amongst available groups",
+						"\nAvailable groups are %s" % ", ".join( groups ) )
+
+setDIRACGroup( userGroup )
