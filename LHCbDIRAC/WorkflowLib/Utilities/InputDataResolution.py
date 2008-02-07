@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.1 2008/01/31 14:49:48 paterson Exp $
+# $Id: InputDataResolution.py,v 1.2 2008/02/07 23:14:20 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.1 2008/01/31 14:49:48 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.2 2008/02/07 23:14:20 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol      import InputDataByProtocol
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -53,8 +53,36 @@ class InputDataResolution:
     if not result['Successful']:
       return S_ERROR('InputDataByProtocol returned no TURLs for requested input data')
 
+    #!TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
+    #term this will be derived from file catalog metadata information but for now is based
+    #on the file extension types.
+    resolvedData = result['Successful']
+    tmpDict = {}
+    for lfn,mdata in resolvedData.items():
+      tmpDict[lfn]=mdata
+      if re.search('.raw$',lfn):
+        tmpDict[lfn]['pfntype']='MDF'
+        self.log.verbose('Adding PFN file type %s for LFN:%s' %('MDF',lfn))
+      else:
+        tmpDict[lfn]['pfntype']='ROOT_All'
+        self.log.verbose('Adding PFN file type %s for LFN:%s' %('ROOT_All',lfn))
+
+    resolvedData = tmpDict
+
+    #!TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
+    #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
+    #In the longer term this should be derived from file catalog metadata information.
+    tmpDict = {}
+    for lfn,mdata in resolvedData.items():
+      tmpDict[lfn]=mdata
+      if re.search('.raw$',lfn):
+        #correctedTURL = 'root:%s' %(val)
+        tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
+        self.log.verbose('Prepending root: to TURL for %s' %lfn)
+
+    resolvedData = tmpDict
     appCatalog = PoolXMLSlice('pool_xml_catalog.xml')
-    check = appCatalog.execute(result['Successful'])
+    check = appCatalog.execute(resolvedData)
     return result
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
