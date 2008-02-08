@@ -1,17 +1,17 @@
-# $Id: ProductionManagerHandler.py,v 1.5 2008/02/06 21:16:06 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.6 2008/02/08 17:42:02 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.5 $"
+__RCSID__ = "$Revision: 1.6 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
 from DIRAC.Core.Transformation.TransformationHandler import TransformationHandler
-from DIRAC.Core.Workflow.WorkflowReader import *
+from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Interfaces.API.Dirac import Dirac # job submission
 
 # This is a global instance of the ProductionDB class
@@ -135,7 +135,7 @@ class ProductionManagerHandler( TransformationHandler ):
     long_description = wf.getDescription()
 
     try:
-      result = productionDB.addTransformation(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -153,14 +153,14 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_deleteTransformation = [ StringType ]
   def export_deleteTransformation( self, name ):
-    result = productionDB.deleteTranformation(name)
+    result = productionDB.removeTransformation(name)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_deleteTransformationID = [ StringType ]
+  types_deleteTransformationID = [ IntType ]
   def export_deleteTransformationID( self, id ):
-    result = productionDB.deleteTranformationID(id)
+    result = productionDB.removeTransformationID(id)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result

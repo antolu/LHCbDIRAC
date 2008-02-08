@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.2 2008/02/06 21:16:06 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.3 2008/02/08 17:41:35 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,12 +6,11 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.2 $"
+__RCSID__ = "$Revision: 1.3 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Workflow.WorkflowReader import *
 from DIRAC.Core.Transformation.TransformationDB import TransformationDB
 
 class ProductionDB(TransformationDB):
@@ -120,52 +119,19 @@ class ProductionDB(TransformationDB):
 
 
 ################ TRANSFORMATION SECTION ####################################
-#    TransformationID INTEGER NOT NULL AUTO_INCREMENT,
-#    TransformationName VARCHAR(255) NOT NULL,
-#    Description VARCHAR(255),
-#    LongDescription  BLOB,
-#    CreationDate DATETIME,
-#    AuthorDN VARCHAR(255) NOT NULL,
-#    AuthorGroup VARCHAR(255) NOT NULL,
-#    Type CHAR(16) DEFAULT 'Simulation',
-#    Mode CHAR(16) DEFAULT 'Manual',
-#    AgentType CHAR(16) DEFAULT 'Unknown',
-#    Status  CHAR(16) DEFAULT 'New',
-#    FileMask VARCHAR(255),
-#    FileGroupSize INT NOT NULL DEFAULT 0,
 
-  def _isTransformationExists(self, name):
-    cmd = "SELECT COUNT(*) from Transformations WHERE TransformationName='%s'" % name
-    result = self._query(cmd)
-    if not result['OK']:
-      gLogger.error("Failed to check if Transformation with name %s exists %s" % (name, result['Message']))
-      return False
-    elif result['Value'][0][0] > 0:
-        return True
-    return False
 
-  def _isTransformationExistsID(self, id):
-    cmd = "SELECT COUNT(*) from Transformations WHERE TransformationID='%s'" % id
-    result = self._query(cmd)
-    if not result['OK']:
-      gLogger.error("Failed to check if Transformation with id %s exists %s" % (id, result['Message']))
-      return False
-    elif result['Value'][0][0] > 0:
-        return True
-    return False
-
-  def addTransformation(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup):
+  def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup):
 
     if fileMask == '' or fileMask == None: # if mask is empty it is simulation
       type = "SIMULATION"
     else:
       type = "PROCESSING"
-    mode = "AUTOMATIC"
-    agentType = "UNKNOWN"
-    status = "NEW"
-
+    plugin = "NONE"
+    agentType = "MANUAL"
+    #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
-    if not self._isTransformationExists(name): # workflow is not exists
+    if self._transformationExists(name) == 0: # workflow is not exists
 
         #result = self._escapeString( body )
         #if not result['OK']: return result
@@ -174,11 +140,11 @@ class ProductionDB(TransformationDB):
         #if not result['OK']: return result
         #descr_long_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
 
-        result_step1 = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type, mode, agentType, status, fileMask)
+        result_step1 = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type, plugin, agentType, fileMask)
 
         if result_step1['OK']:
           TransformationID = result_step1['Value']
-          result_step2 = self.__insertProductionParameters(TransformationID, groupsize, parent)
+          result_step2 = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
           if result_step2['OK']:
             result_step3 = self.__addJobTable(TransformationID)
             if not result_step3['OK']:
@@ -186,6 +152,9 @@ class ProductionDB(TransformationDB):
               result_rollback2 = self.__removeProductionParameters(TransformationID)
               result_rollback1 = TransformationDB.removeTranformationID(self, TransformationID)
               return result_step3
+            else:
+              # everithing OK
+              return result_step1
           else:
             # if for some reason this faled we have to roll back
             result_rollback1 = TransformationDB.removeTransformationID(self, TransformationID)
@@ -196,32 +165,12 @@ class ProductionDB(TransformationDB):
           gLogger.error(error)
           return S_ERROR( error )
 
-        #gLogger.info('Tansformation "%s" published by DN="%s"' % (name, authorDN))
-        # adding additional parameters
+    else: # update was not requested
+      error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (name, authorDN)
+      gLogger.error( error )
+      return S_ERROR( error )
 
-#    else: # workflow already exists
-#        if update: # we were asked to update
-#          result = self._escapeString( pr_body )
-#          if not result['OK']: return result
-#          pr_body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
-#
-#          cmd = "UPDATE Productions Set PRParent='%s', authorDN='%s', Description='%s', Body='%s' WHERE PRName='%s' " \
-#                % (pr_parent, authorDN, pr_description, pr_body_esc, pr_name)
-#
-#          result = self._update( cmd )
-#          if result['OK']:
-#            gLogger.info( 'Production "%s" updated by DN="%s"' % (pr_name, authorDN) )
-#            return result
-#          else:
-#            error = 'Production "%s" FAILED on update by DN="%s" with the message="s"' % (pr_name, authorDN, result['Message'])
-#            gLogger.error( error )
-#            return S_ERROR( error )
-#        else: # update was not requested
-#          error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (name, authorDN)
-#          gLogger.error( error )
-#          return S_ERROR( error )
-
-  def __insertProductionParameters(self, TransformationID, groupsize, parent):
+  def __insertProductionParameters(self, TransformationID, groupsize, parent, body):
     """
     Inserts additional parameters into ProductionParameters Table
     """
@@ -230,8 +179,8 @@ class ProductionDB(TransformationDB):
     #KGG it is not clear yeat
     #if not isinstance(groupsize, str):
     #  groupsize = str(TransformationID)
-    inFields = ['TransformationID', 'GroupSize', 'Parent']
-    inValues = [TransformationID, groupsize, parent]
+    inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body']
+    inValues = [TransformationID, groupsize, parent, body]
     result = self._insert('ProductionParameters',inFields,inValues)
     if not result['OK']:
       error = "Failed to add production parameters into ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
@@ -243,9 +192,7 @@ class ProductionDB(TransformationDB):
     """
     Removes additional parameters into ProductionParameters Table
     """
-    if not isinstance(TransformationID, str):
-      TransformationID = str(TransformationID)
-    req = "DELETE FROM ProductionParameters WHERE TransformationID='"+TransformationID+"'"
+    req = "DELETE FROM ProductionParameters WHERE TransformationID='%s';" % TransformationID
     result = self._update(req)
     if not result['OK']:
       error = "Failed to remove production parameters from the ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
@@ -262,7 +209,8 @@ class ProductionDB(TransformationDB):
     WmsStatus char(16) DEFAULT 'CREATED',
     JobWmsID char(16),
     InputVector BLOB,
-    PRIMARY KEY(JobID)
+    PRIMARY KEY(JobID),
+    INDEX(WmsStatus)
     )""" % str(TransformationID)
     result = self._update(req)
     if not result['OK']:
@@ -273,9 +221,7 @@ class ProductionDB(TransformationDB):
 
   def __removeJobTable(self, TransformationID):
     """ Method removes Job Table """
-    if not isinstance(TransformationID, str):
-      TransformationID = str(TransformationID)
-    req = "DROP TABLE IF EXISTS Jobs_%s" % TransformationID
+    req = "DROP TABLE IF EXISTS Jobs_%s;" % TransformationID
     result = self._update(req)
     if not result['OK']:
       error = "Failed to remove Job table for the transformationID %s message: %s" % (TransformationID, result['Message'])
@@ -284,40 +230,60 @@ class ProductionDB(TransformationDB):
     return result
 
   def getListTransformations(self):
-    cmd = "SELECT  TransformationID, TransformationName, Description, LongDescription, CreationDate, AuthorDN, AuthorGroup, Type, Mode, AgentType, Status, FileMask from Transformations;"
+    cmd = "SELECT  TransformationID, TransformationName, Description, LongDescription, CreationDate, AuthorDN, AuthorGroup, Type, Plugin, AgentType, Status, FileMask from Transformations;"
     result = self._query(cmd)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
         newres.append({'TransformationID':pr[0], 'TransformationName':pr[1], 'Description':pr[2], 'LongDescription':pr[3], 'CreationDate':pr[4],
-                            'AuthorDN':pr[5], 'AuthorGroup':pr[6], 'Type':pr[7], 'Mode':pr[8], 'AgentType':pr[9], 'Status':pr[10], 'FileMask':pr[11] })
+                            'AuthorDN':pr[5], 'AuthorGroup':pr[6], 'Type':pr[7], 'Plugin':pr[8], 'AgentType':pr[9], 'Status':pr[10], 'FileMask':pr[11] })
       return S_OK(newres)
     return result
 
-  def deleteTranformation(self, name):
-    if self._isTransformationExists(name):
-      result = TransformationDB.removeTransformation(self, name)
-      if not result['OK']:
-        return S_ERROR("Failed to delete Transformation '%s' with the message %s" % (name, result['Message']))
-      return result
-    return S_ERROR("No Transformation with the name '%s' in the ProductionDB" % name)
+  def removeTransformation(self,transName):
 
-  def deleteTranformationID(self, id):
-    if self._isTransformationExistsID(id):
-      result = TransformationDB.removeTransformationID(self, id)
-      if not result['OK']:
-        return S_ERROR("Failed to delete Transformation id '%s' with the message %s" % (id, result['Message']))
-      return result
-    return S_ERROR("No Transformation with the id '%s' in the ProductionDB" % id)
+    transID = self._transformationExists(transName)
+    if transID > 0:
+      return self.removeTransformationID(transID)
+    else:
+      return S_ERROR("No Transformation with the name '%s' in the TransformationDB" % transName)
 
-  def deleteProductionID(self, id):
-    if self._isProductionIDExists(id):
-      cmd = "DELETE FROM Productions WHERE ProductionID=\'%d\'" % (id)
-      result = self._update(cmd)
-      if not result['OK']:
-        return S_ERROR("Failed to delete Production with ID '%d' with the message %s" % (id, result['Message']))
-      return result
-    return S_ERROR("No production with the ID '%d' in the Production Repository" % id)
+
+  def removeTransformationID(self, transID):
+    """ Remove the transformation specified by id
+    """
+
+    result_step1 = TransformationDB.removeTransformationID(self, transID)
+    if result_step1['OK']:
+      # we have to execute all
+      result_step2 = self.__removeProductionParameters(transID)
+      result_step3 = self.__removeJobTable(transID)
+      if not result_step2['OK']:
+        return result_step2
+      if not result_step3['OK']:
+        return result_step3
+      return S_OK()
+    else:
+      return  result_step1
+
+
+#  def deleteTranformation(self, name):
+#    if self._transformationExists(name):
+#      result = TransformationDB.removeTransformation(self, name)
+#      if not result['OK']:
+#        return S_ERROR("Failed to delete Transformation '%s' with the message %s" % (name, result['Message']))
+#      return result
+#    return S_ERROR("No Transformation with the name '%s' in the ProductionDB" % name)
+#
+#
+#  def deleteProductionID(self, id):
+#    if self._isProductionIDExists(id):
+#      cmd = "DELETE FROM Productions WHERE ProductionID=\'%d\'" % (id)
+#      result = self._update(cmd)
+#      if not result['OK']:
+#        return S_ERROR("Failed to delete Production with ID '%d' with the message %s" % (id, result['Message']))
+#      return result
+#    return S_ERROR("No production with the ID '%d' in the Production Repository" % id)
 
   def getProductionID(self, id):
     cmd = "SELECT Body from Productions WHERE ProductionID='%d'" % id

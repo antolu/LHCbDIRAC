@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.1 2008/02/06 21:16:06 gkuznets Exp $
-__RCSID__ = "$Revision: 1.1 $"
+# $Id: dirac-production-manager-cli.py,v 1.2 2008/02/08 17:41:51 gkuznets Exp $
+__RCSID__ = "$Revision: 1.2 $"
 
 import cmd
 import sys, os
@@ -193,7 +193,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     Delete Production from the the repository
       Usage: deleteTR TransformationName
     """
-    print self.productionManager.deleteTransformationID(args)
+    print self.productionManager.deleteTransformationID(int(args))
 
   def do_listTR(self, args):
     """
@@ -210,7 +210,7 @@ class ProductionManagerCLI( cmd.Cmd ):
       for pr in ret['Value']:
         print "| %08s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s |" % (pr["TransformationID"],
                pr['TransformationName'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
-               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Mode'], pr['AgentType'], pr['Status'],  pr['FileMask'])
+               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'],  pr['FileMask'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
 
