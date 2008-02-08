@@ -60,6 +60,12 @@ module4.appendParameter(Parameter("appVersion","","string","self","appVersion",T
 module4.appendParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 
 
+#define module 5
+module5 = ModuleDefinition('JobFinalization')
+module5.setDescription('Job Finalization module')
+module5.setBody('from WorkflowLib.Module.JobFinalization import * \n')
+
+
 ###############   STEPS ##################################
 #### step 1 we are creating step definition
 step1 = StepDefinition('Gaudi_App_Step')
@@ -84,6 +90,10 @@ step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.lo
 step1.unlinkParameter(["appLog","appName", "appType"])
 step1.unlinkParameter(["CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 
+step2 = StepDefinition('Job_Finalization')
+step2.addModule(module5)
+moduleInstance5 = step2.createModuleInstance('JobFinalization','module5')
+
 
 ##############  WORKFLOW #################################
 workflow1 = Workflow(name='main')
@@ -103,6 +113,12 @@ stepInstance1.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@
 stepInstance1.linkParameterUp("CONFIG_NAME")
 stepInstance1.linkParameterUp("CONFIG_VERSION")
 stepInstance1.linkParameterUp("NUMBER_OF_EVENTS")
+
+workflow1.addStep(step2)
+step2_prefix="step2_"
+stepInstance2 = workflow1.createStepInstance('Job_Finalization', 'Step2')
+stepInstance2.linkParameterUp(stepInstance2.parameters, step2_prefix)
+stepInstance2.setLink("systemConfig","self", "systemConfig") # correct link as we have onlu one system config
 
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
@@ -128,7 +144,10 @@ workflow1.removeParameter(step1_prefix+"outputData")
 workflow1.removeParameter(step1_prefix+"systemConfig")
 #add syspem config which common for all modules
 workflow1.appendParameter(Parameter("systemConfig","slc4_amd64_gcc34","string","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("SystemConfig","slc4_amd64_gcc34","JDLReqt","","",True, False, "Application Name"))
 
+workflow1.appendParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("MaxCPUTime",50000,"JDLReqt","","",True, False, "Application Name"))
 
 # and finally we can unlink them because we inherit them linked
 workflow1.unlinkParameter(workflow1.parameters)
@@ -143,5 +162,5 @@ workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 print workflow1.createCode()
-#eval(compile(workflow1.createCode(),'<string>','exec'))
+eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()
