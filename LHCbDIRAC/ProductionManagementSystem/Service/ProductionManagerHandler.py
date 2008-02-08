@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.6 2008/02/08 17:42:02 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.7 2008/02/08 18:55:46 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -119,11 +119,11 @@ class ProductionManagerHandler( TransformationHandler ):
 
 ################ TRANSFORMATION SECTION ####################################
 
-  types_publishTransformation = [ StringType, StringType, IntType, BooleanType ]
-  def export_publishTransformation( self, body, filemask='', groupsize=0, update=False):
-    """ Publish new transformation in the TransformationDB
+  types_publishProduction = [ StringType, StringType, IntType, BooleanType ]
+  def export_publishProduction( self, body, filemask='', groupsize=0, update=False):
+    """ Publish new transformation in the ProductionDB
     """
-    errKey = "Publishing Tramsformation failed:"
+    errKey = "Publishing Production failed:"
     authorDN = self.transport.peerCredentials['DN']
     #authorName = self.transport.peerCredentials['user']
     authorGroup = self.transport.peerCredentials['group']
@@ -151,24 +151,24 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
 
-  types_deleteTransformation = [ StringType ]
-  def export_deleteTransformation( self, name ):
-    result = productionDB.removeTransformation(name)
+  types_deleteProduction = [ StringType ]
+  def export_deleteProduction( self, name ):
+    result = productionDB.deleteProduction(name)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_deleteTransformationID = [ IntType ]
-  def export_deleteTransformationID( self, id ):
-    result = productionDB.removeTransformationID(id)
+  types_deleteProductionByID = [ IntType ]
+  def export_deleteProductionByID( self, id ):
+    result = productionDB.removeProductionByID(id)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_getListTransformations = [ ]
-  def export_getListTransformations(self):
-    gLogger.verbose('Getting list of Transformations')
-    result = productionDB.getListTransformations()
+  types_getProductionsList = [ ]
+  def export_getProductionsList(self):
+    gLogger.verbose('Getting list of Productions')
+    result = productionDB.getProductionsList()
     if not result['OK']:
       error = 'Can not get list of Transformations because %s' % result['Message']
       gLogger.error( error )

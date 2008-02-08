@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.3 2008/02/08 17:41:35 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.4 2008/02/08 18:55:46 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.3 $"
+__RCSID__ = "$Revision: 1.4 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -131,7 +131,7 @@ class ProductionDB(TransformationDB):
     agentType = "MANUAL"
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
-    if self._transformationExists(name) == 0: # workflow is not exists
+    if self.transformationExists(name) == 0: # workflow is not exists
 
         #result = self._escapeString( body )
         #if not result['OK']: return result
@@ -188,7 +188,7 @@ class ProductionDB(TransformationDB):
       return S_ERROR( error )
     return result
 
-  def __removeProductionParameters(self, TransformationID):
+  def __deleteProductionParameters(self, TransformationID):
     """
     Removes additional parameters into ProductionParameters Table
     """
@@ -219,7 +219,7 @@ class ProductionDB(TransformationDB):
       return S_ERROR( error )
     return result
 
-  def __removeJobTable(self, TransformationID):
+  def __deleteJobTable(self, TransformationID):
     """ Method removes Job Table """
     req = "DROP TABLE IF EXISTS Jobs_%s;" % TransformationID
     result = self._update(req)
@@ -229,7 +229,7 @@ class ProductionDB(TransformationDB):
       return S_ERROR( error )
     return result
 
-  def getListTransformations(self):
+  def getProductionsList(self):
     cmd = "SELECT  TransformationID, TransformationName, Description, LongDescription, CreationDate, AuthorDN, AuthorGroup, Type, Plugin, AgentType, Status, FileMask from Transformations;"
     result = self._query(cmd)
     if result['OK']:
@@ -240,24 +240,26 @@ class ProductionDB(TransformationDB):
       return S_OK(newres)
     return result
 
-  def removeTransformation(self,transName):
+  def deleteProduction(self,transName):
+    """ Remove the Production specified by name
+    """
 
-    transID = self._transformationExists(transName)
+    transID = self.getTransformationID(transName)
     if transID > 0:
-      return self.removeTransformationID(transID)
+      return self.deleteTransformationByID(transID)
     else:
       return S_ERROR("No Transformation with the name '%s' in the TransformationDB" % transName)
 
 
-  def removeTransformationID(self, transID):
-    """ Remove the transformation specified by id
+  def deleteProductionByID(self, transID):
+    """ Remove the Production specified by id
     """
 
-    result_step1 = TransformationDB.removeTransformationID(self, transID)
+    result_step1 = TransformationDB.deleteTransformationByID(self, transID)
     if result_step1['OK']:
       # we have to execute all
-      result_step2 = self.__removeProductionParameters(transID)
-      result_step3 = self.__removeJobTable(transID)
+      result_step2 = self.__deleteProductionParameters(transID)
+      result_step3 = self.__deleteJobTable(transID)
       if not result_step2['OK']:
         return result_step2
       if not result_step3['OK']:

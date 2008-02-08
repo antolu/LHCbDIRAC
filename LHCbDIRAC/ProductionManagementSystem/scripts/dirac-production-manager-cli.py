@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.2 2008/02/08 17:41:51 gkuznets Exp $
-__RCSID__ = "$Revision: 1.2 $"
+# $Id: dirac-production-manager-cli.py,v 1.3 2008/02/08 18:55:46 gkuznets Exp $
+__RCSID__ = "$Revision: 1.3 $"
 
 import cmd
 import sys, os
@@ -147,10 +147,10 @@ class ProductionManagerCLI( cmd.Cmd ):
 
 ################ PRODUCTION SECTION ####################################
 
-  def do_uploadTR(self, args):
+  def do_uploadPR(self, args):
     """
-    Upload Transformation in the transformation table
-      Usage: uploadTR <filename> <filemask> <groupsize>
+    Upload Production in to the transformation table
+      Usage: uploadPR <filename> <filemask> <groupsize>
       <filename> is a path to the file with the xml description of the workflow
       If transformation with this name already exists, publishing will be refused.
       <filemask> mask to match files going to be accepted by transformation
@@ -174,33 +174,33 @@ class ProductionManagerCLI( cmd.Cmd ):
       fd = file( tr_file )
       body = fd.read()
       fd.close()
-      result = self.productionManager.publishTransformation(body, tr_mask, tr_groupsize, False)
+      result = self.productionManager.publishProduction(body, tr_mask, tr_groupsize, False)
       if not result['OK']:
         print "Error during command execution: %s" % result['Message']
     else:
       print "File %s does not exists" % tr_file
 
-  def do_deleteTR(self, args):
+  def do_deletePR(self, args):
     """
     Delete Production from the the repository
-      Usage: deleteTR TransformationName
+      Usage: deletePR Production Name
     """
-    print self.productionManager.deleteTransformation(args)
+    print self.productionManager.deleteProduction(args)
 
 
-  def do_deleteTRID(self, args):
+  def do_deletePRid(self, args):
     """
     Delete Production from the the repository
-      Usage: deleteTR TransformationName
+      Usage: deletePRid Production
     """
-    print self.productionManager.deleteTransformationID(int(args))
+    print self.productionManager.deleteProductionByID(int(args))
 
-  def do_listTR(self, args):
+  def do_listPR(self, args):
     """
-    List all Transformations in the repository
-      Usage: listTR
+    List all Productions in the repository
+      Usage: listPR
     """
-    ret = self.productionManager.getListTransformations()
+    ret = self.productionManager.getProductionsList()
     if not ret['OK']:
       print "Error during command execution: %s" % ret['Message']
     else:
