@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.4 2008/02/06 21:16:06 gkuznets Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.5 2008/02/08 17:40:51 gkuznets Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -65,6 +65,8 @@ CREATE TABLE ProductionParameters (
 -- WwsStatus - job status in the WMS, for example:
 --   CREATED - newly created job
 --   SUBMITTED - job submitted to WMS
+--   RUNNIGN -
+--   FAILED -
 --   DONE - job finished
 -- JobWmsID - index of this job in the WMS
 --------------------------------------------------------------------------------
@@ -74,7 +76,8 @@ CREATE TABLE  Jobs_<ProductionID>(
   WmsStatus char(16) DEFAULT 'CREATED',
   JobWmsID char(16),
   InputVector BLOB DEFAULT 0,
-  PRIMARY KEY(JobID)
+  PRIMARY KEY(JobID),
+  INDEX(WmsStatus)
 );
 
 --------------------------------------------------------------------------------
