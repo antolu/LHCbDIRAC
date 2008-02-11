@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.2 2008/02/07 08:41:56 joel Exp $
+# $Id: BookkeepingReport.py,v 1.3 2008/02/11 08:09:46 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.2 2008/02/07 08:41:56 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.3 2008/02/11 08:09:46 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC import                                        *
 
-import os, time
+import os, time, re
 
 class BookkeepingReport(object):
 
@@ -19,6 +19,9 @@ class BookkeepingReport(object):
     self.FIRST_EVENT_NUMBER = None
     self.NUMBER_OF_EVENTS = None
     self.NUMBER_OF_EVENTS_OUTPUT = None
+    self.EVENTTYPE = None
+    self.poolXMLCatName = None
+    self.log = gLogger.getSubLogger("BookkeepingReport")
     self.nb_events_input = None
     pass
 
@@ -129,36 +132,36 @@ class BookkeepingReport(object):
       else:
         s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
 
-    return s
 
     # Extra job parameters
-    JobId = os.environ['JOBID']
-    s = s+self.__parameter_string('DIRAC_JobID',JobId,"Info")
-    parfilename = str(JobId)+'_parameters.txt'
-    if os.path.exists(parfilename):
-      parfile = file(str(JobId)+'_parameters.txt')
-      lines = parfile.readlines()
-      for l in lines:
-        par_name,par_value = l.strip().split('=')
-        if par_name.find('Step ') == -1:
-          s = s+self.__parameter_string(par_name,par_value,"Info")
+##    JobId = os.environ['JOBID']
+##    s = s+self.__parameter_string('DIRAC_JobID',JobId,"Info")
+##    parfilename = str(JobId)+'_parameters.txt'
+##    if os.path.exists(parfilename):
+##      parfile = file(str(JobId)+'_parameters.txt')
+##      lines = parfile.readlines()
+##      for l in lines:
+##        par_name,par_value = l.strip().split('=')
+##        if par_name.find('Step ') == -1:
+##          s = s+self.__parameter_string(par_name,par_value,"Info")
 
     # CPU time consumed in the step
-    endstats = os.times()
-    parentcputime = endstats[0] - self.module.step.statistics[0]
-    childcputime = endstats[2] - self.module.step.statistics[2]
-    cputime = parentcputime + childcputime
-    s = s+self.__parameter_string("CPUTime",str(cputime),"Info")
+##    endstats = os.times()
+##    parentcputime = endstats[0] - self.module.step.statistics[0]
+##    childcputime = endstats[2] - self.module.step.statistics[2]
+##    cputime = parentcputime + childcputime
+##    s = s+self.__parameter_string("CPUTime",str(cputime),"Info")
 
     # Wall clock time for the step
-    end_time = time.time()
-    exectime = end_time - self.module.step.start_time
-    s = s+self.__parameter_string("ExecTime",str(exectime),"Info")
+##    end_time = time.time()
+##    exectime = end_time - self.module.step.start_time
+##    s = s+self.__parameter_string("ExecTime",str(exectime),"Info")
 
     # Input files
-    for inputname,typeName,typeVersion in self.module.step.inputFiles():
-      lfn = makeProductionLfn((inputname,typeName,typeVersion),job_mode,jobparameters, \
-                     self.module.step.job.prod_id)
+
+    print self.inputData
+    for inputname in self.inputData.split(';'):
+      lfn = makeProductionLfn(self,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
       s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
 
@@ -166,25 +169,29 @@ class BookkeepingReport(object):
     # Output files
     # Define DATA TYPES - ugly! should find another way to do that
 
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST']
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
-    if stepparameters.has_key('EVENTTYPE'):
-      eventtype = stepparameters['EVENTTYPE'].value
-    elif allparameters.has_key('EVENTTYPE'):
-      eventtype = allparameters['EVENTTYPE'].value
+    if self.EVENTTYPE != None:
+      eventtype = self.EVENTTYPE
     else:
-      gLog.warn( 'BookkeepingReport: no EVENTTYPE specified' )
+      self.log.warn( 'BookkeepingReport: no EVENTTYPE specified' )
       eventtype = 'Unknown'
+    self.log.info( 'Event type = %s' % (str(self.EVENTTYPE)))
 
-    if stepparameters.has_key('NUMBER_OF_EVENTS_OUTPUT'):
-      statistics = stepparameters['NUMBER_OF_EVENTS_OUTPUT'].value
-    elif allparameters.has_key('NUMBER_OF_EVENTS'):
-      statistics = allparameters['NUMBER_OF_EVENTS'].value
+    if self.NUMBER_OF_EVENTS_OUTPUT != None:
+      statistics = self.NUMBER_OF_EVENTS_OUTPUT
+    elif self.NUMBER_OF_EVENTS != None:
+      statistics = self.NUMBER_OF_EVENTS
     else:
-      gLog.warn( 'BookkeepingReport: no NUMBER_OF_EVENTS specified' )
+      self.log.warn( 'BookkeepingReport: no NUMBER_OF_EVENTS specified' )
       statistics = "0"
 
-    for output,typeName,typeVersion,se in self.module.step.outputFiles():
+
+    for output in self.outputData.split(';'):
+      typeName = self.appType.upper()
+      typeVersion = '1'
+      self.log.info(output)
+      self.log.info(self.outputData)
 
       # Output file size
       try:
@@ -193,7 +200,11 @@ class BookkeepingReport(object):
         outputsize = '0'
 
       comm = 'md5sum '+output
-      status,out = commands.getstatusoutput(comm)
+      resultTuple = shellCall(0,comm)
+      self.log.info(resultTuple)
+      status = resultTuple['Value'][0]
+      out = resultTuple['Value'][1]
+
       if status:
         gLog.info( "Failed to get md5sum of %s" % str( output ) )
         gLog.info( str( out ) )
@@ -208,9 +219,9 @@ class BookkeepingReport(object):
         else:
           guid = makeGuid()
 
+      self.log.info(guid)
       # build the lfn
-      lfn = makeProductionLfn((output,typeName,typeVersion),job_mode,jobparameters, \
-                               self.module.step.job.prod_id)
+      lfn = makeProductionLfn(self,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
 
       s = s+'  <OutputFile   Name="'+lfn+'" TypeName="'+typeName+'" TypeVersion="'+typeVersion+'">\n'
       if typeName in dataTypes:
@@ -219,21 +230,23 @@ class BookkeepingReport(object):
         s = s+'    <Parameter  Name="Size"        Value="'+outputsize+'"/>\n'
         s = s+'    <Quality Group="Production Manager" Flag="Not Checked"/>\n'
 
+      s = s+'</Job>'
+      return s
+
       ############################################################
       # Log file replica information
       if typeName == "LOG":
-        if stepparameters.has_key('LOGFILE[0]'):
-          logfile = stepparameters['LOGFILE[0]'].value
+        if self.appLog != None:
+          logfile = self.appLog
           if logfile == output:
             logname = 'file:'+os.environ['LHCBPRODROOT']+'/job/log/'+ \
-                      self.module.step.job.prod_id+'/'+ \
-                      self.module.step.job.job_id+'/'+ logfile + '.gz'
+                      self.PRODUCTION_ID+'/'+ self.JOB_ID+'/'+ logfile + '.gz'
             s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
 
             # Get the url for log files
-            logpath = makeProductionPath(job_mode,jobparameters,self.module.step.job.prod_id,log=True)
-            logse = StorageElement('LogSE')
-            ses = logse.getStorage(['http'])
+            logpath = makeProductionPath(self,job_mode,self.PRODUCTION_ID,log=True)
+            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
+            ses = gConfig.getValue(logse,'http')
             if ses:
               # HTTP protocol is defined for LogSE
               logurl = ses[0].getPFNBase()+logpath
@@ -258,8 +271,8 @@ class BookkeepingReport(object):
 
   def getGuidFromPoolXMLCatalog(self,output):
 
-    self.prod_id = self.module.step.job.prod_id
-    self.job_id = self.module.step.job.job_id
+    self.prod_id = self.PRODUCTION_ID
+    self.job_id = self.JOB_ID
 
     ####################################
     # Get the Pool XML catalog if any
@@ -271,8 +284,8 @@ class BookkeepingReport(object):
         gunzip(fcn+'.gz')
       fcname.append(fcn)
     else:
-      if self.module.step.job.parameters.has_key('PoolXMLCatalog'):
-        fcn = self.module.step.job.parameters['PoolXMLCatalog'].value
+      if self.poolXMLCatName != None:
+        fcn = self.poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
         fcname.append(fcn)
@@ -302,3 +315,40 @@ class BookkeepingReport(object):
       gLog.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
 
+def makeProductionLfn(self,filetuple,mode,prodstring):
+    """ Constructs the logical file name according to LHCb conventions.
+    Returns the lfn without 'lfn:' prepended
+    """
+
+    try:
+      jobid = int(self.JOB_ID)
+      jobindex = string.zfill(jobid/10000,4)
+    except:
+      jobindex = '0000'
+
+    fname = filetuple[0]
+    if re.search('lfn:',fname):
+      return fname.replace('lfn:','')
+    else:
+      if re.search('LFN:',fname):
+        return fname.replace('LFN:','')
+      else:
+        path = makeProductionPath(self,mode,prodstring)
+        return path+filetuple[1]+'/'+jobindex+'/'+filetuple[0]
+
+def makeProductionPath(self,mode,prodstring,log=False):
+  """ Constructs the path in the logical name space where the output
+  data for the given production will go.
+  """
+#  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
+  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
+
+  if log:
+    try:
+      jobid = int(self.JOB_ID)
+      jobindex = string.zfill(jobid/10000,4)
+    except:
+      jobindex = '0000'
+    result += 'LOG/'+jobindex
+
+  return result
