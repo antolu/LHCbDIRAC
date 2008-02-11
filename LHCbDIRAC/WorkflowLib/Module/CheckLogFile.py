@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.1 2008/02/01 15:00:55 joel Exp $
+# $Id: CheckLogFile.py,v 1.2 2008/02/11 08:10:20 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.1 2008/02/01 15:00:55 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.2 2008/02/11 08:10:20 joel Exp $"
 
 import commands, os
 
@@ -58,9 +58,6 @@ class CheckLogFile(object):
 
 
       retVal = gConfig.getSections('/Resources/StorageElements/CERN-Debug')
-      print "jjj",retVal
-      retVal = gConfig.getSections('/Resources/StorageElements/CERN-Debug')
-      print "jjj",retVal
       if retVal['OK']:
         debugse = 'CERN-Debug'
       else:
