@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.5 2008/02/11 10:38:22 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.6 2008/02/11 11:04:45 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.5 $"
+__RCSID__ = "$Revision: 1.6 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -346,5 +346,5 @@ class ProductionDB(TransformationDB):
         return result2
       jobID = int(result2['Value'][0][0])
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
-      return S_OK(transID)
+      return S_OK(jobID)
 
