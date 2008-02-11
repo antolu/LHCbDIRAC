@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.3 2008/02/08 18:55:46 gkuznets Exp $
-__RCSID__ = "$Revision: 1.3 $"
+# $Id: dirac-production-manager-cli.py,v 1.4 2008/02/11 10:38:22 gkuznets Exp $
+__RCSID__ = "$Revision: 1.4 $"
 
 import cmd
 import sys, os
@@ -213,7 +213,17 @@ class ProductionManagerCLI( cmd.Cmd ):
                pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'],  pr['FileMask'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
-
+  def do_addProdJob(self, args):
+    """ Add single job to the Production
+    Usage: addProdJob ProductionID [inputVector]
+    """
+    argss = string.split(args)
+    prodID = long(argss[0])
+    if len(argss)>1:
+      vector = argss[1]
+    else:
+      vector = ''
+    print self.productionManager.addProductionJob(prodID, vector)
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()

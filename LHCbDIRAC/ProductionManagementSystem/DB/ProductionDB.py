@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.4 2008/02/08 18:55:46 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.5 2008/02/11 10:38:22 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision: 1.5 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -208,6 +208,7 @@ class ProductionDB(TransformationDB):
     JobID INTEGER NOT NULL AUTO_INCREMENT,
     WmsStatus char(16) DEFAULT 'CREATED',
     JobWmsID char(16),
+    TimeStamp TIMESTAMP,
     InputVector BLOB,
     PRIMARY KEY(JobID),
     INDEX(WmsStatus)
@@ -324,3 +325,26 @@ class ProductionDB(TransformationDB):
       return S_OK(newres)
     else:
       return S_ERROR('Failed to retrive Production with the id=%s message=%s' % (id, result['Message']))
+
+
+  def addProductionJob(self, productionID, inputVector):
+      """ Production ID is number without prepending 0000
+      """
+      self.lock.acquire()
+      table = 'Jobs_%d'% long(productionID)
+      result = self._insert(table, [ 'WmsStatus', 'JobWmsID', 'InputVector' ],
+                            ['CREATED', 0, inputVector])
+      if not result['OK']:
+        self.lock.release()
+        error = 'Job FAILED to be published for Production="%s" with the input vector %s and with the message "%s"' % (productionID, inputVector, result['Message'])
+        gLogger.error(error)
+        return S_ERROR( error )
+
+      result2 = self._query("SELECT LAST_INSERT_ID();")
+      self.lock.release()
+      if not result2['OK']:
+        return result2
+      jobID = int(result2['Value'][0][0])
+      gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
+      return S_OK(transID)
+

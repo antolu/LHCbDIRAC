@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.7 2008/02/08 18:55:46 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.8 2008/02/11 10:38:22 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.7 $"
+__RCSID__ = "$Revision: 1.8 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -173,4 +173,11 @@ class ProductionManagerHandler( TransformationHandler ):
       error = 'Can not get list of Transformations because %s' % result['Message']
       gLogger.error( error )
       return S_ERROR( error )
+    return result
+
+  types_addProductionJob = [ LongType,  StringType]
+  def export_addProductionJob( self, productionID, inputVector ):
+    result = productionDB.addProductionJob(productionID, inputVector)
+    if not result['OK']:
+      gLogger.error(result['Message'])
     return result
