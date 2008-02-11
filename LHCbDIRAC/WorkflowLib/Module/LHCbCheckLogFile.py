@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.1 2008/02/01 15:00:34 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.2 2008/02/11 08:10:54 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.1 2008/02/01 15:00:34 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.2 2008/02/11 08:10:54 joel Exp $"
 
 import os, string,sys
 
@@ -110,7 +110,7 @@ class LHCbCheckLogFile(CheckLogFile):
 # check if this is a good job
       result = self.goodJob()
       if result['OK']:
-         self.log.info(self.argv0 + '.CheckLogFile - %s is OK ' % (self.logfile))
+         self.log.info(' CheckLogFile - %s is OK ' % (self.logfile))
 #         self.update_status('OK')
          return result
 
@@ -165,7 +165,7 @@ class LHCbCheckLogFile(CheckLogFile):
 #
 
    def goodJob(self):
-      self.log.info(self.argv0 + '.goodJob: find if the required number of events has been produced in %s'%(self.logfile))
+      self.log.debug(' goodJob: find if the required number of events has been produced in %s'%(self.logfile))
 
       mailto = 'DIRAC_EMAIL'
 
@@ -231,7 +231,7 @@ class LHCbCheckLogFile(CheckLogFile):
       if n == 0:
           if self.appName == 'Gauss' or nomore == 0:
             result = S_ERROR(mailto + ' crash in event ' + lastev)
-            self.log.info(self.argv0 + '.goodJob - result = ',result['Message'])
+            self.log.info(' goodJob - result = ',result['Message'])
             return result
           else:
             nprocessed = lastev
@@ -277,7 +277,7 @@ class LHCbCheckLogFile(CheckLogFile):
           result = S_ERROR('All INPUT events have not been processed')
 
 
-      self.log.info('.goodJob - %s events result= %s'%(str(noutput),str(result)))
+      self.log.debug(' goodJob - %s events result= %s'%(str(noutput),str(result)))
 
       return result
 
@@ -286,7 +286,7 @@ class LHCbCheckLogFile(CheckLogFile):
 #
    def analyzeDIRACEnv(self,error):
 
-      self.log.info(self.argv0 + '.DIRACEnv: analyze the DIRAC environment from %s logfile '%(self.logfile))
+      self.log.debug(' DIRACEnv: analyze the DIRAC environment from %s logfile '%(self.logfile))
 
       result = S_ERROR(error)
 
@@ -317,7 +317,7 @@ class LHCbCheckLogFile(CheckLogFile):
 #-----------------------------------------------------------------------
 #
    def getLogFile(self):
-       self.log.info(self.argv0 + '.OpenLogFile - try to open %s'%(self.logfile))
+       self.log.debug(' OpenLogFile - try to open %s'%(self.logfile))
 
        result = S_OK()
        if not os.path.exists(self.logfile):
@@ -337,21 +337,21 @@ class LHCbCheckLogFile(CheckLogFile):
 #----------------------------------------------------------------------
 #
    def getAppName(self):
-       self.log.info(self.argv0 +'.getAppName - from %s'%(self.logfile))
+       self.log.debug(' getAppName - from %s'%(self.logfile))
 
        filename = os.path.split(self.logfile)[1]
        appName = string.split(filename,'_')[0]
        if appName == 'Stripping' :appName = 'DaVinci'
        if string.find(appName,'Merg') != -1: appName ='Merging'
 
-       self.log.info(self.argv0+'.getAppName %s %s'%(self.logfile, appName))
+       self.log.debug(' getAppName %s %s'%(self.logfile, appName))
        return appName
 
 #
 #----------------------------------------------------------------------
 #
    def checkApplicationLog(self,error=''):
-       self.log.info(self.argv0 +'.appLog - from %s'%(self.logfile))
+       self.log.debug(' appLog - from %s'%(self.logfile))
 
 #
 #------------------------------------------------------------------------
