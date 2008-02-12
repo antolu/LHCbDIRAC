@@ -70,6 +70,7 @@ module4.appendParameter(Parameter("EVENTTYPE","","string","self","EVENTTYPE",Tru
 module4.appendParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module4.appendParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
 module4.appendParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
+module4.appendParameter(Parameter("appLog","","string","self","appLog",True,False,"list of logfile"))
 
 
 #define module 5
@@ -133,7 +134,6 @@ workflow1.addStep(step2)
 step2_prefix="step2_"
 stepInstance2 = workflow1.createStepInstance('Job_Finalization', 'Step2')
 stepInstance2.linkParameterUp(stepInstance2.parameters, step2_prefix)
-stepInstance2.setLink("systemConfig","self", "systemConfig") # correct link as we have onlu one system config
 
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
@@ -143,7 +143,7 @@ workflow1.appendParameterCopyLinked(step1.parameters, step1_prefix)
 # and finally we can unlink them because we inherit them linked
 workflow1.unlinkParameter(workflow1.parameters)
 
-workflow1.setValue(step1_prefix+"appVersion", "v32r3")
+workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
 #JCworkflow1.setValue(step1_prefix+"CONFIG_NAME", "CCRC08")
 #JCworkflow1.setValue(step1_prefix+"CONFIG_VERSION", "v0")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
@@ -162,7 +162,15 @@ workflow1.appendParameter(Parameter("systemConfig","slc4_ia32_gcc34","string",""
 workflow1.appendParameter(Parameter("SystemConfig","slc4_ia32_gcc34","JDLReqt","","",True, False, "Application Name"))
 
 workflow1.appendParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
+workflow1.appendParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
+workflow1.appendParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
+workflow1.appendParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
+workflow1.appendParameter(Parameter("SoftwarePackages","Brunel.v32r3p1","JDL","","",True, False, "software"))
+
 workflow1.appendParameter(Parameter("MaxCPUTime",50000,"JDLReqt","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
+workflow1.appendParameter(Parameter("Platform","gLite","JDLReqt","","",True, False, "platform"))
 
 # and finally we can unlink them because we inherit them linked
 workflow1.unlinkParameter(workflow1.parameters)
@@ -179,5 +187,5 @@ workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 print workflow1.createCode()
-#eval(compile(workflow1.createCode(),'<string>','exec'))
+eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()
