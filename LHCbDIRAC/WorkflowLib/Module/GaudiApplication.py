@@ -1,18 +1,20 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.17 2008/02/07 15:38:25 joel Exp $
+# $Id: GaudiApplication.py,v 1.18 2008/02/12 22:37:49 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.17 2008/02/07 15:38:25 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.18 2008/02/12 22:37:49 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
 import shutil, re, string, os, sys
 
 class GaudiApplication(object):
 
+  #############################################################################
   def __init__(self):
     self.enable = True
     self.version = __RCSID__
@@ -31,7 +33,12 @@ class GaudiApplication(object):
     self.generator_name=''
     self.optfile_extra = ''
     self.optfile = ''
+    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
 
+  #############################################################################
   def resolveInputDataOpts(self,options):
     """ Input data resolution has two cases. Either there is explicitly defined
         input data for the application step (a subset of total workflow input data reqt)
@@ -72,7 +79,7 @@ class GaudiApplication(object):
     poolOpt = """\nFileCatalog.Catalogs= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
 
-
+  #############################################################################
   def resolveInputDataPy(self,options):
     """ Input data resolution has two cases. Either there is explicitly defined
         input data for the application step (a subset of total workflow input data reqt)
@@ -113,7 +120,7 @@ class GaudiApplication(object):
     poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
 
-
+  #############################################################################
   def manageOpts(self):
     print "manage options OPTS",self.optfile
     options = open('gaudi.opts','w')
@@ -150,6 +157,7 @@ class GaudiApplication(object):
     output = shellCall(0,comm)
     os.environ['JOBOPTPATH'] = 'gaudirun.opts'
 
+  #############################################################################
   def managePy(self):
     if os.path.exists(self.optfile_extra): os.remove(self.optfile_extra)
 
@@ -166,8 +174,9 @@ class GaudiApplication(object):
     except Exception, x:
         print "No additional options"
 
-
+  #############################################################################
   def execute(self):
+    self.__report('Initializing GaudiApplication')
     cwd = os.getcwd()
     self.root = gConfig.getValue('/LocalSite/Root',cwd)
     self.log.debug(self.version)
@@ -198,11 +207,9 @@ class GaudiApplication(object):
     app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
                    string.upper(self.appName)+'_'+self.appVersion+'/InstallArea'
 
-    #TO FIX
     mysiteroot = self.root
-    if os.path.exists(mysiteroot+'/'+self.optionsFile):
-      self.optfile = mysiteroot+'/'+self.optionsFile
-
+    if os.path.exists('%s/%s' %(cwd,self.optionsFile)):
+      self.optfile = self.optionsFile
     # Otherwise take the one from the application options directory
     else:
       optpath = app_dir_path+'/options'
@@ -353,7 +360,7 @@ done
 
     os.chmod(self.appName+'Run.sh',0755)
     comm = 'sh -c "./'+self.appName+'Run.sh"'
-
+    self.__report('%s %s' %(self.appName,self.appVersion))
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput)
     resultTuple = self.result['Value']
 
@@ -380,38 +387,18 @@ done
     else:
       self.log.info( "%s execution completed succesfully:" % self.appName )
 
-    if failed==True:
-      self.log.error( "==================================\n StdOutput (last 100 lines) :\n" )
-      lines = stdOutput.split('\n')
-      if len(lines) > 100:
-        self.log.error( string.join( lines[ -100: ],'\n')  )
-      else:
-        self.log.info( string.join( lines,'\n'))
 
+    if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      #TO THINK ABOUT
-      #self.job.report(self.appName+" for step "+str(self.step.number)+" FAILED")
-
-      # Return error for non-production jobs
-     # if not self.jobType == 0:
+      self.__report('%s Exited With Status %s' %(self.appName,status))
       return S_ERROR(self.appName+" execution completed with errors")
 
-    else:
-      self.log.info( "==================================\n StdOutput (last 100 lines) :\n" )
-      lines = stdOutput.split('\n')
-      if len(lines) > 100:
-        self.log.info( string.join( lines[ -100: ],'\n')  )
-      else:
-        self.log.info( string.join( lines,'\n'))
-
-#      self.log.info( "==================================\n StdError:\n" )
-#      self.log.info(stdError)
-
     # Return OK assuming that subsequent CheckLogFile will spot problems
+    self.__report('%s %s Successful' %(self.appName,self.appVersion))
     return S_OK()
 
-########################################################################
+  #############################################################################
   def redirectLogOutput(self, fd, message):
     print message
     sys.stdout.flush()
@@ -423,5 +410,18 @@ done
       else:
         self.log.error("Application Log file not defined")
 
-########################################################################
+  #############################################################################
+  def __report(self,status):
+    """Wraps around setJobApplicationStatus of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
 
+    self.log.verbose('setJobApplicationStatus(%s,%s)' %(self.jobID,status))
+    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status)
+    if not jobStatus['OK']:
+      self.log.warn(jobStatus['Message'])
+
+    return jobStatus
+
+  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
