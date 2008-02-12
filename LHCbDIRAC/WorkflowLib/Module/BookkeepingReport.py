@@ -1,12 +1,13 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.3 2008/02/11 08:09:46 joel Exp $
+# $Id: BookkeepingReport.py,v 1.4 2008/02/12 15:42:05 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.3 2008/02/11 08:09:46 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.4 2008/02/12 15:42:05 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from DIRAC import                                        *
+from DIRAC.Core.Utilities.File import makeGuid
+from DIRAC import  *
 
 import os, time, re
 
@@ -27,9 +28,9 @@ class BookkeepingReport(object):
 
   def execute(self):
 
+    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
-    print self.nb_events_input
     print >> bfile,self.makeBookkeepingXMLString()
     bfile.close()
 
@@ -158,9 +159,25 @@ class BookkeepingReport(object):
 ##    s = s+self.__parameter_string("ExecTime",str(exectime),"Info")
 
     # Input files
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
-    print self.inputData
+    self.LFN_ROOT = ''
     for inputname in self.inputData.split(';'):
+      lfnroot = inputname.split('/')
+      if len(lfnroot) > 1:
+          CONTINUE = 1
+          j = 1
+          while CONTINUE == 1:
+            if not lfnroot[j] in dataTypes:
+              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
+            else:
+              CONTINUE = 0
+              break
+            j = j + 1
+            if j > len(lfnroot):
+              CONTINUE = 0
+              break
+
       lfn = makeProductionLfn(self,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
       s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
@@ -169,7 +186,6 @@ class BookkeepingReport(object):
     # Output files
     # Define DATA TYPES - ugly! should find another way to do that
 
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
     if self.EVENTTYPE != None:
       eventtype = self.EVENTTYPE
@@ -187,11 +203,13 @@ class BookkeepingReport(object):
       statistics = "0"
 
 
+    self.outputData = self.outputData+';'+self.appLog
     for output in self.outputData.split(';'):
-      typeName = self.appType.upper()
+      if output == self.appLog:
+        typeName = 'LOG'
+      else:
+        typeName = self.appType.upper()
       typeVersion = '1'
-      self.log.info(output)
-      self.log.info(self.outputData)
 
       # Output file size
       try:
@@ -199,9 +217,8 @@ class BookkeepingReport(object):
       except:
         outputsize = '0'
 
-      comm = 'md5sum '+output
+      comm = 'md5sum '+str(output)
       resultTuple = shellCall(0,comm)
-      self.log.info(resultTuple)
       status = resultTuple['Value'][0]
       out = resultTuple['Value'][1]
 
@@ -215,11 +232,10 @@ class BookkeepingReport(object):
       guid = self.getGuidFromPoolXMLCatalog(output)
       if guid == '':
         if md5sum != '000000000000000000000000000000000000':
-          guid = makeGuid(md5sum = md5sum)
+          guid = makeGuid(output)
         else:
           guid = makeGuid()
 
-      self.log.info(guid)
       # build the lfn
       lfn = makeProductionLfn(self,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
 
@@ -230,36 +246,34 @@ class BookkeepingReport(object):
         s = s+'    <Parameter  Name="Size"        Value="'+outputsize+'"/>\n'
         s = s+'    <Quality Group="Production Manager" Flag="Not Checked"/>\n'
 
-      s = s+'</Job>'
-      return s
 
       ############################################################
       # Log file replica information
-      if typeName == "LOG":
-        if self.appLog != None:
+#      if typeName == "LOG":
+      if self.appLog != None:
           logfile = self.appLog
           if logfile == output:
-            logname = 'file:'+os.environ['LHCBPRODROOT']+'/job/log/'+ \
-                      self.PRODUCTION_ID+'/'+ self.JOB_ID+'/'+ logfile + '.gz'
-            s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
+#            logname = 'file:'+self.root+'/job/log/'+ \
+#                      self.PRODUCTION_ID+'/'+ self.JOB_ID+'/'+ logfile + '.gz'
+#            s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
 
             # Get the url for log files
-            logpath = makeProductionPath(self,job_mode,self.PRODUCTION_ID,log=True)
-            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
-            ses = gConfig.getValue(logse,'http')
-            if ses:
+            logpath = makeProductionLfn(self,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
+#            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
+#            ses = gConfig.getValue(logse,'http')
+            logurl = 'http://lhcb-logs.cern.ch/storage'
+#            if ses:
               # HTTP protocol is defined for LogSE
-              logurl = ses[0].getPFNBase()+logpath
-            else:
+#              logurl = ses[0].getPFNBase()+logpath
+#            else:
               # HTTP protocol is not defined for LogSE
-              try:
-                logurl = cfgSvc.get(job_mode,'LogPathHTTP')+logpath
-              except:
+#              try:
+#                logurl = cfgSvc.get(job_mode,'LogPathHTTP')+logpath
+#              except:
                 # Default url
-                logurl = 'http://lxb2003.cern.ch/storage'+logpath
+#                logurl = 'http://lxb2003.cern.ch/storage'+logpath
 
-            url = logurl+'/'+ \
-                  self.module.step.job.job_id+'/'+ logfile + '.gz'
+            url = logurl+'/'+ logpath+'.gz'
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
@@ -333,15 +347,16 @@ def makeProductionLfn(self,filetuple,mode,prodstring):
       if re.search('LFN:',fname):
         return fname.replace('LFN:','')
       else:
-        path = makeProductionPath(self,mode,prodstring)
-        return path+filetuple[1]+'/'+jobindex+'/'+filetuple[0]
+#        path = makeProductionPath(self,mode,prodstring)
+        return self.LFN_ROOT+'/'+filetuple[1]+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
 
-def makeProductionPath(self,mode,prodstring,log=False):
+def makeProductionPath(self,typeName,mode,prodstring,log=False):
   """ Constructs the path in the logical name space where the output
   data for the given production will go.
   """
 #  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
-  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
+#  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
+  result = self.LFN_ROOT+'/'+typeName+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
 
   if log:
     try:
