@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.2 2008/02/07 23:14:20 paterson Exp $
+# $Id: InputDataResolution.py,v 1.3 2008/02/13 08:57:16 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,13 +14,13 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.2 2008/02/07 23:14:20 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.3 2008/02/13 08:57:16 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol      import InputDataByProtocol
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
 
-import os,sys,re
+import os,sys,re,string
 
 COMPONENT_NAME='LHCbInputDataResolution'
 
