@@ -137,7 +137,8 @@ stepInstance2.linkParameterUp(stepInstance2.parameters, step2_prefix)
 
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
+#indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
+indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 # lets specify parameters on the level of workflow
 workflow1.appendParameterCopyLinked(step1.parameters, step1_prefix)
 # and finally we can unlink them because we inherit them linked
@@ -187,5 +188,5 @@ workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 print workflow1.createCode()
-eval(compile(workflow1.createCode(),'<string>','exec'))
+#eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()
