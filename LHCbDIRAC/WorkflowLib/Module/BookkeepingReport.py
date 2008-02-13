@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.4 2008/02/12 15:42:05 joel Exp $
+# $Id: BookkeepingReport.py,v 1.5 2008/02/13 10:28:20 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.4 2008/02/12 15:42:05 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.5 2008/02/13 10:28:20 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from DIRAC.Core.Utilities.File import makeGuid
+from DIRAC.Core.Utilities.File import *
 from DIRAC import  *
 
 import os, time, re
@@ -161,8 +161,8 @@ class BookkeepingReport(object):
     # Input files
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
-    self.LFN_ROOT = ''
     for inputname in self.inputData.split(';'):
+      self.LFN_ROOT = ''
       lfnroot = inputname.split('/')
       if len(lfnroot) > 1:
           CONTINUE = 1
@@ -329,41 +329,3 @@ class BookkeepingReport(object):
       gLog.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
 
-def makeProductionLfn(self,filetuple,mode,prodstring):
-    """ Constructs the logical file name according to LHCb conventions.
-    Returns the lfn without 'lfn:' prepended
-    """
-
-    try:
-      jobid = int(self.JOB_ID)
-      jobindex = string.zfill(jobid/10000,4)
-    except:
-      jobindex = '0000'
-
-    fname = filetuple[0]
-    if re.search('lfn:',fname):
-      return fname.replace('lfn:','')
-    else:
-      if re.search('LFN:',fname):
-        return fname.replace('LFN:','')
-      else:
-#        path = makeProductionPath(self,mode,prodstring)
-        return self.LFN_ROOT+'/'+filetuple[1]+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
-
-def makeProductionPath(self,typeName,mode,prodstring,log=False):
-  """ Constructs the path in the logical name space where the output
-  data for the given production will go.
-  """
-#  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
-#  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
-  result = self.LFN_ROOT+'/'+typeName+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
-
-  if log:
-    try:
-      jobid = int(self.JOB_ID)
-      jobindex = string.zfill(jobid/10000,4)
-    except:
-      jobindex = '0000'
-    result += 'LOG/'+jobindex
-
-  return result
