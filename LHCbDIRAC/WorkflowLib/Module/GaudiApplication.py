@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.18 2008/02/12 22:37:49 paterson Exp $
+# $Id: GaudiApplication.py,v 1.19 2008/02/13 11:22:03 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.18 2008/02/12 22:37:49 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.19 2008/02/13 11:22:03 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -417,8 +417,8 @@ done
     if not self.jobID:
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
-    self.log.verbose('setJobApplicationStatus(%s,%s)' %(self.jobID,status))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status)
+    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
+    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])
 
