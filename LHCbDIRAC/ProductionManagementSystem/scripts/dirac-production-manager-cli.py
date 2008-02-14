@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.5 2008/02/14 00:27:17 gkuznets Exp $
-__RCSID__ = "$Revision: 1.5 $"
+# $Id: dirac-production-manager-cli.py,v 1.6 2008/02/14 09:56:31 gkuznets Exp $
+__RCSID__ = "$Revision: 1.6 $"
 
 import cmd
 import sys, os
@@ -180,6 +180,37 @@ class ProductionManagerCLI( cmd.Cmd ):
     else:
       print "File %s does not exists" % tr_file
 
+  def do_updatePR(self, args):
+    """
+    Replace Production in the transformation table even old one with this name exists
+      Usage: updatePR <filename> <filemask> <groupsize>
+      <filename> is a path to the file with the xml description of the workflow
+      If transformation with this name already exists, publishing will be refused.
+      <filemask> mask to match files going to be accepted by transformation
+      <groupsize> how many files going to be grouped per job
+      WARNING!!! if <filemask> and <groupsize> are absent, the system will create 'SIMULATION' type of transformation
+    """
+    tr_mask = ''
+    tr_groupsize = 0
+    argss = string.split(args)
+    tr_file = argss[0]
+    if len(argss)>1:
+      tr_mask = argss[1]
+    else:
+      tr_mask = ''
+    if len(argss)>2:
+      tr_groupsize = int(argss[2])
+
+    if os.path.exists(tr_file):
+      fd = file( tr_file )
+      body = fd.read()
+      fd.close()
+      result = self.productionManager.publishProduction(body, tr_mask, tr_groupsize, True)
+      if not result['OK']:
+        print "Error during command execution: %s" % result['Message']
+    else:
+      print "File %s does not exists" % tr_file
+
   def do_deletePR(self, args):
     """
     Delete Production from the the repository
@@ -284,6 +315,24 @@ class ProductionManagerCLI( cmd.Cmd ):
     prodName = argss[0]
     status = argss[1]
     self.productionManager.setProductionStatus(prodName, status)
+
+  def do_setTransformationMaskID(self, args):
+    """ Overrites transformation mask for the production
+    Usage: setTransformationMaskID ProductionID Mask
+    """
+    argss = string.split(args)
+    prodID = long(argss[0])
+    mask = argss[1]
+    self.productionManager.setTransformationMaskID(prodID, mask)
+
+  def do_setTransformationMask(self, args):
+    """ Overrites transformation mask for the production
+    Usage: setTransformationMaskID ProductionName Mask
+    """
+    argss = string.split(args)
+    prodID = argss[0]
+    mask = argss[1]
+    self.productionManager.setTransformationMask(prodID, mask)
 
   def do_test(self, args):
     """ Testing function for Gennady

@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.9 2008/02/14 00:27:18 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.10 2008/02/14 09:56:31 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -135,7 +135,10 @@ class ProductionManagerHandler( TransformationHandler ):
     long_description = wf.getDescription()
 
     try:
-      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      if update:
+        result = productionDB.updateProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      else:
+        result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -216,6 +219,20 @@ class ProductionManagerHandler( TransformationHandler ):
   types_setProductionStatus = [ StringType, StringType ]
   def export_setProductionStatus( self, id, status ):
     result = productionDB.setTransformationStatus(id, status)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setTransformationMaskID = [ LongType, StringType ]
+  def export_setTransformationMaskID( self, id, status ):
+    result = productionDB.setTransformationMask(id, status)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setTransformationMask = [ StringType, StringType ]
+  def export_setTransformationMask( self, id, status ):
+    result = productionDB.setTransformationMask(id, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result

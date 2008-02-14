@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.7 2008/02/14 00:27:17 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.8 2008/02/14 09:56:30 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.7 $"
+__RCSID__ = "$Revision: 1.8 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -169,6 +169,26 @@ class ProductionDB(TransformationDB):
       error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (name, authorDN)
       gLogger.error( error )
       return S_ERROR( error )
+
+  def updateProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup):
+      return S_ERROR( "This Function is not ready yet" )
+#
+#    # WE HAVE TO CHECK IS WORKFLOW EXISTS
+#    if self.getTransformationID(name) > 0: # workflow is not exists
+#      if fileMask == '' or fileMask == None: # if mask is empty it is simulation
+#        type = "SIMULATION"
+#      else:
+#        type = "PROCESSING"
+#      plugin = "NONE"
+#      agentType = "MANUAL"
+#      #status = "NEW" # alwais NEW when created
+#      cmd = "UPDATE Productions Set PRParent='%s', PublisherDN='%s', Description='%s', Body='%s' WHERE PRName='%s' " \
+#                % (pr_parent, publisherDN, pr_description, pr_body, pr_name)
+#
+#          result = self._update( cmd )
+#
+#    else:
+#      return self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup)
 
   def __insertProductionParameters(self, TransformationID, groupsize, parent, body):
     """
