@@ -77,6 +77,11 @@ module4.appendParameter(Parameter("appLog","","string","self","appLog",True,Fals
 module5 = ModuleDefinition('JobFinalization')
 module5.setDescription('Job Finalization module')
 module5.setBody('from WorkflowLib.Module.JobFinalization import * \n')
+module5.appendParameter(Parameter("outputDataSE","CERN-DST","string","","",True,False,"SE of output data"))
+module5.appendParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
+module5.appendParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
+module5.appendParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
+module5.appendParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
 
 
 ###############   STEPS ##################################
@@ -92,6 +97,8 @@ step1.addModule(module4) # Creating instance of the module 'LogChecker'
 moduleInstance4 = step1.createModuleInstance('BookkeepingReport', 'module4')
 # in principle we can link parameters of moduleInstance2 with moduleInstance1 but
 # in this case we going to use link with the step
+step1.addModule(module5)
+moduleInstance5 = step1.createModuleInstance('JobFinalization','module5')
 
 # now we can add parameters for the STEP but instead of typing them we can just use old one from modules
 step1.appendParameterCopyLinked(module3.parameters)
@@ -104,9 +111,6 @@ step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.lo
 step1.unlinkParameter(["appLog","appName", "appType"])
 step1.unlinkParameter(["DataType","YEAR", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 
-step2 = StepDefinition('Job_Finalization')
-step2.addModule(module5)
-moduleInstance5 = step2.createModuleInstance('JobFinalization','module5')
 
 
 ##############  WORKFLOW #################################
@@ -130,15 +134,11 @@ stepInstance1.linkParameterUp("YEAR")
 stepInstance1.linkParameterUp("DataType")
 stepInstance1.linkParameterUp("NUMBER_OF_EVENTS")
 
-workflow1.addStep(step2)
-step2_prefix="step2_"
-stepInstance2 = workflow1.createStepInstance('Job_Finalization', 'Step2')
-stepInstance2.linkParameterUp(stepInstance2.parameters, step2_prefix)
 
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-#indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
-indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
+indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
+#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 # lets specify parameters on the level of workflow
 workflow1.appendParameterCopyLinked(step1.parameters, step1_prefix)
 # and finally we can unlink them because we inherit them linked
@@ -188,5 +188,5 @@ workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 print workflow1.createCode()
-#eval(compile(workflow1.createCode(),'<string>','exec'))
+eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()
