@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.8 2008/02/11 10:38:22 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.9 2008/02/14 00:27:18 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.8 $"
+__RCSID__ = "$Revision: 1.9 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -158,9 +158,9 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
-  types_deleteProductionByID = [ IntType ]
+  types_deleteProductionByID = [ LongType ]
   def export_deleteProductionByID( self, id ):
-    result = productionDB.removeProductionByID(id)
+    result = productionDB.deleteProduction(id)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
@@ -175,9 +175,54 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR( error )
     return result
 
+  types_getAllProductions = [ ]
+  def export_getAllProductions(self):
+    gLogger.verbose('Getting list of Productions')
+    result = productionDB.getAllProductions()
+    if not result['OK']:
+      error = 'Can not get list of Transformations because %s' % result['Message']
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
   types_addProductionJob = [ LongType,  StringType]
   def export_addProductionJob( self, productionID, inputVector ):
     result = productionDB.addProductionJob(productionID, inputVector)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_getProductionBodyByID = [ LongType ]
+  def export_getProductionBodyByID( self, id ):
+    result = productionDB.getProductionBodyByID(id)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_getProductionBody = [ StringType ]
+  def export_getProductionBody( self, id ):
+    result = productionDB.getProductionBodyByID(id)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setProductionStatusByID = [ LongType, StringType ]
+  def export_setProductionStatusByID( self, id, status ):
+    result = productionDB.setTransformationStatus(id, status)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setProductionStatus = [ StringType, StringType ]
+  def export_setProductionStatus( self, id, status ):
+    result = productionDB.setTransformationStatus(id, status)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_getInputData2 = [ LongType, StringType ]
+  def export_getInputData2( self, id, status ):
+    result = productionDB.getInputData(id, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result

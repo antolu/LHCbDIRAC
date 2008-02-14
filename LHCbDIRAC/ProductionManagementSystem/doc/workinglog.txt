@@ -62,3 +62,22 @@ Systems
   }
 }
 
+Commands
+export PYTHONPATH=/afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/scripts:/afs/cern.ch/user/g/gkuznets/workspace/DIRAC3:/opt/dirac/slc4_ia32_gcc34/lib:/opt/dirac/contrib
+
+mysql -u Dirac --password=lhcbMySQL ProductionDB
+
+ProductionDB lhcbMySQL
+/afs/cern.ch/user/g/gkuznets
+
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /opt/dirac/DIRAC/Core/scripts/dirac-service ProductionManagement/ProductionManager
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/Core/scripts/dirac-service ProductionManagement/ProductionManager
+
+
+CLI
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-manager-cli.py
+
+Agent
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /opt/dirac/DIRAC/Core/scripts/dirac-agent ProductionManagement/TransformationAgent -o LogLevel=debug MaxCycles=1
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/Core/scripts/dirac-agent ProductionManagement/TransformationAgent -o LogLevel=debug MaxCycles=1
+

@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.4 2008/02/11 10:38:22 gkuznets Exp $
-__RCSID__ = "$Revision: 1.4 $"
+# $Id: dirac-production-manager-cli.py,v 1.5 2008/02/14 00:27:17 gkuznets Exp $
+__RCSID__ = "$Revision: 1.5 $"
 
 import cmd
 import sys, os
@@ -14,9 +14,11 @@ from DIRAC import gConfig
 from DIRAC.LoggingSystem.Client.Logger import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #job submission
-#from DIRAC.Interfaces.API.Dirac import Dirac
-#from DIRAC.Interfaces.API.Job                            import Job
-#from DIRAC.Core.Workflow.WorkflowReader import *
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.Job                            import Job
+from DIRAC.Core.Workflow.Workflow import *
+
+from DIRAC.Core.Workflow.WorkflowReader import *
 
 localCfg.addDefaultEntry("LogLevel", "DEBUG")
 #gLogger._minLevel=30
@@ -166,9 +168,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     else:
       tr_mask = ''
     if len(argss)>2:
-      rt_groupsize = argss[2]
-    else:
-      tr_groupsize=0
+      tr_groupsize = int(argss[2])
 
     if os.path.exists(tr_file):
       fd = file( tr_file )
@@ -193,14 +193,15 @@ class ProductionManagerCLI( cmd.Cmd ):
     Delete Production from the the repository
       Usage: deletePRid Production
     """
-    print self.productionManager.deleteProductionByID(int(args))
+    prodID = long(args)
+    print self.productionManager.deleteProductionByID(prodID)
 
   def do_listPR(self, args):
     """
     List all Productions in the repository
       Usage: listPR
     """
-    ret = self.productionManager.getProductionsList()
+    ret = self.productionManager.getAllProductions()
     if not ret['OK']:
       print "Error during command execution: %s" % ret['Message']
     else:
@@ -208,9 +209,9 @@ class ProductionManagerCLI( cmd.Cmd ):
       print "|    ID    |    Name    |  Status  |   Parent   |   Total  | Submited |   Last   |         Time        |          DN          | Description |"
       print "--------------------------------------------------------------------------------------------------------------------------------------------"
       for pr in ret['Value']:
-        print "| %08s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s |" % (pr["TransformationID"],
-               pr['TransformationName'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
-               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'],  pr['FileMask'])
+        print "| %08s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s | %s | %s |" % (pr["TransID"],
+               pr['Name'], pr['Parent'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
+               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
   def do_addProdJob(self, args):
@@ -224,6 +225,70 @@ class ProductionManagerCLI( cmd.Cmd ):
     else:
       vector = ''
     print self.productionManager.addProductionJob(prodID, vector)
+
+  def do_submitJob(self, args):
+    """ Add single job to the Production
+    Usage: addProdJob ProductionID jobid
+    """
+    argss = string.split(args)
+    prodID = long(argss[0])
+    jobid = argss[1]
+    wms = Dirac()
+
+    result = self.productionManager.getProductionBodyByID(prodID)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+    body = result["Value"]
+    #print body
+    #wf = fromXMLString(body)
+    job = Job(body)
+      #job._Job__setJobDefaults()
+      #stramge fix to avoid error
+      #job._addParameter(job.workflow,'requirements','JDL','','Do not know what to add')
+    result2 = wms.submit(job)
+    if not result2['OK']:
+      print "Can not submit job bacause %s" % result2['Message']
+    print result2
+
+  def do_setStatusID(self, args):
+    """ Set status of the production
+    Usage: setStatusPRid ProductionID Status
+      New - newly created, equivalent to STOPED
+      Active - can submit
+      Flush - final stage, ignoring GroupSize
+      Stopped - stopped by manager
+      Done - job limits reached, extension is possible
+      Error - Production with error, equivalent to STOPPED
+      Terminated - stopped, extension impossible
+      Case of the letters will be ignored
+    """
+    argss = string.split(args)
+    prodID = long(argss[0])
+    status = argss[1]
+    self.productionManager.setProductionStatusByID(prodID, status)
+
+  def do_setStatus(self, args):
+    """ Set status of the production
+    Usage: setStatusPRid ProdName Status
+      New - newly created, equivalent to STOPED
+      Active - can submit
+      Flush - final stage, ignoring GroupSize
+      Stopped - stopped by manager
+      Done - job limits reached, extension is possible
+      Error - Production with error, equivalent to STOPPED
+      Terminated - stopped, extension impossible
+      Case of the letters will be ignored
+    """
+    argss = string.split(args)
+    prodName = argss[0]
+    status = argss[1]
+    self.productionManager.setProductionStatus(prodName, status)
+
+  def do_test(self, args):
+    """ Testing function for Gennady
+    """
+    print self.productionManager.getAllTransformations()
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()

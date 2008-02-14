@@ -1,15 +1,16 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.2 2008/02/11 11:04:19 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.3 2008/02/14 00:27:18 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.2 2008/02/11 11:04:19 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.3 2008/02/14 00:27:18 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC.Core.DISET.RPCClient import RPCClient
 import os, time
 
 AGENT_NAME = 'ProductionManagement/TransformationAgent'
@@ -40,46 +41,46 @@ class TransformationAgent(Agent):
 
     gMonitor.addMark('Iteration',1)
 
-    transName = gConfig.getValue(self.section+'/Transformation')
-    if transName:
-      self.singleTransformation = transName
-      gLogger.info("Initializing Replication Agent for transformation %s." % transName)
+    transID = gConfig.getValue(self.section+'/Transformation','')
+    if transID:
+      self.singleTransformation = long(transID)
+      gLogger.info("Initializing Replication Agent for transformation %s." % transID)
     else:
       self.singleTransformation = False
       gLogger.info("ReplicationPlacementAgent.execute: Initializing general purpose agent.")
 
-    result = self.server.getAllTransformations()
+    result = self.server.getAllProductions()
     activeTransforms = []
     if not result['OK']:
       gLogger.error("ReplicationPlacementAgent.execute: Failed to get transformations.", res['Message'])
 
     for transDict in result['Value']:
-      transName = transDict['Name']
+      transID = long(transDict['TransID'])
       transStatus = transDict['Status']
 
       processTransformation = True
       if self.singleTransformation:
-        if not self.singleTransformation == transName:
-          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping %s (not selected)." % transName)
+        if not self.singleTransformation == transID:
+          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping %s (not selected)." % transID)
           processTransformation = False
 
       if processTransformation:
         startTime = time.time()
         # process the active transformations
         if transStatus == 'Active':
-          gLogger.info(self.name+".execute: Processing transformation '%s'." % transName)
+          gLogger.info(self.name+".execute: Processing transformation '%s'." % transID)
           result = self.processTransformation(transDict, False)
-          gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transName,time.time()-startTime))
+          gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
 
         # flush transformations
         elif transStatus == 'Flush':
-          gLogger.info(self.name+".execute: Flushing transformation '%s'." % transName)
+          gLogger.info(self.name+".execute: Flushing transformation '%s'." % transID)
           result = self.processTransformation(transDict, True)
           if not result['OK']:
-            gLogger.error(self.name+".execute: Failed to flush transformation '%s'." % transName, res['Message'])
+            gLogger.error(self.name+".execute: Failed to flush transformation '%s'." % transID, res['Message'])
           else:
-            gLogger.info(self.name+".execute: Transformation '%s' flushed in %s seconds." % (transName,time.time()-startTime))
-            result = self.server.setTransformationStatus(transName, 'Stopped')
+            gLogger.info(self.name+".execute: Transformation '%s' flushed in %s seconds." % (transID,time.time()-startTime))
+            result = self.server.setTransformationStatus(transID, 'Stopped')
             if not result['OK']:
               gLogger.error(self.name+".execute: Failed to update transformation status to 'Stopped'.", res['Message'])
             else:
@@ -87,7 +88,7 @@ class TransformationAgent(Agent):
 
         # skip the transformations of other statuses
         else:
-          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping transformation '%s' with status %s." % (transName,transStatus))
+          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping transformation '%s' with status %s." % (transID,transStatus))
 
     return S_OK()
 
@@ -96,13 +97,14 @@ class TransformationAgent(Agent):
     """Process one Transformation defined by its dictionary
     """
 
-    prodID = transDict['name']
-    result = self.prodSvc.getInputData(prodID,'')
-    if result['Status'] == "OK":
+    prodID = long(transDict['TransID'])
+    group_size = int(transDict['GroupSize'])
+    result = self.server.getInputData2(prodID,'')
+    if result['OK']:
       data = result['Value']
     else:
-      print "Failed to get data for transformation",prodID
-      return S_ERROR("Failed to get data for transformation "+prodID)
+      print "Failed to get data for transformation", prodID, result['Message']
+      return S_ERROR("Failed to get data for transformation %d %s"%(prodID,result['Message']))
 
     gLogger.debug("Input data number of files %d" % len(data))
 
@@ -198,12 +200,12 @@ class TransformationAgent(Agent):
     return data_m
 
   ######################################################################################
-  def addJobToProduction(self,production,lfns,se):
+  def addJobToProduction(self, prodID, lfns, se):
     """ Adds a new job to the production giving an lfns list of input files.
         Argument se can be used to specify the target destination if necessary
     """
 
     #inputVector = {}
     #inputVector['InputData'] = lfns
-    result = self.server.addProductionJob(production,lfns)
+    result = self.server.addProductionJob(prodID, lfns)
     return result

@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.6 2008/02/11 11:04:45 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.7 2008/02/14 00:27:17 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -131,7 +131,7 @@ class ProductionDB(TransformationDB):
     agentType = "MANUAL"
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
-    if self.transformationExists(name) == 0: # workflow is not exists
+    if self.getTransformationID(name) == 0: # workflow is not exists
 
         #result = self._escapeString( body )
         #if not result['OK']: return result
@@ -174,11 +174,6 @@ class ProductionDB(TransformationDB):
     """
     Inserts additional parameters into ProductionParameters Table
     """
-    if not isinstance(TransformationID, str):
-      TransformationID = str(TransformationID)
-    #KGG it is not clear yeat
-    #if not isinstance(groupsize, str):
-    #  groupsize = str(TransformationID)
     inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body']
     inValues = [TransformationID, groupsize, parent, body]
     result = self._insert('ProductionParameters',inFields,inValues)
@@ -187,6 +182,41 @@ class ProductionDB(TransformationDB):
       gLogger.error( error )
       return S_ERROR( error )
     return result
+
+  def getProductionParameters(self, transName):
+    """
+    Get additional parameters from ProductionParameters Table
+    """
+    id = self.getTransformationID(transName)
+    cmd = "SELECT GroupSize, Parent, Body  from ProductionParameters WHERE TransformationID='%d'" % id
+    result = self._query(cmd)
+    dict={}
+    if not result['OK']:
+      error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+
+    dict['GroupSize']=result['Value'][0][0]
+    dict['Parent']=result['Value'][0][1]
+    dict['Body']=result['Value'][0][2]
+    return S_OK(dict)
+
+  def getProductionParametersWithoutBody(self, transName):
+    """
+    Get additional parameters from ProductionParameters Table
+    """
+    id = self.getTransformationID(transName)
+    cmd = "SELECT GroupSize, Parent  from ProductionParameters WHERE TransformationID='%d'" % id
+    result = self._query(cmd)
+    dict={}
+    if not result['OK']:
+      error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+
+    dict['GroupSize']=result['Value'][0][0]
+    dict['Parent']=result['Value'][0][1]
+    return S_OK(dict)
 
   def __deleteProductionParameters(self, TransformationID):
     """
@@ -202,8 +232,6 @@ class ProductionDB(TransformationDB):
 
   def __addJobTable(self, TransformationID):
     """ Method to add Job table """
-    if not isinstance(TransformationID, str):
-      TransformationID = str(TransformationID)
     req = """CREATE TABLE Jobs_%s(
     JobID INTEGER NOT NULL AUTO_INCREMENT,
     WmsStatus char(16) DEFAULT 'CREATED',
@@ -241,22 +269,29 @@ class ProductionDB(TransformationDB):
       return S_OK(newres)
     return result
 
-  def deleteProduction(self,transName):
-    """ Remove the Production specified by name
-    """
+  def getAllProductions(self):
+    result1 = TransformationDB.getAllTransformations(self)
+    if not result1['OK']:
+        return result1
+    for prod in result1['Value']:
+      id = long(prod['TransID'])
+      result2 = self.getProductionParametersWithoutBody(id)
+      if result2['OK']:
+        prod['GroupSize']=result2['Value']['GroupSize']
+        prod['Parent']=result2['Value']['Parent']
+      # we can ignore errors for now
+      #else:
+      #  return result2
+    return result1
 
-    transID = self.getTransformationID(transName)
-    if transID > 0:
-      return self.deleteTransformationByID(transID)
-    else:
-      return S_ERROR("No Transformation with the name '%s' in the TransformationDB" % transName)
-
-
-  def deleteProductionByID(self, transID):
+  def deleteProduction(self, transName):
     """ Remove the Production specified by id
     """
 
-    result_step1 = TransformationDB.deleteTransformationByID(self, transID)
+    transID = self.getTransformationID(transName)
+    if transID == 0:
+      return S_ERROR("No Transformation with the name '%s' in the TransformationDB" % transName)
+    result_step1 = TransformationDB.deleteTransformation(self, transID)
     if result_step1['OK']:
       # we have to execute all
       result_step2 = self.__deleteProductionParameters(transID)
@@ -269,6 +304,12 @@ class ProductionDB(TransformationDB):
     else:
       return  result_step1
 
+  def getProductionBody(self, transName):
+    result = self.getProductionParameters(transName)
+    if result['OK']:
+      return S_OK(result['Value']['Body']) # we
+    else:
+      return S_ERROR("Failed to retrive Production Body with Transformation '%s' " % transName)
 
 #  def deleteTranformation(self, name):
 #    if self._transformationExists(name):
@@ -288,43 +329,18 @@ class ProductionDB(TransformationDB):
 #      return result
 #    return S_ERROR("No production with the ID '%d' in the Production Repository" % id)
 
-  def getProductionID(self, id):
-    cmd = "SELECT Body from Productions WHERE ProductionID='%d'" % id
-    result = self._query(cmd)
-    if result['OK']:
-      return S_OK(result['Value'][0][0]) # we
-    else:
-      return S_ERROR("Failed to retrive Production with ID '%d' " % id)
 
-  def getProduction(self, pr_name):
-    cmd = "SELECT Body from Productions WHERE PRName='%s'" % pr_name
+  def getProductionInfo(self, transName):
+    transID = self.getTransformationID(transName)
+    prod = getTransformation(transID)
+    result = self.getProductionParametersWithoutBody(transID)
     result = self._query(cmd)
     if result['OK']:
-      return S_OK(result['Value'][0][0]) # we
+      prod['GroupSize']=result['Value']['GroupSize']
+      prod['Parent']=result['Value']['Parent']
+      return S_OK(prod)
     else:
-      return S_ERROR("Failed to retrive Production with name '%s' " % pr_name)
-
-  def getProductionInfo(self, pr_name):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, authorDN, Description from Productions WHERE PRName='%s'" % pr_name
-    result = self._query(cmd)
-    if result['OK']:
-      pr=result['Value']
-      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'authorDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
-                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
-      return S_OK(newres)
-    else:
-      return S_ERROR('Failed to retrive Production with the name=%s message=%s' % (pr_name, result['Message']))
-
-  def getProductionInfoID(self, id):
-    cmd = "SELECT  ProductionID, PRName, Status, PRParent, JobsTotal, JobsSubmitted, LastSubmittedJob, PublishingTime, authorDN, Description from Productions WHERE ProductionID='%s'" % id
-    result = self._query(cmd)
-    if result['OK']:
-      pr=result['Value']
-      newres = {'ProductionID':pr[0], 'PRName':pr[1], 'PRParent':pr[2],'authorDN':pr[3], 'PublishingTime':pr[4].isoformat(' '),
-                            'JobsTotal':pr[5], 'JobsSubmitted':pr[6], 'LastSubmittedJob':pr[7], 'Status':pr[8], 'Description':pr[9]}
-      return S_OK(newres)
-    else:
-      return S_ERROR('Failed to retrive Production with the id=%s message=%s' % (id, result['Message']))
+      return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
 
 
   def addProductionJob(self, productionID, inputVector):
@@ -333,7 +349,7 @@ class ProductionDB(TransformationDB):
       self.lock.acquire()
       table = 'Jobs_%d'% long(productionID)
       result = self._insert(table, [ 'WmsStatus', 'JobWmsID', 'InputVector' ],
-                            ['CREATED', 0, inputVector])
+                            ['Created', 0, inputVector])
       if not result['OK']:
         self.lock.release()
         error = 'Job FAILED to be published for Production="%s" with the input vector %s and with the message "%s"' % (productionID, inputVector, result['Message'])
