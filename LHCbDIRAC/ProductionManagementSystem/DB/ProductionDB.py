@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.8 2008/02/14 09:56:30 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.9 2008/02/14 23:31:09 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.8 $"
+__RCSID__ = "$Revision: 1.9 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -148,9 +148,9 @@ class ProductionDB(TransformationDB):
           if result_step2['OK']:
             result_step3 = self.__addJobTable(TransformationID)
             if not result_step3['OK']:
-              # if for some reason this faled we have to roll back
-              result_rollback2 = self.__removeProductionParameters(TransformationID)
-              result_rollback1 = TransformationDB.removeTranformationID(self, TransformationID)
+              # if for some reason this failed we have to roll back
+              result_rollback2 = self.__deleteProductionParameters(TransformationID)
+              result_rollback1 = TransformationDB.removeTransformationID(self, TransformationID)
               return result_step3
             else:
               # everithing OK
@@ -161,12 +161,12 @@ class ProductionDB(TransformationDB):
             return result_step2
 
         if not (result_step1['OK'] and result_step2['OK'] and result_step1['OK']):
-          error = 'Tansformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
+          error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
           gLogger.error(error)
           return S_ERROR( error )
 
     else: # update was not requested
-      error = 'Production "%s" is exist in the repository, it was published by DN="%s"' % (name, authorDN)
+      error = 'Production "%s" exists in the repository, it was published by DN="%s"' % (name, authorDN)
       gLogger.error( error )
       return S_ERROR( error )
 
@@ -251,16 +251,21 @@ class ProductionDB(TransformationDB):
     return result
 
   def __addJobTable(self, TransformationID):
-    """ Method to add Job table """
-    req = """CREATE TABLE Jobs_%s(
-    JobID INTEGER NOT NULL AUTO_INCREMENT,
-    WmsStatus char(16) DEFAULT 'CREATED',
-    JobWmsID char(16),
-    TimeStamp TIMESTAMP,
-    InputVector BLOB,
-    PRIMARY KEY(JobID),
-    INDEX(WmsStatus)
-    )""" % str(TransformationID)
+    """ Method to add Job table
+    """
+
+    req = """
+CREATE TABLE Jobs_%s(
+JobID INTEGER NOT NULL AUTO_INCREMENT,
+WmsStatus char(16) DEFAULT 'Created',
+JobWmsID char(16),
+CreationTime DATETIME NOT NULL DEFAULT NOW(),
+LastUpdateTime DATETIME NOT NULL DEFAULT NOW(),
+InputVector BLOB,
+PRIMARY KEY(JobID),
+INDEX(WmsStatus)
+)
+    """ % str(TransformationID)
     result = self._update(req)
     if not result['OK']:
       error = "Failed to add new Job table with the transformationID %s message: %s" % (str(TransformationID), result['Message'])
@@ -278,7 +283,7 @@ class ProductionDB(TransformationDB):
       return S_ERROR( error )
     return result
 
-  def getProductionsList(self):
+  def getProductionList(self):
     cmd = "SELECT  TransformationID, TransformationName, Description, LongDescription, CreationDate, AuthorDN, AuthorGroup, Type, Plugin, AgentType, Status, FileMask from Transformations;"
     result = self._query(cmd)
     if result['OK']:
@@ -363,13 +368,13 @@ class ProductionDB(TransformationDB):
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
 
 
-  def addProductionJob(self, productionID, inputVector):
+  def addProductionJob(self, productionID, inputVector, se):
       """ Production ID is number without prepending 0000
       """
       self.lock.acquire()
       table = 'Jobs_%d'% long(productionID)
-      result = self._insert(table, [ 'WmsStatus', 'JobWmsID', 'InputVector' ],
-                            ['Created', 0, inputVector])
+      result = self._insert(table, [ 'WmsStatus', 'JobWmsID', 'InputVector'],
+                            ['Created', 0, inputVector ])
       if not result['OK']:
         self.lock.release()
         error = 'Job FAILED to be published for Production="%s" with the input vector %s and with the message "%s"' % (productionID, inputVector, result['Message'])
@@ -384,3 +389,39 @@ class ProductionDB(TransformationDB):
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
       return S_OK(jobID)
 
+  def selectWMSJobs(self,productionID,statusList = [],newer = 0):
+    """ Select WMS job IDs for the given production having one of the specified
+        statuses and optionally with last status update older than "newer" number
+        of minutes
+    """
+
+    req = "SELECT JobID, JobWmsID, WmsStatus FROM Jobs_%d" % int(productionID)
+    condList = []
+    if statusList:
+      statusString = ','.join(["'"+x+"'" for x in statusList])
+      condList.append("WmsStatus IN (%s)" % statusString)
+    if newer:
+      condList.append("LastUpdateTime < DATE_SUB(NOW(),INTERVAL %d MINUTE)" % newer)
+
+    if condList:
+      condString = " AND ".join(condList)
+      req += " WHERE %s" % condString
+
+    result = self._query(req)
+    if not result['OK']:
+      return result
+    resultDict = {}
+    if result['Value']:
+      for row in result['Value']:
+        if int(row[1]) != 0:
+          resultDict[int(row[1])] = (row[0],row[2])
+
+    return S_OK(resultDict)
+
+  def setJobStatus(self,productionID,jobID,status):
+    """ Set status for job with jobID in production with productionID
+    """
+
+    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=NOW() WHERE JobID=%d" % (productionID,status,jobID)
+    result = self._update(req)
+    return result

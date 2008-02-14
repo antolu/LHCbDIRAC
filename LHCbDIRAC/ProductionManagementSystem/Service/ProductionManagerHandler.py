@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.10 2008/02/14 09:56:31 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.11 2008/02/14 23:32:57 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.10 $"
+__RCSID__ = "$Revision: 1.11 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -123,7 +123,7 @@ class ProductionManagerHandler( TransformationHandler ):
   def export_publishProduction( self, body, filemask='', groupsize=0, update=False):
     """ Publish new transformation in the ProductionDB
     """
-    errKey = "Publishing Production failed:"
+    errKey = "Publishing Production failed: "
     authorDN = self.transport.peerCredentials['DN']
     #authorName = self.transport.peerCredentials['user']
     authorGroup = self.transport.peerCredentials['group']
@@ -168,10 +168,21 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
-  types_getProductionsList = [ ]
-  def export_getProductionsList(self):
+  # Obsoleted to keep temporarily
+  types_getListProductions = [ ]
+  def export_getListProductions(self):
     gLogger.verbose('Getting list of Productions')
-    result = productionDB.getProductionsList()
+    result = productionDB.getProductionList()
+    if not result['OK']:
+      error = 'Can not get list of Transformations because %s' % result['Message']
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result
+
+  types_getProductionList = [ ]
+  def export_getProductionList(self):
+    gLogger.verbose('Getting list of Productions')
+    result = productionDB.getProductionList()
     if not result['OK']:
       error = 'Can not get list of Transformations because %s' % result['Message']
       gLogger.error( error )
@@ -188,9 +199,9 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR( error )
     return result
 
-  types_addProductionJob = [ LongType,  StringType]
-  def export_addProductionJob( self, productionID, inputVector ):
-    result = productionDB.addProductionJob(productionID, inputVector)
+  types_addProductionJob = [ LongType,  StringType, StringType]
+  def export_addProductionJob( self, productionID, inputVector, se ):
+    result = productionDB.addProductionJob(productionID, inputVector, se)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
@@ -239,7 +250,39 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_getInputData2 = [ LongType, StringType ]
   def export_getInputData2( self, id, status ):
+
+    print "Production handler 1:",id, status
+
     result = productionDB.getInputData(id, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
+
+  types_updateTransformation = [ LongType]
+  def export_updateTransformation( self, id ):
+    result = productionDB.updateTransformation(id)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setFileStatusForTransformation = [ LongType, StringType, ListType ]
+  def export_setFileStatusForTransformation( self, id,status,lfns ):
+    result = productionDB.setFileStatusForTransformation(id,status,lfns)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setFileSEForTransformation = [ LongType, StringType, ListType ]
+  def export_setFileSEForTransformation( self, id,se,lfns ):
+    result = productionDB.setFileSEForTransformation(id,se,lfns)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_setFileJobID = [ LongType, StringType, ListType ]
+  def export_setFileJobID( self, id,se,lfns ):
+    result = productionDB.setFileJobID(id,se,lfns)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
