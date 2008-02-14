@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.1 2008/02/14 22:34:58 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.2 2008/02/14 23:26:35 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.1 2008/02/14 22:34:58 atsareg Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.2 2008/02/14 23:26:35 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -48,26 +48,29 @@ class ProductionUpdateAgent(Agent):
     result = self.prodDB.getAllProductions()
     for transDict in result['Value']:
       transID = long(transDict['TransID'])
-      
+
       # Get the jobs which status is to be updated
       result = self.prodDB.selectWMSJobs(transID,UPDATE_STATUS,NEWER)
       if not result['OK']:
-        gLogger.warn('Failed to get jobs from Production Database')
+        gLogger.warn('Failed to get jobs from Production Database: '+str(result['Message']))
         continue
       jobDict = result['Value']
+      if not jobDict:
+        continue
       jobIDs = jobDict.keys()
-      
+
       # Get the job statuses from WMS
       result = self.jobSvc.getJobsStatus(jobIDs)
       if not result['OK']:
         gLogger.warn('Failed to get job status from the WMS system')
-        
+        continue
+
       statusDict = result['Value']
       for jobWMS in jobIDs:
         jobID = jobDict[jobWMS][0]
-        status = statusDict[jobWMS]
+        status = statusDict[jobWMS]['Status']
         result = self.prodDB.setJobStatus(transID,jobID,status)
         if not result['OK']:
           gLogger.warn('Failed to set job status for jobID: '+str(jobID))
-          
-    return S_OK()        
+
+    return S_OK()
