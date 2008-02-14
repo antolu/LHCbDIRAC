@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.5 2008/02/13 10:28:20 joel Exp $
+# $Id: BookkeepingReport.py,v 1.6 2008/02/14 07:27:13 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.5 2008/02/13 10:28:20 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.6 2008/02/14 07:27:13 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from DIRAC.Core.Utilities.File import *
+from WorkflowLib.Utilities.Tools import *
 from DIRAC import  *
 
 import os, time, re
@@ -22,6 +22,8 @@ class BookkeepingReport(object):
     self.NUMBER_OF_EVENTS_OUTPUT = None
     self.EVENTTYPE = None
     self.poolXMLCatName = None
+    self.inputData = None
+    self.STEP_ID = None
     self.log = gLogger.getSubLogger("BookkeepingReport")
     self.nb_events_input = None
     pass
