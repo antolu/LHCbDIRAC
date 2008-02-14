@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.12 2008/02/14 13:55:21 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.13 2008/02/14 14:50:46 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.12 2008/02/14 13:55:21 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.13 2008/02/14 14:50:46 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -19,7 +19,6 @@ export arch=`DIRAC3/scripts/dirac-architecture`
 echo
 echo "   building DIRAC-external from CVS tag ${DIRAC_CVS_TAG} for architecture: ${arch}"
 echo
-DIRAC_MAKE    DIRAC3/external/sqlite-3.5.4                               || exit 1
 
 DIRAC_MAKE    DIRAC3/external/Python-2.4.4                               || exit 1
 
@@ -49,6 +48,7 @@ rm -rf DIRAC3/${arch}
 #  Only python packages need to be recompiled.
 #  MySQL needs to be reinstalled, but will not be recompiled
 #
+DIRAC_MAKE    DIRAC3/external/sqlite-3.5.4                               || exit 1
 
 DIRAC_MAKE    DIRAC3/external/Python-2.5                                 || exit 1
 
