@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.12 2008/02/15 11:15:51 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.13 2008/02/15 14:22:37 paterson Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.12 $"
+__RCSID__ = "$Revision: 1.13 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -316,3 +316,46 @@ class ProductionManagerHandler( TransformationHandler ):
     resultDict['JobDictionary'] = jobDict
     
     return S_OK(resultDict) 
+    
+  types_getJobsWithStatus = [ LongType, StringType, IntType ]
+  def export_getJobsWithStatus(self, production, status, numJobs):
+    """ Get jobs with specified status limited by given number 
+        for a given production
+    """    
+    result = productionDB.selectJobs(production,[status],numJobs)
+    if not result['OK']:
+      return S_ERROR('Failed to get jobs with the status %s for production=%d '%(status, production))
+    return result 
+
+  types_setJobStatus = [ LongType, LongType, StringType ]
+  def export_setJobStatus(self, productionID, jobID, status):
+    """ Set status for a given Job
+    """
+    result = productionDB.setJobStatus(productionID, jobID, status)
+    if not result['OK']:
+      error = 'Can not change job status=%s in TransformationID=%d JobID=%d because %s' % (status, productionID, jobID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+      
+  types_setJobWmsID = [ LongType, LongType, StringType ]
+  def export_setJobWmsID(self, productionID, jobID, jobWmsID):
+    """ Set jobWmsID for a given Job
+    """
+    result = productionDB.setJobWmsID(productionID, jobID, jobWmsID)
+    if not result['OK']:
+      error = 'Can set JobWmsID=%s in TransformationID=%d JobID=%d because %s' % (jobWmsID, productionID, jobID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+      
+  types_setJobStatusAndWmsID = [ LongType, LongType, StringType, StringType]
+  def export_setJobStatusAndWmsID(self, productionID, jobID, status, jobWmsID):
+    """ Set jobWmsID for a given Job
+    """
+    result = productionDB.setJobStatusAndWmsID(productionID, jobID, status, jobWmsID)
+    if not result['OK']:
+      error = 'Can set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+
+
+    
