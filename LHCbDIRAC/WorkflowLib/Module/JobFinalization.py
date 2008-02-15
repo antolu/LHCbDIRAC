@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.3 2008/02/15 07:52:36 joel Exp $
+# $Id: JobFinalization.py,v 1.4 2008/02/15 12:33:17 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.3 2008/02/15 07:52:36 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.4 2008/02/15 12:33:17 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -24,12 +24,16 @@ class JobFinalization(object):
     self.NUMBER_OF_EVENTS = None
     self.NUMBER_OF_EVENTS_OUTPUT = None
     self.PRODUCTION_ID = None
-    self_JOB_ID = None
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
+    self.JOB_ID = None
     self.tmpdir = '.'
     self.logdir = '.'
     self.mode = None
     self.poolXMLCatName = None
     self.outputDataSE = None
+    self.TmpCacheSE = 'CERN-Failover'
     self.log = gLogger.getSubLogger("JobFinalization")
     self.nb_events_input = None
     self.rm = ReplicaManager()
@@ -71,7 +75,6 @@ class JobFinalization(object):
       self.log.error(str(x))
 
     all_done = True
-    self.log.info("debug error %s" % (str(error)))
     if not error:
 
       ####################################
@@ -91,7 +94,7 @@ class JobFinalization(object):
       outputs_done = []
       all_done = False
       count = 0
-      max_attempts = 10
+      max_attempts = 1
       while not all_done and count < max_attempts :
         if count > 0:
           self.log.info("Output data upload retry number "+str(count))
@@ -110,16 +113,17 @@ class JobFinalization(object):
 
       if not all_done:
         ok = True
-        if self.infodict.has_key('TmpCacheSE'):
-          cache_se = self.infodict['TmpCacheSE']
-          for output,otype,oversion,outputse in outputs:
-            if not output in outputs_done:
-              fname = os.path.basename(output)
-              resCopy = self.rm.copy(fname,cache_se)
-              if resCopy['Status'] == 'OK':
-                pfname = result['PFN']
-                self.log.info("Setting delayed transfer request for %s %s %s %s " % (fname, lfn, pfname, cache_se))
-                self.setTransferRequest(lfn,pfname,size,cache_se,guid)
+        if self.TmpCacheSE != None:
+          cache_se = self.TmpCacheSE
+#          for output,otype,oversion,outputse in outputs:
+          if not outputs in outputs_done:
+              fname = os.path.basename(outputs)
+              lfn = self.LFN_ROOT+'/failover/'+fname
+              resCopy = self.rm.put(lfn,fname,cache_se)
+              if resCopy['OK'] == True:
+#                pfname = result['PFN']
+                self.log.info("NOT IMPLEMENTED : Setting delayed transfer request for %s %s %s %s " % (fname, lfn, fname, cache_se))
+#                self.setTransferRequest(lfn,pfname,size,cache_se,guid)
               else:
                 ok = False
           if ok:
@@ -138,33 +142,10 @@ class JobFinalization(object):
     #########################################################################
     #  If the Transfer request is not empty, send it for later retry
 
-    if not self.transferRequest.isEmpty():
-      self.transferRequest.dump()
-      ownerDN = getCurrentDN()
-      self.transferRequest.setOwnerDN(ownerDN)
-      reqfilename = 'transfer_'+self.prod_id+'_'+self.job_id+'.xml'
-      self.transferRequest.toFile(reqfilename)
-
-      self.log.info("Setting transfer request for later execution")
-      resReq = self.rdbClient.setRequest('transfer',reqfilename)
-      if resReq['Status'] == "OK":
-        vobox = resReq['Server']
-        self.module.step.job.setJobParameter('Transfer VO-box',vobox,0)
-        self.log.info("Transfer request is set on VO-box: "+vobox)
-      else:
-        self.log.error('Failed to set Transfer Request')
-
-      if not error:
-        self.module.step.job.report('Waiting for data transfer')
-      self.module.step.job.setJobParameter('DataStatus',
-                                           self.transferRequest.dumpShortToString(),0)
-      if not all_done:
-        self.module.step.job.report('Job failed to safe its output')
-    else:
-      if not all_done:
-        self.module.step.job.report('Job failed to safe its output')
-      elif not error:
-        self.module.step.job.report('Job finished successfully')
+    if not all_done:
+      self.__report('Job failed to safe its output')
+    elif not error:
+      self.__report('Job finished successfully')
 
     return result
 
@@ -252,61 +233,6 @@ class JobFinalization(object):
       self.log.info("The following Pool catalog slices will be used:")
       self.log.info(str(fcname))
       self.poolcat = PoolXMLCatalog(fcname)
-
-################################################################################
-  def setTransferRequest(self,lfn,pfname,size,se,guid,operation='CopyAndRegister',move=False):
-
-    lfn_directory = os.path.dirname(lfn)
-    rmsource = 'no'
-    if move:
-      rmsource = 'yes'
-
-    self.transferRequest.addTransfer({"LFN":          lfn,
-                                      'PFN':          pfname,
-                                      'Size':         size,
-                                      'TargetSE':     se,
-                                      'TargetPath':   lfn_directory,
-                                      'Type':         'File',
-                                      'RemoveSource': rmsource,
-                                      'GUID':         guid})
-
-################################################################################
-  def setReplicationRequest(self,lfn,se,source_se,guid,move=False):
-
-    lfn_directory = os.path.dirname(lfn)
-    rmsource = 'no'
-    if move:
-      rmsource = 'yes'
-
-    self.transferRequest.addTransfer({"LFN":          lfn,
-                                      'TargetSE':     se,
-                                      'TargetPath':   lfn_directory,
-                                      'SourceSE':     source_se,
-                                      'GUID':         guid,
-                                      'Type':         'File',
-                                      'RemoveSource': rmsource,
-                                      'Operation':    'ReplicateAndRegister'})
-
-################################################################################
-  def setTransferLogRequest(self,se):
-
-    target_path = makeProductionPath(self.job_mode,self.jobparameters,self.prod_id,log=True)
-
-    self.transferRequest.addTransfer({'PFN':          self.logdir,
-                                      'Type':         'Directory',
-                                      'TargetPath':   target_path,
-                                      'RegisterFlag': 'no',
-                                      'TargetSE':     se})
-
-################################################################################
-  def setRegisterRequest(self,lfn,pfname,size,se,guid,catalog):
-
-    self.transferRequest.addRegister({"LFN":         lfn,
-                                      'PFN':         pfname,
-                                      'Size':        size,
-                                      'TargetSE':    se,
-                                      'GUID':        guid,
-                                      'Catalog':     catalog})
 
 ################################################################################
   def saveLogFile(self,logfile,gzip_flag=1):
@@ -595,6 +521,7 @@ class JobFinalization(object):
     localSEName = self.getSEName('LocalSE')
 
     failover_ses = []
+    failover_ses.append(failoverSEList)
     if localSEName:
       if self.isGridSE(localSEName):
         failover_ses.append(localSEName)
@@ -666,8 +593,8 @@ class JobFinalization(object):
     request['TransferID'] = self.transferID
     request['TargetSE'] = se
     self.log.info("Copying %s to %s" % (fname,se))
-    resultCaR = self.rm.putAndRegister(lfn,fname,se,guid,
-                                        lfn_directory)
+    self.log.info( "debug %s %s %s %s %s" % (lfn, fname,se, guid, lfn_directory))
+    resultCaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory)
 
     if resultCaR['OK'] != True:
       self.log.error("rm.putAndRegister failed for %s to %s" % (fname,se))
@@ -727,3 +654,17 @@ class JobFinalization(object):
       return ''
     else:
       return selement.name
+
+  #############################################################################
+  def __report(self,status):
+    """Wraps around setJobApplicationStatus of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
+    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
+    if not jobStatus['OK']:
+      self.log.warn(jobStatus['Message'])
+
+    return jobStatus
