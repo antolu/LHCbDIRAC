@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.6 2008/02/14 09:56:31 gkuznets Exp $
-__RCSID__ = "$Revision: 1.6 $"
+# $Id: dirac-production-manager-cli.py,v 1.7 2008/02/15 22:46:28 gkuznets Exp $
+__RCSID__ = "$Revision: 1.7 $"
 
 import cmd
 import sys, os
@@ -15,7 +15,8 @@ from DIRAC.LoggingSystem.Client.Logger import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #job submission
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Interfaces.API.Job                            import Job
+from DIRAC.Interfaces.API.Job   import Job
+from DIRAC.Interfaces.API.DiracProduction   import DiracProduction
 from DIRAC.Core.Workflow.Workflow import *
 
 from DIRAC.Core.Workflow.WorkflowReader import *
@@ -256,31 +257,62 @@ class ProductionManagerCLI( cmd.Cmd ):
     else:
       vector = ''
     print self.productionManager.addProductionJob(prodID, vector)
+    
+  def __convertIDtoString(self,id):
+    return ("%08d" % (id) )
 
-  def do_submitJob(self, args):
-    """ Add single job to the Production
-    Usage: addProdJob ProductionID jobid
+  def do_submitJobs(self, args):
+    """ Submit jobs given number of jobs of the specified Production
+    Usage: addProdJob productionID [numJobs=1]
     """
+    numJobs=1
     argss = string.split(args)
     prodID = long(argss[0])
-    jobid = argss[1]
-    wms = Dirac()
+    if len(argss)>1:
+      numJobs = int(argss[1])
+    #wms = Dirac()
+    prod = DiracProduction()
 
-    result = self.productionManager.getProductionBodyByID(prodID)
-    if not result['OK']:
-      print "Error during command execution: %s" % result['Message']
+    result1 = self.productionManager.getProductionBodyByID(prodID)
+    if not result1['OK']:
+      print "Error during command execution: %s" % result1['Message']
       return
-    body = result["Value"]
+    body = result1["Value"]
     #print body
-    #wf = fromXMLString(body)
-    job = Job(body)
-      #job._Job__setJobDefaults()
-      #stramge fix to avoid error
-      #job._addParameter(job.workflow,'requirements','JDL','','Do not know what to add')
-    result2 = wms.submit(job)
+    
+    result2 = self.productionManager.getJobsWithStatus(prodID, 'CREATED', numJobs)
     if not result2['OK']:
-      print "Can not submit job bacause %s" % result2['Message']
-    print result2
+      print "Error during command execution: %s" % result2['Message']
+      return
+    
+    job_counter=0;
+    jobDict = result2["Value"]
+    for jobid_ in jobDict:
+      jobID = long(jobid_)
+      jfilename = prod._DiracProduction__createJobDescriptionFile(body)
+      job = Job(jfilename)
+      #job = Job(body)
+      job.workflow.setValue("JOB_ID",self.__convertIDtoString(jobID))
+      job.workflow.setValue("PRODUCTION_ID",self.__convertIDtoString(prodID))
+      for paramName in jobDict[jobID]:
+        job.workflow.setValue(paramName,jobDict[jobID][paramName])
+        
+      updatedJob = prod._DiracProduction__createJobDescriptionFile(job._toXML())
+      result3 = prod._DiracProduction__submitJob(job)
+      if result3['OK']:
+        jobWmsID = result3['Value']
+        #update status in the  ProductionDB
+        result4 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'SUBMITTED', str(jobWmsID))
+        if not result4['OK']:
+          print "Could not change job status and WmsID in the ProductionDB"
+          return
+      else:
+        print "Could not submit job %d of production %d with message=%s"%(prodID, jobID, result3['Message'])
+        return
+      prod._DiracProduction__cleanUp()
+      job_counter=job_counter+1
+      print "Loop:%d Production:%d JobID:%d submitted with WmsID:%d"%(job_counter, prodID, jobID, jobWmsID)
+      
 
   def do_setStatusID(self, args):
     """ Set status of the production

@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.10 2008/02/15 11:17:10 atsareg Exp $
+# $Id: ProductionDB.py,v 1.11 2008/02/15 22:46:27 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.10 $"
+__RCSID__ = "$Revision: 1.11 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -150,14 +150,14 @@ class ProductionDB(TransformationDB):
             if not result_step3['OK']:
               # if for some reason this failed we have to roll back
               result_rollback2 = self.__deleteProductionParameters(TransformationID)
-              result_rollback1 = TransformationDB.removeTransformationID(self, TransformationID)
+              result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
               return result_step3
             else:
               # everithing OK
               return result_step1
           else:
             # if for some reason this faled we have to roll back
-            result_rollback1 = TransformationDB.removeTransformationID(self, TransformationID)
+            result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
             return result_step2
 
         if not (result_step1['OK'] and result_step2['OK'] and result_step1['OK']):
@@ -253,18 +253,21 @@ class ProductionDB(TransformationDB):
   def __addJobTable(self, TransformationID):
     """ Method to add Job table
     """
+#WARNING temporary replaced with the TIMESTAMP - its produce error
+#CreationTime DATETIME NOT NULL DEFAULT NOW(),
+#LastUpdateTime DATETIME NOT NULL DEFAULT NOW(),
 
     req = """
 CREATE TABLE Jobs_%s(
 JobID INTEGER NOT NULL AUTO_INCREMENT,
 WmsStatus char(16) DEFAULT 'Created',
 JobWmsID char(16),
-CreationTime DATETIME NOT NULL DEFAULT NOW(),
-LastUpdateTime DATETIME NOT NULL DEFAULT NOW(),
+CreationTime TIMESTAMP,
+LastUpdateTime TIMESTAMP,
 InputVector BLOB,
 PRIMARY KEY(JobID),
 INDEX(WmsStatus)
-)
+);
     """ % str(TransformationID)
     result = self._update(req)
     if not result['OK']:
@@ -395,6 +398,7 @@ INDEX(WmsStatus)
 
   def addProductionJob(self, productionID, inputVector, se):
       """ Production ID is number without prepending 0000
+      WARNING! parameter se is not in use!!
       """
       self.lock.acquire()
       table = 'Jobs_%d'% long(productionID)
@@ -469,6 +473,23 @@ INDEX(WmsStatus)
     """ Set status for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=NOW() WHERE JobID=%d" % (productionID,status,jobID)
+    #req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=NOW() WHERE JobID=%d" % (productionID,status,jobID)
+    req = "UPDATE Jobs_%d SET WmsStatus='%s'WHERE JobID=%d" % (productionID,status,jobID)
+    result = self._update(req)
+    return result
+    
+  def setJobWmsID(self,productionID,jobID,jobWmsID):
+    """ Set WmsID for job with jobID in production with productionID
+    """
+
+    req = "UPDATE Jobs_%d SET JobWmsID='%s' WHERE JobID=%d" % (productionID,jobWmsID,jobID)
+    result = self._update(req)
+    return result
+
+  def setJobStatusAndWmsID(self,productionID,jobID,status,jobWmsID):
+    """ Set status and JobWmsID for job with jobID in production with productionID
+    """
+
+    req = "UPDATE Jobs_%d SET WmsStatus='%s', JobWmsID='%s' WHERE JobID=%d" % (productionID,status,jobWmsID,jobID)
     result = self._update(req)
     return result

@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.14 2008/02/15 14:24:51 paterson Exp $
+# $Id: ProductionManagerHandler.py,v 1.15 2008/02/15 22:46:28 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.14 $"
+__RCSID__ = "$Revision: 1.15 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -135,10 +135,10 @@ class ProductionManagerHandler( TransformationHandler ):
     long_description = wf.getDescription()
 
     try:
-      if update:
-        result = productionDB.updateProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
-      else:
-        result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      #if update:
+      #  result = productionDB.updateProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      #else:
+      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -207,88 +207,88 @@ class ProductionManagerHandler( TransformationHandler ):
     return result
 
   types_getProductionBodyByID = [ LongType ]
-  def export_getProductionBodyByID( self, id ):
-    result = productionDB.getProductionBodyByID(id)
+  def export_getProductionBodyByID( self, id_ ):
+    result = productionDB.getProductionBodyByID(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_getProductionBody = [ StringType ]
-  def export_getProductionBody( self, id ):
-    result = productionDB.getProductionBodyByID(id)
+  def export_getProductionBody( self, id_ ):
+    result = productionDB.getProductionBodyByID(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setProductionStatusByID = [ LongType, StringType ]
-  def export_setProductionStatusByID( self, id, status ):
-    result = productionDB.setTransformationStatus(id, status)
+  def export_setProductionStatusByID( self, id_, status ):
+    result = productionDB.setTransformationStatus(id_, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setProductionStatus = [ StringType, StringType ]
-  def export_setProductionStatus( self, id, status ):
-    result = productionDB.setTransformationStatus(id, status)
+  def export_setProductionStatus( self, id_, status ):
+    result = productionDB.setTransformationStatus(id_, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setTransformationMaskID = [ LongType, StringType ]
-  def export_setTransformationMaskID( self, id, status ):
-    result = productionDB.setTransformationMask(id, status)
+  def export_setTransformationMaskID( self, id_, status ):
+    result = productionDB.setTransformationMask(id_, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setTransformationMask = [ StringType, StringType ]
-  def export_setTransformationMask( self, id, status ):
-    result = productionDB.setTransformationMask(id, status)
+  def export_setTransformationMask( self, id_, status ):
+    result = productionDB.setTransformationMask(id_, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_getInputData2 = [ LongType, StringType ]
-  def export_getInputData2( self, id, status ):
+  def export_getInputData2( self, id_, status ):
 
-    print "Production handler 1:",id, status
+    print "Production handler 1:",id_, status
 
-    result = productionDB.getInputData(id, status)
+    result = productionDB.getInputData(id_, status)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_updateTransformation = [ LongType]
-  def export_updateTransformation( self, id ):
-    result = productionDB.updateTransformation(id)
+  def export_updateTransformation( self, id_ ):
+    result = productionDB.updateTransformation(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setFileStatusForTransformation = [ LongType, StringType, ListType ]
-  def export_setFileStatusForTransformation( self, id,status,lfns ):
-    result = productionDB.setFileStatusForTransformation(id,status,lfns)
+  def export_setFileStatusForTransformation( self, id_,status,lfns ):
+    result = productionDB.setFileStatusForTransformation(id_,status,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_setFileSEForTransformation = [ LongType, StringType, ListType ]
-  def export_setFileSEForTransformation( self, id,se,lfns ):
-    result = productionDB.setFileSEForTransformation(id,se,lfns)
+  def export_setFileSEForTransformation( self, id_,se,lfns ):
+    result = productionDB.setFileSEForTransformation(id_,se,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
     
   types_setFileTargetSEForTransformation = [ LongType, StringType, ListType ]
-  def export_setFileTargetSEForTransformation( self, id,se,lfns ):
-    result = productionDB.setFileTargetSEForTransformation(id,se,lfns)
+  def export_setFileTargetSEForTransformation( self, id_,se,lfns ):
+    result = productionDB.setFileTargetSEForTransformation(id_,se,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result  
 
-  types_setFileJobID = [ LongType, StringType, ListType ]
-  def export_setFileJobID( self, id,se,lfns ):
-    result = productionDB.setFileJobID(id,se,lfns)
+  types_setFileJobID = [ LongType, LongType, ListType ]
+  def export_setFileJobID( self, id_, jobid,lfns ):
+    result = productionDB.setFileJobID(id_, jobid,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result

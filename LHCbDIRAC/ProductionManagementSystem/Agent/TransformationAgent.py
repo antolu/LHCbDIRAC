@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.3 2008/02/14 00:27:18 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.4 2008/02/15 22:46:27 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.3 2008/02/14 00:27:18 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.4 2008/02/15 22:46:27 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -100,6 +100,7 @@ class TransformationAgent(Agent):
     prodID = long(transDict['TransID'])
     group_size = int(transDict['GroupSize'])
     result = self.server.getInputData2(prodID,'')
+    sflag = True #WARNING KGG this is possibly an error
     if result['OK']:
       data = result['Value']
     else:
@@ -117,7 +118,7 @@ class TransformationAgent(Agent):
     else:
       while len(data) >= group_size:
         ldata = len(data)
-        data = self.generateJob(data,prodID,transID,sname,sflag,group_size, flush)
+        data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
 
@@ -168,20 +169,20 @@ class TransformationAgent(Agent):
         # We have found a SE with minimally(or max in case of flush) sufficient amount of data
         lfns = datadict[lse][:group_size]
         result = self.addJobToProduction(production,lfns,lse)
-        if result['Status'] == "OK":
-          jobID = result['JobID']
+        if result['OK']:
+          jobID = long(result['Value'])
           if jobID:
             result = self.server.setFileStatusForTransformation(production,'Assigned',lfns)
-            if result['Status'] != "OK":
-              gLogger.error("Failed to update file status for production "+production)
+            if not result['OK']:
+              gLogger.error("Failed to update file status for production %d"%production)
 
             result = self.server.setFileJobID(production,jobID,lfns)
-            if result['Status'] != "OK":
-              gLogger.error("Failed to set file job ID for production "+production)
+            if not result['OK']:
+              gLogger.error("Failed to set file job ID for production %d"%production)
 
             result = self.server.setFileSEForTransformation(production,lse,lfns)
-            if result['Status'] != "OK":
-              gLogger.error("Failed to set file job ID for production "+transID)
+            if not result['OK']:
+              gLogger.error("Failed to set SE for production %d"%production)
 
           # Remove used files from the initial list
           data_m = []
@@ -207,5 +208,12 @@ class TransformationAgent(Agent):
 
     #inputVector = {}
     #inputVector['InputData'] = lfns
-    result = self.server.addProductionJob(prodID, lfns)
+    #lfns is the list!! we have to convert it into string with proper separator
+    vector =""
+    for lfn in lfns:
+      vector = vector + 'LFN:'+lfn+';'
+    #removing last ';'
+    vector = vector.rstrip(';')
+      
+    result = self.server.addProductionJob(prodID, vector, se)
     return result

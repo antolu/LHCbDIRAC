@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.6 2008/02/11 10:38:22 gkuznets Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.7 2008/02/15 22:46:28 gkuznets Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -79,6 +79,16 @@ CREATE TABLE  Jobs_<ProductionID>(
   InputVector BLOB,
   PRIMARY KEY(JobID),
   INDEX(WmsStatus)
+);
+CREATE TABLE Jobs_%s(
+JobID INTEGER NOT NULL AUTO_INCREMENT,
+WmsStatus char(16) DEFAULT 'Created',
+JobWmsID char(16),
+#CreationTime DATETIME NOT NULL DEFAULT NOW(),
+#LastUpdateTime DATETIME NOT NULL DEFAULT NOW(),
+InputVector BLOB,
+PRIMARY KEY(JobID),
+INDEX(WmsStatus)
 );
 
 --------------------------------------------------------------------------------
