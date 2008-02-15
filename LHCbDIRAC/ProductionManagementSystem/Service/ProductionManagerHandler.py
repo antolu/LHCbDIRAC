@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.13 2008/02/15 14:22:37 paterson Exp $
+# $Id: ProductionManagerHandler.py,v 1.14 2008/02/15 14:24:51 paterson Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.13 $"
+__RCSID__ = "$Revision: 1.14 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -343,19 +343,21 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     result = productionDB.setJobWmsID(productionID, jobID, jobWmsID)
     if not result['OK']:
-      error = 'Can set JobWmsID=%s in TransformationID=%d JobID=%d because %s' % (jobWmsID, productionID, jobID, result['Message'])
+      error = 'Cannot set JobWmsID=%s in TransformationID=%d JobID=%d because %s' % (jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
-      
+    return result
+  
   types_setJobStatusAndWmsID = [ LongType, LongType, StringType, StringType]
   def export_setJobStatusAndWmsID(self, productionID, jobID, status, jobWmsID):
     """ Set jobWmsID for a given Job
     """
     result = productionDB.setJobStatusAndWmsID(productionID, jobID, status, jobWmsID)
     if not result['OK']:
-      error = 'Can set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
+      error = 'Canot set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
+    return result
 
 
     
