@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.2 2008/02/14 07:26:34 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.2 2008/02/14 07:26:34 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.3 2008/02/15 07:52:55 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.3 2008/02/15 07:52:55 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -127,3 +127,43 @@ def makeIndex():
   index.close()
 
   return 0
+
+def hpsssize(fname):
+
+  status,out = commands.getstatusoutput("rfdir "+fname)
+  if status:
+    # rfdir failed, return 0
+    return 0
+  else:
+    fields = string.split(out)
+    size = int(fields[4])
+    return size
+
+def getfilesize(fname):
+
+  if not os.path.exists(fname):
+    if os.path.islink(fname):
+      fname = os.readlink(fname)
+    result = re.search("hpss|HPSS|castor", fname)
+    if result is not None:
+      return hpsssize(fname)
+    else:
+      return 0
+  else:
+    if os.path.isdir(fname):
+      return 0
+    else:
+      return os.path.getsize(fname)
+
+
+def uniq(list):
+  """ Creates a copy of the list removing all the duplicate entries
+      but retaining the order of the first occurences of the values
+  """
+
+  new_list = []
+  for i in list:
+    if not i in new_list:
+      new_list.append(i)
+
+  return new_list
