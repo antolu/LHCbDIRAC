@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.11 2008/02/14 23:32:57 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.12 2008/02/15 11:15:51 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.11 $"
+__RCSID__ = "$Revision: 1.12 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -278,6 +278,13 @@ class ProductionManagerHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
+    
+  types_setFileTargetSEForTransformation = [ LongType, StringType, ListType ]
+  def export_setFileTargetSEForTransformation( self, id,se,lfns ):
+    result = productionDB.setFileTargetSEForTransformation(id,se,lfns)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result  
 
   types_setFileJobID = [ LongType, StringType, ListType ]
   def export_setFileJobID( self, id,se,lfns ):
@@ -286,3 +293,26 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
+  types_getJobsToSubmit = [ LongType, IntType ]
+  def export_getJobsToSubmit(self,production,numJobs):
+    """ Get information necessary for submission for a given number of jobs 
+        for a given production
+    """
+    
+    # Get the production body first
+    result = productionDB.getProductionBodyByID(int(production))
+    if not result['OK']:
+      return S_ERROR('Failed to get production body for production '+str(production))
+      
+    body = result['Value']  
+    result = productionDB.selectJobs(production,['Created'],numJobs)
+    if not result['OK']:
+      return S_ERROR('Failed to get jobs for production '+str(production))
+    
+    jobDict = result['Value']
+    
+    resultDict = {}
+    resultDict['Body'] = body
+    resultDict['JobDictionary'] = jobDict
+    
+    return S_OK(resultDict) 
