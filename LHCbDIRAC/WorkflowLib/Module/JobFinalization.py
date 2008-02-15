@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.4 2008/02/15 12:33:17 joel Exp $
+# $Id: JobFinalization.py,v 1.5 2008/02/15 15:54:59 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.4 2008/02/15 12:33:17 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.5 2008/02/15 15:54:59 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -49,6 +49,26 @@ class JobFinalization(object):
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     error = 0
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+#    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
+
+    for inputname in self.inputData.split(';'):
+      self.LFN_ROOT = ''
+      lfnroot = inputname.split('/')
+      if len(lfnroot) > 1:
+          CONTINUE = 1
+          j = 1
+          while CONTINUE == 1:
+            if not lfnroot[j] in dataTypes:
+              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
+            else:
+              CONTINUE = 0
+              break
+            j = j + 1
+            if j > len(lfnroot):
+              CONTINUE = 0
+              break
+
     result = self.finalize(error)
 
     return S_OK()
@@ -69,7 +89,8 @@ class JobFinalization(object):
     # Store log files if even the job failed
 
     try:
-      self.uploadLogFiles()
+#      self.uploadLogFiles()
+      self.log.info("save logfile")
     except Exception,x:
       self.log.error("Exception while log files uploading:")
       self.log.error(str(x))
@@ -100,7 +121,7 @@ class JobFinalization(object):
           self.log.info("Output data upload retry number "+str(count))
         all_done = True
         if not outputs in outputs_done:
-          resUpload = self.uploadOutputData(outputs,self.appType,'1',self.outputDataSE)
+          resUpload = self.uploadOutputData(outputs,self.appType.upper(),'1',self.outputDataSE)
           if resUpload['OK'] == True:
             outputs_done.append(outputs)
           else:
@@ -119,7 +140,7 @@ class JobFinalization(object):
           if not outputs in outputs_done:
               fname = os.path.basename(outputs)
               lfn = self.LFN_ROOT+'/failover/'+fname
-              resCopy = self.rm.put(lfn,fname,cache_se)
+              resCopy = self.rm.put(lfn,os.getcwd()+'/'+fname,cache_se)
               if resCopy['OK'] == True:
 #                pfname = result['PFN']
                 self.log.info("NOT IMPLEMENTED : Setting delayed transfer request for %s %s %s %s " % (fname, lfn, fname, cache_se))
@@ -302,25 +323,6 @@ class JobFinalization(object):
               self.logdir = os.path.abspath('./'+self.JOB_ID)
               os.makedirs(self.logdir)
 
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
-#    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
-
-    for inputname in self.inputData.split(';'):
-      self.LFN_ROOT = ''
-      lfnroot = inputname.split('/')
-      if len(lfnroot) > 1:
-          CONTINUE = 1
-          j = 1
-          while CONTINUE == 1:
-            if not lfnroot[j] in dataTypes:
-              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
-            else:
-              CONTINUE = 0
-              break
-            j = j + 1
-            if j > len(lfnroot):
-              CONTINUE = 0
-              break
 
     cwd = os.getcwd()
     os.chdir(self.logdir)
@@ -345,11 +347,8 @@ class JobFinalization(object):
 
     if logse:
       self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionLfn(self,('jojo','LOG','1'),self.mode,self.PRODUCTION_ID)
+      target_path = makeProductionLfn(self,(inputname,'LOG','1'),self.mode,self.PRODUCTION_ID)
 #      target_path = '/joel/'
-      self.log.info(self.logdir)
-      self.log.info(logse)
-      self.log.info(target_path)
       result = self.rm.putDirectory(target_path,self.logdir,'LogSE')
       self.log.info(result)
 
@@ -480,99 +479,19 @@ class JobFinalization(object):
     one_grid_copy_successful = False
     for se in destination_ses:
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
-      if result['OK'] == True:
-        if self.isGridSE(se):
-          one_grid_upload_successful = True
-          source_se = result['SEName']
-          break
-      elif result['Level'] == 'Registration':
-        if self.isGridSE(se):
-          one_grid_copy_successful = True
-          source_pfn = result['PFN']
-          source_se = result['SEName']
-          break
-
-    if one_grid_upload_successful:
-      # File is uploaded in a fully grid compliant manner,
-      # set replication requests for other SEs
-      for se in destination_ses:
-        if se != source_se:
-          self.setReplicationRequest(lfn,se,source_se,guid)
-      return S_OK('Full')
-
-    elif one_grid_copy_successful:
-      # File is uploaded to a grid storage but not properly registered,
-      # set transfer requests for other SEs
-      for se in destination_ses:
-        if se != source_se:
-          self.setTransferRequest(lfn,source_pfn,size,se,guid)
-      return S_OK('Registration')
+      if result['OK'] != True:
 
     ###########################################################################
     #
     #  File upload to the main destinations failed, try failover SE's
 
 #    failoverSEList = cfgSvc.get(self.mode,'FailoverDataSE',[])
-    failoverSEList = 'CERN-Failover'
 
-    # Reshuffle the list of the failover SEs
-#    random.shuffle(failoverSEList)
-    tier1SEName = self.getSEName('Tier1SE')
-    localSEName = self.getSEName('LocalSE')
+         self.log.info("Not IMPLEMENTED Trying failover destinations ")
 
-    failover_ses = []
-    failover_ses.append(failoverSEList)
-    if localSEName:
-      if self.isGridSE(localSEName):
-        failover_ses.append(localSEName)
-      else:
-        # In case the transfer/replication request will be defined locally
-        # non-grid local SE is a possible storage
-        if 'local' == self.rdbClient.rdb_urls[0]:
-          failover_ses.append(localSEName)
-    if tier1SEName in failoverSEList:
-      failover_ses.append(tier1SEName)
-
-    for se in failoverSEList:
-      sename = self.getSEName(se)
-      if sename:
-        if sename != localSEName and sename != tier1SEName \
-           and not sename in [ self.getSEName(x) for x in destinationSEList ]:
-          failover_ses.append(sename)
-
-    self.log.info("Trying failover destinations "+str(failover_ses))
-
-    for se in failover_ses:
-      result = self.uploadDataFileToSE(datafile,lfn,se,guid)
-      if result['OK'] == True:
-        one_grid_upload_successful = True
-        source_se = result['SEName']
-        break
-      elif result['Level'] == 'Registration':
-        one_grid_copy_successful = True
-        source_se = result['SEName']
-        source_pfn = result['PFN']
-        break
-
-    if one_grid_upload_successful:
-      # File is uploaded in a fully grid compliant manner,
-      # set data move requests for destination SEs
-      for se in destination_ses:
-        if source_se != se:
-          self.setReplicationRequest(lfn,se,source_se,guid,move=True)
-      return S_OK('Full')
-
-    elif one_grid_copy_successful:
-      # File is uploaded to a grid storage but not properly registered,
-      # set transfer requests for other SEs
-      for se in destination_ses:
-        if source_se != se:
-          self.setTransferRequest(lfn,source_pfn,size,se,guid,move=True)
-      return S_OK('Registration')
-
-    ################################################################################
     # All attempts to upload file to the grid failed, alas
-    return S_ERROR('Fatal errors in uploading file to the Grid')
+         return S_ERROR('Fatal errors in uploading file to the Grid')
+    return S_OK()
 
 
 ############################################################################################
@@ -593,37 +512,18 @@ class JobFinalization(object):
     request['TransferID'] = self.transferID
     request['TargetSE'] = se
     self.log.info("Copying %s to %s" % (fname,se))
-    self.log.info( "debug %s %s %s %s %s" % (lfn, fname,se, guid, lfn_directory))
-    resultCaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory)
-
-    if resultCaR['OK'] != True:
-      self.log.error("rm.putAndRegister failed for %s to %s" % (fname,se))
-      self.log.error(resultCaR['Message'])
-      if resultCaR.has_key('RegisterLog'):
+    LFC_OK = True
+    resultPaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory)
+    if resultPaR['OK'] == True:
+      if len(resultPaR['Value']['Failed']) > 0:
+        for lfn,mess in resultPaR['Value']['Failed'].items():
+          if mess.has_key('register'):
         # Transfer done but registration failed
-        LFC_OK = False
-        for catalog,status in resultCaR['RegisterLog']:
-          if status != 'OK':
-            self.setRegisterRequest(lfn,resultCaR['PFN'],size,se,guid,catalog)
-          else:
-            if catalog == "LFC":
-              LFC_OK = True
+            LFC_OK = False
+            self.log.info( "Registration failed for %s" % lfn )
+#            result['level'] = 'Registration'
 
-        result = resultCaR
-        if LFC_OK:
-          result['Status'] = "OK"
-        else:
-          self.log.error( "Registration failed for %s" % fname )
-
-        if not re.search("Failed to copy file",result['Message']):
-          if result.has_key('PFN'):
-            pfname = result['PFN']
-        result['Level'] = "Registration"
-      else:
-        result = S_ERROR('Fatal error while uploading %s to %s' % (fname,se))
-        result['Level'] = 'Fatal'
-    else:
-      result = resultCaR
+    result = resultPaR
 
     return result
 
@@ -662,8 +562,8 @@ class JobFinalization(object):
     if not self.jobID:
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
+    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'JobFinalization'))
+    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'JobFinalization')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])
 
