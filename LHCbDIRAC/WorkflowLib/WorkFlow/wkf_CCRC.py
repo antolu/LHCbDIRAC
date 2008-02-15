@@ -10,7 +10,6 @@ module2.setDescription('Gaudi Application module')
 module2.setBody('from WorkflowLib.Module.GaudiApplication import GaudiApplication\n')
 
 # we add empty parameters but linked up as default
-module2.appendParameter(Parameter("YEAR","","string","self","YEAR",True, False, "year"))
 module2.appendParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
 module2.appendParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
 module2.appendParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
@@ -35,7 +34,6 @@ module3.setDescription('Check LogFile module')
 module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 
 # we add parameters and link them to the level of step
-module3.appendParameter(Parameter("YEAR","","string","self","YEAR",True, False, "year"))
 module3.appendParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
 module3.appendParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
 module3.appendParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
@@ -59,7 +57,6 @@ module4.appendParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,Fa
 module4.appendParameter(Parameter("nb_events_input","","string","self","nb_events_input",True,False,"number of events as input"))
 module4.appendParameter(Parameter("NUMBER_OF_EVENTS","","string","self","NUMBER_OF_EVENTS",True, False, "number of events requested"))
 module4.appendParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
-module4.appendParameter(Parameter("YEAR","","string","self","YEAR",True, False, "year"))
 module4.appendParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
 module4.appendParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
 module4.appendParameter(Parameter("appName","","string","self","appName",True, False, "Application Name"))
@@ -109,7 +106,7 @@ step1.appendParameter(Parameter("STEP_ID","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUM
 step1.appendParameter(Parameter("EVENTTYPE","30000000","string","","",True, False, "Event Type"))
 step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
 step1.unlinkParameter(["appLog","appName", "appType"])
-step1.unlinkParameter(["DataType","YEAR", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
+step1.unlinkParameter(["DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 
 
 
@@ -126,11 +123,10 @@ stepInstance1.setLink("systemConfig","self", "systemConfig") # correct link as w
 # except "STEP_ID", "appLog"
 stepInstance1.unlinkParameter(["STEP_ID", "appLog","appName", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "Brunel")
-stepInstance1.setValue("appType", "dst")
+stepInstance1.setValue("appType", "DST")
 stepInstance1.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 stepInstance1.linkParameterUp("CONFIG_NAME")
 stepInstance1.linkParameterUp("CONFIG_VERSION")
-stepInstance1.linkParameterUp("YEAR")
 stepInstance1.linkParameterUp("DataType")
 stepInstance1.linkParameterUp("NUMBER_OF_EVENTS")
 
@@ -145,15 +141,12 @@ workflow1.appendParameterCopyLinked(step1.parameters, step1_prefix)
 workflow1.unlinkParameter(workflow1.parameters)
 
 workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
-#JCworkflow1.setValue(step1_prefix+"CONFIG_NAME", "CCRC08")
-#JCworkflow1.setValue(step1_prefix+"CONFIG_VERSION", "v0")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
 workflow1.setValue(step1_prefix+"optionsFile", "RealDataDst.opts")
 workflow1.setValue(step1_prefix+"optionsLine","ApplicationMgr.EvtMax = 1")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
-#workflow1.setValue(step1_prefix+"outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","10")
 # remove unwanted
 workflow1.removeParameter(step1_prefix+"outputData")
@@ -170,7 +163,7 @@ workflow1.appendParameter(Parameter("StdOutput","std.out","JDL","","",True, Fals
 workflow1.appendParameter(Parameter("SoftwarePackages","Brunel.v32r3p1","JDL","","",True, False, "software"))
 
 workflow1.appendParameter(Parameter("MaxCPUTime",50000,"JDLReqt","","",True, False, "Application Name"))
-workflow1.appendParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
+#workflow1.appendParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
 workflow1.appendParameter(Parameter("Platform","gLite","JDLReqt","","",True, False, "platform"))
 
 # and finally we can unlink them because we inherit them linked
@@ -180,7 +173,6 @@ workflow1.appendParameter(Parameter("PRODUCTION_ID","00003033","string","","",Tr
 workflow1.appendParameter(Parameter("JOB_ID","00000010","string","","",True, False, "Temporary fix"))
 workflow1.appendParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.appendParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
-workflow1.appendParameter(Parameter("YEAR","2008","string","","",True, False, "Year"))
 workflow1.appendParameter(Parameter("CONFIG_NAME","CCRC","string","","",True, False, "Configuration Name"))
 workflow1.appendParameter(Parameter("CONFIG_VERSION","v0","string","","",True, False, "Configuration Version"))
 workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","10","string","","",True, False, "number of events requested"))
