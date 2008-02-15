@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.9 2008/02/14 23:31:09 atsareg Exp $
+# $Id: ProductionDB.py,v 1.10 2008/02/15 11:17:10 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -336,6 +336,31 @@ INDEX(WmsStatus)
     else:
       return S_ERROR("Failed to retrive Production Body with Transformation '%s' " % transName)
 
+  def getProductionParametersByID(self, prodID):
+    """ Get the production body by its ID
+    """
+
+    cmd = "SELECT GroupSize, Parent, Body  from ProductionParameters WHERE TransformationID='%d'" % prodID
+    result = self._query(cmd)
+    dict={}
+    if not result['OK']:
+      error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+
+    dict['GroupSize']=result['Value'][0][0]
+    dict['Parent']=result['Value'][0][1]
+    dict['Body']=result['Value'][0][2]
+    return S_OK(dict)
+    
+  def getProductionBodyByID(self, prodID):
+    result = self.getProductionParametersByID(prodID)
+    if result['OK']:
+      return S_OK(result['Value']['Body']) # we
+    else:
+      return S_ERROR("Failed to retrive Production Body with Transformation '%s' " % transName)
+  
+
 #  def deleteTranformation(self, name):
 #    if self._transformationExists(name):
 #      result = TransformationDB.removeTransformation(self, name)
@@ -417,6 +442,28 @@ INDEX(WmsStatus)
           resultDict[int(row[1])] = (row[0],row[2])
 
     return S_OK(resultDict)
+    
+  def selectJobs(self,productionID,statusList = [],numJobs=1):
+    """ Select jobs with the given status from the given production
+    """  
+    
+    req = "SELECT JobID, InputVector FROM Jobs_%d" % int(productionID)
+    if statusList:
+      statusString = ','.join(["'"+x+"'" for x in statusList])
+      req += " WHERE WmsStatus IN (%s)" % statusString
+    req += " LIMIT %d" % numJobs  
+      
+    result = self._query(req)
+    if not result['OK']:
+      return result  
+      
+    resultDict = {}
+    if result['Value']:
+      for row in result['Value']:
+        resultDict[int(row[0])] = {'InputData':row[1]}  
+
+    return S_OK(resultDict)
+      
 
   def setJobStatus(self,productionID,jobID,status):
     """ Set status for job with jobID in production with productionID
