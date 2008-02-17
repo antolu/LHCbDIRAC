@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.11 2008/02/15 22:46:27 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.12 2008/02/17 15:49:31 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.11 $"
+__RCSID__ = "$Revision: 1.12 $"
 
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -355,14 +355,14 @@ INDEX(WmsStatus)
     dict['Parent']=result['Value'][0][1]
     dict['Body']=result['Value'][0][2]
     return S_OK(dict)
-    
+
   def getProductionBodyByID(self, prodID):
     result = self.getProductionParametersByID(prodID)
     if result['OK']:
       return S_OK(result['Value']['Body']) # we
     else:
       return S_ERROR("Failed to retrive Production Body with Transformation '%s' " % transName)
-  
+
 
 #  def deleteTranformation(self, name):
 #    if self._transformationExists(name):
@@ -446,28 +446,52 @@ INDEX(WmsStatus)
           resultDict[int(row[1])] = (row[0],row[2])
 
     return S_OK(resultDict)
-    
-  def selectJobs(self,productionID,statusList = [],numJobs=1):
+
+  def selectJobs(self,productionID,statusList = [],numJobs=1,site):
     """ Select jobs with the given status from the given production
-    """  
-    
-    req = "SELECT JobID, InputVector FROM Jobs_%d" % int(productionID)
+    """
+
+    req = "SELECT JobID, InputVector, TargetSE FROM Jobs_%d" % int(productionID)
     if statusList:
       statusString = ','.join(["'"+x+"'" for x in statusList])
       req += " WHERE WmsStatus IN (%s)" % statusString
-    req += " LIMIT %d" % numJobs  
-      
+    if not site:
+      req += " LIMIT %d" % numJobs
+
     result = self._query(req)
     if not result['OK']:
-      return result  
-      
+      return result
+
     resultDict = {}
     if result['Value']:
-      for row in result['Value']:
-        resultDict[int(row[0])] = {'InputData':row[1]}  
+      if not site:
+        # We do not care about the destination site
+        for row in result['Value']:
+          resultDict[int(row[0])] = {'InputData':row[1]}
+      else:
+        # We want jobs only destinated to a given site
+        site_se_mapping = {}
+        mappingKeys = gConfig.getOptions('/Resources/SiteLocalSEMapping')
+        for site in mappingKeys['Value']:
+          seStr = gConfig.getValue('/Resources/SiteLocalSEMapping/%s' %(site))
+          site_se_mapping[site] = [ x.strip() for x in string.split(seStr,',')]
+
+        # Get the jobs now
+
+        for row in result['Value']:
+          if len(resultDict) < numJobs:
+            se = row[2]
+            targetSite = ''
+            for s,sList in site_se_mapping:
+              if se in sList:
+                targetSite = s
+            if targetSite and targetSite == site:
+              resultDict[int(row[0])] = {'InputData':row[1]}
+          else:
+            break
 
     return S_OK(resultDict)
-      
+
 
   def setJobStatus(self,productionID,jobID,status):
     """ Set status for job with jobID in production with productionID
@@ -477,7 +501,7 @@ INDEX(WmsStatus)
     req = "UPDATE Jobs_%d SET WmsStatus='%s'WHERE JobID=%d" % (productionID,status,jobID)
     result = self._update(req)
     return result
-    
+
   def setJobWmsID(self,productionID,jobID,jobWmsID):
     """ Set WmsID for job with jobID in production with productionID
     """
