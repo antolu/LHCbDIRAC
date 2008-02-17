@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.15 2008/02/15 22:46:28 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.16 2008/02/17 22:26:55 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.15 $"
+__RCSID__ = "$Revision: 1.16 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -294,7 +294,7 @@ class ProductionManagerHandler( TransformationHandler ):
     return result
 
   types_getJobsToSubmit = [ LongType, IntType ]
-  def export_getJobsToSubmit(self,production,numJobs):
+  def export_getJobsToSubmit(self,production,numJobs,site=''):
     """ Get information necessary for submission for a given number of jobs 
         for a given production
     """
@@ -305,7 +305,7 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR('Failed to get production body for production '+str(production))
       
     body = result['Value']  
-    result = productionDB.selectJobs(production,['Created'],numJobs)
+    result = productionDB.selectJobs(production,['Created'],numJobs,site)
     if not result['OK']:
       return S_ERROR('Failed to get jobs for production '+str(production))
     
