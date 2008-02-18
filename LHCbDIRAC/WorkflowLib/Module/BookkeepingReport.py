@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.7 2008/02/18 14:35:11 joel Exp $
+# $Id: BookkeepingReport.py,v 1.8 2008/02/18 16:05:48 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.7 2008/02/18 14:35:11 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.8 2008/02/18 16:05:48 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -287,8 +287,8 @@ class BookkeepingReport(object):
 
   def getGuidFromPoolXMLCatalog(self,output):
 
-    self.prod_id = self.PRODUCTION_ID
-    self.job_id = self.JOB_ID
+#    self.prod_id = self.PRODUCTION_ID
+#    self.job_id = self.JOB_ID
 
     ####################################
     # Get the Pool XML catalog if any
