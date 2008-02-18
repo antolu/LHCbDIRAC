@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.13 2008/02/14 14:50:46 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.14 2008/02/18 09:49:59 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 # 
-# __RCSID__='$Id: dirac-external,v 1.13 2008/02/14 14:50:46 rgracian Exp $'
+# __RCSID__='$Id: dirac-external,v 1.14 2008/02/18 09:49:59 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -32,6 +32,12 @@ DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit
 DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit 1
 
 DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit 1
+
+DIRAC_MAKE    DIRAC3/external/Pylons                                     || exit 1
+
+DIRAC_MAKE    DIRAC3/external/matplotlib                                 || exit 1
+
+DIRAC_MAGIC   ${arch}                                                    || exit 1
 
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python24.tar.gz
 DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
@@ -61,6 +67,12 @@ DIRAC_INSTALL DIRAC3/contrib/pyOpenSSL                                   || exit
 DIRAC_INSTALL DIRAC3/external/MySQL                                      || exit 1
 
 DIRAC_MAKE    DIRAC3/external/MySQL-python                               || exit 1
+
+DIRAC_MAKE    DIRAC3/external/Pylons                                     || exit 1
+
+DIRAC_MAKE    DIRAC3/external/matplotlib                                 || exit 1
+
+DIRAC_MAGIC   ${arch}                                                    || exit 1
 
 tarfile1=DIRAC-external-${DIRAC_CVS_TAG}.${arch}-python25.tar.gz
 DIRAC_TAR     ${tarfile1} etc ${arch}                                    || exit 1
