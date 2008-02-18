@@ -177,7 +177,7 @@ workflow1.appendParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string",
 workflow1.appendParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
 workflow1.appendParameter(Parameter("CONFIG_NAME","CCRC","string","","",True, False, "Configuration Name"))
 workflow1.appendParameter(Parameter("CONFIG_VERSION","v0","string","","",True, False, "Configuration Version"))
-workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","10","string","","",True, False, "number of events requested"))
+workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","50","string","","",True, False, "number of events requested"))
 workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
