@@ -70,3 +70,12 @@ DIRAC_TAR() {
     fi
   )
 }
+
+DIRAC_MAGC() {
+# Clean magic line for all python scripts
+for file in `grep -l -r "^#\!.*/python.*" .` ; do
+  sed 's/^#\!.*/#\! \/usr\/bin\/env python/' $file > $file.new
+  mv $file.new $file
+done
+}
+
