@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.2 2008/02/11 08:10:20 joel Exp $
+# $Id: CheckLogFile.py,v 1.3 2008/02/18 16:08:15 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.2 2008/02/11 08:10:20 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.3 2008/02/18 16:08:15 joel Exp $"
 
 import commands, os
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 #from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
@@ -20,6 +21,7 @@ class CheckLogFile(object):
       self.result = S_ERROR()
       self.mailadress = 'None'
       self.appName = 'None'
+      self.poolXMLCatName = None
       self.appVersion = 'None'
       pass
 
@@ -44,8 +46,8 @@ class CheckLogFile(object):
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-#    logpath = makeProductionPath(job_mode,jobparameters,prod_id,log=True)
-    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
+    logpath = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
+#    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
     # If there are inpud data to the step, upload it and
@@ -69,7 +71,8 @@ class CheckLogFile(object):
         rm = ReplicaManager()
         for ind in self.inputData.split(';'):
           self.log.info( "Sending %s to %s" % ( str( ind ), str( debugse ) ) )
-          result = rm.putAndRegister(ind.split(':')[1],'/afs/cern.ch/user/j/joel/scratch0/DIRAC3/work/00001820_00000001_4.root',debugse)
+          pfnName = self.getPFNFromPoolXMLCatalog(ind.split(':')[1])
+          result = rm.putAndRegister(ind.split(':')[1],pfnName,debugse)
 #          result = rm.replicate(ind.split(':')[1],debugse,'CERN-tape')
           if not result['OK']:
             self.log.error( "Transfer to %s failed\n%s" % ( debugse, result['Message'] ) )
