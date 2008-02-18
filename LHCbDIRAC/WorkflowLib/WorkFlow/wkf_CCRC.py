@@ -119,7 +119,7 @@ step1_prefix="step1_"
 stepInstance1 = workflow1.createStepInstance('Gaudi_App_Step', 'Step1')
 # lets link all parameters them up with the level of workflow
 stepInstance1.linkParameterUp(stepInstance1.parameters, step1_prefix)
-stepInstance1.setLink("systemConfig","self", "systemConfig") # correct link as we have onlu one system config
+stepInstance1.setLink("systemConfig","self", "SystemConfig") # capital letter corrected
 # except "STEP_ID", "appLog"
 stepInstance1.unlinkParameter(["STEP_ID", "appLog","appName", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "Brunel")
@@ -154,7 +154,7 @@ workflow1.setValue(step1_prefix+"OUTPUT_MAX","200")
 workflow1.removeParameter(step1_prefix+"outputData")
 workflow1.removeParameter(step1_prefix+"systemConfig")
 #add syspem config which common for all modules
-workflow1.appendParameter(Parameter("systemConfig","slc4_ia32_gcc34","string","","",True, False, "Application Name"))
+#workflow1.appendParameter(Parameter("systemConfig","slc4_ia32_gcc34","string","","",True, False, "Application Name"))
 workflow1.appendParameter(Parameter("SystemConfig","slc4_ia32_gcc34","JDLReqt","","",True, False, "Application Name"))
 
 workflow1.appendParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
