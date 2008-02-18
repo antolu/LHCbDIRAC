@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.5 2008/02/15 15:54:59 joel Exp $
+# $Id: JobFinalization.py,v 1.6 2008/02/18 13:58:02 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.5 2008/02/15 15:54:59 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.6 2008/02/18 13:58:02 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -89,8 +89,8 @@ class JobFinalization(object):
     # Store log files if even the job failed
 
     try:
-#      self.uploadLogFiles()
       self.log.info("save logfile")
+#      self.uploadLogFiles()
     except Exception,x:
       self.log.error("Exception while log files uploading:")
       self.log.error(str(x))
@@ -328,7 +328,7 @@ class JobFinalization(object):
     os.chdir(self.logdir)
     jobfile = open('job.info','w')
     jobfile.write(self.PRODUCTION_ID+'_'+self.JOB_ID+'\n')
-    log_target_path = makeProductionLfn(self,(inputname,'LOG','1'),self.mode,self.PRODUCTION_ID)
+    log_target_path = makeProductionLfn(self,('bar_foo','LOG','1'),self.mode,self.PRODUCTION_ID)
     jobfile.write(log_target_path+'\n')
     jobfile.close()
     os.chdir(cwd)
@@ -347,8 +347,10 @@ class JobFinalization(object):
 
     if logse:
       self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionLfn(self,(inputname,'LOG','1'),self.mode,self.PRODUCTION_ID)
+      target_path = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
 #      target_path = '/joel/'
+      self.log.info(target_path)
+      self.log.info(self.logdir)
       result = self.rm.putDirectory(target_path,self.logdir,'LogSE')
       self.log.info(result)
 
@@ -409,17 +411,16 @@ class JobFinalization(object):
 
     ses = []
     # Add output SE defined in the job description
-    if outputse:
+    self.log.info(outputse)
+    if outputse != None:
       outses = outputse.split(',')
       for outse in outses:
-        if not outse in ses and outse != "None" :
-          ses.append(outse)
+        resultSE = gConfig.getValue('/Operations/StorageElement/'+outse,None)
+        for se in resultSE.strip().split(','):
+          ses.append(se)
 
     # Attempt to store first file to the LocalSE if it is in the list of
     # requested SEs
-
-    if "LocalSE" in ses:
-      ses.insert(0,"LocalSE")
 
     if len(ses) == 0:
       # Processing for this output type/file is not requested
@@ -431,12 +432,20 @@ class JobFinalization(object):
     ses_trial = uniq(ses)
     self.log.info(ses_trial)
     ses = []
-    for se in ses_trial:
-      sname = self.getSEName(se)
-      if not sname:
-        self.log.error("Storage Element "+se+" is not defined")
-      else:
-        ses.append(sname)
+    ses_local = []
+    if gConfig.getValue('/LocalSite/LocalSE',None) != None:
+      resultSE = gConfig.getValue('/LocalSite/LocalSE',None)
+      for se in resultSE.strip().split(','):
+        ses_local.append(se)
+      looping = 0
+      for se in ses_trial:
+        for sel in ses_local:
+          if sel == se:
+            ses.append(sel)
+            looping = 1
+            break
+        if looping == 1:
+          break
 
     ses = uniq(ses)
 
