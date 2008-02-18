@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.2 2008/02/11 08:10:54 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.3 2008/02/18 16:04:48 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.2 2008/02/11 08:10:54 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.3 2008/02/18 16:04:48 joel Exp $"
 
 import os, string,sys
 
@@ -83,15 +83,8 @@ class LHCbCheckLogFile(CheckLogFile):
 
       if self.max_app != 'None':
          if (int(self.job_id) > int(self.max_app)):
-            for name,par in self.module.step.parameters.items():
-               if par.type == "OUTPUTDATA":
-                  files = string.split(par.value,',')
-                  pname = par.name.split('[')[0]
-                  for n,p in self.module.step.parameters.items():
-                     if (pname.find('OUTPUT') == 0):
-                        if p.type == "OUTPUTSE":
-                           self.module.step.addParameter(n,'OUTPUTSE','None')
-                           self.log.info("set OUTPUTSE to None")
+           if self.outputDataSE != None:
+             self.outputDataSE = None
 
 #      self.logfile = os.getenv('LOGFILE')
 #
@@ -180,8 +173,8 @@ class LHCbCheckLogFile(CheckLogFile):
                      result = S_ERROR('Navigation from guid via LFC from input file')
                      return result
                   else:
-                     if self.module.step.job.parameters.has_key('PoolXMLCatalog'):
-                        catalogfile = self.module.step.job.parameters['PoolXMLCatalog'].value
+                     if self.PoolXMLCatalog != None:
+                        catalogfile = self.PoolXMLCatalog
                      else:
                         catalogfile = 'pool_xml_catalog.xml'
 
