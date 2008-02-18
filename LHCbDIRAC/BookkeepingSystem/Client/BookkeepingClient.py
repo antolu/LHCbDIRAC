@@ -18,6 +18,9 @@ class BookkeepingClient:
     
   def sendBookkeeping(self, name, data):
       """
+      Send XML file to BookkeepingManager.
+      name- XML file name
+      data - XML file
       """
       result = self.server.sendBookkeeping(name, data)
       return result
