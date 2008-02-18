@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.4 2008/02/18 14:12:53 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.4 2008/02/18 14:12:53 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.5 2008/02/18 16:09:15 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.5 2008/02/18 16:09:15 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -167,3 +167,98 @@ def uniq(list):
       new_list.append(i)
 
   return new_list
+
+
+def getPFNFromPoolXMLCatalog(self,output):
+
+#    self.prod_id = self.PRODUCTION_ID
+#    self.job_id = self.JOB_ID
+
+    ####################################
+    # Get the Pool XML catalog if any
+    poolcat = None
+    fcname = []
+    if os.environ.has_key('PoolXMLCatalog'):
+      fcn = os.environ['PoolXMLCatalog']
+      if os.path.isfile(fcn+'.gz'):
+        gunzip(fcn+'.gz')
+      fcname.append(fcn)
+    else:
+      if self.poolXMLCatName != None:
+        fcn = self.poolXMLCatName
+        if os.path.isfile(fcn+'.gz'):
+          gunzip(fcn+'.gz')
+        fcname.append(fcn)
+
+    flist = os.listdir('.')
+    for fcn in flist:
+      # Account for file names like xxx_catalog.xml, NewCatalog.xml
+      if re.search('atalog.xml',fcn) and not re.search('BAK',fcn) and not re.search('.temp$',fcn):
+        if re.search('.gz',fcn):
+          gunzip(fcn)
+          fcn = fcn.replace('.gz','')
+        fcname.append(fcn)
+
+    print "BookkeepingReport: Pool XML catalog files:"
+    for f in fcname:
+      print f
+
+    if fcname:
+      poolcat = PoolXMLCatalog(fcname)
+
+    print "BookkeepingReport: Pool XML catalog constructed"
+
+    try:
+      pfnName = poolcat.getPfnsByLfn(output)
+      return pfnName
+    except Exception,x :
+      self.log.error( "Failed to get PFN from PoolXMLCatalog ! %s" % str( x ) )
+      return ''
+
+
+def getGuidFromPoolXMLCatalog(self,output):
+
+#    self.prod_id = self.PRODUCTION_ID
+#    self.job_id = self.JOB_ID
+
+    ####################################
+    # Get the Pool XML catalog if any
+    poolcat = None
+    fcname = []
+    if os.environ.has_key('PoolXMLCatalog'):
+      fcn = os.environ['PoolXMLCatalog']
+      if os.path.isfile(fcn+'.gz'):
+        gunzip(fcn+'.gz')
+      fcname.append(fcn)
+    else:
+      if self.poolXMLCatName != None:
+        fcn = self.poolXMLCatName
+        if os.path.isfile(fcn+'.gz'):
+          gunzip(fcn+'.gz')
+        fcname.append(fcn)
+
+    flist = os.listdir('.')
+    for fcn in flist:
+      # Account for file names like xxx_catalog.xml, NewCatalog.xml
+      if re.search('atalog.xml',fcn) and not re.search('BAK',fcn) and not re.search('.temp$',fcn):
+        if re.search('.gz',fcn):
+          gunzip(fcn)
+          fcn = fcn.replace('.gz','')
+        fcname.append(fcn)
+
+    print "BookkeepingReport: Pool XML catalog files:"
+    for f in fcname:
+      print f
+
+    if fcname:
+      poolcat = PoolXMLCatalog(fcname)
+
+    print "BookkeepingReport: Pool XML catalog constructed"
+
+    try:
+      guid = poolcat.getGuidByPfn(output)
+      return guid
+    except Exception,x :
+      self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
+      return ''
+
