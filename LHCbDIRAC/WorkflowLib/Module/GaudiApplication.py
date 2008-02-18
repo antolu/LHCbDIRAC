@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.19 2008/02/13 11:22:03 paterson Exp $
+# $Id: GaudiApplication.py,v 1.20 2008/02/18 16:35:27 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.19 2008/02/13 11:22:03 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.20 2008/02/18 16:35:27 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -27,7 +27,8 @@ class GaudiApplication(object):
     self.result = S_ERROR()
     self.logfile = None
     self.NUMBER_OF_EVENTS = None
-    self.inputData = ''
+    self.inputData = '' # to be resolved
+    self.InputData = '' # from the (JDL WMS approach)
     self.outputData = None
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
@@ -47,11 +48,16 @@ class GaudiApplication(object):
 
         Could be overloaded for python / standard options in the future.
     """
-    if self.inputData:
+    if self.InputData:
+      self.log.info('Input data defined taken from JDL parameter')
+      if type(self.inputData) != type([]):
+        self.inputData = self.InputData.split(';')
+    elif self.inputData:
       self.log.info('Input data defined in workflow for this Gaudi Application step')
       if type(self.inputData) != type([]):
         self.inputData = self.inputData.split(';')
     elif os.path.exists(self.poolXMLCatName):
+      self.log.info('Determining input data from Pool XML slice')
       inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
       inputDataList = inputDataCatalog.getLfnsList()
       self.inputData = inputDataList
@@ -88,7 +94,11 @@ class GaudiApplication(object):
 
         Could be overloaded for python / standard options in the future.
     """
-    if self.inputData:
+    if self.InputData:
+      self.log.info('Input data defined taken from JDL parameter')
+      if type(self.inputData) != type([]):
+        self.inputData = self.InputData.split(';')
+    elif self.inputData:
       self.log.info('Input data defined in workflow for this Gaudi Application step')
       if type(self.inputData) != type([]):
         self.inputData = self.inputData.split(';')
