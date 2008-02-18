@@ -1,15 +1,16 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.3 2008/02/18 16:08:15 joel Exp $
+# $Id: CheckLogFile.py,v 1.4 2008/02/18 16:52:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.3 2008/02/18 16:08:15 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.4 2008/02/18 16:52:04 joel Exp $"
 
 import commands, os
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from WorkflowLib.Utilities.Tools import *
 #from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
@@ -46,7 +47,7 @@ class CheckLogFile(object):
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
+    logpath = self.makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
