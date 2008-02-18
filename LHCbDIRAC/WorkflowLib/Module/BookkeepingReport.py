@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.6 2008/02/14 07:27:13 joel Exp $
+# $Id: BookkeepingReport.py,v 1.7 2008/02/18 14:35:11 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.6 2008/02/14 07:27:13 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.7 2008/02/18 14:35:11 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -225,8 +225,8 @@ class BookkeepingReport(object):
       out = resultTuple['Value'][1]
 
       if status:
-        gLog.info( "Failed to get md5sum of %s" % str( output ) )
-        gLog.info( str( out ) )
+        self.log.info( "Failed to get md5sum of %s" % str( output ) )
+        self.log.info( str( out ) )
         md5sum = '000000000000000000000000000000000000'
       else:
         md5sum = out.split()[0]
@@ -328,6 +328,6 @@ class BookkeepingReport(object):
       guid = poolcat.getGuidByPfn(output)
       return guid
     except Exception,x :
-      gLog.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
+      self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
 
