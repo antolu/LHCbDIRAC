@@ -129,6 +129,7 @@ stepInstance1.linkParameterUp("CONFIG_NAME")
 stepInstance1.linkParameterUp("CONFIG_VERSION")
 stepInstance1.linkParameterUp("DataType")
 stepInstance1.linkParameterUp("NUMBER_OF_EVENTS")
+stepInstance1.setLink("inputData","self", "InputData") # KGG linked with InputData of the Workflow
 
 
 # Now lets define parameters on the top
@@ -145,7 +146,8 @@ workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
 workflow1.setValue(step1_prefix+"optionsFile", "RealDataDst.opts")
 workflow1.setValue(step1_prefix+"optionsLine","ApplicationMgr.EvtMax = 1")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-workflow1.setValue(step1_prefix+"inputData",indata)
+#workflow1.setValue(step1_prefix+"inputData",indata)
+workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","200")
 # remove unwanted
