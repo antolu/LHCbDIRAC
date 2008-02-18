@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.3 2008/02/15 07:52:55 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.3 2008/02/15 07:52:55 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.4 2008/02/18 14:12:53 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.4 2008/02/18 14:12:53 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -32,7 +32,7 @@ def makeProductionPath(self,typeName,mode,prodstring,log=False):
   """
 #  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
 #  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
-  result = self.LFN_ROOT+'/'+typeName+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
+  result = self.LFN_ROOT+'/'+typeName+'/'+prodstring+'/'
   if log:
     try:
       jobid = int(self.JOB_ID)
