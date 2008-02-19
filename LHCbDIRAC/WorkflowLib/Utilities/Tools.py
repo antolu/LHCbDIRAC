@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.7 2008/02/19 09:41:24 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.7 2008/02/19 09:41:24 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.8 2008/02/19 15:03:21 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.8 2008/02/19 15:03:21 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -25,7 +25,7 @@ def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
         return fname.replace('LFN:','')
       else:
 #        path = makeProductionPath(self,mode,prodstring)
-        return LFN_ROOT+'/'+filetuple[1]+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
+        return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
 
 def makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
   """ Constructs the path in the logical name space where the output
@@ -33,7 +33,7 @@ def makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
   """
 #  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
 #  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
-  result = LFN_ROOT+'/'+typeName+'/'+prodstring+'/'
+  result = LFN_ROOT+'/'+typeName.upper()+'/'+prodstring+'/'
   if log:
     try:
       jobid = int(JOB_ID)
