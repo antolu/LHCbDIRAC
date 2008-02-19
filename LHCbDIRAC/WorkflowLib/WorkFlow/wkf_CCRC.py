@@ -166,7 +166,7 @@ workflow1.appendParameter(Parameter("StdError","std.err","JDL","","",True, False
 workflow1.appendParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
 workflow1.appendParameter(Parameter("SoftwarePackages","Brunel.v32r3p1","JDL","","",True, False, "software"))
 
-workflow1.appendParameter(Parameter("MaxCPUTime",50000,"JDLReqt","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("MaxCPUTime",200000,"JDLReqt","","",True, False, "Application Name"))
 #workflow1.appendParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
 workflow1.appendParameter(Parameter("Platform","gLite","JDLReqt","","",True, False, "platform"))
 
