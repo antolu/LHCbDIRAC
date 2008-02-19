@@ -1,14 +1,15 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.12 2008/02/19 11:23:15 paterson Exp $
+# $Id: JobFinalization.py,v 1.13 2008/02/19 11:41:34 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.12 2008/02/19 11:23:15 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.13 2008/02/19 11:41:34 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
 
@@ -39,6 +40,7 @@ class JobFinalization(object):
     self.nb_events_input = None
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
+    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     pass
 
