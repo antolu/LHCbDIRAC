@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.8 2008/02/19 10:01:38 paterson Exp $
+# $Id: JobFinalization.py,v 1.9 2008/02/19 10:23:16 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.8 2008/02/19 10:01:38 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.9 2008/02/19 10:23:16 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -142,7 +142,7 @@ class JobFinalization(object):
 #          for output,otype,oversion,outputse in outputs:
           if not outputs in outputs_done:
               fname = os.path.basename(outputs)
-              lfn = self.LFN_ROOT+'/failover/'+fname
+              lfn = self.LFN_ROOT+'/'+fname
               resCopy = self.rm.put(lfn,os.getcwd()+'/'+fname,cache_se)
               if resCopy['OK'] == True:
 #                pfname = result['PFN']
@@ -437,20 +437,28 @@ class JobFinalization(object):
     ses = []
     ses_local = []
 
+    seValue = gConfig.getValue('/LocalSite/LocalSE',None)
+    if not seValue:
+      self.log.warn('LocalSE list is null from CS')
+      return S_ERROR('Site/LocalSE list is null')
 
-    if gConfig.getValue('/LocalSite/LocalSE',None) != None:
-      resultSE = gConfig.getValue('/LocalSite/LocalSE',None)
-      for se in resultSE.strip().split(','):
-        ses_local.append(se)
-      looping = 0
-      for se in ses_trial:
-        for sel in ses_local:
-          if sel == se:
-            ses.append(sel)
-            looping = 1
-            break
-        if looping == 1:
+    resultSEList = None
+    if type(seValue) == type(" "):
+      resultSEList = seValue.strip().split(',')
+    elif type(seValue) == type([]):
+      resultSEList = seValue
+    self.log.info('Site LocalSE list is: %s' %resultSEList)
+    for se in resultSEList:
+      ses_local.append(se)
+    looping = 0
+    for se in ses_trial:
+      for sel in ses_local:
+        if sel == se:
+          ses.append(sel)
+          looping = 1
           break
+      if looping == 1:
+        break
 
     ses = uniq(ses)
 
