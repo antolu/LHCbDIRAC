@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.19 2008/02/19 15:20:41 joel Exp $
+# $Id: JobFinalization.py,v 1.20 2008/02/19 15:32:27 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.19 2008/02/19 15:20:41 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.20 2008/02/19 15:32:27 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -357,8 +357,8 @@ class JobFinalization(object):
 
     if logse:
       self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
-#      target_path = '/joel/'
+      target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID)
+      target_path = target_path+'/'+self.JOB_ID
       self.log.info("PutDirectory %s %s %s " % (target_path, os.path.realpath(self.logdir), 'LogSE'))
 #      self.log.info(self.logdir)
       result = self.rm.putDirectory(target_path,os.path.realpath(self.logdir),'LogSE')
