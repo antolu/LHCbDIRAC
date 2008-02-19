@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.14 2008/02/19 13:34:48 paterson Exp $
+# $Id: JobFinalization.py,v 1.15 2008/02/19 13:54:34 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.14 2008/02/19 13:34:48 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.15 2008/02/19 13:54:34 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -442,13 +442,17 @@ class JobFinalization(object):
     self.log.info(ses_trial)
     ses = []
     ses_local = []
+    seValue = None
     try:
       seValue = gConfig.getValue('/LocalSite/LocalSE','')
     except Exception,x:
       self.log.warn('Could not get local SE list with exception')
       self.log.warn(str(x))
-      self.__loadLocalCFGFiles(self.root+'../')
+    if not seValue:
+      self.log.info('Trying again to find the LocalSE list')
+      self.__loadLocalCFGFiles(self.root+'/../')
       self.__loadLocalCFGFiles(os.getcwd())
+      self.__loadLocalCFGFiles(os.getcwd()+'/../')
       seValue = gConfig.getValue('/LocalSite/LocalSE','')
       self.log.info('Finally resolved LocalSE %s' %(seValue))
 
@@ -500,7 +504,7 @@ class JobFinalization(object):
     self.log.verbose('Checking directory %s' %localRoot)
     for i in files:
       if re.search('.cfg$',i):
-        gConfig.loadFile(i)
+        gConfig.loadFile('%s/%s' %(localRoot,i))
         self.log.verbose('Found local .cfg file %s' %i)
 
 ###################################################################################################
