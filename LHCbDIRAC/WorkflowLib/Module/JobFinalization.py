@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.6 2008/02/18 13:58:02 joel Exp $
+# $Id: JobFinalization.py,v 1.7 2008/02/19 09:32:53 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.6 2008/02/18 13:58:02 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.7 2008/02/19 09:32:53 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -28,6 +28,7 @@ class JobFinalization(object):
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
     self.JOB_ID = None
+    self.LFN_ROOT = None
     self.tmpdir = '.'
     self.logdir = '.'
     self.mode = None
@@ -328,7 +329,7 @@ class JobFinalization(object):
     os.chdir(self.logdir)
     jobfile = open('job.info','w')
     jobfile.write(self.PRODUCTION_ID+'_'+self.JOB_ID+'\n')
-    log_target_path = makeProductionLfn(self,('bar_foo','LOG','1'),self.mode,self.PRODUCTION_ID)
+    log_target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,('bar_foo','LOG','1'),self.mode,self.PRODUCTION_ID)
     jobfile.write(log_target_path+'\n')
     jobfile.close()
     os.chdir(cwd)
@@ -347,7 +348,7 @@ class JobFinalization(object):
 
     if logse:
       self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
+      target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID)
 #      target_path = '/joel/'
       self.log.info(target_path)
       self.log.info(self.logdir)
@@ -452,7 +453,7 @@ class JobFinalization(object):
     if len(ses) > 0:
       self.log.info("File %s will be stored to the following SE's:\n%s" % (output, str(ses)))
 
-      lfn = makeProductionLfn(self,(output,otype),self.mode,self.PRODUCTION_ID)
+      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
       result = self.uploadDataFile(output,lfn,ses)
       return result
     else:
