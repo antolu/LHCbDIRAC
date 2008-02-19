@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.7 2008/02/19 09:32:53 paterson Exp $
+# $Id: JobFinalization.py,v 1.8 2008/02/19 10:01:38 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.7 2008/02/19 09:32:53 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.8 2008/02/19 10:01:38 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -47,6 +47,8 @@ class JobFinalization(object):
     res = shellCall(0,'ls -al')
     self.log.info("final listing : %s" % (str(res)))
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    self.log.info('Updating local configuration with available CFG files')
+    self.__loadLocalCFGFiles(self.root)
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     error = 0
@@ -434,6 +436,8 @@ class JobFinalization(object):
     self.log.info(ses_trial)
     ses = []
     ses_local = []
+
+
     if gConfig.getValue('/LocalSite/LocalSE',None) != None:
       resultSE = gConfig.getValue('/LocalSite/LocalSE',None)
       for se in resultSE.strip().split(','):
@@ -460,6 +464,15 @@ class JobFinalization(object):
       self.log.error('No valid SEs defined as file destinations')
       return S_ERROR('No valid SEs defined as file destinations')
 
+
+  #############################################################################
+  def __loadLocalCFGFiles(self,localRoot):
+    """Loads any extra CFG files residing in the local DIRAC site root.
+    """
+    files = os.listdir(localRoot)
+    for i in files:
+      if re.search('.cfg$',i):
+        gConfig.loadFile(i)
 
 ###################################################################################################
   def uploadDataFile(self,datafile,lfn,destinationSEList):
