@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.4 2008/02/18 16:52:04 joel Exp $
+# $Id: CheckLogFile.py,v 1.5 2008/02/19 08:44:46 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.4 2008/02/18 16:52:04 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.5 2008/02/19 08:44:46 joel Exp $"
 
 import commands, os
 
@@ -47,7 +47,7 @@ class CheckLogFile(object):
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = self.makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
+    logpath = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
