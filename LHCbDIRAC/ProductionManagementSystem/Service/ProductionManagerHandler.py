@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.16 2008/02/17 22:26:55 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.17 2008/02/19 09:50:55 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.16 $"
+__RCSID__ = "$Revision: 1.17 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -58,7 +58,7 @@ class ProductionManagerHandler( TransformationHandler ):
         gLogger.error(errKey, errExpl)
       else:
         if update:
-          gLogger.verbose('Workflow %s is updated in the Production Repository by the %s'%(name, authorDN) )
+          gLogger.verbose('Workflow %s is modified in the Production Repository by the %s'%(name, authorDN) )
         else:
           gLogger.verbose('Workflow %s is added to the Production Repository by the %s'%(name, authorDN) )
       return result
@@ -135,16 +135,13 @@ class ProductionManagerHandler( TransformationHandler ):
     long_description = wf.getDescription()
 
     try:
-      #if update:
-      #  result = productionDB.updateProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
-      #else:
-      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup)
+      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup, update)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
       else:
         if update:
-          gLogger.verbose('Transformation %s is updated in the ProductionDB by the %s'%(name, authorDN) )
+          gLogger.verbose('Transformation %s is modified in the ProductionDB by the %s'%(name, authorDN) )
         else:
           gLogger.verbose('Transformation %s is added to the ProductionDB by the %s'%(name, authorDN) )
       return result
@@ -161,6 +158,13 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
+  #types_updateProductionBody = [ StringType, StringType ]
+  #def export_updateProductionBody( self, name_id, body ):
+  #  result = productionDB.updateProductionBody(name_id, body)
+  #  if not result['OK']:
+  #    gLogger.error(result['Message'])
+  #  return result
+    
   types_deleteProductionByID = [ LongType ]
   def export_deleteProductionByID( self, id ):
     result = productionDB.deleteProduction(id)
@@ -208,14 +212,14 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_getProductionBodyByID = [ LongType ]
   def export_getProductionBodyByID( self, id_ ):
-    result = productionDB.getProductionBodyByID(id_)
+    result = productionDB.getProductionBody(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
   types_getProductionBody = [ StringType ]
   def export_getProductionBody( self, id_ ):
-    result = productionDB.getProductionBodyByID(id_)
+    result = productionDB.getProductionBody(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
@@ -293,22 +297,22 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
-  types_getJobsToSubmit = [ LongType, IntType ]
+  types_getJobsToSubmit = [ LongType, IntType, StringType ]
   def export_getJobsToSubmit(self,production,numJobs,site=''):
     """ Get information necessary for submission for a given number of jobs 
         for a given production
     """
     
     # Get the production body first
-    result = productionDB.getProductionBodyByID(int(production))
+    result = productionDB.getProductionBody(long(production))
     if not result['OK']:
       return S_ERROR('Failed to get production body for production '+str(production))
-      
+    print result  
     body = result['Value']  
-    result = productionDB.selectJobs(production,['Created'],numJobs,site)
+    result = productionDB.selectJobs(production,['CREATED'],numJobs,site) 
     if not result['OK']:
       return S_ERROR('Failed to get jobs for production '+str(production))
-    
+    print result
     jobDict = result['Value']
     
     resultDict = {}
@@ -317,14 +321,14 @@ class ProductionManagerHandler( TransformationHandler ):
     
     return S_OK(resultDict) 
     
-  types_getJobsWithStatus = [ LongType, StringType, IntType ]
-  def export_getJobsWithStatus(self, production, status, numJobs):
+  types_getJobsWithStatus = [ LongType, StringType, IntType, StringType]
+  def export_getJobsWithStatus(self, production, status, numJobs, site):
     """ Get jobs with specified status limited by given number 
         for a given production
     """    
-    result = productionDB.selectJobs(production,[status],numJobs)
+    result = productionDB.selectJobs(production,[status],numJobs, site)
     if not result['OK']:
-      return S_ERROR('Failed to get jobs with the status %s for production=%d '%(status, production))
+      return S_ERROR('Failed to get jobs with the status %s site=%s for production=%d '%(status, site, production))
     return result 
 
   types_setJobStatus = [ LongType, LongType, StringType ]
@@ -333,7 +337,7 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     result = productionDB.setJobStatus(productionID, jobID, status)
     if not result['OK']:
-      error = 'Can not change job status=%s in TransformationID=%d JobID=%d because %s' % (status, productionID, jobID, result['Message'])
+      error = 'Could not change job status=%s in TransformationID=%d JobID=%d because %s' % (status, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
       
@@ -343,7 +347,7 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     result = productionDB.setJobWmsID(productionID, jobID, jobWmsID)
     if not result['OK']:
-      error = 'Cannot set JobWmsID=%s in TransformationID=%d JobID=%d because %s' % (jobWmsID, productionID, jobID, result['Message'])
+      error = 'Couldt set JobWmsID=%s in TransformationID=%d JobID=%d because %s' % (jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
     return result
@@ -354,10 +358,18 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     result = productionDB.setJobStatusAndWmsID(productionID, jobID, status, jobWmsID)
     if not result['OK']:
-      error = 'Canot set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
+      error = 'Could set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
     return result
 
-
-    
+  types_getJobStats = [ LongType ]
+  def export_getJobStats(self, productionID):
+    """ returns number of jobs in each status for a given production
+    """
+    result = productionDB.getJobStats(productionID)
+    if not result['OK']:
+      error = 'Could not count jobs in TransformationID=%d because %s' % (productionID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result

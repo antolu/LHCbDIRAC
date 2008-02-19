@@ -75,19 +75,9 @@ ProductionDB lhcbMySQL
 
 
 CLI
-/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-manager-cli.py
+/opt/dirac/slc4_ia32_gcc34/bin/python2.4 /opt/dirac/DIRAC/ProductionManagementSystem/scripts/dirac-production-manager-cli.py
 
 Agent
 /opt/dirac/slc4_ia32_gcc34/bin/python2.4 /opt/dirac/DIRAC/Core/scripts/dirac-agent ProductionManagement/TransformationAgent -o LogLevel=debug MaxCycles=1
 /opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/Core/scripts/dirac-agent ProductionManagement/TransformationAgent -o LogLevel=debug MaxCycles=1
 
-CREATE TABLE Jobs_22(
-JobID INTEGER NOT NULL AUTO_INCREMENT,
-WmsStatus char(16) DEFAULT 'Created',
-JobWmsID char(16),
-CreationTime DATETIME DEFAULT NOW(),
-LastUpdateTime DATETIME DEFAULT NOW(),
-InputVector BLOB,
-PRIMARY KEY(JobID),
-INDEX(WmsStatus));
-`timestamp` TIMESTAMP DEFAULT  CURRENT_TIMESTAMP NOT NULL ,

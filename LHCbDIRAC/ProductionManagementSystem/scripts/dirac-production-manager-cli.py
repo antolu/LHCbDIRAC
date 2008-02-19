@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.7 2008/02/15 22:46:28 gkuznets Exp $
-__RCSID__ = "$Revision: 1.7 $"
+# $Id: dirac-production-manager-cli.py,v 1.8 2008/02/19 09:50:55 gkuznets Exp $
+__RCSID__ = "$Revision: 1.8 $"
 
 import cmd
 import sys, os
@@ -246,47 +246,57 @@ class ProductionManagerCLI( cmd.Cmd ):
                pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
-  def do_addProdJob(self, args):
-    """ Add single job to the Production
-    Usage: addProdJob ProductionID [inputVector]
-    """
-    argss = string.split(args)
-    prodID = long(argss[0])
-    if len(argss)>1:
-      vector = argss[1]
-    else:
-      vector = ''
-    print self.productionManager.addProductionJob(prodID, vector)
+  #def do_addProdJob(self, args):
+  #  """ Add single job to the Production
+  #  Usage: addProdJob ProductionID [inputVector]
+  #  """
+  #  argss = string.split(args)
+  #  prodID = long(argss[0])
+  #  if len(argss)>1:
+  #    vector = argss[1]
+  #  else:
+  #    vector = ''
+  #  print self.productionManager.addProductionJob(prodID, vector)
     
   def __convertIDtoString(self,id):
     return ("%08d" % (id) )
 
   def do_submitJobs(self, args):
     """ Submit jobs given number of jobs of the specified Production
-    Usage: addProdJob productionID [numJobs=1]
+    Usage: addProdJob productionID [numJobs=1] [site]
+    list of sites = LCG.CERN.ch LCG.CNAF.it LCG.PIC.es LCG.IN2P3.fr LCG.NIKHEF.nl LCG.GRIDKA.de LCG.RAL.uk DIRAC.CERN.ch
     """
     numJobs=1
     argss = string.split(args)
+    site = ''
     prodID = long(argss[0])
     if len(argss)>1:
-      numJobs = int(argss[1])
+      numJobs = int(argss[1])      
+    if len(argss)>2:
+      site = argss[2]
+      
     #wms = Dirac()
     prod = DiracProduction()
 
+    
+    result2 = self.productionManager.getJobsWithStatus(prodID, 'CREATED', numJobs, site)
+    if not result2['OK']:
+      print "Error during command execution: %s" % result2['Message']
+      return
+        
+    job_counter=0;
+    jobDict = result2["Value"]
+    if jobDict == {}:
+      print "Coild not get", numJobs, "jobs for site ", site
+      return
+    
     result1 = self.productionManager.getProductionBodyByID(prodID)
     if not result1['OK']:
       print "Error during command execution: %s" % result1['Message']
       return
     body = result1["Value"]
     #print body
-    
-    result2 = self.productionManager.getJobsWithStatus(prodID, 'CREATED', numJobs)
-    if not result2['OK']:
-      print "Error during command execution: %s" % result2['Message']
-      return
-    
-    job_counter=0;
-    jobDict = result2["Value"]
+
     for jobid_ in jobDict:
       jobID = long(jobid_)
       jfilename = prod._DiracProduction__createJobDescriptionFile(body)
@@ -296,14 +306,23 @@ class ProductionManagerCLI( cmd.Cmd ):
       job.workflow.setValue("PRODUCTION_ID",self.__convertIDtoString(prodID))
       for paramName in jobDict[jobID]:
         job.workflow.setValue(paramName,jobDict[jobID][paramName])
-        
+      job.setName(self.__convertIDtoString(prodID)+'_'+self.__convertIDtoString(jobID))
+      
+      result3 = prod._DiracProduction__getCurrentUser()
+      if not result3['OK']:
+        print result3,'Could not establish user ID from proxy credential or configuration'
+	return
+      userID=result3['Value']
+
+      job.setOwner(userID)
+      #job.setDestination(site) 
       updatedJob = prod._DiracProduction__createJobDescriptionFile(job._toXML())
-      result3 = prod._DiracProduction__submitJob(job)
-      if result3['OK']:
-        jobWmsID = result3['Value']
+      result4 = prod._DiracProduction__submitJob(job)
+      if result4['OK']:
+        jobWmsID = result4['Value']
         #update status in the  ProductionDB
-        result4 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'SUBMITTED', str(jobWmsID))
-        if not result4['OK']:
+        result5 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'SUBMITTED', str(jobWmsID))
+        if not result5['OK']:
           print "Could not change job status and WmsID in the ProductionDB"
           return
       else:
@@ -366,10 +385,69 @@ class ProductionManagerCLI( cmd.Cmd ):
     mask = argss[1]
     self.productionManager.setTransformationMask(prodID, mask)
 
+  def do_addDirectory(self,args):
+    """Add files from the given catalog directory
+
+    usage: addDirectory <directory> [force]
+    """
+
+    argss = string.split(args)
+    directory = argss[0]
+    force = 0
+    if len(argss) == 2:
+      if argss[1] == 'force':
+        force = 1
+
+    # KGG checking if directory has / at the end, if yes we remove it
+    directory=directory.rstrip('/')
+
+    #if not self.lfc:
+    #  from DIRAC.DataMgmt.FileCatalog.LcgFileCatalogClient import LcgFileCatalogClient
+    #  self.lfc = LcgFileCatalogClient()
+
+    #start = time.time()
+    #result = self.lfc.getPfnsInDir(directory)
+    #end = time.time()
+    #print "getPfnsInDir",directory,"operation time",(end-start)
+
+    #lfns = []
+    #if result['Status'] == 'OK':
+    #  lfndict = result['Replicas']
+    #  for lfn,repdict in lfndict.items():
+    #    for se,pfn in repdict.items():
+    #      lfns.append((se,lfn))
+
+    #result = self.productionManager.addFiles(lfns,force)
+    #if result['Status'] != "OK":
+    #  print "Failed to add files with local LFC interrogation"
+    #  print "Trying the addDirectory on the Server side"
+    #else:
+    #  print result['Message']
+    #  return
+
+    # Local file addition failed, try the remote one
+    result = self.productionManager.addDirectory(directory)
+    print result
+    if result['OK']:
+      print result['Message']
+    else:
+      print result['Value']
+      
+  def do_getProductionInfo(self, args):
+    """
+    Delete Production from the the repository
+      Usage: getProductionInfo Production
+    """
+    prodID = long(args)
+    print self.productionManager.getProductionInfo(prodID)
+
+      
   def do_test(self, args):
     """ Testing function for Gennady
-    """
-    print self.productionManager.getAllTransformations()
+    """    
+    prodID = long(args)
+
+    print self.productionManager.getJobStats(prodID)
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()
