@@ -1,16 +1,16 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.11 2008/02/19 11:14:51 paterson Exp $
+# $Id: JobFinalization.py,v 1.12 2008/02/19 11:23:15 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.11 2008/02/19 11:14:51 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.12 2008/02/19 11:23:15 paterson Exp $"
 
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
-from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
-from DIRAC import  *
 
 import os, time, re, random
 
@@ -483,6 +483,7 @@ class JobFinalization(object):
     for i in files:
       if re.search('.cfg$',i):
         gConfig.loadFile(i)
+        self.log.verbose('Found local .cfg file %s' %i)
 
 ###################################################################################################
   def uploadDataFile(self,datafile,lfn,destinationSEList):
