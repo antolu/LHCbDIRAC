@@ -125,7 +125,7 @@ stepInstance1.setLink("systemConfig","self", "SystemConfig") # capital letter co
 # except "STEP_ID", "appLog"
 stepInstance1.unlinkParameter(["STEP_ID", "appLog","appName", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "Brunel")
-stepInstance1.setValue("appType", "DST")
+stepInstance1.setValue("appType", "rdst")
 stepInstance1.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 stepInstance1.linkParameterUp("CONFIG_NAME")
 stepInstance1.linkParameterUp("CONFIG_VERSION")
@@ -179,7 +179,7 @@ workflow1.appendParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string",
 workflow1.appendParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
 workflow1.appendParameter(Parameter("CONFIG_NAME","CCRC","string","","",True, False, "Configuration Name"))
 workflow1.appendParameter(Parameter("CONFIG_VERSION","v0","string","","",True, False, "Configuration Version"))
-workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","50","string","","",True, False, "number of events requested"))
+workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","-1","string","","",True, False, "number of events requested"))
 workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
