@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.16 2008/02/19 14:35:19 paterson Exp $
+# $Id: JobFinalization.py,v 1.17 2008/02/19 14:37:22 atsareg Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.16 2008/02/19 14:35:19 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.17 2008/02/19 14:37:22 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -99,8 +99,8 @@ class JobFinalization(object):
     # Store log files if even the job failed
 
     try:
-      self.log.info("Saving logfiles is currently disabled")
-#      self.uploadLogFiles()
+#      self.log.info("Saving logfiles is currently disabled")
+      self.uploadLogFiles()
     except Exception,x:
       self.log.error("Exception while log files uploading:")
       self.log.error(str(x))
@@ -361,7 +361,7 @@ class JobFinalization(object):
 #      target_path = '/joel/'
       self.log.info(target_path)
       self.log.info(self.logdir)
-      result = self.rm.putDirectory(target_path,self.logdir,'LogSE')
+      result = self.rm.putDirectory(target_path,os.path.realpath(self.logdir),'LogSE')
       self.log.info(result)
 
       if result['OK'] == True:
