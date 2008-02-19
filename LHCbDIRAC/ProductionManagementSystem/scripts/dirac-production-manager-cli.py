@@ -1,10 +1,11 @@
-# $Id: dirac-production-manager-cli.py,v 1.9 2008/02/19 14:21:03 gkuznets Exp $
-__RCSID__ = "$Revision: 1.9 $"
+# $Id: dirac-production-manager-cli.py,v 1.10 2008/02/19 23:41:36 gkuznets Exp $
+__RCSID__ = "$Revision: 1.10 $"
 
 import cmd
 import sys, os
 import signal
 import string
+import time
 #import os, new
 
 from DIRAC.Core.Base import Script
@@ -32,13 +33,13 @@ class ProductionManagerCLI( cmd.Cmd ):
     self.identSpace = 20
     self.productionManagerUrl = gConfig.getValue('/Systems/ProductionManagement/Development/URLs/ProductionManager')
     self.productionManager=RPCClient(self.productionManagerUrl)
+    self.lfc = None
 
   def printPair( self, key, value, separator=":" ):
     valueList = value.split( "\n" )
     print "%s%s%s %s" % ( key, " " * ( self.identSpace - len( key ) ), separator, valueList[0].strip() )
     for valueLine in valueList[ 1:-1 ]:
       print "%s  %s" % ( " " * self.identSpace, valueLine.strip() )
-
 
   def do_quit( self, *args ):
     """
@@ -211,6 +212,27 @@ class ProductionManagerCLI( cmd.Cmd ):
         print "Error during command execution: %s" % result['Message']
     else:
       print "File %s does not exists" % tr_file
+
+  def do_getPR(self, args):
+    """
+    Read Workflow from the repository
+      Usage: getPR <PRName> <filename>
+      <PRName> - the name of the workflow
+      <filename> is a path to the file to write xml of the workflow
+    """
+    argss = string.split(args)
+    wf_name = argss[0]
+    path = argss[1]
+
+    result = self.productionManager.getProductionBody(wf_name)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+
+    body = result['Value']
+    fd = open( path, 'wb' )
+    fd.write(body)
+    fd.close()
 
   def do_deletePR(self, args):
     """
@@ -401,56 +423,74 @@ class ProductionManagerCLI( cmd.Cmd ):
     # KGG checking if directory has / at the end, if yes we remove it
     directory=directory.rstrip('/')
 
-    #if not self.lfc:
-    #  from DIRAC.DataMgmt.FileCatalog.LcgFileCatalogClient import LcgFileCatalogClient
-    #  self.lfc = LcgFileCatalogClient()
+    if not self.lfc:
+      from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
+      self.lfc = LcgFileCatalogCombinedClient()
 
-    #start = time.time()
-    #result = self.lfc.getPfnsInDir(directory)
-    #end = time.time()
-    #print "getPfnsInDir",directory,"operation time",(end-start)
+    start = time.time()
+    result = self.lfc.getDirectoryReplicas(directory)
+    end = time.time()
+    print "getPfnsInDir",directory,"operation time",(end-start)
 
-    #lfns = []
-    #if result['Status'] == 'OK':
-    #  lfndict = result['Replicas']
-    #  for lfn,repdict in lfndict.items():
-    #    for se,pfn in repdict.items():
-    #      lfns.append((se,lfn))
+    lfns = []
+    if result['OK']:
+      lfndict = result['Value']['Successful'][directory]
+      
+      for lfn,repdict in lfndict.items():
+        for se,pfn in repdict.items():
+          lfns.append((lfn,pfn,0,se,'IGNORED-GUID','IGNORED-CHECKSUM'))
 
-    #result = self.productionManager.addFiles(lfns,force)
-    #if result['Status'] != "OK":
-    #  print "Failed to add files with local LFC interrogation"
-    #  print "Trying the addDirectory on the Server side"
-    #else:
-    #  print result['Message']
-    #  return
+    result = self.productionManager.addFile(lfns) #WARNING! ,force)
+    print result
+    if not result['OK']:
+      print "Failed to add files with local LFC interrogation"
+      print "Trying the addDirectory on the Server side"
+    else:
+      print "Operation successfull"
+      return
 
     # Local file addition failed, try the remote one
-    result = self.productionManager.addDirectory(directory)
-    print result
-    if result['OK']:
-      print result['Message']
-    else:
-      print result['Value']
+    #result = self.productionManager.addDirectory(directory)
+    #print result
+    #if not result['OK']:
+    #  print result['Message']
+    #else:
+    #  print result['Value']
       
   def do_getProductionInfo(self, args):
     """
-    Delete Production from the the repository
+    Returns information about production
       Usage: getProductionInfo Production
     """
     prodID = long(args)
     #print self.productionManager.getProductionInfo(prodID)
     print self.productionManager.getJobStats(prodID)
 
+  def do_getJobInfo(self, args):
+    """
+    Returns information about production
+      Usage: getJobInfoo ProductionID JobID
+    """
+    argss = string.split(args)
+    prodID = long(argss[0])
+    jobID = long(argss[1])
+    print self.productionManager.getJobInfo(prodID, jobID)
+
       
   def do_test(self, args):
     """ Testing function for Gennady
     """    
-    argss = string.split(args)
-    prodID = long(argss[0])
-    jobID = long(argss[1])
+    #argss = string.split(args)
+    #prodID = long(argss[0])
+    #jobID = long(argss[1])
+    prod = DiracProduction()
+    result3 = prod._DiracProduction__getCurrentUser()
+    if not result3['OK']:
+      print result3,'Could not establish user ID from proxy credential or configuration'
+      return
+    print result3
 
-    print self.productionManager.getJobInfo(prodID, jobID)
+    #print self.productionManager.getJobInfo(prodID, jobID)
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()

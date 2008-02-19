@@ -1,17 +1,17 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.5 2008/02/19 14:21:02 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.6 2008/02/19 23:41:33 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.5 2008/02/19 14:21:02 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.6 2008/02/19 23:41:33 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient import RPCClient
-import os, time
+import os, time, random
 
 AGENT_NAME = 'ProductionManagement/TransformationAgent'
 
@@ -32,6 +32,8 @@ class TransformationAgent(Agent):
     self.dataLog = RPCClient('DataManagement/DataLogging')
     self.server = RPCClient('ProductionManagement/ProductionManager')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
+    self.CERNShare = 0.144
+    self.CCRC = False
     return result
 
   ##############################################################################
@@ -47,12 +49,12 @@ class TransformationAgent(Agent):
       gLogger.info("Initializing Replication Agent for transformation %s." % transID)
     else:
       self.singleTransformation = False
-      gLogger.info("ReplicationPlacementAgent.execute: Initializing general purpose agent.")
+      gLogger.info("TransformationAgent.execute: Initializing general purpose agent.")
 
     result = self.server.getAllProductions()
     activeTransforms = []
     if not result['OK']:
-      gLogger.error("ReplicationPlacementAgent.execute: Failed to get transformations.", res['Message'])
+      gLogger.error("TransformationAgent.execute: Failed to get transformations.", res['Message'])
 
     for transDict in result['Value']:
       transID = long(transDict['TransID'])
@@ -61,13 +63,13 @@ class TransformationAgent(Agent):
       processTransformation = True
       if self.singleTransformation:
         if not self.singleTransformation == transID:
-          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping %s (not selected)." % transID)
+          gLogger.verbose("TransformationAgent.execute: Skipping %s (not selected)." % transID)
           processTransformation = False
 
       if processTransformation:
         startTime = time.time()
         # process the active transformations
-        if transStatus == 'Active':
+        if transStatus == 'Test':
           gLogger.info(self.name+".execute: Processing transformation '%s'." % transID)
           result = self.processTransformation(transDict, False)
           gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
@@ -88,7 +90,7 @@ class TransformationAgent(Agent):
 
         # skip the transformations of other statuses
         else:
-          gLogger.verbose("ReplicationPlacementAgent.execute: Skipping transformation '%s' with status %s." % (transID,transStatus))
+          gLogger.verbose("TransformationAgent.execute: Skipping transformation '%s' with status %s." % (transID,transStatus))
 
     return S_OK()
 
@@ -112,17 +114,108 @@ class TransformationAgent(Agent):
     if flush:
       while len(data) >0:
         ldata = len(data)
-        data = self.generateJob(data,prodID,sflag,group_size, flush)
+        if self.CCRR:
+          data = self.generateJob_CCRC_2008(data,prodID,sflag,group_size, flush)
+        else:  
+          data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
     else:
       while len(data) >= group_size:
         ldata = len(data)
-        data = self.generateJob(data,prodID,sflag,group_size, flush)
+        if self.CCRC:
+          data = self.generateJob_CCRC_2008(data,prodID,sflag,group_size, flush)
+        else:  
+          data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
 
     return S_OK()
+  
+  #####################################################################################  
+  def generateJob_CCRC_2008(self,data,production,sflag,group_size,flush=False):  
+    """ Generate a job according to the CCRC 2008 site shares 
+    """
+    
+    # Sort files by LFN
+    datadict = {}
+    for lfn,se in data:
+      if not datadict.has_key(lfn):
+        datadict[lfn] = []
+      datadict[lfn].append(se)
+      
+    data_m = data  
+      
+    lse = ''  
+    selectedLFN = ''
+    for lfn,seList in datadict.items():
+      if len(seList) == 1:
+        if seList[0].find('CERN') == -1:
+          gLogger.warn('Single replica of %s not at CERN: %s' % (lfn,seList[0]))
+          print lfn,seList
+        continue
+        
+      if len(seList) > 1:
+        # Check that CERN se is in the list
+        okCERN = False
+        seCERN = ''
+        seOther = ''
+        for se in seList:
+          if se.find('CERN') != -1:
+            seCERN = se
+            okCERN = True
+          else:
+            seOther = se  
+            
+        if okCERN:     
+          # Try to satisfy the CERN share
+          if random.random() < self.CERNShare:
+            lse = seCERN
+          else:
+            lse = seOther
+          selectedLFN = lfn  
+          break
+        else:
+          gLogger.warn('No replicas of %s at CERN' % lfn)
+          continue
+      
+    if not lse and flush:
+      # Send job to where it can go
+      for lfn,seList in datadict.items():
+        selectedLFN = lfn
+        lse = seList[0]  
+      
+    if lse:
+      lfns = [selectedLFN]
+      result = self.addJobToProduction(production,lfns,lse)
+      if result['OK']:
+        jobID = long(result['Value'])
+        if jobID:
+          result = self.server.setFileStatusForTransformation(production,'Assigned',lfns)
+          if not result['OK']:
+            gLogger.error("Failed to update file status for production %d"%production)
+
+          result = self.server.setFileJobID(production,jobID,lfns)
+          if not result['OK']:
+            gLogger.error("Failed to set file job ID for production %d"%production)
+
+          result = self.server.setFileSEForTransformation(production,lse,lfns)
+          if not result['OK']:
+            gLogger.error("Failed to set SE for production %d"%production)
+          for lfn in lfns:
+            result = self.dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
+
+        # Remove used files from the initial list
+        data_m = []
+        for lfn,se in data:
+          if lfn not in lfns:
+            data_m.append((lfn,se))
+      else:
+        gLogger.warn("Failed to add a new job to repository: "+result['Message'])
+    else:
+      gLogger.warn('No eligible LFNs for production %d'%production)  
+             
+    return data_m              
 
   #####################################################################################
   def generateJob(self,data,production,sflag,group_size,flush=False):
@@ -184,8 +277,7 @@ class TransformationAgent(Agent):
             if not result['OK']:
               gLogger.error("Failed to set SE for production %d"%production)
             for lfn in lfns:
-              result = self.dataLog(lfn,'Job created',minor='JobID: %s' % JobID,
-                                    source='TransformationAgent')  
+              result = self.dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
 
           # Remove used files from the initial list
           data_m = []

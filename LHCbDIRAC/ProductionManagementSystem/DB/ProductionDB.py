@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.16 2008/02/19 14:21:02 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.17 2008/02/19 23:41:34 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.16 $"
+__RCSID__ = "$Revision: 1.17 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -134,39 +134,39 @@ class ProductionDB(TransformationDB):
     TransformationID = self.getTransformationID(name)
     if TransformationID == 0: # workflow is not exists
 
-      result_step1 = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
+      result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
 
-      if result_step1['OK']:
-        TransformationID = result_step1['Value']
-        result_step2 = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
-        if result_step2['OK']:
-          result_step3 = self.__addJobTable(TransformationID)
-          if not result_step3['OK']:
-            # if for some reason this failed we have to roll back
-            result_rollback2 = self.__deleteProductionParameters(TransformationID)
-            result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
-            return result_step3
-          else:
-            # everithing OK
-            return result_step1
-        else:
-          # if for some reason this faled we have to roll back
-          result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
-          return result_step2
-
-      if not (result_step1['OK'] and result_step2['OK'] and result_step1['OK']):
+      if not result['OK']:
         error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
         gLogger.error(error)
         return S_ERROR( error )
 
-    elif update:
+      TransformationID = result['Value']
+      result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
+      if not result['OK']:
+        # if for some reason this faled we have to roll back
+        result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+        error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
+        gLogger.error(error)
+        return S_ERROR( error )
+	  
+      result = self.__addJobTable(TransformationID)
+      if not result['OK']:
+        # if for some reason this failed we have to roll back
+        result_rollback2 = self.__deleteProductionParameters(TransformationID)
+        result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+        error = 'Transformation "%s" ID=$d FAILED to add JobTable with message "%s"' % (name, TransformationID, result['Message'])
+        gLogger.error(error)
+        return S_ERROR( error )
+      return S_OK(TransformationID)
+
+    #elif update:
       # update
-      result_step1 = TransformationDB.modifyTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
-      #if result_step1['OK']:
-        #result_step2 = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
-        #if result_step2['OK']:
-      
-      #return S_ERROR( "This Function is not ready yet" ) 
+      #result = TransformationDB.modifyTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
+      #if result['OK']:
+        #result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
+        #if result['OK']:      
+      #return result
        
     else: 
       # update was not requested
@@ -443,20 +443,29 @@ INDEX(WmsStatus)
     if not result['OK']:
       return result
 
+    # Prepare Site-SE resolution mapping
+    site_se_mapping = {}
+    mappingKeys = gConfig.getOptions('/Resources/SiteLocalSEMapping')
+    for site_tmp in mappingKeys['Value']:
+      seStr = gConfig.getValue('/Resources/SiteLocalSEMapping/%s' %(site_tmp))
+      site_se_mapping[site_tmp] = [ x.strip() for x in string.split(seStr,',')]
+
+
     resultDict = {}
     if result['Value']:
       if not site:
         # We do not care about the destination site
         for row in result['Value']:
-          resultDict[int(row[0])] = {'InputData':row[1]}
+          se = row[2]
+          targetSite = ''
+          for s,sList in site_se_mapping.items():
+            if se in sList:
+              targetSite = s
+          if targetSite:    
+            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':se,'Status':row[3],'Site':targetSite}
+          else:
+            gLogger.warn('Can not find corresponding site for se: '+se)  
       else:
-        # We want jobs only destinated to a given site
-        site_se_mapping = {}
-        mappingKeys = gConfig.getOptions('/Resources/SiteLocalSEMapping')
-        for site_tmp in mappingKeys['Value']:
-          seStr = gConfig.getValue('/Resources/SiteLocalSEMapping/%s' %(site_tmp))
-          site_se_mapping[site_tmp] = [ x.strip() for x in string.split(seStr,',')]
-
         # Get the jobs now
 
         for row in result['Value']:
@@ -467,7 +476,7 @@ INDEX(WmsStatus)
               if se in sList:
                 targetSite = s
             if targetSite and targetSite == site:
-              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3]}
+              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':targetSite}
           else:
             break
 
@@ -483,6 +492,7 @@ INDEX(WmsStatus)
       return result1
         
     statusList = {}
+    total = 0;
     for status_ in result1["Value"]:
       status = status_[0]
       statusList[status]=0
@@ -490,7 +500,10 @@ INDEX(WmsStatus)
       result2 = self._query(req)
       if not result2['OK']:
         return result2
-      statusList[status]=result2['Value'][0][0]
+      count = long(result2['Value'][0][0])
+      statusList[status]=count
+      total = total + count
+    statusList['Total']=total
       
     
     return S_OK(statusList)
@@ -572,7 +585,6 @@ INDEX(WmsStatus)
       #jobDict['CreationTime']=0
       #jobDict['LatUpdateTime']=0
       #jobDict['InputVector']=''
-      error = "Failed to find job with JobID=%d in the Jobs_%d table with message: %s" % (JobID, productionID, result['Message'])
+      error = "Failed to find job with JobID=%d in the Jobs_%d table with message: %s" % (jobID, productionID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
-    return result    

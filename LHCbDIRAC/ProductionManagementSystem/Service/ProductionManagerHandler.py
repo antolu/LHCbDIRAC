@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.18 2008/02/19 14:21:02 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.19 2008/02/19 23:41:34 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.18 $"
+__RCSID__ = "$Revision: 1.19 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -111,7 +111,7 @@ class ProductionManagerHandler( TransformationHandler ):
     gLogger.verbose('List of Workflows requested from the Production Repository')
     return result
 
-  types_getWorkflow = [ StringType ]
+  types_getWorkflowInfo = [ StringType ]
   def export_getWorkflowInfo( self, name ):
     result = productionDB.getWorkflowInfo(name)
     if not result['OK']:
