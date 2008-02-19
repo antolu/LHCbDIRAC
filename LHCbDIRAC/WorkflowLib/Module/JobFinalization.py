@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.17 2008/02/19 14:37:22 atsareg Exp $
+# $Id: JobFinalization.py,v 1.18 2008/02/19 15:03:39 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.17 2008/02/19 14:37:22 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.18 2008/02/19 15:03:39 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -13,7 +13,7 @@ from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
 
-import os, time, re, random
+import os, time, re, random, shutil
 
 class JobFinalization(object):
 
