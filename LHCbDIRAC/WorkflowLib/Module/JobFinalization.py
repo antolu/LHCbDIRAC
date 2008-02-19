@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.10 2008/02/19 11:10:24 joel Exp $
+# $Id: JobFinalization.py,v 1.11 2008/02/19 11:14:51 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.10 2008/02/19 11:10:24 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.11 2008/02/19 11:14:51 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -43,7 +43,7 @@ class JobFinalization(object):
     pass
 
   def execute(self):
-
+    self.__report('Starting Job Finalization')
     res = shellCall(0,'ls -al')
     self.log.info("final listing : %s" % (str(res)))
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
@@ -168,9 +168,9 @@ class JobFinalization(object):
     #  If the Transfer request is not empty, send it for later retry
 
     if not all_done:
-      self.__report('Job failed to safe its output')
+      self.__report('Failed To Save Job Outputs')
     elif not error:
-      self.__report('Job finished successfully')
+      self.__report('Job Finished Successfully')
 
     return result
 
@@ -179,7 +179,7 @@ class JobFinalization(object):
   def reportBookkeeping(self):
     """ Collect and send safely the bookkeeping reports
     """
-
+    self.__report('Sending Bookkeeping Report')
     result = S_OK()
     books = []
     files = os.listdir('.')
@@ -204,6 +204,7 @@ class JobFinalization(object):
       if result['OK'] != True:
         self.log.error( "Failed to send bookkeeping information for %s" % str( f ) )
         self.log.error( "Setting bookkeeping request for later retry" )
+        self.log.error(result)
 #        result = self.rdbClient.setRequest('bookkeeping',f)
 #        self.info.log(result)
 #        if result['OK'] != True:
