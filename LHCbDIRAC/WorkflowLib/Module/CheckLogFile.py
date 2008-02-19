@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.6 2008/02/19 09:19:40 paterson Exp $
+# $Id: CheckLogFile.py,v 1.7 2008/02/19 12:28:14 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.6 2008/02/19 09:19:40 paterson Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.7 2008/02/19 12:28:14 joel Exp $"
 
 import commands, os
 
@@ -43,12 +43,31 @@ class CheckLogFile(object):
     if os.environ.has_key('JOBID'):
       jid = str(os.environ['JOBID'])
 
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+
+    for inputname in self.inputData.split(';'):
+      self.LFN_ROOT = ''
+      lfnroot = inputname.split('/')
+      if len(lfnroot) > 1:
+          CONTINUE = 1
+          j = 1
+          while CONTINUE == 1:
+            if not lfnroot[j] in dataTypes:
+              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
+            else:
+              CONTINUE = 0
+              break
+            j = j + 1
+            if j > len(lfnroot):
+              CONTINUE = 0
+              break
+
     subject = self.appName+' '+ self.appVersion + \
               " "+subj+' '+self.prod_id+'_'+self.job_id+' JobID='+jid
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = makeProductionPath(self,'LOG',self.mode,self.prod_id)
+    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.prod_id)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
