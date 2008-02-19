@@ -1,17 +1,17 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.5 2008/02/18 16:09:15 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.5 2008/02/18 16:09:15 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.6 2008/02/19 09:29:13 paterson Exp $
+__RCSID__ = "$Id: Tools.py,v 1.6 2008/02/19 09:29:13 paterson Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 
 
-def makeProductionLfn(self,filetuple,mode,prodstring):
+def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
     """ Constructs the logical file name according to LHCb conventions.
     Returns the lfn without 'lfn:' prepended
     """
 
     try:
-      jobid = int(self.JOB_ID)
+      jobid = int(JOB_ID)
       jobindex = string.zfill(jobid/10000,4)
     except:
       jobindex = '0000'
@@ -24,18 +24,18 @@ def makeProductionLfn(self,filetuple,mode,prodstring):
         return fname.replace('LFN:','')
       else:
 #        path = makeProductionPath(self,mode,prodstring)
-        return self.LFN_ROOT+'/'+filetuple[1]+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
+        return LFN_ROOT+'/'+filetuple[1]+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
 
-def makeProductionPath(self,typeName,mode,prodstring,log=False):
+def makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
   """ Constructs the path in the logical name space where the output
   data for the given production will go.
   """
 #  result = '/lhcb/'+mode+'/'+self.CONFIG_NAME+'/'+self.CONFIG_VERSION+'/'+prodstring+'/'
 #  result = '/lhcb/'+self.DataType+'/'+self.YEAR+'/'+self.appType.upper()+'/'+self.CONFIG_NAME+'/'+prodstring+'/'
-  result = self.LFN_ROOT+'/'+typeName+'/'+prodstring+'/'
+  result = LFN_ROOT+'/'+typeName+'/'+prodstring+'/'
   if log:
     try:
-      jobid = int(self.JOB_ID)
+      jobid = int(JOB_ID)
       jobindex = string.zfill(jobid/10000,4)
     except:
       jobindex = '0000'
@@ -169,7 +169,7 @@ def uniq(list):
   return new_list
 
 
-def getPFNFromPoolXMLCatalog(self,output):
+def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
 
 #    self.prod_id = self.PRODUCTION_ID
 #    self.job_id = self.JOB_ID
@@ -184,8 +184,8 @@ def getPFNFromPoolXMLCatalog(self,output):
         gunzip(fcn+'.gz')
       fcname.append(fcn)
     else:
-      if self.poolXMLCatName != None:
-        fcn = self.poolXMLCatName
+      if poolXMLCatName != None:
+        fcn = poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
         fcname.append(fcn)
@@ -216,7 +216,7 @@ def getPFNFromPoolXMLCatalog(self,output):
       return ''
 
 
-def getGuidFromPoolXMLCatalog(self,output):
+def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
 
 #    self.prod_id = self.PRODUCTION_ID
 #    self.job_id = self.JOB_ID
@@ -231,8 +231,8 @@ def getGuidFromPoolXMLCatalog(self,output):
         gunzip(fcn+'.gz')
       fcname.append(fcn)
     else:
-      if self.poolXMLCatName != None:
-        fcn = self.poolXMLCatName
+      if poolXMLCatName != None:
+        fcn = poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
         fcname.append(fcn)
