@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.13 2008/02/19 11:41:34 paterson Exp $
+# $Id: JobFinalization.py,v 1.14 2008/02/19 13:34:48 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.13 2008/02/19 11:41:34 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.14 2008/02/19 13:34:48 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -42,17 +42,20 @@ class JobFinalization(object):
     self.bk = BookkeepingClient()
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
+    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     pass
 
   def execute(self):
     self.__report('Starting Job Finalization')
     res = shellCall(0,'ls -al')
     self.log.info("final listing : %s" % (str(res)))
-    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
     self.__loadLocalCFGFiles(self.root)
     self.mode = gConfig.getValue('LocalSite/Setup','test')
+    self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
+    self.log.info('Log directory is %s' %self.logdir)
     error = 0
     self.log.setLevel('debug')
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
@@ -95,7 +98,7 @@ class JobFinalization(object):
     # Store log files if even the job failed
 
     try:
-      self.log.info("save logfile")
+      self.log.info("Saving logfiles is currently disabled")
 #      self.uploadLogFiles()
     except Exception,x:
       self.log.error("Exception while log files uploading:")
@@ -107,7 +110,6 @@ class JobFinalization(object):
       ####################################
       # Get the Pool XML catalog if any
       self.getPoolXMLCatalogs()
-
 
       #########################################################################
       # Store to the grid and register the output files
@@ -440,17 +442,30 @@ class JobFinalization(object):
     self.log.info(ses_trial)
     ses = []
     ses_local = []
+    try:
+      seValue = gConfig.getValue('/LocalSite/LocalSE','')
+    except Exception,x:
+      self.log.warn('Could not get local SE list with exception')
+      self.log.warn(str(x))
+      self.__loadLocalCFGFiles(self.root+'../')
+      self.__loadLocalCFGFiles(os.getcwd())
+      seValue = gConfig.getValue('/LocalSite/LocalSE','')
+      self.log.info('Finally resolved LocalSE %s' %(seValue))
 
-    seValue = gConfig.getValue('/LocalSite/LocalSE',None)
+    self.log.info('/LocalSite/LocalSE is: %s' %seValue)
     if not seValue:
       self.log.warn('LocalSE list is null from CS')
       return S_ERROR('Site/LocalSE list is null')
 
     resultSEList = None
     if type(seValue) == type(" "):
-      resultSEList = seValue.strip().split(',')
+      resultSEList = seValue.replace(' ','').split(',')
     elif type(seValue) == type([]):
       resultSEList = seValue
+    else:
+      self.log.info('CS returned problematic value for /LocalSite/LocalSE')
+      return S_ERROR('LocalSite/LocalSE error from CS')
+
     self.log.info('Site LocalSE list is: %s' %resultSEList)
     for se in resultSEList:
       ses_local.append(se)
@@ -482,6 +497,7 @@ class JobFinalization(object):
     """Loads any extra CFG files residing in the local DIRAC site root.
     """
     files = os.listdir(localRoot)
+    self.log.verbose('Checking directory %s' %localRoot)
     for i in files:
       if re.search('.cfg$',i):
         gConfig.loadFile(i)
@@ -515,7 +531,9 @@ class JobFinalization(object):
     one_grid_copy_successful = False
     for se in destination_ses:
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
-      if result['OK'] != True:
+      if not result['OK']:
+        self.log.warn(result)
+
 
     ###########################################################################
     #
@@ -523,10 +541,10 @@ class JobFinalization(object):
 
 #    failoverSEList = cfgSvc.get(self.mode,'FailoverDataSE',[])
 
-         self.log.info("Not IMPLEMENTED Trying failover destinations ")
+ #        self.log.info("Not IMPLEMENTED Trying failover destinations ")
 
     # All attempts to upload file to the grid failed, alas
-         return S_ERROR('Fatal errors in uploading file to the Grid')
+  #       return S_ERROR('Fatal errors in uploading file to the Grid')
     return S_OK()
 
 
@@ -549,8 +567,9 @@ class JobFinalization(object):
     request['TargetSE'] = se
     self.log.info("Copying %s to %s" % (fname,se))
     LFC_OK = True
+    self.log.info('putAndRegister(%s,%s,%s,%s,%s)' %(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory))
     resultPaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory)
-    if resultPaR['OK'] == True:
+    if resultPaR['OK']:
       if len(resultPaR['Value']['Failed']) > 0:
         for lfn,mess in resultPaR['Value']['Failed'].items():
           if mess.has_key('register'):
@@ -558,7 +577,7 @@ class JobFinalization(object):
             LFC_OK = False
             self.log.info( "Registration failed for %s" % lfn )
 #            result['level'] = 'Registration'
-
+    self.log.info(resultPaR)
     result = resultPaR
 
     return result
