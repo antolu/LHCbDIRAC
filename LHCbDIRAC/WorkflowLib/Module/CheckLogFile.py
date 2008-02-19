@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.5 2008/02/19 08:44:46 joel Exp $
+# $Id: CheckLogFile.py,v 1.6 2008/02/19 09:19:40 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.5 2008/02/19 08:44:46 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.6 2008/02/19 09:19:40 paterson Exp $"
 
 import commands, os
 
@@ -22,7 +22,8 @@ class CheckLogFile(object):
       self.result = S_ERROR()
       self.mailadress = 'None'
       self.appName = 'None'
-      self.poolXMLCatName = None
+      self.inputData = None
+      self.poolXMLCatName = 'pool_xml_catalog.xml'
       self.appVersion = 'None'
       pass
 
@@ -47,7 +48,7 @@ class CheckLogFile(object):
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = makeProductionPath(self,'LOG',self.mode,self.PRODUCTION_ID)
+    logpath = makeProductionPath(self,'LOG',self.mode,self.prod_id)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
@@ -72,7 +73,7 @@ class CheckLogFile(object):
         rm = ReplicaManager()
         for ind in self.inputData.split(';'):
           self.log.info( "Sending %s to %s" % ( str( ind ), str( debugse ) ) )
-          pfnName = self.getPFNFromPoolXMLCatalog(ind.split(':')[1])
+          pfnName = getPFNFromPoolXMLCatalog(self.poolXMLCatName,ind.split(':')[1])
           result = rm.putAndRegister(ind.split(':')[1],pfnName,debugse)
 #          result = rm.replicate(ind.split(':')[1],debugse,'CERN-tape')
           if not result['OK']:
