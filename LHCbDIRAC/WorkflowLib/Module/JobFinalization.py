@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.9 2008/02/19 10:23:16 paterson Exp $
+# $Id: JobFinalization.py,v 1.10 2008/02/19 11:10:24 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.9 2008/02/19 10:23:16 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.10 2008/02/19 11:10:24 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -52,6 +52,7 @@ class JobFinalization(object):
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     error = 0
+    self.log.setLevel('debug')
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 #    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 
