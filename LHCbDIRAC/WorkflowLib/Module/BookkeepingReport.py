@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.9 2008/02/19 09:28:34 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.10 2008/02/19 16:07:13 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.9 2008/02/19 09:28:34 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.10 2008/02/19 16:07:13 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -261,7 +261,8 @@ class BookkeepingReport(object):
 #            s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
 
             # Get the url for log files
-            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
+#            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
+            logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID)
 #            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
 #            ses = gConfig.getValue(logse,'http')
             logurl = 'http://lhcb-logs.cern.ch/storage'
@@ -276,7 +277,7 @@ class BookkeepingReport(object):
                 # Default url
 #                logurl = 'http://lxb2003.cern.ch/storage'+logpath
 
-            url = logurl+'/'+ logpath+'.gz'
+            url = logurl+logpath+'/'+self.JOB_ID+'/'+output+'.gz'
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
