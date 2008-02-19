@@ -43,10 +43,12 @@ module3.appendParameter(Parameter("appName","","string","self","appName",True, F
 module3.appendParameter(Parameter("appVersion","","string","self","appVersion",True, False, "Application Version"))
 module3.appendParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
 module3.appendParameter(Parameter("appLog","","string","self","appLog",True,False,"list of logfile"))
+module3.appendParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module3.appendParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module3.appendParameter(Parameter("OUTPUT_MAX","","string","self","OUTPUT_MAX",True,False,"nb max of output to keep"))
 # this parameter is static so we define it here
 module3.appendParameter(Parameter("EMAIL","@{EMAILNAME}","string","","",True,False,"EMAIL adress"))
+module3.appendParameter(Parameter("outputDataSE","Tier1-RDST","string","","",True,False,"SE of output data"))
 
 
 #define module 4
