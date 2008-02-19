@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.17 2008/02/19 09:50:55 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.18 2008/02/19 14:21:02 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.17 $"
+__RCSID__ = "$Revision: 1.18 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -13,15 +13,19 @@ from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
 from DIRAC.Core.Transformation.TransformationHandler import TransformationHandler
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Interfaces.API.Dirac import Dirac # job submission
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 # This is a global instance of the ProductionDB class
 productionDB = False
+dataLog = False
 
 def initializeProductionManagerHandler( serviceInfo ):
   global productionDB
   productionDB = ProductionDB()
   global wms
   wms = Dirac()
+  global dataLog
+  dataLog = RPCClient('DataManagement/DataLogging')
   return S_OK()
 
 ################ WORKFLOW SECTION ####################################
@@ -361,15 +365,30 @@ class ProductionManagerHandler( TransformationHandler ):
       error = 'Could set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
+      
+    # Send data logging records
+    if status == "Submitted":
+      result = productionDB.getJobInfo(productionID, jobID)
+      if not result['OK']:
+        gLogger.error('Could not get job info from Production DB in TransformationID=%d JobID=%d ' % (productionID,jobID))  
+      jobDict = result['Value']
+      lfns = jobDict['InputVector'].split(',')
+      for lfn in lfns:
+        lfn = lfn.replace('LFN:','')
+        result = dataLog.addFileRecord(lfn,'Job submitted', 'WMS JobID: %s' % jobWmsID, '','ProductionManager')  
+        if not result['OK']:
+          gLogger.warn('Failed to send Jobsubmitted status for lfn: '+lfn)                               
+      
     return result
 
   types_getJobStats = [ LongType ]
   def export_getJobStats(self, productionID):
     """ returns number of jobs in each status for a given production
     """
-    result = productionDB.getJobStats(productionID)
-    if not result['OK']:
-      error = 'Could not count jobs in TransformationID=%d because %s' % (productionID, result['Message'])
-      gLogger.error( error )
-      return S_ERROR( error )
-    return result
+    return productionDB.getJobStats(productionID)
+    
+  types_getJobInfo = [ LongType, LongType ]
+  def export_getJobInfo(self, productionID, jobID):
+    """ get job information for a given JobID and Production ID
+    """
+    return productionDB.getJobInfo(productionID, jobID)

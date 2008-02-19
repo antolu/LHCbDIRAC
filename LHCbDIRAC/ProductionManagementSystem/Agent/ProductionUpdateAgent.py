@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.2 2008/02/14 23:26:35 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.3 2008/02/19 14:21:02 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.2 2008/02/14 23:26:35 atsareg Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.3 2008/02/19 14:21:02 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -16,7 +16,10 @@ import os, time
 
 
 AGENT_NAME = 'ProductionManagement/ProductionUpdateAgent'
-UPDATE_STATUS = ['Created','Submitted','Waiting','Matched','Running']
+UPDATE_STATUS = ['Created','Submitted','Received','Checking','Waiting','Matched','Running']
+WAITING_STATUS = ['Submitted','Received','Checking','Waiting']
+RUNNING_STATUS = ['Running','Completed']
+FINAL_STATUS = ['Done','Failed']
 # Update job statuses no more frequently than NEWER minutes
 NEWER = 1
 
@@ -37,12 +40,13 @@ class ProductionUpdateAgent(Agent):
 
     self.jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
     self.prodDB = ProductionDB()
+    self.dataLog = RPCClient('DataManagement/DataLogging')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return result
 
   ##############################################################################
   def execute(self):
-    """Main execution method
+    """ Main execution method
     """
 
     result = self.prodDB.getAllProductions()
@@ -68,9 +72,42 @@ class ProductionUpdateAgent(Agent):
       statusDict = result['Value']
       for jobWMS in jobIDs:
         jobID = jobDict[jobWMS][0]
+        old_status = jobDict[jobWMS][1]
         status = statusDict[jobWMS]['Status']
-        result = self.prodDB.setJobStatus(transID,jobID,status)
-        if not result['OK']:
-          gLogger.warn('Failed to set job status for jobID: '+str(jobID))
+        if old_status != status:
+          result = self.prodDB.setJobStatus(transID,jobID,status)
+          if not result['OK']:
+            gLogger.warn('Failed to set job status for jobID: '+str(jobID))
+        if old_status == "Submitted" and status in WAITING_STATUS:
+          result = self.prodDB.getJobInfo(transID,jobID)
+          if not result['OK']:
+            gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
+          if result['Value'].has_key('InputData'):
+            lfns = result['Value']['Input'].split(',')
+            for lfn in lfns:
+              result = self.dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdate agent')    
+        elif old_status in WAITING_STATUS and status in RUNNING_STATUS:
+          result = self.prodDB.getJobInfo(transID,jobID)
+          if not result['OK']:
+            gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
+          if result['Value'].has_key('InputData'):
+            lfns = result['Value']['Input'].split(',')
+            for lfn in lfns:
+              result = self.dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdate agent')
+        elif old_status in RUNNING_STATUS and status in FINAL_STATUS:
+          result = self.prodDB.getJobInfo(transID,jobID)
+          if not result['OK']:
+            gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
+          if result['Value'].has_key('InputData'):
+            lfns = result['Value']['Input'].split(',')
+            for lfn in lfns:
+              if status == "Done":
+                result = self.dataLog.addFileRecord(lfn,'Job done','','','ProductionUpdate agent')
+              elif status == "Failed":
+                result = self.dataLog.addFileRecord(lfn,'Job failed','','','ProductionUpdate agent')
+              elif status == "Stalled":
+                result = self.dataLog.addFileRecord(lfn,'Job stalled','','','ProductionUpdate agent')
+              else:
+                gLogger.warn('Unknown status %s for job %d/%d' % (status,jobID,jobWMS))  
 
     return S_OK()

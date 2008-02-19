@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.15 2008/02/19 10:19:55 atsareg Exp $
+# $Id: ProductionDB.py,v 1.16 2008/02/19 14:21:02 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.15 $"
+__RCSID__ = "$Revision: 1.16 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -200,48 +200,48 @@ class ProductionDB(TransformationDB):
     """
     Get additional parameters from ProductionParameters Table
     """
-    id = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent, Body  from ProductionParameters WHERE TransformationID='%d'" % id
+    id_ = self.getTransformationID(transName)
+    cmd = "SELECT GroupSize, Parent, Body  from ProductionParameters WHERE TransformationID='%d';" % id_
     result = self._query(cmd)
-    dict={}
+    retdict={}
     if not result['OK']:
       error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
       
     if result['Value']:
-      dict['GroupSize']=result['Value'][0][0]
-      dict['Parent']=result['Value'][0][1]
-      dict['Body']=result['Value'][0][2]
+      retdict['GroupSize']=result['Value'][0][0]
+      retdict['Parent']=result['Value'][0][1]
+      retdict['Body']=result['Value'][0][2]
     else:
-      dict['GroupSize']=0
-      dict['Parent']=""
-      dict['Body']=""
+      retdict['GroupSize']=0
+      retdict['Parent']=""
+      retdict['Body']=""
     
-    return S_OK(dict)
+    return S_OK(retdict)
 
   def getProductionParametersWithoutBody(self, transName):
     """
     Get additional parameters from ProductionParameters Table
     """
-    id = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent  from ProductionParameters WHERE TransformationID='%d'" % id
+    id_ = self.getTransformationID(transName)
+    cmd = "SELECT GroupSize, Parent  from ProductionParameters WHERE TransformationID='%d'" % id_
     result = self._query(cmd)
-    dict={}
+    retdict={}
     if not result['OK']:
       error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
 
     if result['Value']:
-      dict['GroupSize']=result['Value'][0][0]
-      dict['Parent']=result['Value'][0][1]
+      retdict['GroupSize']=result['Value'][0][0]
+      retdict['Parent']=result['Value'][0][1]
     else:
-      dict['GroupSize']=0
-      dict['Parent']=""
+      retdict['GroupSize']=0
+      retdict['Parent']=""
     
     
-    return S_OK(dict)
+    return S_OK(retdict)
 
   def __deleteProductionParameters(self, TransformationID):
     """
@@ -305,8 +305,8 @@ INDEX(WmsStatus)
     if not result1['OK']:
         return result1
     for prod in result1['Value']:
-      id = long(prod['TransID'])
-      result2 = self.getProductionParametersWithoutBody(id)
+      id_ = long(prod['TransID'])
+      result2 = self.getProductionParametersWithoutBody(id_)
       if result2['OK']:
         prod['GroupSize']=result2['Value']['GroupSize']
         prod['Parent']=result2['Value']['Parent']
@@ -549,3 +549,30 @@ INDEX(WmsStatus)
     result = self._update(req)
     return result
     
+  def getJobInfo(self,productionID,jobID):    
+    """ returns dictionary with information for given Job of given productionID
+    """
+    req = "SELECT JobID,WmsStatus,TargetSE,CreationTime,LastUpdateTime,InputVector FROM Jobs_%d WHERE JobID='%d';" % (productionID,jobID)
+    result = self._query(req)
+    # lets create dictionary
+    jobDict = {}
+    if result['Value']:
+      jobDict['JobID']=result['Value'][0][0]
+      jobDict['WmsStatus']=result['Value'][0][1]
+      jobDict['TargetSE']=result['Value'][0][2]
+      jobDict['CreationTime']=result['Value'][0][3]
+      jobDict['LastUpdateTime']=result['Value'][0][4]
+      jobDict['InputVector']=result['Value'][0][5]
+      return S_OK(jobDict)
+    else:
+      # no such job
+      #jobDict['JobID']=0
+      #jobDict['WmsStatus']='Unknown'
+      #jobDict['TargetSE']=''
+      #jobDict['CreationTime']=0
+      #jobDict['LatUpdateTime']=0
+      #jobDict['InputVector']=''
+      error = "Failed to find job with JobID=%d in the Jobs_%d table with message: %s" % (JobID, productionID, result['Message'])
+      gLogger.error( error )
+      return S_ERROR( error )
+    return result    

@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.8 2008/02/19 09:50:55 gkuznets Exp $
-__RCSID__ = "$Revision: 1.8 $"
+# $Id: dirac-production-manager-cli.py,v 1.9 2008/02/19 14:21:03 gkuznets Exp $
+__RCSID__ = "$Revision: 1.9 $"
 
 import cmd
 import sys, os
@@ -321,9 +321,9 @@ class ProductionManagerCLI( cmd.Cmd ):
       if result4['OK']:
         jobWmsID = result4['Value']
         #update status in the  ProductionDB
-        result5 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'SUBMITTED', str(jobWmsID))
+        result5 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'Submitted', str(jobWmsID))
         if not result5['OK']:
-          print "Could not change job status and WmsID in the ProductionDB"
+          print "Could not change job status and WmsID in the ProductionDB, message=%s" % result5['Message']
           return
       else:
         print "Could not submit job %d of production %d with message=%s"%(prodID, jobID, result3['Message'])
@@ -439,15 +439,18 @@ class ProductionManagerCLI( cmd.Cmd ):
       Usage: getProductionInfo Production
     """
     prodID = long(args)
-    print self.productionManager.getProductionInfo(prodID)
+    #print self.productionManager.getProductionInfo(prodID)
+    print self.productionManager.getJobStats(prodID)
 
       
   def do_test(self, args):
     """ Testing function for Gennady
     """    
-    prodID = long(args)
+    argss = string.split(args)
+    prodID = long(argss[0])
+    jobID = long(argss[1])
 
-    print self.productionManager.getJobStats(prodID)
+    print self.productionManager.getJobInfo(prodID, jobID)
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()
