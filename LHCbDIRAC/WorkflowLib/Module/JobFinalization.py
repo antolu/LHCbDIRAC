@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.15 2008/02/19 13:54:34 paterson Exp $
+# $Id: JobFinalization.py,v 1.16 2008/02/19 14:35:19 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.15 2008/02/19 13:54:34 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.16 2008/02/19 14:35:19 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -35,6 +35,7 @@ class JobFinalization(object):
     self.mode = None
     self.poolXMLCatName = None
     self.outputDataSE = None
+    self.outputData = None
     self.TmpCacheSE = 'CERN-Failover'
     self.log = gLogger.getSubLogger("JobFinalization")
     self.nb_events_input = None
@@ -43,7 +44,7 @@ class JobFinalization(object):
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    pass
+    self.log.setLevel('debug')
 
   def execute(self):
     self.__report('Starting Job Finalization')
@@ -54,10 +55,10 @@ class JobFinalization(object):
     self.__loadLocalCFGFiles(self.root)
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
+    self.log.info('OutputData = %s' %self.outputData)
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     self.log.info('Log directory is %s' %self.logdir)
     error = 0
-    self.log.setLevel('debug')
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 #    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 
