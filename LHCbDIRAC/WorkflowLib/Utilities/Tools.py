@@ -1,8 +1,9 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.6 2008/02/19 09:29:13 paterson Exp $
-__RCSID__ = "$Id: Tools.py,v 1.6 2008/02/19 09:29:13 paterson Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.7 2008/02/19 09:41:24 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.7 2008/02/19 09:41:24 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 
 
 def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
