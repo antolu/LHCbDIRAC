@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.8 2008/02/18 16:05:48 joel Exp $
+# $Id: BookkeepingReport.py,v 1.9 2008/02/19 09:28:34 paterson Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.8 2008/02/18 16:05:48 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.9 2008/02/19 09:28:34 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -24,6 +24,7 @@ class BookkeepingReport(object):
     self.poolXMLCatName = None
     self.inputData = None
     self.STEP_ID = None
+    self.JOB_ID = None # to check
     self.log = gLogger.getSubLogger("BookkeepingReport")
     self.nb_events_input = None
     pass
@@ -180,7 +181,7 @@ class BookkeepingReport(object):
               CONTINUE = 0
               break
 
-      lfn = makeProductionLfn(self,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
       s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
 
@@ -231,7 +232,7 @@ class BookkeepingReport(object):
       else:
         md5sum = out.split()[0]
 
-      guid = self.getGuidFromPoolXMLCatalog(output)
+      guid = getGuidFromPoolXMLCatalog(self.poolXMLCatName,output)
       if guid == '':
         if md5sum != '000000000000000000000000000000000000':
           guid = makeGuid(output)
@@ -239,7 +240,7 @@ class BookkeepingReport(object):
           guid = makeGuid()
 
       # build the lfn
-      lfn = makeProductionLfn(self,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
+      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
 
       s = s+'  <OutputFile   Name="'+lfn+'" TypeName="'+typeName+'" TypeVersion="'+typeVersion+'">\n'
       if typeName in dataTypes:
@@ -260,7 +261,7 @@ class BookkeepingReport(object):
 #            s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
 
             # Get the url for log files
-            logpath = makeProductionLfn(self,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
+            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
 #            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
 #            ses = gConfig.getValue(logse,'http')
             logurl = 'http://lhcb-logs.cern.ch/storage'
@@ -285,49 +286,5 @@ class BookkeepingReport(object):
     s = s+'</Job>'
     return s
 
-  def getGuidFromPoolXMLCatalog(self,output):
 
-#    self.prod_id = self.PRODUCTION_ID
-#    self.job_id = self.JOB_ID
-
-    ####################################
-    # Get the Pool XML catalog if any
-    poolcat = None
-    fcname = []
-    if os.environ.has_key('PoolXMLCatalog'):
-      fcn = os.environ['PoolXMLCatalog']
-      if os.path.isfile(fcn+'.gz'):
-        gunzip(fcn+'.gz')
-      fcname.append(fcn)
-    else:
-      if self.poolXMLCatName != None:
-        fcn = self.poolXMLCatName
-        if os.path.isfile(fcn+'.gz'):
-          gunzip(fcn+'.gz')
-        fcname.append(fcn)
-
-    flist = os.listdir('.')
-    for fcn in flist:
-      # Account for file names like xxx_catalog.xml, NewCatalog.xml
-      if re.search('atalog.xml',fcn) and not re.search('BAK',fcn) and not re.search('.temp$',fcn):
-        if re.search('.gz',fcn):
-          gunzip(fcn)
-          fcn = fcn.replace('.gz','')
-        fcname.append(fcn)
-
-    print "BookkeepingReport: Pool XML catalog files:"
-    for f in fcname:
-      print f
-
-    if fcname:
-      poolcat = PoolXMLCatalog(fcname)
-
-    print "BookkeepingReport: Pool XML catalog constructed"
-
-    try:
-      guid = poolcat.getGuidByPfn(output)
-      return guid
-    except Exception,x :
-      self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
-      return ''
 
