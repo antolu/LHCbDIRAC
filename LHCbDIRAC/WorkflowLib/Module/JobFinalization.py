@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.22 2008/02/20 10:46:19 joel Exp $
+# $Id: JobFinalization.py,v 1.23 2008/02/20 14:51:05 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.22 2008/02/20 10:46:19 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.23 2008/02/20 14:51:05 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -61,6 +61,8 @@ class JobFinalization(object):
     self.log.info('OutputData = %s' %self.outputData)
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     self.log.info('Log directory is %s' %self.logdir)
+    self.logtar = self.PRODUCTION_ID+'_'+self.JOB_ID+'.tar'
+    self.log.info('Log tar is %s' %self.logtar)
     error = 0
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 #    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
@@ -261,36 +263,19 @@ class JobFinalization(object):
       self.log.info(str(fcname))
       self.poolcat = PoolXMLCatalog(fcname)
 
-################################################################################
-  def saveLogFile(self,logfile,gzip_flag=1):
 
-    if not os.path.exists(logfile):
-      self.log.error( "Saving log file %s failed: no such file" % logfile )
+################################################################################
+  def saveLogTar(self,logfile,line,):
+
+    if os.path.exists(logfile):
+      self.log.warn( "Saving log file %s : file already exist" % logfile )
+      os.system('rm -f '+logfile)
+#      return
+
+    status = tar(logfile,line)
+    if status > 0 :
       return
 
-    if gzip_flag:
-      status = gzip(logfile)
-      if status > 0 :
-        return
-      else:
-        logfile = logfile+'.gz'
-
-    ##################################################
-    #  Copy the log file
-    try:
-      # print "Copy",logfile+".gz",'to',self.logdir
-      shutil.copy(logfile,self.logdir)
-      cwd = os.getcwd()
-      os.chdir(self.logdir)
-      makeIndex()
-      os.chdir(cwd)
-    except IOError, x:
-      self.log.error( "Log file copy failed, trying to copy to the TMP directory" )
-      shutil.copy(logfile,self.tmpdir+'/'+self.job_id)
-
-    # Do not leave gzipped files in the working directory.
-    # They may be still used later
-    gunzip(logfile)
 
 
 ##################################################################################
@@ -302,7 +287,7 @@ class JobFinalization(object):
     files = os.listdir('.')
 
     # Ugly !!!  - distinguish log files by their extensions
-    logexts = ['.txt','.hbook','.log','.root','.output','.xml','.sh']
+    logexts = ['.txt','.hbook','.log','.root','.output','.xml','.sh', '.info']
 
     ##################################################
     #  Create the job log directory
@@ -330,21 +315,25 @@ class JobFinalization(object):
               os.makedirs(self.logdir)
 
 
-    cwd = os.getcwd()
-    os.chdir(self.logdir)
+#    cwd = os.getcwd()
+#    os.chdir(self.logdir)
     jobfile = open('job.info','w')
     jobfile.write(self.PRODUCTION_ID+'_'+self.JOB_ID+'\n')
-    log_target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,('bar_foo','LOG','1'),self.mode,self.PRODUCTION_ID)
+    log_target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(self.logtar,'LOG','1'),self.mode,self.PRODUCTION_ID)
     jobfile.write(log_target_path+'\n')
     jobfile.close()
-    os.chdir(cwd)
+#    os.chdir(cwd)
 
-    self.log.info( "\nMoving log files to the log directory: \n<-- %s -->" % self.logdir )
+    self.log.info( "\ntaring log files to the log file: \n<-- %s -->" % self.logtar )
+    linetotar = ''
     for f in files:
       ext = os.path.splitext(f)[1]
       if ext in logexts:
         self.log.info( 'Saving log file: %s' % str( f ) )
-        self.saveLogFile(f)
+        linetotar = linetotar+' '+f
+
+    self.saveLogTar(self.logdir+'/'+self.logtar,linetotar)
+    gzip(self.logdir+'/'+self.logtar)
 
     try:
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
@@ -353,19 +342,10 @@ class JobFinalization(object):
 
     if logse:
       self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID)
-      target_path = target_path+'/'+self.JOB_ID
-      self.log.info("PutDirectory %s %s %s " % (target_path, os.path.realpath(self.logdir), 'LogSE'))
-#      self.log.info(self.logdir)
-      result = self.rm.putDirectory(target_path,os.path.realpath(self.logdir),'LogSE')
+      target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(self.logtar+'.gz','LOG','1'),self.mode,self.PRODUCTION_ID)
+      self.log.info("Put %s %s %s " % (target_path, os.path.realpath(self.logdir+'/'+self.logtar+'.gz'), 'LogSE'))
+      result = self.rm.put(target_path,os.path.realpath(self.logdir+'/'+self.logtar+'.gz'),'LogSE')
       self.log.info(result)
-
-      if result['OK'] == True:
-        # Construct the http reference to the Log directory
-        logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s">Log file directory</a>' % \
-                 (target_path,str(self.JOB_ID))
-        self.LogFileDirectory = logref
-      self.LogFileLFNPath = target_path
 
       if result['OK'] != True:
         self.log.error("Transfering log files to the main LogSE failed")
