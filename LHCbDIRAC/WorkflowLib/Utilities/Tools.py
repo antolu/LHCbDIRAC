@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.8 2008/02/19 15:03:21 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.8 2008/02/19 15:03:21 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.9 2008/02/20 14:19:01 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.9 2008/02/20 14:19:01 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -40,9 +40,25 @@ def makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
       jobindex = string.zfill(jobid/10000,4)
     except:
       jobindex = '0000'
-    result += 'LOG/'+jobindex
+    result += jobindex
 
   return result
+
+def tar(fname,file):
+  "interface to the system tar command"
+  if os.path.exists(fname):
+    print "tar failed for file ",fname,": file already exist"
+    return 1
+
+  result = shellCall(0,'tar cf '+fname+' '+file)
+  status = result['Value'][0]
+  output = result['Value'][1]
+  if status > 0 :
+    print "tar failed for file ",fname
+    print output
+    return status
+
+  return 0
 
 def gzip(fname):
   "interface to the system gzip command"
