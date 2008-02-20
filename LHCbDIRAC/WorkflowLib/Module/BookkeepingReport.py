@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.10 2008/02/19 16:07:13 joel Exp $
+# $Id: BookkeepingReport.py,v 1.11 2008/02/20 14:17:31 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.10 2008/02/19 16:07:13 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.11 2008/02/20 14:17:31 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -73,14 +73,6 @@ class BookkeepingReport(object):
     s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
     s = s+self.__parameter_string("Location",site,'Info')
 
-
-    # Store all parameters of JOB_PARAM type
-##    params = self.module.getAllParameters()
-##    for name,par in params.items():
-##      if par.type == 'JOB_PARAM':
-##        s = s+self.__parameter_string(name,par.value,'Info')
-
-
     host = None
     if os.environ.has_key("HOSTNAME"):
       host = os.environ["HOSTNAME"]
@@ -97,20 +89,8 @@ class BookkeepingReport(object):
     s = s+self.__parameter_string("ProgramName",self.appName,'Info')
     s = s+self.__parameter_string("ProgramVersion",self.appVersion,'Info')
 
-
-    # Versions of all the explicitly specified packages
-##    packages = self.module.step.getPackages()
-##    for pname,pversion in packages.items():
-##      s = s+self.__parameter_string(pname+'_Version',pversion,'Info')
-
     # DIRAC version
     s = s+self.__parameter_string('DIRAC_Version',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
-
-
-    # Data tags defined in the production run
-##    for pname,par in stepparameters.items():
-##      if par.type.lower() == "jobtag":
-##        s = s+self.__parameter_string(pname,par.value,"Info")
 
     # Run number, first event number if any, stats
     if self.RUN_NUMBER != None:
@@ -136,30 +116,6 @@ class BookkeepingReport(object):
       else:
         s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
 
-
-    # Extra job parameters
-##    JobId = os.environ['JOBID']
-##    s = s+self.__parameter_string('DIRAC_JobID',JobId,"Info")
-##    parfilename = str(JobId)+'_parameters.txt'
-##    if os.path.exists(parfilename):
-##      parfile = file(str(JobId)+'_parameters.txt')
-##      lines = parfile.readlines()
-##      for l in lines:
-##        par_name,par_value = l.strip().split('=')
-##        if par_name.find('Step ') == -1:
-##          s = s+self.__parameter_string(par_name,par_value,"Info")
-
-    # CPU time consumed in the step
-##    endstats = os.times()
-##    parentcputime = endstats[0] - self.module.step.statistics[0]
-##    childcputime = endstats[2] - self.module.step.statistics[2]
-##    cputime = parentcputime + childcputime
-##    s = s+self.__parameter_string("CPUTime",str(cputime),"Info")
-
-    # Wall clock time for the step
-##    end_time = time.time()
-##    exectime = end_time - self.module.step.start_time
-##    s = s+self.__parameter_string("ExecTime",str(exectime),"Info")
 
     # Input files
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
@@ -256,28 +212,11 @@ class BookkeepingReport(object):
       if self.appLog != None:
           logfile = self.appLog
           if logfile == output:
-#            logname = 'file:'+self.root+'/job/log/'+ \
-#                      self.PRODUCTION_ID+'/'+ self.JOB_ID+'/'+ logfile + '.gz'
-#            s = s+'    <Replica Name="'+logname+'" Location="'+ site+'"/>\n'
-
-            # Get the url for log files
 #            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
-            logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID)
-#            logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
-#            ses = gConfig.getValue(logse,'http')
+            logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID,log=True)
             logurl = 'http://lhcb-logs.cern.ch/storage'
-#            if ses:
-              # HTTP protocol is defined for LogSE
-#              logurl = ses[0].getPFNBase()+logpath
-#            else:
-              # HTTP protocol is not defined for LogSE
-#              try:
-#                logurl = cfgSvc.get(job_mode,'LogPathHTTP')+logpath
-#              except:
-                # Default url
-#                logurl = 'http://lxb2003.cern.ch/storage'+logpath
 
-            url = logurl+logpath+'/'+self.JOB_ID+'/'+output+'.gz'
+            url = logurl+logpath+'/'
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
