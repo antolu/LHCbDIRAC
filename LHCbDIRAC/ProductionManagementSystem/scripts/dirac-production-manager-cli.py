@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.10 2008/02/19 23:41:36 gkuznets Exp $
-__RCSID__ = "$Revision: 1.10 $"
+# $Id: dirac-production-manager-cli.py,v 1.11 2008/02/20 12:02:25 gkuznets Exp $
+__RCSID__ = "$Revision: 1.11 $"
 
 import cmd
 import sys, os
@@ -15,12 +15,11 @@ from DIRAC import gConfig
 from DIRAC.LoggingSystem.Client.Logger import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #job submission
+from DIRAC.Core.Workflow.Workflow import *
+from DIRAC.Core.Workflow.WorkflowReader import *
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.Job   import Job
 from DIRAC.Interfaces.API.DiracProduction   import DiracProduction
-from DIRAC.Core.Workflow.Workflow import *
-
-from DIRAC.Core.Workflow.WorkflowReader import *
 
 localCfg.addDefaultEntry("LogLevel", "DEBUG")
 #gLogger._minLevel=30
@@ -70,6 +69,14 @@ class ProductionManagerCLI( cmd.Cmd ):
         print "There's no such %s command" % command
         return
       self.printPair( command, obj.__doc__[1:] )
+      
+   #def check_param(self, args, num):
+   #   """Checks if the number of params correct"""
+      argss = string.split(args)
+      #if argss.len() < num:
+      #  print "Error: Number of arguments less that %d" % num
+      #return argss
+      
 
 ################ WORKFLOW SECTION ####################################
 
@@ -301,23 +308,18 @@ class ProductionManagerCLI( cmd.Cmd ):
     prod = DiracProduction()
 
     
-    result2 = self.productionManager.getJobsWithStatus(prodID, 'CREATED', numJobs, site)
+    result2 = self.productionManager.getJobsToSubmit(prodID, numJobs, site)
     if not result2['OK']:
       print "Error during command execution: %s" % result2['Message']
       return
         
     job_counter=0;
-    jobDict = result2["Value"]
+    jobDict = result2["Value"]["JobDictionary"]
     if jobDict == {}:
       print "Coild not get", numJobs, "jobs for site ", site
       return
     
-    result1 = self.productionManager.getProductionBodyByID(prodID)
-    if not result1['OK']:
-      print "Error during command execution: %s" % result1['Message']
-      return
-    body = result1["Value"]
-    #print body
+    body = result2["Value"]["Body"]
 
     for jobid_ in jobDict:
       jobID = long(jobid_)
@@ -434,20 +436,23 @@ class ProductionManagerCLI( cmd.Cmd ):
 
     lfns = []
     if result['OK']:
-      lfndict = result['Value']['Successful'][directory]
+      if 'Successful' in result['Value'] and directory in result['Value']['Successful']:
+        lfndict = result['Value']['Successful'][directory]
       
-      for lfn,repdict in lfndict.items():
-        for se,pfn in repdict.items():
-          lfns.append((lfn,pfn,0,se,'IGNORED-GUID','IGNORED-CHECKSUM'))
+        for lfn,repdict in lfndict.items():
+          for se,pfn in repdict.items():
+            lfns.append((lfn,pfn,0,se,'IGNORED-GUID','IGNORED-CHECKSUM'))
 
-    result = self.productionManager.addFile(lfns) #WARNING! ,force)
-    print result
-    if not result['OK']:
-      print "Failed to add files with local LFC interrogation"
-      print "Trying the addDirectory on the Server side"
-    else:
-      print "Operation successfull"
-      return
+        result = self.productionManager.addFile(lfns, False) 
+
+        if not result['OK']:
+          print "Failed to add files with local LFC interrogation"
+          print "Trying the addDirectory on the Server side"
+        else:
+          print "Operation successfull"
+          return
+      else:
+        print "No such directory in LFC"
 
     # Local file addition failed, try the remote one
     #result = self.productionManager.addDirectory(directory)
