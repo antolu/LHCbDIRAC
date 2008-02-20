@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.5 2008/02/20 11:04:15 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.6 2008/02/20 14:19:51 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.5 2008/02/20 11:04:15 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.6 2008/02/20 14:19:51 joel Exp $"
 
 import os, string,sys
 
@@ -163,11 +163,10 @@ class LHCbCheckLogFile(CheckLogFile):
 
       mailto = 'DIRAC_EMAIL'
       # check if the logfile contain timestamp information
-      line,appinit = self.grep(self.logfile,'Application Manager Configured successfully')
-      self.log.info(line)
+      line,appinit = self.grep(self.logfile,'ApplicationMgr    SUCCESS')
       self.timeoffset = 0
-      if line.find('20',0) == 0:
-          self.timeoffset = 2
+      if line.split(' ')[2] == 'UTC':
+          self.timeoffset = 3
 
       line,poolroot = self.grep(self.logfile,'Error: connectDatabase>','-c')
 #      self.module.step.job.addParameter('Number_OF_Files_non_processed',PARAMETER,str(poolroot))
