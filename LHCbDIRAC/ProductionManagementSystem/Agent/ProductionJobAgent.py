@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.3 2008/02/20 18:00:49 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.4 2008/02/20 19:55:33 paterson Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.3 2008/02/20 18:00:49 paterson Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.4 2008/02/20 19:55:33 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -39,7 +39,7 @@ class ProductionJobAgent(Agent):
     self.proxyLength = gConfig.getValue(self.section+'/DefaultProxyLength',12) # hours
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
     self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/ProductionJobAgent/shiftProdProxy')
-    self.jobsToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',10)
+    self.jobsToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',50)
     gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
     return result
 
@@ -131,7 +131,7 @@ class ProductionJobAgent(Agent):
       setDIRACGroup(prodGroup)
       self.log.info('Successfully renewed %s proxy' %prodDN)
 
-    os.system('voms-proxy-info -all')
+    #os.system('voms-proxy-info -all')
     return S_OK('Active proxy available')
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
