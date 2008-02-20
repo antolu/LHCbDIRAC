@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.4 2008/02/20 10:37:37 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.5 2008/02/20 11:04:15 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.4 2008/02/20 10:37:37 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.5 2008/02/20 11:04:15 joel Exp $"
 
 import os, string,sys
 
@@ -166,8 +166,8 @@ class LHCbCheckLogFile(CheckLogFile):
       line,appinit = self.grep(self.logfile,'Application Manager Configured successfully')
       self.log.info(line)
       self.timeoffset = 0
-      if line.find('UTC+',0) == 0:
-          self.timeoffset = 3
+      if line.find('20',0) == 0:
+          self.timeoffset = 2
 
       line,poolroot = self.grep(self.logfile,'Error: connectDatabase>','-c')
 #      self.module.step.job.addParameter('Number_OF_Files_non_processed',PARAMETER,str(poolroot))
