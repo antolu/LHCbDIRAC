@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.3 2008/02/18 16:04:48 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.4 2008/02/20 10:37:37 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.3 2008/02/18 16:04:48 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.4 2008/02/20 10:37:37 joel Exp $"
 
 import os, string,sys
 
@@ -24,6 +24,7 @@ class LHCbCheckLogFile(CheckLogFile):
       self.argv0   = 'LHCbCheckLogFile'
       self.log = gLogger.getSubLogger("LHCbCheckLogFile")
       self.iClient = None
+      self.timeoffset = 0
       self.site = gConfig.getValue('/LocalSite/Site','localSite')
       self.error_message = ''
       self.OUTPUT_MAX = 'None'
@@ -161,6 +162,12 @@ class LHCbCheckLogFile(CheckLogFile):
       self.log.debug(' goodJob: find if the required number of events has been produced in %s'%(self.logfile))
 
       mailto = 'DIRAC_EMAIL'
+      # check if the logfile contain timestamp information
+      line,appinit = self.grep(self.logfile,'Application Manager Configured successfully')
+      self.log.info(line)
+      self.timeoffset = 0
+      if line.find('UTC+',0) == 0:
+          self.timeoffset = 3
 
       line,poolroot = self.grep(self.logfile,'Error: connectDatabase>','-c')
 #      self.module.step.job.addParameter('Number_OF_Files_non_processed',PARAMETER,str(poolroot))
@@ -230,10 +237,10 @@ class LHCbCheckLogFile(CheckLogFile):
             nprocessed = lastev
 
       else:
-         if len(string.split(lprocessed)) == 3:
-            nprocessed = int(string.split(lprocessed)[0])
+         if len(string.split(lprocessed))-self.timeoffset == 3:
+            nprocessed = int(string.split(lprocessed)[0+self.timeoffset])
          else:
-            nprocessed = int(string.split(lprocessed)[2])
+            nprocessed = int(string.split(lprocessed)[2+self.timeoffset])
 
       self.log.info(" %s events processed " % nprocessed)
       self.NUMBER_OF_EVENTS_INPUT = str(nprocessed)
@@ -249,7 +256,7 @@ class LHCbCheckLogFile(CheckLogFile):
                if self.appName == 'Gauss ' or self.appName == 'Brunel':
                   result = S_ERROR()
             else:
-               noutput = int(string.split(loutput)[4])
+               noutput = int(string.split(loutput)[4+self.timeoffset])
                self.log.info(" %s events written " % noutput)
                self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
 
@@ -265,7 +272,7 @@ class LHCbCheckLogFile(CheckLogFile):
         elif nomore != 1 and EvtMax == -1:
           self.log.error("Number of events processed"+nprocessed+", the end of input not reached")
           loutput,n = self.grep(self.logfile,'Events output:')
-          noutput = int(string.split(loutput)[4])
+          noutput = int(string.split(loutput)[4+self.timeoffset])
           self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
           result = S_ERROR('All INPUT events have not been processed')
 
