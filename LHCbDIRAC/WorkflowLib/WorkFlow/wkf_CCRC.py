@@ -146,7 +146,7 @@ workflow1.unlinkParameter(workflow1.parameters)
 workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
 workflow1.setValue(step1_prefix+"optionsFile", "RealDataDst.opts")
-workflow1.setValue(step1_prefix+"optionsLine","ApplicationMgr.EvtMax = 1")
+workflow1.setValue(step1_prefix+"optionsLine","#include \"$BRUNELOPTS/SuppressWarnings.opts\";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
