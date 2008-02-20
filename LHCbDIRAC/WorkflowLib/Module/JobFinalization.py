@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.20 2008/02/19 15:32:27 joel Exp $
+# $Id: JobFinalization.py,v 1.21 2008/02/20 09:01:28 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.20 2008/02/19 15:32:27 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.21 2008/02/20 09:01:28 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -210,13 +210,6 @@ class JobFinalization(object):
         self.log.error( "Failed to send bookkeeping information for %s" % str( f ) )
         self.log.error( "Setting bookkeeping request for later retry" )
         self.log.error(result)
-#        result = self.rdbClient.setRequest('bookkeeping',f)
-#        self.info.log(result)
-#        if result['OK'] != True:
-#          self.log.error( "Setting bookkeeping request failed !" )
-#          bad_counter += 1
-#        else:
-#          self.log.info("Bookkeeping request set on "+result["Server"]+" server")
       else:
         self.log.info( "Bookkeeping information sent successfully" )
 
@@ -374,31 +367,6 @@ class JobFinalization(object):
       if result['OK'] != True:
         self.log.error("Transfering log files to the main LogSE failed")
         self.log.error( result['Message'] )
-
-        ################################################################
-        #
-        #  Commented out as nobody will be looking for the log files there
-        #
-        # Copying log files to the main LogSE failed
-        # Try one of the failover SE's
-        #logses = cfgSvc.get(self.mode,'FailoverLogSE',[])
-        #OK = False
-        #for se in logses:
-        #  self.log.info("Transfering log files to "+se)
-        #  result = self.rm.copyDir(self.logdir,se,target_path)
-        #  if result['Status'] != 'OK':
-        #    self.log.error("Transfering log files to "+se+" failed")
-        #  else:
-        #    self.log.info("Transfering log files to "+se+" successful")
-        #    OK = True
-        #    break
-        #
-        #if not OK:
-
-        ##################################################################
-        # Put log files in a tar archive and store in one of the data
-        # failover SE's
-
       else:
         self.log.info("Transfering log files to the main LogSE successful")
 
@@ -406,18 +374,6 @@ class JobFinalization(object):
   def uploadOutputData(self,output,otype,oversion,outputse):
     """ Determine the output file destination SEs and upload file to the grid
     """
-
-    ########################################################
-    #  Get all the output SE's for this file
-
-#    if self.infodict.has_key(otype):
-#      ses = self.infodict[otype]
-#      if (ses == ""):
-#         ses = []
-#      else:
-#         ses = ses.split(',')
-#    else:
-#      ses = []
 
     ses = []
     # Add output SE defined in the job description
@@ -538,18 +494,6 @@ class JobFinalization(object):
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
       if not result['OK']:
         self.log.warn(result)
-
-
-    ###########################################################################
-    #
-    #  File upload to the main destinations failed, try failover SE's
-
-#    failoverSEList = cfgSvc.get(self.mode,'FailoverDataSE',[])
-
- #        self.log.info("Not IMPLEMENTED Trying failover destinations ")
-
-    # All attempts to upload file to the grid failed, alas
-  #       return S_ERROR('Fatal errors in uploading file to the Grid')
     return S_OK()
 
 
