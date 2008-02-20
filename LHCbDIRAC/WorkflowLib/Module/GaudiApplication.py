@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.20 2008/02/18 16:35:27 paterson Exp $
+# $Id: GaudiApplication.py,v 1.21 2008/02/20 12:22:40 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.20 2008/02/18 16:35:27 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.21 2008/02/20 12:22:40 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -151,7 +151,10 @@ class GaudiApplication(object):
     self.optfile = 'gaudiruntmp.opts'
     for opt in self.optionsLine.split(';'):
       if not re.search('tring',opt):
-        options.write(opt+';\n')
+        if re.search('#include',opt):
+          options.write(opt+'\n')
+        else:
+          options.write(opt+';\n')
       else:
         self.log.warn('Options line not in correct format ignoring string')
 
@@ -180,6 +183,8 @@ class GaudiApplication(object):
         for opt in self.optionsLine.split(';'):
             options.write(opt+'\n')
             self.resolveInputDataPy(options)
+            if self.NUMBER_OF_EVENTS != None:
+               options.write("""ApplicationMgr().EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
         options.close()
     except Exception, x:
         print "No additional options"
