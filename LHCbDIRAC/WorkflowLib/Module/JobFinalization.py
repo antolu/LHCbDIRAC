@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.21 2008/02/20 09:01:28 joel Exp $
+# $Id: JobFinalization.py,v 1.22 2008/02/20 10:46:19 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.21 2008/02/20 09:01:28 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.22 2008/02/20 10:46:19 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -49,7 +49,10 @@ class JobFinalization(object):
   def execute(self):
     self.__report('Starting Job Finalization')
     res = shellCall(0,'ls -al')
-    self.log.info("final listing : %s" % (str(res)))
+    if res['OK'] == True:
+      self.log.info("final listing : %s" % (str(res['Value'][1])))
+    else:
+      self.log.info("final listing with error: %s" % (str(res['Value'][2])))
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
     self.__loadLocalCFGFiles(self.root)
