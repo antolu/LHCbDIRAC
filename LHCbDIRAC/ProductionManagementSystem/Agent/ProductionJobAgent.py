@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.1 2008/02/20 11:57:07 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.2 2008/02/20 15:15:39 paterson Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,15 +8,15 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.1 2008/02/20 11:57:07 paterson Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.2 2008/02/20 15:15:39 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from DIRAC.Interfaces.API.DiracProduction                 import DiracProduction
 from DIRAC.Core.Utilities.GridCredentials                 import setupProxy,restoreProxy,setDIRACGroup, getProxyTimeLeft
-from DIRAC                                                import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC                                                import S_OK, S_ERROR, gConfig, gMonitor
 
-import os, time
+import os, time, string
 
 AGENT_NAME = 'ProductionManagement/ProductionJobAgent'
 
@@ -27,36 +27,40 @@ class ProductionJobAgent(Agent):
     """ Standard constructor for Agent
     """
     Agent.__init__(self,AGENT_NAME)
-    self.diracProd=DiracProduction()
-    self.wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
 
   #############################################################################
   def initialize(self):
     """Sets defaults
     """
     result = Agent.initialize(self)
+    self.wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')    
+    self.diracProd=DiracProduction()    
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.proxyLength = gConfig.getValue(self.section+'/DefaultProxyLength',12) # hours
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
     self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/ProductionJobAgent/shiftProdProxy')
-    self.jobToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',1)
+    self.jobToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',10)
+    return result
 
   #############################################################################
   def execute(self):
     """The ProductionJobAgent execution method.
     """
     prodGroup = gConfig.getValue(self.section+'/ProductionGroup','lhcb_prod')
+    if not prodGroup:
+      return S_ERROR('No production group for DIRAC defined')
     prodDN = gConfig.getValue('Operations/Production/ShiftManager','') #to check
     if not prodDN:
       return S_ERROR('Production shift manager DN is not defined')
 
-    self.log.verbose('Checking proxy for %s %s' %(self.prodGroup,self.prodDN))
-    result = self.__getProdProxy(self.prodDN,self.prodGroup)
+    self.log.verbose('Checking proxy for %s %s' %(prodGroup,prodDN))
+    result = self.__getProdProxy(prodDN,prodGroup)
     if not result['OK']:
-      self.log.warn('Could not set up proxy for %s %s' %(self.prodGroup,self.prodDN))
+      self.log.warn('Could not set up proxy for %s %s' %(prodGroup,prodDN))
       return result
 
-    result = self.diracProd.getActiveProductions(self)
+    result = self.diracProd.getActiveProductions()
+    self.log.verbose(result)
     if not result['OK']:
       self.log.warn('Failed to get list of active productions')
       self.log.warn(result)
@@ -67,15 +71,17 @@ class ProductionJobAgent(Agent):
       return S_OK('Loop completed')
 
     for production,status in activeProductions.items():
-      if status.lower=='active':
+      if status.lower()=='active':
         self.log.info('Attempting to submit %s jobs for production %s' %(self.jobToSubmitPerProduction,production))
         start = time.time()
-        result = self.diracProd.submitProduction(production,self.jobToSubmitPerProduction,None)
+        result = self.diracProd.submitProduction(production,self.jobToSubmitPerProduction)
         timing = time.time() - start
         if not result['OK']:
           self.log.warn(result['Message'])
         else:
           self.log.info('Production %s submission time: %.2f seconds for %s jobs' % (production,timing,self.jobToSubmitPerProduction))
+      else:
+        self.log.verbose('Nothing to do for productionID %s with status %s' %(production,status))   
 
     return S_OK('Productions submitted')
 
@@ -85,7 +91,7 @@ class ProductionJobAgent(Agent):
        proxy if this is available.
     """
     self.log.info("Determining the length of proxy for DN %s" %prodDN)
-    obtainProxy = False
+    obtainProxy = False    
     if not os.path.exists(self.proxyLocation):
       self.log.info("No proxy found")
       obtainProxy = True
@@ -115,10 +121,11 @@ class ProductionJobAgent(Agent):
       if not res['OK']:
         self.log.error('Could not create environment for proxy.', res['Message'])
         return S_OK()
+        
       setDIRACGroup(prodGroup)
       self.log.info('Successfully renewed %s proxy' %prodDN)
 
-    self.log.verbose('voms-proxy-info -all')
+    os.system('voms-proxy-info -all')
     return S_OK('Active proxy available')
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
