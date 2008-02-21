@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.7 2008/02/21 08:44:18 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.8 2008/02/21 09:42:59 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.7 2008/02/21 08:44:18 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.8 2008/02/21 09:42:59 joel Exp $"
 
 import os, string,sys
 
@@ -197,6 +197,10 @@ class LHCbCheckLogFile(CheckLogFile):
       if castor >= 1:
          return S_ERROR(mailto + ' Could not connect to a file')
 
+      line,tread = self.grep(self.logfile,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
+      if tread >= 1:
+         return S_ERROR(mailto + ' TDCacheFile error')
+
       lEvtMax,n = self.grep(self.logfile,'.EvtMax','-cl')
       if n == 0:
           if self.appName != 'Gauss':
@@ -256,7 +260,7 @@ class LHCbCheckLogFile(CheckLogFile):
                   result = S_ERROR()
             else:
                noutput = int(string.split(loutput)[4+self.timeoffset])
-               self.log.info(" %s events written " % str(noutput)
+               self.log.info(" %s events written " % str(noutput))
                self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
 
                if noutput != nprocessed:
