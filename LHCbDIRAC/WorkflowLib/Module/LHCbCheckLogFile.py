@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.6 2008/02/20 14:19:51 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.7 2008/02/21 08:44:18 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.6 2008/02/20 14:19:51 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.7 2008/02/21 08:44:18 joel Exp $"
 
 import os, string,sys
 
@@ -256,7 +256,7 @@ class LHCbCheckLogFile(CheckLogFile):
                   result = S_ERROR()
             else:
                noutput = int(string.split(loutput)[4+self.timeoffset])
-               self.log.info(" %s events written " % noutput)
+               self.log.info(" %s events written " % str(noutput)
                self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
 
                if noutput != nprocessed:
@@ -266,10 +266,10 @@ class LHCbCheckLogFile(CheckLogFile):
                        result = S_OK()
       else:
         if EvtMax != -1 and nprocessed != EvtMax:
-          self.log.error("Number of events processed "+nprocessed+" is less than requested "+EvtMax)
+          self.log.error("Number of events processed "+str(nprocessed)+" is less than requested "+EvtMax)
           result = S_ERROR('Too few events processed')
         elif nomore != 1 and EvtMax == -1:
-          self.log.error("Number of events processed"+nprocessed+", the end of input not reached")
+          self.log.error("Number of events processed"+str(nprocessed)+", the end of input not reached")
           loutput,n = self.grep(self.logfile,'Events output:')
           noutput = int(string.split(loutput)[4+self.timeoffset])
           self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
