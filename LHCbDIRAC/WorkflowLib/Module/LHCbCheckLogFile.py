@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.8 2008/02/21 09:42:59 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.9 2008/02/21 13:27:32 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.8 2008/02/21 09:42:59 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.9 2008/02/21 13:27:32 joel Exp $"
 
 import os, string,sys
 
@@ -71,7 +71,7 @@ class LHCbCheckLogFile(CheckLogFile):
       self.site = gConfig.getValue('/LocalSite/Site','Site')
 
       self.appname = self.getAppName()
-      if (int(self.job_id) > 200):
+      if (int(self.JOB_ID) > 200):
          comm = 'rm -f *monitor*'
          self.log.info("Removing Monitor file(s)")
          res = shellCall(0,comm)
@@ -83,7 +83,7 @@ class LHCbCheckLogFile(CheckLogFile):
          self.max_app = 'None'
 
       if self.max_app != 'None':
-         if (int(self.job_id) > int(self.max_app)):
+         if (int(self.JOB_ID) > int(self.max_app)):
            if self.outputDataSE != None:
              self.outputDataSE = None
 
@@ -92,7 +92,7 @@ class LHCbCheckLogFile(CheckLogFile):
 #----------------------------------------------------------------------
 #
       if self.info:
-         self.log.info(self.argv0 +'.CheckLogFile '+self.logfile)
+         self.log.info(self.argv0 +'.CheckLogFile '+self.appLog)
 
       result = self.getLogFile()
       if not result['OK'] :
@@ -104,7 +104,7 @@ class LHCbCheckLogFile(CheckLogFile):
 # check if this is a good job
       result = self.goodJob()
       if result['OK']:
-         self.log.info(' CheckLogFile - %s is OK ' % (self.logfile))
+         self.log.info(' CheckLogFile - %s is OK ' % (self.appLog))
 #         self.update_status('OK')
          return result
 
@@ -159,16 +159,16 @@ class LHCbCheckLogFile(CheckLogFile):
 #
 
    def goodJob(self):
-      self.log.debug(' goodJob: find if the required number of events has been produced in %s'%(self.logfile))
+      self.log.debug(' goodJob: find if the required number of events has been produced in %s'%(self.appLog))
 
       mailto = 'DIRAC_EMAIL'
       # check if the logfile contain timestamp information
-      line,appinit = self.grep(self.logfile,'ApplicationMgr    SUCCESS')
+      line,appinit = self.grep(self.appLog,'ApplicationMgr    SUCCESS')
       self.timeoffset = 0
       if line.split(' ')[2] == 'UTC':
           self.timeoffset = 3
 
-      line,poolroot = self.grep(self.logfile,'Error: connectDatabase>','-c')
+      line,poolroot = self.grep(self.appLog,'Error: connectDatabase>','-c')
 #      self.module.step.job.addParameter('Number_OF_Files_non_processed',PARAMETER,str(poolroot))
       if poolroot >= 1:
          for file in line.split('\n'):
@@ -193,15 +193,15 @@ class LHCbCheckLogFile(CheckLogFile):
          return S_ERROR(mailto + ' error to connectDatabase')
 
 
-      line,castor = self.grep(self.logfile,'Could not connect')
+      line,castor = self.grep(self.appLog,'Could not connect')
       if castor >= 1:
          return S_ERROR(mailto + ' Could not connect to a file')
 
-      line,tread = self.grep(self.logfile,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
+      line,tread = self.grep(self.appLog,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
       if tread >= 1:
          return S_ERROR(mailto + ' TDCacheFile error')
 
-      lEvtMax,n = self.grep(self.logfile,'.EvtMax','-cl')
+      lEvtMax,n = self.grep(self.appLog,'.EvtMax','-cl')
       if n == 0:
           if self.appName != 'Gauss':
               EvtMax = -1
@@ -212,9 +212,9 @@ class LHCbCheckLogFile(CheckLogFile):
          EvtMax = int(string.split(string.replace(lEvtMax,';',' '))[2])
 
 
-      line,nev = self.grep(self.logfile,'Reading Event record','-c')
+      line,nev = self.grep(self.appLog,'Reading Event record','-c')
       if nev == 0:
-         line,nev = self.grep(self.logfile,'Nr. in job =','-c')
+         line,nev = self.grep(self.appLog,'Nr. in job =','-c')
          if nev == 0:
             result = S_ERROR(mailto + ' no event')
             return result
@@ -227,8 +227,8 @@ class LHCbCheckLogFile(CheckLogFile):
       mailto = self.appName.upper()+'_EMAIL'
       result = S_OK()
 
-      line,nomore = self.grep(self.logfile,'No more events')
-      lprocessed,n =self.grep(self.logfile,'events processed')
+      line,nomore = self.grep(self.appLog,'No more events')
+      lprocessed,n =self.grep(self.appLog,'events processed')
       # this line should be present in Gauss and
       # one or the other should be there if not Gauss
       if n == 0:
@@ -249,12 +249,12 @@ class LHCbCheckLogFile(CheckLogFile):
       self.NUMBER_OF_EVENTS_INPUT = str(nprocessed)
 
       if nprocessed == EvtMax or nomore == 1:
-         line,n = self.grep(self.logfile,'Application Manager Finalized successfully')
+         line,n = self.grep(self.appLog,'Application Manager Finalized successfully')
          if n == 0 and self.appName != 'Boole':
             result = S_ERROR(mailto + ' not finalized')
             return result
          else:
-            loutput,n = self.grep(self.logfile,'Events output:')
+            loutput,n = self.grep(self.appLog,'Events output:')
             if n == 0:
                if self.appName == 'Gauss ' or self.appName == 'Brunel':
                   result = S_ERROR()
@@ -274,7 +274,7 @@ class LHCbCheckLogFile(CheckLogFile):
           result = S_ERROR('Too few events processed')
         elif nomore != 1 and EvtMax == -1:
           self.log.error("Number of events processed"+str(nprocessed)+", the end of input not reached")
-          loutput,n = self.grep(self.logfile,'Events output:')
+          loutput,n = self.grep(self.appLog,'Events output:')
           noutput = int(string.split(loutput)[4+self.timeoffset])
           self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
           result = S_ERROR('All INPUT events have not been processed')
@@ -289,7 +289,7 @@ class LHCbCheckLogFile(CheckLogFile):
 #
    def analyzeDIRACEnv(self,error):
 
-      self.log.debug(' DIRACEnv: analyze the DIRAC environment from %s logfile '%(self.logfile))
+      self.log.debug(' DIRACEnv: analyze the DIRAC environment from %s logfile '%(self.appLog))
 
       result = S_ERROR(error)
 
@@ -298,19 +298,19 @@ class LHCbCheckLogFile(CheckLogFile):
       if self.appName == 'Gauss':
          writerr = 'GaussTape failed'
 
-      line,n = self.grep(self.logfile,writerr)
+      line,n = self.grep(self.appLog,writerr)
       if n == 1:
          result = S_ERROR(mailto + ' POOL error')
       else:
-         line,n = self.grep(self.logfile,'bus error')
+         line,n = self.grep(self.appLog,'bus error')
          if n == 1:
             result = S_ERROR(mailto + ' bus error')
          else:
-            line,n = self.grep(self.logfile,'User defined signal 1')
+            line,n = self.grep(self.appLog,'User defined signal 1')
             if n == 1:
                result = S_ERROR(mailto + ' User defined signal 1')
             else:
-               line,n = self.grep(self.logfile,'Not found DLL')
+               line,n = self.grep(self.appLog,'Not found DLL')
                if n == 1:
                   result = S_ERROR(mailto + ' Not found DLL')
 
@@ -320,12 +320,12 @@ class LHCbCheckLogFile(CheckLogFile):
 #-----------------------------------------------------------------------
 #
    def getLogFile(self):
-       self.log.debug(' OpenLogFile - try to open %s'%(self.logfile))
+       self.log.debug(' OpenLogFile - try to open %s'%(self.appLog))
 
        result = S_OK()
-       if not os.path.exists(self.logfile):
-          if os.path.exists(self.logfile+'.gz'):
-             fn = self.logfile+'.gz'
+       if not os.path.exists(self.appLog):
+          if os.path.exists(self.appLog+'.gz'):
+             fn = self.appLog+'.gz'
              result = shellCall(0,"gunzip "+fn)
              resultTuple = result['Value']
              if resultTuple[0] > 0:
@@ -340,21 +340,21 @@ class LHCbCheckLogFile(CheckLogFile):
 #----------------------------------------------------------------------
 #
    def getAppName(self):
-       self.log.debug(' getAppName - from %s'%(self.logfile))
+       self.log.debug(' getAppName - from %s'%(self.appLog))
 
-       filename = os.path.split(self.logfile)[1]
+       filename = os.path.split(self.appLog)[1]
        appName = string.split(filename,'_')[0]
        if appName == 'Stripping' :appName = 'DaVinci'
        if string.find(appName,'Merg') != -1: appName ='Merging'
 
-       self.log.debug(' getAppName %s %s'%(self.logfile, appName))
+       self.log.debug(' getAppName %s %s'%(self.appLog, appName))
        return appName
 
 #
 #----------------------------------------------------------------------
 #
    def checkApplicationLog(self,error=''):
-       self.log.debug(' appLog - from %s'%(self.logfile))
+       self.log.debug(' appLog - from %s'%(self.appLog))
 
 #
 #------------------------------------------------------------------------

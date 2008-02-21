@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.8 2008/02/19 14:08:14 joel Exp $
+# $Id: CheckLogFile.py,v 1.9 2008/02/21 13:27:55 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.8 2008/02/19 14:08:14 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.9 2008/02/21 13:27:55 joel Exp $"
 
 import commands, os
 
@@ -64,11 +64,11 @@ class CheckLogFile(object):
               break
 
     subject = self.appName+' '+ self.appVersion + \
-              " "+subj+' '+self.prod_id+'_'+self.job_id+' JobID='+jid
+              " "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+jid
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = makeProductionPath(self.job_id,self.LFN_ROOT,'LOG',self.mode,self.prod_id)
+    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
@@ -102,7 +102,7 @@ class CheckLogFile(object):
             self.log.info( "Transfer to %s successful" % debugse )
 
 
-    if self.logfile:
+    if self.appLog:
 
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
       logurl = 'http://lhcb-logs.cern.ch/storage'
@@ -120,16 +120,16 @@ class CheckLogFile(object):
 #          logurl = 'http://lxb2003.cern.ch/storage'+logpath
 
       lfile.write('\n\nLog Files directory for the job:\n')
-      url = logurl+'/'+ self.job_id+'/'
+      url = logurl+'/'+ self.JOB_ID+'/'
       lfile.write(url+'\n')
       lfile.write('\n\nLog File for the problematic step:\n')
-      url = logurl+'/'+ self.job_id+'/'+ self.logfile + '.gz'
+      url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog + '.gz'
       lfile.write(url+'\n')
       lfile.write('\n\nJob StdOut:\n')
-      url = logurl+'/'+ self.job_id+'/job.output'
+      url = logurl+'/'+ self.JOB_ID+'/job.output'
       lfile.write(url+'\n')
       lfile.write('\n\nJob StdErr:\n')
-      url = logurl+'/'+ self.job_id+'/job.error'
+      url = logurl+'/'+ self.JOB_ID+'/job.error'
       lfile.write(url+'\n')
 
     lfile.close()
