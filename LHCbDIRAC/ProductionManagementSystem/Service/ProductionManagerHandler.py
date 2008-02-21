@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.21 2008/02/21 11:33:49 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.22 2008/02/21 17:44:31 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.21 $"
+__RCSID__ = "$Revision: 1.22 $"
 
 from types import *
 import threading
@@ -392,12 +392,35 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_getJobStats = [ LongType ]
   def export_getJobStats(self, productionID):
-    """ returns number of jobs in each status for a given production
+    """ Returns number of jobs in each status for a given production
     """
     return productionDB.getJobStats(productionID)
     
   types_getJobInfo = [ LongType, LongType ]
   def export_getJobInfo(self, productionID, jobID):
-    """ get job information for a given JobID and Production ID
+    """ Get job information for a given JobID and Production ID
     """
     return productionDB.getJobInfo(productionID, jobID)
+    
+  types_getProductionSummary = []
+  def export_getProductionSummary(self):
+    """ Get the summary of the currently existing productions
+    """
+    
+    result = productionDB.getProductionList()
+    if not result['OK']:
+      return result
+      
+    prodList = result['Value']
+    resultDict = {}
+    for prod in prodList:
+      prodID = prod['TransformationID']  
+      result = productionDB.getJobStats(prodID)
+      if not result['OK']:
+        gLogger.warn('Failed to get job statistics for production %d' % prodID)
+        continue
+      statDict = result['Value']
+      prod['JobStats'] = statDict
+      resultDict[prodID] = prod
+      
+    return S_OK(resultDict)    
