@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.9 2008/02/20 14:19:01 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.9 2008/02/20 14:19:01 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.10 2008/02/21 10:56:24 gkuznets Exp $
+__RCSID__ = "$Id: Tools.py,v 1.10 2008/02/21 10:56:24 gkuznets Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -278,4 +278,9 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
     except Exception,x :
       self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
+
+def copyClassAttributes(from_, to_):
+  """copy class attributes from one class to another"""
+  for attr in from_.__dict__.keys():
+    to_.__dict__[attr]=from_.__dict__[attr]
 
