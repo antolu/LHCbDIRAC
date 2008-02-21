@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.18 2008/02/21 11:33:49 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.19 2008/02/21 14:48:41 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.18 $"
+__RCSID__ = "$Revision: 1.19 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -506,23 +506,24 @@ INDEX(WmsStatus)
     stList = ['Created']
     
     total = 0;
-    for status_ in result1["Value"]:
-      status = status_[0]
-      statusList[status]=0
+    for stat in result1["Value"]:
+      status = stat[0]
       req = "SELECT count(JobID) FROM Jobs_%d WHERE WmsStatus='%s';" % (productionID, status)
       result2 = self._query(req)
       if not result2['OK']:
         return result2
-      count = long(result2['Value'][0][0])
+      count = int(result2['Value'][0][0])
       # Choose the status to report
       if not (status == "Running" or status == "Stalled" or status == "Done" or status == "Failed"):
-        stList.append("Submitted")
+        if not "Submitted" in stList:
+          stList.append("Submitted")
       elif status == "Running" and status == "Stalled":
-        stList.append("Running")
+        if not "Running" in stList:
+          stList.append("Running")
       elif status == "Done" or status == "Failed":
         stList.append(status)
       for st in stList:         
-        statusList[strep] += count
+        statusList[st] += count
     #statusList['Total']=total
       
     
