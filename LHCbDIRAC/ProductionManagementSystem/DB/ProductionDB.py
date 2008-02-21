@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.19 2008/02/21 14:48:41 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.20 2008/02/21 17:43:40 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,14 +6,14 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.19 $"
+__RCSID__ = "$Revision: 1.20 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Transformation.TransformationDB import TransformationDB
-
+from DIRAC.Core.Utilities import Time
 
 
 class ProductionDB(TransformationDB):
@@ -134,7 +134,7 @@ class ProductionDB(TransformationDB):
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
     TransformationID = self.getTransformationID(name)
-    if TransformationID == 0: # workflow is not exists
+    if TransformationID == 0: # workflow does not exists
 
       result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
 
@@ -297,7 +297,7 @@ INDEX(WmsStatus)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
-        newres.append({'TransformationID':pr[0], 'TransformationName':pr[1], 'Description':pr[2], 'LongDescription':pr[3], 'CreationDate':pr[4],
+        newres.append({'TransformationID':pr[0], 'TransformationName':pr[1], 'Description':pr[2], 'LongDescription':pr[3], 'CreationDate':Time.toString(pr[4]),
                             'AuthorDN':pr[5], 'AuthorGroup':pr[6], 'Type':pr[7], 'Plugin':pr[8], 'AgentType':pr[9], 'Status':pr[10], 'FileMask':pr[11] })
       return S_OK(newres)
     return result
@@ -500,32 +500,35 @@ INDEX(WmsStatus)
       return result1
         
     statusList = {}
-    for s in ['Created','Submitted','Running','Done','Failed']:
+    for s in ['Created','Submitted','Waiting','Running','Done','Failed']:
       statusList[s] = 0
-    
-    stList = ['Created']
-    
+        
     total = 0;
     for stat in result1["Value"]:
+      stList = ['Created']
       status = stat[0]
       req = "SELECT count(JobID) FROM Jobs_%d WHERE WmsStatus='%s';" % (productionID, status)
       result2 = self._query(req)
       if not result2['OK']:
         return result2
       count = int(result2['Value'][0][0])
+      
       # Choose the status to report
-      if not (status == "Running" or status == "Stalled" or status == "Done" or status == "Failed"):
+      if not status == "Created":
         if not "Submitted" in stList:
           stList.append("Submitted")
-      elif status == "Running" and status == "Stalled":
+      if status == "Waiting" or status == "Received" or status == "Checking" or \
+         status == "Matched":
+        if not "Waiting" in stList:
+          stList.append("Waiting")    
+      if status == "Running" or status == "Stalled" or status == "Completed":
         if not "Running" in stList:
           stList.append("Running")
-      elif status == "Done" or status == "Failed":
+      if status == "Done" or status == "Failed":
         stList.append(status)
-      for st in stList:         
-        statusList[st] += count
-    #statusList['Total']=total
       
+      for st in stList:         
+        statusList[st] += count      
     
     return S_OK(statusList)
 
