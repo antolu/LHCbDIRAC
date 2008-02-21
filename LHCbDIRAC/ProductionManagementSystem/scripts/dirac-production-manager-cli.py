@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.11 2008/02/20 12:02:25 gkuznets Exp $
-__RCSID__ = "$Revision: 1.11 $"
+# $Id: dirac-production-manager-cli.py,v 1.12 2008/02/21 11:33:49 gkuznets Exp $
+__RCSID__ = "$Revision: 1.12 $"
 
 import cmd
 import sys, os
@@ -7,7 +7,7 @@ import signal
 import string
 import time
 #import os, new
-
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Base.Script import localCfg
 #from DIRAC.Core.Utilities.ColorCLI import colorize
@@ -15,10 +15,6 @@ from DIRAC import gConfig
 from DIRAC.LoggingSystem.Client.Logger import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #job submission
-from DIRAC.Core.Workflow.Workflow import *
-from DIRAC.Core.Workflow.WorkflowReader import *
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Interfaces.API.Job   import Job
 from DIRAC.Interfaces.API.DiracProduction   import DiracProduction
 
 localCfg.addDefaultEntry("LogLevel", "DEBUG")
@@ -70,12 +66,15 @@ class ProductionManagerCLI( cmd.Cmd ):
         return
       self.printPair( command, obj.__doc__[1:] )
       
-   #def check_param(self, args, num):
-   #   """Checks if the number of params correct"""
-      argss = string.split(args)
-      #if argss.len() < num:
-      #  print "Error: Number of arguments less that %d" % num
-      #return argss
+      
+  def check_params(self, args, num):
+    """Checks if the number of parameters correct"""
+    argss = string.split(args)
+    length = len(argss)
+    if length < num:
+      print "Error: Number of arguments provided %d less that required %d, please correct." % (length, num)
+      return (False, length)
+    return (argss,length)
       
 
 ################ WORKFLOW SECTION ####################################
@@ -295,7 +294,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     Usage: addProdJob productionID [numJobs=1] [site]
     list of sites = LCG.CERN.ch LCG.CNAF.it LCG.PIC.es LCG.IN2P3.fr LCG.NIKHEF.nl LCG.GRIDKA.de LCG.RAL.uk DIRAC.CERN.ch
     """
-    numJobs=1
+    numJobs=int(1)
     argss = string.split(args)
     site = ''
     prodID = long(argss[0])
@@ -304,58 +303,9 @@ class ProductionManagerCLI( cmd.Cmd ):
     if len(argss)>2:
       site = argss[2]
       
-    #wms = Dirac()
     prod = DiracProduction()
 
-    
-    result2 = self.productionManager.getJobsToSubmit(prodID, numJobs, site)
-    if not result2['OK']:
-      print "Error during command execution: %s" % result2['Message']
-      return
-        
-    job_counter=0;
-    jobDict = result2["Value"]["JobDictionary"]
-    if jobDict == {}:
-      print "Coild not get", numJobs, "jobs for site ", site
-      return
-    
-    body = result2["Value"]["Body"]
-
-    for jobid_ in jobDict:
-      jobID = long(jobid_)
-      jfilename = prod._DiracProduction__createJobDescriptionFile(body)
-      job = Job(jfilename)
-      #job = Job(body)
-      job.workflow.setValue("JOB_ID",self.__convertIDtoString(jobID))
-      job.workflow.setValue("PRODUCTION_ID",self.__convertIDtoString(prodID))
-      for paramName in jobDict[jobID]:
-        job.workflow.setValue(paramName,jobDict[jobID][paramName])
-      job.setName(self.__convertIDtoString(prodID)+'_'+self.__convertIDtoString(jobID))
-      
-      result3 = prod._DiracProduction__getCurrentUser()
-      if not result3['OK']:
-        print result3,'Could not establish user ID from proxy credential or configuration'
-	return
-      userID=result3['Value']
-
-      job.setOwner(userID)
-      #job.setDestination(site) 
-      updatedJob = prod._DiracProduction__createJobDescriptionFile(job._toXML())
-      result4 = prod._DiracProduction__submitJob(job)
-      if result4['OK']:
-        jobWmsID = result4['Value']
-        #update status in the  ProductionDB
-        result5 = self.productionManager.setJobStatusAndWmsID(prodID, jobID, 'Submitted', str(jobWmsID))
-        if not result5['OK']:
-          print "Could not change job status and WmsID in the ProductionDB, message=%s" % result5['Message']
-          return
-      else:
-        print "Could not submit job %d of production %d with message=%s"%(prodID, jobID, result3['Message'])
-        return
-      prod._DiracProduction__cleanUp()
-      job_counter=job_counter+1
-      print "Loop:%d Production:%d JobID:%d submitted with WmsID:%d"%(job_counter, prodID, jobID, jobWmsID)
-      
+    result = prod.submitProduction(prodID, numJobs, site)      
 
   def do_setStatusID(self, args):
     """ Set status of the production
@@ -476,7 +426,9 @@ class ProductionManagerCLI( cmd.Cmd ):
     Returns information about production
       Usage: getJobInfoo ProductionID JobID
     """
-    argss = string.split(args)
+    argss, length = self.check_params(args, 2)
+    if not argss:
+      return  
     prodID = long(argss[0])
     jobID = long(argss[1])
     print self.productionManager.getJobInfo(prodID, jobID)

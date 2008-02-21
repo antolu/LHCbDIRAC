@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.6 2008/02/19 23:41:33 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.7 2008/02/21 11:33:48 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.6 2008/02/19 23:41:33 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.7 2008/02/21 11:33:48 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -33,7 +33,7 @@ class TransformationAgent(Agent):
     self.server = RPCClient('ProductionManagement/ProductionManager')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
-    self.CCRC = False
+    self.CCRC = True
     return result
 
   ##############################################################################
@@ -69,7 +69,7 @@ class TransformationAgent(Agent):
       if processTransformation:
         startTime = time.time()
         # process the active transformations
-        if transStatus == 'Test':
+        if transStatus == 'Active':
           gLogger.info(self.name+".execute: Processing transformation '%s'." % transID)
           result = self.processTransformation(transDict, False)
           gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
@@ -277,7 +277,7 @@ class TransformationAgent(Agent):
             if not result['OK']:
               gLogger.error("Failed to set SE for production %d"%production)
             for lfn in lfns:
-              result = self.dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
+              result = self.dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')  
 
           # Remove used files from the initial list
           data_m = []

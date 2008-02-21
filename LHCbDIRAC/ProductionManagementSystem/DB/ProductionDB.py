@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.17 2008/02/19 23:41:34 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.18 2008/02/21 11:33:49 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,13 +6,15 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.17 $"
+__RCSID__ = "$Revision: 1.18 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Transformation.TransformationDB import TransformationDB
+
+
 
 class ProductionDB(TransformationDB):
 #class ProductionDB(DB):
@@ -381,7 +383,7 @@ INDEX(WmsStatus)
       """
       self.lock.acquire()
       req = "INSERT INTO Jobs_%d (WmsStatus, JobWmsID, TargetSE, CreationTime, LastUpdateTime, InputVector) VALUES\
-      ('%s','%d','%s', NOW(), NOW(),'%s');" % (long(productionID),'Created', 0, se, inputVector)
+      ('%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),'%s');" % (long(productionID),'Created', 0, se, inputVector)
       result = self._update(req)
 
       if not result['OK']:
@@ -410,7 +412,7 @@ INDEX(WmsStatus)
       statusString = ','.join(["'"+x+"'" for x in statusList])
       condList.append("WmsStatus IN (%s)" % statusString)
     if newer:
-      condList.append("LastUpdateTime < DATE_SUB(NOW(),INTERVAL %d MINUTE)" % newer)
+      condList.append("LastUpdateTime < DATE_SUB(UTC_TIMESTAMP(),INTERVAL %d MINUTE)" % newer)
 
     if condList:
       condString = " AND ".join(condList)
@@ -422,7 +424,7 @@ INDEX(WmsStatus)
     resultDict = {}
     if result['Value']:
       for row in result['Value']:
-        if int(row[1]) != 0:
+        if row[1] and int(row[1]) != 0:
           resultDict[int(row[1])] = (row[0],row[2])
 
     return S_OK(resultDict)
@@ -483,7 +485,13 @@ INDEX(WmsStatus)
     return S_OK(resultDict)
 
   def getJobStats(self,productionID):
-    """ Returns dictionary with number of jobs per status in the given production
+    """ Returns dictionary with number of jobs per status in the given production. The status
+        is one of the following: 
+        Created - this counter returns the total number of jobs already created;
+        Submitted - jobs submitted to the WMS;
+        Running;
+        Done; 
+        Failed;
     """
 
     req = "SELECT DISTINCT WmsStatus FROM Jobs_%d;" % int(productionID)
@@ -492,6 +500,11 @@ INDEX(WmsStatus)
       return result1
         
     statusList = {}
+    for s in ['Created','Submitted','Running','Done','Failed']:
+      statusList[s] = 0
+    
+    stList = ['Created']
+    
     total = 0;
     for status_ in result1["Value"]:
       status = status_[0]
@@ -501,9 +514,16 @@ INDEX(WmsStatus)
       if not result2['OK']:
         return result2
       count = long(result2['Value'][0][0])
-      statusList[status]=count
-      total = total + count
-    statusList['Total']=total
+      # Choose the status to report
+      if not (status == "Running" or status == "Stalled" or status == "Done" or status == "Failed"):
+        stList.append("Submitted")
+      elif status == "Running" and status == "Stalled":
+        stList.append("Running")
+      elif status == "Done" or status == "Failed":
+        stList.append(status)
+      for st in stList:         
+        statusList[strep] += count
+    #statusList['Total']=total
       
     
     return S_OK(statusList)
@@ -512,7 +532,7 @@ INDEX(WmsStatus)
     """ Set status for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=NOW() WHERE JobID=%d;" % (productionID,status,jobID)
+    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,status,jobID)
     result = self._update(req)
     return result
 
@@ -520,7 +540,7 @@ INDEX(WmsStatus)
     """ Set WmsID for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET JobWmsID='%s', LastUpdateTime=NOW() WHERE JobID=%d;" % (productionID,jobWmsID,jobID)
+    req = "UPDATE Jobs_%d SET JobWmsID='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,jobWmsID,jobID)
     result = self._update(req)
     return result
 
@@ -528,7 +548,7 @@ INDEX(WmsStatus)
     """ Set status and JobWmsID for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET WmsStatus='%s', JobWmsID='%s', LastUpdateTime=Now() WHERE JobID=%d;" % (productionID,status,jobWmsID,jobID)
+    req = "UPDATE Jobs_%d SET WmsStatus='%s', JobWmsID='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,status,jobWmsID,jobID)
     result = self._update(req)
     return result
     
@@ -536,7 +556,7 @@ INDEX(WmsStatus)
     """ Set TargetSE for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET TargetSE='%s', LastUpdateTime=NOW() WHERE JobID=%d;" % (productionID,se,jobID)
+    req = "UPDATE Jobs_%d SET TargetSE='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,se,jobID)
     result = self._update(req)
     return result
     
@@ -544,7 +564,7 @@ INDEX(WmsStatus)
     """ Set TargetSE for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET InputVector='%s', LastUpdateTime=NOW() WHERE JobID=%d;" % (productionID,inputVector,jobID)
+    req = "UPDATE Jobs_%d SET InputVector='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,inputVector,jobID)
     result = self._update(req)
     return result
 
