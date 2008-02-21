@@ -145,13 +145,13 @@ workflow1.unlinkParameter(workflow1.parameters)
 
 workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
-workflow1.setValue(step1_prefix+"optionsFile", "RealDataDst.opts")
+workflow1.setValue(step1_prefix+"optionsFile", "RealDataRdst.opts")
 workflow1.setValue(step1_prefix+"optionsLine","#include \"$BRUNELOPTS/SuppressWarnings.opts\";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
-workflow1.setValue(step1_prefix+"OUTPUT_MAX","200")
+workflow1.setValue(step1_prefix+"OUTPUT_MAX","20")
 # remove unwanted
 workflow1.removeParameter(step1_prefix+"outputData")
 workflow1.removeParameter(step1_prefix+"systemConfig")
@@ -179,7 +179,7 @@ workflow1.appendParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string",
 workflow1.appendParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
 workflow1.appendParameter(Parameter("CONFIG_NAME","CCRC","string","","",True, False, "Configuration Name"))
 workflow1.appendParameter(Parameter("CONFIG_VERSION","v0","string","","",True, False, "Configuration Version"))
-workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","-1","string","","",True, False, "number of events requested"))
+workflow1.appendParameter(Parameter("NUMBER_OF_EVENTS","50","string","","",True, False, "number of events requested"))
 workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
