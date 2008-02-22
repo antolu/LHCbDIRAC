@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.5 2008/02/21 11:08:38 gkuznets Exp $
+# $Id: LogChecker.py,v 1.6 2008/02/22 15:40:44 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.5 2008/02/21 11:08:38 gkuznets Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.6 2008/02/22 15:40:44 joel Exp $"
 
 from WorkflowLib.Module.BooleCheckLogFile import *
 from WorkflowLib.Module.BrunelCheckLogFile import *
 #from WorkflowLib.Module.GaussCheckLogFile import *
-#from WorkflowLib.Module.DaVinciCheckLogFile import *
+from WorkflowLib.Module.DaVinciCheckLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -48,11 +48,11 @@ class LogChecker(object):
     #self.logChecker.inputData = self.inputData
     #self.logChecker.EMAIL = self.EMAIL
     #self.logChecker.OUTPUT_MAX = self.OUTPUT_MAX
-    
-    # Copy all attributes from container class into embedded class replacing 
-    # inheritance mechanism which can not be used in this case    
-    copyClassAttributes(self, self.logChecker)
-    
+
+    # Copy all attributes from container class into embedded class replacing
+    # inheritance mechanism which can not be used in this case
+    copyClassAttributes(self, self.logChecker, 'logChecker')
+
     rc = self.logChecker.execute()
     if not rc['OK']:
       self.logChecker.checkApplicationLog(rc['Message'])
