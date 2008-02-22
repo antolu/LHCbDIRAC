@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.23 2008/02/20 14:51:05 joel Exp $
+# $Id: JobFinalization.py,v 1.24 2008/02/22 12:11:55 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.23 2008/02/20 14:51:05 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.24 2008/02/22 12:11:55 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -172,7 +172,7 @@ class JobFinalization(object):
       if all_done:
         resBK = self.reportBookkeeping()
         if resBK['OK'] != True:
-          self.log.error(resBK['Value'])
+          self.log.error(resBK['Message'])
 
     #########################################################################
     #  If the Transfer request is not empty, send it for later retry
@@ -365,7 +365,7 @@ class JobFinalization(object):
       outses = outputse.split(',')
       for outse in outses:
         resultSE = gConfig.getValue('/Operations/StorageElement/'+outse,None)
-        for se in resultSE.strip().split(','):
+        for se in resultSE.replace(' ','').split(','):
           ses.append(se)
 
     # Attempt to store first file to the LocalSE if it is in the list of
