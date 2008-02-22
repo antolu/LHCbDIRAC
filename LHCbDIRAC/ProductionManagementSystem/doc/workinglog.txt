@@ -91,4 +91,13 @@ os.system('voms-proxy-init -voms lhcb:/lhcb/Role=production -valid 50:0')
 proxy = getGridProxy()
 setDIRACGroup('lhcb_prod')
 
-MaxCPUTime
+
+(5:31:14 PM) Joel: (Cmd) uploadPR /afs/cern.ch/user/j/joel/scratch0/DIRAC3/work1/wkf_CCRC.xml (.*).raw 1 
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: Network error while receiving data 
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: == EXCEPTION ==
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: OpenSSL.SSL.SysCallError:(-1, 'Unexpected EOF')
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT:   File "./Core/DISET/private/Transports/BaseTransport.py", line 72, in receiveData
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: 
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT:   File "./Core/DISET/private/Transports/BaseTransport.py", line 51, in _read
+2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: ===============
+Error during command execution: Network error while receiving data: (-1, 'Unexpected EOF')

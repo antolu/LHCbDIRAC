@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.12 2008/02/21 11:33:49 gkuznets Exp $
-__RCSID__ = "$Revision: 1.12 $"
+# $Id: dirac-production-manager-cli.py,v 1.13 2008/02/22 11:26:01 gkuznets Exp $
+__RCSID__ = "$Revision: 1.13 $"
 
 import cmd
 import sys, os
@@ -326,7 +326,7 @@ class ProductionManagerCLI( cmd.Cmd ):
 
   def do_setStatus(self, args):
     """ Set status of the production
-    Usage: setStatusPRid ProdName Status
+    Usage: setStatusPR ProdName Status
       New - newly created, equivalent to STOPED
       Active - can submit
       Flush - final stage, ignoring GroupSize
@@ -341,6 +341,28 @@ class ProductionManagerCLI( cmd.Cmd ):
     status = argss[1]
     self.productionManager.setProductionStatus(prodName, status)
 
+  def do_setSubmissionType(self, args):
+    """ Set status of the production
+    Usage: setSubmissionType ProdName SubmissionStatus
+      Manual - submission by production manager only
+      Automatic - submission by ProductionJobAgent
+    """
+    argss = string.split(args)
+    prodName = argss[0]
+    status = argss[1]
+    self.productionManager.setTransformationAgentType(prodName, status)
+
+  def do_setSubmissionTypeID(self, args):
+    """ Set status of the production
+    Usage: setSubmissionType ProdName SubmissionStatus
+      Manual - submission by production manager only
+      Automatic - submission by ProductionJobAgent
+    """
+    argss = string.split(args)
+    id_ = long(argss[0])
+    status = argss[1]
+    self.productionManager.setTransformationAgentType(id_, status)
+    
   def do_setTransformationMaskID(self, args):
     """ Overrites transformation mask for the production
     Usage: setTransformationMaskID ProductionID Mask
