@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.4 2008/02/20 19:55:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.5 2008/02/22 14:42:21 paterson Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.4 2008/02/20 19:55:33 paterson Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.5 2008/02/22 14:42:21 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -40,13 +40,20 @@ class ProductionJobAgent(Agent):
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
     self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/ProductionJobAgent/shiftProdProxy')
     self.jobsToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',50)
-    gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
+    self.productionStatus = gConfig.getValue(self.section+'SubmitStatus','automatic')
+    self.enableFlag = None
+    gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM) 
     return result
 
   #############################################################################
   def execute(self):
     """The ProductionJobAgent execution method.
     """
+    self.enableFlag = gConfig.getValue(self.section+'EnableFlag','True')
+    if not self.enableFlag == 'True':
+      self.log.info('ProductionJobAgent is disabled by configuration option %s/EnableFlag' %(self.section))
+      return S_OK('Disabled via CS flag')
+
     prodGroup = gConfig.getValue(self.section+'/ProductionGroup','lhcb_prod')
     if not prodGroup:
       return S_ERROR('No production group for DIRAC defined')
@@ -72,7 +79,7 @@ class ProductionJobAgent(Agent):
       return S_OK('Loop completed')
 
     for production,status in activeProductions.items():
-      if status.lower()=='active':
+      if status.lower()==self.productionStatus:
         self.log.info('Attempting to submit %s jobs for production %s' %(self.jobsToSubmitPerProduction,production))
         start = time.time()
         result = self.diracProd.submitProduction(production,self.jobsToSubmitPerProduction)
@@ -85,7 +92,10 @@ class ProductionJobAgent(Agent):
             jobsList = jobsDict['Successful']
             submittedJobs = len(jobsList)
             gMonitor.addMark("SubmittedJobs",int(submittedJobs))
-            self.log.info('Production %s submission time: %.2f seconds for %s jobs' % (production,timing,self.jobsToSubmitPerProduction))
+            if submittedJobs:
+              self.log.info('Production %s submission time: %.2f seconds for %s jobs' % (production,timing,submittedJobs))
+            else:
+              self.log.info('No jobs to submit for production %s' %(production))  
       else:
         self.log.verbose('Nothing to do for productionID %s with status %s' %(production,status))   
 
