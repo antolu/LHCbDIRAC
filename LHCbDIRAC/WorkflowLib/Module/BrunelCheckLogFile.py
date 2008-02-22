@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.3 2008/02/07 09:32:33 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.4 2008/02/22 08:19:57 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.3 2008/02/07 09:32:33 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.4 2008/02/22 08:19:57 joel Exp $"
 
 
 import os,string
@@ -24,11 +24,11 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
     self.info      = 1
 
   def checkApplicationLog(self,error):
-    self.log.info(' analyze %s '%(self.logfile))
+    self.log.info(' analyze %s '%(self.appLog))
 
     mailto = self.appName.upper()+'_EMAIL'
 
-    last_line = self.grep(self.logfile,'dum','-l')
+    last_line = self.grep(self.appLog,'dum','-l')
     if string.find(last_line,'User defined signal') != -1:
       mailto = 'DIRAC_EMAIL'
       result = S_ERROR(mailto + ' USER signal')
