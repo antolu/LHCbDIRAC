@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.23 2008/02/22 12:02:53 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.24 2008/02/22 14:48:58 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.23 $"
+__RCSID__ = "$Revision: 1.24 $"
 
 from types import *
 import threading
@@ -295,32 +295,34 @@ class ProductionManagerHandler( TransformationHandler ):
     """ Get information necessary for submission for a given number of jobs 
         for a given production
     """
-    
     # Get the production body first
-    result = productionDB.getProductionBody(production)
-    if not result['OK']:
+    result = productionDB.getProduction(production)
+    if not result['OK'] or not ['Value']:
       return S_ERROR('Failed to get production body for production %d with message %s'%(production,result["Message"]))
-    body = result['Value']  
+
+    resultDict = result['Value']
+    status_corrected = resultDict['Status'].upper() # catitalize status
+    jobDict={}
     
-    self.lock.acquire()
-    result = productionDB.selectJobs(production,['Created'],numJobs,site) 
-    if not result['OK']:
-      self.lock.release()
-      return S_ERROR('Failed to get jobs for production %d with message %s'%(production,result["Message"]))
-    jobDict = result['Value']
-    # lets change jobs statuses
-    for jobid in jobDict:
-      result = productionDB.setJobStatus(production, long(jobid), "Reserved")
+    if status_corrected == 'ACTIVE' or status_corrected == 'FLUSH':
+        
+      self.lock.acquire()
+      result = productionDB.selectJobs(production,['Created'],numJobs,site) 
       if not result['OK']:
-        gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
-        # we also have to remove job from the list
-	del jobDict[jobid]
+        self.lock.release()
+        return S_ERROR('Failed to get jobs for production %d with message %s'%(production,result["Message"]))
+      jobDict = result['Value']
+      # lets change jobs statuses
+      for jobid in jobDict:
+        result = productionDB.setJobStatus(production, long(jobid), "Reserved")
+        if not result['OK']:
+          gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
+          # we also have to remove job from the list
+	  del jobDict[jobid]
 	 
-    self.lock.release()
-    resultDict = {}
-    resultDict['Body'] = body
-    resultDict['JobDictionary'] = jobDict
-    
+      self.lock.release()
+      
+    resultDict['JobDictionary'] = jobDict # adding additional element
     return S_OK(resultDict) 
     
   types_getJobsWithStatus = [ LongType, StringType, IntType, StringType]

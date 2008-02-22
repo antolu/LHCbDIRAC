@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.20 2008/02/21 17:43:40 atsareg Exp $
+# $Id: ProductionDB.py,v 1.21 2008/02/22 14:48:58 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.20 $"
+__RCSID__ = "$Revision: 1.21 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -368,11 +368,22 @@ INDEX(WmsStatus)
     transID = self.getTransformationID(transName)
     prod = getTransformation(transID)
     result = self.getProductionParametersWithoutBody(transID)
-    result = self._query(cmd)
     if result['OK']:
       prod['GroupSize']=result['Value']['GroupSize']
       prod['Parent']=result['Value']['Parent']
       return S_OK(prod)
+    else:
+      return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
+      
+  def getProduction(self, transName):
+    transID = self.getTransformationID(transName)
+    prod = self.getTransformation(transID)
+    result = self.getProductionParameters(transID)
+    if result['OK']:
+      prod['Value']['GroupSize']=result['Value']['GroupSize']
+      prod['Value']['Parent']=result['Value']['Parent']
+      prod['Value']['Body']=result['Value']['Body']
+      return prod
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
 
