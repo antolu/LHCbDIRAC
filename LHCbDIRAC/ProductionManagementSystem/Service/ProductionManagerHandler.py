@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.24 2008/02/22 14:48:58 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.25 2008/02/22 16:50:08 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.24 $"
+__RCSID__ = "$Revision: 1.25 $"
 
 from types import *
 import threading
@@ -46,9 +46,9 @@ class ProductionManagerHandler( TransformationHandler ):
     parent = "Unknown"
     description = "empty description"
     descr_long = "empty long description"
-    authorDN = self.transport.peerCredentials['DN']
-    #authorName = self.transport.peerCredentials['user']
-    authorGroup = self.transport.peerCredentials['group']
+    authorDN = self._clientTransport.peerCredentials['DN']
+    #authorName = self._clientTransport.peerCredentials['user']
+    authorGroup = self._clientTransport.peerCredentials['group']
     try:
       wf = fromXMLString(wf_body)
       name = wf.getName()
@@ -127,9 +127,9 @@ class ProductionManagerHandler( TransformationHandler ):
     """ Publish new transformation in the ProductionDB
     """
     errKey = "Publishing Production failed: "
-    authorDN = self.transport.peerCredentials['DN']
-    #authorName = self.transport.peerCredentials['user']
-    authorGroup = self.transport.peerCredentials['group']
+    authorDN = self._clientTransport.peerCredentials['DN']
+    #authorName = self._clientTransport.peerCredentials['user']
+    authorGroup = self._clientTransport.peerCredentials['group']
 
     wf = fromXMLString(body)
     name = wf.getName()
@@ -167,7 +167,7 @@ class ProductionManagerHandler( TransformationHandler ):
   #  if not result['OK']:
   #    gLogger.error(result['Message'])
   #  return result
-    
+
   types_deleteProductionByID = [ LongType ]
   def export_deleteProductionByID( self, id ):
     result = productionDB.deleteProduction(id)
@@ -275,13 +275,13 @@ class ProductionManagerHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
-    
+
   types_setFileTargetSEForTransformation = [ LongType, StringType, ListType ]
   def export_setFileTargetSEForTransformation( self, id_,se,lfns ):
     result = productionDB.setFileTargetSEForTransformation(id_,se,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
-    return result  
+    return result
 
   types_setFileJobID = [ LongType, LongType, ListType ]
   def export_setFileJobID( self, id_, jobid,lfns ):
@@ -292,7 +292,7 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_getJobsToSubmit = [ LongType, IntType, StringType ]
   def export_getJobsToSubmit(self,production,numJobs,site=''):
-    """ Get information necessary for submission for a given number of jobs 
+    """ Get information necessary for submission for a given number of jobs
         for a given production
     """
     # Get the production body first
@@ -303,11 +303,11 @@ class ProductionManagerHandler( TransformationHandler ):
     resultDict = result['Value']
     status_corrected = resultDict['Status'].upper() # catitalize status
     jobDict={}
-    
+
     if status_corrected == 'ACTIVE' or status_corrected == 'FLUSH':
-        
+
       self.lock.acquire()
-      result = productionDB.selectJobs(production,['Created'],numJobs,site) 
+      result = productionDB.selectJobs(production,['Created'],numJobs,site)
       if not result['OK']:
         self.lock.release()
         return S_ERROR('Failed to get jobs for production %d with message %s'%(production,result["Message"]))
@@ -319,21 +319,21 @@ class ProductionManagerHandler( TransformationHandler ):
           gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
           # we also have to remove job from the list
 	  del jobDict[jobid]
-	 
+
       self.lock.release()
-      
+
     resultDict['JobDictionary'] = jobDict # adding additional element
-    return S_OK(resultDict) 
-    
+    return S_OK(resultDict)
+
   types_getJobsWithStatus = [ LongType, StringType, IntType, StringType]
   def export_getJobsWithStatus(self, production, status, numJobs, site):
-    """ Get jobs with specified status limited by given number 
+    """ Get jobs with specified status limited by given number
         for a given production
-    """    
+    """
     result = productionDB.selectJobs(production,[status],numJobs, site)
     if not result['OK']:
       return S_ERROR('Failed to get jobs with the status %s site=%s for production=%d '%(status, site, production))
-    return result 
+    return result
 
   types_setJobStatus = [ LongType, LongType, StringType ]
   def export_setJobStatus(self, productionID, jobID, status):
@@ -345,7 +345,7 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error( error )
       return S_ERROR( error )
     return result
-      
+
   types_setJobWmsID = [ LongType, LongType, StringType ]
   def export_setJobWmsID(self, productionID, jobID, jobWmsID):
     """ Set jobWmsID for a given Job
@@ -356,7 +356,7 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error( error )
       return S_ERROR( error )
     return result
-  
+
   types_setJobStatusAndWmsID = [ LongType, LongType, StringType, StringType]
   def export_setJobStatusAndWmsID(self, productionID, jobID, status, jobWmsID):
     """ Set jobWmsID for a given Job
@@ -366,20 +366,20 @@ class ProductionManagerHandler( TransformationHandler ):
       error = 'Could set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
-      
+
     # Send data logging records
     if status == "Submitted":
       result = productionDB.getJobInfo(productionID, jobID)
       if not result['OK']:
-        gLogger.error('Could not get job info from Production DB in TransformationID=%d JobID=%d ' % (productionID,jobID))  
+        gLogger.error('Could not get job info from Production DB in TransformationID=%d JobID=%d ' % (productionID,jobID))
       jobDict = result['Value']
       lfns = jobDict['InputVector'].split(',')
       for lfn in lfns:
         lfn = lfn.replace('LFN:','')
-        result = dataLog.addFileRecord(lfn,'Job submitted', 'WMS JobID: %s' % jobWmsID, '','ProductionManager')  
+        result = dataLog.addFileRecord(lfn,'Job submitted', 'WMS JobID: %s' % jobWmsID, '','ProductionManager')
         if not result['OK']:
-          gLogger.warn('Failed to send Jobsubmitted status for lfn: '+lfn)                               
-      
+          gLogger.warn('Failed to send Jobsubmitted status for lfn: '+lfn)
+
     return result
 
   types_getJobStats = [ LongType ]
@@ -387,26 +387,26 @@ class ProductionManagerHandler( TransformationHandler ):
     """ Returns number of jobs in each status for a given production
     """
     return productionDB.getJobStats(productionID)
-    
+
   types_getJobInfo = [ LongType, LongType ]
   def export_getJobInfo(self, productionID, jobID):
     """ Get job information for a given JobID and Production ID
     """
     return productionDB.getJobInfo(productionID, jobID)
-    
+
   types_getProductionSummary = []
   def export_getProductionSummary(self):
     """ Get the summary of the currently existing productions
     """
-    
+
     result = productionDB.getProductionList()
     if not result['OK']:
       return result
-      
+
     prodList = result['Value']
     resultDict = {}
     for prod in prodList:
-      prodID = prod['TransformationID']  
+      prodID = prod['TransformationID']
       result = productionDB.getJobStats(prodID)
       if not result['OK']:
         gLogger.warn('Failed to get job statistics for production %d' % prodID)
@@ -414,5 +414,5 @@ class ProductionManagerHandler( TransformationHandler ):
       statDict = result['Value']
       prod['JobStats'] = statDict
       resultDict[prodID] = prod
-      
-    return S_OK(resultDict)    
+
+    return S_OK(resultDict)
