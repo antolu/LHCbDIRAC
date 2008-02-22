@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.24 2008/02/22 12:11:55 joel Exp $
+# $Id: JobFinalization.py,v 1.25 2008/02/22 16:31:59 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.24 2008/02/22 12:11:55 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.25 2008/02/22 16:31:59 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -19,6 +19,7 @@ class JobFinalization(object):
 
   def __init__(self):
     self.STEP_ID = None
+    gLogger.setLevel('debug')
     self.CONFIG_NAME = None
     self.RUN_NUMBER = None
     self.FIRST_EVENT_NUMBER = None
@@ -499,8 +500,9 @@ class JobFinalization(object):
     request['TargetSE'] = se
     self.log.info("Copying %s to %s" % (fname,se))
     LFC_OK = True
-    self.log.info('putAndRegister(%s,%s,%s,%s,%s)' %(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory))
-    resultPaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid,lfn_directory)
+    self.log.info('putAndRegister(%s,%s,%s,%s)' %(lfn,os.getcwd()+'/'+fname,se,guid))
+# should put a try/except
+    resultPaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
     if resultPaR['OK']:
       if len(resultPaR['Value']['Failed']) > 0:
         for lfn,mess in resultPaR['Value']['Failed'].items():
