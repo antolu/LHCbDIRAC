@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.13 2008/02/22 11:26:01 gkuznets Exp $
-__RCSID__ = "$Revision: 1.13 $"
+# $Id: dirac-production-manager-cli.py,v 1.14 2008/02/22 15:52:36 gkuznets Exp $
+__RCSID__ = "$Revision: 1.14 $"
 
 import cmd
 import sys, os
@@ -65,8 +65,8 @@ class ProductionManagerCLI( cmd.Cmd ):
         print "There's no such %s command" % command
         return
       self.printPair( command, obj.__doc__[1:] )
-      
-      
+
+
   def check_params(self, args, num):
     """Checks if the number of parameters correct"""
     argss = string.split(args)
@@ -75,7 +75,7 @@ class ProductionManagerCLI( cmd.Cmd ):
       print "Error: Number of arguments provided %d less that required %d, please correct." % (length, num)
       return (False, length)
     return (argss,length)
-      
+
 
 ################ WORKFLOW SECTION ####################################
 
@@ -285,7 +285,7 @@ class ProductionManagerCLI( cmd.Cmd ):
   #  else:
   #    vector = ''
   #  print self.productionManager.addProductionJob(prodID, vector)
-    
+
   def __convertIDtoString(self,id):
     return ("%08d" % (id) )
 
@@ -299,13 +299,13 @@ class ProductionManagerCLI( cmd.Cmd ):
     site = ''
     prodID = long(argss[0])
     if len(argss)>1:
-      numJobs = int(argss[1])      
+      numJobs = int(argss[1])
     if len(argss)>2:
       site = argss[2]
-      
+
     prod = DiracProduction()
 
-    result = prod.submitProduction(prodID, numJobs, site)      
+    result = prod.submitProduction(prodID, numJobs, site)
 
   def do_setStatusID(self, args):
     """ Set status of the production
@@ -362,7 +362,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     id_ = long(argss[0])
     status = argss[1]
     self.productionManager.setTransformationAgentType(id_, status)
-    
+
   def do_setTransformationMaskID(self, args):
     """ Overrites transformation mask for the production
     Usage: setTransformationMaskID ProductionID Mask
@@ -410,12 +410,12 @@ class ProductionManagerCLI( cmd.Cmd ):
     if result['OK']:
       if 'Successful' in result['Value'] and directory in result['Value']['Successful']:
         lfndict = result['Value']['Successful'][directory]
-      
+
         for lfn,repdict in lfndict.items():
           for se,pfn in repdict.items():
             lfns.append((lfn,pfn,0,se,'IGNORED-GUID','IGNORED-CHECKSUM'))
 
-        result = self.productionManager.addFile(lfns, False) 
+        result = self.productionManager.addFile(lfns, False)
 
         if not result['OK']:
           print "Failed to add files with local LFC interrogation"
@@ -433,7 +433,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     #  print result['Message']
     #else:
     #  print result['Value']
-      
+
   def do_getProductionInfo(self, args):
     """
     Returns information about production
@@ -450,26 +450,18 @@ class ProductionManagerCLI( cmd.Cmd ):
     """
     argss, length = self.check_params(args, 2)
     if not argss:
-      return  
+      return
     prodID = long(argss[0])
     jobID = long(argss[1])
     print self.productionManager.getJobInfo(prodID, jobID)
 
-      
-  def do_test(self, args):
-    """ Testing function for Gennady
-    """    
-    #argss = string.split(args)
-    #prodID = long(argss[0])
-    #jobID = long(argss[1])
-    prod = DiracProduction()
-    result3 = prod._DiracProduction__getCurrentUser()
-    if not result3['OK']:
-      print result3,'Could not establish user ID from proxy credential or configuration'
-      return
-    print result3
 
-    #print self.productionManager.getJobInfo(prodID, jobID)
+  def do_testMode(self, args):
+    """ Test mode changes Production manager handler to the testing version
+    """
+    self.productionManagerUrl = gConfig.getValue('/Systems/ProductionManagement/Development/URLs/ProductionManagerTest')
+    self.productionManager=RPCClient(self.productionManagerUrl)
+    self.prompt = '(Test)'
 
 if __name__=="__main__":
     cli = ProductionManagerCLI()
