@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.9 2008/02/21 13:27:32 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.10 2008/02/26 15:14:01 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.9 2008/02/21 13:27:32 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.10 2008/02/26 15:14:01 joel Exp $"
 
 import os, string,sys
 
@@ -125,8 +125,8 @@ class LHCbCheckLogFile(CheckLogFile):
 # This is probably an application problem
 # if the return code = KO then check the logfile for a specific application
       result = self.checkApplicationLog(error)
-      print "Log file checking revealed errors:"
-      print result['Message']
+      self.log.info('Log file checking revealed errors:')
+      self.log.info(result['Message'])
       return result
 
 #
@@ -270,15 +270,18 @@ class LHCbCheckLogFile(CheckLogFile):
                        result = S_OK()
       else:
         if EvtMax != -1 and nprocessed != EvtMax:
-          self.log.error("Number of events processed "+str(nprocessed)+" is less than requested "+EvtMax)
+          self.log.error("Number of events processed "+str(nprocessed)+" is less than requested "+str(EvtMax))
           result = S_ERROR('Too few events processed')
         elif nomore != 1 and EvtMax == -1:
-          self.log.error("Number of events processed"+str(nprocessed)+", the end of input not reached")
+          self.log.error("Number of events processed "+str(nprocessed)+", the end of input not reached")
           loutput,n = self.grep(self.appLog,'Events output:')
           noutput = int(string.split(loutput)[4+self.timeoffset])
           self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
-          result = S_ERROR('All INPUT events have not been processed')
-
+          linenextevt,n = self.grep(self.appLog,'Failed to receieve the next event')
+          if n != 0:
+            result = S_ERROR('All INPUT events have not been processed')
+          else:
+            result = S_OK('All INPUT events have been processed')
 
       self.log.debug(' goodJob - %s events result= %s'%(str(noutput),str(result)))
 
