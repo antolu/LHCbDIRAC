@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.21 2008/02/20 12:22:40 joel Exp $
+# $Id: GaudiApplication.py,v 1.22 2008/02/26 14:22:57 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.21 2008/02/20 12:22:40 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.22 2008/02/26 14:22:57 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -294,6 +294,8 @@ class GaudiApplication(object):
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
                  self.appName+' '+self.appVersion+' gfal lfc CASTOR dcache_client oracle\n')
 
+    script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
+    script.write('   exit 1\nfi\n')
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     #To handle oversized LD_LIBARARY_PATHs
 ##JC    script.write('%s %s/scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH %s inis\n' %(sys.executable,self.root,orig_ld_path))
@@ -362,7 +364,7 @@ done
       print 'Command = ',comm
       script.write(comm)
 
-    script.write('exit\n')
+    script.write('exit 0\n')
     script.write('#EOF\n')
     script.close()
 
