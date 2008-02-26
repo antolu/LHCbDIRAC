@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.26 2008/02/26 14:24:42 joel Exp $
+# $Id: JobFinalization.py,v 1.27 2008/02/26 20:25:36 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.26 2008/02/26 14:24:42 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.27 2008/02/26 20:25:36 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -174,6 +174,7 @@ class JobFinalization(object):
         resBK = self.reportBookkeeping()
         if resBK['OK'] != True:
           self.log.error(resBK['Message'])
+          error = 1
 
     #########################################################################
     #  If the Transfer request is not empty, send it for later retry
