@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.14 2008/02/22 15:52:36 gkuznets Exp $
-__RCSID__ = "$Revision: 1.14 $"
+# $Id: dirac-production-manager-cli.py,v 1.15 2008/02/26 17:04:27 gkuznets Exp $
+__RCSID__ = "$Revision: 1.15 $"
 
 import cmd
 import sys, os
@@ -370,7 +370,7 @@ class ProductionManagerCLI( cmd.Cmd ):
     argss = string.split(args)
     prodID = long(argss[0])
     mask = argss[1]
-    self.productionManager.setTransformationMaskID(prodID, mask)
+    self.productionManager.setTransformationMask(prodID, mask)
 
   def do_setTransformationMask(self, args):
     """ Overrites transformation mask for the production
