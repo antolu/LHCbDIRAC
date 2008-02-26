@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.9 2008/02/21 13:27:55 joel Exp $
+# $Id: CheckLogFile.py,v 1.10 2008/02/26 15:13:15 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.9 2008/02/21 13:27:55 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.10 2008/02/26 15:13:15 joel Exp $"
 
 import commands, os
 
@@ -88,6 +88,7 @@ class CheckLogFile(object):
         debugse = 'None'
 
       print debugse
+      debugse = 'None'
       #  il faut traiter le cas fichier local ou fichier sur SE cas du reprocsessing
       if debugse != 'None':
         rm = ReplicaManager()
@@ -95,7 +96,7 @@ class CheckLogFile(object):
           self.log.info( "Sending %s to %s" % ( str( ind ), str( debugse ) ) )
           pfnName = getPFNFromPoolXMLCatalog(self.poolXMLCatName,ind.split(':')[1])
           result = rm.putAndRegister(ind.split(':')[1],pfnName,debugse)
-#          result = rm.replicate(ind.split(':')[1],debugse,'CERN-tape')
+#          result = rm.replicate(ind.split(':')[1],debugse,'CERN-tape',destPath='/lhcb/failover')
           if not result['OK']:
             self.log.error( "Transfer to %s failed\n%s" % ( debugse, result['Message'] ) )
           else:
