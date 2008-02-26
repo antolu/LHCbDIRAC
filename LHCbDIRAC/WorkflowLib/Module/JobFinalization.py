@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.25 2008/02/22 16:31:59 joel Exp $
+# $Id: JobFinalization.py,v 1.26 2008/02/26 14:24:42 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.25 2008/02/22 16:31:59 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.26 2008/02/26 14:24:42 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -206,21 +206,25 @@ class JobFinalization(object):
 
 
     bad_counter = 0
+    CONTINUE = 0
     for f in books:
       self.log.info( "Sending bookkeeping information %s" % str( f ) )
       fm = f.replace('bookkeeping_','')
       reqfile = open(f,'r')
       xmlstring = reqfile.read()
-      result = self.bk.sendBookkeeping(fm,xmlstring)
-      if result['OK'] != True:
-        self.log.error( "Failed to send bookkeeping information for %s" % str( f ) )
-        self.log.error( "Setting bookkeeping request for later retry" )
-        self.log.error(result)
-      else:
-        self.log.info( "Bookkeeping information sent successfully" )
-
-      if bad_counter:
-        result = S_ERROR("Failed to send %d bookkeeping reports" % bad_counter)
+      while (CONTINUE == 0):
+          result = self.bk.sendBookkeeping(fm,xmlstring)
+          if result['OK'] != True:
+            if result['Message'].find('Connection timed out') != -1:
+              bad_counter = bad_counter + 1
+            if bad_counter == 0 or bad_counter > 3:
+              self.log.error( "Failed to send bookkeeping information for %s after %s retries" % (str( f ) , str(bad_counter)) )
+              self.log.error(result)
+              self.__report('Failed to send bookkeeping information')
+              CONTINUE = 1
+          else:
+            self.log.info( "Bookkeeping information sent successfully" )
+            CONTINUE = 1
 
     return result
 
