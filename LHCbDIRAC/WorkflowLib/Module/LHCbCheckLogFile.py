@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.11 2008/02/27 09:52:25 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.12 2008/02/27 10:44:06 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.11 2008/02/27 09:52:25 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.12 2008/02/27 10:44:06 joel Exp $"
 
 import os, string,sys
 
@@ -110,7 +110,7 @@ class LHCbCheckLogFile(CheckLogFile):
       result = self.goodJob()
       if result['OK']:
          self.log.info(' CheckLogFile - %s is OK ' % (self.appLog))
-         self.__report(self.appName+' step OK')
+         self.__report('%s step OK' % (self.appName))
 #         self.update_status('OK')
          return result
 
@@ -132,7 +132,7 @@ class LHCbCheckLogFile(CheckLogFile):
 # if the return code = KO then check the logfile for a specific application
       result = self.checkApplicationLog(error)
       self.log.info('Log file checking revealed errors:')
-      self.__report('Log file checking revealed errors')
+      self.__report('Log file for %s checking revealed errors' % (self.appName))
       self.log.info(result['Message'])
       return result
 
