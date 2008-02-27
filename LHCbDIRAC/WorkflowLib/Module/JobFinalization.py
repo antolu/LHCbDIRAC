@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.29 2008/02/27 13:21:38 joel Exp $
+# $Id: JobFinalization.py,v 1.30 2008/02/27 15:13:51 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.29 2008/02/27 13:21:38 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.30 2008/02/27 15:13:51 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -160,6 +160,8 @@ class JobFinalization(object):
               resCopy = self.rm.put(lfn,os.getcwd()+'/'+fname,cache_se)
               if resCopy['OK'] == True:
 #                pfname = result['PFN']
+                self.log.info(resCopy)
+                ok = False
                 self.log.info("NOT IMPLEMENTED : Setting delayed transfer request for %s %s %s %s " % (fname, lfn, fname, cache_se))
 #                self.setTransferRequest(lfn,pfname,size,cache_se,guid)
               else:
