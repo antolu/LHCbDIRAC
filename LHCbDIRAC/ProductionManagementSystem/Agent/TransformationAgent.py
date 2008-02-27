@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.8 2008/02/22 12:00:51 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.9 2008/02/27 10:57:37 gkuznets Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.8 2008/02/22 12:00:51 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.9 2008/02/27 10:57:37 gkuznets Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -100,8 +100,9 @@ class TransformationAgent(Agent):
     """
 
     prodID = long(transDict['TransID'])
+    prodName = transDict['Name']
     group_size = int(transDict['GroupSize'])
-    result = self.server.getInputData(prodID,'')
+    result = self.server.getInputData(prodName,'')
     sflag = True #WARNING KGG this is possibly an error
     if result['OK']:
       data = result['Value']
