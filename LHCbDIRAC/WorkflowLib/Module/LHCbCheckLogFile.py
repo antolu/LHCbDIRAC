@@ -1,14 +1,15 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.10 2008/02/26 15:14:01 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.11 2008/02/27 09:52:25 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.10 2008/02/26 15:14:01 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.11 2008/02/27 09:52:25 joel Exp $"
 
 import os, string,sys
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Module.CheckLogFile import CheckLogFile
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
@@ -24,7 +25,11 @@ class LHCbCheckLogFile(CheckLogFile):
       self.argv0   = 'LHCbCheckLogFile'
       self.log = gLogger.getSubLogger("LHCbCheckLogFile")
       self.iClient = None
+      self.jobID = None
+      if os.environ.has_key('JOBID'):
+        self.jobID = os.environ['JOBID']
       self.timeoffset = 0
+      self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
       self.site = gConfig.getValue('/LocalSite/Site','localSite')
       self.error_message = ''
       self.OUTPUT_MAX = 'None'
@@ -105,6 +110,7 @@ class LHCbCheckLogFile(CheckLogFile):
       result = self.goodJob()
       if result['OK']:
          self.log.info(' CheckLogFile - %s is OK ' % (self.appLog))
+         self.__report(self.appName+' step OK')
 #         self.update_status('OK')
          return result
 
@@ -126,6 +132,7 @@ class LHCbCheckLogFile(CheckLogFile):
 # if the return code = KO then check the logfile for a specific application
       result = self.checkApplicationLog(error)
       self.log.info('Log file checking revealed errors:')
+      self.__report('Log file checking revealed errors')
       self.log.info(result['Message'])
       return result
 
@@ -358,6 +365,21 @@ class LHCbCheckLogFile(CheckLogFile):
 #
    def checkApplicationLog(self,error=''):
        self.log.debug(' appLog - from %s'%(self.appLog))
+
+
+  #############################################################################
+   def __report(self,status):
+    """Wraps around setJobApplicationStatus of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'CheckLogFile'))
+    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'CheckLogFile')
+    if not jobStatus['OK']:
+      self.log.warn(jobStatus['Message'])
+
+    return jobStatus
 
 #
 #------------------------------------------------------------------------
