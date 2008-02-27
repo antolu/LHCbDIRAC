@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: DaVinciCheckLogFile.py,v 1.2 2008/02/27 09:53:36 joel Exp $
+# $Id: DaVinciCheckLogFile.py,v 1.3 2008/02/27 14:03:54 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: DaVinciCheckLogFile.py,v 1.2 2008/02/27 09:53:36 joel Exp $"
+__RCSID__ = "$Id: DaVinciCheckLogFile.py,v 1.3 2008/02/27 14:03:54 joel Exp $"
 
 
 import os,string
@@ -13,6 +13,7 @@ parseCommandLine()
 
 from WorkflowLib.Module.LHCbCheckLogFile import LHCbCheckLogFile
 from WorkflowLib.Module.CheckLogFile import CheckLogFile
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
 class DaVinciCheckLogFile(LHCbCheckLogFile):
@@ -20,6 +21,7 @@ class DaVinciCheckLogFile(LHCbCheckLogFile):
   def __init__(self):
     self.argv0     = 'DaVinciCheckLogFile'
     self.log = gLogger.getSubLogger("DaVinciCheckLogFile")
+    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
@@ -27,6 +29,9 @@ class DaVinciCheckLogFile(LHCbCheckLogFile):
     self.info      = 1
 
   def checkApplicationLog(self,error):
+    if not os.path.exists(self.appLog):
+      return S_ERROR(error)
+
     self.log.info(' analyze %s '%(self.appLog))
 
     mailto = self.appName.upper()+'_EMAIL'

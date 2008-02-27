@@ -1,10 +1,10 @@
 ########################################################################
-# $Id: BooleCheckLogFile.py,v 1.6 2008/02/27 09:54:05 joel Exp $
+# $Id: BooleCheckLogFile.py,v 1.7 2008/02/27 14:04:05 joel Exp $
 ########################################################################
 """ Script Base Class """
 
 
-__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.6 2008/02/27 09:54:05 joel Exp $"
+__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.7 2008/02/27 14:04:05 joel Exp $"
 
 
 import os,string
@@ -13,6 +13,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from WorkflowLib.Module.LHCbCheckLogFile import LHCbCheckLogFile
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Module.CheckLogFile import CheckLogFile
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
@@ -25,10 +26,14 @@ class BooleCheckLogFile(LHCbCheckLogFile):
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
     self.iClient   = None
+    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.info      = 1
 
   def checkApplicationLog(self,error):
-    self.log.info(self.argv0 + '.BooleCheckLogFile: analyze %s '%(self.logfile))
+    if not os.path.exists(self.appLog):
+      return S_ERROR(error)
+
+    self.log.info('analyze %s ' % (self.appLog))
 
     mailto = self.appName.upper()+'_EMAIL'
 
