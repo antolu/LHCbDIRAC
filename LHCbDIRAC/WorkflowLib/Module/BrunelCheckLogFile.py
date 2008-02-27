@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.5 2008/02/27 09:53:51 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.6 2008/02/27 13:01:34 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.5 2008/02/27 09:53:51 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.6 2008/02/27 13:01:34 joel Exp $"
 
 
 import os,string
@@ -27,6 +27,10 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
     self.info      = 1
 
   def checkApplicationLog(self,error):
+
+    if not os.path.exists(self.appLog):
+      return S_ERROR(error)
+
     self.log.info(' analyze %s '%(self.appLog))
 
     mailto = self.appName.upper()+'_EMAIL'
