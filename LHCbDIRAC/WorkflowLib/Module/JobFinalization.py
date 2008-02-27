@@ -1,10 +1,11 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.27 2008/02/26 20:25:36 joel Exp $
+# $Id: JobFinalization.py,v 1.28 2008/02/27 10:42:57 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.27 2008/02/26 20:25:36 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.28 2008/02/27 10:42:57 joel Exp $"
 
+from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
@@ -42,6 +43,7 @@ class JobFinalization(object):
     self.nb_events_input = None
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
+    self.bkDB = BookkeepingDBClient()
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
@@ -351,6 +353,7 @@ class JobFinalization(object):
       target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(self.logtar+'.gz','LOG','1'),self.mode,self.PRODUCTION_ID)
       self.log.info("Put %s %s %s " % (target_path, os.path.realpath(self.logdir+'/'+self.logtar+'.gz'), 'LogSE'))
       result = self.rm.put(target_path,os.path.realpath(self.logdir+'/'+self.logtar+'.gz'),'LogSE')
+#      result = self.rm.put(target_path,os.path.realpath(self.logdir+'/'+self.logtar+'.gz'),'CERN_DIP_Log')
       self.log.info(result)
 
       if result['OK'] != True:
@@ -505,6 +508,7 @@ class JobFinalization(object):
     request['TargetSE'] = se
     self.log.info("Copying %s to %s" % (fname,se))
     LFC_OK = True
+    BKK_OK = True
     self.log.info('putAndRegister(%s,%s,%s,%s)' %(lfn,os.getcwd()+'/'+fname,se,guid))
 # should put a try/except
     resultPaR = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
@@ -514,8 +518,12 @@ class JobFinalization(object):
           if mess.has_key('register'):
         # Transfer done but registration failed
             LFC_OK = False
+            BKK_OK = False
             self.log.info( "Registration failed for %s" % lfn )
 #            result['level'] = 'Registration'
+      if BKK_OK == True:
+        self.bkDB.addReplica((lfn,os.getcwd()+'/'+fname,se))
+
     self.log.info(resultPaR)
     result = resultPaR
 
