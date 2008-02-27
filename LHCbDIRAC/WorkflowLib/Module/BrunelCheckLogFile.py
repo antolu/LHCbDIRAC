@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.4 2008/02/22 08:19:57 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.5 2008/02/27 09:53:51 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.4 2008/02/22 08:19:57 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.5 2008/02/27 09:53:51 joel Exp $"
 
 
 import os,string
@@ -20,6 +20,9 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
   def __init__(self):
     self.argv0     = 'BrunelCheckLogFile'
     self.log = gLogger.getSubLogger("BrunelheckLogFile")
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
     self.iClient   = None
     self.info      = 1
 

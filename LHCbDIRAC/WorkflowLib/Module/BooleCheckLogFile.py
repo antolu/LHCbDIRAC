@@ -1,10 +1,10 @@
 ########################################################################
-# $Id: BooleCheckLogFile.py,v 1.5 2008/02/01 15:19:12 joel Exp $
+# $Id: BooleCheckLogFile.py,v 1.6 2008/02/27 09:54:05 joel Exp $
 ########################################################################
 """ Script Base Class """
 
 
-__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.5 2008/02/01 15:19:12 joel Exp $"
+__RCSID__ = "$Id: BooleCheckLogFile.py,v 1.6 2008/02/27 09:54:05 joel Exp $"
 
 
 import os,string
@@ -21,6 +21,9 @@ class BooleCheckLogFile(LHCbCheckLogFile):
   def __init__(self):
     self.argv0     = 'BooleCheckLogFile'
     self.log = gLogger.getSubLogger("BooleCheckLogFile")
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
     self.iClient   = None
     self.info      = 1
 

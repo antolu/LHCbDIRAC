@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: DaVinciCheckLogFile.py,v 1.1 2008/02/22 15:38:25 joel Exp $
+# $Id: DaVinciCheckLogFile.py,v 1.2 2008/02/27 09:53:36 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: DaVinciCheckLogFile.py,v 1.1 2008/02/22 15:38:25 joel Exp $"
+__RCSID__ = "$Id: DaVinciCheckLogFile.py,v 1.2 2008/02/27 09:53:36 joel Exp $"
 
 
 import os,string
@@ -20,6 +20,9 @@ class DaVinciCheckLogFile(LHCbCheckLogFile):
   def __init__(self):
     self.argv0     = 'DaVinciCheckLogFile'
     self.log = gLogger.getSubLogger("DaVinciCheckLogFile")
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
     self.iClient   = None
     self.info      = 1
 
