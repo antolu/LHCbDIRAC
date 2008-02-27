@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.30 2008/02/27 15:13:51 joel Exp $
+# $Id: JobFinalization.py,v 1.31 2008/02/27 15:44:37 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.30 2008/02/27 15:13:51 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.31 2008/02/27 15:44:37 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -222,6 +222,7 @@ class JobFinalization(object):
           if result['OK'] != True:
             if result['Message'].find('Connection timed out') != -1:
               bad_counter = bad_counter + 1
+              time.sleep(300)
             if bad_counter == 0 or bad_counter > 3:
               self.log.error( "Failed to send bookkeeping information for %s after %s retries" % (str( f ) , str(bad_counter)) )
               self.log.error(result)
