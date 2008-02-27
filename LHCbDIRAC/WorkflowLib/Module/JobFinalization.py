@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.28 2008/02/27 10:42:57 joel Exp $
+# $Id: JobFinalization.py,v 1.29 2008/02/27 13:21:38 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.28 2008/02/27 10:42:57 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.29 2008/02/27 13:21:38 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -486,6 +486,9 @@ class JobFinalization(object):
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
       if not result['OK']:
         self.log.warn(result)
+        self.__report('DATA transfer failed')
+        return S_ERROR('DATA transfer failed')
+
     return S_OK()
 
 
