@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.7 2008/02/27 13:54:16 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.8 2008/02/27 14:04:34 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.7 2008/02/27 13:54:16 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.8 2008/02/27 14:04:34 joel Exp $"
 
 
 import os,string
@@ -24,7 +24,7 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
-      self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
+    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.iClient   = None
     self.info      = 1
 
