@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BrunelCheckLogFile.py,v 1.6 2008/02/27 13:01:34 joel Exp $
+# $Id: BrunelCheckLogFile.py,v 1.7 2008/02/27 13:54:16 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.6 2008/02/27 13:01:34 joel Exp $"
+__RCSID__ = "$Id: BrunelCheckLogFile.py,v 1.7 2008/02/27 13:54:16 joel Exp $"
 
 
 import os,string
@@ -12,6 +12,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from WorkflowLib.Module.LHCbCheckLogFile import LHCbCheckLogFile
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Module.CheckLogFile import CheckLogFile
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
@@ -23,6 +24,7 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
+      self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.iClient   = None
     self.info      = 1
 
@@ -46,6 +48,7 @@ class BrunelCheckLogFile(LHCbCheckLogFile):
       self.sendErrorMail(result['Message'])
 
     return result
+
 #
 #------------------------------------------------------------------------------------------
 #
