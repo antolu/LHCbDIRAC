@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.22 2008/02/26 14:22:57 joel Exp $
+# $Id: GaudiApplication.py,v 1.23 2008/02/27 13:07:14 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.22 2008/02/26 14:22:57 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.23 2008/02/27 13:07:14 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -206,6 +206,8 @@ class GaudiApplication(object):
         exec 'from LHCb_config import *'
     except Exception, x:
         self.log.error("failed to import LHCb_config.py : %s" % (x))
+        self.__report('failed to import LHCb_config.py')
+        return S_ERROR('failed to import LHCb_config.py')
 
     if applications.has_key(string.upper(self.appName)) == 1:
         prefix = applications[string.upper(self.appName)]
