@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.26 2008/02/28 19:34:17 atsareg Exp $
+# $Id: ProductionDB.py,v 1.27 2008/02/28 21:53:54 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.26 $"
+__RCSID__ = "$Revision: 1.27 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -175,6 +175,36 @@ class ProductionDB(TransformationDB):
       error = 'Production "%s" exists in the database"' % (name)
       gLogger.error( error )
       return S_ERROR( error )
+
+  def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, originalProdID, update=False):
+    """ Create a new production derived from a previous one
+    """
+
+    result = self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update)
+    if not result['OK']:
+      return result
+
+    newProdID = result['Value']
+
+    # Mark the previously processed files
+    ids = []
+    req = "SELECT FileID from T_%s WHERE Status='Unused';" % (originalProdID)
+    result = self._query(req)
+    if result['OK']:
+      if result['Value']:
+        ids = [ str(x[0]) for x in res['Value'] ]
+    if ids:
+      idstring = ','.join(ids)
+      req = "UPDATE T_%s SET Status='OldProcessed' WHERE FileID IN (%s)" % (newProdID,idstring)
+      result = self._update(req)
+      if not result['OK']:
+        # rollback the operation
+        result = self.deleteProduction(newProdID)
+        if not result['OK']:
+          gLogger.warn('Failed to rollback the production creation')
+        return S_ERROR('Failed to create production: error while marking already processed files')
+
+    return S_OK()
 
   def __insertProductionParameters(self, TransformationID, groupsize, parent, body):
     """
