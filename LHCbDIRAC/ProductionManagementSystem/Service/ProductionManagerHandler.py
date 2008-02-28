@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.28 2008/02/28 17:26:09 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.29 2008/02/28 18:09:21 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.28 $"
+__RCSID__ = "$Revision: 1.29 $"
 
 from types import *
 import threading
@@ -295,7 +295,7 @@ class ProductionManagerHandler( TransformationHandler ):
         if not result['OK']:
           gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
           # we also have to remove job from the list
-      del jobDict[jobid]
+          del jobDict[jobid]
 
       self.lock.release()
 
