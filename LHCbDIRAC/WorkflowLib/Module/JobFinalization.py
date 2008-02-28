@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.31 2008/02/27 15:44:37 joel Exp $
+# $Id: JobFinalization.py,v 1.32 2008/02/28 08:14:37 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.31 2008/02/27 15:44:37 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.32 2008/02/28 08:14:37 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -89,7 +89,7 @@ class JobFinalization(object):
 
     result = self.finalize(error)
 
-    return S_OK()
+    return result
 
 
   def finalize(self,error=0):
@@ -179,12 +179,14 @@ class JobFinalization(object):
         if resBK['OK'] != True:
           self.log.error(resBK['Message'])
           error = 1
+          result = S_ERROR()
 
     #########################################################################
     #  If the Transfer request is not empty, send it for later retry
 
     if not all_done:
       self.__report('Failed To Save Job Outputs')
+      result = S_ERROR('Failed To Save Job Outputs')
     elif not error:
       self.__report('Job Finished Successfully')
 
