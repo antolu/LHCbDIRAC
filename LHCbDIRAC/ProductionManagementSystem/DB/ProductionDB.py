@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.22 2008/02/28 09:13:51 atsareg Exp $
+# $Id: ProductionDB.py,v 1.23 2008/02/28 09:46:04 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.22 $"
+__RCSID__ = "$Revision: 1.23 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -120,7 +120,7 @@ class ProductionDB(TransformationDB):
       return S_ERROR('Failed to retrive Workflow with the name=%s' % (name, result['Message']) )
 
 
-################ TRANSFORMATION SECTION ####################################
+################ PRODUCTION SECTION ####################################
 
 
   def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update=False):
@@ -151,7 +151,7 @@ class ProductionDB(TransformationDB):
         error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
         gLogger.error(error)
         return S_ERROR( error )
-	  
+
       result = self.__addJobTable(TransformationID)
       if not result['OK']:
         # if for some reason this failed we have to roll back
@@ -167,12 +167,12 @@ class ProductionDB(TransformationDB):
       #result = TransformationDB.modifyTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
       #if result['OK']:
         #result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
-        #if result['OK']:      
+        #if result['OK']:
       #return result
-       
-    else: 
+
+    else:
       # update was not requested
-      error = 'Production "%s" exists in the repository, it was published by DN="%s"' % (name, authorDN)
+      error = 'Production "%s" exists in the database"' % (name)
       gLogger.error( error )
       return S_ERROR( error )
 
@@ -189,15 +189,6 @@ class ProductionDB(TransformationDB):
       return S_ERROR( error )
     return result
 
-  #def updateProductionBody(self, TransformationID, body):
-  #  """
-  #  Update production Body
-  #  """
-  #  req = "UPDATE ProductionParameters SET Body='%s' WHERE TransformationID=%d" % (body,productionID)
-  #  result = self._update(req)
-  #  return result
-
-    
   def getProductionParameters(self, transName):
     """
     Get additional parameters from ProductionParameters Table
@@ -210,7 +201,7 @@ class ProductionDB(TransformationDB):
       error = "Failed to get production parameters from ProductionParameters table for the Transformation %s with message: %s" % (transName, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
-      
+
     if result['Value']:
       retdict['GroupSize']=result['Value'][0][0]
       retdict['Parent']=result['Value'][0][1]
@@ -219,7 +210,7 @@ class ProductionDB(TransformationDB):
       retdict['GroupSize']=0
       retdict['Parent']=""
       retdict['Body']=""
-    
+
     return S_OK(retdict)
 
   def getProductionParametersWithoutBody(self, transName):
@@ -241,8 +232,8 @@ class ProductionDB(TransformationDB):
     else:
       retdict['GroupSize']=0
       retdict['Parent']=""
-    
-    
+
+
     return S_OK(retdict)
 
   def __deleteProductionParameters(self, TransformationID):
@@ -338,30 +329,41 @@ INDEX(WmsStatus)
       return  result_step1
 
   def getProductionBody(self, transName):
-    result = self.getProductionParameters(transName)
+    transID = self.getTransformationID(transName)
+    result = self.getProductionParameters(transID)
     if result['OK']:
       return S_OK(result['Value']['Body']) # we
     else:
       return S_ERROR("Failed to retrive Production Body with Transformation '%s' " % transName)
 
 
-#  def deleteTranformation(self, name):
-#    if self._transformationExists(name):
-#      result = TransformationDB.removeTransformation(self, name)
-#      if not result['OK']:
-#        return S_ERROR("Failed to delete Transformation '%s' with the message %s" % (name, result['Message']))
-#      return result
-#    return S_ERROR("No Transformation with the name '%s' in the ProductionDB" % name)
-#
-#
-#  def deleteProductionID(self, id):
-#    if self._isProductionIDExists(id):
-#      cmd = "DELETE FROM Productions WHERE ProductionID=\'%d\'" % (id)
-#      result = self._update(cmd)
-#      if not result['OK']:
-#        return S_ERROR("Failed to delete Production with ID '%d' with the message %s" % (id, result['Message']))
-#      return result
-#    return S_ERROR("No production with the ID '%d' in the Production Repository" % id)
+  def setProductionBody(self, id_, body, name, parent, description, descr_long):
+
+    transID = self.getTransformationID(id_)
+    transIDnew = self.getTransformationID(name)
+
+    # KGG tentative code !!!! have to check (seems working)
+    result = self._escapeString( body )
+    if not result['OK']: return result
+    body_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+    result = self._escapeString( descr_long )
+    if not result['OK']: return result
+    descr_long_esc = result['Value'][1:len(result['Value'])-1] # we have to remove trailing " left by self._escapeString()
+    # end of tentative code
+
+    if transIDnew >0 and transIDnew != transID: # checking if transformation exists
+      error = 'Production "%s" exists in the database with the id=%s"' % (name, transIDnew)
+      gLogger.error( error )
+      return S_ERROR( error )
+
+    req = "UPDATE ProductionParameters SET Body='%s', Parent='%s' WHERE TransformationID=%d" % (body_esc, parent, transID)
+    result = self._update(req)
+    if not result['OK']:
+        return result
+
+    req = "UPDATE Transformations SET TransformationName='%s', Description='%s' , LongDescription='%s' WHERE TransformationID=%d" % (name, description, descr_long_esc, transID)
+    result = self._update(req)
+    return result
 
 
   def getProductionInfo(self, transName):
@@ -374,7 +376,7 @@ INDEX(WmsStatus)
       return S_OK(prod)
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
-      
+
   def getProduction(self, transName):
     transID = self.getTransformationID(transName)
     prod = self.getTransformation(transID)
@@ -388,13 +390,13 @@ INDEX(WmsStatus)
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
 
 
-  def addProductionJob(self, productionID, inputVector, se):
-      """ Production ID is number without prepending 0000
-      WARNING! parameter se is not in use!!
+  def addProductionJob(self, transName, inputVector, se):
+      """ Add one job to Production
       """
+      productionID = self.getTransformationID(transName)
       self.lock.acquire()
-      req = "INSERT INTO Jobs_%d (WmsStatus, JobWmsID, TargetSE, CreationTime, LastUpdateTime, InputVector) VALUES\
-      ('%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),'%s');" % (long(productionID),'Created', 0, se, inputVector)
+      req = "INSERT INTO Jobs_%s (WmsStatus, JobWmsID, TargetSE, CreationTime, LastUpdateTime, InputVector) VALUES\
+      ('%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),'%s');" % (productionID,'Created', 0, se, inputVector)
       result = self._update(req)
 
       if not result['OK']:
@@ -410,6 +412,8 @@ INDEX(WmsStatus)
       jobID = int(result2['Value'][0][0])
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
       return S_OK(jobID)
+
+######################## Job section ############################
 
   def selectWMSJobs(self,productionID,statusList = [],newer = 0):
     """ Select WMS job IDs for the given production having one of the specified
@@ -474,10 +478,10 @@ INDEX(WmsStatus)
           for s,sList in site_se_mapping.items():
             if se in sList:
               targetSite = s
-          if targetSite:    
+          if targetSite:
             resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':se,'Status':row[3],'Site':targetSite}
           else:
-            gLogger.warn('Can not find corresponding site for se: '+se)  
+            gLogger.warn('Can not find corresponding site for se: '+se)
       else:
         # Get the jobs now
 
@@ -497,23 +501,23 @@ INDEX(WmsStatus)
 
   def getJobStats(self,productionID):
     """ Returns dictionary with number of jobs per status in the given production. The status
-        is one of the following: 
+        is one of the following:
         Created - this counter returns the total number of jobs already created;
         Submitted - jobs submitted to the WMS;
         Running;
-        Done; 
+        Done;
         Failed;
     """
-
-    req = "SELECT DISTINCT WmsStatus FROM Jobs_%d;" % int(productionID)
+    productionID = self.getTransformationID(productionID)
+    req = "SELECT DISTINCT WmsStatus FROM Jobs_%s;" % productionID
     result1 = self._query(req)
     if not result1['OK']:
       return result1
-        
+
     statusList = {}
     for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
       statusList[s] = 0
-        
+
     total = 0;
     for stat in result1["Value"]:
       stList = ['Created']
@@ -523,7 +527,7 @@ INDEX(WmsStatus)
       if not result2['OK']:
         return result2
       count = int(result2['Value'][0][0])
-      
+
       # Choose the status to report
       if not status == "Created":
         if not "Submitted" in stList:
@@ -531,17 +535,64 @@ INDEX(WmsStatus)
       if status == "Waiting" or status == "Received" or status == "Checking" or \
          status == "Matched":
         if not "Waiting" in stList:
+          stList.append("Waiting")
+      if status == "Running" or status == "Stalled" or status == "Completed":
           stList.append("Waiting")    
       if status == "Running" or status == "Completed":
         if not "Running" in stList:
           stList.append("Running")
       if status == "Done" or status == "Failed" or status == "Stalled":
         stList.append(status)
-      
-      for st in stList:         
-        statusList[st] += count      
-    
+
+      for st in stList:
+        statusList[st] += count
+
     return S_OK(statusList)
+
+#  def getJobWMSStats(self,productionID):
+#    """ Returns dictionary with number of jobs per status in the given production. The status
+#        is one of the following:
+#        Created - this counter returns the total number of jobs already created;
+#        Submitted - jobs submitted to the WMS;
+#        Running;
+#        Done;
+#        Failed;
+#    """
+#
+#    productionID = self.getTransformationID(productionID)
+#    req = "SELECT DISTINCT WmsStatus FROM Jobs_%s;" % productionID
+#    result1 = self._query(req)
+#    if not result1['OK']:
+#      return result1
+#
+#    total = 0;
+#    for stat in result1["Value"]:
+#      stList = ['Created']
+#      status = stat[0]
+#      req = "SELECT count(JobID) FROM Jobs_%d WHERE WmsStatus='%s';" % (productionID, status)
+#      result2 = self._query(req)
+#      if not result2['OK']:
+#        return result2
+#      count = int(result2['Value'][0][0])
+#
+#      # Choose the status to report
+#      if not status == "Created":
+#        if not "Submitted" in stList:
+#          stList.append("Submitted")
+#      if status == "Waiting" or status == "Received" or status == "Checking" or \
+#         status == "Matched":
+#        if not "Waiting" in stList:
+#          stList.append("Waiting")
+#      if status == "Running" or status == "Stalled" or status == "Completed":
+#        if not "Running" in stList:
+#          stList.append("Running")
+#      if status == "Done" or status == "Failed":
+#        stList.append(status)
+#
+#      for st in stList:
+#        statusList[st] += count
+#
+#    return S_OK(statusList)
 
   def setJobStatus(self,productionID,jobID,status):
     """ Set status for job with jobID in production with productionID
@@ -566,7 +617,7 @@ INDEX(WmsStatus)
     req = "UPDATE Jobs_%d SET WmsStatus='%s', JobWmsID='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,status,jobWmsID,jobID)
     result = self._update(req)
     return result
-    
+
   def setJobTagetSE(self,productionID,jobID,se):
     """ Set TargetSE for job with jobID in production with productionID
     """
@@ -574,7 +625,7 @@ INDEX(WmsStatus)
     req = "UPDATE Jobs_%d SET TargetSE='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,se,jobID)
     result = self._update(req)
     return result
-    
+
   def setJobInputVector(self,productionID,jobID,inputVector):
     """ Set TargetSE for job with jobID in production with productionID
     """
@@ -583,43 +634,43 @@ INDEX(WmsStatus)
     result = self._update(req)
     return result
 
-  def deleteJob(self,productionID,jobID):    
+  def deleteJob(self,productionID,jobID):
     """ DeleteJob with jobID in production with productionID
     """
+    productionID = self.getTransformationID(productionID)
     req = "DELETE FROM Jobs_%d WHERE JobID=%d;" % (productionID,jobID)
     result = self._update(req)
     return result
-    
-  def deleteJobs(self,productionID,jobIDbottom, jobIDtop):    
+
+  def deleteJobs(self,productionID,jobIDbottom, jobIDtop):
     """ DeleteJob with jobID in production with productionID
     """
+    productionID = self.getTransformationID(productionID)
     req = "DELETE FROM Jobs_%d WHERE JobID>=%d and JobID<=%d;" % (productionID,jobIDbottom, jobIDtop)
     result = self._update(req)
     return result
-    
-  def getJobInfo(self,productionID,jobID):    
+
+  def getJobInfo(self,productionID,jobID):
     """ returns dictionary with information for given Job of given productionID
     """
-    req = "SELECT JobID,WmsStatus,TargetSE,CreationTime,LastUpdateTime,InputVector FROM Jobs_%d WHERE JobID='%d';" % (productionID,jobID)
+    productionID = self.getTransformationID(productionID)
+    req = "SELECT JobID,JobWmsID,WmsStatus,TargetSE,CreationTime,LastUpdateTime,InputVector FROM Jobs_%d WHERE JobID='%d';" % (productionID,jobID)
     result = self._query(req)
+    print result
     # lets create dictionary
     jobDict = {}
-    if result['Value']:
+    if result['OK'] and result['Value']:
       jobDict['JobID']=result['Value'][0][0]
-      jobDict['WmsStatus']=result['Value'][0][1]
-      jobDict['TargetSE']=result['Value'][0][2]
-      jobDict['CreationTime']=result['Value'][0][3]
-      jobDict['LastUpdateTime']=result['Value'][0][4]
-      jobDict['InputVector']=result['Value'][0][5]
+      jobDict['JobWmsID']=result['Value'][0][1]
+      jobDict['WmsStatus']=result['Value'][0][2]
+      jobDict['TargetSE']=result['Value'][0][3]
+      jobDict['CreationTime']=result['Value'][0][4]
+      jobDict['LastUpdateTime']=result['Value'][0][5]
+      jobDict['InputVector']=result['Value'][0][6]
       return S_OK(jobDict)
     else:
-      # no such job
-      #jobDict['JobID']=0
-      #jobDict['WmsStatus']='Unknown'
-      #jobDict['TargetSE']=''
-      #jobDict['CreationTime']=0
-      #jobDict['LatUpdateTime']=0
-      #jobDict['InputVector']=''
-      error = "Failed to find job with JobID=%d in the Jobs_%d table with message: %s" % (jobID, productionID, result['Message'])
+      if result['OK']:
+        result['Message']='' #used for printing error message
+      error = "Failed to find job with JobID=%s in the Jobs_%s table with message: %s" % (jobID, productionID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )

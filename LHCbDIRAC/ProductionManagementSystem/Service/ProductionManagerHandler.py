@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.26 2008/02/27 10:57:38 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.27 2008/02/28 09:46:26 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.26 $"
+__RCSID__ = "$Revision: 1.27 $"
 
 from types import *
 import threading
@@ -145,8 +145,12 @@ class ProductionManagerHandler( TransformationHandler ):
       else:
         if update:
           gLogger.verbose('Transformation %s is modified in the ProductionDB by the %s'%(name, authorDN) )
+          message = "Transformation %s updated" % name
+          resultlog = productionDB.updateTransformationLogging(long(result['Value']),message,authorDN)
         else:
           gLogger.verbose('Transformation %s is added to the ProductionDB by the %s'%(name, authorDN) )
+          message = "Transformation %s published" % name
+          resultlog = productionDB.updateTransformationLogging(long(result['Value']),message,authorDN)
       return result
 
     except Exception,x:
@@ -154,11 +158,15 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
 
-  types_deleteProduction = [ StringType ]
+  types_deleteProduction = [ [LongType, IntType, StringType] ]
   def export_deleteProduction( self, name ):
+    transID = productionDB.getTransformationID(name)
     result = productionDB.deleteProduction(name)
     if not result['OK']:
       gLogger.error(result['Message'])
+    else:
+      message = "Transformation %s deleted" % transID
+      resultlog = productionDB.updateTransformationLogging(transID,message,authorDN)
     return result
 
   #types_updateProductionBody = [ StringType, StringType ]
@@ -167,13 +175,6 @@ class ProductionManagerHandler( TransformationHandler ):
   #  if not result['OK']:
   #    gLogger.error(result['Message'])
   #  return result
-
-  types_deleteProductionByID = [ LongType ]
-  def export_deleteProductionByID( self, id ):
-    result = productionDB.deleteProduction(id)
-    if not result['OK']:
-      gLogger.error(result['Message'])
-    return result
 
   # Obsoleted to keep temporarily
   types_getListProductions = [ ]
@@ -206,60 +207,34 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR( error )
     return result
 
-  types_addProductionJob = [ LongType,  StringType, StringType]
-  def export_addProductionJob( self, productionID, inputVector, se ):
+  types_addProductionJob = [ [LongType, IntType, StringType]]
+  def export_addProductionJob( self, productionID, inputVector='', se=''):
     result = productionDB.addProductionJob(productionID, inputVector, se)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_getProductionBodyByID = [ LongType ]
-  def export_getProductionBodyByID( self, id_ ):
-    result = productionDB.getProductionBody(id_)
-    if not result['OK']:
-      gLogger.error(result['Message'])
-    return result
-
-  types_getProductionBody = [ StringType ]
+  types_getProductionBody = [ [LongType, IntType, StringType] ]
   def export_getProductionBody( self, id_ ):
     result = productionDB.getProductionBody(id_)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_setProductionStatusByID = [ LongType, StringType ]
-  def export_setProductionStatusByID( self, id_, status ):
-    result = productionDB.setTransformationStatus(id_, status)
+  types_setProductionBody = [ [LongType, IntType, StringType], StringType ]
+  def export_setProductionBody( self, id_ , body):
+    wf = fromXMLString(body)
+    name = wf.getName()
+    parent = wf.getType()
+    description = wf.getDescrShort()
+    long_description = wf.getDescription()
+    result = productionDB.setProductionBody(id_, body, name, parent, description, long_description)
     if not result['OK']:
       gLogger.error(result['Message'])
-    return result
-
-  types_setProductionStatus = [ [StringType,IntType], StringType ]
-  def export_setProductionStatus( self, id_, status ):
-    result = productionDB.setTransformationStatus(id_, status)
-    if not result['OK']:
-      gLogger.error(result['Message'])
-    return result
-
-  types_setTransformationMaskID = [ LongType, StringType ]
-  def export_setTransformationMaskID( self, id_, status ):
-    result = productionDB.setTransformationMask(id_, status)
-    if not result['OK']:
-      gLogger.error(result['Message'])
-    return result
-
-  types_setTransformationMask = [ StringType, StringType ]
-  def export_setTransformationMask( self, id_, status ):
-    result = productionDB.setTransformationMask(id_, status)
-    if not result['OK']:
-      gLogger.error(result['Message'])
-    return result
-
-  types_updateTransformation = [ LongType]
-  def export_updateTransformation( self, id_ ):
-    result = productionDB.updateTransformation(id_)
-    if not result['OK']:
-      gLogger.error(result['Message'])
+      return result
+    authorDN = self._clientTransport.peerCredentials['DN']
+    message = "New Production Body uploaded"
+    resultlog = productionDB.updateTransformationLogging(id_,message,authorDN)
     return result
 
   types_setFileStatusForTransformation = [ LongType, StringType, ListType ]
@@ -282,6 +257,8 @@ class ProductionManagerHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
+
+######################## Job section ############################
 
   types_setFileJobID = [ LongType, LongType, ListType ]
   def export_setFileJobID( self, id_, jobid,lfns ):
@@ -318,7 +295,7 @@ class ProductionManagerHandler( TransformationHandler ):
         if not result['OK']:
           gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
           # we also have to remove job from the list
-	  del jobDict[jobid]
+      del jobDict[jobid]
 
       self.lock.release()
 
@@ -388,11 +365,17 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     return productionDB.getJobStats(productionID)
 
-  types_getJobInfo = [ LongType, LongType ]
-  def export_getJobInfo(self, productionID, jobID):
+  types_getJobInfo = [ [LongType, IntType, StringType], [LongType, IntType] ]
+  def export_getJobInfo(self, prodNameOrID, jobID):
     """ Get job information for a given JobID and Production ID
     """
-    return productionDB.getJobInfo(productionID, jobID)
+    return productionDB.getJobInfo(prodNameOrID, jobID)
+
+  types_deleteJobs = [ [LongType, IntType, StringType], [LongType, IntType], [LongType, IntType] ]
+  def export_deleteJobs(self, prodNameOrID, jobIDmin, jobIDmax):
+    """ Delete Jobs from Production ID between jobIDmin, jobIDmax
+    """
+    return productionDB.deleteJobs(prodNameOrID, jobIDmin, jobIDmax)
 
   types_getProductionSummary = []
   def export_getProductionSummary(self):
@@ -416,3 +399,4 @@ class ProductionManagerHandler( TransformationHandler ):
       resultDict[prodID] = prod
 
     return S_OK(resultDict)
+
