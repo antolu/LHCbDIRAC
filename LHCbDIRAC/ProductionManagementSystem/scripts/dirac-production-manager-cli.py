@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.17 2008/02/28 16:12:05 gkuznets Exp $
-__RCSID__ = "$Revision: 1.17 $"
+# $Id: dirac-production-manager-cli.py,v 1.18 2008/02/28 17:26:09 gkuznets Exp $
+__RCSID__ = "$Revision: 1.18 $"
 
 import cmd
 import sys, os
@@ -31,7 +31,8 @@ class ProductionManagerCLI( TransformationDBCLI ):
     self.server=RPCClient(self.serverUrl)
     self.lfc = None
 
-
+  def stripDN(self, dn):
+      df.rfind
 
 ################ WORKFLOW SECTION ####################################
 
@@ -267,6 +268,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     #print self.server.getProductionInfo(prodID)
+    print self.server.getJobWmsStats(prodID)
     print self.server.getJobStats(prodID)
 
   def do_setPRStatus(self, args):
@@ -296,7 +298,12 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not argss:
       return
     prodID = self.check_id_or_name(argss[0])
-    print self.server.getTransformationLogging(prodID)
+    result = self.server.getTransformationLogging(prodID)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+      return
+    for mess in result['Value']:
+      print mess['Message'], mess['MessageDate'], stripDN( mess['AuthorDN'])
 
   def do_setPRSubmissionType(self, args):
     """ Set status of the production

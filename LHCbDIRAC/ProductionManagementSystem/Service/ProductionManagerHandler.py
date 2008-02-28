@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.27 2008/02/28 09:46:26 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.28 2008/02/28 17:26:09 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.27 $"
+__RCSID__ = "$Revision: 1.28 $"
 
 from types import *
 import threading
@@ -278,10 +278,10 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR('Failed to get production body for production %d with message %s'%(production,result["Message"]))
 
     resultDict = result['Value']
-    status_corrected = resultDict['Status'].upper() # catitalize status
+    status_corrected = resultDict['Status'].lower().capitalize() # catitalize status
     jobDict={}
 
-    if status_corrected == 'ACTIVE' or status_corrected == 'FLUSH':
+    if status_corrected == 'Active' or status_corrected == 'Flush':
 
       self.lock.acquire()
       result = productionDB.selectJobs(production,['Created'],numJobs,site)
@@ -359,11 +359,17 @@ class ProductionManagerHandler( TransformationHandler ):
 
     return result
 
-  types_getJobStats = [ LongType ]
+  types_getJobStats = [ [LongType, IntType, StringType] ]
   def export_getJobStats(self, productionID):
     """ Returns number of jobs in each status for a given production
     """
     return productionDB.getJobStats(productionID)
+
+  types_getJobWmsStats = [ [LongType, IntType, StringType] ]
+  def export_getJobWmsStats(self, productionID):
+    """ Returns number of jobs in each status for a given production
+    """
+    return productionDB.getJobWmsStats(productionID)
 
   types_getJobInfo = [ [LongType, IntType, StringType], [LongType, IntType] ]
   def export_getJobInfo(self, prodNameOrID, jobID):

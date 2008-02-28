@@ -1,10 +1,10 @@
-# $Id: ProductionManagerTestHandler.py,v 1.2 2008/02/28 09:46:40 gkuznets Exp $
+# $Id: ProductionManagerTestHandler.py,v 1.3 2008/02/28 17:26:09 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.2 $"
+__RCSID__ = "$Revision: 1.3 $"
 
 from types import *
 import threading
@@ -359,11 +359,18 @@ class ProductionManagerTestHandler( TransformationHandler ):
 
     return result
 
-  types_getJobStats = [ LongType ]
+  types_getJobStats = [ [LongType, IntType, StringType] ]
   def export_getJobStats(self, productionID):
     """ Returns number of jobs in each status for a given production
     """
     return productionDB.getJobStats(productionID)
+
+  types_getJobWmsStats = [ [LongType, IntType, StringType] ]
+  def export_getJobWmsStats(self, productionID):
+    """ Returns number of jobs in each status for a given production
+    """
+    return productionDB.getJobWmsStats(productionID)
+
 
   types_getJobInfo = [ [LongType, IntType, StringType], [LongType, IntType] ]
   def export_getJobInfo(self, prodNameOrID, jobID):

@@ -82,7 +82,7 @@ Agent
 /opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/Core/scripts/dirac-agent ProductionManagement/TransformationAgent -o LogLevel=debug MaxCycles=1
 
 Grid credential
-(7:36:12 PM) stuart-d3@jabber.org: 
+(7:36:12 PM) stuart-d3@jabber.org:
 #!/usr/bin/env python
 import os,sys
 import DIRAC
@@ -91,13 +91,12 @@ os.system('voms-proxy-init -voms lhcb:/lhcb/Role=production -valid 50:0')
 proxy = getGridProxy()
 setDIRACGroup('lhcb_prod')
 
+/lhcb/data/CCRC08/RAW/LHCb/CCRC/420153/420153_0000096704.raw
+{'FileExists': 1,
+'Forced': False,
+'PassFilter': True,
+'Retained': True,
+'ReplicaExists': 1,
+'AddedToCatalog': True,
+'AddedToTransformation': False}
 
-(5:31:14 PM) Joel: (Cmd) uploadPR /afs/cern.ch/user/j/joel/scratch0/DIRAC3/work1/wkf_CCRC.xml (.*).raw 1 
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: Network error while receiving data 
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: == EXCEPTION ==
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: OpenSSL.SSL.SysCallError:(-1, 'Unexpected EOF')
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT:   File "./Core/DISET/private/Transports/BaseTransport.py", line 72, in receiveData
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: 
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT:   File "./Core/DISET/private/Transports/BaseTransport.py", line 51, in _read
-2008-02-21 16:30:49 dirac-production-manager-cli.py EXCEPT: ===============
-Error during command execution: Network error while receiving data: (-1, 'Unexpected EOF')
