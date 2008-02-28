@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.16 2008/02/28 09:46:15 gkuznets Exp $
-__RCSID__ = "$Revision: 1.16 $"
+# $Id: dirac-production-manager-cli.py,v 1.17 2008/02/28 16:12:05 gkuznets Exp $
+__RCSID__ = "$Revision: 1.17 $"
 
 import cmd
 import sys, os
@@ -460,6 +460,41 @@ class ProductionManagerCLI( TransformationDBCLI ):
           print "Trying the addDirectory on the Server side"
         else:
           print "Operation successfull"
+          file_exists = 0
+          forced = 0
+          pass_filter = 0
+          retained = 0
+          replica_exists = 0
+          added_to_calalog = 0
+          added_to_transformation = 0
+          total = len(result['Value']['Successful'])
+          failed = len(result['Value']['Failed'])
+          for fn in result['Value']['Successful']:
+            f = result['Value']['Successful'][fn]
+            if f['FileExists']:
+                file_exists = file_exists+1
+            if f['Forced']:
+                forced = forced+1
+            if f['PassFilter']:
+                pass_filter = pass_filter+1
+            if f['Retained']:
+                retained = retained+1
+            if f['ReplicaExists']:
+                replica_exists = replica_exists+1
+            if f['AddedToCatalog']:
+                added_to_calalog = added_to_calalog+1
+            if f['AddedToTransformation']:
+                added_to_transformation = added_to_transformation+1
+
+          print 'Failed:',  failed
+          print 'Successful:', total
+          print 'Pass filters', pass_filter
+          print 'Forced in:', forced
+          print 'Pass filters + forced = Retained:', retained
+          print 'Exists in Catalog', file_exists
+          print 'Added to Catalog', added_to_calalog-file_exists
+          print 'Added to Transformations', added_to_transformation
+          print 'Replica Exixts', replica_exists
           return
       else:
         print "No such directory in LFC"
