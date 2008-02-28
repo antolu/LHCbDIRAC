@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.23 2008/02/27 13:07:14 joel Exp $
+# $Id: GaudiApplication.py,v 1.24 2008/02/28 15:26:49 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.23 2008/02/27 13:07:14 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.24 2008/02/28 15:26:49 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -66,13 +66,12 @@ class GaudiApplication(object):
 
     if self.inputData:
       #write opts
-      lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
       inputDataFiles = []
-      for lfn in lfns:
+      for lfn in self.inputData:
         if self.inputDataType == "MDF":
-          inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
         else:
-          inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
       options.write(evtSelOpt)
@@ -111,13 +110,12 @@ class GaudiApplication(object):
 
     if self.inputData:
       #write opts
-      lfns = [string.replace(fname,'LFN:','') for fname in self.inputData]
       inputDataFiles = []
-      for lfn in lfns:
+      for lfn in self.inputData:
         if self.inputDataType == "MDF":
-          inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
         else:
-          inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.write(evtSelOpt)
