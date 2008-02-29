@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.27 2008/02/28 21:53:54 atsareg Exp $
+# $Id: ProductionDB.py,v 1.28 2008/02/29 09:12:01 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.27 $"
+__RCSID__ = "$Revision: 1.28 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -180,6 +180,10 @@ class ProductionDB(TransformationDB):
     """ Create a new production derived from a previous one
     """
 
+    result = self.setTransformationStatus(originalProdID,'Stopped')
+    if not result['OK']:
+      return result
+
     result = self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update)
     if not result['OK']:
       return result
@@ -188,7 +192,7 @@ class ProductionDB(TransformationDB):
 
     # Mark the previously processed files
     ids = []
-    req = "SELECT FileID from T_%s WHERE Status='Unused';" % (originalProdID)
+    req = "SELECT FileID from T_%s WHERE Status<>'Unused';" % (originalProdID)
     result = self._query(req)
     if result['OK']:
       if result['Value']:
