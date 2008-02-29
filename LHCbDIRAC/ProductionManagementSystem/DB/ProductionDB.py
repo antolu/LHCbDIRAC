@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.29 2008/02/29 16:19:04 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.30 2008/02/29 16:47:24 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.29 $"
+__RCSID__ = "$Revision: 1.30 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -415,7 +415,7 @@ INDEX(WmsStatus)
 
   def getProductionInfo(self, transName):
     transID = self.getTransformationID(transName)
-    prod = getTransformation(transID)
+    prod = self.getTransformation(transID)
     result = self.getProductionParametersWithoutBody(transID)
     if result['OK']:
       prod['GroupSize']=result['Value']['GroupSize']

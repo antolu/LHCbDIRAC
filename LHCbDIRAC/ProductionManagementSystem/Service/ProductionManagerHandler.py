@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.30 2008/02/29 16:19:05 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.31 2008/02/29 16:47:24 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.30 $"
+__RCSID__ = "$Revision: 1.31 $"
 
 from types import *
 import threading
@@ -243,9 +243,16 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR( error )
     return result
 
-  types_addProductionJob = [ [LongType, IntType, StringType]]
+  types_addProductionJob = [ [LongType, IntType, StringType], StringType, StringType]
   def export_addProductionJob( self, productionID, inputVector='', se=''):
     result = productionDB.addProductionJob(productionID, inputVector, se)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result
+
+  types_getProductionInfo = [ [LongType, IntType, StringType]]
+  def export_getProductionInfo( self, productionID):
+    result = productionDB.getProductionInfo(productionID)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
