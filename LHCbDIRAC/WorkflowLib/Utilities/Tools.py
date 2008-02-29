@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.11 2008/02/21 14:10:15 gkuznets Exp $
-__RCSID__ = "$Id: Tools.py,v 1.11 2008/02/21 14:10:15 gkuznets Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.12 2008/02/29 12:37:17 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.12 2008/02/29 12:37:17 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -216,12 +216,11 @@ def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
           fcn = fcn.replace('.gz','')
         fcname.append(fcn)
 
-    print "BookkeepingReport: Pool XML catalog files:"
-    for f in fcname:
-      print f
+    fcnames = uniq(fcname)
+    print "BookkeepingReport: Pool XML catalog files: ",fcnames
 
-    if fcname:
-      poolcat = PoolXMLCatalog(fcname)
+    if fcnames:
+      poolcat = PoolXMLCatalog(fcnames)
 
     print "BookkeepingReport: Pool XML catalog constructed"
 
@@ -263,12 +262,11 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
           fcn = fcn.replace('.gz','')
         fcname.append(fcn)
 
-    print "BookkeepingReport: Pool XML catalog files:"
-    for f in fcname:
-      print f
+    fcnames = uniq(fcname)
+    print "BookkeepingReport: Pool XML catalog files: ",fcnames
 
-    if fcname:
-      poolcat = PoolXMLCatalog(fcname)
+    if fcnames:
+      poolcat = PoolXMLCatalog(fcnames)
 
     print "BookkeepingReport: Pool XML catalog constructed"
 
