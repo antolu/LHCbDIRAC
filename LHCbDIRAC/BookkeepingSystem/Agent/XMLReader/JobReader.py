@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.1 2008/02/29 12:01:29 zmathe Exp $
+# $Id: JobReader.py,v 1.2 2008/02/29 17:51:46 zmathe Exp $
 ########################################################################
 
 """
@@ -17,7 +17,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.1 2008/02/29 12:01:29 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.2 2008/02/29 17:51:46 zmathe Exp $"
 
 
 class JobReader:
@@ -146,7 +146,7 @@ class JobReader:
         job.addJobOutputFiles(outputFile)
     
                 
-    gLog.info("Job reading fhinished succesfull!")
+    gLogger.info("Job reading fhinished succesfull!")
     return job
     
     
