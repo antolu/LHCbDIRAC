@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.12 2008/02/29 12:37:17 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.12 2008/02/29 12:37:17 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.13 2008/02/29 14:14:37 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.13 2008/02/29 14:14:37 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -136,7 +136,7 @@ def makeIndex():
     if f != "index.html":
       index.write( '<a href="%s">%s</a><br> \n' % (f,f))
 
-  index.write( '<a href="job.output">job.output</a><br> \n')
+#  index.write( '<a href="std.out">std.out</a><br> \n')
 
   index.write("""</body>
 </html>""" )

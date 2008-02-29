@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.11 2008/02/20 14:17:31 joel Exp $
+# $Id: BookkeepingReport.py,v 1.12 2008/02/29 14:14:16 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.11 2008/02/20 14:17:31 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.12 2008/02/29 14:14:16 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -216,7 +216,7 @@ class BookkeepingReport(object):
             logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID,log=True)
             logurl = 'http://lhcb-logs.cern.ch/storage'
 
-            url = logurl+logpath+'/'
+            url = logurl+logpath+'/'+self.JOB_ID+'/'
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
