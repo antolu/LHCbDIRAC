@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT Job ((JobOption|TypedParameter|InputFile|OutputFile)*)>
+<!ELEMENT JobOption EMPTY>
+<!ELEMENT TypedParameter EMPTY>
+<!ELEMENT InputFile EMPTY>
+<!ELEMENT OutputFile ((Parameter|Quality|Replica)*)>
+<!ELEMENT Parameter EMPTY>
+<!ELEMENT Quality (Parameter*)>
+<!ELEMENT Replica EMPTY>
+
+<!ATTLIST Job
+  ConfigName    CDATA #REQUIRED
+  ConfigVersion CDATA #REQUIRED
+  Date          CDATA #REQUIRED
+  Time          CDATA #REQUIRED>
+<!ATTLIST JobOption
+  Recipient CDATA #REQUIRED
+  Name      CDATA #REQUIRED
+  Value     CDATA #REQUIRED>
+<!ATTLIST TypedParameter
+  Name  CDATA #REQUIRED
+  Value CDATA #REQUIRED
+  Type  (Info|Environment_Variable) #REQUIRED>
+<!ATTLIST InputFile
+  Name CDATA #REQUIRED>
+<!ATTLIST OutputFile
+  Name        CDATA #REQUIRED
+  TypeName    CDATA #REQUIRED
+  TypeVersion CDATA #REQUIRED>
+<!ATTLIST Parameter
+  Name  CDATA #REQUIRED
+  Value CDATA #REQUIRED>
+<!ATTLIST Quality
+  Group CDATA #REQUIRED
+  Flag  CDATA #REQUIRED>
+<!ATTLIST Replica
+  Name     CDATA #REQUIRED
+  Location CDATA #REQUIRED>
