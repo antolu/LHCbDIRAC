@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.24 2008/02/28 15:26:49 joel Exp $
+# $Id: GaudiApplication.py,v 1.25 2008/02/29 15:07:30 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.24 2008/02/28 15:26:49 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.25 2008/02/29 15:07:30 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -339,6 +339,42 @@ done
 
     script.write('echo LD_LIBRARY_PATH is\n')
     script.write('echo $LD_LIBRARY_PATH\n')
+    scripttmp = open('scrtmp.py','w')
+    scripttmp.write("""
+#!/usr/bin/env python
+
+import string, re, sys
+
+gaudi_string = sys.argv[1]
+gaudi_version_major = 0
+gaudi_version_minor = 0
+
+gaudi_part = []
+gaudi_part = gaudi_string.split('/')
+for part in gaudi_part:
+  if not part.find('GAUDI_v'):
+     gaudi_version_major = part.split('_')[1][1]+part.split('_')[1][2]
+     gaudi_version_minor = part.split('_')[1][4]
+
+print gaudi_version_major,gaudi_version_minor
+""")
+    scripttmp.close()
+    script.write("""
+declare -x gaudi_ver=`python ./scrtmp.py $GAUDIALGROOT`
+declare -x major=`echo $gaudi_ver | awk '{print $1}'`
+declare -x minor=`echo $gaudi_ver | awk '{print $2}'`
+echo $gaudi_ver
+if [[ $major -eq 19 ]] && [[ $minor -gt 6 ]] ; then
+mv  $JOBOPTPATH ${JOBOPTPATH}.tmp
+sed -e 's/PoolDbCacheSvc.Catalog/FileCatalog.Catalogs/g' ${JOBOPTPATH}.tmp > $JOBOPTPATH\n
+fi
+if [[ $major -gt 19 ]]; then
+mv  $JOBOPTPATH ${JOBOPTPATH}.tmp
+sed -e 's/PoolDbCacheSvc.Catalog/FileCatalog.Catalogs/g' ${JOBOPTPATH}.tmp > $JOBOPTPATH\n
+fi
+rm -f scrtmp.py
+    """)
+
     script.write('echo PATH is\n')
     script.write('echo $PATH\n')
     script.write('env | sort >> localEnv.log\n')
