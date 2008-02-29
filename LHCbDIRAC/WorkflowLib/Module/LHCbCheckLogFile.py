@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.12 2008/02/27 10:44:06 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.13 2008/02/29 09:40:40 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.12 2008/02/27 10:44:06 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.13 2008/02/29 09:40:40 joel Exp $"
 
 import os, string,sys
 
@@ -284,8 +284,14 @@ class LHCbCheckLogFile(CheckLogFile):
           loutput,n = self.grep(self.appLog,'Events output:')
           noutput = int(string.split(loutput)[4+self.timeoffset])
           self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
+          file_end = False
           linenextevt,n = self.grep(self.appLog,'Failed to receieve the next event')
-          if n != 0:
+          if n == 0:
+            file_end = true
+          linenextevt,n = self.grep(self.appLog,'Terminating event processing loop due to errors')
+          if n == 0:
+            file_end = true
+          if file_end == False:
             result = S_ERROR('All INPUT events have not been processed')
           else:
             result = S_OK('All INPUT events have been processed')
