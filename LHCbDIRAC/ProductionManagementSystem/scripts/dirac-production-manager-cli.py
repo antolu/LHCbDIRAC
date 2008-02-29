@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.18 2008/02/28 17:26:09 gkuznets Exp $
-__RCSID__ = "$Revision: 1.18 $"
+# $Id: dirac-production-manager-cli.py,v 1.19 2008/02/29 16:19:05 gkuznets Exp $
+__RCSID__ = "$Revision: 1.19 $"
 
 import cmd
 import sys, os
@@ -147,6 +147,41 @@ class ProductionManagerCLI( TransformationDBCLI ):
     else:
       print "File %s does not exists" % tr_file
 
+  def do_uploadDerivedPR(self, args):
+    """
+    Upload Production in to the transformation table
+      Usage: uploadDerivedPR <ProductionNameOrID> <filename> <filemask> <groupsize>
+      <ProductionNameOrID> ID or name production used as derived
+      <filename> is a path to the file with the xml description of the workflow
+      If transformation with this name already exists, publishing will be refused.
+      <filemask> mask to match files going to be accepted by transformation
+      <groupsize> how many files going to be grouped per job
+      WARNING!!! if <filemask> and <groupsize> are absent, the system will create 'SIMULATION' type of transformation
+    """
+    tr_mask = ''
+    tr_groupsize = 0
+    argss, length = self.check_params(args, 2)
+    if not argss:
+      return
+    ProductionNameOrID = self.check_id_or_name(argss[0])
+    tr_file = argss[1]
+    if length>2:
+      tr_mask = argss[2]
+    else:
+      tr_mask = ''
+    if length>3:
+      tr_groupsize = int(argss[3])
+
+    if os.path.exists(tr_file):
+      fd = file( tr_file )
+      body = fd.read()
+      fd.close()
+      result = self.server.publishDerivedProduction(ProductionNameOrID, body, tr_mask, tr_groupsize, False)
+      if not result['OK']:
+        print "Error during command execution: %s" % result['Message']
+    else:
+      print "File %s does not exists" % tr_file
+
 #  def do_updatePR(self, args):
 #    """
 #    Replace Production in the transformation table even old one with this name exists
@@ -249,13 +284,13 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not ret['OK']:
       print "Error during command execution: %s" % ret['Message']
     else:
-      print "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-      print "| ID |    Name    |  Parent  |   Description   |   LongDescription  | CreationDate |   Author   | AuthorGroup |  Type    | Plugin | AgentType | Status | FileMask | GroupSize |"
-      print "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+      print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+      print "| ID |    Name    |  Parent  |   Description   |   LongDescription  | CreationDate |   Author   | AuthorGroup |  Type    | Plugin | AgentType | Status | FileMask | GroupSize | InheritedFrom |"
+      print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
       for pr in ret['Value']:
-        print "| %06s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s | %s | %s |" % (pr["TransID"],
+        print "| %06s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s | %s | %s | %s |" % (pr["TransID"],
                pr['Name'], pr['Parent'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
-               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'])
+               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'], pr['InheritedFrom'])
       print "-----------------------------------------------------------------------------------------------------------------------------------------"
 
   def do_getPRInfo(self, args):
@@ -267,9 +302,13 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not argss:
       return
     prodID = self.check_id_or_name(argss[0])
-    #print self.server.getProductionInfo(prodID)
+    print self.server.getProductionInfo(prodID)
+    print "Job statistics"
     print self.server.getJobWmsStats(prodID)
     print self.server.getJobStats(prodID)
+    print "Transformation statistics"
+    print self.server.getTransformationStats(prodID)
+
 
   def do_setPRStatus(self, args):
     """ Set status of the production

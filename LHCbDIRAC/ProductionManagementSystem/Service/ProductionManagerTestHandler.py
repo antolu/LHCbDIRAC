@@ -1,10 +1,10 @@
-# $Id: ProductionManagerTestHandler.py,v 1.4 2008/02/28 18:09:21 gkuznets Exp $
+# $Id: ProductionManagerTestHandler.py,v 1.5 2008/02/29 16:19:05 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision: 1.5 $"
 
 from types import *
 import threading
@@ -158,6 +158,41 @@ class ProductionManagerTestHandler( TransformationHandler ):
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
 
+  types_publishDerivedProduction = [ [LongType, IntType, StringType], StringType, StringType, IntType, BooleanType ]
+  def export_publishDerivedProduction( self, originaProdIDOrName, body, filemask='', groupsize=0, update=False):
+    """ Publish new transformation in the ProductionDB
+    """
+    originalTransID = productionDB.getTransformationID(originaProdIDOrName)
+    if originalTransID == 0:
+      return S_ERROR("No Production with the name '%s' in the TransformationDB" % originaProdIDOrName)
+
+    errKey = "Publishing Production failed: "
+    authorDN = self._clientTransport.peerCredentials['DN']
+    #authorName = self._clientTransport.peerCredentials['user']
+    authorGroup = self._clientTransport.peerCredentials['group']
+
+    wf = fromXMLString(body)
+    name = wf.getName()
+    parent = wf.getType()
+    description = wf.getDescrShort()
+    long_description = wf.getDescription()
+
+    try:
+      result = productionDB.addDerivedProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup, originalTransID)
+      if not result['OK']:
+        errExpl = " name=%s because %s" % (name, result['Message'])
+        gLogger.error(errKey, errExpl)
+      else:
+        gLogger.verbose('Transformation %s is added to the ProductionDB by the %s as derived from %s'%(name, authorDN, originalTransID) )
+        message = "Transformation %s published as derived from %s" % (name, originalTransID)
+        resultlog = productionDB.updateTransformationLogging(long(result['Value']),message,authorDN)
+      return result
+
+    except Exception,x:
+      errExpl = " name=%s because %s" % (name, str(x))
+      gLogger.exception(errKey, errExpl)
+      return S_ERROR(errKey + str(x))
+
   types_deleteProduction = [ [LongType, IntType, StringType] ]
   def export_deleteProduction( self, name ):
     transID = productionDB.getTransformationID(name)
@@ -165,6 +200,7 @@ class ProductionManagerTestHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     else:
+      authorDN = self._clientTransport.peerCredentials['DN']
       message = "Transformation %s deleted" % transID
       resultlog = productionDB.updateTransformationLogging(transID,message,authorDN)
     return result
@@ -278,10 +314,10 @@ class ProductionManagerTestHandler( TransformationHandler ):
       return S_ERROR('Failed to get production body for production %d with message %s'%(production,result["Message"]))
 
     resultDict = result['Value']
-    status_corrected = resultDict['Status'].upper() # catitalize status
+    status_corrected = resultDict['Status'].lower().capitalize() # catitalize status
     jobDict={}
 
-    if status_corrected == 'ACTIVE' or status_corrected == 'FLUSH':
+    if status_corrected == 'Active' or status_corrected == 'Flush':
 
       self.lock.acquire()
       result = productionDB.selectJobs(production,['Created'],numJobs,site)
@@ -371,7 +407,6 @@ class ProductionManagerTestHandler( TransformationHandler ):
     """
     return productionDB.getJobWmsStats(productionID)
 
-
   types_getJobInfo = [ [LongType, IntType, StringType], [LongType, IntType] ]
   def export_getJobInfo(self, prodNameOrID, jobID):
     """ Get job information for a given JobID and Production ID
@@ -406,3 +441,4 @@ class ProductionManagerTestHandler( TransformationHandler ):
       resultDict[prodID] = prod
 
     return S_OK(resultDict)
+

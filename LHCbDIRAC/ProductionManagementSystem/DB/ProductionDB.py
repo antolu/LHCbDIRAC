@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.28 2008/02/29 09:12:01 atsareg Exp $
+# $Id: ProductionDB.py,v 1.29 2008/02/29 16:19:04 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.28 $"
+__RCSID__ = "$Revision: 1.29 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -123,7 +123,7 @@ class ProductionDB(TransformationDB):
 ################ PRODUCTION SECTION ####################################
 
 
-  def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update=False):
+  def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update=False, inheritedFrom=0L):
 
     if fileMask == '' or fileMask == None: # if mask is empty it is simulation
       type_ = "SIMULATION"
@@ -134,33 +134,36 @@ class ProductionDB(TransformationDB):
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
     TransformationID = self.getTransformationID(name)
-    if TransformationID == 0: # workflow does not exists
+    if TransformationID > 0: # Transformation exists
+      error = 'Production "%s" exists in the database"' % (name)
+      gLogger.error( error )
+      return S_ERROR( error )
 
-      result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
+    result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
 
-      if not result['OK']:
-        error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
-        gLogger.error(error)
-        return S_ERROR( error )
+    if not result['OK']:
+      error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
+      gLogger.error(error)
+      return S_ERROR( error )
 
-      TransformationID = result['Value']
-      result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
-      if not result['OK']:
-        # if for some reason this faled we have to roll back
-        result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
-        error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
-        gLogger.error(error)
-        return S_ERROR( error )
+    TransformationID = result['Value']
+    result = self.__insertProductionParameters(TransformationID, groupsize, parent, body, inheritedFrom)
+    if not result['OK']:
+      # if for some reason this faled we have to roll back
+      result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+      error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
+      gLogger.error(error)
+      return S_ERROR( error )
 
-      result = self.__addJobTable(TransformationID)
-      if not result['OK']:
-        # if for some reason this failed we have to roll back
-        result_rollback2 = self.__deleteProductionParameters(TransformationID)
-        result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
-        error = 'Transformation "%s" ID=$d FAILED to add JobTable with message "%s"' % (name, TransformationID, result['Message'])
-        gLogger.error(error)
-        return S_ERROR( error )
-      return S_OK(TransformationID)
+    result = self.__addJobTable(TransformationID)
+    if not result['OK']:
+      # if for some reason this failed we have to roll back
+      result_rollback2 = self.__deleteProductionParameters(TransformationID)
+      result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+      error = 'Transformation "%s" ID=$d FAILED to add JobTable with message "%s"' % (name, TransformationID, result['Message'])
+      gLogger.error(error)
+      return S_ERROR( error )
+    return S_OK(TransformationID)
 
     #elif update:
       # update
@@ -170,21 +173,25 @@ class ProductionDB(TransformationDB):
         #if result['OK']:
       #return result
 
-    else:
-      # update was not requested
+
+  def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, originaProdIDOrName):
+    """ Create a new production derived from a previous one
+    """
+
+    TransformationID = self.getTransformationID(name)
+    if TransformationID > 0: # Transformation exists
       error = 'Production "%s" exists in the database"' % (name)
       gLogger.error( error )
       return S_ERROR( error )
 
-  def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, originalProdID, update=False):
-    """ Create a new production derived from a previous one
-    """
-
+    originalProdID = self.getTransformationID(originaProdIDOrName)
     result = self.setTransformationStatus(originalProdID,'Stopped')
     if not result['OK']:
       return result
+    message = 'Status changed to "Stopped" due to creation of the Derived Production'
+    resultlog = self.updateTransformationLogging(originalProdID,message,authorDN) #ignoring result
 
-    result = self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update)
+    result = self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, False, originalProdID)
     if not result['OK']:
       return result
 
@@ -196,26 +203,27 @@ class ProductionDB(TransformationDB):
     result = self._query(req)
     if result['OK']:
       if result['Value']:
-        ids = [ str(x[0]) for x in res['Value'] ]
+        ids = [ str(x[0]) for x in result['Value'] ]
     if ids:
       idstring = ','.join(ids)
-      req = "UPDATE T_%s SET Status='OldProcessed' WHERE FileID IN (%s)" % (newProdID,idstring)
+      req = "UPDATE T_%s SET Status='Inherited' WHERE FileID IN (%s)" % (newProdID,idstring)
       result = self._update(req)
       if not result['OK']:
         # rollback the operation
+        print "KGG We need to add code to restore original production status"
         result = self.deleteProduction(newProdID)
         if not result['OK']:
           gLogger.warn('Failed to rollback the production creation')
-        return S_ERROR('Failed to create production: error while marking already processed files')
+        return S_ERROR('Failed to create derived production: error while marking already processed files')
 
-    return S_OK()
+    return S_OK(newProdID)
 
-  def __insertProductionParameters(self, TransformationID, groupsize, parent, body):
+  def __insertProductionParameters(self, TransformationID, groupsize, parent, body, inheritedFrom=0):
     """
     Inserts additional parameters into ProductionParameters Table
     """
-    inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body']
-    inValues = [TransformationID, groupsize, parent, body]
+    inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body', 'InheritedFrom']
+    inValues = [TransformationID, groupsize, parent, body, inheritedFrom]
     result = self._insert('ProductionParameters',inFields,inValues)
     if not result['OK']:
       error = "Failed to add production parameters into ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
@@ -228,7 +236,7 @@ class ProductionDB(TransformationDB):
     Get additional parameters from ProductionParameters Table
     """
     id_ = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent, Body  from ProductionParameters WHERE TransformationID='%d';" % id_
+    cmd = "SELECT GroupSize, Parent, Body, InheritedFrom  from ProductionParameters WHERE TransformationID='%d';" % id_
     result = self._query(cmd)
     retdict={}
     if not result['OK']:
@@ -240,10 +248,12 @@ class ProductionDB(TransformationDB):
       retdict['GroupSize']=result['Value'][0][0]
       retdict['Parent']=result['Value'][0][1]
       retdict['Body']=result['Value'][0][2]
+      retdict['InheritedFrom']=result['Value'][0][3]
     else:
       retdict['GroupSize']=0
       retdict['Parent']=""
       retdict['Body']=""
+      retdict['InheritedFrom']=0
 
     return S_OK(retdict)
 
@@ -252,7 +262,7 @@ class ProductionDB(TransformationDB):
     Get additional parameters from ProductionParameters Table
     """
     id_ = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent  from ProductionParameters WHERE TransformationID='%d'" % id_
+    cmd = "SELECT GroupSize, Parent, InheritedFrom  from ProductionParameters WHERE TransformationID='%d'" % id_
     result = self._query(cmd)
     retdict={}
     if not result['OK']:
@@ -263,9 +273,11 @@ class ProductionDB(TransformationDB):
     if result['Value']:
       retdict['GroupSize']=result['Value'][0][0]
       retdict['Parent']=result['Value'][0][1]
+      retdict['InheritedFrom']=result['Value'][0][2]
     else:
       retdict['GroupSize']=0
       retdict['Parent']=""
+      retdict['InheritedFrom']=0
 
 
     return S_OK(retdict)
@@ -337,7 +349,8 @@ INDEX(WmsStatus)
       if result2['OK']:
         prod['GroupSize']=result2['Value']['GroupSize']
         prod['Parent']=result2['Value']['Parent']
-      # we can ignore errors for now
+        prod['InheritedFrom']=result2['Value']['InheritedFrom']
+     # we can ignore errors for now
       #else:
       #  return result2
     return result1
@@ -407,6 +420,7 @@ INDEX(WmsStatus)
     if result['OK']:
       prod['GroupSize']=result['Value']['GroupSize']
       prod['Parent']=result['Value']['Parent']
+      prod['InheritedFrom']=result['Value']['InheritedFrom']
       return S_OK(prod)
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
@@ -419,6 +433,7 @@ INDEX(WmsStatus)
       prod['Value']['GroupSize']=result['Value']['GroupSize']
       prod['Value']['Parent']=result['Value']['Parent']
       prod['Value']['Body']=result['Value']['Body']
+      prod['Value']['InheritedFrom']=result['Value']['InheritedFrom']
       return prod
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))

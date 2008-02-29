@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.8 2008/02/20 12:02:05 gkuznets Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.9 2008/02/29 16:19:04 gkuznets Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -55,6 +55,7 @@ CREATE TABLE ProductionParameters (
     TransformationID INTEGER NOT NULL,
     GroupSize INT NOT NULL DEFAULT 0,
     Parent VARCHAR(255) DEFAULT '',
+    InheritedFrom INTEGER DEFAULT 0,
     Body BLOB,
     PRIMARY KEY(TransformationID)
 );
@@ -71,27 +72,17 @@ CREATE TABLE ProductionParameters (
 --   Done - job finished
 -- JobWmsID - index of this job in the WMS
 --------------------------------------------------------------------------------
-DROP TABLE IF EXISTS Jobs_<ProductionID>;
-CREATE TABLE  Jobs_<ProductionID>(
-  JobID INTEGER NOT NULL AUTO_INCREMENT,
-  WmsStatus char(16) DEFAULT 'CREATED',
-  JobWmsID char(16),
-  TimeStamp TIMESTAMP,
-  InputVector BLOB,
-  PRIMARY KEY(JobID),
-  INDEX(WmsStatus)
-);
-CREATE TABLE Jobs_%s(
-JobID INTEGER NOT NULL AUTO_INCREMENT,
-WmsStatus char(16) DEFAULT 'Created',
-JobWmsID char(16),
-#CreationTime DATETIME NOT NULL DEFAULT NOW(),
-#LastUpdateTime DATETIME NOT NULL DEFAULT NOW(),
-InputVector BLOB,
-PRIMARY KEY(JobID),
-INDEX(WmsStatus)
-);
-
+-- CREATE TABLE Jobs_%s(
+-- JobID INTEGER NOT NULL AUTO_INCREMENT,
+-- WmsStatus char(16) DEFAULT 'Created',
+-- JobWmsID char(16) DEFAULT '',
+-- TargetSE char(32) DEFAULT '',
+-- CreationTime DATETIME NOT NULL,
+-- LastUpdateTime DATETIME NOT NULL,
+-- InputVector BLOB,
+-- PRIMARY KEY(JobID),
+-- INDEX(WmsStatus)
+-- );
 --------------------------------------------------------------------------------
 --
 -- Added the standard base class database tables here
