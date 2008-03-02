@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.30 2008/02/29 16:47:24 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.31 2008/03/02 02:27:08 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.30 $"
+__RCSID__ = "$Revision: 1.31 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -446,7 +446,12 @@ INDEX(WmsStatus)
       self.lock.acquire()
       req = "INSERT INTO Jobs_%s (WmsStatus, JobWmsID, TargetSE, CreationTime, LastUpdateTime, InputVector) VALUES\
       ('%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),'%s');" % (productionID,'Created', 0, se, inputVector)
-      result = self._update(req)
+      result = self._getConnection()
+      if result['OK']:
+        connection = result['Value']
+      else:
+        return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
+      result = self._update(req,connection)
 
       if not result['OK']:
         self.lock.release()
@@ -454,7 +459,7 @@ INDEX(WmsStatus)
         gLogger.error(error)
         return S_ERROR( error )
 
-      result2 = self._query("SELECT LAST_INSERT_ID();")
+      result2 = self._query("SELECT LAST_INSERT_ID();", connection)
       self.lock.release()
       if not result2['OK']:
         return result2
