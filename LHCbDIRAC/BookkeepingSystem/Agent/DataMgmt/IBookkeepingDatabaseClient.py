@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.2 2008/03/03 09:56:25 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.2 2008/03/03 09:56:25 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -64,5 +64,13 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def deleteFile(self, file):
     return self.getManager().deleteFile(file)
+  
+  #############################################################################
+  def insertQuality(self, fileID, group, flag ):
+    return self.getManager().insertQuality(fileID, group, flag)
+  
+  #############################################################################
+  def insertQualityParam(self, fileID, qualityID, name, value):
+    return self.getManager().insertQualityParam(fileID, name, value)
   
   #############################################################################
