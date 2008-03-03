@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.3 2008/03/03 10:00:04 zmathe Exp $
+# $Id: JobReader.py,v 1.4 2008/03/03 11:57:48 zmathe Exp $
 ########################################################################
 
 """
@@ -19,7 +19,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.3 2008/03/03 10:00:04 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.4 2008/03/03 11:57:48 zmathe Exp $"
 
 
 class JobReader:
@@ -219,7 +219,7 @@ class JobReader:
           fileQuality = Quality()
           group = quality.getAttributeNode("Group")
           if group != None:
-            fileQuality.setGroup(gropu._get_value().encode('ascii'))
+            fileQuality.setGroup(group._get_value().encode('ascii'))
           else:
             gLogger.warn("<Group> Quality XML tag is missing!!")
           
