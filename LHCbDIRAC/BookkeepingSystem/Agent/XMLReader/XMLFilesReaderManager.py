@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.1 2008/02/29 12:01:29 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.2 2008/03/03 16:14:46 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                        import gConf
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.1 2008/02/29 12:01:29 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.2 2008/03/03 16:14:46 zmathe Exp $"
 
 class XMLFilesReaderManager:
   
@@ -116,7 +116,8 @@ class XMLFilesReaderManager:
         if ( action == 'recover' ):
           files += [file]
         else:
-          self.fileClient_.rm(file)
+          name = os.path.split(file)[1]
+          self.fileClient_.rename(file, self.errorsTmp_ + name)
         self.fileClient_.rm(fn)
     return files
   
