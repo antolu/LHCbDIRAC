@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.4 2008/03/03 13:45:54 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.5 2008/03/03 13:49:42 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.4 2008/03/03 13:45:54 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.5 2008/03/03 13:49:42 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -37,7 +37,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     try:
       self.db_.selectAttr(["/files:FILE", "/files:JOB_ID", "/files:TYPE_ID"], "/files:LOGNAME=\"" + str(fileName) + "\"")
       while not self.db_.eot():
-        result = db.getSelectAttrEntry()
+        result = self.db_.getSelectAttrEntry()
     except Exception, ex:
       gLogger.error(ex)
       return S_ERROR(ex) 
@@ -56,7 +56,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     try:
       self.db_.selectAttr(["/typeParams:FILE"], "/typeParams:Name=\"" + str(type) + "\" and /typeParams:Version=\"" + str(version) + "\"")
       while not self.db_.eot():
-        result = db.getSelectAttrEntry()
+        result = self.db_.getSelectAttrEntry()
     except Exception, ex:
       gLogger.error(ex)
       return S_ERROR(ex)
@@ -76,7 +76,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     try:
       self.db_.selectAttr(["/evtTypes:DESCRIPTION", "/evtTypes:PRIMARY", "/evtTypes:DECAY"], "/evtTypes:EVTTYPE_ID=" + str(eventTypeId))
       while not self.db_.eot():
-        result = db.getSelectAttrEntry()
+        result = self.db_.getSelectAttrEntry()
     except Exception, ex:
       gLogger.error(ex)
       return S_ERROR(ex)
