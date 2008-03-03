@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: IBookkeepingDB.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $
+# $Id: IBookkeepingDB.py,v 1.2 2008/03/03 09:57:11 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: IBookkeepingDB.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDB.py,v 1.2 2008/03/03 09:57:11 zmathe Exp $"
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 
@@ -71,4 +71,14 @@ class IBookkeepingDB(object):
     gLoogger.warn("not implemented")
     return S_ERROR()
   
+  #############################################################################
+  def insertQuality(self, fileID, group, flag ):
+    gLoogger.warn("not implemented")
+    return S_ERROR()
+  
+  #############################################################################
+  def insertQualityParam(self, fileID, qualityID, name, value):
+    gLoogger.warn("not implemented")
+    return S_ERROR()
+ 
   #############################################################################
