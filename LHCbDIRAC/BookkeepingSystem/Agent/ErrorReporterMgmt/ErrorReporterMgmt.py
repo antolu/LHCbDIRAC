@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ErrorReporterMgmt.py,v 1.2 2008/03/03 15:16:55 zmathe Exp $
+# $Id: ErrorReporterMgmt.py,v 1.3 2008/03/03 15:34:42 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC                                                     import gLogger, S
 from DIRAC.ConfigurationSystem.Client.Config                   import gConfig
 import os
 
-__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.2 2008/03/03 15:16:55 zmathe Exp $"
+__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.3 2008/03/03 15:34:42 zmathe Exp $"
 
 
 
@@ -31,7 +31,7 @@ class ErrorReporterMgmt:
     gLogger.info("Error Report!")
     try:
       name = self.__getErrorFileName(file)
-      gLogger.info("File Name" + str(name))
+      gLogger.info("File Name:" + str(name))
       fullName = self.errorDir_ + name +".error"
       
       f = open(fullName, 'w')
@@ -44,7 +44,7 @@ class ErrorReporterMgmt:
       self.fileClient_.rename(file, self.errorDir_ +name)
       gLogger.info("Error Report End!")
     except OSError, (errno, strerror):
-      print strerror    
+      gLogger.error("reportError:" + str(strerror))    
   
   #############################################################################  
   def __getErrorFileName(self, fileName):
