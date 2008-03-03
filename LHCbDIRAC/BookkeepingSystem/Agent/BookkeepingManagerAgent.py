@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.5 2008/03/03 10:00:45 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.6 2008/03/03 11:49:44 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.5 2008/03/03 10:00:45 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.6 2008/03/03 11:49:44 zmathe Exp $"
 
-AGENT_NAME = 'BookkeepingSystem/BookkeepingManagerAgent'
+AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
 from DIRAC.Core.Base.Agent                                                import Agent
 from DIRAC                                                                import S_OK, S_ERROR
@@ -36,7 +36,7 @@ class BookkeepingManagerAgent(Agent):
     self.xmlMgmt_ = XMLFilesReaderManager()
     self.errorMgmt_ = ErrorReporterMgmt()
     self.dataManager_ =  AMGABookkeepingDatabaseClient()
-    baseDir = gConfig.getValue("XMLProcessing", "/opt/bookkeeping/XMLProcessing/")
+    baseDir = gConfig.getValue(self.section+"/XMLProcessing", "/opt/bookkeeping/XMLProcessing/")
     self.done_ = baseDir + "Done/"
   
     return result
