@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.7 2008/03/03 12:16:52 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.8 2008/03/03 15:38:37 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.7 2008/03/03 12:16:52 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.8 2008/03/03 15:38:37 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -115,7 +115,7 @@ class BookkeepingManagerAgent(Agent):
       
         
     config = job.getJobConfiguration()
-    result = self.dataManager_.insertJob(config.getConfigName(), config.getConfigVersion(), config.getDate)    
+    result = self.dataManager_.insertJob(config.getConfigName(), config.getConfigVersion(), config.getDate())    
     if not result['OK']:
       self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
       return S_ERROR()
@@ -214,7 +214,7 @@ class BookkeepingManagerAgent(Agent):
       return S_ERROR()
     
     if (delete):
-      self.log.error("Cannot delete replica, because don't have implamantation!!")
+      self.log.error("Cannot delete replica, because this part don't have implamantation!!")
       self.errorMgmt_.reportError(24, "Cannot delete replica, because this part don't have implamantation!!", file)
       return S_ERROR()
     
