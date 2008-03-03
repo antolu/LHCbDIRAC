@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.9 2008/03/03 15:42:39 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.10 2008/03/03 15:52:13 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.9 2008/03/03 15:42:39 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.10 2008/03/03 15:52:13 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -68,8 +68,10 @@ class BookkeepingManagerAgent(Agent):
     """
     
     """
-    
     deleteFileName = job.getFileName()
+    
+    self.log.info("Processing: " + deleteFileName)
+
     ##checking
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
@@ -185,6 +187,8 @@ class BookkeepingManagerAgent(Agent):
           self.errorMgmt_.reportError(21, "Unable to create Replica " + str(name) + " (in " + str(location) + ") for file " + str(file.getFileName()) + ".\n", deleteFileName)
           return S_ERROR()
     
+    self.log.info("End Processing: " + deleteFileName)
+    
     return S_OK()
   
   #############################################################################
@@ -192,6 +196,7 @@ class BookkeepingManagerAgent(Agent):
     """
     
     """
+    self.log.info("Processing replicas!")
     file = replica.getFileName()
     params = replica.getaprams()
     delete = True
@@ -217,6 +222,8 @@ class BookkeepingManagerAgent(Agent):
       self.log.error("Cannot delete replica, because this part don't have implamantation!!")
       self.errorMgmt_.reportError(24, "Cannot delete replica, because this part don't have implamantation!!", file)
       return S_ERROR()
+    
+    self.log.info("End Processing replicas!")
     
     return S_OK()
   
