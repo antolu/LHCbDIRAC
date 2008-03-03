@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.6 2008/03/03 11:49:44 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.7 2008/03/03 12:16:52 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.6 2008/03/03 11:49:44 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.7 2008/03/03 12:16:52 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -194,7 +194,7 @@ class BookkeepingManagerAgent(Agent):
     """
     file = replica.getFileName()
     params = replica.getaprams()
-    delete = False
+    delete = True
     replicaFileName = ""
     for param in params:
       name = param.getName()
@@ -211,6 +211,11 @@ class BookkeepingManagerAgent(Agent):
          message += "added"
       message += " to file " + str(file) + " for " + str(location) + ".\n" 
       self.errorMgmt_.reportError(23, message, file)
+      return S_ERROR()
+    
+    if (delete):
+      self.log.error("Cannot delete replica, because don't have implamantation!!")
+      self.errorMgmt_.reportError(24, "Cannot delete replica, because this part don't have implamantation!!", file)
       return S_ERROR()
     
     return S_OK()
