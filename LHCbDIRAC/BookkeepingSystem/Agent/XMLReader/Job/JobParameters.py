@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: JobParameters.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $
+# $Id: JobParameters.py,v 1.2 2008/03/03 15:44:57 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: JobParameters.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $"
+__RCSID__ = "$Id: JobParameters.py,v 1.2 2008/03/03 15:44:57 zmathe Exp $"
 
 class JobParameters:
 
@@ -38,7 +38,7 @@ class JobParameters:
     self.type_ = type
 
   #############################################################################  
-  def getType(self, type):
+  def getType(self):
     return self.type_
   
   #############################################################################  

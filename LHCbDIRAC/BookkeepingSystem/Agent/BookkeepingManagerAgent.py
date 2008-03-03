@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.8 2008/03/03 15:38:37 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.9 2008/03/03 15:42:39 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.8 2008/03/03 15:38:37 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.9 2008/03/03 15:42:39 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -125,7 +125,7 @@ class BookkeepingManagerAgent(Agent):
     
     params = job.getJobParams()
     for param in params:
-      result = self.dataManager_insertJobParameter(job.getJobId(), param.getName(), param.getValue(), param.getType())
+      result = self.dataManager_.insertJobParameter(job.getJobId(), param.getName(), param.getValue(), param.getType())
       if not result['OK']:
         return S_ERROR()
     
