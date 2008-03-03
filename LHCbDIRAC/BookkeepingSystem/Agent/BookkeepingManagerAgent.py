@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.4 2008/02/29 12:17:33 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.5 2008/03/03 10:00:45 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.4 2008/02/29 12:17:33 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.5 2008/03/03 10:00:45 zmathe Exp $"
 
 AGENT_NAME = 'BookkeepingSystem/BookkeepingManagerAgent'
 
@@ -82,7 +82,7 @@ class BookkeepingManagerAgent(Agent):
         fileID = int(result['Value'])
         file.setFileID(fileID)
     
-    outputFiles = job.addJobOutputFiles()
+    outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
       name = file.getFileName()
       result = self.dataManager_.file(name)
@@ -104,7 +104,7 @@ class BookkeepingManagerAgent(Agent):
       for param in params:
         paramName = param.getParamName()
         if paramName == "GUID":
-          param.setParamName("lhcb_"+paramName)
+          param.setParamName("lhcb_" + paramName)
         if paramName == "EventType":
           value = int(param.getParamValue())
           result = self.dataManager_.eventType(value)
@@ -117,7 +117,7 @@ class BookkeepingManagerAgent(Agent):
     config = job.getJobConfiguration()
     result = self.dataManager_.insertJob(config.getConfigName(), config.getConfigVersion(), config.getDate)    
     if not result['OK']:
-      self.errorMgmt_.reportError (13,"Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
+      self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
       return S_ERROR()
     else:
       jobID = int(result['Value'])
@@ -137,7 +137,7 @@ class BookkeepingManagerAgent(Agent):
         return S_ERROR()
       
   
-    outputFiles = job.addJobOutputFiles()
+    outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
       result = self.dataManager_.insertOutputFile(job.getJobId(), file.getFileName(), file.getTypeID())
       if not result['OK']:
@@ -152,7 +152,28 @@ class BookkeepingManagerAgent(Agent):
         result = self.dataManager_.insertFileParam(file.getFileID(), param.getParamName(), param.getParamValue())
         if not result['OK']:
           return S_ERROR()
-    
+      
+      qualities = file.getQualities()
+      for quality in qualities:
+        group = quality.getGroup()
+        flag = quality.getFlag()
+        result = self.dataManager_.insertQuality(file.getFileID(), group, flag)           
+        if not result['OK']:
+          self.errorMgmt_.reportError(19, "Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n", deleteFileName)                                 
+          return S_ERROR()
+        else:
+          qualityID = int(result['Value'])
+          quality.setQualityID(qualityID)
+          
+        params = quality.getParams()
+        for param in params:
+           name = param.getName()
+           value = param.getValue()
+           result = self.dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
+           if not result['OK']:
+             self.errorMgmt_.reportError (20, "Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n", deleteFileName)
+             return S_ERROR()
+                   
       replicas = file.getReplicas()
       for replica in replicas:
         params = replica.getaprams()
@@ -194,6 +215,7 @@ class BookkeepingManagerAgent(Agent):
     
     return S_OK()
   
+  #############################################################################
   def __moveFileToDoneDirectory(self, fileName):
     name = os.path.split(fileName)[1]
     self.fileClient_.rename(fileName, self.done_+name)
