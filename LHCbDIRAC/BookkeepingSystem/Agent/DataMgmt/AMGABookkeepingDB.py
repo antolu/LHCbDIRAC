@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.2 2008/02/29 18:11:55 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.3 2008/03/03 09:55:40 zmathe Exp $
 ########################################################################
 
 """
@@ -11,14 +11,14 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.2 2008/02/29 18:11:55 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.3 2008/03/03 09:55:40 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def __init__(self):
     super(AMGABookkeepingDB, self).__init__()
-    self.hostName_ = gConfig.getValue("hostName","volhcb07.cern.ch")
+    self.hostName_ = gConfig.getValue("hostName", "volhcb07.cern.ch")
     self.port_ = gConfig.getValue("port", 8822)
     self.password_ = gConfig.getValue("password", "root")
     
@@ -35,15 +35,15 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     result = []
     try:
-      self.db_.selectAttr(["/files:FILE","/files:JOB_ID","/files:TYPE_ID"], "/files:LOGNAME=\""+str(fileName)+"\"")
+      self.db_.selectAttr(["/files:FILE", "/files:JOB_ID", "/files:TYPE_ID"], "/files:LOGNAME=\"" + str(fileName) + "\"")
       while not self.db_.eot():
         result = db.getSelectAttrEntry()
     except Exception, ex:
       gLogger.error(ex)
       return S_ERROR(ex) 
     if ( result == [] ):
-      gLogger.error("File not found! with"+str(fileName))
-      return S_ERROR("File not found! with"+str(fileName))
+      gLogger.error("File not found! with" + str(fileName))
+      return S_ERROR("File not found! with" + str(fileName))
     else:
       return S_OK(result)      
       
@@ -54,7 +54,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     result = []
     try:
-      self.dg_.selectAttr(["/typeParams:FILE"], "/typeParams:Name=\""+str(type)+"\" and /typeParams:Version=\""+str(version)+"\"")
+      self.dg_.selectAttr(["/typeParams:FILE"], "/typeParams:Name=\"" + str(type) + "\" and /typeParams:Version=\"" + str(version) + "\"")
       while not self.db_.eot():
         result = db.getSelectAttrEntry()
     except Exception, ex:
@@ -62,8 +62,8 @@ class AMGABookkeepingDB(IBookkeepingDB):
       return S_ERROR(ex)
     
     if ( result == [] ):
-      gLogger.error("Type not found! with name "+str(type)+" and version "+str(version))
-      return S_ERROR("Type not found! with name "+str(type)+" and version "+str(version))
+      gLogger.error("Type not found! with name " + str(type) + " and version " + str(version))
+      return S_ERROR("Type not found! with name " + str(type) + " and version " + str(version))
     else:
       return S_OK(int(result[0]))      
   
@@ -74,7 +74,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     result = []
     try:
-      self.db_.selectAttr(["/evtTypes:DESCRIPTION","/evtTypes:PRIMARY","/evtTypes:DECAY"], "/evtTypes:EVTTYPE_ID=" +str(eventTypeId))
+      self.db_.selectAttr(["/evtTypes:DESCRIPTION", "/evtTypes:PRIMARY", "/evtTypes:DECAY"], "/evtTypes:EVTTYPE_ID=" + str(eventTypeId))
       while not self.db_.eot():
         result = db.getSelectAttrEntry()
     except Exception, ex:
@@ -82,8 +82,8 @@ class AMGABookkeepingDB(IBookkeepingDB):
       return S_ERROR(ex)
     
     if ( result == [] ):
-      gLogger.error("Event type "+str(eventTypeId)+" not found!")
-      return S_ERROR("Event type "+str(eventTypeId)+" not found!")
+      gLogger.error("Event type " + str(eventTypeId) + " not found!")
+      return S_ERROR("Event type " + str(eventTypeId) + " not found!")
     else:
       return S_OK(result)      
   
@@ -106,7 +106,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
         gLogger.error("Cannot find the next bookkeeping index!")
         return S_ERROR("Cannot find the next bookkeeping index!")
       
-      self.db_.addEntry("/jobs/"+str(id), ['CONFIGNAME','CONFIGVERSION','JOB_ID','JOBDATE'], [jobName, jobConfVersion, str(id), date])
+      self.db_.addEntry("/jobs/" + str(id), ['CONFIGNAME', 'CONFIGVERSION', 'JOB_ID', 'JOBDATE'], [jobName, jobConfVersion, str(id), date])
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
     except Exception, ex:
       gLogger.error(ex)
@@ -120,14 +120,14 @@ class AMGABookkeepingDB(IBookkeepingDB):
     
     """
     try:
-      self.db_.addEntry("/jobParams/"+str(jobID), ["TYPE","JOB_ID"], [type, str(jobID)])   
+      self.db_.addEntry("/jobParams/" + str(jobID), ["TYPE", "JOB_ID"], [type, str(jobID)])   
     except Exception, ex:
       try:
-        self.db_.setAttr("/jobParams/"+str(jobID), [name.replace(' ','_')], [value])
+        self.db_.setAttr("/jobParams/" + str(jobID), [name.replace(' ','_')], [value])
       except Exception, ex:
         try:
-          self.db_.addAttr("/jobParams/"+str(jobID), name.replace(' ','_'), "varchar2(255)")
-          self.db_.setAttr("/jobParams/"+str(jobID), [name.replace(' ','_')], [value])
+          self.db_.addAttr("/jobParams/" + str(jobID), name.replace(' ','_'), "varchar2(255)")
+          self.db_.setAttr("/jobParams/" + str(jobID), [name.replace(' ','_')], [value])
         except Exception. ex:   
           gLogger.error(ex)
           return S_ERROR(ex)
@@ -151,7 +151,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
         gLogger.error("Cannot find the next bookkeeping index!")
         return S_ERROR("Cannot find the next bookkeeping index!")
       
-      self.db_.addEntry("/inputFiles/"+str(id), ["JOB_ID","FILE_ID"], [str(jobID), str(inputfileID)])
+      self.db_.addEntry("/inputFiles/" + str(id), ["JOB_ID", "FILE_ID"], [str(jobID), str(inputfileID)])
       self.db_.setAttr("/NextBookkeepingIDs/ids",["INPUTFILE_ID"], [str(id)]);
     
     except Exception, ex:
@@ -178,7 +178,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
           gLogger.error("Cannot find the next bookkeeping index!")
           return S_ERROR("Cannot find the next bookkeeping index!")
            
-      self.db_.addEntry("/files/"+str(id), ["TYPE_ID","LOGNAME","JOB_ID","FILE_ID"], [str(typeID), name, str(jobID), str(id)]) 
+      self.db_.addEntry("/files/"+str(id), ["TYPE_ID", "LOGNAME", "JOB_ID", "FILE_ID"], [str(typeID), name, str(jobID), str(id)]) 
       self.db._.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
     except Exception, ex:
@@ -192,15 +192,15 @@ class AMGABookkeepingDB(IBookkeepingDB):
     
     """
     try:
-      self.db_.addEntry("/fileParams/"+str(id), ["FILE_ID"], [str(id)])
+      self.db_.addEntry("/fileParams/" + str(id), ["FILE_ID"], [str(id)])
     except Exception, ex: #catch(CommandException ce){;}//the entry "/jobParams/"+id is already in the table
       try: 
-        self.db_.getAttr("/fileParams/"+str(id), [name.replace(' ','_')]) #?
-        self.db_.setAttr("/fileParams/"+str(id), [name.replace(' ','_')], [value])
+        self.db_.getAttr("/fileParams/" + str(id), [name.replace(' ','_')]) #?
+        self.db_.setAttr("/fileParams/" + str(id), [name.replace(' ','_')], [value])
       except Exception, ex:
         try:
-          self.db_.addAttr("/fileParams/"+str(id),name.replace(' ','_'),"varchar2(255)")
-          self.db_.setAttr("/fileParams/"+str(id), [name.replace(' ','_')], [value]);
+          self.db_.addAttr("/fileParams/" + str(id),name.replace(' ','_'), "varchar2(255)")
+          self.db_.setAttr("/fileParams/" + str(id), [name.replace(' ','_')], [value]);
         except Exception, ex:
           gLogger.error(ex)
           return S_ERROR(ex)
@@ -225,8 +225,8 @@ class AMGABookkeepingDB(IBookkeepingDB):
           return S_ERROR("Cannot find the next bookkeeping index!")
            
    
-      self.db_.addEntry("/replicas/All/"+str(id), ["REPLICA","LOCATION","FILE_ID"], [name, location, str(fileID)]) 
-      self.db_.setAttr("/NextBookkeepingIDs/ids", ["REPLICA_ID"], str(id))
+      self.db_.addEntry("/replicas/All/" + str(id), ["REPLICA", "LOCATION", "FILE_ID"], [name, location, str(fileID)]) 
+      self.db_.setAttr("/NextBookkeepingIDs/ids", ["REPLICA_ID"], [str(id)])
       return S_OK()
   
     except Exception, ex:
@@ -246,5 +246,51 @@ class AMGABookkeepingDB(IBookkeepingDB):
     
     """
     return S_OK()
+  
+  #############################################################################
+  def insertQuality(self, fileID, group, flag ):
+    """
+    
+    """
+    try:     
+      self.db_.getattr("/NextBookkeepingIDs/ids", ["QUALITY_ID"])
+      value = []
+      id = -1
+      while not self.db_.eot():
+        file, value = self.db_.getEntry()
+      
+        if (value != []):
+          id = int(value[0]) + 1
+        else:
+          gLogger.error("Cannot find the next bookkeeping index!")
+          return S_ERROR("Cannot find the next bookkeeping index!")
+      
+      self.db_.addEntry("/qualityParams/" + str(id), ["Flag", "Group", "FILE_ID", "QUALITY_ID"], [flag, group, str(fileID), str(id)]) 
+      self.db_.setAttr("/NextBookkeepingIDs/ids", ["QUALITY_ID"], [str(id)])
+    
+    except Exception, ex:
+      gLogger.error(ex)
+      return S_ERROR(ex)
+    
+    return S_OK(id)
+  
+  #############################################################################
+  def insertQualityParam(self, fileID, qualityID, name, value):
+    """
+    
+    """
+    try:
+      self.db_.addEntry("/qualityParams/" + str(qualityID), ["FILE_ID", "QUALITY_ID"], [str(fileID), str(qualityID)])
+    except Exception, ex:
+      try:
+        attvalue = self.db_.getAttr("/qualityParams/" + str(qualityID), [name.replace(' ','_')])
+        self.db_.setAttr("/qualityParams/" + str(quakityID), [name.replace(' ','_'), value])
+      except Exception, ex:
+        try:
+          self.db_.addAttr("/qualityParams/" + str(qualityID), name.replace(' ','_'), "varchar2(255)")
+          self.db_.setAttr("/qualityParams/" + str(qualityID), [name.replace(' ','_'), value])
+        
+        except Exception, ex:
+          return S_ERROR(ex)
   
   #############################################################################
