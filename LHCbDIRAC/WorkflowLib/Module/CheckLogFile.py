@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.10 2008/02/26 15:13:15 joel Exp $
+# $Id: CheckLogFile.py,v 1.11 2008/03/03 08:04:58 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.10 2008/02/26 15:13:15 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.11 2008/03/03 08:04:58 joel Exp $"
 
 import commands, os
 
@@ -68,7 +68,7 @@ class CheckLogFile(object):
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     # a convertir
-    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID)
+    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id
 
     lfile = open('logmail','w')
@@ -106,7 +106,7 @@ class CheckLogFile(object):
     if self.appLog:
 
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
-      logurl = 'http://lhcb-logs.cern.ch/storage'
+      logurl = 'http://lhcb-logs.cern.ch/storage'+logpath
 #  a definir
 #      ses = gConfig.getValue('http')
 #      if ses:
