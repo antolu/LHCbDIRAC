@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.7 2008/03/03 15:07:47 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.8 2008/03/04 11:19:45 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.7 2008/03/03 15:07:47 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.8 2008/03/04 11:19:45 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -179,7 +179,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
           return S_ERROR("Cannot find the next bookkeeping index!")
            
       self.db_.addEntry("/files/"+str(id), ["TYPE_ID", "LOGNAME", "JOB_ID", "FILE_ID"], [str(typeID), name, str(jobID), str(id)]) 
-      self.db._.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
+      self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
     except Exception, ex:
       gLogger.error("Insert outputFile" + str(ex))
@@ -195,7 +195,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       self.db_.addEntry("/fileParams/" + str(id), ["FILE_ID"], [str(id)])
     except Exception, ex: #catch(CommandException ce){;}//the entry "/jobParams/"+id is already in the table
       try: 
-        self.db_.getAttr("/fileParams/" + str(id), [name.replace(' ','_')]) #?
+        #self.db_.getAttr("/fileParams/" + str(id), [name.replace(' ','_')]) #?
         self.db_.setAttr("/fileParams/" + str(id), [name.replace(' ','_')], [value])
       except Exception, ex:
         try:
