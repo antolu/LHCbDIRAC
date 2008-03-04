@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.11 2008/03/03 08:04:58 joel Exp $
+# $Id: CheckLogFile.py,v 1.12 2008/03/04 15:04:37 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.11 2008/03/03 08:04:58 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.12 2008/03/04 15:04:37 joel Exp $"
 
 import commands, os
 
@@ -127,10 +127,10 @@ class CheckLogFile(object):
       url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog + '.gz'
       lfile.write(url+'\n')
       lfile.write('\n\nJob StdOut:\n')
-      url = logurl+'/'+ self.JOB_ID+'/job.output'
+      url = logurl+'/'+ self.JOB_ID+'/std.out'
       lfile.write(url+'\n')
       lfile.write('\n\nJob StdErr:\n')
-      url = logurl+'/'+ self.JOB_ID+'/job.error'
+      url = logurl+'/'+ self.JOB_ID+'/std.err'
       lfile.write(url+'\n')
 
     lfile.close()
