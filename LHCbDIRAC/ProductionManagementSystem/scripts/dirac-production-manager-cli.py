@@ -1,5 +1,5 @@
-# $Id: dirac-production-manager-cli.py,v 1.20 2008/02/29 16:58:58 gkuznets Exp $
-__RCSID__ = "$Revision: 1.20 $"
+# $Id: dirac-production-manager-cli.py,v 1.21 2008/03/04 19:39:11 gkuznets Exp $
+__RCSID__ = "$Revision: 1.21 $"
 
 import cmd
 import sys, os
@@ -43,12 +43,20 @@ class ProductionManagerCLI( TransformationDBCLI ):
       <filename> is a path to the file with the xml description of the workflow
       If workflow already exists, publishing will be refused.
     """
-    fd = file( args )
-    body = fd.read()
-    fd.close()
-    result = self.server.publishWorkflow(body, False)
-    if not result['OK']:
-      print "Error during command execution: %s" % result['Message']
+    argss, length = self.check_params(args, 1)
+    if not argss:
+      return
+    tr_file = argss[0]
+
+    if os.path.exists(tr_file):
+      fd = file( tr_file )
+      body = fd.read()
+      fd.close()
+      result = self.server.publishWorkflow(body, False)
+      if not result['OK']:
+        print "Error during command execution: %s" % result['Message']
+    else:
+      print "File %s does not exists" % tr_file
 
   def do_updateWF(self, args):
     """
@@ -57,12 +65,20 @@ class ProductionManagerCLI( TransformationDBCLI ):
       <filename> is a path to the file with the xml description of the workflow
       If workflow already exists, it will be replaced.
     """
-    fd = file( args )
-    body = fd.read()
-    fd.close()
-    result = self.server.publishWorkflow(body, True)
-    if not result['OK']:
-      print "Error during command execution: %s" % result['Message']
+    argss, length = self.check_params(args, 1)
+    if not argss:
+      return
+    tr_file = argss[0]
+
+    if os.path.exists(tr_file):
+      fd = file( tr_file )
+      body = fd.read()
+      fd.close()
+      result = self.server.publishWorkflow(body, True)
+      if not result['OK']:
+        print "Error during command execution: %s" % result['Message']
+    else:
+      print "File %s does not exists" % tr_file
 
 
   def do_getWF(self, args):
@@ -72,13 +88,19 @@ class ProductionManagerCLI( TransformationDBCLI ):
       <WFName> - the name of the workflow
       <filename> is a path to the file to write xml of the workflow
     """
-    argss = string.split(args)
+
+    argss, length = self.check_params(args, 2)
+    if not argss:
+      return
     wf_name = argss[0]
     path = argss[1]
 
     result = self.server.getWorkflow(wf_name)
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
+      return
+    if not result['Value']:
+      print "No Workflow %s in the repository" % wf_name
       return
 
     body = result['Value']
@@ -91,7 +113,11 @@ class ProductionManagerCLI( TransformationDBCLI ):
     Delete Workflow from the the repository
       Usage: deleteWF WorkflowName
     """
-    result = self.server.deleteWorkflow(args)
+    argss, length = self.check_params(args, 1)
+    if not argss:
+      return
+    wf_name = argss[0]
+    result = self.server.deleteWorkflow(wf_name)
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
 
@@ -111,6 +137,22 @@ class ProductionManagerCLI( TransformationDBCLI ):
         print "| %010s | %010s | %014s | %s | %s | %s | %s |" % (wf['WFName'],wf['WFParent'],wf['PublishingTime'],wf['AuthorDN'][wf['AuthorDN'].rfind('/CN=')+4:],
                                                        wf['AuthorGroup'],wf['Description'],wf['LongDescription'])
       print "----------------------------------------------------------------------------------"
+
+  def do_getWFInfo(self, args):
+    """
+    Read Workflow from the repository
+      Usage: getWFInfo <WFName>
+      <WFName> - the name of the workflow
+    """
+
+    argss, length = self.check_params(args, 1)
+    if not argss:
+      return
+    wf_name = argss[0]
+    result = self.server.getWorkflowInfo(wf_name)
+    if not result['OK']:
+      print "Error during command execution: %s" % result['Message']
+    print result['Value']
 
 ################ PRODUCTION SECTION ####################################
 

@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.31 2008/02/29 16:47:24 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.32 2008/03/04 19:39:11 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.31 $"
+__RCSID__ = "$Revision: 1.32 $"
 
 from types import *
 import threading
@@ -37,7 +37,7 @@ class ProductionManagerHandler( TransformationHandler ):
     self.lock = threading.Lock()
 
 
-  types_publishWorkflow = [ StringType, BooleanType ]
+  types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, body, update=False):
     """ Publish new workflow in the repositiry taking WFname from the workflow itself
     """
@@ -50,7 +50,7 @@ class ProductionManagerHandler( TransformationHandler ):
     #authorName = self._clientTransport.peerCredentials['user']
     authorGroup = self._clientTransport.peerCredentials['group']
     try:
-      wf = fromXMLString(wf_body)
+      wf = fromXMLString(body)
       name = wf.getName()
       parent = wf.getType()
       description = wf.getDescrShort()

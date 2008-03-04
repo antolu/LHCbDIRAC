@@ -100,3 +100,4 @@ setDIRACGroup('lhcb_prod')
 'AddedToCatalog': True,
 'AddedToTransformation': False}
 
+select * from T_106 where JobID>0 order by JobID limit 200;

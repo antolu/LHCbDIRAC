@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.31 2008/03/02 02:27:08 gkuznets Exp $
+# $Id: ProductionDB.py,v 1.32 2008/03/04 19:39:10 gkuznets Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.31 $"
+__RCSID__ = "$Revision: 1.32 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -112,7 +112,8 @@ class ProductionDB(TransformationDB):
     cmd = "SELECT  WFName, WFParent, Description, LongDescription, AuthorDN, AuthorGroup, PublishingTime from Workflows WHERE WFname='%s'" % name
     result = self._query(cmd)
     if result['OK']:
-      pr=result['Value']
+      pr=result['Value'][0]
+
       newres = {'WFName':pr[0], 'WFParent':pr[1], 'Description':pr[2], 'LongDescription':pr[3],
                 'AuthorDN':pr[4], 'AuthorGroup':pr[5], 'PublishingTime':pr[6].isoformat(' ')}
       return S_OK(newres)

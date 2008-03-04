@@ -1,10 +1,10 @@
-# $Id: ProductionManagerTestHandler.py,v 1.6 2008/02/29 16:47:24 gkuznets Exp $
+# $Id: ProductionManagerTestHandler.py,v 1.7 2008/03/04 19:39:11 gkuznets Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 from types import *
 import threading
@@ -37,7 +37,7 @@ class ProductionManagerTestHandler( TransformationHandler ):
     self.lock = threading.Lock()
 
 
-  types_publishWorkflow = [ StringType, BooleanType ]
+  types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, body, update=False):
     """ Publish new workflow in the repositiry taking WFname from the workflow itself
     """
@@ -50,7 +50,7 @@ class ProductionManagerTestHandler( TransformationHandler ):
     #authorName = self._clientTransport.peerCredentials['user']
     authorGroup = self._clientTransport.peerCredentials['group']
     try:
-      wf = fromXMLString(wf_body)
+      wf = fromXMLString(body)
       name = wf.getName()
       parent = wf.getType()
       description = wf.getDescrShort()
@@ -119,6 +119,7 @@ class ProductionManagerTestHandler( TransformationHandler ):
         return S_ERROR(error)
     gLogger.info('Workflow Info %s sucessfully read from the Production Repository' % name)
     return result
+
 
 ################ TRANSFORMATION SECTION ####################################
 
