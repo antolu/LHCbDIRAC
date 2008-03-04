@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.14 2008/03/04 18:18:22 gkuznets Exp $
-__RCSID__ = "$Id: Tools.py,v 1.14 2008/03/04 18:18:22 gkuznets Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.15 2008/03/04 18:19:23 gkuznets Exp $
+__RCSID__ = "$Id: Tools.py,v 1.15 2008/03/04 18:19:23 gkuznets Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -287,12 +287,12 @@ def combineMutipleAttrubutes(obj):
   """ find all atributes with the names xxxx_1=valx1 xxxx_2=valx2 xxxx_3=valx3
   yyyy_1=valy1 yyyy_2=valy2 yyyy_3=valy3
   and group them into dictionary of dictionaries
-  ['1']['xxxx']=valx1
-  ['1']['yyyy']=valy1
-  ['2']['xxxx']=valx2
-  ['2']['yyyy']=valy2
-  ['3']['xxxx']=valx3
-  ['3']['yyyy']=valy3
+  [1]['xxxx']=valx1
+  [1]['yyyy']=valy1
+  [2]['xxxx']=valx2
+  [2]['yyyy']=valy2
+  [3]['xxxx']=valx3
+  [3]['yyyy']=valy3
   """
   ret = {}
   for attr in obj.__dict__.keys():
