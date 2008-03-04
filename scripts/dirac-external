@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.15 2008/02/21 09:16:47 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-external,v 1.16 2008/03/04 20:31:26 acasajus Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
-# 
-# __RCSID__='$Id: dirac-external,v 1.15 2008/02/21 09:16:47 rgracian Exp $'
+#
+# __RCSID__='$Id: dirac-external,v 1.16 2008/03/04 20:31:26 acasajus Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -28,6 +28,9 @@ DIRAC_MAKE    DIRAC3/external/runit                                      || exit
 
 DIRAC_CVS_GET DIRAC3/external/openssl-0.9.7m                             || exit 1
 DIRAC_MAKE    DIRAC3/contrib/pyOpenSSL                                   || exit 1
+
+DIRAC_CVS_GET DIRAC3/external/openssl-0.9.8g                             || exit 1
+DIRAC_MAKE    DIRAC3/contrib/pyGSI                                       || exit 1
 
 DIRAC_MAKE    DIRAC3/external/MySQL                                      || exit 1
 
