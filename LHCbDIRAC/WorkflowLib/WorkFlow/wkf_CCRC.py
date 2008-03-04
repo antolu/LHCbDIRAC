@@ -146,7 +146,7 @@ workflow1.unlinkParameter(workflow1.parameters)
 workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
 workflow1.setValue(step1_prefix+"optionsFile", "RealDataRdst.opts")
-workflow1.setValue(step1_prefix+"optionsLine","#include \"$BRUNELOPTS/SuppressWarnings.opts\";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
+workflow1.setValue(step1_prefix+"optionsLine","#include \"$BRUNELOPTS/SuppressWarnings.opts\";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC';EventLoopMgr.OutputLevel = 3")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
@@ -166,7 +166,7 @@ workflow1.appendParameter(Parameter("StdError","std.err","JDL","","",True, False
 workflow1.appendParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
 workflow1.appendParameter(Parameter("SoftwarePackages","Brunel.v32r3p1","JDL","","",True, False, "software"))
 
-workflow1.appendParameter(Parameter("MaxCPUTime",200000,"JDLReqt","","",True, False, "Application Name"))
+workflow1.appendParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
 #workflow1.appendParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
 workflow1.appendParameter(Parameter("Platform","gLite","JDLReqt","","",True, False, "platform"))
 
