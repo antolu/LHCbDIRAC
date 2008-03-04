@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.13 2008/02/29 14:14:37 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.13 2008/02/29 14:14:37 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.14 2008/03/04 18:18:22 gkuznets Exp $
+__RCSID__ = "$Id: Tools.py,v 1.14 2008/03/04 18:18:22 gkuznets Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -283,3 +283,28 @@ def copyClassAttributes(from_, to_, except_=[]):
     if attr not in except_:
       to_.__dict__[attr]=from_.__dict__[attr]
 
+def combineMutipleAttrubutes(obj):
+  """ find all atributes with the names xxxx_1=valx1 xxxx_2=valx2 xxxx_3=valx3
+  yyyy_1=valy1 yyyy_2=valy2 yyyy_3=valy3
+  and group them into dictionary of dictionaries
+  ['1']['xxxx']=valx1
+  ['1']['yyyy']=valy1
+  ['2']['xxxx']=valx2
+  ['2']['yyyy']=valy2
+  ['3']['xxxx']=valx3
+  ['3']['yyyy']=valy3
+  """
+  ret = {}
+  for attr in obj.__dict__.keys():
+    # lets find index
+    index = attr.rfind('_')
+    if index > 0:
+      attr_name=attr[0:index]
+      attr_index=attr[index+1:]
+      if attr_index.isdigit() :
+        attr_number = int(attr_index)
+        if not ret.has_key(attr_number) :
+          ret[attr_number]={}
+        ret[attr_number][attr_name]=obj.__dict__[attr]
+
+  return ret
