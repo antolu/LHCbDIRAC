@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.11 2008/03/04 07:59:46 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.12 2008/03/04 08:14:18 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.11 2008/03/04 07:59:46 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.12 2008/03/04 08:14:18 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -18,6 +18,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.AMGABookkeepingDatabaseClient import
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica              import Replica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam         import ReplicaParam
 from DIRAC.ConfigurationSystem.Client.Config                              import gConfig
+from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient            import FileSystemClient
 import os
 
 class BookkeepingManagerAgent(Agent):
@@ -37,6 +38,7 @@ class BookkeepingManagerAgent(Agent):
     self.xmlMgmt_ = XMLFilesReaderManager()
     self.errorMgmt_ = ErrorReporterMgmt()
     self.dataManager_ =  AMGABookkeepingDatabaseClient()
+    self.fileClient_ = FileSystemClient()
     baseDir = gConfig.getValue(self.section+"/XMLProcessing", "/opt/bookkeeping/XMLProcessing/")
     self.done_ = baseDir + "Done/"
   
@@ -52,7 +54,7 @@ class BookkeepingManagerAgent(Agent):
     for job in jobs:
       result = self.__processJob(job)
       if result['OK']:
-        self.__moveFileToDoneDirectory(job.getFileName)
+        self.__moveFileToDoneDirectory(job.getFileName())
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
