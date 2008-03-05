@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.8 2008/03/04 11:19:45 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.9 2008/03/05 14:47:15 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.8 2008/03/04 11:19:45 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.9 2008/03/05 14:47:15 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -58,7 +58,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       while not self.db_.eot():
         result = self.db_.getSelectAttrEntry()
     except Exception, ex:
-      gLogger.error(ex)
+      gLogger.error("fileTypeAndFileTypeVersion: " + str(ex))
       return S_ERROR(ex)
     
     if ( result == [] ):
@@ -78,7 +78,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       while not self.db_.eot():
         result = self.db_.getSelectAttrEntry()
     except Exception, ex:
-      gLogger.error(ex)
+      gLogger.error("eventType: " + str(ex))
       return S_ERROR(ex)
     
     if ( result == [] ):
@@ -109,7 +109,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       self.db_.addEntry("/jobs/" + str(id), ['CONFIGNAME', 'CONFIGVERSION', 'JOB_ID', 'JOBDATE'], [jobName, jobConfVersion, str(id), date])
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
     except Exception, ex:
-      gLogger.error("Insert Job:" + str(ex))
+      gLogger.error("Insert Job: " + str(ex))
       return S_ERROR(ex)
     
     return S_OK(id)
@@ -129,7 +129,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
           self.db_.addAttr("/jobParams/" + str(jobID), name.replace(' ','_'), "varchar2(255)")
           self.db_.setAttr("/jobParams/" + str(jobID), [name.replace(' ','_')], [value])
         except Exception. ex:   
-          gLogger.error("Insert job parameters:" + str(ex))
+          gLogger.error("Insert job parameters: " + str(ex))
           return S_ERROR(ex)
     return S_OK()
   
@@ -155,7 +155,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       self.db_.setAttr("/NextBookkeepingIDs/ids",["INPUTFILE_ID"], [str(id)]);
     
     except Exception, ex:
-      gLogger.error("insert input file" + str(ex))
+      gLogger.error("insert input file: " + str(ex))
       return S_ERROR(ex) 
     
     return S_OK()
@@ -182,7 +182,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
     except Exception, ex:
-      gLogger.error("Insert outputFile" + str(ex))
+      gLogger.error("Insert outputFile: " + str(ex))
       return S_ERROR(ex)
     return S_OK(id)
   
@@ -202,7 +202,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
           self.db_.addAttr("/fileParams/" + str(id),name.replace(' ','_'), "varchar2(255)")
           self.db_.setAttr("/fileParams/" + str(id), [name.replace(' ','_')], [value]);
         except Exception, ex:
-          gLogger.error("Insert file Param" + str(ex))
+          gLogger.error("Insert file Param: " + str(ex))
           return S_ERROR(ex)
     return S_OK()
   
@@ -230,14 +230,19 @@ class AMGABookkeepingDB(IBookkeepingDB):
       return S_OK()
   
     except Exception, ex:
-      gLogger.error("Insert replica" + str(ex))
+      gLogger.error("Insert replica: " + str(ex))
       return S_ERROR(ex)
   
   #############################################################################
-  def deleteJob(self, job):
+  def deleteJob(self, jobID):
     """
     
     """
+    try:
+      self.db_.removeEntry("/jobs/"+str(jobID));
+    except Exception, ex:
+      gLogger.error("Delete Job: " + str(ex))
+      return S_ERROR()
     return S_OK()
   
   #############################################################################
@@ -245,6 +250,11 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     
     """
+    try:
+      self.db_.removeEntry("/files/"+file.fileID());
+    except Exception, ex:
+      gLogger.error("delete file: " + str(ex))
+      return S_ERROR()
     return S_OK()
   
   #############################################################################
@@ -283,8 +293,8 @@ class AMGABookkeepingDB(IBookkeepingDB):
       self.db_.addEntry("/qualityParams/" + str(qualityID), ["FILE_ID", "QUALITY_ID"], [str(fileID), str(qualityID)])
     except Exception, ex:
       try:
-        attvalue = self.db_.getAttr("/qualityParams/" + str(qualityID), [name.replace(' ','_')])
-        self.db_.setAttr("/qualityParams/" + str(quakityID), [name.replace(' ','_'), value])
+        #attvalue = self.db_.getAttr("/qualityParams/" + str(qualityID), [name.replace(' ','_')])
+        self.db_.setAttr("/qualityParams/" + str(qualityID), [name.replace(' ','_'), value])
       except Exception, ex:
         try:
           self.db_.addAttr("/qualityParams/" + str(qualityID), name.replace(' ','_'), "varchar2(255)")
