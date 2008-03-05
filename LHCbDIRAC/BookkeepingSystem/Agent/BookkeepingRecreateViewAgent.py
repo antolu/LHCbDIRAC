@@ -1,17 +1,18 @@
 ########################################################################
-# $Id: BookkeepingRecreateViewAgent.py,v 1.2 2008/03/04 17:25:34 zmathe Exp $
+# $Id: BookkeepingRecreateViewAgent.py,v 1.3 2008/03/05 14:45:34 zmathe Exp $
 ########################################################################
 
 """ 
 
 """
 
-__RCSID__ = "$Id: BookkeepingRecreateViewAgent.py,v 1.2 2008/03/04 17:25:34 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingRecreateViewAgent.py,v 1.3 2008/03/05 14:45:34 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingRecreateViewAgent'
 
 from DIRAC.Core.Base.Agent                                                import Agent
 from DIRAC                                                                import S_OK, S_ERROR, gConfig
+import recreateAMGAViews
 
 class BookkeepingRecreateViewAgent(Agent):
 
@@ -26,11 +27,15 @@ class BookkeepingRecreateViewAgent(Agent):
     """Initialize specific parameters for BookkeepingManageAgent.
     """
     result           = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime', 70)
+    self.pollingTime = gConfig.getValue(self.section+'/PollingTime', 14400)
     return result
 
   #############################################################################
   def execute(self):
     self.log.info("Bookkeeping Recreate View Agent running!!!")
+   
+    self.log.info("Recreation viwews started!")
+    recreateAMGAViews.execute()
+    self.log.info("Recreation views fhinished!")
         
     return S_OK()
