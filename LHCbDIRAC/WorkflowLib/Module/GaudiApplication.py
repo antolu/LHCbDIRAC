@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.25 2008/02/29 15:07:30 joel Exp $
+# $Id: GaudiApplication.py,v 1.26 2008/03/05 11:19:44 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.25 2008/02/29 15:07:30 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.26 2008/03/05 11:19:44 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -399,8 +399,10 @@ rm -f scrtmp.py
 
       print 'Command = ',comm
       script.write(comm)
+      script.write('declare -x appstatus=$?\n')
+      script.write('echo appstatus = $appstatus\n')
 
-    script.write('exit 0\n')
+    script.write('exit $appstatus\n')
     script.write('#EOF\n')
     script.close()
 
