@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.15 2008/03/04 18:19:23 gkuznets Exp $
-__RCSID__ = "$Id: Tools.py,v 1.15 2008/03/04 18:19:23 gkuznets Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.16 2008/03/06 15:18:58 gkuznets Exp $
+__RCSID__ = "$Id: Tools.py,v 1.16 2008/03/06 15:18:58 gkuznets Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -283,7 +283,7 @@ def copyClassAttributes(from_, to_, except_=[]):
     if attr not in except_:
       to_.__dict__[attr]=from_.__dict__[attr]
 
-def combineMutipleAttrubutes(obj):
+def combineMutipleAttributes(obj):
   """ find all atributes with the names xxxx_1=valx1 xxxx_2=valx2 xxxx_3=valx3
   yyyy_1=valy1 yyyy_2=valy2 yyyy_3=valy3
   and group them into dictionary of dictionaries
