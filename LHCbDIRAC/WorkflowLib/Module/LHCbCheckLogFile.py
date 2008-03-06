@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.15 2008/03/03 15:12:09 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.16 2008/03/06 14:26:35 joel Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.15 2008/03/03 15:12:09 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.16 2008/03/06 14:26:35 joel Exp $"
 
 import os, string,sys
 
@@ -298,7 +298,7 @@ class LHCbCheckLogFile(CheckLogFile):
           else:
             result = S_OK('All INPUT events have been processed')
 
-      self.log.debug(' goodJob - %s events result= %s'%(str(noutput),str(result)))
+      self.log.debug(' goodJob - %s events result= %s'%(str(nprocessed),str(result)))
 
       return result
 
