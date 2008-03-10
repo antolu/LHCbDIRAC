@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.27 2008/03/06 13:41:18 joel Exp $
+# $Id: GaudiApplication.py,v 1.28 2008/03/10 15:33:08 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.27 2008/03/06 13:41:18 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.28 2008/03/10 15:33:08 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -79,10 +79,10 @@ class GaudiApplication(object):
 #      for opt in self.outputData.split(';'):
 #        options.write("""DstWriter.Output = "DATAFILE='PFN:%s' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""" %(opt))
 
-#    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
-#    options.write(poolOpt)
-    poolOpt = """\nFileCatalog.Catalogs= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
+#    poolOpt = """\nFileCatalog.Catalogs= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
+#    options.write(poolOpt)
 
   #############################################################################
   def resolveInputDataPy(self,options):
