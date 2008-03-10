@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.12 2008/03/04 08:14:18 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.13 2008/03/10 12:29:54 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.12 2008/03/04 08:14:18 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.13 2008/03/10 12:29:54 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -19,6 +19,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica              import
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam         import ReplicaParam
 from DIRAC.ConfigurationSystem.Client.Config                              import gConfig
 from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient            import FileSystemClient
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogClient       import LcgFileCatalogClient
 import os
 
 class BookkeepingManagerAgent(Agent):
@@ -199,8 +200,9 @@ class BookkeepingManagerAgent(Agent):
     """
     
     """
-    self.log.info("Processing replicas!")
     file = replica.getFileName()
+    self.log.info("Processing replicas: " + str(file))
+    
     params = replica.getaprams()
     delete = True
     replicaFileName = ""
@@ -209,23 +211,36 @@ class BookkeepingManagerAgent(Agent):
       replicaFileName = param.getFile()
       location = param.getLocation()
       delete = param.getAction() == "Delete"
-    
-    result = self.dataManager_.file(replicaFileName)
-    if not result['OK']:
-      message = "No replica can be ";
+        
+      result = self.dataManager_.file(replicaFileName)
+      if not result['OK']:
+        message = "No replica can be ";
+        if (delete):
+           message += "removed" 
+        else:
+           message += "added"
+           fileID = int(result['Value'])
+             
+        message += " to file " + str(file) + " for " + str(location) + ".\n" 
+        self.errorMgmt_.reportError(23, message, file)
+        return S_ERROR()
+      
       if (delete):
-         message += "removed" 
+        lcgFileCatalog = LcgFileCatalogClient()
+        list = lcgFileCatalog.getReplicas(replicaFileName)
+        if len(list) == 0:
+          result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "no")
+          if not result['OK']:
+            gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
+            self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
+            return S_ERROR()
       else:
-         message += "added"
-      message += " to file " + str(file) + " for " + str(location) + ".\n" 
-      self.errorMgmt_.reportError(23, message, file)
-      return S_ERROR()
-    
-    if (delete):
-      self.log.error("Cannot delete replica, because this part don't have implamantation!!")
-      self.errorMgmt_.reportError(24, "Cannot delete replica, because this part don't have implamantation!!", file)
-      return S_ERROR()
-    
+        result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "yes")
+        if not result['OK']:
+          self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
+          return S_ERROR()
+   
+  
     self.log.info("End Processing replicas!")
     
     return S_OK()

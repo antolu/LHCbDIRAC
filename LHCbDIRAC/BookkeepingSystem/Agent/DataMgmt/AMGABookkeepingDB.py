@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.9 2008/03/05 14:47:15 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.10 2008/03/10 12:29:54 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.9 2008/03/05 14:47:15 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.10 2008/03/10 12:29:54 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -304,4 +304,11 @@ class AMGABookkeepingDB(IBookkeepingDB):
           gLogger.error("Insert quality param" + str(ex))
           return S_ERROR(ex)
   
+  def modifyReplica(fileID , name, value):
+    try:
+      self.db_.setAttr("/fileParams/"+str(fileID), [name.replace(' ','_'), value])
+    except Exception, ex:
+      gLogger.error("Attribute not found!!")
+      return S_ERROR(ex)
+    return S_OK()
   #############################################################################
