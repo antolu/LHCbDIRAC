@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: IBookkeepingDB.py,v 1.3 2008/03/10 12:29:55 zmathe Exp $
+# $Id: IBookkeepingDB.py,v 1.4 2008/03/10 12:44:53 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: IBookkeepingDB.py,v 1.3 2008/03/10 12:29:55 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDB.py,v 1.4 2008/03/10 12:44:53 zmathe Exp $"
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 
@@ -82,7 +82,7 @@ class IBookkeepingDB(object):
     return S_ERROR()
   
   #############################################################################
-  def modifyReplica(fileID , name, value):
+  def modifyReplica(self, fileID , name, value):
     gLoogger.warn("not implemented")
     return S_ERROR()
   
