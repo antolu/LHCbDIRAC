@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.33 2008/02/29 15:49:18 joel Exp $
+# $Id: JobFinalization.py,v 1.34 2008/03/10 16:04:10 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.33 2008/02/29 15:49:18 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.34 2008/03/10 16:04:10 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -327,7 +327,10 @@ class JobFinalization(object):
         of failures
     """
 
-    files = os.listdir('.')
+    files_current_dir = os.listdir('.')
+    files_up_dir = os.listdir('../')
+    files = files_current_dir.extend(files_up_dir)
+#    files = os.listdir('.')
 
     # Ugly !!!  - distinguish log files by their extensions
     logexts = ['.txt','.hbook','.log','.root','.out','.output','.xml','.sh', '.info']
