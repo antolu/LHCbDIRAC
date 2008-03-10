@@ -1,25 +1,25 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.14 2008/03/10 13:12:49 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.15 2008/03/10 17:13:00 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.14 2008/03/10 13:12:49 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.15 2008/03/10 17:13:00 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
-from DIRAC.Core.Base.Agent                                                import Agent
-from DIRAC                                                                import S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager        import XMLFilesReaderManager
-from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt    import ErrorReporterMgmt
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.AMGABookkeepingDatabaseClient import AMGABookkeepingDatabaseClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica              import Replica
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam         import ReplicaParam
-from DIRAC.ConfigurationSystem.Client.Config                              import gConfig
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient            import FileSystemClient
-from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogClient       import LcgFileCatalogClient
+from DIRAC.Core.Base.Agent                                                        import Agent
+from DIRAC                                                                        import S_OK, S_ERROR
+from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
+from DIRAC.BookkeepingSystem.Agent.DataMgmt.AMGABookkeepingDatabaseClient         import AMGABookkeepingDatabaseClient
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                      import Replica
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam                 import ReplicaParam
+from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
+from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
 import os
 
 class BookkeepingManagerAgent(Agent):
@@ -40,6 +40,7 @@ class BookkeepingManagerAgent(Agent):
     self.errorMgmt_ = ErrorReporterMgmt()
     self.dataManager_ =  AMGABookkeepingDatabaseClient()
     self.fileClient_ = FileSystemClient()
+    self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
     baseDir = gConfig.getValue(self.section+"/XMLProcessing", "/opt/bookkeeping/XMLProcessing/")
     self.done_ = baseDir + "Done/"
   
@@ -212,7 +213,7 @@ class BookkeepingManagerAgent(Agent):
       replicaFileName = param.getFile()
       location = param.getLocation()
       delete = param.getAction() == "Delete"
-        
+       
       result = self.dataManager_.file(replicaFileName)
       if not result['OK']:
         message = "No replica can be ";
@@ -226,9 +227,8 @@ class BookkeepingManagerAgent(Agent):
       else:
         fileID = int(result['Value'])
           
-      if (delete):
-        lcgFileCatalog = LcgFileCatalogClient()
-        list = lcgFileCatalog.getReplicas(replicaFileName)
+      if (delete):    
+        list = self.lcgFileCatalogClient_.getReplicas(replicaFileName)
         if len(list) == 0:
           result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "no")
           if not result['OK']:
