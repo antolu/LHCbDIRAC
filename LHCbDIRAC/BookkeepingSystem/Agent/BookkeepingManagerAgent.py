@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.15 2008/03/10 17:13:00 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.16 2008/03/10 17:35:03 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.15 2008/03/10 17:13:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.16 2008/03/10 17:35:03 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -228,8 +228,10 @@ class BookkeepingManagerAgent(Agent):
         fileID = int(result['Value'])
           
       if (delete):    
-        list = self.lcgFileCatalogClient_.getReplicas(replicaFileName)
-        if len(list) == 0:
+        result = self.lcgFileCatalogClient_.getReplicas(replicaFileName)
+        list = result['Value']
+        replicaList = list['Successful']
+        if len(replicaList) == 0:
           result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "no")
           if not result['OK']:
             gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
