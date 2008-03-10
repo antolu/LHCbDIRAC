@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.13 2008/03/10 12:29:54 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.14 2008/03/10 13:12:49 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.13 2008/03/10 12:29:54 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.14 2008/03/10 13:12:49 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -59,7 +59,7 @@ class BookkeepingManagerAgent(Agent):
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
-      self.__processReplicas(replica)
+      result = self.__processReplicas(replica)
       if result['OK']:
         self.__moveFileToDoneDirectory(replica.getFileName())
     
@@ -202,6 +202,7 @@ class BookkeepingManagerAgent(Agent):
     """
     file = replica.getFileName()
     self.log.info("Processing replicas: " + str(file))
+    fileID = -1
     
     params = replica.getaprams()
     delete = True
@@ -219,12 +220,12 @@ class BookkeepingManagerAgent(Agent):
            message += "removed" 
         else:
            message += "added"
-           fileID = int(result['Value'])
-             
-        message += " to file " + str(file) + " for " + str(location) + ".\n" 
+        message += " to file " + str(file) + " for " + str(location) + ".\n"
         self.errorMgmt_.reportError(23, message, file)
         return S_ERROR()
-      
+      else:
+        fileID = int(result['Value'])
+          
       if (delete):
         lcgFileCatalog = LcgFileCatalogClient()
         list = lcgFileCatalog.getReplicas(replicaFileName)
