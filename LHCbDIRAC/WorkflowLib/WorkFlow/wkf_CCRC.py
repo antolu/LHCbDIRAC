@@ -26,7 +26,7 @@ module2.appendParameter(Parameter("optionsFile","","string","self","optionsFile"
 module2.appendParameter(Parameter("optionsLine","","string","self","optionsLine",True,False,"Number of Event","option"))
 module2.appendParameter(Parameter("systemConfig","","string","self","systemConfig",True,False,"Job Platform"))
 module2.appendParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
-module2.appendParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
+#module2.appendParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 
 #define module 3
 module3 = ModuleDefinition('LogChecker')#during constraction class creates duplicating copies of the params
@@ -106,10 +106,16 @@ step1.appendParameterCopyLinked(module2.parameters)
 # and we can add additional parameter which will be used as a global
 step1.appendParameter(Parameter("STEP_ID","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}","string","","",True, False, "Temporary fix"))
 step1.appendParameter(Parameter("EVENTTYPE","30000000","string","","",True, False, "Event Type"))
+step1.appendParameter(Parameter("outputData","@{STEP_ID}.rdst","string","","",True,False,"output data"))
 step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
 step1.unlinkParameter(["appLog","appName", "appType"])
 step1.unlinkParameter(["DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 
+#outdata = "@{STEP_ID}.{appType}"
+opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
+opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 
 
 ##############  WORKFLOW #################################
@@ -123,10 +129,11 @@ stepInstance1 = workflow1.createStepInstance('Gaudi_App_Step', 'Step1')
 stepInstance1.linkParameterUp(stepInstance1.parameters, step1_prefix)
 stepInstance1.setLink("systemConfig","self", "SystemConfig") # capital letter corrected
 # except "STEP_ID", "appLog"
-stepInstance1.unlinkParameter(["STEP_ID", "appLog","appName", "appType", "outputData", "EVENTTYPE"])
+stepInstance1.unlinkParameter(["STEP_ID", "appLog","appName", "optionsFile", "optionsLine", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "Brunel")
 stepInstance1.setValue("appType", "rdst")
-stepInstance1.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
+stepInstance1.setValue("optionsFile", "RealDataRdst.opts")
+stepInstance1.setValue("optionsLine",opt_brunel)
 stepInstance1.linkParameterUp("CONFIG_NAME")
 stepInstance1.linkParameterUp("CONFIG_VERSION")
 stepInstance1.linkParameterUp("DataType")
@@ -145,15 +152,13 @@ workflow1.unlinkParameter(workflow1.parameters)
 
 workflow1.setValue(step1_prefix+"appVersion", "v32r3p1")
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
-workflow1.setValue(step1_prefix+"optionsFile", "RealDataRdst.opts")
-workflow1.setValue(step1_prefix+"optionsLine","#include \"$BRUNELOPTS/SuppressWarnings.opts\";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC';EventLoopMgr.OutputLevel = 3")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","20")
 # remove unwanted
-workflow1.removeParameter(step1_prefix+"outputData")
+#workflow1.removeParameter(step1_prefix+"outputData")
 workflow1.removeParameter(step1_prefix+"systemConfig")
 #add syspem config which common for all modules
 #workflow1.appendParameter(Parameter("systemConfig","slc4_ia32_gcc34","string","","",True, False, "Application Name"))
