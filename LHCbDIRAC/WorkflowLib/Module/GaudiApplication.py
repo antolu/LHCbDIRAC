@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.28 2008/03/10 15:33:08 joel Exp $
+# $Id: GaudiApplication.py,v 1.29 2008/03/13 09:35:22 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.28 2008/03/10 15:33:08 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.29 2008/03/13 09:35:22 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -70,14 +70,13 @@ class GaudiApplication(object):
       for lfn in self.inputData:
         if self.inputDataType == "MDF":
           inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+        elif self.inputDataType == "ETC":
+          inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
         else:
           inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
       options.write(evtSelOpt)
-#    if self.outputData != None:
-#      for opt in self.outputData.split(';'):
-#        options.write("""DstWriter.Output = "DATAFILE='PFN:%s' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""" %(opt))
 
     poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
@@ -114,19 +113,21 @@ class GaudiApplication(object):
       for lfn in self.inputData:
         if self.inputDataType == "MDF":
           inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+        elif self.inputDataType == "ETC":
+          inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
         else:
           inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.write(evtSelOpt)
-    if self.outputData != None:
-      for opt in self.outputData.split(';'):
-        options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
+#    if self.outputData != None:
+#      for opt in self.outputData.split(';'):
+#        options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
 
-#    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
-#    options.write(poolOpt)
-    poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
+#    poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+#    options.write(poolOpt)
 
   #############################################################################
   def manageOpts(self):
@@ -264,10 +265,9 @@ class GaudiApplication(object):
       orig_ld_path = os.environ['LD_LIBRARY_PATH']
       self.log.info('original ld lib path is: '+orig_ld_path)
 
-    #os.system('python '+self.root+'/scripts/fixLDpath.py '+orig_ld_path+' None localinis')
-##JC    os.system('%s %s/scripts/dirac-fix-ld-library-path %s None localinis\n' %(sys.executable,self.root,orig_ld_path))
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
+    script.write('declare -x JOBOPTPATH=gaudirun.opts\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
 
     # DLL fix which creates fake CMT package
@@ -297,9 +297,6 @@ class GaudiApplication(object):
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
-    #To handle oversized LD_LIBARARY_PATHs
-##JC    script.write('%s %s/scripts/dirac-fix-ld-library-path $LD_LIBRARY_PATH %s inis\n' %(sys.executable,self.root,orig_ld_path))
-#    script.write('python '+self.root+'/DIRAC/scripts/fixLDpath.py $LD_LIBRARY_PATH '+orig_ld_path+' inis\n')
 
    #To fix Shr variable problem with component libraries
     if os.path.exists(ld_base_path+'/lib'):
@@ -400,7 +397,6 @@ rm -f scrtmp.py
       print 'Command = ',comm
       script.write(comm)
       script.write('declare -x appstatus=$?\n')
-      script.write('echo appstatus = $appstatus\n')
 
     script.write('exit $appstatus\n')
     script.write('#EOF\n')
