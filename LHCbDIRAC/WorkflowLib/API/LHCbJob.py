@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.2 2008/01/09 15:45:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.3 2008/03/14 12:28:22 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
    Helper functions are documented with example usage for the DIRAC API.
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.2 2008/01/09 15:45:58 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.3 2008/03/14 12:28:22 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -36,7 +36,7 @@ class LHCbJob(Job):
     Job.__init__(self,script)
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
-    self.softwareDistribution = 'WorkflowLib.Utilities.SoftwareDistribution'
+    self.inputDataType = 'DATA' #Default, other options are MDF, ETC
 
   #############################################################################
   def setApplication(self,appName,appVersion,optionsFile='',logFile=''):
@@ -90,19 +90,29 @@ class LHCbJob(Job):
 
     step = StepDefinition(stepDefn)
     step.addModule(module)
+    #TODO: add links to input data and set value for input data type
     inputParamNames = ['appName','appVersion','optionsFile','optionsLine','systemConfig','logfile']
     for p in inputParamNames:
       step.appendParameterCopy(module.findParameter(p))
 
+    step.appendParameterCopy(module.findParameter('inputData'))
+    step.appendParameterCopy(module.findParameter('inputDataType'))
+
     moduleInstance = step.createModuleInstance('GaudiApplication',moduleName)
     for p in inputParamNames:
       moduleInstance.findParameter(p).link('self',p)
+
+    moduleInstance.findParameter('inputData').link('self','inputData')
+    moduleInstance.findParameter('inputDataType').link('self','inputDataType')
 
     outputParamNames = ['result']
     for p in outputParamNames:
       outputParam = moduleInstance.findParameter(p)
       step.appendParameter(Parameter(parameter=outputParam))
       step.findParameter(p).link(moduleName,p)
+
+    step.findParameter('inputData').link(moduleName,'inputData')
+    step.findParameter('inputDataType').link(moduleName,'inputDataType')
 
     self.workflow.addStep(step)
     stepPrefix = '%s_' % stepName
@@ -120,7 +130,8 @@ class LHCbJob(Job):
       gaudiParams.append(moduleInstance.findParameter(p))
 
     stepInstance.linkParameterUp(gaudiParams,stepPrefix)
-
+    stepInstance.setLink("inputData","self", "InputData")
+    stepInstance.setLink("inputDataType","self", "InputDataType")
     self.workflow.findParameter('%sappName' %(stepPrefix)).setValue(appName)
     self.workflow.findParameter('%sappVersion' %(stepPrefix)).setValue(appVersion)
     self.workflow.findParameter('%slogfile' %(stepPrefix)).setValue(logName)
@@ -141,12 +152,12 @@ class LHCbJob(Job):
     for p in outputParamNames:
       self.workflow.findParameter('%s%s' %(stepPrefix,p)).link(stepInstance.getName(),'%s' %(p))
 
+    # set the value for input data type (can be overidden explicitly)
+    description = 'Default input data type field'
+    self._addParameter(self.workflow,'InputDataType','JDL',self.inputDataType,description)
+
     # now we have to tell DIRAC to install the necessary software
-    swDistName = 'SoftwareDistModule'
     currentApp = '%s.%s' %(appName,appVersion)
-    if not self.workflow.findParameter(swDistName):
-      description='Path for ModuleFactory to find LHCb Software Distribution module'
-      self._addParameter(self.workflow,swDistName,'JDL',self.softwareDistribution,description)
     swPackages = 'SoftwarePackages'
     description='List of LHCb Software Packages to be installed'
     if not self.workflow.findParameter(swPackages):
@@ -171,6 +182,8 @@ class LHCbJob(Job):
     self._addParameter(module,'systemConfig','Parameter','string','CMTCONFIG Value')
     self._addParameter(module,'logfile','Parameter','string','Log File Name')
     self._addParameter(module,'result','Parameter','string','Execution Result',io='output')
+    self._addParameter(module,'inputData','Parameter','','Input data')
+    self._addParameter(module,'inputDataType','String','','Automatically resolved input data type')
     module.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
     body = 'from WorkflowLib.Module.GaudiApplication import GaudiApplication\n'
     module.setBody(body)
@@ -184,7 +197,7 @@ class LHCbJob(Job):
 
   #############################################################################
   def addPackage(self,pname,pversion):
-    """Helper function.
+    """Under development. Helper function.
 
        Specify additional software packages to be installed on Grid
        Worker Node before job execution commences.
@@ -201,6 +214,7 @@ class LHCbJob(Job):
 
     """
     print 'To implement addPackage()'
+    #To review because currently relying on the sw shared area
 
   #############################################################################
   def setAncestorDepth(self,depth):
@@ -211,15 +225,77 @@ class LHCbJob(Job):
        For analysis jobs running over RDSTs the ancestor depth may be specified
        to ensure that the parent DIGI / DST files are staged before job execution.
     """
-    if type(depth)==type(1):
-      description = 'Level at which ancestor files are retrieved from the bookkeeping'
+    description = 'Level at which ancestor files are retrieved from the bookkeeping'
+    if type(depth)==type(" "):
+      try:
+        self._addParameter(self.workflow,'AncestorDepth','JDL',int(depth),description)
+      except Exception,x:
+        raise TypeError,'Expected integer for Ancestor Depth'
+    elif type(depth)==type(1):
       self._addParameter(self.workflow,'AncestorDepth','JDL',depth,description)
     else:
       raise TypeError,'Expected Integer for Ancestor Depth'
 
   #############################################################################
-  def setOption(self,optsLine):
+  def setInputDataType(self,inputDataType):
     """Helper function.
+
+       Explicitly set the input data type to be conveyed to Gaudi Applications.
+
+       Default is DATA, e.g. for DST / RDST files.  Other options include:
+       - MDF, for .raw files
+       - ETC, for running on a public or private Event Tag Collections.
+
+       Example usage:
+
+       >>> job = Job()
+       >>> job.setInputDataType('ETC')
+
+       @param lfns: Input Data Type
+       @type lfns: String
+
+    """
+    description = 'User specified input data type'
+    if not type(inputDataType)==type(" "):
+      try:
+        inputDataType = str(inputDataType)
+      except Exception,x:
+        raise TypeError,'Expected string for input data type'
+
+    self.inputDataType = inputDataType
+    self._addParameter(self.workflow,'InputDataType','JDL',inputDataType,description)
+
+  #############################################################################
+  def setCondDBTags(self,lfns):
+    """Under development. Helper function.
+
+       Specify Conditions Database tags by by Logical File Name (LFN).
+
+       Example usage:
+
+       >>> job = Job()
+       >>> job.setCondDBTags(['<tag>'])
+
+       @param lfns: Logical File Names
+       @type lfns: Single LFN string or list of LFNs
+    """
+    if type(lfns)==list and len(lfns):
+      for i in xrange(len(lfns)):
+        lfns[i] = lfns[i].replace('LFN:','')
+
+      inputData = map( lambda x: 'LFN:'+x, lfns)
+      inputDataStr = string.join(inputData,';')
+      description = 'List of CondDB tags specified by LFNs'
+      self._addParameter(self.workflow,'CondDBTags','JDL',inputDataStr,description)
+    elif type(lfns)==type(' '):  #single LFN
+      description = 'CondDB tag specified by LFN'
+      self._addParameter(self.workflow,'CondDBTags','JDL',lfns,description)
+    else:
+      raise TypeError,'Expected String or List'
+
+  #############################################################################
+  def setOption(self,optsLine):
+    """Under development. Helper function.
 
        For LHCb Gaudi Applications, may add options to be appended
        to application options file.  This must be a triple quoted string,
