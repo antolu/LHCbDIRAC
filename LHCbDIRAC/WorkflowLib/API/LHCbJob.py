@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.3 2008/03/14 12:28:22 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.4 2008/03/14 14:05:31 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
    Helper functions are documented with example usage for the DIRAC API.
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.3 2008/03/14 12:28:22 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.4 2008/03/14 14:05:31 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -266,32 +266,36 @@ class LHCbJob(Job):
     self._addParameter(self.workflow,'InputDataType','JDL',inputDataType,description)
 
   #############################################################################
-  def setCondDBTags(self,lfns):
+  def setCondDBTags(self,condDict):
     """Under development. Helper function.
 
        Specify Conditions Database tags by by Logical File Name (LFN).
 
+       The input dictionary is of the form: {<DB>:<TAG>} as in the example below.
+
        Example usage:
 
        >>> job = Job()
-       >>> job.setCondDBTags(['<tag>'])
+       >>> job.setCondDBTags({'DDDB':'DC06','LHCBCOND':'DC06'})
 
        @param lfns: Logical File Names
        @type lfns: Single LFN string or list of LFNs
     """
-    if type(lfns)==list and len(lfns):
-      for i in xrange(len(lfns)):
-        lfns[i] = lfns[i].replace('LFN:','')
+    if not type(condDict)==type({}):
+      raise TypeError, 'Expected dictionary for CondDB tags'
 
-      inputData = map( lambda x: 'LFN:'+x, lfns)
-      inputDataStr = string.join(inputData,';')
-      description = 'List of CondDB tags specified by LFNs'
-      self._addParameter(self.workflow,'CondDBTags','JDL',inputDataStr,description)
-    elif type(lfns)==type(' '):  #single LFN
-      description = 'CondDB tag specified by LFN'
-      self._addParameter(self.workflow,'CondDBTags','JDL',lfns,description)
-    else:
-      raise TypeError,'Expected String or List'
+    conditions = []
+    for db,tag in condDict.items():
+      try:
+        db = str(db)
+        tag = str(tag)
+        conditions.append(string.join([db,tag],'.'))
+      except Exception,x:
+        raise TypeError,'Expected string for conditions'
+
+    condStr = string.join(conditions,';')
+    description = 'List of CondDB tags'
+    self._addParameter(self.workflow,'CondDBTags','JDL',condStr,description)
 
   #############################################################################
   def setOption(self,optsLine):
