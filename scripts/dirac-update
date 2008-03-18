@@ -1,6 +1,157 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.1 2008/03/18 14:47:35 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.2 2008/03/18 18:41:26 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
+__RCSID__   = "$Id: dirac-update,v 1.2 2008/03/18 18:41:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
+"""
+    Script to prepare/update a DIRAC instalation
+"""
+try:
+  import os, sys, popen2, signal, urllib, tarfile
+except Exception, x:
+  print 'ERROR python interpreter does not support necessary modules'
+  print 'ERROR', x
+  sys.exit(-1)
+
+available_archs = [ 'slc4_amd64_gcc34', 'slc4_ia32_gcc34' ]
+
+defaultURL      = 'http://cern.ch/lhcbproject/dist/DIRAC3/'
+defaultVersion  = 'HEAD'
+defaultPython   = 'python25'
+
+debug = True
+compile_flag = False
+
+# From the location of this script define the instalation root
+scriptsPath = os.path.realpath( os.path.dirname( __file__ ) )
+rootPath    = os.path.dirname( scriptsPath )
+etcPath     = os.path.join( rootPath, 'etc' )
+cfgPath     = os.path.join( etcPath, 'dirac.cfg' )
+
+if debug:
+  print
+  print 'DEBUG Checking DIRAC instalation at "%s"' %  rootPath
+  print
+
+
+def check_diraccfg():
+  """
+   Make sure that dirac.cfg file exists in the default location, even if empty
+  """
+  if not os.path.exists( etcPath ):
+    try:
+      os.mkdir( etcPath )
+    except Exception, x :
+      print 'ERROR Can not create "%s", check permissions' % etcPath
+      print 'ERROR', x
+      sys.exit(-1)
+  
+  if not os.path.exists( cfgPath ):
+    try:
+      file = open( cfgPath, 'w' )
+    except Exception, x :
+      print 'ERROR Can not create "%s", check permissions' % cfgPath
+      print 'ERROR', x
+      sys.exit(-1)
+  elif not os.access( cfgPath, os.R_OK ):
+    try:
+      file =  open( cfgPath, 'r' )
+    except Exception, x :
+      print 'ERROR Can not read "%s", check permissions' % cfgPath
+      print 'ERROR', x
+      sys.exit(-1)
+
+def check_GSI( final = False ):
+  """
+   Check if we can use pyGSI and install/compile it if appropriated
+  """
+  try:
+    import GSI
+  except:
+    if final:
+      print 'ERROR Could not prepare a working DIRAC instalation'
+      sys.exit(-1)
+    arch = get_arch()
+    if not arch in available_archs:
+      if not compile_flag:
+        print 'ERROR platform "%s" not available, use compile flag' % arch
+        sys.exit(-1)
+      else:
+        print 'Not implemented' 
+    else:
+      install_external( arch )
+
+def get_arch():
+  """
+   Use dirac-architecture script to retrieve the local architecture
+  """
+  
+  (child_stdout, child_stdin) = popen2.popen2( '%s/dirac-architecture' % scriptsPath )
+  arch = child_stdout.read()
+  child_stdout.close()
+  return arch.strip()
+
+def urlretrieveTimeout( fname, lname, timeout ):
+  """
+   Retrive remore url to local file, with timeout wrapper
+  """
+  # NOTE: Not thread-safe, since all threads will catch same alarm.
+  #       This is OK for dirac-install, since there are no threads.
+
+  signal.signal(signal.SIGALRM, alarmHandler)
+  # set timeout alarm
+  signal.alarm(timeout)
+  try:
+    localname,headers = urllib.urlretrieve( fname, lname )
+  except Exception, x:
+    if x == 'TimeOut':
+      print "ERROR Timeout after %s seconds on transfer request for %s" % \
+      (str(timeout), fname)
+    raise x
+
+  # clear timeout alarm
+  signal.alarm(0)
+  
+def alarmHandler(*args):
+  """
+   signal handler for SIGALRM, just raise an exception
+  """
+  raise Exception( 'TimeOut' )
+
+def install_external( arch ):
+  """
+   Install external package for the requiered architecture
+  """
+  curDir = os.getcwd()
+  name = 'DIRAC-external-%s.%s-%s.tar.gz' % ( defaultVersion, arch, defaultPython )
+  try:
+    urlretrieveTimeout('%s/%s' % ( defaultURL, name ), name, 5 )
+    tar = tarfile.open( name , 'r' )
+    try:
+      tar.extractall( rootPath )
+    except:
+      for member in tar.getmembers():
+        tar.extract( member, rootPath )
+
+  except Exception, x:
+    print x  
+
+
+
+check_diraccfg()
+
+check_GSI()
+
+print 'OK'
+
+sys.exit(0)
+
+# First check if there is a minimal working DIRAC environment
+try:
+  from DIRACEnvironment import DIRAC
+except :
+  # Need to retrieve 
+  print "KO"
