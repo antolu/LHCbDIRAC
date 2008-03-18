@@ -1,5 +1,10 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/DIRACEnvironment.py,v 1.2 2007/07/11 14:08:11 rgracian Exp $
-__RCSID__ = "$Id: DIRACEnvironment.py,v 1.2 2007/07/11 14:08:11 rgracian Exp $"
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/DIRACEnvironment.py,v 1.3 2008/03/18 18:40:51 rgracian Exp $
+# File :   DIRACEnvironment.py
+# Author : Ricardo Graciani
+########################################################################
+__RCSID__   = "$Id: DIRACEnvironment.py,v 1.3 2008/03/18 18:40:51 rgracian Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 """
    Magic file to be imported by all python scripts to properly discover and 
    setup the DIRAC environment
@@ -22,8 +27,8 @@ except ImportError:
   try:
     import DIRAC
   except ImportError:
-    print "Can not import DIRAC."
-    print "Check if %s contains a proper DIRAC distribution" % rootPath
+    print "ERROR Can not import DIRAC."
+    print "ERROR Check if %s contains a proper DIRAC distribution" % rootPath
     raise
     sys.exit(-1)
 
