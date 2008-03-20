@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-version,v 1.1 2008/03/20 10:22:05 rgracian Exp $
+# File :   dirac-version
+# Author : Ricardo Graciani
+########################################################################
+__RCSID__   = "$Id: dirac-version,v 1.1 2008/03/20 10:22:05 rgracian Exp $"
+__VERSION__ = "$Revision: 1.1 $"
+"""
+    print version of current DIRAC instalation
+"""
+from DIRACEnvironment import DIRAC
+print DIRAC.version
