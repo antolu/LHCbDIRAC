@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.4 2008/03/20 12:02:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.5 2008/03/20 12:18:27 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.4 2008/03/20 12:02:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-update,v 1.5 2008/03/20 12:18:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -320,6 +320,10 @@ if not sys.executable == localPython:
   ret = os.system( '%s %s %s ' % ( localPython, dirac_update, args ) )
   sys.exit(ret)
 else:
+  from DIRACEnvironment import DIRAC
+  from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
+  setDIRACGroup( 'lhcb_user' )
+  
   from DIRAC.Core.Base import Script
 
   Script.registerSwitch( "c",  "compile",   "Allow compilation if platform not available" )
