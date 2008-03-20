@@ -1,41 +1,103 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.2 2008/03/18 18:41:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.3 2008/03/20 10:21:01 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.2 2008/03/18 18:41:26 rgracian Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-update,v 1.3 2008/03/20 10:21:01 rgracian Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 """
     Script to prepare/update a DIRAC instalation
 """
 try:
-  import os, sys, popen2, signal, urllib, tarfile
+  import os, sys, popen2, signal, urllib, tarfile, getopt, shutil, tempfile
 except Exception, x:
   print 'ERROR python interpreter does not support necessary modules'
   print 'ERROR', x
+  print
   sys.exit(-1)
 
-available_archs = [ 'slc4_amd64_gcc34', 'slc4_ia32_gcc34' ]
+availablePlatforms = [ 'slc4_amd64_gcc34', 'slc4_ia32_gcc34' ]
 
-defaultURL      = 'http://cern.ch/lhcbproject/dist/DIRAC3/'
+defaultURL      = 'http://cern.ch/lhcbproject/dist/DIRAC3'
 defaultVersion  = 'HEAD'
 defaultPython   = 'python25'
+externalVersion = defaultVersion
 
-debug = True
-compile_flag = False
+debugFlag   = False
+compileFlag = False
 
-# From the location of this script define the instalation root
-scriptsPath = os.path.realpath( os.path.dirname( __file__ ) )
-rootPath    = os.path.dirname( scriptsPath )
-etcPath     = os.path.join( rootPath, 'etc' )
-cfgPath     = os.path.join( etcPath, 'dirac.cfg' )
+localPlatform = None
+localVersion  = None
 
-if debug:
-  print
-  print 'DEBUG Checking DIRAC instalation at "%s"' %  rootPath
-  print
+externalTimeout = 300
 
+def parse_options():
+  """
+   parse command line options:
+  """
+  global compileFlag, debugFlag, localPlatform, defaultVersion, externalVersion
+  help = """
+   -c --compile              allow compilation if platform not available
+   -d --debug                set debug flag
+   -e --external             DIRAC-external version to install
+   -h --help                 print this
+   -p --platform=<platform>  use <platform> instead of local one
+   -v --version=<version>    DIRAC version to install
+  """
+  shortOptions = 'cde:hp:v:'
+  longOptions  = [ 'compile', 'debug', 'external=', 'help', 'platform=', 'version=']
+
+  ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
+
+  if ('-h','') in optionVals or ('--help','') in optionVals:
+    print 'Usage: %s [options]' % os.path.basename( sys.argv[0] )
+    print help
+    sys.exit(-1)
+
+
+  for o,v in optionVals:
+    if o == '-c' or o == '--compile':
+      compileFlag = True
+    elif o == '-d' or o == '--debug':
+      debugFlag = True
+    elif o == '-e' or o == '--external':
+      externalVersion = v
+    elif o == '-p' or o == '--platform':
+      localPlatform = v
+    elif o == '-v' or o == '--version':
+      defaultVersion = v
+
+
+def check_interpreter():
+  """
+   Check if DIRAC version of python interpreter is installed and make sure 
+   all scripts will make use of it
+  """
+  python = sys.executable
+  if python ==  localPython:
+    if debugFlag:
+      print 'DEBUG Using python interpreter "%s"' % python
+      print
+  else:
+    install_external()
+
+def check_version():
+  """
+   Check local DIRAC instalation a get version
+  """
+  global localVersion
+  
+  try:
+    from DIRACEnvironment import DIRAC
+    localVersion = DIRAC.version
+    if debugFlag:
+      print 'DEBUG currently installed DIRAC version is %s' % localVersion
+      print
+  except:
+      print 'ERROR no working version of DIRAC installed'
+      print
+      pass
 
 def check_diraccfg():
   """
@@ -46,7 +108,7 @@ def check_diraccfg():
       os.mkdir( etcPath )
     except Exception, x :
       print 'ERROR Can not create "%s", check permissions' % etcPath
-      print 'ERROR', x
+      print 'ERROR Exception:', x
       sys.exit(-1)
   
   if not os.path.exists( cfgPath ):
@@ -54,45 +116,31 @@ def check_diraccfg():
       file = open( cfgPath, 'w' )
     except Exception, x :
       print 'ERROR Can not create "%s", check permissions' % cfgPath
-      print 'ERROR', x
+      print 'ERROR Exception:', x
+      print
       sys.exit(-1)
   elif not os.access( cfgPath, os.R_OK ):
     try:
       file =  open( cfgPath, 'r' )
     except Exception, x :
       print 'ERROR Can not read "%s", check permissions' % cfgPath
-      print 'ERROR', x
+      print 'ERROR Exception:', x
+      print
       sys.exit(-1)
 
-def check_GSI( final = False ):
+def get_platform():
   """
-   Check if we can use pyGSI and install/compile it if appropriated
+   Use dirac-architecture script to retrieve the local platform
   """
-  try:
-    import GSI
-  except:
-    if final:
-      print 'ERROR Could not prepare a working DIRAC instalation'
-      sys.exit(-1)
-    arch = get_arch()
-    if not arch in available_archs:
-      if not compile_flag:
-        print 'ERROR platform "%s" not available, use compile flag' % arch
-        sys.exit(-1)
-      else:
-        print 'Not implemented' 
-    else:
-      install_external( arch )
-
-def get_arch():
-  """
-   Use dirac-architecture script to retrieve the local architecture
-  """
-  
-  (child_stdout, child_stdin) = popen2.popen2( '%s/dirac-architecture' % scriptsPath )
-  arch = child_stdout.read()
+  dirac_architecture = os.path.join( scriptsPath, 'dirac-architecture' )
+  (child_stdout, child_stdin) = popen2.popen2( dirac_architecture )
+  platform = child_stdout.read().strip()
   child_stdout.close()
-  return arch.strip()
+  if platform == 'ERROR':
+    print 'ERROR can not determine local platform'
+    print
+    sys.exit(-1)
+  return platform
 
 def urlretrieveTimeout( fname, lname, timeout ):
   """
@@ -100,6 +148,9 @@ def urlretrieveTimeout( fname, lname, timeout ):
   """
   # NOTE: Not thread-safe, since all threads will catch same alarm.
   #       This is OK for dirac-install, since there are no threads.
+  if debugFlag:
+    print 'DEBUG Retrieving remote file "%s"' % fname
+    print
 
   signal.signal(signal.SIGALRM, alarmHandler)
   # set timeout alarm
@@ -110,6 +161,7 @@ def urlretrieveTimeout( fname, lname, timeout ):
     if x == 'TimeOut':
       print "ERROR Timeout after %s seconds on transfer request for %s" % \
       (str(timeout), fname)
+      print
     raise x
 
   # clear timeout alarm
@@ -121,37 +173,142 @@ def alarmHandler(*args):
   """
   raise Exception( 'TimeOut' )
 
-def install_external( arch ):
+def install_external( ):
   """
-   Install external package for the requiered architecture
+   Install external package for the requiered platform
   """
-  curDir = os.getcwd()
-  name = 'DIRAC-external-%s.%s-%s.tar.gz' % ( defaultVersion, arch, defaultPython )
-  try:
-    urlretrieveTimeout('%s/%s' % ( defaultURL, name ), name, 5 )
-    tar = tarfile.open( name , 'r' )
+  # remove requested platform directory if it exists
+  externalDir = os.path.join( rootPath, localPlatform )
+  if os.path.isdir( externalDir ):
     try:
+      shutil.rmtree( externalDir )
+    except Exception, x:
+      print 'ERROR Can not removed existing DIRAC-external distribution'
+      print 'ERROR', x
+      print
+      sys.exit(-1)
+  if not localPlatform in availablePlatforms:
+    if not compileFlag:
+      print 'ERROR platform "%s" not available, use --compile flag' % localPlatform
+      print
+      sys.exit(-1)
+    else:
+      compile_external()
+  else:
+    name = 'DIRAC-external-%s.%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
+    install_tar ( name )
+
+  os.environ['PATH'] = '%s:%s' % ( os.path.join( externalDir, 'bin' ), os.environ['PATH'] )
+
+def install_tar( name ):
+
+  ( file, localName ) = tempfile.mkstemp()
+  remoteName = '%s/%s' % ( defaultURL, name )
+  error = 'Retrieving file "%s"' % remoteName
+  try:
+    urlretrieveTimeout( remoteName, localName, externalTimeout )
+    error = 'Opening file "%s"' % localName
+    tar = tarfile.open( localName , 'r' )
+    try:
+      error = 'Extracting file "%s"' % localName
       tar.extractall( rootPath )
+      os.remove( localName )
     except:
       for member in tar.getmembers():
         tar.extract( member, rootPath )
+      os.remove( localName )
 
   except Exception, x:
-    print x  
+    print 'ERROR %s' % error
+    print 'ERROR Exception:', x
+    print
+    try:
+      os.remove( localName )
+    except:
+      pass
+    sys.exit(-1)  
+
+def install_dirac( ):
+  """
+   Compare required DIRAC version with installed one and update if necesary
+  """
+  global localVersion, defaultVersion
+  if defaultVersion == localVersion:
+    if debugFlag:
+      print 'DEBUG DIRAC version "%s" already installed' % localVersion
+      print
+  else:
+    name = 'DIRAC-%s.tar.gz' % defaultVersion
+    install_tar( name )
+    dirac_make = os.path.join( rootPath, 'DIRAC', 'dirac-make')
+    ( child_stdout, child_stdin, child_stderr) = popen2.popen3( dirac_make )
+    while child_stdout.read():
+      pass
+    for line in child_stderr.readlines():
+      print 'ERROR %s' % line,
+    child_stdout.close()
+    child_stderr.close()
+    dirac_version = os.path.join( scriptsPath, 'dirac-version' )
+    ( child_stdout, child_stdin, child_stderr) = popen2.popen3( '%s %s' % ( localPython, dirac_version ) )
+    localVersion = child_stdout.readline().strip()
+    if debugFlag:
+      print 'DEBUG DIRAC version "%s" installed' % localVersion
+      print
+    child_stdout.close()
+    child_stderr.close()
+    
+def compile_external():
+  """
+   Retrieve and compile external dependendencies for local platform
+  """
+  print 'Compile of external not implemented' 
+  print
+  sys.exit(-1)
+
+parse_options()
+
+# From the location of this script define the instalation root
+scriptsPath = os.path.realpath( os.path.dirname( __file__ ) )
+rootPath    = os.path.dirname( scriptsPath )
+etcPath     = os.path.join( rootPath, 'etc' )
+cfgPath     = os.path.join( etcPath, 'dirac.cfg' )
+
+if debugFlag:
+  print 'DEBUG Checking DIRAC instalation at "%s"' %  rootPath
+  print
+  try:
+    from DIRACEnvironment import DIRAC
+  except Exception, x:
+    print 'ERROR', x
+
+# Determine platform
+if not localPlatform:
+  localPlatform = get_platform()
+localPython   = os.path.join( rootPath, localPlatform, 'bin', 'python' )
+if debugFlag:
+  print 'DEBUG Using platform "%s"' %  localPlatform
+  print
 
 
+# Check python interpreter (install if necesary)
+check_interpreter()
 
 check_diraccfg()
 
-check_GSI()
+check_version()
 
-print 'OK'
+install_dirac()
 
-sys.exit(0)
+if not sys.executable == localPython:
+  # if we are not running with our onw python let's call ourself again
+  dirac_update = os.path.realpath( __file__ )
+  args         = str.join(' ',sys.argv[1:]) + ' -v %s' % localVersion
+  print '%s %s %s ' % ( localPython, dirac_update, args )
+  ret = os.system( '%s %s %s ' % ( localPython, dirac_update, args ) )
+  sys.exit(ret)
+else:
+  # further checks can be implemented here
+  print 'DIRAC version %s installed' % localVersion
+  print 'DIRAC-external version %s installed' % externalVersion
 
-# First check if there is a minimal working DIRAC environment
-try:
-  from DIRACEnvironment import DIRAC
-except :
-  # Need to retrieve 
-  print "KO"
+  sys.exit(0)
