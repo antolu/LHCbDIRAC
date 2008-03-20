@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.3 2008/03/20 10:21:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.4 2008/03/20 12:02:04 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.3 2008/03/20 10:21:01 rgracian Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-update,v 1.4 2008/03/20 12:02:04 rgracian Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -38,15 +38,28 @@ def parse_options():
   """
   global compileFlag, debugFlag, localPlatform, defaultVersion, externalVersion
   help = """
-   -c --compile              allow compilation if platform not available
-   -d --debug                set debug flag
-   -e --external             DIRAC-external version to install
-   -h --help                 print this
-   -p --platform=<platform>  use <platform> instead of local one
-   -v --version=<version>    DIRAC version to install
+   -c --compile              Allow compilation if platform not available
+   -d --debug                Set debug flag
+   -e --external=<version>   DIRAC-external <version> to install
+   -h --help                 Print this
+   -p --platform=<platform>  Use <platform> instead of local one
+   -v --version=<version>    DIRAC <version> to install
+
+  from DIRAC framework:
+
+    self.registerCmdOpt( "o:", "option=", "Option=value to add",
+                         self.__setOptionByCmd  )
+    self.registerCmdOpt( "s:", "section=", "Set base section for relative parsed options",
+                         self.__setSectionByCmd )
+    self.registerCmdOpt( "c:", "cert=", "Use server certificate to connect to Core Services",
+                         self.__setUseCertByCmd )
+    self.registerCmdOpt( "h", "help", "Shows this help",
+                         self.__showHelp )
+  
+  
   """
-  shortOptions = 'cde:hp:v:'
-  longOptions  = [ 'compile', 'debug', 'external=', 'help', 'platform=', 'version=']
+  shortOptions = 'cde:hp:v:o:s:'
+  longOptions  = [ 'compile', 'debug', 'external=', 'help', 'platform=', 'version=', 'option=', 'section=']
 
   ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
 
@@ -307,6 +320,16 @@ if not sys.executable == localPython:
   ret = os.system( '%s %s %s ' % ( localPython, dirac_update, args ) )
   sys.exit(ret)
 else:
+  from DIRAC.Core.Base import Script
+
+  Script.registerSwitch( "c",  "compile",   "Allow compilation if platform not available" )
+  Script.registerSwitch( "d",  "debug",     "Set debug flag" )
+  Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
+  Script.registerSwitch( "p:", "platform=", "Use <platform> instead of local one" )
+  Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
+  
+  Script.parseCommandLine( ignoreErrors = True )
+  DIRAC.gConfig.dumpLocalCFGToFile('/tmp/dirac.cfg')
   # further checks can be implemented here
   print 'DIRAC version %s installed' % localVersion
   print 'DIRAC-external version %s installed' % externalVersion
