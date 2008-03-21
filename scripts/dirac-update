@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.6 2008/03/20 14:59:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.7 2008/03/21 07:52:21 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.6 2008/03/20 14:59:50 rgracian Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: dirac-update,v 1.7 2008/03/21 07:52:21 rgracian Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -92,12 +92,12 @@ def check_interpreter():
   else:
     install_external()
 
-def check_version():
+def check_dirac_version():
   """
    Check local DIRAC instalation a get version
   """
   global localVersion
-  
+  check_diraccfg()
   try:
     from DIRACEnvironment import DIRAC
     localVersion = DIRAC.version
@@ -236,11 +236,12 @@ def install_tar( name ):
       pass
     sys.exit(-1)  
 
-def install_dirac( ):
+def check_dirac( ):
   """
    Compare required DIRAC version with installed one and update if necesary
   """
   global localVersion, defaultVersion
+  check_dirac_version()
   if defaultVersion == localVersion:
     if debugFlag:
       print 'DEBUG DIRAC version "%s" already installed' % localVersion
@@ -297,12 +298,7 @@ if debugFlag:
 
 # Check python interpreter (install if necesary)
 check_interpreter()
-
-check_diraccfg()
-
-check_version()
-
-install_dirac()
+check_dirac()
 
 if not sys.executable == localPython:
   # if we are not running with our onw python let's call ourself again
@@ -318,6 +314,7 @@ else:
   else:
     DIRAC.gLogger.setLevel( 'INFO' )
   from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
+  
   setDIRACGroup( 'lhcb_user' )
   
   from DIRAC.Core.Base import Script
@@ -329,7 +326,8 @@ else:
   Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
   
   Script.parseCommandLine( ignoreErrors = True )
-  DIRAC.gConfig.dumpLocalCFGToFile('/tmp/dirac.cfg')
+  
+  DIRAC.gConfig.dumpLocalCFGToFile( cfgPath )
   # further checks can be implemented here
   print 'DIRAC version %s installed' % localVersion
   print 'DIRAC-external version %s installed' % externalVersion
