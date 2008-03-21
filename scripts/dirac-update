@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.8 2008/03/21 08:56:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.9 2008/03/21 09:12:04 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.8 2008/03/21 08:56:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: dirac-update,v 1.9 2008/03/21 09:12:04 rgracian Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -317,8 +317,9 @@ check_dirac()
 
 if not sys.executable == localPython:
   # if we are not running with our onw python let's call ourself again
+  logINFO( 'Will retry now with DIRAC python' )
   args         = str.join(' ',sys.argv[1:]) + ' -v %s' % localVersion
-  print '%s %s %s ' % ( localPython, myFullName, args )
+  logDEBUG( '%s %s %s ' % ( localPython, myFullName, args ) )
   ret = os.system( '%s %s %s ' % ( localPython, myFullName, args ) )
   sys.exit(ret)
 
