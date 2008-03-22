@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.10 2007/11/30 16:05:11 paterson Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.11 2008/03/22 08:51:12 rgracian Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
@@ -159,7 +159,7 @@ def guessPlatform() :
             elif ( string.find(lines, "Mandriva Linux") != -1 and
                  string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible
             elif string.find(lines, "Ubuntu" ) != -1:
-            	 opSys = "ubu_%s" % lines.split()[1]
+            	 opSys = "ubu%s_%s" % (lines.split()[1], guessHWArch() )
 
         if not opSys :
             # errLog = open(".guessPlatf-os.err",'w')
