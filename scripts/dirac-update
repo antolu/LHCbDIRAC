@@ -1,52 +1,42 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.9 2008/03/21 09:12:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.10 2008/03/24 20:58:26 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.9 2008/03/21 09:12:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac-update,v 1.10 2008/03/24 20:58:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 """
     Script to prepare/update a DIRAC instalation
 """
-try:
-  import os, sys, popen2, signal, urllib, tarfile, getopt, shutil, tempfile, datetime
-except Exception, x:
-  print 'ERROR python interpreter does not support necessary modules'
-  print 'ERROR', x
-  print
-  sys.exit(-1)
+
+from dirac_functions import *
 
 myFullName  = os.path.realpath( __file__ )
 myShortName = os.path.basename( myFullName )
 
-availablePlatforms = [ 'slc4_amd64_gcc34', 'slc4_ia32_gcc34' ]
+rootPath = logInit( myFullName )
 
-defaultURL      = 'http://cern.ch/lhcbproject/dist/DIRAC3'
-defaultVersion  = 'HEAD'
-defaultPython   = 'python25'
-externalVersion = defaultVersion
 
-debugFlag   = False
-compileFlag = False
+tarFlag()
 
-localPlatform = None
-localVersion  = None
-
-externalTimeout = 300
+platform = get_platform( )
 
 def parse_options():
   """
    parse command line options:
   """
-  global compileFlag, debugFlag, localPlatform, defaultVersion, externalVersion
+  global platform
   help = """
-   -b --build                  Allow compilation if platform not available
+   -b --build                  Force local compilation
    -d --debug                  Set debug flag
-   -e --external=<version>     DIRAC-external <version> to install
+   -e --external=<version>     DIRAC-external <version> to install (overwrites -v)
    -h --help                   Print this
+   -r --repository=<rep>       Use <rep> as cvs repository
    -p --platform=<platform>    Use <platform> instead of local one
+   -u --url=<url>              Use <url> to download tarballs
    -v --version=<version>      DIRAC <version> to install
+      --cvs                    Retrieve from CVS (implies -b)
 
   from DIRAC framework:
 
@@ -55,8 +45,10 @@ def parse_options():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:hp:v:o:s:'
-  longOptions  = [ 'build', 'debug', 'external=', 'help', 'platform=', 'version=', 'option=', 'section=']
+  shortOptions = 'bde:hp:u:v:o:s:'
+  longOptions  = ['build', 'debug', 'external=', 'help', 'platform=', 'url=', 'version=', 
+                  'cvs', 
+                  'option=', 'section=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
   except getopt.GetoptError, x:
@@ -64,258 +56,38 @@ def parse_options():
     optionVals = [ ('-h','') ]
 
   if ('-h','') in optionVals or ('--help','') in optionVals:
-    print
-    print 'Usage: %s [options]' % myShortName
-    print help
-    sys.exit(-1)
+    logHelp( help )
 
-
+  ext = None
   for o,v in optionVals:
     if o == '-b' or o == '--build':
-      compileFlag = True
+      build()
     elif o == '-d' or o == '--debug':
-      debugFlag = True
+      debug()
     elif o == '-e' or o == '--external':
-      externalVersion = v
+      ext = v
     elif o == '-p' or o == '--platform':
-      localPlatform = v
+      platform = set_platform(v)
+    elif o == '-r' or o == '--repository':
+      default_CVS(v)
+    elif o == '-u' or o == '--url':
+      default_URL( v )
     elif o == '-v' or o == '--version':
-      defaultVersion = v
+      version(v)
+    elif o == '--cvs':
+      cvsFlag()
 
-
-def check_interpreter():
-  """
-   Check if DIRAC version of python interpreter is installed and make sure 
-   all scripts will make use of it
-  """
-  python = sys.executable
-  if python ==  localPython:
-    logDEBUG( 'Using python interpreter "%s"' % python )
-  else:
-    install_external()
-
-def check_dirac_version():
-  """
-   Check local DIRAC instalation a get version
-  """
-  global localVersion
-  check_diraccfg()
-  try:
-    from DIRACEnvironment import DIRAC
-    localVersion = DIRAC.version
-    logDEBUG( 'Currently installed DIRAC version is %s' % localVersion )
-  except:
-      logERROR( 'No working version of DIRAC installed' )
-      pass
-
-def check_diraccfg():
-  """
-   Make sure that dirac.cfg file exists in the default location, even if empty
-  """
-  if not os.path.exists( etcPath ):
-    try:
-      os.mkdir( etcPath )
-    except Exception, x :
-      logERROR( 'Can not create "%s", check permissions' % etcPath )
-      logEXCEP( x )
-  
-  if not os.path.exists( cfgPath ):
-    try:
-      file = open( cfgPath, 'w' )
-    except Exception, x :
-      logERROR( 'Can not create "%s", check permissions' % cfgPath)
-      logEXCEP( x )
-  elif not os.access( cfgPath, os.R_OK ):
-    try:
-      file =  open( cfgPath, 'r' )
-    except Exception, x :
-      logERROR( 'Can not read "%s", check permissions' % cfgPath )
-      logEXCEP( x )
-
-def get_platform():
-  """
-   Use dirac-architecture script to retrieve the local platform
-  """
-  dirac_architecture = os.path.join( scriptsPath, 'dirac-architecture' )
-  (child_stdout, child_stdin) = popen2.popen2( dirac_architecture )
-  platform = child_stdout.read().strip()
-  child_stdout.close()
-  if platform == 'ERROR':
-    logERROR( 'Can not determine local platform' )
-    sys.exit(-1)
-  return platform
-
-def urlretrieveTimeout( fname, lname, timeout ):
-  """
-   Retrive remore url to local file, with timeout wrapper
-  """
-  # NOTE: Not thread-safe, since all threads will catch same alarm.
-  #       This is OK for dirac-install, since there are no threads.
-  logDEBUG( 'Retrieving remote file "%s"' % fname )
-
-  signal.signal(signal.SIGALRM, alarmHandler)
-  # set timeout alarm
-  signal.alarm(timeout)
-  try:
-    localname,headers = urllib.urlretrieve( fname, lname )
-  except Exception, x:
-    if x == 'TimeOut':
-      logERROR( 'Timeout after %s seconds on transfer request for "%s"' % \
-      (str(timeout), fname) )
-    raise x
-
-  # clear timeout alarm
-  signal.alarm(0)
-  
-def alarmHandler(*args):
-  """
-   signal handler for SIGALRM, just raise an exception
-  """
-  raise Exception( 'TimeOut' )
-
-def install_external( ):
-  """
-   Install external package for the requiered platform
-  """
-  # remove requested platform directory if it exists
-  externalDir = os.path.join( rootPath, localPlatform )
-  if os.path.isdir( externalDir ):
-    try:
-      shutil.rmtree( externalDir )
-    except Exception, x:
-      logERROR( 'Can not removed existing DIRAC-external distribution' )
-      logEXCEP( x )
-
-  if not localPlatform in availablePlatforms:
-    if not compileFlag:
-      logERROR( 'Platform "%s" not available, use --compile flag' % localPlatform )
-      sys.exit(-1)
-    else:
-      compile_external()
-  else:
-    name = 'DIRAC-external-%s.%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
-    install_tar ( name )
-
-  os.environ['PATH'] = '%s:%s' % ( os.path.join( externalDir, 'bin' ), os.environ['PATH'] )
-
-def install_tar( name ):
-
-  ( file, localName ) = tempfile.mkstemp()
-  remoteName = '%s/%s' % ( defaultURL, name )
-  error = 'Retrieving file "%s"' % remoteName
-  try:
-    urlretrieveTimeout( remoteName, localName, externalTimeout )
-    error = 'Opening file "%s"' % localName
-    tar = tarfile.open( localName , 'r' )
-    try:
-      error = 'Extracting file "%s"' % localName
-      tar.extractall( rootPath )
-      os.remove( localName )
-    except:
-      for member in tar.getmembers():
-        tar.extract( member, rootPath )
-      os.remove( localName )
-
-  except Exception, x:
-    try:
-      os.remove( localName )
-    except:
-      pass
-    logERROR( error )
-    logEXCEP( x )
-
-def check_dirac( ):
-  """
-   Compare required DIRAC version with installed one and update if necesary
-  """
-  global localVersion, defaultVersion
-  check_dirac_version()
-  if defaultVersion == localVersion:
-    logDEBUG( 'DIRAC version "%s" already installed' % localVersion )
-  else:
-    name = 'DIRAC-%s.tar.gz' % defaultVersion
-    install_tar( name )
-    dirac_make = os.path.join( rootPath, 'DIRAC', 'dirac-make')
-    ( child_stdout, child_stdin, child_stderr) = popen2.popen3( dirac_make )
-    while child_stdout.read():
-      pass
-    for line in child_stderr.readlines():
-      logERROR( line )
-    child_stdout.close()
-    child_stderr.close()
-    dirac_version = os.path.join( scriptsPath, 'dirac-version' )
-    ( child_stdout, child_stdin, child_stderr) = popen2.popen3( '%s %s' % ( localPython, dirac_version ) )
-    localVersion = child_stdout.readline().strip()
-    logDEBUG( 'DIRAC version "%s" installed' % localVersion )
-    child_stdout.close()
-    child_stderr.close()
-    
-def compile_external():
-  """
-   Retrieve and compile external dependendencies for local platform
-  """
-  logINFO( 'Compile of external not implemented' )
-  sys.exit(-1)
-
-def log( level, msg ):
-  """
-   Print log entries similar to DIRAC Logger
-  """
-  logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
-  if level != 'DEBUG ' or debugFlag:
-    for line in msg.split( '\n' ):
-      print logTime, myShortName, level, line
-
-def logEXCEP( msg ):
-  log( 'EXCEPT', str(msg) )
-  sys.exit( -1 )
-
-def logERROR( msg ):
-  log( 'ERROR ', msg )
-
-def logINFO( msg ):
-  log( 'INFO  ', msg )
-
-def logDEBUG( msg ):
-  log( 'DEBUG ', msg )
-
-def dateTime( ):
-  """
-  Return current UTC datetime, as datetime.datetime object
-  """
-  return datetime.datetime.utcnow( )
-
-_dateTimeType = type( dateTime() )
-
+    if ext: external(ext)
 
 
 parse_options()
+logINFO( 'Checking DIRAC instalation at "%s"' %  rootPath )
+logINFO( 'Using platform "%s"' %  platform )
 
-# From the location of this script define the instalation root
-scriptsPath = os.path.realpath( os.path.dirname( myFullName ) )
-rootPath    = os.path.dirname( scriptsPath )
-etcPath     = os.path.join( rootPath, 'etc' )
-cfgPath     = os.path.join( etcPath, 'dirac.cfg' )
-
-logDEBUG( 'Checking DIRAC instalation at "%s"' %  rootPath )
-if debugFlag:
-  try:
-    from DIRACEnvironment import DIRAC
-  except Exception, x:
-    logERROR ( str(x) )
-
-# Determine platform
-if not localPlatform:
-  localPlatform = get_platform()
-localPython   = os.path.join( rootPath, localPlatform, 'bin', 'python' )
-logDEBUG( 'Using platform "%s"' %  localPlatform )
-
-
-# Check python interpreter (install if necesary)
-check_interpreter()
-check_dirac()
-
-if not sys.executable == localPython:
+localPython   = os.path.join( rootPath, platform, 'bin', 'python' )
+if not check_interpreter( localPython ):
+  install_external( platform, defaultPython )
+  localVersion = check_dirac( defaultVersion )
   # if we are not running with our onw python let's call ourself again
   logINFO( 'Will retry now with DIRAC python' )
   args         = str.join(' ',sys.argv[1:]) + ' -v %s' % localVersion
@@ -324,6 +96,7 @@ if not sys.executable == localPython:
   sys.exit(ret)
 
 else:
+  localVersion = check_dirac( defaultVersion )
   from DIRACEnvironment import DIRAC
   if debugFlag:
     DIRAC.gLogger.setLevel( 'DEBUG' )
@@ -339,6 +112,7 @@ else:
   Script.registerSwitch( "d",  "debug",     "Set debug flag" )
   Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
   Script.registerSwitch( "p:", "platform=", "Use <platform> instead of local one" )
+  Script.registerSwitch( "u:", "url=",      "Use <url> to download tarballs" )
   Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
   
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
