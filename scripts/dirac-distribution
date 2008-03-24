@@ -1,10 +1,205 @@
+#!/usr/bin/env python
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $
+# File :   dirac-distribution
+# Author : Ricardo Graciani
+########################################################################
+__RCSID__   = "$Id: dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $"
+__VERSION__ = "$Revision: 1.4 $"
+"""
+    Script to prepare DIRAC distribution tarballs
+"""
+
+from dirac_functions import *
+
+myFullName  = os.path.realpath( __file__ )
+myShortName = os.path.basename( myFullName )
+
+rootPath = logInit( myFullName )
+rootPath = tmpDir()
+
+cvsFlag()
+
+localPlatform = get_platform()
+
+
+def parse_options():
+  """
+   parse command line options:
+  """
+  help = """
+   -b --build                  Prepare compile tars for local platform
+   -d --debug                  Set debug flag
+   -e --external=<version>     DIRAC-external <version> to install (overwrites -v)
+   -h --help                   Print this
+   -r --repository=<rep>       Use <rep> as cvs repository
+   -u --url=<url>              Use <url> to download tarballs
+   -v --version=<version>      DIRAC <version> to install
+      --server                 Prepare full external tar
+      --tar                    Retrieve from tar
+
+  from DIRAC framework:
+
+    -o --option=<Option=value> <Option=value> to add
+    -s --section=<section>     Set base <section> for relative parsed options
+    -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
+
+  """
+  shortOptions = 'bde:hr:u:v:o:s:'
+  longOptions  = ['build', 'debug', 'external=', 'help', 'repository=', 'url=', 'version=',
+                  'server', 'tar',
+                  'option=', 'section=']
+  try:
+    ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
+  except getopt.GetoptError, x:
+    logERROR( 'Parsing command line: %s' % x )
+    optionVals = [ ('-h','') ]
+
+  if ('-h','') in optionVals or ('--help','') in optionVals:
+    logHelp( help )
+
+  ext = None
+  for o,v in optionVals:
+    if o == '-b' or o == '--build':
+      build()
+    elif o == '-d' or o == '--debug':
+      debug()
+    elif o == '-e' or o == '--external':
+      ext = v
+    elif o == '-r' or o == '--repository':
+      default_CVS(v)
+    elif o == '-u' or o == '--url':
+      default_URL(v)
+    elif o == '-v' or o == '--version':
+      version(v)
+    elif o == '--tar':
+      tarFlag()
+    elif o == '--server':
+      requireServer()
+      
+    if ext: external(ext)
+
+def exit( ret ):
+  """
+   Remove tmpDir and exit
+  """
+  logINFO( 'Remember to remove temporary Directory "%s"' % rootPath )
+  sys.exit( ret )
+
+
+parse_options()
+logINFO( 'Preparing DIRAC distribution at "%s"' %  rootPath )
+
+
+tars =  create_src_tars()
+tars += create_bin_tars()
+
+if tars > 0:
+  logINFO( 'Upload tar files to repository:' )
+  logINFO( ' scp %s/*.tar.gz lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/DIRAC3' % rootPath )
+
+exit(0)
+
+
+def dirac_make( dir ):
+  """
+   Run dirac-make at dir
+  """
+  logINFO( ' Making "%s"' % dir )
+  diracMake = os.path.join( tmpDir, 'DIRAC3', dir, 'dirac-make' )
+  makeCmd = '%s 1>> %s.log 2>> %s.log' % ( diracMake, diracMake, diracMake )
+  logDEBUG( makeCmd )
+  ret = os.system ( makeCmd )
+  if ret != 0:
+    logERROR( 'Failed making %s' %dir )
+    logERROR( 'Check log file at "%s.log"' % diracMake )
+    exit( -1 )
+
+
+
+
+
+logDEBUG( 'Using CVS Root: "%s"' % defaultCVS )
+
+tmpDir = get_tmpDir()
+
+# DIRAC-scripts
+
+cvs_checkout( 'scripts', defaultVersion )
+dirac_magic(  '#! /usr/bin/env python' )
+create_tar(   'scripts-%s' % defaultVersion, ['scripts'] )
+
+# DIRAC
+
+cvs_checkout( 'WorkflowLib', defaultVersion )
+cvs_checkout( 'DIRAC', defaultVersion )
+dirac_make(   'DIRAC' )
+dirac_magic(  '#! /usr/bin/env python' )
+create_tar(   defaultVersion, ['scripts', 'WorkflowLib', 'DIRAC' ] )
+
+# external/contrib
+
+cvs_checkout( 'external', externalVersion )
+cvs_checkout( 'contrib',  externalVersion )
+
+create_tar( 'external-%s' % externalVersion, ['external', 'contrib'] )
+
+if buildFlag:
+
+  # Determine platform
+  if not localPlatform:
+    localPlatform = get_platform()
+  logINFO( 'Using platform "%s"' %  localPlatform )
+  
+  
+  # Compile (python2.4)
+  # pure Client
+  dirac_make( 'external/Python-2.4.4' )
+  dirac_make( 'contrib/pyGSI' )
+  
+  create_tar( 'external-client-%s-%s-python24' % ( externalVersion, localPlatform ), [ localPlatform ] )
+  # full external
+  dirac_make( 'external/runit' )
+  dirac_make( 'external/MySQL' )
+  dirac_make( 'external/MySQL-python' )
+  dirac_make( 'external/Pylons' )
+  dirac_make( 'external/matplotlib' )
+  
+  create_tar( 'external-%s-%s-python24' % ( externalVersion, localPlatform ), [ localPlatform ] )
+  
+  os.rename( os.path.join( 'DIRAC3', localPlatform ), os.path.join( 'DIRAC3', localPlatform + "-python24" ) )
+  
+  # Compile (python2.5)
+  # pure Client
+  dirac_make( 'external/sqlite-3.5.4' )
+  dirac_make( 'external/Python-2.5' )
+  dirac_make( 'contrib/pyGSI' )
+  
+  create_tar( 'external-client-%s-%s-python25' % ( externalVersion, localPlatform ), [ localPlatform ] )
+  # full external
+  dirac_make( 'external/runit' )
+  dirac_make( 'external/MySQL' )
+  dirac_make( 'external/MySQL-python' )
+  dirac_make( 'external/Pylons' )
+  dirac_make( 'external/matplotlib' )
+  
+  create_tar( 'external-%s-%s-python25' % ( externalVersion, localPlatform ), [ localPlatform ] )
+  
+  os.rename( os.path.join( 'DIRAC3', localPlatform ), os.path.join( 'DIRAC3', localPlatform + "-python25" ) )
+
+logINFO( 'Upload  tar files to repository:' )
+logINFO( ' scp %s/*.tar.gz lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/DIRAC3' % tmpDir )
+
+exit(0)
+
+"""
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.3 2007/12/10 09:09:34 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 #
-# __RCSID__='$Id: dirac-distribution,v 1.3 2007/12/10 09:09:34 joel Exp $'
+# __RCSID__='$Id: dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
@@ -36,3 +231,4 @@ echo
 echo
 
 exit
+"""
