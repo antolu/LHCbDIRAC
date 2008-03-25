@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.3 2008/03/25 10:40:53 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.4 2008/03/25 11:31:31 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.3 2008/03/25 10:40:53 rgracian Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.4 2008/03/25 11:31:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -340,7 +340,7 @@ def dirac_make( dir ):
   if ret != 0:
     logERROR( 'Failed making %s' %dir )
     logERROR( 'Check log file at "%s.log"' % diracMake )
-    exit( -1 )
+    sys.exit( -1 )
 
 def get_cvs( tag, packages ):
   """
