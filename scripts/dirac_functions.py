@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.2 2008/03/25 10:27:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.3 2008/03/25 10:40:53 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.2 2008/03/25 10:27:01 rgracian Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.3 2008/03/25 10:40:53 rgracian Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -34,7 +34,7 @@ defaultVersion  = 'HEAD'
 externalVersion = defaultVersion
 defaultPython   = 'python25'
 python = {'python24':'external/Python-2.4.4',
-          'python25':'external/Python-2.5' }
+          'python25':'external/Python-2.5.2' }
 
 diracTimeout       = 120
 externalTimeout    = 300
@@ -61,7 +61,7 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                             'external/openssl-0.9.7m',
                             'external/sqlite-3.5.4',
                             'external/Python-2.4.4',
-                            'external/Python-2.5'],
+                            'external/Python-2.5.2'],
                'directories': ['contrib',
                                'external']
              },
