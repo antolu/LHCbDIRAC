@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.4 2008/03/25 11:31:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.5 2008/03/25 18:41:32 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.4 2008/03/25 11:31:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.5 2008/03/25 18:41:32 rgracian Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -286,6 +286,8 @@ def create_src_tars():
       version = defaultVersion
       if name.find('external') != -1 :
         version = externalVersion
+      if name == 'DIRAC':
+        dirac_make( 'DIRAC' )
       get_cvs( version, tar['packages']  )
       tarName = '%s-%s' % ( name, version )
       os.chdir( os.path.join( rootPath, 'DIRAC3' ) )
