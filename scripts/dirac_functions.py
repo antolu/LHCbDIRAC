@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.1 2008/03/24 20:59:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.2 2008/03/25 10:27:01 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.1 2008/03/24 20:59:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.2 2008/03/25 10:27:01 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -19,8 +19,7 @@ except Exception, x:
   sys.exit(-1)
 
 availablePlatforms = ['slc4_amd64_gcc34', 
-                      'slc4_ia32_gcc34', 
-                      'ubu7.10_ia32_gcc41']
+                      'slc4_ia32_gcc34' ]
 
 rootPath    = None
 shortName   = None
@@ -215,6 +214,13 @@ def set_platform( platform ):
   reqPlatform = platform
   return reqPlatform
 
+def set_python( ver ):
+  global defaultPython
+  defaultPython = 'python%s' % ver
+  if not python.has_key( defaultPython ):
+    logERROR( 'Python version "%s" not available' % defaultPython )
+    sys.exit(-1)
+
 def default_URL( url  ):
   global defaultURL
   defaultURL = url
@@ -242,8 +248,11 @@ def dirac_magic( magic ):
   """
    Replace first magic line of all python scripts in scripts
   """
-  os.chdir( os.path.join( 'DIRAC3', 'scripts' ) )
+  os.chdir( os.path.join( rootPath, 'scripts' ) )
   files = os.listdir( '.' )
+  for file in files:
+    if file.find('CVS') != -1:
+      files.remove(file)
   output = []
   input = fileinput.FileInput( files, inplace = 1 )
   for line in input:
@@ -313,6 +322,7 @@ def create_bin_tars():
       dirac_make( dir )
       if i == 0 and j == 0:
         dirac_make( python[defaultPython] )
+        # need to check zlib module
     tarName = '%s-%s-%s-%s' % ( name, externalVersion, localPlatform, defaultPython )
     create_tar( tarName, [localPlatform] )
     tars += 1
@@ -439,7 +449,7 @@ def check_interpreter( python ):
   else:
     return False
 
-def install_external( localPlatform, defaultPython ):
+def install_external( localPlatform ):
   """
    Install external package for the requiered platform
   """
@@ -453,11 +463,11 @@ def install_external( localPlatform, defaultPython ):
       logEXCEP( x )
 
   if not localPlatform in availablePlatforms:
-    if not compileFlag:
-      logERROR( 'Platform "%s" not available, use --compile flag' % localPlatform )
+    if not buildFlag:
+      logERROR( 'Platform "%s" not available, use --build flag' % localPlatform )
       sys.exit(-1)
     else:
-      compile_external( rootPath, localPlatform )
+      build_external(  )
   else:
     if serverFlag:
       name = 'DIRAC-external-%s-%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
@@ -466,6 +476,48 @@ def install_external( localPlatform, defaultPython ):
     install_tar ( name, externalTimeout )
 
   os.environ['PATH'] = '%s:%s' % ( os.path.join( externalDir, 'bin' ), os.environ['PATH'] )
+
+def build_external():
+  """
+   Build external packages for local platform
+  """
+  n = srcNo
+  if not serverFlag:
+    n -= 1
+  if not fromTar:
+    for i in range(n):
+      tar = src_tars[i]
+      name = tar['name']
+      version = defaultVersion
+      if name.find('external') != -1 :
+        version = externalVersion
+        get_cvs( version, tar['packages']  )
+    # Move directories down from DIRAC3
+    dirs = os.listdir( 'DIRAC3' )
+    for dir in dirs:
+      os.rename( os.path.join( 'DIRAC3', dir ), dir )
+  else:
+    logINFO( 'Donwloading src tar' )
+    for i in range(n):
+      tar = src_tars[i]
+      name = tar['name']
+      if i == 0 or name.find('external') != -1 :
+        tarName = '%s-%s' % ( name, externalVersion )
+        get_tar( tarName, externalTimeout )
+
+  n = binNo
+  if not serverFlag:
+    n -= 1
+  for i in range(n):
+    tar = bin_tars[i]
+    name = tar['name']
+    for j in range(len(tar['packages'])):
+      dir = tar['packages'][j]
+      dirac_make( dir )
+      if i == 0 and j == 0:
+        dirac_make( python[defaultPython] )
+    
+  pass
 
 def install_tar( name, timeout ):
 
@@ -519,7 +571,7 @@ def check_dirac( defaultVersion ):
     child_stdout.close()
     child_stderr.close()
     
-    return localVersion
+  return localVersion
 
 def check_dirac_version():
   """

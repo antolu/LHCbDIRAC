@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.5 2008/03/25 10:27:13 rgracian Exp $
 # File :   dirac-distribution
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-distribution,v 1.5 2008/03/25 10:27:13 rgracian Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 """
     Script to prepare DIRAC distribution tarballs
 """
@@ -35,6 +35,7 @@ def parse_options():
    -r --repository=<rep>       Use <rep> as cvs repository
    -u --url=<url>              Use <url> to download tarballs
    -v --version=<version>      DIRAC <version> to install
+      --python=<24|25>         Use python<24|25>
       --server                 Prepare full external tar
       --tar                    Retrieve from tar
 
@@ -45,8 +46,8 @@ def parse_options():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:hr:u:v:o:s:'
-  longOptions  = ['build', 'debug', 'external=', 'help', 'repository=', 'url=', 'version=',
+  shortOptions = 'bde:hi:p:r:u:v:o:s:'
+  longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'repository=', 'url=', 'version=',
                   'server', 'tar',
                   'option=', 'section=']
   try:
@@ -66,6 +67,8 @@ def parse_options():
       debug()
     elif o == '-e' or o == '--external':
       ext = v
+    elif o == '-i' or o == '--python':
+      set_python(v)
     elif o == '-r' or o == '--repository':
       default_CVS(v)
     elif o == '-u' or o == '--url':
@@ -195,11 +198,11 @@ exit(0)
 """
 #!/bin/bash
 #
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.5 2008/03/25 10:27:13 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 #
-# __RCSID__='$Id: dirac-distribution,v 1.4 2008/03/24 20:59:25 rgracian Exp $'
+# __RCSID__='$Id: dirac-distribution,v 1.5 2008/03/25 10:27:13 rgracian Exp $'
 
 source `dirname $0`/dirac-functions.sh
 
