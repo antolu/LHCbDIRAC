@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.8 2008/03/26 15:38:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.9 2008/03/26 15:41:56 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.8 2008/03/26 15:38:25 rgracian Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.9 2008/03/26 15:41:56 rgracian Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -150,7 +150,7 @@ def logInit( fullName ):
   shortName = os.path.basename( fullName )
   scriptsPath = os.path.realpath( os.path.dirname( fullName ) )
   rootPath    = os.path.dirname( scriptsPath )
-
+  os.chdir( rootPath )
   return rootPath
 
 def log( level, msg ):
