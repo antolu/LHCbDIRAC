@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.7 2008/03/25 19:04:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.8 2008/03/26 15:38:25 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.7 2008/03/25 19:04:26 rgracian Exp $"
-__VERSION__ = "$Revision: 1.7 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.8 2008/03/26 15:38:25 rgracian Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -123,6 +123,7 @@ def cvsFlag():
   global fromTar, fromCVS
   fromTar = False
   fromCVS = True
+  build()
 
 def requireServer():
   """
@@ -130,7 +131,6 @@ def requireServer():
   """
   global serverFlag
   serverFlag = True
-  build()
 
 def requireClient():
   """
@@ -464,18 +464,18 @@ def install_external( localPlatform ):
       logERROR( 'Can not removed existing DIRAC-external distribution' )
       logEXCEP( x )
 
-  if not localPlatform in availablePlatforms:
-    if not buildFlag:
+  if buildFlag:
+    build_external( )
+  else:
+    if not localPlatform in availablePlatforms:
       logERROR( 'Platform "%s" not available, use --build flag' % localPlatform )
       sys.exit(-1)
     else:
-      build_external(  )
-  else:
-    if serverFlag:
-      name = 'DIRAC-external-%s-%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
-    else:
-      name = 'DIRAC-external-client-%s-%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
-    install_tar ( name, externalTimeout )
+      if serverFlag:
+        name = 'DIRAC-external-%s-%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
+      else:
+        name = 'DIRAC-external-client-%s-%s-%s.tar.gz' % ( externalVersion, localPlatform, defaultPython )
+      install_tar ( name, externalTimeout )
 
   os.environ['PATH'] = '%s:%s' % ( os.path.join( externalDir, 'bin' ), os.environ['PATH'] )
 
