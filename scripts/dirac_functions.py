@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.11 2008/03/26 16:09:24 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.12 2008/03/26 16:13:59 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.11 2008/03/26 16:09:24 rgracian Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.12 2008/03/26 16:13:59 rgracian Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -91,8 +91,6 @@ bin_tars = [ { 'name': 'DIRAC-external-client',
 
 srcNo = 4
 binNo = 2
-
-cfgPath = None
 
 def debug():
   """
@@ -595,7 +593,6 @@ def check_diraccfg():
   """
    Make sure that dirac.cfg file exists in the default location, even if empty
   """
-  global cfgPath
   etcPath = os.path.join( rootPath, 'etc')
   cfgPath = os.path.join( etcPath, 'dirac.cfg' )
   if not os.path.exists( etcPath ):
@@ -617,5 +614,6 @@ def check_diraccfg():
     except Exception, x :
       logERROR( 'Can not read "%s", check permissions' % cfgPath )
       logEXCEP( x )
+  return cfgPath
 
 
