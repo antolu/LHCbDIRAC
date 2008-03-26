@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.9 2008/03/26 15:41:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.10 2008/03/26 15:46:58 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.9 2008/03/26 15:41:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.10 2008/03/26 15:46:58 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -123,7 +123,6 @@ def cvsFlag():
   global fromTar, fromCVS
   fromTar = False
   fromCVS = True
-  build()
 
 def requireServer():
   """
