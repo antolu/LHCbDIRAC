@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.13 2008/03/26 14:53:27 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.14 2008/03/26 15:23:40 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.13 2008/03/26 14:53:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: dirac-update,v 1.14 2008/03/26 15:23:40 rgracian Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -98,8 +98,9 @@ if not check_interpreter( localPython ):
   # if we are not running with our onw python let's call ourself again
   logINFO( 'Will retry now with DIRAC python' )
   args         = str.join(' ',sys.argv[1:]) + ' -v %s' % localVersion
-  logDEBUG( '%s %s %s ' % ( localPython, myFullName, args ) )
-  ret = os.system( '%s %s %s ' % ( localPython, myFullName, args ) )
+  myScript = os.path.join( rootPath,'scripts', myShortName )
+  logDEBUG( '%s %s %s ' % ( localPython, myScript, args ) )
+  ret = os.system( '%s %s %s ' % ( localPython, myScript, args ) )
   sys.exit(ret)
 
 else:
