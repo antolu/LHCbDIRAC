@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.15 2008/03/31 12:25:17 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.16 2008/03/31 17:33:05 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.15 2008/03/31 12:25:17 rgracian Exp $"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.16 2008/03/31 17:33:05 rgracian Exp $"
+__VERSION__ = "$Revision: 1.16 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -99,6 +99,9 @@ class functions:
     self.platform()
 
   def setRoot( self, fullName ):
+    if fullName[0] != '/':
+      self.logERROR( 'Install path must be absolute.' )
+      sys.exit(-1)
     self.shortName   = os.path.basename( fullName )
     self.scriptsPath = os.path.realpath( os.path.dirname( fullName ) )
     self.__rootPath    = os.path.dirname( self.scriptsPath )
@@ -243,9 +246,9 @@ class functions:
           output.append( input.filename() )
           print magic
         else:
-          print line
+          print line,
       else:
-        print line
+        print line,
     input.close()
     if output:
       self.logDEBUG( 'Magic first line updated in files:' )
@@ -571,6 +574,7 @@ class functions:
         self.logERROR( 'Can not read "%s", check permissions' % cfgPath )
         self.logEXCEP( x )
 
+    return cfgPath
 
 def alarmHandler(*args):
   """

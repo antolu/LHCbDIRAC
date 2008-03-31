@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.20 2008/03/31 12:25:17 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.21 2008/03/31 17:32:05 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.20 2008/03/31 12:25:17 rgracian Exp $"
-__VERSION__ = "$Revision: 1.20 $"
+__RCSID__   = "$Id: dirac-update,v 1.21 2008/03/31 17:32:05 rgracian Exp $"
+__VERSION__ = "$Revision: 1.21 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -191,16 +191,14 @@ if not dirac.check_interpreter( ):
   myScript = os.path.join( dirac.root(),'scripts', myShortName )
   myCmd = '%s %s %s ' % ( dirac.localPython, myScript, args )
   dirac.logDEBUG( myCmd )
-  print myCmd
-  sys.exit()
   ret = os.system( myCmd )
   sys.exit(ret)
 
 else:
   dirac.check_dirac( )
-  dirac_magic(  '#! %s' % localPython )
+  dirac.dirac_magic(  '#! %s' % dirac.localPython )
   from DIRACEnvironment import DIRAC
-  if debugFlag:
+  if dirac.debugFlag:
     DIRAC.gLogger.setLevel( 'DEBUG' )
   else:
     DIRAC.gLogger.setLevel( 'INFO' )
