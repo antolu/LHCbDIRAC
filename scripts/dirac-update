@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.19 2008/03/27 17:45:40 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.20 2008/03/31 12:25:17 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.19 2008/03/27 17:45:40 rgracian Exp $"
-__VERSION__ = "$Revision: 1.19 $"
+__RCSID__   = "$Id: dirac-update,v 1.20 2008/03/31 12:25:17 rgracian Exp $"
+__VERSION__ = "$Revision: 1.20 $"
 """
     Script to prepare/update a DIRAC instalation
 """
 tmpPath = None
 try:
-  from dirac_functions import *
+  from dirac_functions import functions
 except:
   try:
     # if dirac_function is not available, retrive DIRAC-scripts tar
@@ -96,27 +96,18 @@ except:
     sys.path.insert( 0, os.path.join( tmpPath, 'scripts' ) )
     
   except Exception, x:
-    print x
+    print 'ERROR python interpreter does not support necessary modules'
+    print 'ERROR', x
+    print
     sys.exit(-1)
 
-from dirac_functions import *
-myFullName  = os.path.realpath( __file__ )
-myShortName = os.path.basename( myFullName )
-
-if not tmpPath:
-  rootPath = logInit( myFullName )
-else:
-  rootPath = logInit( os.path.join( tmpPath, 'scripts', myShortName ) )
-
-tarFlag()
-
-platform = get_platform( )
 
 def parse_options():
   """
    parse command line options:
   """
-  global platform, rootPath, defaultVersion
+  import getopt
+  global dirac
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
@@ -148,54 +139,65 @@ def parse_options():
     optionVals = [ ('-h','') ]
 
   if ('-h','') in optionVals or ('--help','') in optionVals:
-    logHelp( help )
+    dirac.logHelp( help )
 
   ext = None
+    
   for o,v in optionVals:
     if o == '-b' or o == '--build':
-      build()
+      dirac.build()
     elif o == '-d' or o == '--debug':
-      debug()
+      dirac.debug()
     elif o == '-e' or o == '--external':
       ext = v
     elif o == '-i' or o == '--python':
-      set_python(v)
+      dirac.setPython(v)
     elif o == '-p' or o == '--platform':
-      platform = set_platform(v)
+      dirac.platform(v)
     elif o == '-r' or o == '--repository':
-      default_CVS(v)
+      dirac.setCVS(v)
     elif o == '-u' or o == '--url':
-      default_URL( v )
+      dirac.setURL( v )
     elif o == '-v' or o == '--version':
-      defaultVersion =version(v)
+      dirac.setVersion(v)
     elif o == '-C' or o == '--cvs':
-      cvsFlag()
-      build()
-    elif o in ('-P', '--path'):
-      rootPath = logInit( os.path.join( v, 'scripts', myShortName ) )
+      dirac.cvsFlag()
+      dirac.build()
+    if o in ('-P', '--path'):
+      dirac.setRoot( os.path.join( v, 'scripts', myShortName ) )
 
-    if ext: external(ext)
+    if ext: dirac.setExternal(ext)
 
+import os, sys
+from dirac_functions import functions
+myFullName  = os.path.realpath( __file__ )
+myShortName = os.path.basename( myFullName )
+
+dirac = functions( myFullName )
+# by default install from tar
+dirac.tarFlag()
 
 parse_options()
-logINFO( 'Checking DIRAC instalation at "%s"' %  rootPath )
-logINFO( 'Using platform "%s"' %  platform )
+dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
+dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
-localPython   = os.path.join( rootPath, platform, 'bin', 'python' )
-if not check_interpreter( localPython ):
-  install_external( platform )
-  localVersion = check_dirac( defaultVersion )
-  dirac_magic(  '#! %s' % localPython )
+if not dirac.check_interpreter( ):
+  dirac.install_external()
+  dirac.check_dirac( )
+  dirac.dirac_magic(  '#! %s' % dirac.localPython )
   # if we are not running with our onw python let's call ourself again
-  logINFO( 'Will retry now with DIRAC python' )
-  args         = str.join(' ',sys.argv[1:]) + ' -v %s' % localVersion
-  myScript = os.path.join( rootPath,'scripts', myShortName )
-  logDEBUG( '%s %s %s ' % ( localPython, myScript, args ) )
-  ret = os.system( '%s %s %s ' % ( localPython, myScript, args ) )
+  dirac.logINFO( 'Will retry now with DIRAC python' )
+  args         = str.join(' ',sys.argv[1:]) + ' -v %s' % dirac.version
+  myScript = os.path.join( dirac.root(),'scripts', myShortName )
+  myCmd = '%s %s %s ' % ( dirac.localPython, myScript, args )
+  dirac.logDEBUG( myCmd )
+  print myCmd
+  sys.exit()
+  ret = os.system( myCmd )
   sys.exit(ret)
 
 else:
-  localVersion = check_dirac( defaultVersion )
+  dirac.check_dirac( )
   dirac_magic(  '#! %s' % localPython )
   from DIRACEnvironment import DIRAC
   if debugFlag:
@@ -227,9 +229,9 @@ else:
   
   Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
   
-  DIRAC.gConfig.dumpLocalCFGToFile( check_diraccfg() )
+  DIRAC.gConfig.dumpLocalCFGToFile( dirac.check_diraccfg() )
   # further checks can be implemented here
-  logINFO( 'DIRAC version "%s" installed' % localVersion)
-  logINFO( 'DIRAC-external version "%s" installed' % externalVersion)
+  dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
+  dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
 
   sys.exit(0)
