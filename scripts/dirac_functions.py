@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.16 2008/03/31 17:33:05 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.17 2008/04/01 19:26:50 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.16 2008/03/31 17:33:05 rgracian Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.17 2008/04/01 19:26:50 rgracian Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -85,18 +85,56 @@ class functions:
     self.setRoot( fullName )
     
     self.debugFlag   = False
+    self.buildFlag  = False
     self.CVS         = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
     self.URL         = 'http://cern.ch/lhcbproject/dist/DIRAC3'
     self.setVersion( 'HEAD' )
     self.setPython( '25' )
 
-    self.fromTar = False
-    self.fromCVS = True
+    self.cvsFlag()
+    self.requireClient()
     
-    self.buildFlag  = False
-    self.serverFlag = False
-
     self.platform()
+
+  def __rmDir(self, dir):
+    """
+     Remove dir if it exits
+    """
+    if os.path.exists( dir ):
+      try:
+        shutil.rmtree( dir )
+      except Exception, x:
+        self.logERROR( 'Can not removed existing directory %s' 
+                  % os.path.join( self.__rootPath, dir ) )
+        self.logEXCEP( x )
+
+  def __log( self, level, msg ):
+    """
+     Print log entries similar to DIRAC Logger
+    """
+    logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
+    if level != 'DEBUG ' or self.debugFlag:
+      for line in msg.split( '\n' ):
+        print logTime, self.shortName, level, line
+
+  def logEXCEP( self, msg ):
+    self.__log( 'EXCEPT', str(msg) )
+    sys.exit( -1 )
+  
+  def logERROR( self, msg ):
+    self.__log( 'ERROR ', msg )
+  
+  def logINFO( self, msg ):
+    self.__log( 'INFO  ', msg )
+  
+  def logDEBUG( self, msg ):
+    self.__log( 'DEBUG ', msg )
+  
+  def logHelp( self, help ):
+    print
+    print 'Usage: %s [options]' % self.shortName
+    print help
+    sys.exit(-1)
 
   def setRoot( self, fullName ):
     if fullName[0] != '/':
@@ -149,34 +187,6 @@ class functions:
     """
     self.serverFlag = False
 
-  def __log( self, level, msg ):
-    """
-     Print log entries similar to DIRAC Logger
-    """
-    logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
-    if level != 'DEBUG ' or self.debugFlag:
-      for line in msg.split( '\n' ):
-        print logTime, self.shortName, level, line
-
-  def logEXCEP( self, msg ):
-    self.__log( 'EXCEPT', str(msg) )
-    sys.exit( -1 )
-  
-  def logERROR( self, msg ):
-    self.__log( 'ERROR ', msg )
-  
-  def logINFO( self, msg ):
-    self.__log( 'INFO  ', msg )
-  
-  def logDEBUG( self, msg ):
-    self.__log( 'DEBUG ', msg )
-  
-  def logHelp( self, help ):
-    print
-    print 'Usage: %s [options]' % self.shortName
-    print help
-    sys.exit(-1)
-
   def tmpDir(self):
     """
      Create a TMP Directory to to prepare the distribution
@@ -228,7 +238,103 @@ class functions:
     """
     self.external = ver
 
-  def dirac_magic( self, magic ):
+  def createSrcTars(self):
+    """
+     Create distribution tars for source code 
+    """
+    tars = 0
+    n = srcNo
+    if not self.serverFlag:
+      # prepare tars only for a client distribution
+      n -= 1
+    if self.fromCVS:
+      for i in range(n):
+        tar = src_tars[i]
+        name = tar['name']
+        version = self.version
+        if name.find('external') != -1 :
+          version = self.external
+        self._getCVS( version, tar['packages']  )
+        tarName = '%s-%s' % ( name, version )
+        if name == 'DIRAC':
+          self._diracMake( 'DIRAC' )
+        self._createTar( tarName, tar['directories'] )
+        tars += 1
+    else:
+      self.logINFO( 'Donwloading from tar, do not create src tars.' )
+      if self.buildFlag:
+        # if build is required, download external tars
+        for i in range(n):
+          name = src_tars[i]['name']
+          if i == 0 or name.find('external') != -1 :
+            tarName = '%s-%s' % ( name, self.external )
+            self._getTar( tarName, externalTimeout )
+    return tars
+
+  def createBinTars(self):
+    """
+     Create distribution tars with compiled components
+    """
+    tars = 0
+    if not self.buildFlag:
+      return tars
+    n = binNo
+    if not self.serverFlag:
+      # prepare tars only for a client distribution
+      n -= 1  
+    for i in range(n):
+      tar = bin_tars[i]
+      name = tar['name']
+      for j in range(len(tar['packages'])):
+        dir = tar['packages'][j]
+        self._diracMake( dir )
+        if i == 0 and j == 0:
+          self._diracMake( python[self.python] )
+          # need to check zlib module
+      tarName = '%s-%s-%s-%s' % ( name, self.external, self.localPlatform, self.python )
+      self._createTar( tarName, [self.localPlatform] )
+      tars += 1
+    return tars
+  
+  def checkInterpreter( self ):
+    """
+     Check if DIRAC version of python interpreter is installed and make sure 
+     all scripts will make use of it
+    """
+    self.localPython = os.path.join( self.__rootPath, 
+                                self.localPlatform, 
+                                'bin', 'python' )
+    python = sys.executable
+    if python ==  self.localPython:
+      self.logDEBUG( 'Using python interpreter "%s"' % python )
+      return True
+    else:
+      return False
+
+  def installExternal( self ):
+    """
+     Install external package for the requiered platform
+    """
+    # remove requested platform directory if it exists
+    externalDir = os.path.join( self.__rootPath, self.localPlatform )
+    self.__rmDir( externalDir )
+
+    if self.buildFlag:
+      self.buildExternal( )
+    else:
+      if not self.localPlatform in availablePlatforms:
+        self.logERROR( 'Platform "%s" not available, use --build flag' % 
+                  self.localPlatform )
+        sys.exit(-1)
+      if self.serverFlag:
+        name = 'DIRAC-external-%s-%s-%s.tar.gz' % \
+        ( self.external, self.localPlatform, self.python )
+      else:
+        name = 'DIRAC-external-client-%s-%s-%s' % \
+        ( self.external, self.localPlatform, self.python )
+      self._getTar( name, externalTimeout )
+
+  def diracMagic( self, magic ):
     """
      Replace first magic line of all python scripts in scripts
     """
@@ -255,66 +361,32 @@ class functions:
       self.logDEBUG( '  %s' % str.join(', ', output ) )
     os.chdir( self.__rootPath )
 
-
-  def createSrcTars(self):
+  def checkDirac(self):
     """
-     Create distribution tars for source code 
+     Compare required DIRAC version with installed one and update if necesary
     """
-    tars = 0
-    n = srcNo
-    if not self.serverFlag:
-      # prepare tars only for a client distribution
-      n -= 1
-    if self.fromCVS:
-      for i in range(n):
-        tar = src_tars[i]
-        name = tar['name']
-        version = self.version
-        if name.find('external') != -1 :
-          version = self.external
-        self.get_cvs( version, tar['packages']  )
-        tarName = '%s-%s' % ( name, version )
-        if name == 'DIRAC':
-          self.dirac_make( 'DIRAC' )
-        self.create_tar( tarName, tar['directories'] )
-        tars += 1
+    localVersion = self.checkDiracVersion()
+    if self.version == localVersion:
+      self.logDEBUG( 'DIRAC version "%s" already installed' % self.version )
     else:
-      self.logINFO( 'Donwloading from tar, do not create src tars.' )
-      if self.buildFlag:
-        # if build is required, download external tars
-        for i in range(n):
-          name = src_tars[i]['name']
-          if i == 0 or name.find('external') != -1 :
-            tarName = '%s-%s' % ( name, self.external )
-            self.get_tar( tarName, externalTimeout )
-    return tars
+      if self.fromTar:
+        name = 'DIRAC-%s' % self.version
+        self._getTar( name, diracTimeout )
+      else:
+        name = 'DIRAC'
+        self._getCVS( name )
+      self._diracMake( 'DIRAC' )
+      dirac_version = os.path.join( self.scriptsPath, 'dirac-version' )
+      ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
+        self.localPython, dirac_version ) )
+      self.version = ch_out.readline().strip()
+      self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
+      ch_out.close()
+      ch_err.close()
+      
+    return self.version
 
-  def createBinTars(self):
-    """
-     Create distribution tars with compiled components
-    """
-    tars = 0
-    if not self.buildFlag:
-      return tars
-    n = binNo
-    if not self.serverFlag:
-      # prepare tars only for a client distribution
-      n -= 1  
-    for i in range(n):
-      tar = bin_tars[i]
-      name = tar['name']
-      for j in range(len(tar['packages'])):
-        dir = tar['packages'][j]
-        self.dirac_make( dir )
-        if i == 0 and j == 0:
-          self.dirac_make( python[self.python] )
-          # need to check zlib module
-      tarName = '%s-%s-%s-%s' % ( name, self.external, self.localPlatform, self.python )
-      self.create_tar( tarName, [self.localPlatform] )
-      tars += 1
-    return tars
-  
-  def dirac_make( self, dir ):
+  def _diracMake( self, dir ):
     """
      Build packages using dirac-make script, on the given directory
     """
@@ -328,7 +400,7 @@ class functions:
       self.logERROR( 'Check log file at "%s.log"' % diracMake )
       sys.exit( -1 )
 
-  def get_cvs( self, version, packages ):
+  def _getCVS( self, version, packages ):
     """
      Check access to CVS repository (retrieve scripts)
     """
@@ -354,19 +426,7 @@ class functions:
         self.logERROR( 'Failed to rename "%s" to "%s"' % (cvsDir, destDir ) )
         self.logEXCEP(x)        
 
-  def __rmDir(self, dir):
-    """
-     Remove dir if it exits
-    """
-    if os.path.exists( dir ):
-      try:
-        shutil.rmtree( dir )
-      except Exception, x:
-        self.logERROR( 'Can not removed existing directory %s' 
-                  % os.path.join( self.__rootPath, dir ) )
-        self.logEXCEP( x )
-
-  def get_tar( self, name, timeout ):
+  def _getTar( self, name, timeout ):
   
     ( file, localName ) = tempfile.mkstemp()
     tarFileName = os.path.join( '%s.tar.gz' % name )
@@ -393,7 +453,7 @@ class functions:
       self.logERROR( error )
       self.logEXCEP( x )
 
-  def create_tar( self, name, dirs):
+  def _createTar( self, name, dirs):
     """
      Create distribution tar from given directory list
     """
@@ -431,45 +491,7 @@ class functions:
     # clear timeout alarm
     signal.alarm(0)
 
-  def check_interpreter( self ):
-    """
-     Check if DIRAC version of python interpreter is installed and make sure 
-     all scripts will make use of it
-    """
-    self.localPython = os.path.join( self.__rootPath, 
-                                self.localPlatform, 
-                                'bin', 'python' )
-    python = sys.executable
-    if python ==  self.localPython:
-      self.logDEBUG( 'Using python interpreter "%s"' % python )
-      return True
-    else:
-      return False
-
-  def install_external( self ):
-    """
-     Install external package for the requiered platform
-    """
-    # remove requested platform directory if it exists
-    externalDir = os.path.join( self.__rootPath, self.localPlatform )
-    self.__rmDir( externalDir )
-
-    if self.buildFlag:
-      self.build_external( )
-    else:
-      if not self.localPlatform in availablePlatforms:
-        self.logERROR( 'Platform "%s" not available, use --build flag' % 
-                  self.localPlatform )
-        sys.exit(-1)
-      if self.serverFlag:
-        name = 'DIRAC-external-%s-%s-%s.tar.gz' % \
-        ( self.external, self.localPlatform, self.python )
-      else:
-        name = 'DIRAC-external-client-%s-%s-%s' % \
-        ( self.external, self.localPlatform, self.python )
-      self.get_tar( name, externalTimeout )
-
-  def build_external( self ):
+  def buildExternal( self ):
     """
      Build external packages for local platform
     """
@@ -483,7 +505,7 @@ class functions:
         name = tar['name']
         if i == 0 or name.find('external') != -1 :
           tarName = '%s-%s' % ( name, self.external )
-          self.get_tar( tarName, externalTimeout )
+          self._getTar( tarName, externalTimeout )
     else:
       self.logINFO( 'Donwloading src from CVS' )
       for i in range(n):
@@ -492,7 +514,7 @@ class functions:
         version = self.version
         if name.find('external') != -1 :
           version = self.external
-          self.get_cvs( version, tar['packages']  )
+          self._getCVS( version, tar['packages']  )
   
     n = binNo
     if not self.serverFlag:
@@ -502,42 +524,17 @@ class functions:
       name = tar['name']
       for j in range(len(tar['packages'])):
         dir = tar['packages'][j]
-        self.dirac_make( dir )
+        self._diracMake( dir )
         if i == 0 and j == 0:
-          self.dirac_make( python[self.python] )
+          self._diracMake( python[self.python] )
 
-  def check_dirac(self):
-    """
-     Compare required DIRAC version with installed one and update if necesary
-    """
-    localVersion = self.check_dirac_version()
-    if self.version == localVersion:
-      self.logDEBUG( 'DIRAC version "%s" already installed' % self.version )
-    else:
-      if self.tarFlag:
-        name = 'DIRAC-%s' % self.version
-        self.get_tar( name, diracTimeout )
-      else:
-        name = 'DIRAC'
-        self.get_cvs( name )
-      self.dirac_make( 'DIRAC' )
-      self.check_interpreter()
-      dirac_version = os.path.join( self.scriptsPath, 'dirac-version' )
-      ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
-        self.localPython, dirac_version ) )
-      self.version = ch_out.readline().strip()
-      self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
-      ch_out.close()
-      ch_err.close()
-      
-    return self.version
 
-  def check_dirac_version(self):
+  def checkDiracVersion(self):
     """
      Check local DIRAC instalation a get version
     """
     localVersion  = None
-    self.check_diraccfg()
+    self.checkDiracCfg()
     try:
       from DIRACEnvironment import DIRAC
       localVersion = DIRAC.version
@@ -548,7 +545,7 @@ class functions:
   
     return localVersion
 
-  def check_diraccfg(self):
+  def checkDiracCfg(self):
     """
      Make sure that dirac.cfg file exists in the default location, even if empty
     """

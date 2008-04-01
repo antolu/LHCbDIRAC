@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.23 2008/04/01 07:31:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.24 2008/04/01 19:26:50 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.23 2008/04/01 07:31:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.23 $"
+__RCSID__   = "$Id: dirac-update,v 1.24 2008/04/01 19:26:50 rgracian Exp $"
+__VERSION__ = "$Revision: 1.24 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -20,7 +20,7 @@ except:
     defaultURL = 'http://cern.ch/lhcbproject/dist/DIRAC3'
     tmpPath = tempfile.mkdtemp( 'tmp', 'DIRAC3')
     os.chdir( tmpPath )
-    def get_tar( name, timeout ):
+    def _getTar( name, timeout ):
       ( file, localName ) = tempfile.mkstemp()
       tarFileName = os.path.join( '%s.tar.gz' % name )
       remoteName = '%s/%s' % ( defaultURL, tarFileName )
@@ -92,7 +92,7 @@ except:
     def logDEBUG( msg ):
       log( 'DEBUG ', msg )
 
-    get_tar( 'DIRAC-scripts-HEAD', 60 )
+    _getTar( 'DIRAC-scripts-HEAD', 60 )
     sys.path.insert( 0, os.path.join( tmpPath, 'scripts' ) )
     
   except Exception, x:
@@ -188,10 +188,10 @@ parse_options()
 dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
 dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
-if not dirac.check_interpreter( ):
-  dirac.install_external()
-  dirac.check_dirac( )
-  dirac.dirac_magic(  '#! %s' % dirac.localPython )
+if not dirac.checkInterpreter( ):
+  dirac.installExternal()
+  dirac.checkDirac( )
+  dirac.diracMagic(  '#! %s' % dirac.localPython )
   # if we are not running with our onw python let's call ourself again
   dirac.logINFO( 'Will retry now with DIRAC python' )
   args         = str.join(' ',sys.argv[1:]) + ' -v %s' % dirac.version
@@ -202,8 +202,8 @@ if not dirac.check_interpreter( ):
   sys.exit(ret)
 
 else:
-  dirac.check_dirac( )
-  dirac.dirac_magic(  '#! %s' % dirac.localPython )
+  dirac.checkDirac( )
+  dirac.diracMagic(  '#! %s' % dirac.localPython )
   from DIRACEnvironment import DIRAC
   if dirac.debugFlag:
     DIRAC.gLogger.setLevel( 'DEBUG' )
@@ -234,7 +234,7 @@ else:
   
   Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
   
-  DIRAC.gConfig.dumpLocalCFGToFile( dirac.check_diraccfg() )
+  DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   # further checks can be implemented here
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
   dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
