@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.24 2008/04/01 19:26:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.25 2008/04/02 16:35:31 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.24 2008/04/01 19:26:50 rgracian Exp $"
-__VERSION__ = "$Revision: 1.24 $"
+__RCSID__   = "$Id: dirac-update,v 1.25 2008/04/02 16:35:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.25 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -136,7 +136,7 @@ def parse_options():
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
   except getopt.GetoptError, x:
-    logERROR( 'Parsing command line: %s' % x )
+    dirac.logERROR( 'Parsing command line: %s' % x )
     optionVals = [ ('-h','') ]
 
   if ('-h','') in optionVals or ('--help','') in optionVals:
