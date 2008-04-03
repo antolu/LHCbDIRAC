@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.9 2008/04/01 19:26:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.10 2008/04/03 08:53:31 rgracian Exp $
 # File :   dirac-distribution
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-distribution,v 1.9 2008/04/01 19:26:50 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac-distribution,v 1.10 2008/04/03 08:53:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 """
     Script to prepare DIRAC distribution tarballs
 """
@@ -90,7 +90,8 @@ dirac.cvsFlag()
 
 parse_options()
 dirac.logINFO( 'Preparing DIRAC distribution at "%s"' %  dirac.root() )
-dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
+if dirac.buildFlag:
+  dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
 tars =  dirac.createSrcTars()
 tars += dirac.createBinTars()
