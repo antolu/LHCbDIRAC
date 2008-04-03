@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.17 2008/04/01 19:26:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.18 2008/04/03 08:51:54 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.17 2008/04/01 19:26:50 rgracian Exp $"
-__VERSION__ = "$Revision: 1.17 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.18 2008/04/03 08:51:54 rgracian Exp $"
+__VERSION__ = "$Revision: 1.18 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -374,7 +374,7 @@ class functions:
         self._getTar( name, diracTimeout )
       else:
         name = 'DIRAC'
-        self._getCVS( name )
+        self._getCVS( self.version, name )
       self._diracMake( 'DIRAC' )
       dirac_version = os.path.join( self.scriptsPath, 'dirac-version' )
       ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
