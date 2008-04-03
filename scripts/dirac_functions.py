@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.19 2008/04/03 08:55:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.20 2008/04/03 09:55:01 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.19 2008/04/03 08:55:43 rgracian Exp $"
-__VERSION__ = "$Revision: 1.19 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.20 2008/04/03 09:55:01 rgracian Exp $"
+__VERSION__ = "$Revision: 1.20 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -141,7 +141,7 @@ class functions:
       self.logERROR( 'Install path must be absolute.' )
       sys.exit(-1)
     self.shortName   = os.path.basename( fullName )
-    self.scriptsPath = os.path.realpath( os.path.dirname( fullName ) )
+    self.scriptsPath = os.path.dirname( fullName )
     self.__rootPath    = os.path.dirname( self.scriptsPath )
     os.chdir( self.__rootPath )
 
