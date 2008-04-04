@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.27 2008/04/04 06:41:27 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.28 2008/04/04 13:12:11 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.27 2008/04/04 06:41:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.27 $"
+__RCSID__   = "$Id: dirac-update,v 1.28 2008/04/04 13:12:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.28 $"
 """
     Script to prepare/update a DIRAC instalation
 """
 tmpPath = None
+siteName = None
 try:
   from dirac_functions import functions
 except:
@@ -108,13 +109,14 @@ def parse_options():
    parse command line options:
   """
   import getopt
-  global dirac
+  global dirac, siteName
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
    -e --external=<version>     DIRAC-external <version> to install (overwrites -v)
    -h --help                   Print this
    -i --python=<24|25>         Use python<24|25> interpreter
+   -n --name=<Site>            Set <Site> as Site Name
    -p --platform=<platform>    Use <platform> instead of local one
    -r --repository=<rep>       Use <rep> as cvs repository
    -u --url=<url>              Use <url> to download tarballs
@@ -154,6 +156,8 @@ def parse_options():
       ext = v
     elif o == '-i' or o == '--python':
       dirac.setPython(v)
+    elif o == '-n' or o == '--name':
+      siteName = v
     elif o == '-p' or o == '--platform':
       dirac.platform(v)
     elif o == '-r' or o == '--repository':
@@ -225,6 +229,7 @@ else:
   Script.registerSwitch( "d",  "debug",     "Set debug flag" )
   Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
   Script.registerSwitch( "i:", "python=",   "Use python<24|25> interpreter" )
+  Script.registerSwitch( "n:", "name=",     "Set <Site> as Site Name" )
   Script.registerSwitch( "p:", "platform=", "Use <platform> instead of local one" )
   Script.registerSwitch( "u:", "url=",      "Use <url> to download tarballs" )
   Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
@@ -237,8 +242,10 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
                             'dips://volhcb03.cern.ch:9135/Configuration/Server' )
-  
+  if siteName:
+    localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
   Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
+
   
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   # further checks can be implemented here
