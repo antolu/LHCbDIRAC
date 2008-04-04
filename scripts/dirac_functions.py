@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.20 2008/04/03 09:55:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.21 2008/04/04 13:26:44 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.20 2008/04/03 09:55:01 rgracian Exp $"
-__VERSION__ = "$Revision: 1.20 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.21 2008/04/04 13:26:44 rgracian Exp $"
+__VERSION__ = "$Revision: 1.21 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -116,6 +116,7 @@ class functions:
     if level != 'DEBUG ' or self.debugFlag:
       for line in msg.split( '\n' ):
         print logTime, self.shortName, level, line
+        sys.stdout.flush()
 
   def logEXCEP( self, msg ):
     self.__log( 'EXCEPT', str(msg) )
