@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.13 2008/04/07 13:16:53 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.14 2008/04/07 13:26:51 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.13 2008/04/07 13:16:53 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.14 2008/04/07 13:26:51 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -54,7 +54,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     result = []
     try:
-      self.db_.selectAttr(["/typeParams:FILE"], "/typeParams:Name=\"" + str(type) + "\" and /typeParams:Version=\"" + str(version) + "\"")
+      self.db_.selectAttr(["/fileTypes:FILE"], "/fileTypes:Name=\"" + str(type) + "\" and /fileTypes:Version=\"" + str(version) + "\"")
       while not self.db_.eot():
         result = self.db_.getSelectAttrEntry()
     except Exception, ex:
