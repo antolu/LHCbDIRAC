@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.14 2008/04/07 13:26:51 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.15 2008/04/07 13:29:46 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.14 2008/04/07 13:26:51 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.15 2008/04/07 13:29:46 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -135,7 +135,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
       attrList = " [ 'ConfigName', 'ConfigVersion', 'JobId' "
       attrValue = "[ config.getConfigName(), config.getConfigVersion(), str(id) "
       
-      for param in params:
+      for param in jobParams:
         name = param.getName()
         value = param.getValue()
         attrList = attrList + ' , \'' + name + '\' '
