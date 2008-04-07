@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.16 2008/04/07 13:32:46 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.17 2008/04/07 16:23:12 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.16 2008/04/07 13:32:46 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.17 2008/04/07 16:23:12 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -35,7 +35,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     """
     result = []
     try:
-      self.db_.selectAttr(["/files:FILE", "/files:JOB_ID", "/files:TYPE_ID"], "/files:LOGNAME=\"" + str(fileName) + "\"")
+      self.db_.selectAttr(["/files:FILE", "/files:JobId", "/files:FileTypeId"], "/files:FileName=\"" + str(fileName) + "\"")
       while not self.db_.eot():
         result = self.db_.getSelectAttrEntry()
     except Exception, ex:
@@ -132,17 +132,23 @@ class AMGABookkeepingDB(IBookkeepingDB):
         gLogger.error("Cannot find the next bookkeeping index!")
         return S_ERROR("Cannot find the next bookkeeping index!")
       
-      attrList = " [ 'ConfigName', 'ConfigVersion', 'JobId' "
-      attrValue = "[ config.getConfigName(), config.getConfigVersion(), str(id) "
+      #attrList = " \"" +"ConfigName" + "\" , \"" +"ConfigVersion" + "\" , \"" + "JobId"+ "\" " 
+      attrList = ["ConfigName","ConfigVersion", "JobId"]
+      #attrValue = " \"" + config.getConfigName()+ "\" , \"" + config.getConfigVersion()+ "\" , \"" + str(id) + "\"  "
+      attrValue = [str(config.getConfigName()), str(config.getConfigVersion()), str(id)]  
       
       for param in jobParams:
         name = param.getName()
         value = param.getValue()
-        attrList = attrList + ' , \'' + name + '\' '
-        attrValue = attrValue + ' , \'' + str(value)+ '\' '
-      attrList += ']'
-      attrValue += ']'
-  
+        #attrList +=  " \"" + str(name) + "\" "
+        #attrValue += " \"" + str(value)+ "\" "
+        attrList += [str(name)]
+        attrValue += [str(value)]
+       
+      print attrList
+      print attrValue
+      ss
+      #self.db_.addEntry("/jobs/" + str(id), ["ConfigName", "ConfigVersion", "JobId"], [config.getConfigName(), config.getConfigVersion(), str(id)])
       self.db_.addEntry("/jobs/" + str(id), attrList, attrValue)
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
     except Exception, ex:
@@ -188,7 +194,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
         gLogger.error("Cannot find the next bookkeeping index!")
         return S_ERROR("Cannot find the next bookkeeping index!")
       
-      self.db_.addEntry("/inputFiles/" + str(id), ["JOB_ID", "FILE_ID"], [str(jobID), str(inputfileID)])
+      self.db_.addEntry("/inputFiles/" + str(id), ["JobId", "FileId"], [str(jobID), str(inputfileID)])
       self.db_.setAttr("/NextBookkeepingIDs/ids",["INPUTFILE_ID"], [str(id)]);
     
     except Exception, ex:
@@ -215,7 +221,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
           gLogger.error("Cannot find the next bookkeeping index!")
           return S_ERROR("Cannot find the next bookkeeping index!")
            
-      self.db_.addEntry("/files/"+str(id), ["TYPE_ID", "LOGNAME", "JOB_ID", "FILE_ID"], [str(typeID), name, str(jobID), str(id)]) 
+      self.db_.addEntry("/files/"+str(id), ["FileTypeId", "FileName", "JobId", "FileId"], [str(typeID), name, str(jobID), str(id)]) 
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
     except Exception, ex:

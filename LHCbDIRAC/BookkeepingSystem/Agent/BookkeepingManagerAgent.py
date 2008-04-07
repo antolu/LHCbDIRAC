@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.18 2008/04/07 16:23:11 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.19 2008/04/07 16:25:42 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.18 2008/04/07 16:23:11 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.19 2008/04/07 16:25:42 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -84,8 +84,7 @@ class BookkeepingManagerAgent(Agent):
       result = self.dataManager_.file(name)
       
       if not result['OK']:
-        self.errorMgmt_.reportError (10, "The file " + str(file) + " is missing.", deleteFileName)
-        print "III"
+        self.errorMgmt_.reportError (10, "The file " + str(file) + " is missing.", deleteFileName) 
         return S_ERROR()
       else:
         fileID = int(result['Value'])
@@ -133,7 +132,7 @@ class BookkeepingManagerAgent(Agent):
     else:
       jobID = int(result['Value'])
       job.setJobId(jobID)
-    print "ittt"     
+         
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
       result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
