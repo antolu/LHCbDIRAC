@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.11 2008/03/10 12:44:53 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.12 2008/04/07 10:15:42 zmathe Exp $
 ########################################################################
 
 """
@@ -11,14 +11,14 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.11 2008/03/10 12:44:53 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.12 2008/04/07 10:15:42 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def __init__(self):
     super(AMGABookkeepingDB, self).__init__()
-    self.hostName_ = gConfig.getValue("hostName", "volhcb07.cern.ch")
+    self.hostName_ = gConfig.getValue("hostName", "pcarda02.cern.ch")
     self.port_ = gConfig.getValue("port", 8822)
     self.password_ = gConfig.getValue("password", "root")
     
