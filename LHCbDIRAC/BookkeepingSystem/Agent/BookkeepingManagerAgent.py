@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.16 2008/03/10 17:35:03 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.17 2008/04/07 13:16:52 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.16 2008/03/10 17:35:03 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.17 2008/04/07 13:16:52 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -122,20 +122,16 @@ class BookkeepingManagerAgent(Agent):
       
         
     config = job.getJobConfiguration()
-    result = self.dataManager_.insertJob(config.getConfigName(), config.getConfigVersion(), config.getDate())    
+    params = job.getJobParams()
+    
+    result = self.dataManager_.insertJob(config, params)    
     if not result['OK']:
       self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
       return S_ERROR()
     else:
       jobID = int(result['Value'])
       job.setJobId(jobID)
-    
-    params = job.getJobParams()
-    for param in params:
-      result = self.dataManager_.insertJobParameter(job.getJobId(), param.getName(), param.getValue(), param.getType())
-      if not result['OK']:
-        return S_ERROR()
-    
+         
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
       result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())

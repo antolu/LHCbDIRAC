@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.12 2008/04/07 10:15:42 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.13 2008/04/07 13:16:53 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.12 2008/04/07 10:15:42 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.13 2008/04/07 13:16:53 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -91,7 +91,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertJob(self, jobName, jobConfVersion, date):
     """
-    
+    This method insert a job in to the old system.
     """
     try:
       self.db_.getattr("/NextBookkeepingIDs/ids", ["JOB_ID"])
@@ -115,9 +115,48 @@ class AMGABookkeepingDB(IBookkeepingDB):
     return S_OK(id)
   
   #############################################################################
+  def insertJob(self, config, jobParams):
+    """
+    Insert a job  in to the new system
+    """
+    try:
+      self.db_.getattr("/NextBookkeepingIDs/ids", ["JOB_ID"])
+      value = []
+      id = -1
+      while not self.db_.eot():
+        file, value = self.db_.getEntry()
+      
+      if (value != []):
+        id = int(value[0]) + 1
+      else:
+        gLogger.error("Cannot find the next bookkeeping index!")
+        return S_ERROR("Cannot find the next bookkeeping index!")
+      
+      attrList = " [ 'ConfigName', 'ConfigVersion', 'JobId' "
+      attrValue = "[ config.getConfigName(), config.getConfigVersion(), str(id) "
+      
+      for param in params:
+        name = param.getName()
+        value = param.getValue()
+        attrList = attrList + ' , \'' + name + '\' '
+        attrValue = attrValue + ' , \'' + str(value)+ '\' '
+      attrList += ']'
+      attrValue += ']'
+      
+      print attrList
+      print attrValue
+      #self.db_.addEntry("/jobs/" + str(id), attrList, attrValue)
+      #self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
+    except Exception, ex:
+      gLogger.error("Insert Job into the new system: " + str(ex))
+      return S_ERROR(ex)
+  
+    return S_OK(id)
+  
+  #############################################################################
   def insertJobParameter(self, jobID, name, value, type):
     """
-    
+    this method insert a job parameter in to the old system.
     """
     try:
       self.db_.addEntry("/jobParams/" + str(jobID), ["TYPE", "JOB_ID"], [type, str(jobID)])   
