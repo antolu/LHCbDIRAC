@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.15 2008/04/07 13:29:46 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.16 2008/04/07 13:32:46 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.15 2008/04/07 13:29:46 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.16 2008/04/07 13:32:46 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -142,11 +142,9 @@ class AMGABookkeepingDB(IBookkeepingDB):
         attrValue = attrValue + ' , \'' + str(value)+ '\' '
       attrList += ']'
       attrValue += ']'
-      
-      print attrList
-      print attrValue
-      #self.db_.addEntry("/jobs/" + str(id), attrList, attrValue)
-      #self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
+  
+      self.db_.addEntry("/jobs/" + str(id), attrList, attrValue)
+      self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
     except Exception, ex:
       gLogger.error("Insert Job into the new system: " + str(ex))
       return S_ERROR(ex)
