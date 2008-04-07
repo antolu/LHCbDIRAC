@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: IBookkeepingDB.py,v 1.5 2008/04/07 13:16:53 zmathe Exp $
+# $Id: IBookkeepingDB.py,v 1.6 2008/04/07 16:39:27 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: IBookkeepingDB.py,v 1.5 2008/04/07 13:16:53 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDB.py,v 1.6 2008/04/07 16:39:27 zmathe Exp $"
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 
@@ -56,6 +56,11 @@ class IBookkeepingDB(object):
     gLoogger.warn("not implemented")
     return S_ERROR()
   
+  #############################################################################
+  def insertOutputFile(self, job, file):
+    gLoogger.warn("not implemented")
+    return S_ERROR()
+    
   #############################################################################
   def insertFileParam(self, fileID, name, value):
     gLoogger.warn("not implemented")

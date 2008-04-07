@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.19 2008/04/07 16:25:42 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.20 2008/04/07 16:39:26 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.19 2008/04/07 16:25:42 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.20 2008/04/07 16:39:26 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -131,8 +131,7 @@ class BookkeepingManagerAgent(Agent):
       return S_ERROR()
     else:
       jobID = int(result['Value'])
-      job.setJobId(jobID)
-         
+      job.setJobId(jobID) 
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
       result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
@@ -143,20 +142,14 @@ class BookkeepingManagerAgent(Agent):
   
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
-      result = self.dataManager_.insertOutputFile(job.getJobId(), file.getFileName(), file.getTypeID())
+      result = self.dataManager_.insertOutputFile(job, file)
       if not result['OK']:
         self.errorMgmt_.reportError (17, "Unable to create file " + str(file.getFileName()) + "!", deleteFileName)
         return S_ERROR()
       else:
         id = int(result['Value'])
         file.setFileID(id)
-        
-      params = file.getFileParams()
-      for param in params:
-        result = self.dataManager_.insertFileParam(file.getFileID(), param.getParamName(), param.getParamValue())
-        if not result['OK']:
-          return S_ERROR()
-      
+         
       qualities = file.getQualities()
       for quality in qualities:
         group = quality.getGroup()

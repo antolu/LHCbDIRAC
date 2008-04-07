@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.5 2008/04/07 13:16:53 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.6 2008/04/07 16:39:28 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.5 2008/04/07 13:16:53 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.6 2008/04/07 16:39:28 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -52,6 +52,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def insertOutputFile(self, jobID, name, value):
     return self.getManager().insertOutputFile(jobID, name, value)
+  
+  #############################################################################
+  def insertOutputFile(self, job, file):
+    return self.getManager().insertOutputFile(job, file)
   
   #############################################################################
   def insertFileParam(self, fileID, name, value):

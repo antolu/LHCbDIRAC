@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.17 2008/04/07 16:23:12 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.18 2008/04/07 16:39:27 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.17 2008/04/07 16:23:12 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.18 2008/04/07 16:39:27 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -206,7 +206,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertOutputFile(self, jobID, name, typeID):
     """
-    
+     insert outputfile into the old system
     """
     try:
       self.db_.getattr("/NextBookkeepingIDs/ids", ["FILE_ID"])
@@ -222,6 +222,43 @@ class AMGABookkeepingDB(IBookkeepingDB):
           return S_ERROR("Cannot find the next bookkeeping index!")
            
       self.db_.addEntry("/files/"+str(id), ["FileTypeId", "FileName", "JobId", "FileId"], [str(typeID), name, str(jobID), str(id)]) 
+      self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
+      
+    except Exception, ex:
+      gLogger.error("Insert outputFile: " + str(ex))
+      return S_ERROR(ex)
+    return S_OK(id)
+  
+  #############################################################################
+  def insertOutputFile(self, job, file):
+    """
+    insert output file into new system
+    """
+    try:
+      self.db_.getattr("/NextBookkeepingIDs/ids", ["FILE_ID"])
+      value = []
+      id = -1
+      while not self.db_.eot():
+        file, value = self.db_.getEntry()
+      
+        if (value != []):
+          id = int(value[0]) + 1
+        else:
+          gLogger.error("Cannot find the next bookkeeping index!")
+          return S_ERROR("Cannot find the next bookkeeping index!")
+           
+      attrList = ["FileTypeId", "FileName", "JobId", "FileId"]
+      attrValue = [str(job.getJobId()), str(file.getFileName()), str(file.getTypeID()), str(id)]  
+      
+      fileParams = file.getFileParams()
+      param.getParamName(), param.getParamValue()
+      for param in fileParams:
+        name = param.getParamName()
+        value = param.getParamValue()
+        attrList += [str(name)]
+        attrValue += [str(value)]
+      
+      self.db_.addEntry("/files/"+str(id), attrList, attrValue)
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
     except Exception, ex:
