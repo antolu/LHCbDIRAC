@@ -31,17 +31,17 @@ Systems
       Services
       }
         ProductionManager
-	{
+        {
           LogLevel = DEBUG
           LogBackends = stdout
-	  HandlerPath=DIRAC/ProductionManagementSystem/Service/ProductionManagerHandler.py
-	  Port=9131
-	  Protocol = dips
-	  Authorization
-	  {
-	    Default=all
-	  }
-	}
+          HandlerPath=DIRAC/ProductionManagementSystem/Service/ProductionManagerHandler.py
+          Port=9131
+          Protocol = dips
+          Authorization
+          {
+            Default=all
+          }
+        }
       }
       Databases
       {
@@ -101,3 +101,58 @@ setDIRACGroup('lhcb_prod')
 'AddedToTransformation': False}
 
 select * from T_106 where JobID>0 order by JobID limit 200;
+======================== TO DO ===========================
+- Single addParameter() replacing appendParameterXXX series of methods.
+It does always copying of the
+argument parameters. The the workflow writer do not need to know where to use what.
+For example:
+step.appendParameterCopyLinked(module.parameters) ->
+step.addParameter(module.parameters.getInput())
+
+- discourage using parameter unlinking
+
+- use link() and linkUp() method names everywhere ( replacing linkParameterUp, setLink )
+- do not allow object name in the linkUp() arguments
+
+- some other method names can be streamlined as well
+
+2. Workflow contents:
+
+- Parameter value type and functional type. I think they should be separate entites. We had a lot of discussions
+  on that. But there are cases like "JDL" type parameter can be string or integer or float. There is no way to
+  distinguish now.
+- more complex types should be allowed, in particular structures ( or dictionaries ). For example, in the module
+  body one can refer to  a parameter value as  self.parameter.part1. For example, an output data file specification
+  needs several fields. This can be used in the body as
+
+self.myout.name
+self.myout.outputSE
+self.myout.dataType
+
+  Internally, structures can be converted to/from strings in order to store to XML, for example.
+
+3. Execution:
+
+- Step execution must handle exceptions in the module execution
+
+- Step execution must handle error codes of the module execution. My suggestion will be to impose a limitation
+  that module bodies must return S_OK structures which can be interpreted by Steps. The workflow as a whole
+  should return an S_OK() structure with a log of all the Step/module execution codes.
+
+- Step should collect statistical data while module execution ( CPU, wall clock, may be something else )
+  and make it available to module bodies setting some standard variables.
+
+4. Utilities
+
+A number of utilities should be provided to operate on workflow objects (Workflow.Utility module):
+
+- create single module workflow
+- resolve variable references, instead of resolveGlobals in each object
+- get input data of the whole workflow
+- get outputdata of the whole workflow
+- create JDL
+
+  LEt me know your availability for the work. I can do some modifications myself but I do not want them to clash with yours if you do anything.
+
+  Cheers,
+  Andrei
