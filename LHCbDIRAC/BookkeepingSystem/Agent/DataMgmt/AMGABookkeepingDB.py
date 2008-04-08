@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.18 2008/04/07 16:39:27 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.19 2008/04/08 11:23:08 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.18 2008/04/07 16:39:27 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.19 2008/04/08 11:23:08 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   
@@ -132,23 +132,13 @@ class AMGABookkeepingDB(IBookkeepingDB):
         gLogger.error("Cannot find the next bookkeeping index!")
         return S_ERROR("Cannot find the next bookkeeping index!")
       
-      #attrList = " \"" +"ConfigName" + "\" , \"" +"ConfigVersion" + "\" , \"" + "JobId"+ "\" " 
-      attrList = ["ConfigName","ConfigVersion", "JobId"]
-      #attrValue = " \"" + config.getConfigName()+ "\" , \"" + config.getConfigVersion()+ "\" , \"" + str(id) + "\"  "
+      attrList = ["ConfigName","ConfigVersion", "JobId"] 
       attrValue = [str(config.getConfigName()), str(config.getConfigVersion()), str(id)]  
       
       for param in jobParams:
-        name = param.getName()
-        value = param.getValue()
-        #attrList +=  " \"" + str(name) + "\" "
-        #attrValue += " \"" + str(value)+ "\" "
-        attrList += [str(name)]
-        attrValue += [str(value)]
-       
-      print attrList
-      print attrValue
-      ss
-      #self.db_.addEntry("/jobs/" + str(id), ["ConfigName", "ConfigVersion", "JobId"], [config.getConfigName(), config.getConfigVersion(), str(id)])
+        attrList += [str(param.getName())]
+        attrValue += [str(param.getValue())]
+           
       self.db_.addEntry("/jobs/" + str(id), attrList, attrValue)
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["JOB_ID"], [str(id)])
     except Exception, ex:
@@ -230,7 +220,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     return S_OK(id)
   
   #############################################################################
-  def insertOutputFile(self, job, file):
+  def insertOutputFile(self, job, outputFile):
     """
     insert output file into new system
     """
@@ -247,17 +237,14 @@ class AMGABookkeepingDB(IBookkeepingDB):
           gLogger.error("Cannot find the next bookkeeping index!")
           return S_ERROR("Cannot find the next bookkeeping index!")
            
-      attrList = ["FileTypeId", "FileName", "JobId", "FileId"]
-      attrValue = [str(job.getJobId()), str(file.getFileName()), str(file.getTypeID()), str(id)]  
+      attrList = ["FileTypeId", "JobId", "FileId"] 
+      attrValue = [str(outputFile.getTypeID()), str(job.getJobId()), str(id)]  
       
-      fileParams = file.getFileParams()
-      param.getParamName(), param.getParamValue()
+      fileParams = outputFile.getFileParams()
       for param in fileParams:
-        name = param.getParamName()
-        value = param.getParamValue()
-        attrList += [str(name)]
-        attrValue += [str(value)]
-      
+        attrList += [str(param.getParamName())]
+        attrValue += [str(param.getParamValue())]
+
       self.db_.addEntry("/files/"+str(id), attrList, attrValue)
       self.db_.setAttr("/NextBookkeepingIDs/ids", ["FILE_ID"], [str(id)]);       
       
@@ -319,7 +306,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     
     """
     try:
-      self.db_.removeEntry("/jobs/"+str(jobID));
+      self.db_.rm("/jobs/"+str(jobID));
     except Exception, ex:
       gLogger.error("Delete Job: " + str(ex))
       return S_ERROR()
@@ -331,7 +318,7 @@ class AMGABookkeepingDB(IBookkeepingDB):
     
     """
     try:
-      self.db_.removeEntry("/files/"+file.fileID());
+      self.db_.rm("/files/"+file.fileID());
     except Exception, ex:
       gLogger.error("delete file: " + str(ex))
       return S_ERROR()

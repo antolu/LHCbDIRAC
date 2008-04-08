@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.20 2008/04/07 16:39:26 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.21 2008/04/08 11:23:07 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.20 2008/04/07 16:39:26 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.21 2008/04/08 11:23:07 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -111,8 +111,11 @@ class BookkeepingManagerAgent(Agent):
       params = file.getFileParams()
       for param in params:
         paramName = param.getParamName()
-        if paramName == "GUID":
-          param.setParamName("lhcb_" + paramName)
+        if paramName == "EventStat":
+          eventNb = int(param.getParamValue())
+          if eventNb <= 0:
+            self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName)
+            return S_ERROR()
         if paramName == "EventType":
           value = int(param.getParamValue())
           result = self.dataManager_.eventType(value)
@@ -136,6 +139,7 @@ class BookkeepingManagerAgent(Agent):
     for file in inputFiles:
       result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
       if not result['OK']:
+        self.dataManager_.deleteJob(job.getJobId())
         self.errorMgmt_.reportError (16, "Unable to add " + str(file.getFileName()), deleteFileName )
         return S_ERROR()
       
@@ -144,6 +148,7 @@ class BookkeepingManagerAgent(Agent):
     for file in outputFiles:
       result = self.dataManager_.insertOutputFile(job, file)
       if not result['OK']:
+        self.dataManager_.deleteJob(job.getJobId())
         self.errorMgmt_.reportError (17, "Unable to create file " + str(file.getFileName()) + "!", deleteFileName)
         return S_ERROR()
       else:
