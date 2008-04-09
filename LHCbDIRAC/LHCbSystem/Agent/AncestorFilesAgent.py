@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.1 2008/03/28 18:44:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.2 2008/04/09 10:40:34 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.1 2008/03/28 18:44:58 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.2 2008/04/09 10:40:34 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -61,8 +61,8 @@ class AncestorFilesAgent(Optimizer):
       self.log.warn('Could not set up proxy for shift manager %s %s' %(prodDN))
       return S_OK('Production shift manager proxy could not be set up')
 
-    self.log.verbose("Checking JDL for job: %s" %(job))
-    retVal = self.jobDB.getJobJDL(job)
+    self.log.verbose("Checking original JDL for job: %s" %(job))
+    retVal = self.jobDB.getJobJDL(job,original=True)
     if not retVal['OK']:
       self.log.warn("Missing JDL for job %s, will be marked problematic" % (job))
       return S_ERROR('JDL not found in JobDB')
@@ -84,17 +84,16 @@ class AncestorFilesAgent(Optimizer):
 
   #############################################################################
   def __checkAncestorDepth(self,job,jdl):
-    """This method checks the input data with ancestors.
-    """
-    result = self.jobDB.getInputData(job)
-    if not result['OK'] or not result['Value']:
-      return S_ERROR('Input Data Not Found')
-
-    inputData = result['Value']
+    """This method checks the input data with ancestors. The original job JDL
+       is always extracted to obtain the input data, therefore rescheduled jobs
+       will not recursively search for ancestors of ancestors etc.
+    """    
     classadJob = ClassAd(jdl)
     if not classadJob.isOK():
       self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
       return S_ERROR('Illegal Job JDL')
+
+    inputData = classadJob.get_expression('InputData').replace('{','').replace('}','').replace('"','').split()
 
     if not classadJob.lookupAttribute('AncestorDepth'):
       self.log.warn('No AncestorDepth requirement found for job %s' %(job))
