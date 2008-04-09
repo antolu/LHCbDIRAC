@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.29 2008/04/04 13:27:06 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.30 2008/04/09 06:41:46 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.29 2008/04/04 13:27:06 rgracian Exp $"
-__VERSION__ = "$Revision: 1.29 $"
+__RCSID__   = "$Id: dirac-update,v 1.30 2008/04/09 06:41:46 rgracian Exp $"
+__VERSION__ = "$Revision: 1.30 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -243,6 +243,8 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
                             'dips://volhcb03.cern.ch:9135/Configuration/Server' )
+  if not dirac.serverFlag:
+    localCfg.addDefaultEntry( '/DIRAC/Security/UseServerCertificate', 'no' )
   if siteName:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
   Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
@@ -250,6 +252,11 @@ else:
   
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   # further checks can be implemented here
+  
+  # further config to be updated: 
+  # DIRAC_SITE_NAME  Flag|/Resources/GridSites/LCG ( ce, siteName )
+  # LOCALSE          Flag|/Resources/SiteLocalSEMapping ( siteName, SE's )
+  # extraArchitectures Flag|/Resources/Computing/OSCompatibility ( plat, arch )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
   dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
 
