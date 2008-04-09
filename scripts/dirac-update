@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.31 2008/04/09 13:28:54 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.32 2008/04/09 13:44:55 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.31 2008/04/09 13:28:54 rgracian Exp $"
-__VERSION__ = "$Revision: 1.31 $"
+__RCSID__   = "$Id: dirac-update,v 1.32 2008/04/09 13:44:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.32 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -263,7 +263,8 @@ else:
   # extraArchitectures Flag|/Resources/Computing/OSCompatibility ( plat, arch )
   if ceName:
     diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
-    DIRAC.gConfig.setOptionInCFG( '/LocalSite/Site', diracCE )
+    localCfg.addDefaultEntry( '/LocalSite/Site', diracCE )
+    Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
 
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
