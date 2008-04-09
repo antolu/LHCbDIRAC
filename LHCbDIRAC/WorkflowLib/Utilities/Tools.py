@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.16 2008/03/06 15:18:58 gkuznets Exp $
-__RCSID__ = "$Id: Tools.py,v 1.16 2008/03/06 15:18:58 gkuznets Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.17 2008/04/09 13:57:36 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.17 2008/04/09 13:57:36 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -276,6 +276,31 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
     except Exception,x :
       self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
+
+def getLFNRoot(lfn):
+    """
+    return the root path of a given lfn
+
+    eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
+    """
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+    for inputname in lfn.split(';'):
+      LFN_ROOT = ''
+      lfnroot = inputname.split('/')
+      if len(lfnroot) > 1:
+          CONTINUE = 1
+          j = 1
+          while CONTINUE == 1:
+            if not lfnroot[j] in dataTypes:
+              LFN_ROOT = LFN_ROOT+'/'+lfnroot[j]
+            else:
+              CONTINUE = 0
+              break
+            j = j + 1
+            if j > len(lfnroot):
+              CONTINUE = 0
+              break
+    return LFN_ROOT
 
 def copyClassAttributes(from_, to_, except_=[]):
   """copy class attributes from one class to another"""
