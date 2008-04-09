@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.12 2008/02/29 14:14:16 joel Exp $
+# $Id: BookkeepingReport.py,v 1.13 2008/04/09 16:15:35 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.12 2008/02/29 14:14:16 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.13 2008/04/09 16:15:35 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -19,14 +19,14 @@ class BookkeepingReport(object):
     self.RUN_NUMBER = None
     self.FIRST_EVENT_NUMBER = None
     self.NUMBER_OF_EVENTS = None
-    self.NUMBER_OF_EVENTS_OUTPUT = None
+    self.NUMBER_OF_EVENTS_INPUT = None
+    self.NUMBER_OF_EVENTS_OUTPUT = ""
     self.EVENTTYPE = None
     self.poolXMLCatName = None
     self.inputData = None
     self.STEP_ID = None
     self.JOB_ID = None # to check
     self.log = gLogger.getSubLogger("BookkeepingReport")
-    self.nb_events_input = None
     pass
 
   def execute(self):
@@ -46,6 +46,7 @@ class BookkeepingReport(object):
 
   def makeBookkeepingXMLString(self):
 
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
     site = gConfig.getValue('/LocalSite/Site','Site')
     job_mode = gConfig.getValue('/LocalSite/Site','Setup')
     ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
@@ -111,32 +112,15 @@ class BookkeepingReport(object):
         s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS_OUTPUT,"Info")
       else:
         s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
-      if self.nb_events_input != None:
-        s = s+self.__parameter_string('StatisticsRequested',self.nb_events_input,"Info")
+      if self.NUMBER_OF_EVENTS_INPUT != None:
+        s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS_INPUT,"Info")
       else:
         s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
 
 
-    # Input files
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
+    self.LFN_ROOT= getLFNRoot(self.SourceData)
     for inputname in self.inputData.split(';'):
-      self.LFN_ROOT = ''
-      lfnroot = inputname.split('/')
-      if len(lfnroot) > 1:
-          CONTINUE = 1
-          j = 1
-          while CONTINUE == 1:
-            if not lfnroot[j] in dataTypes:
-              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
-            else:
-              CONTINUE = 0
-              break
-            j = j + 1
-            if j > len(lfnroot):
-              CONTINUE = 0
-              break
-
       lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
       s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
@@ -162,12 +146,17 @@ class BookkeepingReport(object):
       statistics = "0"
 
 
-    self.outputData = self.outputData+';'+self.appLog
-    for output in self.outputData.split(';'):
-      if output == self.appLog:
-        typeName = 'LOG'
-      else:
-        typeName = self.appType.upper()
+    outputs = []
+    count = 0
+    while (count < len(self.listoutput)):
+      if self.listoutput[count].has_key('outputDataName'):
+        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
+      count=count+1
+    outputs_done = []
+    outputs.append(((self.appLog),('LogSE'),('LOG')))
+    self.log.info(outputs)
+    for output,outputse,outputtype in outputs:
+      typeName = outputtype.upper()
       typeVersion = '1'
 
       # Output file size
