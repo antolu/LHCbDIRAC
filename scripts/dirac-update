@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.30 2008/04/09 06:41:46 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.31 2008/04/09 13:28:54 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.30 2008/04/09 06:41:46 rgracian Exp $"
-__VERSION__ = "$Revision: 1.30 $"
+__RCSID__   = "$Id: dirac-update,v 1.31 2008/04/09 13:28:54 rgracian Exp $"
+__VERSION__ = "$Revision: 1.31 $"
 """
     Script to prepare/update a DIRAC instalation
 """
-tmpPath = None
+tmpPath  = None
 siteName = None
+ceName   = None
 try:
   from dirac_functions import functions
 except:
@@ -109,7 +110,7 @@ def parse_options():
    parse command line options:
   """
   import getopt
-  global dirac, siteName
+  global dirac, siteName, ceName
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
@@ -122,6 +123,7 @@ def parse_options():
    -u --url=<url>              Use <url> to download tarballs
    -v --version=<version>      DIRAC <version> to install
    -C --cvs                    Retrieve from CVS (implies -b)
+   -N --Name=<CEName>          Use <CEName> to determine Site Name
    -P --path=<root>            Install under <root>
    -S --server                 Make a full server installation
 
@@ -132,10 +134,10 @@ def parse_options():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CP:S'
+  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:S'
   longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name', 
                   'platform=', 'repository=', 'url=', 'version=', 
-                  'cvs', 'path=', 'server',
+                  'cvs', 'Name=', 'path=', 'server',
                   'option=', 'section=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
@@ -170,6 +172,8 @@ def parse_options():
     elif o == '-C' or o == '--cvs':
       dirac.cvsFlag()
       dirac.build()
+    elif o == '-N' or o == '--Name':
+      ceName = v
     elif o in ('-P', '--path'):
       dirac.setRoot( os.path.join( v, 'scripts', myShortName ) )
     elif o == '-S' or o == '--server':
@@ -235,6 +239,7 @@ else:
   Script.registerSwitch( "u:", "url=",      "Use <url> to download tarballs" )
   Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
   Script.registerSwitch( "C",  "cvs",       "Retrieve from CVS (implies -b)" )
+  Script.registerSwitch( "N:", "Name=",     "Use <CEName> to determine Site Name" )
   Script.registerSwitch( "P:", "path=",     "Install under <root>" )
   
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
@@ -250,13 +255,17 @@ else:
   Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
 
   
-  DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   # further checks can be implemented here
   
   # further config to be updated: 
   # DIRAC_SITE_NAME  Flag|/Resources/GridSites/LCG ( ce, siteName )
   # LOCALSE          Flag|/Resources/SiteLocalSEMapping ( siteName, SE's )
   # extraArchitectures Flag|/Resources/Computing/OSCompatibility ( plat, arch )
+  if ceName:
+    diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
+    DIRAC.gConfig.setOptionInCFG( '/LocalSite/Site', diracCE )
+
+  DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
   dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
 
