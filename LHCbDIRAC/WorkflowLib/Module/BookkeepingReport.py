@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.13 2008/04/09 16:15:35 joel Exp $
+# $Id: BookkeepingReport.py,v 1.14 2008/04/10 07:12:55 joel Exp $
 ########################################################################
 """ Book Keeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.13 2008/04/09 16:15:35 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.14 2008/04/10 07:12:55 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -102,22 +102,13 @@ class BookkeepingReport(object):
     else:
       s = s+self.__parameter_string('FirstEventNumber',"1","Info")
 
-    if int(self.NUMBER_OF_EVENTS) > 0:
+    if self.NUMBER_OF_EVENTS != None:
+      s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
+
+    if self.NUMBER_OF_EVENTS_INPUT != None:
+      s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS_INPUT,"Info")
+    else:
       s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
-      if self.NUMBER_OF_EVENTS != None:
-        s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
-
-    elif self.NUMBER_OF_EVENTS != None:
-      if self.NUMBER_OF_EVENTS_OUTPUT != None:
-        s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS_OUTPUT,"Info")
-      else:
-        s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
-      if self.NUMBER_OF_EVENTS_INPUT != None:
-        s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS_INPUT,"Info")
-      else:
-        s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
-
-
 
     self.LFN_ROOT= getLFNRoot(self.SourceData)
     for inputname in self.inputData.split(';'):
@@ -136,6 +127,7 @@ class BookkeepingReport(object):
       self.log.warn( 'BookkeepingReport: no EVENTTYPE specified' )
       eventtype = 'Unknown'
     self.log.info( 'Event type = %s' % (str(self.EVENTTYPE)))
+    self.log.info( 'stats = '+self.NUMBER_OF_EVENTS_OUTPUT)
 
     if self.NUMBER_OF_EVENTS_OUTPUT != None:
       statistics = self.NUMBER_OF_EVENTS_OUTPUT
