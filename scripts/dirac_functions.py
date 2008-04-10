@@ -1,16 +1,16 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.21 2008/04/04 13:26:44 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.22 2008/04/10 08:21:22 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.21 2008/04/04 13:26:44 rgracian Exp $"
-__VERSION__ = "$Revision: 1.21 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.22 2008/04/10 08:21:22 rgracian Exp $"
+__VERSION__ = "$Revision: 1.22 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
 try:
   import getopt, sys, os, signal, shutil 
-  import urllib, popen2, tempfile, tarfile, fileinput, re, datetime
+  import urllib, popen2, tempfile, fileinput, re, time
 except Exception, x:
   import sys
   print 'ERROR python interpreter does not support necessary modules'
@@ -112,7 +112,8 @@ class functions:
     """
      Print log entries similar to DIRAC Logger
     """
-    logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
+    logTime = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime()) + " UTC"
+    # logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
     if level != 'DEBUG ' or self.debugFlag:
       for line in msg.split( '\n' ):
         print logTime, self.shortName, level, line
@@ -192,7 +193,12 @@ class functions:
     """
      Create a TMP Directory to to prepare the distribution
     """
-    self.__rootPath = tempfile.mkdtemp( 'tmp', 'DIRAC3')
+    try:
+      self.__rootPath = tempfile.mkdtemp( 'tmp', 'DIRAC3')
+    except:
+      self.__rootPath = tempfile.mktemp()
+      os.mkdir( self.__rootPath )
+
     os.chdir( self.__rootPath )
     self.scriptsPath = os.path.join( self.__rootPath, 'scripts' )
     return self.__rootPath
@@ -429,13 +435,17 @@ class functions:
 
   def _getTar( self, name, timeout ):
   
-    ( file, localName ) = tempfile.mkstemp()
+    try:
+      ( file, localName ) = tempfile.mkstemp()
+    except:
+      localName = tempfile.mktemp()    
     tarFileName = os.path.join( '%s.tar.gz' % name )
     remoteName = '%s/%s' % ( self.URL, tarFileName )
     error = 'Retrieving file "%s"' % remoteName
     try:
       self.urlretrieveTimeout( remoteName, localName, timeout )
       error = 'Openning file "%s"' % localName
+      import tarfile
       tar = tarfile.open( localName , 'r' )
       try:
         error = 'Extracting file "%s"' % localName
@@ -448,6 +458,10 @@ class functions:
   
     except Exception, x:
       try:
+        error = 'Extracting file "%s"' % localName
+        ret = os.system( 'tar xzf %s' % localName )
+        if ret != 0:
+          raise Exception( 'Fail to extract tarfile'  )        
         os.remove( localName )
       except:
         pass
