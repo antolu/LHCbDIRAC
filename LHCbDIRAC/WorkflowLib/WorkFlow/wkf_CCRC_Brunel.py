@@ -78,10 +78,12 @@ module4.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,F
 
 
 #define module 5
-module5 = ModuleDefinition('StepFinalization')
-module5.setDescription('Step Finalization module')
-module5.setBody('from WorkflowLib.Module.StepFinalization import * \n')
+module5 = ModuleDefinition('JobFinalization')
+module5.setDescription('Job Finalization module')
+module5.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 module5.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
+module5.addParameter(Parameter("listoutput1",[],"list","self","listoutput1",True,False,"list of output data"))
+module5.addParameter(Parameter("listoutput2",[],"list","self","listoutput2",True,False,"list of output data"))
 module5.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module5.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module5.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
@@ -110,7 +112,7 @@ moduleInstance4.setLink('NUMBER_OF_EVENTS_OUTPUT',moduleInstance3.getName(),'NUM
 # in principle we can link parameters of moduleInstance2 with moduleInstance1 but
 # in this case we going to use link with the step
 step1.addModule(module5)
-moduleInstance5 = step1.createModuleInstance('StepFinalization','module5')
+moduleInstance5 = step1.createModuleInstance('JobFinalization','module5')
 
 # now we can add parameters for the STEP but instead of typing them we can just use old one from modules
 step1.addParameterLinked(module3.parameters)
@@ -124,6 +126,8 @@ step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.lo
 step1.unlink(["appLog","appName", "appType"])
 step1.unlink(["SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+step1.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
+step1.addParameter(Parameter("listoutput2",[],"list","","",True,False,"list of output data"))
 
 #outdata = "@{STEP_ID}.{appType}"
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
@@ -184,7 +188,7 @@ workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job 
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
-workflow1.addParameter(Parameter("SoftwarePackages","Brunel.v32r3p1","JDL","","",True, False, "software"))
+workflow1.addParameter(Parameter("SoftwarePackages","Brunel.v32r4","JDL","","",True, False, "software"))
 
 workflow1.addParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
