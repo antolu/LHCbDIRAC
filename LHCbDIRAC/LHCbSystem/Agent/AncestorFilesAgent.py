@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.2 2008/04/09 10:40:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.3 2008/04/10 16:02:18 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.2 2008/04/09 10:40:34 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.3 2008/04/10 16:02:18 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -116,8 +116,19 @@ class AncestorFilesAgent(Optimizer):
       return S_ERROR(self.failedMinorStatus)
 
     newInputData = result['Value']
-    classadJob.insertAttributeVectorString('InputData',newInputData)
-    newJDL = classadJob.asJDL()
+    self.log.verbose("Retrieving current JDL for job: %s" %(job))
+    retVal = self.jobDB.getJobJDL(job)
+    if not retVal['OK']:
+      self.log.warn("Missing JDL for job %s, will be marked problematic" % (job))
+      return S_ERROR('JDL not found in JobDB')
+
+    currentJDL = retVal['Value']
+    classadJobNew = ClassAd(currentJDL)
+    if not classadJobNew.isOK():
+      self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
+      return S_ERROR('Illegal Job JDL')
+
+    newJDL = classadJobNew.asJDL()
     result = self.__setJobInputData(job,newJDL,newInputData)
     return result
 
