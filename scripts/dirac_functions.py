@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.22 2008/04/10 08:21:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.23 2008/04/10 08:25:13 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.22 2008/04/10 08:21:22 rgracian Exp $"
-__VERSION__ = "$Revision: 1.22 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.23 2008/04/10 08:25:13 rgracian Exp $"
+__VERSION__ = "$Revision: 1.23 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -463,7 +463,8 @@ class functions:
         if ret != 0:
           raise Exception( 'Fail to extract tarfile'  )        
         os.remove( localName )
-      except:
+        return
+      except Exception, x:
         pass
       self.logERROR( error )
       self.logEXCEP( x )
