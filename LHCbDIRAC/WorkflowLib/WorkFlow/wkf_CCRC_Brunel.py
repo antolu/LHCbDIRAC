@@ -39,6 +39,8 @@ module3.addParameter(Parameter("SourceData","","string","self","SourceData",True
 module3.addParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
 module3.addParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
 module3.addParameter(Parameter("NUMBER_OF_EVENTS","","string","self","NUMBER_OF_EVENTS",True, False, "number of events requested"))
+module3.addParameter(Parameter("NUMBER_OF_EVENTS_INPUT","","string","","",True,True,"number of events as input"))
+module3.addParameter(Parameter("NUMBER_OF_EVENTS_OUTPUT","","string","","",False,True,"number of events as input"))
 module3.addParameter(Parameter("nb_events_input","","string","self","nb_events_input",True,False,"number of events as input"))
 module3.addParameter(Parameter("appName","","string","self","appName",True, False, "Application Name"))
 module3.addParameter(Parameter("appVersion","","string","self","appVersion",True, False, "Application Version"))
@@ -47,9 +49,7 @@ module3.addParameter(Parameter("appLog","","string","self","appLog",True,False,"
 module3.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module3.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module3.addParameter(Parameter("OUTPUT_MAX","","string","self","OUTPUT_MAX",True,False,"nb max of output to keep"))
-# this parameter is static so we define it here
 module3.addParameter(Parameter("EMAIL","@{EMAILNAME}","string","","",True,False,"EMAIL adress"))
-#module3.addParameter(Parameter("outputDataSE","Tier1-RDST","string","","",True,False,"SE of output data"))
 
 
 #define module 4
@@ -59,6 +59,8 @@ module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
 module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False,"EMAIL adress"))
 module4.addParameter(Parameter("nb_events_input","","string","self","nb_events_input",True,False,"number of events as input"))
 module4.addParameter(Parameter("NUMBER_OF_EVENTS","","string","self","NUMBER_OF_EVENTS",True, False, "number of events requested"))
+module4.addParameter(Parameter("NUMBER_OF_EVENTS_INPUT","","string","","",True,False,"number of events as input"))
+module4.addParameter(Parameter("NUMBER_OF_EVENTS_OUTPUT","","string","","",True,False,"number of events as input"))
 module4.addParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
 module4.addParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
 module4.addParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
@@ -80,7 +82,6 @@ module5 = ModuleDefinition('StepFinalization')
 module5.setDescription('Step Finalization module')
 module5.setBody('from WorkflowLib.Module.StepFinalization import * \n')
 module5.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
-#module5.addParameter(Parameter("outputDataSE","Tier1-RDST","string","","",True,False,"SE of output data"))
 module5.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module5.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module5.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
@@ -104,6 +105,8 @@ moduleInstance3 = step1.createModuleInstance('LogChecker', 'module3')
 
 step1.addModule(module4) # Creating instance of the module 'LogChecker'
 moduleInstance4 = step1.createModuleInstance('BookkeepingReport', 'module4')
+moduleInstance4.setLink('NUMBER_OF_EVENTS_INPUT',moduleInstance3.getName(),'NUMBER_OF_EVENTS_INPUT')
+moduleInstance4.setLink('NUMBER_OF_EVENTS_OUTPUT',moduleInstance3.getName(),'NUMBER_OF_EVENTS_OUTPUT')
 # in principle we can link parameters of moduleInstance2 with moduleInstance1 but
 # in this case we going to use link with the step
 step1.addModule(module5)
@@ -172,10 +175,8 @@ workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","20")
 # remove unwanted
-#workflow1.removeParameter(step1_prefix+"outputData")
 workflow1.removeParameter(step1_prefix+"systemConfig")
 #add syspem config which common for all modules
-#workflow1.addParameter(Parameter("systemConfig","slc4_ia32_gcc34","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("SystemConfig","slc4_ia32_gcc34","JDLReqt","","",True, False, "Application Name"))
 
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
