@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.30 2008/04/10 05:41:58 joel Exp $
+# $Id: GaudiApplication.py,v 1.31 2008/04/10 12:37:23 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.30 2008/04/10 05:41:58 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.31 2008/04/10 12:37:23 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -289,11 +289,12 @@ class GaudiApplication(object):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
-                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
-                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
