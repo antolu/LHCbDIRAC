@@ -1,5 +1,6 @@
-# $Id: dirac-production-manager-cli.py,v 1.21 2008/03/04 19:39:11 gkuznets Exp $
-__RCSID__ = "$Revision: 1.21 $"
+#!/usr/bin/env python
+# $Id: dirac-production-manager-cli.py,v 1.22 2008/04/10 13:12:16 gkuznets Exp $
+__RCSID__ = "$Revision: 1.22 $"
 
 import cmd
 import sys, os
