@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.3 2008/04/10 12:34:26 joel Exp $
+# $Id: StepFinalization.py,v 1.4 2008/04/10 13:33:54 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.3 2008/04/10 12:34:26 joel Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.4 2008/04/10 13:33:54 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -196,8 +196,8 @@ class StepFinalization(object):
 
 
     bad_counter = 0
-    CONTINUE = 0
     for f in books:
+      CONTINUE = 0
       self.log.info( "Sending bookkeeping information %s" % str( f ) )
       fm = f.replace('bookkeeping_','')
       reqfile = open(f,'r')
