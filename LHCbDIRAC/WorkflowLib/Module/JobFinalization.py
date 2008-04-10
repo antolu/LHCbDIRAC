@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.36 2008/03/10 16:38:36 joel Exp $
+# $Id: JobFinalization.py,v 1.37 2008/04/10 07:12:07 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.36 2008/03/10 16:38:36 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.37 2008/04/10 07:12:07 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -36,8 +36,6 @@ class JobFinalization(object):
     self.logdir = '.'
     self.mode = None
     self.poolXMLCatName = None
-    self.outputDataSE = None
-    self.outputData = None
     self.TmpCacheSE = 'CERN-Failover'
     self.log = gLogger.getSubLogger("JobFinalization")
     self.nb_events_input = None
@@ -61,32 +59,14 @@ class JobFinalization(object):
     self.__loadLocalCFGFiles(self.root)
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
-    self.log.info('OutputData = %s' %self.outputData)
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     self.log.info('Log directory is %s' %self.logdir)
     self.logtar = self.PRODUCTION_ID+'_'+self.JOB_ID+'.tar'
     self.log.info('Log tar is %s' %self.logtar)
     error = 0
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
-#    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 
-    for inputname in self.inputData.split(';'):
-      self.LFN_ROOT = ''
-      lfnroot = inputname.split('/')
-      if len(lfnroot) > 1:
-          CONTINUE = 1
-          j = 1
-          while CONTINUE == 1:
-            if not lfnroot[j] in dataTypes:
-              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
-            else:
-              CONTINUE = 0
-              break
-            j = j + 1
-            if j > len(lfnroot):
-              CONTINUE = 0
-              break
-
+    self.LFN_ROOT = getLFNRoot(self.SourceData)
     result = self.finalize(error)
 
     return result
@@ -128,7 +108,11 @@ class JobFinalization(object):
       #
       # Make up to max_attempts to upload each file
 
-      outputs = self.outputData
+      count = 0
+      while (count < len(self.listoutput)):
+        if self.listoutput[count].has_key('outputDataName'):
+          outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
+        count=count+1
       outputs_done = []
       all_done = False
       count = 0
@@ -137,12 +121,13 @@ class JobFinalization(object):
         if count > 0:
           self.log.info("Output data upload retry number "+str(count))
         all_done = True
-        if not outputs in outputs_done:
-          resUpload = self.uploadOutputData(outputs,self.appType.upper(),'1',self.outputDataSE)
-          if resUpload['OK'] == True:
-            outputs_done.append(outputs)
-          else:
-            all_done = False
+        for output,outputse,outputtype in outputs:
+            if not output in outputs_done:
+              resUpload = self.uploadOutputData(output,outputtype.upper(),'1',outputse)
+              if resUpload['OK'] == True:
+                outputs_done.append(outputs)
+              else:
+                all_done = False
         count += 1
 
       #########################################################################
