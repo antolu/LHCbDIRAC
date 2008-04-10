@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.38 2008/04/10 12:34:12 joel Exp $
+# $Id: JobFinalization.py,v 1.39 2008/04/10 13:33:17 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.38 2008/04/10 12:34:12 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.39 2008/04/10 13:33:17 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -205,8 +205,8 @@ class JobFinalization(object):
 
 
     bad_counter = 0
-    CONTINUE = 0
     for f in books:
+      CONTINUE = 0
       self.log.info( "Sending bookkeeping information %s" % str( f ) )
       fm = f.replace('bookkeeping_','')
       reqfile = open(f,'r')
