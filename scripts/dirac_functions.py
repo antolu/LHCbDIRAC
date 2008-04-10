@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.23 2008/04/10 08:25:13 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.24 2008/04/10 08:33:15 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.23 2008/04/10 08:25:13 rgracian Exp $"
-__VERSION__ = "$Revision: 1.23 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.24 2008/04/10 08:33:15 rgracian Exp $"
+__VERSION__ = "$Revision: 1.24 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -387,6 +387,9 @@ class functions:
       ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
         self.localPython, dirac_version ) )
       self.version = ch_out.readline().strip()
+      if self.version.search('ERROR') != -1:
+        self.logERROR( self.version )
+        sys.exit(-1)
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
       ch_err.close()
