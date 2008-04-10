@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.1 2008/04/07 09:02:51 joel Exp $
+# $Id: StepFinalization.py,v 1.2 2008/04/10 05:41:38 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.1 2008/04/07 09:02:51 joel Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.2 2008/04/10 05:41:38 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -53,8 +53,9 @@ class StepFinalization(object):
   def execute(self):
     self.__report('Starting Step Finalization')
     self.log.info('joel')
-    self.outputAttr = combineMutipleAttributes(self)
-    self.log.info(self.outputAttr)
+    self.log.info(self.SourceData)
+#    self.outputAttr = combineMutipleAttributes(self)
+    self.log.info(self.listoutput)
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
@@ -74,22 +75,7 @@ class StepFinalization(object):
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 #    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 
-    for inputname in self.inputData.split(';'):
-      self.LFN_ROOT = ''
-      lfnroot = inputname.split('/')
-      if len(lfnroot) > 1:
-          CONTINUE = 1
-          j = 1
-          while CONTINUE == 1:
-            if not lfnroot[j] in dataTypes:
-              self.LFN_ROOT = self.LFN_ROOT+'/'+lfnroot[j]
-            else:
-              CONTINUE = 0
-              break
-            j = j + 1
-            if j > len(lfnroot):
-              CONTINUE = 0
-              break
+    self.LFN_ROOT = getLFNRoot(self.SourceData)
 
     result = self.finalize(error)
 
@@ -126,10 +112,10 @@ class StepFinalization(object):
       # Make up to max_attempts to upload each file
 #      outputs = self.outputData
       outputs = []
-      count = 1
-      while (count <= len(self.outputAttr)):
-        if self.outputAttr[count].has_key('outputData'):
-          outputs.append(((self.outputAttr[count]['outputData']),(self.outputAttr[count]['outputDataSE']),(self.outputAttr[count]['appType'])))
+      count = 0
+      while (count < len(self.listoutput)):
+        if self.listoutput[count].has_key('outputDataName'):
+          outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
         count=count+1
       outputs_done = []
       self.log.info(outputs)
