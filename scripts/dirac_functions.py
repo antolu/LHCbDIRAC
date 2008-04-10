@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.26 2008/04/10 08:54:09 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.27 2008/04/10 13:40:15 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.26 2008/04/10 08:54:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.26 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.27 2008/04/10 13:40:15 rgracian Exp $"
+__VERSION__ = "$Revision: 1.27 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -484,6 +484,7 @@ class functions:
     self.logINFO( '  Creating tar file %s'  % tarFileName )
     self.logDEBUG( '   including directories: %s' % str.join( ', ', dirs ) )
     try:
+      import tarfile
       tarFile = tarfile.open( tarFileName, 'w:gz' )
       for dir in dirs:
         tarFile.add( dir )
