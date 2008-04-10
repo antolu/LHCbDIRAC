@@ -84,7 +84,8 @@ module5.addParameter(Parameter("SourceData","","string","self","SourceData",True
 module6 = ModuleDefinition('JobFinalization')
 module6.setDescription('Job Finalization module')
 module6.setBody('from WorkflowLib.Module.JobFinalization import * \n')
-module6.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
+#module6.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
+#module6.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module6.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module6.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module6.addParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
@@ -125,7 +126,7 @@ step1.addParameter(Parameter("outputData","@{STEP_ID}.root","string","","",True,
 step1.addParameter(Parameter("etcf","SETC_@{STEP_ID}.root","string","","",True,False,"etc name"))
 step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
 step1.unlink(["appLog","appName", "appType"])
-step1.unlink(["SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
+step1.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
 
 #outputData = "@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}"
@@ -157,6 +158,8 @@ opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
 moduleInstance6 = step3.createModuleInstance('JobFinalization','module6')
+step3.addParameterLinked(module6.parameters)
+#step3.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 
 
 ##############  WORKFLOW #################################
@@ -179,6 +182,7 @@ stepInstance1.linkUp("CONFIG_NAME")
 stepInstance1.linkUp("CONFIG_VERSION")
 stepInstance1.linkUp("DataType")
 stepInstance1.linkUp("SourceData")
+stepInstance1.linkUp("poolXMLCatName")
 stepInstance1.setLink("inputData","self", "InputData") # KGG linked with InputData of the Workflow
 list_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list_out)
@@ -201,6 +205,7 @@ stepInstance2.linkUp("CONFIG_NAME")
 stepInstance2.linkUp("CONFIG_VERSION")
 stepInstance2.linkUp("DataType")
 stepInstance2.linkUp("SourceData")
+stepInstance2.linkUp("poolXMLCatName")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
 list_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list_out)
@@ -208,8 +213,8 @@ stepInstance2.setValue("listoutput",list_out)
 workflow1.addStep(step3)
 step3_prefix="step3_"
 stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
-
 stepInstance3.linkUp(stepInstance3.parameters, step3_prefix)
+stepInstance3.linkUp("poolXMLCatName")
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
 #indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
@@ -219,6 +224,7 @@ indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhc
 # lets specify parameters on the level of workflow
 workflow1.addParameterLinked(step1.parameters, step1_prefix)
 workflow1.addParameterLinked(step1.parameters, step2_prefix)
+workflow1.addParameterLinked(step3.parameters, step3_prefix)
 # and finally we can unlink them because we inherit them linked
 workflow1.unlink(workflow1.parameters)
 
@@ -226,8 +232,9 @@ workflow1.setValue(step1_prefix+"appVersion", "v19r11")
 workflow1.setValue(step2_prefix+"appVersion", "v32r4")
 workflow1.setValue(step1_prefix+"NUMBER_OF_EVENTS", "5")
 workflow1.setValue(step2_prefix+"NUMBER_OF_EVENTS", "-1")
-workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-workflow1.setValue(step2_prefix+"poolXMLCatName","pool_xml_catalog.xml")
+#workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
+#workflow1.setValue(step2_prefix+"poolXMLCatName","pool_xml_catalog.xml")
+#workflow1.setValue(step3_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","RDST")
@@ -262,6 +269,7 @@ workflow1.addParameter(Parameter("JOB_ID","00000011","string","","",True, False,
 workflow1.addParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False, "Application Name"))
+workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
 #workflow1.addParameter(Parameter("NUMBER_OF_EVENTS","5","string","","",True, False, "number of events requested"))
