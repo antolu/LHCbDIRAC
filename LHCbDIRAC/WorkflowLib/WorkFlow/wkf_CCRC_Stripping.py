@@ -88,7 +88,10 @@ module6.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 #module6.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module6.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module6.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
-module6.addParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
+module6.addParameter(Parameter("SourceData","","string","self","SourceData",True,False,"InputData"))
+module6.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
+module6.addParameter(Parameter("listoutput1",[],"list","self","listoutput1",True,False,"list of output data"))
+module6.addParameter(Parameter("listoutput2",[],"list","self","listoutput2",True,False,"list of output data"))
 
 #define module 7
 module7 = ModuleDefinition('Dummy')
@@ -99,9 +102,9 @@ module7.setBody('from WorkflowLib.Module.Dummy import * \n')
 ###############   STEPS ##################################
 #### step 1 we are creating step definition
 step1 = StepDefinition('Gaudi_App_Step')
-step1.addModule(module7) # Creating instance of the module 'Gaudi_App_Step'
-#moduleInstance2 = step1.createModuleInstance('GaudiApplication', 'module2')
-moduleInstance2 = step1.createModuleInstance('Dummy', 'module7')
+step1.addModule(module2) # Creating instance of the module 'Gaudi_App_Step'
+moduleInstance2 = step1.createModuleInstance('GaudiApplication', 'module2')
+#moduleInstance2 = step1.createModuleInstance('Dummy', 'module7')
 
 step1.addModule(module3) # Creating instance of the module 'LogChecker'
 moduleInstance3 = step1.createModuleInstance('LogChecker', 'module3')
@@ -112,8 +115,8 @@ moduleInstance4.setLink('NUMBER_OF_EVENTS_INPUT',moduleInstance3.getName(),'NUMB
 moduleInstance4.setLink('NUMBER_OF_EVENTS_OUTPUT',moduleInstance3.getName(),'NUMBER_OF_EVENTS_OUTPUT')
 # in principle we can link parameters of moduleInstance2 with moduleInstance1 but
 # in this case we going to use link with the step
-step1.addModule(module5)
-moduleInstance5 = step1.createModuleInstance('StepFinalization','module5')
+#step1.addModule(module5)
+#moduleInstance5 = step1.createModuleInstance('StepFinalization','module5')
 
 # now we can add parameters for the STEP but instead of typing them we can just use old one from modules
 step1.addParameterLinked(module3.parameters)
@@ -159,11 +162,14 @@ step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
 moduleInstance6 = step3.createModuleInstance('JobFinalization','module6')
 step3.addParameterLinked(module6.parameters)
-#step3.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
+step3.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+step3.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
+step3.addParameter(Parameter("listoutput2",[],"list","","",True,False,"list of output data"))
+step3.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 
 
 ##############  WORKFLOW #################################
-workflow1 = Workflow(name='CCRC-joel-test')
+workflow1 = Workflow(name='CCRC-strip-test')
 workflow1.setDescription('Workflow of GaudiApplication')
 
 workflow1.addStep(step1)
@@ -184,8 +190,8 @@ stepInstance1.linkUp("DataType")
 stepInstance1.linkUp("SourceData")
 stepInstance1.linkUp("poolXMLCatName")
 stepInstance1.setLink("inputData","self", "InputData") # KGG linked with InputData of the Workflow
-list_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
-stepInstance1.setValue("listoutput",list_out)
+list1_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
+stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
 stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'Step2')
@@ -193,7 +199,7 @@ stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'Step2')
 stepInstance2.linkUp(stepInstance2.parameters, step2_prefix)
 stepInstance2.setLink("systemConfig","self", "SystemConfig") # capital letter corrected
 # except "STEP_ID", "appLog"
-stepInstance2.unlink(["listoutput","STEP_ID", "optionsFile", "optionsLine","appLog","appName", "appType", "etcf", "outputDataSE", "outputData", "etcf", "EVENTTYPE"])
+stepInstance2.unlink(["listoutput","STEP_ID", "optionsFile", "outputData", "optionsLine","appLog","appName", "appType", "etcf", "EVENTTYPE"])
 stepInstance2.setValue("appName", "Brunel")
 stepInstance2.setValue("appType", "dst")
 stepInstance2.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
@@ -207,24 +213,31 @@ stepInstance2.linkUp("DataType")
 stepInstance2.linkUp("SourceData")
 stepInstance2.linkUp("poolXMLCatName")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
-stepInstance2.setValue("listoutput",list_out)
+list2_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
+stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
 step3_prefix="step3_"
 stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 stepInstance3.linkUp(stepInstance3.parameters, step3_prefix)
+stepInstance3.linkUp("CONFIG_NAME")
+stepInstance3.linkUp("CONFIG_VERSION")
+stepInstance3.linkUp("DataType")
+stepInstance3.linkUp("SourceData")
 stepInstance3.linkUp("poolXMLCatName")
+stepInstance3.unlink(["listoutput","inputData"])
+stepInstance3.setLink("listoutput1",stepInstance1.getName(),"listoutput")
+stepInstance3.setLink("listoutput2",stepInstance2.getName(),"listoutput")
 # Now lets define parameters on the top
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-#indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
-indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
+indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
+#indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
 #etcf = "joel.root"
 #indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 # lets specify parameters on the level of workflow
 workflow1.addParameterLinked(step1.parameters, step1_prefix)
 workflow1.addParameterLinked(step1.parameters, step2_prefix)
-workflow1.addParameterLinked(step3.parameters, step3_prefix)
+#workflow1.addParameterLinked(step3.parameters, step3_prefix)
 # and finally we can unlink them because we inherit them linked
 workflow1.unlink(workflow1.parameters)
 
@@ -232,10 +245,6 @@ workflow1.setValue(step1_prefix+"appVersion", "v19r11")
 workflow1.setValue(step2_prefix+"appVersion", "v32r4")
 workflow1.setValue(step1_prefix+"NUMBER_OF_EVENTS", "5")
 workflow1.setValue(step2_prefix+"NUMBER_OF_EVENTS", "-1")
-#workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-#workflow1.setValue(step2_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-#workflow1.setValue(step3_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-#workflow1.setValue(step1_prefix+"inputData",indata)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","RDST")
 workflow1.setValue(step2_prefix+"inputDataType","ETC")
@@ -276,7 +285,7 @@ workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, 
 workflow1.toXMLFile('wkf_CCRC_3.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
-print workflow1.createCode()
 print workflow1.showCode()
+print workflow1.createCode()
 #eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()

@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.2 2008/04/10 05:41:38 joel Exp $
+# $Id: StepFinalization.py,v 1.3 2008/04/10 12:34:26 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.2 2008/04/10 05:41:38 joel Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.3 2008/04/10 12:34:26 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -34,11 +34,8 @@ class StepFinalization(object):
     self.LFN_ROOT = None
     self.tmpdir = '.'
     self.logdir = '.'
-    self.outputAttr = None
     self.mode = None
     self.poolXMLCatName = None
-    self.outputDataSE = None
-    self.outputData = None
     self.TmpCacheSE = 'CERN-Failover'
     self.log = gLogger.getSubLogger("StepFinalization")
     self.nb_events_input = None
@@ -52,10 +49,7 @@ class StepFinalization(object):
 
   def execute(self):
     self.__report('Starting Step Finalization')
-    self.log.info('joel')
-    self.log.info(self.SourceData)
-#    self.outputAttr = combineMutipleAttributes(self)
-    self.log.info(self.listoutput)
+    return S_OK()
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
@@ -73,7 +67,6 @@ class StepFinalization(object):
     self.log.info('Log tar is %s' %self.logtar)
     error = 0
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
-#    self.inputData = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 
     self.LFN_ROOT = getLFNRoot(self.SourceData)
 

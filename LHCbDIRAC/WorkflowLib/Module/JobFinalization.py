@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.37 2008/04/10 07:12:07 joel Exp $
+# $Id: JobFinalization.py,v 1.38 2008/04/10 12:34:12 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.37 2008/04/10 07:12:07 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.38 2008/04/10 12:34:12 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -32,6 +32,10 @@ class JobFinalization(object):
       self.jobID = os.environ['JOBID']
     self.JOB_ID = None
     self.LFN_ROOT = None
+#    self.listoutput = []
+#    self.listoutput1 = []
+#    self.listoutput2 = []
+#    self.listoutput3 = []
     self.tmpdir = '.'
     self.logdir = '.'
     self.mode = None
@@ -49,6 +53,7 @@ class JobFinalization(object):
 
   def execute(self):
     self.__report('Starting Job Finalization')
+    self.listoutput = self.listoutput1+self.listoutput2
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
@@ -109,6 +114,8 @@ class JobFinalization(object):
       # Make up to max_attempts to upload each file
 
       count = 0
+      outputs = []
+      self.log.info(self.listoutput)
       while (count < len(self.listoutput)):
         if self.listoutput[count].has_key('outputDataName'):
           outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
@@ -125,7 +132,7 @@ class JobFinalization(object):
             if not output in outputs_done:
               resUpload = self.uploadOutputData(output,outputtype.upper(),'1',outputse)
               if resUpload['OK'] == True:
-                outputs_done.append(outputs)
+                outputs_done.append(output)
               else:
                 all_done = False
         count += 1
