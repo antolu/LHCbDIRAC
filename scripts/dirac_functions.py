@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.25 2008/04/10 08:36:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.26 2008/04/10 08:54:09 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.25 2008/04/10 08:36:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.25 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.26 2008/04/10 08:54:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.26 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -332,7 +332,7 @@ class functions:
       if not self.localPlatform in availablePlatforms:
         self.logERROR( 'Platform "%s" not available, use --build flag' % 
                   self.localPlatform )
-        sys.exit(-1)
+        sys.exit(1)
       if self.serverFlag:
         name = 'DIRAC-external-%s-%s-%s.tar.gz' % \
         ( self.external, self.localPlatform, self.python )
@@ -389,6 +389,10 @@ class functions:
       self.version = ch_out.readline().strip()
       if self.version.find('ERROR') != -1:
         self.logERROR( self.version )
+        try:
+          import zlib
+        except Exception, x:
+          self.logEXCEP( x )
         sys.exit(-1)
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
