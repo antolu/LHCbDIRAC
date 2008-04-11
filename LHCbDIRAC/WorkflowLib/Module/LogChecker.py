@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.7 2008/04/09 16:13:26 joel Exp $
+# $Id: LogChecker.py,v 1.8 2008/04/11 11:18:56 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.7 2008/04/09 16:13:26 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.8 2008/04/11 11:18:56 joel Exp $"
 
 from WorkflowLib.Module.BooleCheckLogFile import *
 from WorkflowLib.Module.BrunelCheckLogFile import *
@@ -45,15 +45,6 @@ class LogChecker(object):
     else:
         self.log.error('appName is not defined or known %s' %(self.appName))
         return S_ERROR('appName is not defined or known %s' %(self.appName))
-
-    #self.logChecker.logfile = self.appLog
-    #self.logChecker.appName = self.appName
-    #self.logChecker.appVersion = self.appVersion
-    #self.logChecker.job_id = self.JOB_ID
-    #self.logChecker.prod_id = self.PRODUCTION_ID
-    #self.logChecker.inputData = self.inputData
-    #self.logChecker.EMAIL = self.EMAIL
-    #self.logChecker.OUTPUT_MAX = self.OUTPUT_MAX
 
     # Copy all attributes from container class into embedded class replacing
     # inheritance mechanism which can not be used in this case
