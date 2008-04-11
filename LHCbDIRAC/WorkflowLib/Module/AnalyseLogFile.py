@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.2 2008/04/11 07:08:08 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.3 2008/04/11 11:19:14 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.2 2008/04/11 07:08:08 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.3 2008/04/11 11:19:14 joel Exp $"
 
 import commands, os
 
@@ -286,6 +286,11 @@ class AnalyseLogFile(object):
         result = S_ERROR('no logfile available')
 
     return result
+
+
+  def checkApplicationLog(self,error):
+    self.log.debug(' appLog - from %s'%(self.appLog))
+    self.log.info(error)
 
   #############################################################################
   def __report(self,status):
