@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.39 2008/04/10 13:33:17 joel Exp $
+# $Id: JobFinalization.py,v 1.40 2008/04/11 07:05:38 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.39 2008/04/10 13:33:17 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.40 2008/04/11 07:05:38 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -32,7 +32,7 @@ class JobFinalization(object):
       self.jobID = os.environ['JOBID']
     self.JOB_ID = None
     self.LFN_ROOT = None
-#    self.listoutput = []
+    self.listoutput = []
 #    self.listoutput1 = []
 #    self.listoutput2 = []
 #    self.listoutput3 = []
@@ -53,7 +53,8 @@ class JobFinalization(object):
 
   def execute(self):
     self.__report('Starting Job Finalization')
-    self.listoutput = self.listoutput1+self.listoutput2
+    if len(self.listoutput) == 0:
+      self.listoutput = self.listoutput1+self.listoutput2
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
