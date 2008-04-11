@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.36 2008/04/10 15:43:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.37 2008/04/11 17:31:57 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.36 2008/04/10 15:43:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.36 $"
+__RCSID__   = "$Id: dirac-update,v 1.37 2008/04/11 17:31:57 rgracian Exp $"
+__VERSION__ = "$Revision: 1.37 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -262,6 +262,7 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
                             'dips://volhcb03.cern.ch:9135/Configuration/Server' )
+  localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.localPlatform )
   if not dirac.serverFlag:
     localCfg.addDefaultEntry( '/DIRAC/Security/UseServerCertificate', 'no' )
   if siteName:
