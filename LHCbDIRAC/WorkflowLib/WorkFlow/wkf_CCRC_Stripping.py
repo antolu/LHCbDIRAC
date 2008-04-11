@@ -4,6 +4,30 @@ from DIRAC.Core.Workflow.Step import *
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
+# Variable which need to be set
+wkf_name = "CCRC_Stripping_test"
+nb_evt_step1 = 5
+nb_evt_step2 = -1
+Brunel_version = "v32r4"
+DaVinci_version = "v19r11"
+opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
+opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
+opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
+#opt_brunel = opt_brunel+";EventSelector.Input = {\"COLLECTION=\'TagCreator/1\' DATAFILE=\'@{InputData}\' TYPE=\'POOL_ROOTTREE\' SEL=\'(GlobalOr>=1)\' OPT=\'READ\'\"}"
+opt_brunel = opt_brunel+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
+opt_brunel = opt_brunel+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
+opt_brunel = opt_brunel+";StoreExplorerAlg.Load = 1"
+opt_brunel = opt_brunel+";StoreExplorerAlg.PrintFreq = 0.99"
+opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
+#indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
+indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
+#indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
+#etcf = "joel.root"
+#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
+
+
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
 module2.setDescription('Gaudi Application module')
@@ -146,17 +170,6 @@ opt_dav = opt_dav+";StoreExplorerAlg.PrintFreq = 0.99"
 opt_dav = opt_dav+";StoreExplorerAlg.AccessForeign = true"
 
 #etcf = "SETC_@{STEP_ID}.root"
-opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
-opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
-opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
-opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
-#opt_brunel = opt_brunel+";EventSelector.Input = {\"COLLECTION=\'TagCreator/1\' DATAFILE=\'@{InputData}\' TYPE=\'POOL_ROOTTREE\' SEL=\'(GlobalOr>=1)\' OPT=\'READ\'\"}"
-opt_brunel = opt_brunel+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
-opt_brunel = opt_brunel+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
-opt_brunel = opt_brunel+";StoreExplorerAlg.Load = 1"
-opt_brunel = opt_brunel+";StoreExplorerAlg.PrintFreq = 0.99"
-opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 
 step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
@@ -169,7 +182,7 @@ step3.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_
 
 
 ##############  WORKFLOW #################################
-workflow1 = Workflow(name='CCRC-strip-test')
+workflow1 = Workflow(name=wkf_name)
 workflow1.setDescription('Workflow of GaudiApplication')
 
 workflow1.addStep(step1)
@@ -229,11 +242,6 @@ stepInstance3.unlink(["listoutput","inputData"])
 stepInstance3.setLink("listoutput1",stepInstance1.getName(),"listoutput")
 stepInstance3.setLink("listoutput2",stepInstance2.getName(),"listoutput")
 # Now lets define parameters on the top
-#indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
-#indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
-#etcf = "joel.root"
-#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 # lets specify parameters on the level of workflow
 workflow1.addParameterLinked(step1.parameters, step1_prefix)
 workflow1.addParameterLinked(step1.parameters, step2_prefix)
@@ -241,10 +249,10 @@ workflow1.addParameterLinked(step1.parameters, step2_prefix)
 # and finally we can unlink them because we inherit them linked
 workflow1.unlink(workflow1.parameters)
 
-workflow1.setValue(step1_prefix+"appVersion", "v19r11")
-workflow1.setValue(step2_prefix+"appVersion", "v32r4")
-workflow1.setValue(step1_prefix+"NUMBER_OF_EVENTS", "5")
-workflow1.setValue(step2_prefix+"NUMBER_OF_EVENTS", "-1")
+workflow1.setValue(step1_prefix+"appVersion", DaVinci_version)
+workflow1.setValue(step2_prefix+"appVersion", Brunel_version)
+workflow1.setValue(step1_prefix+"NUMBER_OF_EVENTS", nb_evt_step1)
+workflow1.setValue(step2_prefix+"NUMBER_OF_EVENTS", nb_evt_step2)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","RDST")
 workflow1.setValue(step2_prefix+"inputDataType","ETC")
@@ -282,7 +290,7 @@ workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
 #workflow1.addParameter(Parameter("NUMBER_OF_EVENTS","5","string","","",True, False, "number of events requested"))
-workflow1.toXMLFile('wkf_CCRC_3.xml')
+workflow1.toXMLFile('wkf_CCRC_Stripping.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 print workflow1.showCode()
