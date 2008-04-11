@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.1 2008/04/09 16:16:00 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.2 2008/04/11 07:08:08 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.1 2008/04/09 16:16:00 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.2 2008/04/11 07:08:08 joel Exp $"
 
 import commands, os
 
@@ -50,10 +50,10 @@ class AnalyseLogFile(object):
       else:
          self.max_app = 'None'
 
-      if self.max_app != 'None':
-         if (int(self.JOB_ID) > int(self.max_app)):
-           if self.outputDataSE != None:
-             self.outputDataSE = None
+#      if self.max_app != 'None':
+#         if (int(self.JOB_ID) > int(self.max_app)):
+#           if self.outputDataSE != None:
+#             self.outputDataSE = None
 
 # check the is the logfile exist
       result = self.getLogFile()
@@ -64,9 +64,7 @@ class AnalyseLogFile(object):
 # check if this is a good job
       result = self.goodJob()
       if result['OK']:
-         self.log.info('Before check %s %s %s' % (str(self.NUMBER_OF_EVENTS),str(self.NUMBER_OF_EVENTS_INPUT),str(self.NUMBER_OF_EVENTS_OUTPUT)))
          resultnb = self.nbEvent()
-         self.log.info('Before check %s %s %s' % (str(self.NUMBER_OF_EVENTS),str(self.NUMBER_OF_EVENTS_INPUT),str(self.NUMBER_OF_EVENTS_OUTPUT)))
          if result['OK']:
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
            self.__report('%s step OK' % (self.appName))
