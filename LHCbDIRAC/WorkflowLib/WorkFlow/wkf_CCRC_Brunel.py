@@ -4,6 +4,22 @@ from DIRAC.Core.Workflow.Step import *
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
+
+##########  PART TO EDIT  ##############
+wkf_name = "CCRC_Reconstruction_test"
+nb_evt_step1 = 5
+Brunel_version = "v32r4"
+opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
+opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\" "
+
+##########   DO NOT EDIT AFTER THIS LINE #############
+#indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
+indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
+#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
+
+
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
 module2.setDescription('Gaudi Application module')
@@ -82,8 +98,6 @@ module5 = ModuleDefinition('JobFinalization')
 module5.setDescription('Job Finalization module')
 module5.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 module5.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
-module5.addParameter(Parameter("listoutput1",[],"list","self","listoutput1",True,False,"list of output data"))
-module5.addParameter(Parameter("listoutput2",[],"list","self","listoutput2",True,False,"list of output data"))
 module5.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module5.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module5.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
@@ -126,18 +140,12 @@ step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.lo
 step1.unlink(["appLog","appName", "appType"])
 step1.unlink(["SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
-step1.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
-step1.addParameter(Parameter("listoutput2",[],"list","","",True,False,"list of output data"))
 
 #outdata = "@{STEP_ID}.{appType}"
-opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
-opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
-opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\" "
 
 
 ##############  WORKFLOW #################################
-workflow1 = Workflow(name='main')
+workflow1 = Workflow(name=wkf_name)
 workflow1.setDescription('Workflow of GaudiApplication')
 
 workflow1.addStep(step1)
@@ -163,15 +171,12 @@ stepInstance1.setValue("listoutput",list_out)
 
 
 # Now lets define parameters on the top
-#indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
-#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
 # lets specify parameters on the level of workflow
 workflow1.addParameterLinked(step1.parameters, step1_prefix)
 # and finally we can unlink them because we inherit them linked
 workflow1.unlink(workflow1.parameters)
 
-workflow1.setValue(step1_prefix+"appVersion", "v32r4")
+workflow1.setValue(step1_prefix+"appVersion", Brunel_version)
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
 workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
 #workflow1.setValue(step1_prefix+"inputData",indata)
@@ -204,7 +209,7 @@ workflow1.addParameter(Parameter("DataType","DATA","string","","",True, False, "
 workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
-workflow1.addParameter(Parameter("NUMBER_OF_EVENTS","2","string","","",True, False, "number of events requested"))
+workflow1.addParameter(Parameter("NUMBER_OF_EVENTS",nb_evt_step1,"string","","",True, False, "number of events requested"))
 workflow1.toXMLFile('wkf_CCRC.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
