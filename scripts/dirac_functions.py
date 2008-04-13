@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.28 2008/04/11 18:22:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.29 2008/04/13 07:23:12 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.28 2008/04/11 18:22:28 rgracian Exp $"
-__VERSION__ = "$Revision: 1.28 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.29 2008/04/13 07:23:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.29 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -412,7 +412,11 @@ class functions:
     if ret != 0:
       self.logERROR( 'Failed making %s' %dir )
       self.logERROR( 'Check log file at "%s.log"' % diracMake )
-      self.logERROR( str.join('',open( '%s.log' % diracMake ).readlines()[:-20]) )
+      f = open( '%s.log' % diracMake )
+      lines = f.readlines()
+      while lines:
+        self.logERROR( str.join('',lines) )
+        lines = f.readlines()
       sys.exit( -1 )
 
   def _getCVS( self, version, packages ):
