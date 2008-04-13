@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.3 2008/02/13 08:57:16 paterson Exp $
+# $Id: InputDataResolution.py,v 1.4 2008/04/13 14:14:29 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,9 +14,9 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.3 2008/02/13 08:57:16 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.4 2008/04/13 14:14:29 paterson Exp $"
 
-from DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol      import InputDataByProtocol
+from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
 
@@ -39,21 +39,19 @@ class InputDataResolution:
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
-    self.log.info('Attempting to resolve input data requirement by available site protocols')
-    protocolAccess = InputDataByProtocol(self.arguments)
-    result = protocolAccess.execute()
+    result = self.__resolveInputData()
     if not result['OK']:
-      return result
+      self.log.warn('InputData resolution failed with result:\n%s' %(result))
 
     #For LHCb, as long as one TURL exists, this can be conveyed to the application
     failedReplicas = result['Failed']
-    if result['Failed']:
+    if failedReplicas:
       self.log.info('InputDataByProtocol failed to obtain a TURL for the following files:\n%s' %(string.join(failedReplicas,'\n')))
 
     if not result['Successful']:
       return S_ERROR('InputDataByProtocol returned no TURLs for requested input data')
 
-    #!TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
+    #TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
     #term this will be derived from file catalog metadata information but for now is based
     #on the file extension types.
     resolvedData = result['Successful']
@@ -69,7 +67,7 @@ class InputDataResolution:
 
     resolvedData = tmpDict
 
-    #!TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
+    #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
     #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
     #In the longer term this should be derived from file catalog metadata information.
     tmpDict = {}
@@ -83,6 +81,74 @@ class InputDataResolution:
     resolvedData = tmpDict
     appCatalog = PoolXMLSlice('pool_xml_catalog.xml')
     check = appCatalog.execute(resolvedData)
+    return result
+
+  #############################################################################
+  def __resolveInputData(self):
+    """This method controls the execution of the DIRAC input data modules according
+       to the LHCb VO policy defined in the configuration service.
+    """
+    site = gConfig.getValue('/LocalSite/Site','')
+    if not site:
+      return S_ERROR('Could not resolve site from /LocalSite/Site')
+
+    inputDataPolicy = gConfig.getOptionsDict('/Operations/InputDataPolicy')
+    if not inputDataPolicy:
+      return S_ERROR('Could not resolve InputDataPolicy from /Operations/InputDataPolicy')
+
+    options = inputDataPolicy['Value']
+    if options.has_key(site):
+      policy = options[site]
+      policy = [x.strip() for x in string.split(policy,',')]
+      self.log.info('Found specific input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
+    elif options.has_key('Default'):
+      policy = options['Default']
+      policy = [x.strip() for x in string.split(policy,',')]
+      self.log.info('Applying default input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
+
+    dataToResolve = None #if none, all supplied input data is resolved
+    allDataResolved = False
+    successful = {}
+    failedReplicas=[]
+    for modulePath in policy:
+      if not allDataResolved:
+        result = self.__runModule(modulePath,dataToResolve)
+        if not result['OK']:
+          self.log.warn('Problem during %s execution' %modulePath)
+          return result
+
+        if result.has_key('Failed'):
+          failedReplicas=result['Failed']
+
+        if failedReplicas:
+          self.log.info('%s failed for the following files:\n%s' %(modulePath,string.join(failedReplicas,'\n')))
+          dataToResolve = failedReplicas
+        else:
+          self.log.info('All replicas resolved after %s execution' %(modulePath))
+          allDataResolved=True
+
+        successful.update(result['Successful'])
+        self.log.verbose(successful)
+
+    result = S_OK()
+    result['Successful']=successful
+    result['Failed']=failedReplicas
+    return result
+
+  #############################################################################
+  def __runModule(self,modulePath,remainingReplicas):
+    """This method provides a way to run the modules specified by the VO that
+       govern the input data access policy for the current site.  For LHCb the
+       standard WMS modules are applied in a different order depending on the site.
+    """
+    self.log.info('Attempting to run %s' %(modulePath))
+    moduleFactory = ModuleFactory()
+    moduleInstance = moduleFactory.getModule(modulePath,self.arguments)
+    if not moduleInstance['OK']:
+      return moduleInstance
+
+    module = moduleInstance['Value']
+    result = module.execute(remainingReplicas)
     return result
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
