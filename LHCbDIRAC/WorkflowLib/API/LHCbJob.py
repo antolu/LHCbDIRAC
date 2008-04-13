@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.4 2008/03/14 14:05:31 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.5 2008/04/13 20:34:27 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
    Helper functions are documented with example usage for the DIRAC API.
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.4 2008/03/14 14:05:31 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.5 2008/04/13 20:34:27 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -93,10 +93,10 @@ class LHCbJob(Job):
     #TODO: add links to input data and set value for input data type
     inputParamNames = ['appName','appVersion','optionsFile','optionsLine','systemConfig','logfile']
     for p in inputParamNames:
-      step.appendParameterCopy(module.findParameter(p))
+      step.addParameter(module.findParameter(p))
 
-    step.appendParameterCopy(module.findParameter('inputData'))
-    step.appendParameterCopy(module.findParameter('inputDataType'))
+    step.addParameter(module.findParameter('inputData'))
+    step.addParameter(module.findParameter('inputDataType'))
 
     moduleInstance = step.createModuleInstance('GaudiApplication',moduleName)
     for p in inputParamNames:
@@ -108,7 +108,7 @@ class LHCbJob(Job):
     outputParamNames = ['result']
     for p in outputParamNames:
       outputParam = moduleInstance.findParameter(p)
-      step.appendParameter(Parameter(parameter=outputParam))
+      step.addParameter(Parameter(parameter=outputParam))
       step.findParameter(p).link(moduleName,p)
 
     step.findParameter('inputData').link(moduleName,'inputData')
@@ -119,9 +119,9 @@ class LHCbJob(Job):
     self.currentStepPrefix = stepPrefix
 
     for p in inputParamNames:
-      self.workflow.appendParameterCopy(step.findParameter(p),stepPrefix)
+      self.workflow.addParameter(step.findParameter(p),stepPrefix)
     for p in outputParamNames:
-      self.workflow.appendParameterCopy(step.findParameter(p),stepPrefix)
+      self.workflow.addParameter(step.findParameter(p),stepPrefix)
 
     stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
 
@@ -129,7 +129,7 @@ class LHCbJob(Job):
     for p in inputParamNames:
       gaudiParams.append(moduleInstance.findParameter(p))
 
-    stepInstance.linkParameterUp(gaudiParams,stepPrefix)
+    stepInstance.linkUp(gaudiParams,stepPrefix)
     stepInstance.setLink("inputData","self", "InputData")
     stepInstance.setLink("inputDataType","self", "InputDataType")
     self.workflow.findParameter('%sappName' %(stepPrefix)).setValue(appName)
