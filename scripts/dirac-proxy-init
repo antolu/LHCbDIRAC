@@ -1,321 +1,87 @@
 #!/usr/bin/python
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-proxy-init,v 1.7 2008/04/14 14:19:56 atsareg Exp $
 
 """ Initialize grid proxy using user's grid certificate.
-
-Adapted from the corresponding Clarens utility by C.Steenberg
-
-A.Tsaregorodtsev
-atsareg@in2p3.fr
-
-19.11.2004
 """
 
-import os, shutil, sys, popen2, getopt
-import commands
-import string
-from tempfile import mktemp
+__RCSID__ = "$Id: dirac-proxy-init,v 1.7 2008/04/14 14:19:56 atsareg Exp $"
+__VERSION__ = "$Release: $"
 
-home = os.environ["HOME"]
+import os,stat,getopt,sys
+from DIRAC.Core.Utilities.GridCredentials import setDIRACGroupInProxy, \
+                                                 createProxy, \
+                                                 getNewGridProxyFile
 
+home = os.environ['HOME']
 certfile = home+"/.globus/usercert.pem"
 keyfile = home+"/.globus/userkey.pem"
-serialfile = home+"/.globus/cert_serial"
-bits = '512'
-hours = '12'
-debug = 0
-verify = 0
-pwstdin = 0
-quiet = 0
-if os.path.exists('/usr/bin/openssl'):
-  openssl = '/usr/bin/openssl'
-else:
-  openssl = 'openssl'
+debug = False
+hours = 24
+group = 'lhcb_user'
 
-__VERSION__ = 0.3
-
-
+###################################################################################
 def printUsage():
 
   print """
-  Syntax: dirac-proxy-init [-help][-pwstdin][-limited][-hours H] ...
+  Syntax: dirac-proxy-init [options]
 
-    Options
-    --help, -h                 Displays usage
-    --version                  Displays version
-    --debug, -d                Enables extra debug output
-    --quiet, -q                Quiet mode, minimal output
-    --verify                   Verifies certificate to make proxy for
-    --pwstdin                  Allows passphrase from stdin
-    --hours H                  Proxy is valid for H hours (default:12)
-    --bits  B                  Number of bits in key {512|1024|2048|4096}
-
-    --cert     <certfile>      Non-standard location of user certificate
-    --key      <keyfile>       Non-standard location of user key
-    --certdir  <certdir>       Non-standard location of trusted cert dir
-    --out      <proxyfile>     Non-standard location of new proxy cert
+  Options:
+    -h, --help                    displays usage
+    -g, --group                   define the user group
+    -d, --debug                   displays debugging output
+    --hours, --valid <hours>      proxy validity period in hours
     """
-
-def getSubject(certfile):
-  """Get subject from the certificate
-  """
-
-  status,subjectline = commands.getstatusoutput(
-                         openssl+" x509 -subject -in "+certfile+" -noout")
-  subject = string.replace(subjectline,"subject= ",'')
-  return subject
-
-def getSerial(certfile):
-  """Get serial from the certificate
-  """
-
-  status,serial_line = commands.getstatusoutput(
-                         openssl+" x509 -serial -in "+certfile+" -noout")
-  serial = serial_line.replace("serial=",'')
-  return serial
-
-def getOpenSSLVersion():
-  """Get version of the openssl binary
-  """
-
-  status,version = commands.getstatusoutput(openssl+" version")
-  return version.split()[1]
-
-
-def getEmail(certfile):
-  """Get email field from the certificate subject
-  """
-
-  status,emailline = commands.getstatusoutput(
-                         openssl+" x509 -email -in "+certfile+" -noout")
-  email = string.replace(emailline,"email= ",'')
-  return email
-
-def getProxyFile():
-  """Get the name of the proxy file according to user settings
-  """
-
-  if os.environ.has_key("X509_USER_PROXY"):
-    return os.environ["X509_USER_PROXY"]
-  else:
-    uid = os.getuid()
-    return "/tmp/x509up_u"+str(uid)
-
-def makeConfigFile(configfile,bits) :
-  """ Creates configuration file for the new certificate request
-  """
-
-  email = getEmail(certfile)
-  cf = open(configfile,'w')
-  cf.write("""
-
-extensions            = ext_section
-
-[ req ]
-encrypt_key = no
-default_bits = %s
-prompt = no
-distinguished_name = dn_section
-#req_extensions = req_ext_section
-
-[ req_ext_section ]
-#basicConstraints = CA:FALSE
-#keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-
-[ ext_section ]
-#basicConstraints = CA:false
-keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment
-#nsCertType = server, client, email
-#nsComment = "Dirac-generated client and server authentication certificate"
-#authorityKeyIdentifier = issuer:always
-#subjectAltName = email:%s
-
-[ dn_section ]
-
-""" % (bits,email) )
-
-  subject = getSubject(certfile)
-  psubject = subject+"/CN=proxy"
-  fields = string.split(psubject,'/')
-  fieldKeys = {}
-  for OID in fields:
-    if len( OID ) == 0:
-      continue
-    key,value = OID.split( "=" )
-    if key in fieldKeys:
-      count = fieldKeys[key]+1
-      fieldKeys[key] = count
-    else:
-      fieldKeys[key] = 0
-      count = 0
-    cf.write( "%s.%s = %s\n" % ( count, key,value ) )
-
-  cf.write('\n')
-  cf.close()
-  return configfile
 
 def getOptions():
 
-  global debug,quiet,verify,pwstdin,hours,bits,certfile,keyfile,certdir,outputfile
+  global debug, hours, group
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], "hdq", ["help",
-                                                    "version",
-                                                    "debug",
-                                                    "quiet",
-                                                    "verify",
-                                                    "pwstdin",
-                                                    "hours=",
-                                                    "bits=",
-                                                    "cert=",
-                                                    "key=",
-                                                    "certdir=",
-                                                    "out=" ])
+    opts,args = getopt.getopt(sys.argv[1:], "hdg:", ["help","version","debug","hours=","valid=","group="])
+
   except getopt.GetoptError:
-    # print help information and exit:
+  # print help information and exit:
     printUsage()
     sys.exit(2)
 
   for o, a in opts:
-    if o in ["-d","--debug"]:
-        debug = 1
+    if o in ("-d","--debug"):
+      debug = True
     if o in ("-h", "--help"):
-        printUsage()
-        sys.exit()
-    if o in ("-q", "--quiet"):
-      quiet = 1
+      printUsage()
+      sys.exit()
     if o == "--version":
-        print __VERSION__
-        sys.exit()
-    if o == "--verify":
-        verify = 1
-    if o == "--pwstdin":
-        pwstdin = 1
-    if o == "--hours":
-        hours = a
-    if o == "--bits":
-        bits = a
-    if o == "--cert":
-        certfile = a
-    if o == "--key":
-        keyfile = a
-    if o == "--certdir":
-        certdir = a
-    if o == "--out":
-        outputfile = a
+      print __VERSION__
+      sys.exit()
+    if o in ("--valid", "--hours"):
+      if a.find(':') != -1:
+        h,m = a.split(':')
+        if int(m) > 0:
+          hours = int(h)+1
+        else:
+          hours = int(h)
+      else:
+        hours = int(a)
+    if o in ( '-g','--group' ):
+      group = a
 
-from popen2 import Popen3
+#####################################################################################
 
-def exeCommand(cmd):
-    """Return (status, output, error) of executing cmd in a shell."""
-
-    proc = Popen3(cmd,1)
-    sts = proc.wait()
-    out = proc.fromchild.read()
-    error = proc.childerr.read()
-    if sts is None: sts = 0
-    if out[-1:] == '\n': out = out[:-1]
-    if error[-1:] == '\n': error = error[:-1]
-    return sts, out, error
-
-######################################################################
-
-
-
-outputfile = getProxyFile()
 getOptions()
-if os.path.exists(outputfile): os.remove(outputfile)
 
-if (quiet == 0) or (debug == 1):
-  print "Your identity: ",getSubject(certfile)
+result = createProxy(certfile,keyfile,hours=hours)
+if not result['OK']:
+  print "Failed to create proxy",result['Message']
 
-serial = getSerial(certfile)
-sfile = open(serialfile,'w')
-sfile.write(str(serial))
-sfile.close()
+proxy = result['Value']
 
-uid = os.getuid()
-configfile = mktemp('.proxy_init_'+`uid`)
-if debug:
-  print "\nCreating new certificate request in %s and placing" % (configfile,)
-  print "private key in %s:" % (outputfile,)
+proxy_file = getNewGridProxyFile()
+if os.path.exists(proxy_file):
+  os.remove(proxy_file)
 
-configfile = makeConfigFile(configfile,bits)
+proxy = setDIRACGroupInProxy(proxy,group)
 
-comm = openssl+" req -new -nodes -config %s -keyout %s.key " % (configfile,outputfile)
-if debug:
-  print "\n",comm
-status,output = commands.getstatusoutput(comm)
-if status:
-  print "--- Error creating proxy certificate!"
-  print output
-  sys.exit(1)
-
-rf = open(configfile+'.req','w')
-rf.write(output)
-rf.close()
-
-if debug:
-  print "\nSigning certificate request, and append new proxy to",outputfile,":"
-
-days = int(hours)/24 + 1
-
-comm = openssl+" x509 -req -in %s.req -CAkey %s " % (configfile,keyfile)
-comm = comm + "-extfile %s -extensions ext_section -days %s " % (configfile,days)
-comm = comm + "-CA %s -CAcreateserial -CAserial %s" % (certfile,serialfile)
-
-if debug:
-  print "\n",comm,"\n"
-
-version = getOpenSSLVersion()
-if debug:
-  print "OpenSSL version: ",version,'\n'
-if version.find('0.9.6') != -1:
-  print "Enter PEM pass phrase: ",
-  sys.stdout.flush()
-status,output,error = exeCommand(comm)
-
-if status:
-  print "--- Error creating proxy certificate!"
-  print output
-  if os.path.exists(outputfile): os.remove(outputfile)
-  if os.path.exists(configfile): os.remove(configfile)
-  if os.path.exists(configfile+'.req'): os.remove(configfile+'.req')
-  if os.path.exists(outputfile+'.key'): os.remove(outputfile+'.key')
-  sys.exit(1)
-
-of = open(outputfile,'w')
-os.chmod(outputfile,0600)
-of.write(output+'\n')
-kf = open(outputfile+'.key','r')
-of.write(kf.read())
-kf.close()
-os.remove(outputfile+'.key')
-
-if debug:
-  print "\nAppending user certificate to",outputfile,":"
-  print "\nopenssl x509 -in "+certfile
-of = open(outputfile,'a')
-status,cert = commands.getstatusoutput(openssl+' x509 -in '+certfile)
-of.write(cert)
-of.write('\n')
-of.close()
-
-if debug:
-  print "\nPrinting timelife message for",outputfile,":"
-comm = openssl+" x509 -noout -text -in %s" % (outputfile,)
-if debug:
-  print "\n",comm,"\n"
-status,output = commands.getstatusoutput(comm)
-output = string.split(output,"\n")
-
-for f in output:
-  a = string.split(f,"Not After :")
-  a = len(a)
-  if a == 2:
-    k,v = string.split(f,"Not After :")
-    v = v.strip(" ")
-    if (quiet == 0) or (debug == 1):
-      print "\nYour proxy is valid until: ",v
-
-os.remove(configfile)
-os.remove(configfile+'.req')
+pfile = open(proxy_file,'w')
+pfile.write(proxy)
+pfile.close()
+os.chmod(proxy_file, stat.S_IRUSR | stat.S_IWUSR)
