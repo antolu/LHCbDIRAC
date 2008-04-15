@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.3 2008/04/11 11:19:14 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.4 2008/04/15 14:11:14 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.3 2008/04/11 11:19:14 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.4 2008/04/15 14:11:14 paterson Exp $"
 
-import commands, os
+import commands, os, time
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -69,6 +69,8 @@ class AnalyseLogFile(object):
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
            self.__report('%s step OK' % (self.appName))
            return resultnb
+         else:
+           self.log.info('Checking number of events returned result:\n%s' %(result))
 
       # This is DIRAC problem, no need to proceed further
       if result['Message'].find('DIRAC_EMAIL') != -1 :
@@ -108,6 +110,7 @@ class AnalyseLogFile(object):
   def nbEvent(self):
       self.timeoffset = 0
       lastev = 0
+      mailto = self.appName.upper()+'_EMAIL'
       line,appinit = self.grep(self.appLog,'ApplicationMgr    SUCCESS')
       if line.split(' ')[2] == 'UTC':
           self.timeoffset = 3
@@ -135,7 +138,6 @@ class AnalyseLogFile(object):
       else:
          lastev = string.split(line)[5]
 
-      mailto = self.appName.upper()+'_EMAIL'
       result = S_OK()
 
       line,nomore = self.grep(self.appLog,'No more events')
@@ -155,6 +157,11 @@ class AnalyseLogFile(object):
 
       self.log.info(" %s events processed " % nprocessed)
       self.NUMBER_OF_EVENTS_INPUT = str(nprocessed)
+
+      #report job parameter with timestamp
+      curTime = time.asctime(time.gmtime())
+      report = 'Events processed by %s on %s [UTC]' %(self.appName,curTime)
+      self.__setJobParam(report,nprocessed)
 
 # find number of events written
       loutput,n = self.grep(self.appLog,'Events output:')
@@ -305,3 +312,17 @@ class AnalyseLogFile(object):
       self.log.warn(jobStatus['Message'])
 
     return jobStatus
+
+  #############################################################################
+  def __setJobParam(self,name,value):
+    """Wraps around setJobParameter of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    self.log.verbose('setJobParameter(%s,%s,%s)' %(self.jobID,name,value))
+    jobParam = self.jobReport.setJobParameter(int(self.jobID),str(name),str(value))
+    if not jobParam['OK']:
+      self.log.warn(jobParam['Message'])
+
+    return jobParam
