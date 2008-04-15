@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.38 2008/04/12 20:14:52 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.39 2008/04/15 22:01:30 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.38 2008/04/12 20:14:52 rgracian Exp $"
-__VERSION__ = "$Revision: 1.38 $"
+__RCSID__   = "$Id: dirac-update,v 1.39 2008/04/15 22:01:30 rgracian Exp $"
+__VERSION__ = "$Revision: 1.39 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -35,8 +35,8 @@ except:
       tarFileName = os.path.join( '%s.tar.gz' % name )
       remoteName = '%s/%s' % ( defaultURL, tarFileName )
       error = 'Retrieving file "%s"' % remoteName
+      urlretrieveTimeout( remoteName, localName, timeout )
       try:
-        urlretrieveTimeout( remoteName, localName, timeout )
         error = 'Opening file "%s"' % localName
         import tarfile
         tar = tarfile.open( localName , 'r' )
