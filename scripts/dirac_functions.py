@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.29 2008/04/13 07:23:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.30 2008/04/15 21:20:59 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.29 2008/04/13 07:23:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.29 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.30 2008/04/15 21:20:59 rgracian Exp $"
+__VERSION__ = "$Revision: 1.30 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -357,7 +357,15 @@ class functions:
       if input.isfirstline():
         if re.compile( '^#!.*python').match(line):
           output.append( input.filename() )
-          print magic
+          if len( magic ) < 100:
+            print magic
+          else:
+            # to avoid a long magic line, make it a paragraph
+            python = magic[magic.find('/'):]
+            print '#! /usr/bin/env python'
+            print 'import sys, os'
+            print 'if sys.executable != "%s":' % python
+            print '  sys.exit( os.system( "%s %s" ) )' % ( python, str.join(' ',sys.argv.join ) )
         else:
           print line,
       else:
