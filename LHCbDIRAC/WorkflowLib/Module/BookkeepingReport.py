@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.14 2008/04/10 07:12:55 joel Exp $
+# $Id: BookkeepingReport.py,v 1.15 2008/04/15 16:04:14 paterson Exp $
 ########################################################################
-""" Book Keeping Report Class """
+""" Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.14 2008/04/10 07:12:55 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.15 2008/04/15 16:04:14 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -127,7 +127,7 @@ class BookkeepingReport(object):
       self.log.warn( 'BookkeepingReport: no EVENTTYPE specified' )
       eventtype = 'Unknown'
     self.log.info( 'Event type = %s' % (str(self.EVENTTYPE)))
-    self.log.info( 'stats = '+self.NUMBER_OF_EVENTS_OUTPUT)
+    self.log.info( 'stats = %s' %(self.NUMBER_OF_EVENTS_OUTPUT))
 
     if self.NUMBER_OF_EVENTS_OUTPUT != None:
       statistics = self.NUMBER_OF_EVENTS_OUTPUT
