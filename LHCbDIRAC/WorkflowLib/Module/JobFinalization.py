@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.40 2008/04/11 07:05:38 joel Exp $
+# $Id: JobFinalization.py,v 1.41 2008/04/15 14:11:41 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.40 2008/04/11 07:05:38 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.41 2008/04/15 14:11:41 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -221,7 +221,7 @@ class JobFinalization(object):
             if bad_counter == 0 or bad_counter > 3:
               self.log.error( "Failed to send bookkeeping information for %s after %s retries" % (str( f ) , str(bad_counter)) )
               self.log.error(result)
-              self.__report('Failed to send bookkeeping information')
+              self.__report('Failed To Send Bookkeeping Information')
               CONTINUE = 1
           else:
             self.log.info( "Bookkeeping information sent successfully" )
@@ -528,8 +528,8 @@ class JobFinalization(object):
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
       if not result['OK']:
         self.log.warn(result)
-        self.__report('DATA transfer failed')
-        return S_ERROR('DATA transfer failed')
+        self.__report('Data Transfer Failed')
+        return S_ERROR('Data Transfer Failed')
 
     return S_OK()
 
