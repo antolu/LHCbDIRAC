@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.33 2008/04/15 21:33:52 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.34 2008/04/15 21:41:03 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.33 2008/04/15 21:33:52 rgracian Exp $"
-__VERSION__ = "$Revision: 1.33 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.34 2008/04/15 21:41:03 rgracian Exp $"
+__VERSION__ = "$Revision: 1.34 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -365,7 +365,7 @@ class functions:
             print '#! /usr/bin/env python'
             print 'import sys, os'
             print 'if sys.executable != "%s":' % python
-            print '  sys.exit( os.system( "\%s \%s" \% ( sys.executable, str.join(" ",sys.argv ) )  )'
+            print '  sys.exit( os.system( "%%s %%s" %% ( %s, str.join(" ",sys.argv ) )  )' % python
         else:
           print line,
       else:
