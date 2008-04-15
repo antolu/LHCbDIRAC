@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.41 2008/04/15 14:11:41 paterson Exp $
+# $Id: JobFinalization.py,v 1.42 2008/04/15 17:40:08 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.41 2008/04/15 14:11:41 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.42 2008/04/15 17:40:08 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -130,12 +130,12 @@ class JobFinalization(object):
           self.log.info("Output data upload retry number "+str(count))
         all_done = True
         for output,outputse,outputtype in outputs:
-            if not output in outputs_done:
-              resUpload = self.uploadOutputData(output,outputtype.upper(),'1',outputse)
-              if resUpload['OK'] == True:
-                outputs_done.append(output)
-              else:
-                all_done = False
+          if not output in outputs_done:
+            resUpload = self.uploadOutputData(output,outputtype.upper(),'1',outputse)
+            if resUpload['OK'] == True:
+              outputs_done.append(output)
+            else:
+              all_done = False
         count += 1
 
       #########################################################################
@@ -147,8 +147,9 @@ class JobFinalization(object):
         if self.TmpCacheSE != None:
           cache_se = self.TmpCacheSE
 #          for output,otype,oversion,outputse in outputs:
-          if not outputs in outputs_done:
-              fname = os.path.basename(outputs)
+          for outputFile,outputSE,outputType in outputs:
+            if not outputFile in outputs_done:
+              fname = os.path.basename(outputFile)
               lfn = self.LFN_ROOT+'/'+fname
               resCopy = self.rm.put(lfn,os.getcwd()+'/'+fname,cache_se)
               if resCopy['OK'] == True:
@@ -477,7 +478,7 @@ class JobFinalization(object):
     ses = uniq(ses)
 
     if len(ses) > 0:
-      self.log.info("File %s will be stored to the following SE's:\n%s" % (output, str(ses)))
+      self.log.info("File %s will be stored to the following SEs:\n%s" % (output, str(ses)))
 
       lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
       result = self.uploadDataFile(output,lfn,ses)
@@ -519,7 +520,6 @@ class JobFinalization(object):
       self.log.info("File: %s GUID: %s" % (str(datafile), str(guid)))
 
     size = getfilesize(datafile)
-
     destination_ses = uniq(destinationSEList)
 
     one_grid_upload_successful = False
@@ -528,8 +528,9 @@ class JobFinalization(object):
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
       if not result['OK']:
         self.log.warn(result)
-        self.__report('Data Transfer Failed')
-        return S_ERROR('Data Transfer Failed')
+        self.__setJobParam('Upload failed for file: %s at SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
+        self.__report('Data Upload Failed')
+        return S_ERROR('Data Upload Failed')
 
     return S_OK()
 
@@ -615,3 +616,17 @@ class JobFinalization(object):
       self.log.warn(jobStatus['Message'])
 
     return jobStatus
+
+  #############################################################################
+  def __setJobParam(self,name,value):
+    """Wraps around setJobParameter of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    self.log.verbose('setJobParameter(%s,%s,%s)' %(self.jobID,name,value))
+    jobParam = self.jobReport.setJobParameter(int(self.jobID),str(name),str(value))
+    if not jobParam['OK']:
+      self.log.warn(jobParam['Message'])
+
+    return jobParam
