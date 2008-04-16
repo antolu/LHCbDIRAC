@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.42 2008/04/15 17:40:08 paterson Exp $
+# $Id: JobFinalization.py,v 1.43 2008/04/16 07:44:03 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.42 2008/04/15 17:40:08 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.43 2008/04/16 07:44:03 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -49,6 +49,7 @@ class JobFinalization(object):
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    self.logSE = 'LogSE'
     self.log.setLevel('debug')
 
   def execute(self):
@@ -363,7 +364,7 @@ class JobFinalization(object):
     jobfile.close()
     os.chdir(cwd)
 
-    self.log.info( "\ntaring log files to the log file: \n<-- %s -->" % self.logtar )
+    self.log.info( "\nTarring log files to the log file: \n<-- %s -->" % self.logtar )
     linetotar = ''
     for f in files:
       ext = os.path.splitext(f)[1]
@@ -375,35 +376,28 @@ class JobFinalization(object):
 ##tar    self.saveLogTar(self.logdir+'/'+self.logtar,linetotar)
 ##tar    gzip(self.logdir+'/'+self.logtar)
 
-    try:
-      logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
-    except:
-      logse = None
 
-    if logse:
-      self.log.info("Transfering log files to LogSE")
-      target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
-      self.log.info("PutDirectory %s %s %s " % (target_path, os.path.realpath(self.logdir), 'CERN_DIP_Log'))
-      result = self.rm.putDirectory(target_path,os.path.realpath(self.logdir),'CERN_DIP_Log')
+    self.log.info("Transferring log files to LogSE")
+    target_path = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
+    self.log.info("PutDirectory %s %s %s " % (target_path, os.path.realpath(self.logdir),self.logSE))
+    result = self.rm.putDirectory(target_path,os.path.realpath(self.logdir),self.logSE)
 ##tar      target_path = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(self.logtar+'.gz','LOG','1'),self.mode,self.PRODUCTION_ID)
 ##tar      self.log.info("Put %s %s %s " % (target_path, os.path.realpath(self.logdir+'/'+self.logtar+'.gz'), 'LogSE'))
 ##tar      result = self.rm.put(target_path,os.path.realpath(self.logdir+'/'+self.logtar+'.gz'),'LogSE')
 #      result = self.rm.put(target_path,os.path.realpath(self.logdir+'/'+self.logtar+'.gz'),'CERN_DIP_Log')
-      self.log.info(result)
+    self.log.info(result)
 
-      if result['OK'] == True:
-        # Construct the http reference to the Log directory
-        logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s/">Log file directory</a>' % (target_path, str(self.JOB_ID))
-        self.log.info(logref)
-        if self.jobID:
-          self.jobReport.setJobParameter(int(self.jobID),'Log URL',str(logref))
+    if result['OK']:
+      # Construct the http reference to the Log directory
+      logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s/">Log file directory</a>' % (target_path, str(self.JOB_ID))
+      self.log.info(logref)
+      self.__setJobParam('Log URL',logref)
 
-
-      if result['OK'] != True:
-        self.log.error("Transfering log files to the main LogSE failed")
-        self.log.error( result['Message'] )
-      else:
-        self.log.info("Transfering log files to the main LogSE successful")
+    if not result['OK']:
+      self.log.error("Transferring log files to the main LogSE failed")
+      self.log.error( result['Message'] )
+    else:
+      self.log.info("Transferring log files to the main LogSE successful")
 
 ################################################################################
   def uploadOutputData(self,output,otype,oversion,outputse):
