@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.39 2008/04/15 22:01:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.40 2008/04/16 10:40:08 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.39 2008/04/15 22:01:30 rgracian Exp $"
-__VERSION__ = "$Revision: 1.39 $"
+__RCSID__   = "$Id: dirac-update,v 1.40 2008/04/16 10:40:08 rgracian Exp $"
+__VERSION__ = "$Revision: 1.40 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -255,6 +255,7 @@ else:
   Script.registerSwitch( "C",  "cvs",       "Retrieve from CVS (implies -b)" )
   Script.registerSwitch( "N:", "Name=",     "Use <CEName> to determine Site Name" )
   Script.registerSwitch( "P:", "path=",     "Install under <root>" )
+  Script.registerSwitch( "S",  "server",    "Make a full server installation" )
   
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
   localCfg = LocalConfiguration()
