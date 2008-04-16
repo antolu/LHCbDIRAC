@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.35 2008/04/15 21:46:08 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.36 2008/04/16 10:34:31 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.35 2008/04/15 21:46:08 rgracian Exp $"
-__VERSION__ = "$Revision: 1.35 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.36 2008/04/16 10:34:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.36 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -334,7 +334,7 @@ class functions:
                   self.localPlatform )
         sys.exit(1)
       if self.serverFlag:
-        name = 'DIRAC-external-%s-%s-%s.tar.gz' % \
+        name = 'DIRAC-external-%s-%s-%s' % \
         ( self.external, self.localPlatform, self.python )
       else:
         name = 'DIRAC-external-client-%s-%s-%s' % \
