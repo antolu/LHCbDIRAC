@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.43 2008/04/16 07:44:03 paterson Exp $
+# $Id: JobFinalization.py,v 1.44 2008/04/16 16:38:49 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.43 2008/04/16 07:44:03 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.44 2008/04/16 16:38:49 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -50,6 +50,7 @@ class JobFinalization(object):
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     self.logSE = 'LogSE'
+    self.bookkeepingTimeOut = 10 #seconds
     self.log.setLevel('debug')
 
   def execute(self):
@@ -219,7 +220,7 @@ class JobFinalization(object):
           if result['OK'] != True:
             if result['Message'].find('Connection timed out') != -1:
               bad_counter = bad_counter + 1
-              time.sleep(300)
+              time.sleep(self.bookkeepingTimeOut)
             if bad_counter == 0 or bad_counter > 3:
               self.log.error( "Failed to send bookkeeping information for %s after %s retries" % (str( f ) , str(bad_counter)) )
               self.log.error(result)
@@ -395,7 +396,7 @@ class JobFinalization(object):
 
     if not result['OK']:
       self.log.error("Transferring log files to the main LogSE failed")
-      self.log.error( result['Message'] )
+      self.log.error( result )
     else:
       self.log.info("Transferring log files to the main LogSE successful")
 
