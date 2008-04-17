@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.42 2008/04/17 09:38:00 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.43 2008/04/17 11:33:11 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.42 2008/04/17 09:38:00 rgracian Exp $"
-__VERSION__ = "$Revision: 1.42 $"
+__RCSID__   = "$Id: dirac-update,v 1.43 2008/04/17 11:33:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.43 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -283,7 +283,7 @@ else:
     localSE = DIRAC.gConfig.getValue( '/Resources/SiteLocalSEMapping/%s' % diracCE, 'None' )
     localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
     dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
-    Script.parseCommandLine( scriptName = myShortName, ignoreErrors = True )
+    Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
