@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.36 2008/04/16 10:34:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.37 2008/04/17 12:43:21 acasajus Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.36 2008/04/16 10:34:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.36 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.37 2008/04/17 12:43:21 acasajus Exp $"
+__VERSION__ = "$Revision: 1.37 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -54,6 +54,7 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                             'external/mod_python',
                             'external/MySQL',
                             'external/MySQL-python',
+                            'external/rrdtool',
                             'external/Pylons'],
                'directories': ['contrib',
                                'external']
@@ -67,6 +68,7 @@ bin_tars = [ { 'name': 'DIRAC-external-client',
                'packages': ['external/MySQL',
                             'external/MySQL-python',
                             'external/Pylons',
+                            'external/rrdtool',
                             'external/matplotlib',
                             'external/runit']
              },
