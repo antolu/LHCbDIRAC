@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.1 2008/04/18 12:17:50 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.2 2008/04/18 13:38:50 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.1 2008/04/18 12:17:50 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.2 2008/04/18 13:38:50 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -16,11 +16,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def __init__(self):
+    """
+    """
     super(OracleBookkeepingDB, self).__init__()
+    self.user_ = gConfig.getValue("userName", "LHCB_BOOKKEEPING_INT")
+    self.password_ = gConfig.getValue("password", Ginevra2008)
+    self.tns_ = gConfig.getValue("tns", "int12r")
+   
+    self.db_ = OracleDB(self.user_, self.password_, self.tns_)
   
   #############################################################################
-
-  
+  def getAviableConfigNameAndVersion(self):
+    """
+    """
+    return db_.execute('select distinct dir3."user:ConfigName", dir3."user:ConfigVersion" from dir3')
+  #############################################################################
   
   """
   data insertation into the database
