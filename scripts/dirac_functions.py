@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.37 2008/04/17 12:43:21 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.38 2008/04/19 06:27:48 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.37 2008/04/17 12:43:21 acasajus Exp $"
-__VERSION__ = "$Revision: 1.37 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.38 2008/04/19 06:27:48 rgracian Exp $"
+__VERSION__ = "$Revision: 1.38 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -502,6 +502,7 @@ class functions:
       import tarfile
       tarFile = tarfile.open( tarFileName, 'w:gz' )
       for dir in dirs:
+        cleanDir( dir )
         tarFile.add( dir )
       tarFile.close()
     except Exception, x:
@@ -617,3 +618,16 @@ def alarmHandler(*args):
    signal handler for SIGALRM, just raise an exception
   """
   raise Exception( 'TimeOut' )
+
+def cleanDir( dir ):
+  """
+   Walk the given directory and remove all .pyc and .pyo files 
+  """
+  for d in os.walk( dir ):
+    subDir = d[0]
+    for f in d[2]:
+      if f.endswith('.pyc'):
+        os.remove( os.path.join(subDir,f) )
+      elif f.endswith('.pyo'):
+        os.remove( os.path.join(subDir,f) )
+      
