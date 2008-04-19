@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.14 2008/04/17 08:38:00 rgracian Exp $
+<<<<<<< dirac-architecture
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.15 2008/04/19 09:09:00 rgracian Exp $
+=======
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.15 2008/04/19 09:09:00 rgracian Exp $
+>>>>>>> 1.14
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
 
-__RCSID__="$Id: dirac-architecture,v 1.14 2008/04/17 08:38:00 rgracian Exp $"
+__RCSID__="$Id: dirac-architecture,v 1.15 2008/04/19 09:09:00 rgracian Exp $"
 
 import sys, os, string, re
 
@@ -30,6 +34,8 @@ def checkGcc() :
 #        comp = "gcc"+compMat.group(1).replace(".", "")
         comp = "gcc"+compMat.group(1).split(".")[0]+compMat.group(1).split(".")[1]
     # differentiate between these two !
+    # this is necesary for RAL vobox
+    if ( string.find(compString, "2.96") != -1 ) : comp = "gcc296"
     if ( string.find(compString, "g++ (GCC) 3.2\n") != -1 ) : comp = "gcc32"
     if ( string.find(compString, "g++ (GCC) 3.2.3") != -1 ) : comp = "gcc323"
 
