@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.38 2008/04/19 06:27:48 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.39 2008/04/19 09:53:22 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.38 2008/04/19 06:27:48 rgracian Exp $"
-__VERSION__ = "$Revision: 1.38 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.39 2008/04/19 09:53:22 rgracian Exp $"
+__VERSION__ = "$Revision: 1.39 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -22,7 +22,8 @@ python = {'python24':'external/Python-2.4.4',
           'python25':'external/Python-2.5.2' }
 
 availablePlatforms =  [ 'slc4_amd64_gcc34',
-                        'slc4_ia32_gcc34' ]
+                        'slc4_ia32_gcc34',
+                        'slc3_ia32_gcc296' ]
 
 
 diracTimeout       = 120
