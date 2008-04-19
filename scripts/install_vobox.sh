@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.1 2008/04/19 10:45:33 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.2 2008/04/19 10:58:35 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -84,8 +84,10 @@ cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1,
 $DESTDIR/pro/$ARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
 $DESTDIR/pro/$ARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
+chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $VERSION $ARCH python$PYTHON || exit 1
 
+chmod +x $DESTDIR/pro/scripts/install_service.sh
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
 
 exit
