@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.39 2008/04/19 09:53:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.40 2008/04/20 06:51:11 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.39 2008/04/19 09:53:22 rgracian Exp $"
-__VERSION__ = "$Revision: 1.39 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.40 2008/04/20 06:51:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.40 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -507,6 +507,8 @@ class functions:
         tarFile.add( dir )
       tarFile.close()
     except Exception, x:
+      ret = os.system( 'tar czf %s %s' % (tarFileName, str.join(' ',dirs) ) )
+      if ret == 0: return
       self.logERROR( 'Failed to create tar' )
       self.logEXCEP( x )
 
