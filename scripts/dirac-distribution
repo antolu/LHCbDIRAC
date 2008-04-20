@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.10 2008/04/03 08:53:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.11 2008/04/20 06:46:27 rgracian Exp $
 # File :   dirac-distribution
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-distribution,v 1.10 2008/04/03 08:53:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: dirac-distribution,v 1.11 2008/04/20 06:46:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 """
     Script to prepare DIRAC distribution tarballs
 """
@@ -79,7 +79,7 @@ def exit( ret ):
 
 import os, sys
 from dirac_functions import functions
-myFullName  = os.path.realpath( __file__ )
+myFullName  = os.path.realpath( sys.argv[0] )
 myShortName = os.path.basename( myFullName )
 
 dirac = functions( myFullName )
