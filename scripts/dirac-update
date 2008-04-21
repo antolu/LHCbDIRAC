@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.43 2008/04/17 11:33:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.44 2008/04/21 13:09:36 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.43 2008/04/17 11:33:11 rgracian Exp $"
-__VERSION__ = "$Revision: 1.43 $"
+__RCSID__   = "$Id: dirac-update,v 1.44 2008/04/21 13:09:36 rgracian Exp $"
+__VERSION__ = "$Revision: 1.44 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -214,6 +214,9 @@ if tmpPath:
   dirac.setRoot( os.path.join( cwdPath, 'scripts', myShortName ) )
 
 parse_options()
+if not dirac.localPlatform:
+  dirac.platform()
+
 dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
 dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
