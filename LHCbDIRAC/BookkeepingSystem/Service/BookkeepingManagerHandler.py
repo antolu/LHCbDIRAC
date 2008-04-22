@@ -1,23 +1,26 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.18 2008/02/18 10:15:24 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.19 2008/04/22 12:56:31 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.18 2008/02/18 10:15:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.19 2008/04/22 12:56:31 zmathe Exp $"
 
-from types                                      import *
-from DIRAC.Core.DISET.RequestHandler            import RequestHandler
-from DIRAC                                      import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Service.copyFiles  import copyXMLfile
-from DIRAC.ConfigurationSystem.Client.Config    import gConfig
+from types                                                      import *
+from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
+from DIRAC                                                      import gLogger, S_OK, S_ERROR
+from DIRAC.BookkeepingSystem.Service.copyFiles                  import copyXMLfile
+from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
+from DIRAC.BookkeepingSystem.Agent.DataMgmt.OracleBookkeepingDB import OracleBookkeepingDB
 import time,sys,os
 
 
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
+  global dataMGMT_
+  dataMGMT_ = OracleBookkeepingDB()
   return S_OK()
 
 ToDoPath = gConfig.getValue("stuart","/opt/bookkeeping/XMLProcessing/ToDo")
@@ -34,6 +37,7 @@ class BookkeepingManagerHandler(RequestHandler):
     """
     return S_OK(input)
 
+  #############################################################################
   types_sendBookkeeping = [StringType, StringType]
   def export_sendBookkeeping(self, name, data):
       """
@@ -53,4 +57,10 @@ class BookkeepingManagerHandler(RequestHandler):
       except Exception, x:
           print str(x)
           return S_ERROR('Error during processing '+name)
-
+  
+  #############################################################################
+  types_getAviableConfiguration = []
+  def export_getAviableConfiguration(self):
+    return dataMGMT_.getAviableConfigNameAndVersion()
+  
+  #############################################################################
