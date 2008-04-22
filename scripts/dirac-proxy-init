@@ -1,11 +1,15 @@
 #!/usr/bin/python
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-proxy-init,v 1.7 2008/04/14 14:19:56 atsareg Exp $
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-proxy-init,v 1.8 2008/04/22 21:10:54 rgracian Exp $
+# File :   dirac-proxy-init
+# Author : Andrei Tsaregorodtsev
+########################################################################
+__RCSID__   = "$Id: dirac-proxy-init,v 1.8 2008/04/22 21:10:54 rgracian Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 
+from DIRACEnvironment import DIRAC
 """ Initialize grid proxy using user's grid certificate.
 """
-
-__RCSID__ = "$Id: dirac-proxy-init,v 1.7 2008/04/14 14:19:56 atsareg Exp $"
-__VERSION__ = "$Release: $"
 
 import os,stat,getopt,sys
 from DIRAC.Core.Utilities.GridCredentials import setDIRACGroupInProxy, \
