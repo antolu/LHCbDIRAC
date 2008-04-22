@@ -44,12 +44,12 @@ class BookkeepingClient:
   
   #############################################################################
   def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
-    result = self.server.getFullEventTypesAndNumbers(configName, configVersion, eventTypeId)
+    result = self.server.getFullEventTypesAndNumbers(configName, configVersion, long(eventTypeId))
     return result
   
   #############################################################################
-  def getFiles(self, configName, configVersion, eventTypeId):
-    result = self.server.getFiles(configName, configVersion, eventTypeId)
+  def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
+    result = self.server.getFiles(configName, configVersion, fileType, long(eventTypeId), long(production)) 
     return result
   
   #############################################################################
