@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.44 2008/04/22 11:36:39 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.45 2008/04/22 18:58:25 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.44 2008/04/22 11:36:39 rgracian Exp $"
-__VERSION__ = "$Revision: 1.44 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.45 2008/04/22 18:58:25 rgracian Exp $"
+__VERSION__ = "$Revision: 1.45 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -20,6 +20,8 @@ except Exception, x:
 
 python = {'python24':'external/Python-2.4.4',
           'python25':'external/Python-2.5.2' }
+
+lcgVer = '3.1.10-0'
 
 availablePlatforms =  [ 'slc4_amd64_gcc34',
                         'slc4_ia32_gcc34',
@@ -93,7 +95,7 @@ class functions:
     self.CVS         = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
     self.URL         = 'http://cern.ch/lhcbproject/dist/DIRAC3'
     self.setVersion( 'HEAD' )
-    self.setPython( '25' )
+    self.setPython( '24' )
 
     self.cvsFlag()
     self.requireClient()
@@ -351,6 +353,9 @@ class functions:
         name = 'DIRAC-external-client-%s-%s-%s' % \
         ( self.external, self.localPlatform, self.python )
       self._getTar( name, externalTimeout )
+
+    name = 'DIRAC-lcg-%s-%s-%s' % ( lcgVer, self.localPlatform, self.python )
+    self._getTar( name, externalTimeout )
 
   def diracMagic( self, magic ):
     """
