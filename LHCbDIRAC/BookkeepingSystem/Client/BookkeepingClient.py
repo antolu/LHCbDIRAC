@@ -53,3 +53,8 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def getSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
+    result = self.server.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, eventTypeId, production)
+    return result
+  
+  #############################################################################
