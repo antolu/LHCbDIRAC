@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.13 2008/04/22 11:04:53 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.14 2008/04/22 11:21:02 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.13 2008/04/22 11:04:53 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.14 2008/04/22 11:21:02 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -54,6 +54,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getAviableFileTypesAndEventTypesAndNumberOfEvents(self,fileType, eventTypeId):
     return self.db_.executegetEventTypeAndNumber(fileType, eventTypeId)
+  
+  #############################################################################
+  def getAviableEventTypesAndNumberOfEvents(self, configName, configVersion, eventTypeId):
+    return self.executegetAviableEventTypesAndNumberOfEvents(configName, configVersion, eventTypeId)
+  
   """
   data insertation into the database
   """
