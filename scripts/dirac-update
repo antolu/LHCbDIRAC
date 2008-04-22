@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.48 2008/04/22 18:59:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.49 2008/04/22 21:11:25 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.48 2008/04/22 18:59:22 rgracian Exp $"
-__VERSION__ = "$Revision: 1.48 $"
+__RCSID__   = "$Id: dirac-update,v 1.49 2008/04/22 21:11:25 rgracian Exp $"
+__VERSION__ = "$Revision: 1.49 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -206,7 +206,7 @@ import os, sys
 import dirac_functions
 if dirac_functions.__VERSION__.find( functionVersion ) == -1:
   print >> sys.stderr, 'Wrong version of dirac_functions.py'
-  sys.error(-1)
+  sys.exit(-1)
 
 from dirac_functions import functions
   
