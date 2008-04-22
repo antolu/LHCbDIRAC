@@ -48,8 +48,8 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-    result = self.server.getFiles(configName, configVersion, fileType, eventTypeId, production)
+  def getFiles(self, configName, configVersion,eventTypeId):
+    result = self.server.getFiles(configName, configVersion, eventTypeId)
     return result
   
   #############################################################################
