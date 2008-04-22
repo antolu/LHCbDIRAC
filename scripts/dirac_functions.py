@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.43 2008/04/22 10:49:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.44 2008/04/22 11:36:39 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.43 2008/04/22 10:49:26 rgracian Exp $"
-__VERSION__ = "$Revision: 1.43 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.44 2008/04/22 11:36:39 rgracian Exp $"
+__VERSION__ = "$Revision: 1.44 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -100,6 +100,9 @@ class functions:
     
     self.localPlatform = None
     # self.platform( )
+
+  def version(self):
+    return __VERSION__
 
   def __rmDir(self, dir):
     """
