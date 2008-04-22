@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.9 2008/04/22 09:51:15 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.10 2008/04/22 09:54:15 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.9 2008/04/22 09:51:15 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.10 2008/04/22 09:54:15 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -44,7 +44,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeFullEventTypeAndNumberCursor(configName, configVersion, eventTypeId)
   
   #############################################################################
-  def executeFullEventTypeAndNumberCursor1(self, configName, configVersion, fileType, eventTypeId):
+  def getFullEventTypesAndNumbers1(self, configName, configVersion, fileType, eventTypeId):
     return self.db_.executeFullEventTypeAndNumberCursor1(configName, configVersion, fileType,  eventTypeId)
   
   
