@@ -33,3 +33,23 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def getAviableEventTypes(self):
+    result = self.server.getAviableEventTypes()
+    return result
+  
+  #############################################################################
+  def getEventTypes(self, configName, configVersion):
+    result = self.server.getEventTypes(configName, configVersion)
+    return result
+  
+  #############################################################################
+  def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
+    result = self.server.getFullEventTypesAndNumbers(configName, configVersion, eventTypeId)
+    return result
+  
+  #############################################################################
+  def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
+    result = self.server.getFiles(configName, configVersion, fileType, eventTypeId, production)
+    return result
+  
+  #############################################################################
