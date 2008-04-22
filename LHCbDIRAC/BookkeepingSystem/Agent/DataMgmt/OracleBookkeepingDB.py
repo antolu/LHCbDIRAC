@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.11 2008/04/22 10:31:58 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.12 2008/04/22 10:44:15 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.11 2008/04/22 10:31:58 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.12 2008/04/22 10:44:15 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -49,7 +49,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-    self.db_.executeGetFiles(configVersion, fileType, eventTypeId, production)
+    self.db_.executeGetFiles(configName, configVersion, fileType, eventTypeId, production)
   
   
   """
