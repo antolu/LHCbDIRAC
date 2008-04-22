@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.10 2008/04/22 11:21:02 zmathe Exp $
+# $Id: OracleDB.py,v 1.11 2008/04/22 16:12:34 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.10 2008/04/22 11:21:02 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.11 2008/04/22 16:12:34 zmathe Exp $"
 
 class OracleDB:
   
@@ -110,6 +110,19 @@ class OracleDB:
       gLogger.error(ex)    
     return results;
   
+  def executeGetSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
+    results = None
+    try:
+      connection = self._createConnection()
+      result = cx_Oracle.Cursor(connection)
+      cursor = cx_Oracle.Cursor(connection)
+      cursor.callproc('BKK.getSpecificFiles', [configName, configVersion,  programName, programVersion, fileType, eventTypeId, production, result])
+      results = result.fetchall()
+      connection.close()
+    except Exception, ex:
+      gLogger.error(ex)    
+    return results;
+    
   #############################################################################
   def executegetEventTypeAndNumber(self, fileType, eventTypeId):
     results = None

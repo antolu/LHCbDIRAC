@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.16 2008/04/22 11:24:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.17 2008/04/22 16:12:34 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.16 2008/04/22 11:24:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.17 2008/04/22 16:12:34 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -51,6 +51,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
     return self.db_.executeGetFiles(configName, configVersion, fileType, eventTypeId, production)
   
+  #############################################################################
+  def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
+    return self.db_.executeGetSpecificFiles(configName, configVersion, programName, programVersion, fileType, eventTypeId, production)
   #############################################################################
   def getAviableFileTypesAndEventTypesAndNumberOfEvents(self,fileType, eventTypeId):
     return self.db_.executegetEventTypeAndNumber(fileType, eventTypeId)
