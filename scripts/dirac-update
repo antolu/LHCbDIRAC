@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.45 2008/04/22 10:50:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.46 2008/04/22 11:18:23 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.45 2008/04/22 10:50:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.45 $"
+__RCSID__   = "$Id: dirac-update,v 1.46 2008/04/22 11:18:23 rgracian Exp $"
+__VERSION__ = "$Revision: 1.46 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 try:
   from dirac_functions import functions
-  if functions._VERSION__ != "$Revision: 1.45 $":
+  if functions._VERSION__ != "$Revision: 1.46 $":
     Exception( 'Wrong version of dirac_functions.py' )
 except:
   try:
@@ -210,14 +210,14 @@ dirac = functions( myFullName )
 # by default install from tar
 dirac.tarFlag()
 
+parse_options()
+if not dirac.localPlatform:
+  dirac.platform()
+
 if tmpPath:
   # if dirac_functions could not be imported, install by default at current
   # working directory.
   dirac.setRoot( os.path.join( cwdPath, 'scripts', myShortName ) )
-
-parse_options()
-if not dirac.localPlatform:
-  dirac.platform()
 
 dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
 dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
