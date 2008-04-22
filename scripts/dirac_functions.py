@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.42 2008/04/21 13:09:36 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.43 2008/04/22 10:49:26 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.42 2008/04/21 13:09:36 rgracian Exp $"
-__VERSION__ = "$Revision: 1.42 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.43 2008/04/22 10:49:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.43 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -214,13 +214,16 @@ class functions:
     """
     if not platform:
       dirac_architecture = os.path.join( self.scriptsPath, 'dirac-architecture' )
+      if not os.path.exists( dirac_architecture ):
+        self.logERROR( 'Missing file %s' % dirac_architecture )
+        sys.exit(-1)
       (child_stdout, child_stdin) = popen2.popen2( dirac_architecture )
       self.localPlatform = child_stdout.read().strip()
       child_stdout.close()
     else:
       self.localPlatform = platform
 
-    if self.localPlatform == 'ERROR':
+    if self.localPlatform == 'ERROR' or self.localPlatform == "":
       self.logERROR( 'Can not determine local platform' )
       sys.exit(-1)
 
