@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.44 2008/04/21 13:09:36 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.45 2008/04/22 10:50:56 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.44 2008/04/21 13:09:36 rgracian Exp $"
-__VERSION__ = "$Revision: 1.44 $"
+__RCSID__   = "$Id: dirac-update,v 1.45 2008/04/22 10:50:56 rgracian Exp $"
+__VERSION__ = "$Revision: 1.45 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -14,6 +14,8 @@ siteName = None
 ceName   = None
 try:
   from dirac_functions import functions
+  if functions._VERSION__ != "$Revision: 1.45 $":
+    Exception( 'Wrong version of dirac_functions.py' )
 except:
   try:
     # if dirac_function is not available, retrive DIRAC-scripts tar
