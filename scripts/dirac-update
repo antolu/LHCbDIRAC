@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.49 2008/04/22 21:11:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-update,v 1.50 2008/04/23 22:56:01 rgracian Exp $
 # File :   dirac-update
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-update,v 1.49 2008/04/22 21:11:25 rgracian Exp $"
-__VERSION__ = "$Revision: 1.49 $"
+__RCSID__   = "$Id: dirac-update,v 1.50 2008/04/23 22:56:01 rgracian Exp $"
+__VERSION__ = "$Revision: 1.50 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -247,6 +247,20 @@ if not dirac.checkInterpreter( ):
   sys.exit(ret)
 
 else:
+  import platform, sys
+  platformTuple = (platform.system(),platform.machine())
+  if platformTuple[0] == 'Linux':
+    platformTuple += ( '-'.join(platform.libc_ver()),)
+  elif platformTuple[0] == 'MacOS':
+    platformTuple += ( '.'.join(platform.mac_ver()[0].split(".")[:2]),)
+  elif platformTuple[0] == 'Windows':
+    platformTuple += ( platform.win32_ver()[0],)
+  else:
+    platfromTuple += ( platfrom.release() )
+
+  platform = "%s_%s_%s" % platformTuple
+  dirac.info( 'DIRAC-platform = %s' % platform )
+
   dirac.checkDirac( )
   dirac.diracMagic(  '#! %s' % dirac.localPython )
   from DIRACEnvironment import DIRAC
