@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.13 2008/04/24 07:57:05 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.14 2008/04/24 11:02:20 rgracian Exp $
 # File :   dirac-distribution
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-distribution,v 1.13 2008/04/24 07:57:05 rgracian Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: dirac-distribution,v 1.14 2008/04/24 11:02:20 rgracian Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 """
     Script to prepare DIRAC distribution tarballs
 """
@@ -100,6 +100,6 @@ tars += dirac.createBinTars()
 if tars > 0:
   dirac.logINFO( 'Upload tar files to repository:' )
   dirac.logINFO( ' scp %s/*.tar.gz lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/DIRAC3' % rootPath )
-  dirac.logINFO( ' scp %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3' % rootPath )
+  dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3' % rootPath )
 
 exit(0)
