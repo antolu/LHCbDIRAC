@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.13 2008/04/24 14:34:03 zmathe Exp $
+# $Id: OracleDB.py,v 1.14 2008/04/24 15:14:16 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.13 2008/04/24 14:34:03 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.14 2008/04/24 15:14:16 zmathe Exp $"
 
 class OracleDB:
   
@@ -75,7 +75,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK_ORACLE.getEventTypeAndNumber', [configName, configVersion, eventTypeId, result])
+      cursor.callproc('BKK_ORACLE.getEventTypeAndNumberAll', [configName, configVersion, eventTypeId, result])
       #cursor.callproc('BKK_ORACLE.getFullEventTypeAndNumber', [configName, configVersion, eventTypeId, result])
       results = result.fetchall()
       connection.close()
