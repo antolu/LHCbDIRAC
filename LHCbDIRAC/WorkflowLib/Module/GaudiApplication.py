@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.31 2008/04/10 12:37:23 joel Exp $
+# $Id: GaudiApplication.py,v 1.32 2008/04/24 15:18:24 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.31 2008/04/10 12:37:23 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.32 2008/04/24 15:18:24 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -253,7 +253,7 @@ class GaudiApplication(object):
 
     if os.path.exists(self.appName+'Run.sh'): os.remove(self.appName+'Run.sh')
     script = open(self.appName+'Run.sh','w')
-    script.write('#!/bin/sh \n')
+    script.write('#!/bin/bash \n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
     script.write('#####################################################################\n')

@@ -10,4 +10,4 @@ if [ -z "$DIRACPYTHON" ] ; then
     exit 1
 fi
 
-$DIRACPYTHON $DIRACROOT/DIRAC/Core/scripts/dirac-jobexec $1
+$DIRACROOT/scripts/dirac-jobexec $1
