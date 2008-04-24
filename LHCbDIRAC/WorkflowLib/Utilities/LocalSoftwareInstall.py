@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.2 2008/04/24 12:28:54 rgracian Exp $
+# $Id: LocalSoftwareInstall.py,v 1.3 2008/04/24 15:17:31 rgracian Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.2 2008/04/24 12:28:54 rgracian Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.3 2008/04/24 15:17:31 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -49,11 +49,14 @@ class LocalSoftwareInstall:
     initialDir = os.getcwd()
 
     os.environ['MYSITEROOT'] = os.path.join(initialDir,'lib')
-    os.mkdir('lib')
+    if not os.path.exists('lib'):
+      os.mkdir('lib')
+    elif not os.path.isdir('lib'):
+      return S_ERROR( 'Existing lib file' )
     shutil.copy('install_project.py','lib')
     os.chdir('lib')
     for app in self.apps:
-      cmd = '%s install_project.py -p %s -v %s -b' % (( sys.executable,)+app)
+      cmd = '%s install_project.py -p %s -v %s -m do_config' % (( sys.executable,)+app)
       ret = systemCall( 1800, cmd.split(), callbackFunction=log )
       if not ret['OK']:
         break
