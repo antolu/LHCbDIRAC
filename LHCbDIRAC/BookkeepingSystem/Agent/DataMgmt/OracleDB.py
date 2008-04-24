@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.11 2008/04/22 16:12:34 zmathe Exp $
+# $Id: OracleDB.py,v 1.12 2008/04/24 14:02:08 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.11 2008/04/22 16:12:34 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.12 2008/04/24 14:02:08 zmathe Exp $"
 
 class OracleDB:
   
@@ -47,7 +47,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getAviableEventTypes', [result])
+      cursor.callproc('BKK_ORACLE.getAviableEventTypes', [result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -61,7 +61,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getEventTypes', [configName, configVersion, result])
+      cursor.callproc('BKK_ORACLE.getEventTypes', [configName, configVersion, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -75,7 +75,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getFullEventTypeAndNumber', [configName, configVersion, eventTypeId, result])
+      cursor.callproc('BKK_ORACLE.getFullEventTypeAndNumber', [configName, configVersion, eventTypeId, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -89,7 +89,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getFullEventTypeAndNumber1', [configName, configVersion, fileType, eventTypeId, result])
+      cursor.callproc('BKK_ORACLE.getFullEventTypeAndNumber1', [configName, configVersion, fileType, eventTypeId, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -103,7 +103,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getFiles', [configName, configVersion, fileType, eventTypeId, production, result])
+      cursor.callproc('BKK_ORACLE.getFiles', [configName, configVersion, fileType, eventTypeId, production, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -116,7 +116,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getSpecificFiles', [configName, configVersion,  programName, programVersion, fileType, eventTypeId, production, result])
+      cursor.callproc('BKK_ORACLE.getSpecificFiles', [configName, configVersion,  programName, programVersion, fileType, eventTypeId, production, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -130,7 +130,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getEventTypeAndNumber', [fileType, eventTypeId, result])
+      cursor.callproc('BKK_ORACLE.getEventTypeAndNumber', [fileType, eventTypeId, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:
@@ -144,7 +144,7 @@ class OracleDB:
       connection = self._createConnection()
       result = cx_Oracle.Cursor(connection)
       cursor = cx_Oracle.Cursor(connection)
-      cursor.callproc('BKK.getEventTypeAndNumberAll', [configName, configVersion, eventTypeId, result])
+      cursor.callproc('BKK_ORACLE.getEventTypeAndNumberAll', [configName, configVersion, eventTypeId, result])
       results = result.fetchall()
       connection.close()
     except Exception, ex:

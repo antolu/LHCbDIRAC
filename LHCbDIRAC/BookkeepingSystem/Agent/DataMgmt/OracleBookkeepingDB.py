@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.17 2008/04/22 16:12:34 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.18 2008/04/24 14:02:08 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.17 2008/04/22 16:12:34 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.18 2008/04/24 14:02:08 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -29,7 +29,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getAviableConfigNameAndVersion(self):
     """
     """
-    return self.db_.execute('select distinct dir12."user:ConfigName", dir12."user:ConfigVersion" from dir12')
+    return self.db_.execute('select distinct jobs.ConfigName, jobs.ConfigVersion from jobs')
   
   #############################################################################
   def getAviableEventTypes(self):
