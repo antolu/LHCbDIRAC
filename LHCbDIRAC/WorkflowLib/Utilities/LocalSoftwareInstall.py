@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.1 2008/04/24 09:11:33 rgracian Exp $
+# $Id: LocalSoftwareInstall.py,v 1.2 2008/04/24 12:28:54 rgracian Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,12 +15,12 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.1 2008/04/24 09:11:33 rgracian Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.2 2008/04/24 12:28:54 rgracian Exp $"
 
-from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 
-import os,sys,re
+import os,sys,shutil
 
 class LocalSoftwareInstall:
 
@@ -28,9 +28,16 @@ class LocalSoftwareInstall:
   def __init__(self,argumentsDict):
     """ Standard constructor
     """
-    self.arguments = argumentsDict
+    apps = argumentsDict['Job']['SoftwarePackages']
+    if type(apps) == type(' '):
+      apps = [apps]
+    
     self.installProject = 'install_project.py'
-    self.log = gLogger
+    self.apps = []
+    for app in apps:
+      gLogger.verbose( 'Requested Package %s' % app )
+      app = tuple(app.split('.'))
+      self.apps.append(app)
 
   #############################################################################
   def execute(self):
@@ -38,6 +45,28 @@ class LocalSoftwareInstall:
        Currently this only creates a link to the VO_LHCB_SW_DIR/lib directory
        if available.
     """
-    gLogge.logINFO( str(argumentsDict) )
+
+    initialDir = os.getcwd()
+
+    os.environ['MYSITEROOT'] = os.path.join(initialDir,'lib')
+    os.mkdir('lib')
+    shutil.copy('install_project.py','lib')
+    os.chdir('lib')
+    for app in self.apps:
+      cmd = '%s install_project.py -p %s -v %s -b' % (( sys.executable,)+app)
+      ret = systemCall( 1800, cmd.split(), callbackFunction=log )
+      if not ret['OK']:
+        break
+      if ret['Value'][0]:
+        ret = S_ERROR( 'Command exits with error %s: "%s"' % ( ret['Value'][0], cmd ) )
+        break
+      ret = S_OK()
+    os.chdir(initialDir)
+    shutil.copy( os.path.join('lib','LHCb_config.py'),'LHCb_config.py')
+    from LHCb_config import *
+    return ret
+
+def log( n, line ):
+  gLogger.info( line )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
