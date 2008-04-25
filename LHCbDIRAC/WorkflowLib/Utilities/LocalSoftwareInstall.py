@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.4 2008/04/25 09:46:28 rgracian Exp $
+# $Id: LocalSoftwareInstall.py,v 1.5 2008/04/25 10:14:50 rgracian Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.4 2008/04/25 09:46:28 rgracian Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.5 2008/04/25 10:14:50 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -57,7 +57,7 @@ class LocalSoftwareInstall:
     os.chdir('lib')
     for app in self.apps:
       cmd = '%s install_project.py -p %s -v %s -m do_config' % (( sys.executable,)+app)
-      ret = systemCall( 1800, cmd.split(), callbackFunction=log )
+      ret = systemCall( 3600, cmd.split(), callbackFunction=log )
       if not ret['OK']:
         break
       if ret['Value'][0]:
