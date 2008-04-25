@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.2 2008/04/25 10:04:48 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.3 2008/04/25 12:47:12 rgracian Exp $
 # File :   NewGaudiApplication
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.2 2008/04/25 10:04:48 rgracian Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.3 2008/04/25 12:47:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -310,6 +310,8 @@ class GaudiApplication(object):
       try:
         setupProjectEnv = eval( ret['Value'][2] )
       except:
+        self.log.error([ '/bin/bash', '-c', extCMT + envAsDict ])
+        self.log.error( ret )
         self.result = S_ERROR()
         return self.result
     else:
@@ -330,6 +332,8 @@ class GaudiApplication(object):
       try:
         gaudiEnv = eval( ret['Value'][2] )
       except:
+        self.log.error([ '/bin/bash', '-c', setupProject + envAsDict ])
+        self.log.error(ret)
         self.result = S_ERROR()
         return self.result
     else:
@@ -358,6 +362,7 @@ class GaudiApplication(object):
       gaudiRoot = os.path.dirname(gaudiRoot)
       gaudiVer  = os.path.basename( gaudiRoot )
       if gaudiVer == '':
+        self.log.error( 'Can not determine Gaudi Version %s' % gaudiEnv['GAUDIALGROOT'] )
         self.result = S_ERROR( 'Can not determine Gaudi Version' )
         return self.result
     gaudiMajor = int(gaudiVer.split('_v')[1].split('r')[0])
