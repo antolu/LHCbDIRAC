@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.12 2008/04/25 13:30:03 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.13 2008/04/25 13:38:55 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.12 2008/04/25 13:30:03 rgracian Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: dirac-install,v 1.13 2008/04/25 13:38:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -27,7 +27,7 @@ except:
     import sys, os, signal, time
     import tempfile, urllib
     defaultURL = 'http://cern.ch/lhcbproject/dist/DIRAC3'
-    defaultURL = 'http://lhcbweb.pic.es/distribution/DIRAC3'
+    # defaultURL = 'http://lhcbweb.pic.es/distribution/DIRAC3'
     cwdPath = os.getcwd()
     try:
       tmpPath = tempfile.mkdtemp( 'tmp', 'DIRAC3')
