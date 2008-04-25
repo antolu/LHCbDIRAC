@@ -1,241 +1,325 @@
 #!/usr/bin/env python
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.12 2008/04/25 13:30:03 rgracian Exp $
+# File :   dirac-install
+# Author : Ricardo Graciani
+########################################################################
+__RCSID__   = "$Id: dirac-install,v 1.12 2008/04/25 13:30:03 rgracian Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 """
-    usage: dirac-install [options]
-
-    Default operation is to install DIRAC from a downloaded package
-
-    options:
-
-        help     h  help
-        debug    d  debug
-        version  v  version
-
-        update   u  update DIRAC Agent Software
-        cvs      c  use CVS for software install/update
-        grid     g  install LCG utilities
-        root     r  directory to install Dirac
-
-        account  a  <acct> CVS account name (e.g. :ext:ijstokes)
-        package  p  <url> use specified package instead of default
-
-    NOTE: use "--" for long options, and "-" for short options
+    Script to prepare/update a DIRAC instalation
 """
+tmpPath  = None
+siteName = None
+ceName   = None
 
-__RCSID__   = "$Id: dirac-install,v 1.11 2008/01/23 09:38:19 joel Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+functionVersion = "1.45"
 
-defaultURL     = "http://cern.ch/lhcbproject/dist/DIRAC3/"
-defaultPackage = "DIRAC-HEAD.tar.gz"
-
-import os, sys, time
-import getopt, re
-import commands
-import shutil
-import urllib
-
-def doc():
-    print __doc__
-    print """
-documentation to be provided
-    """
-
-def main(argv):
-    """  Main module to read the options provided to the command line
-         install of DIRAC in the rootdir
-    """
-    opts = procOpts(argv)
-    rootdir = opts['root']
-    if not os.path.isdir(rootdir):
-        try:
-            os.mkdir(rootdir)
-        except:
-            print " can not create this directory : ",rootdir
-            sys.exit(2)
-
-    os.chdir(rootdir)
-    print "You will install DIRAC in",os.getcwd()
-
-    if (opts['cvs']):
-        cvsroot = opts['account']
-        print "Installing from CVS: %s " % (cvsroot)
-        os.environ['CVSROOT']=cvsroot
-        if opts['update']:
-          status, output = commands.getstatusoutput ("cvs -z3 up DIRAC3")
-        else:
-          status, output = commands.getstatusoutput ("cvs -z3 co DIRAC3")
-    else:
-        package = opts['package']
-        if not os.path.isdir('distribution'):
-          os.mkdir('distribution')
-        os.chdir("distribution")
-
-        print "Installing DIRAC software "
-        if not getRemoteFile(package):
-          print "Failed to get package %s, aborting installation."  % package
-          sys.exit(1)
-
-        os.chdir("..")
-        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
-
-    if (opts['lcg']):
-        package = defaultURL + "lcg_utils.tar.gz"
-        os.chdir("distribution")
-        print "Installing LCG utility software "
-        if not getRemoteFile(package):
-          print "Failed to get package %s, aborting installation."  % package
-          sys.exit(1)
-
-        os.chdir("..")
-        out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
-
-
-    if opts['full'] in ('slc4_amd64_gcc34','slc4_ia32_gcc34'):
-        packages = ['DIRAC-srm2-'+opts['full']+'.tar.gz','DIRAC-contrib-HEAD.'+opts['full']+'.tar.gz','DIRAC-external-HEAD.'+opts['full']+'-'+opts['os']+'.tar.gz']
-        for soft_package in packages:
-            package = defaultURL + soft_package
-            os.chdir("distribution")
-            print "Installing External utility software for "+opts['full']+" and "+opts['os']+": ",soft_package
-            if not getRemoteFile(package):
-                print "Failed to get package %s, aborting installation."  % package
-                sys.exit(1)
-
-            os.chdir("..")
-            out = commands.getoutput("tar xzvf distribution/" + os.path.basename(package))
-
-
-def procOpts(argv):
-    """  Analyse the options coming from the command line
-    """
-    ########################################################################
-    # Step 0: Process command line options and arguments
-    ########################################################################
-
-    opt_list   = ["help", "version", "debug", "install", "update", "cvs", "grid", "full=", "package=", "account=", "root=", "os="]
-    opts       = {} # this is what we return to the caller
-    opt_dict   = {}
-    opt_string = ""
-    for o in opt_list:
-        char = re.match("\w", o).group()
-        word = re.match("\w+",o).group()
-        val = ""
-        if (re.search("=$", o)):
-            val = ":"
-        opt_dict[char] = ("-" + char, "--" + word)
-        opt_string = opt_string + char + val
-    #print opt_dict
-
+try:
+  import dirac_functions
+  if dirac_functions.__VERSION__.find( functionVersion ) == -1:
+    print >> sys.stderr, 'Wrong version of dirac_functions.py'
+    Exception( 'Wrong version of dirac_functions.py' )
+  from dirac_functions import functions
+except:
+  try:
+    # if dirac_function is not available, retrive DIRAC-scripts tar
+    import sys, os, signal, time
+    import tempfile, urllib
+    defaultURL = 'http://cern.ch/lhcbproject/dist/DIRAC3'
+    defaultURL = 'http://lhcbweb.pic.es/distribution/DIRAC3'
+    cwdPath = os.getcwd()
     try:
-        opt_list, remaining_argv   = getopt.getopt(argv[1:], opt_string, opt_list)
-    except getopt.GetoptError:
-        # print help information and exit:
-        print __doc__
-        sys.exit(2)
-
-    opts['update']  = 0
-    opts['cvs']     = 0
-    opts['lcg']     = 0
-    opts['full']     = 0
-    opts['account'] = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
-    opts['package'] = defaultURL + defaultPackage
-    opts['os'] = 'python24'
-    opts['root'] = '.'
-    for opt,val in opt_list:
-        if opt in opt_dict['h']:
-            print __doc__
-            sys.exit(0)
-        elif opt in opt_dict['v']:
-            print __VERSION__
-            sys.exit(0)
-        elif opt in opt_dict['d']:
-            opts['debug']    = 1
-        elif opt in opt_dict['u']:
-             opts['update']  = 1
-        elif opt in opt_dict['c']:
-             opts['cvs']     = 1
-        elif opt in opt_dict['g']:
-             opts['lcg']     = 1
-        elif opt in opt_dict['f']:
-             opts['full']     = val
-        elif opt in opt_dict['a']:
-             opts['account'] = val + '@isscvs.cern.ch:/local/reps/dirac'
-        elif opt in opt_dict['p']:
-             opts['package'] = val
-        elif opt in opt_dict['o']:
-             opts['os'] = val
-        elif opt in opt_dict['r']:
-             opts['root'] = val
-        else:
-            print "ERROR: Option %s unknown" % (opt)
-            print __doc__
-            sys.exit(2)
-    if (remaining_argv):
-        print "ERROR: Argument %s unknown" % (remaining_argv)
-        print __doc__
-        sys.exit(2)
-
-    return opts
-
-import signal
-
-def alarmHandler(*args):
-    """
-    signal handler for SIGALRM, just raise an exception
-    """
-    raise "TimeOut"
-
-def urlretrieveTimeout(fname,lname,timeout):
-# NOTE: Not thread-safe, since all threads will catch same alarm.
-#       This is OK for dirac-install, since there are no threads.
-
-    signal.signal(signal.SIGALRM, alarmHandler)
-    try:
-    # set timeout alarm
-      signal.alarm(timeout)
-      localname,headers = urllib.urlretrieve(fname,lname)
-    except "TimeOut":
-      print "Timeout after %s seconds on transfer request for %s" % \
-      (str(timeout), fname)
-
-  # clear timeout alarm
-    signal.alarm(0)
-
-
-def getRemoteFile(fname):
-    """ Download file from a web adress
-    """
-
-    lname = os.path.basename(fname)
-    proxy = None
-    try:
-      urlretrieveTimeout(fname,lname,600)
-    except Exception, x :
-      print "Failed to get file",fname
-      print str(x)
-      print "Retrying..."
-
-  # If the file isn't there, and http_proxy is defined, try unsetting
-  # http_proxy and retry transfer.
-    if not os.path.exists(lname) and os.environ.has_key('http_proxy'):
-      proxy = os.environ['http_proxy']
-      del os.environ['http_proxy']
+      tmpPath = tempfile.mkdtemp( 'tmp', 'DIRAC3')
+    except:
+      tmpPath = tempfile.mktemp()
+      os.mkdir( tmpPath )
+    os.chdir( tmpPath )
+    def _getTar( name, timeout ):
       try:
-        urlretrieveTimeout(fname,lname,600)
-      except Exception, x :
-        print "Failed to get file",fname
-        print str(x)
+        ( file, localName ) = tempfile.mkstemp()
+      except:
+        localName = tempfile.mktemp()
+      tarFileName = os.path.join( '%s.tar.gz' % name )
+      remoteName = '%s/%s' % ( defaultURL, tarFileName )
+      error = 'Retrieving file "%s"' % remoteName
+      urlretrieveTimeout( remoteName, localName, timeout )
+      try:
+        error = 'Opening file "%s"' % localName
+        import tarfile
+        tar = tarfile.open( localName , 'r' )
+        try:
+          error = 'Extracting file "%s"' % localName
+          tar.extractall( tmpPath )
+          os.remove( localName )
+        except:
+          for member in tar.getmembers():
+            tar.extract( member, tmpPath )
+          os.remove( localName )
+    
+      except Exception, x:
+        try:
+          error = 'Extracting file "%s"' % localName
+          ret = os.system( 'tar xzf %s' % localName )
+          if ret != 0:
+            raise Exception( 'Fail to extract tarfile'  )
+          os.remove( localName )
+          return
+        except Exception, x:
+          pass
+        logERROR( error )
+        logEXCEP( x )
 
-    if proxy:
-      os.environ['http_proxy'] = proxy
+    def urlretrieveTimeout( fname, lname, timeout ):
+      """
+       Retrive remore url to local file, with timeout wrapper
+      """
+      # NOTE: Not thread-safe, since all threads will catch same alarm.
+      #       This is OK for dirac-install, since there are no threads.
+      logINFO( 'Retrieving remote file "%s"' % fname )
+    
+      signal.signal(signal.SIGALRM, alarmHandler)
+      # set timeout alarm
+      signal.alarm(timeout)
+      try:
+        localname,headers = urllib.urlretrieve( fname, lname )
+      except Exception, x:
+        if x == 'TimeOut':
+          logERROR( 'Timeout after %s seconds on transfer request for "%s"' % \
+          (str(timeout), fname) )
+        raise x
+    
+      # clear timeout alarm
+      signal.alarm(0)
+      
+    def alarmHandler(*args):
+      """
+       signal handler for SIGALRM, just raise an exception
+      """
+      raise Exception( 'TimeOut' )
 
-  # If it still isn't there, then the operation failed.
-    if not os.path.exists(lname):
-      print "ERROR: Getting ",fname," failed"
-      return 0
-    else: # otherwise successful, return non-zero.
-      return 1
+    def log( level, msg ):
+      """
+       Print log entries similar to DIRAC Logger
+      """
+      shortName = os.path.basename(sys.argv[0])
+      logTime = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime()) + " UTC"
+      # logTime = str( datetime.datetime.utcnow( ) ).split('.')[0] + " UTC"
+      for line in msg.split( '\n' ):
+        print logTime, shortName, level, line
+    def logEXCEP( msg ):
+      log( 'EXCEPT', str(msg) )
+      sys.exit( -1 )
+    def logERROR( msg ):
+      log( 'ERROR ', msg )
+    def logINFO( msg ):
+      log( 'INFO  ', msg )
+    def logDEBUG( msg ):
+      log( 'DEBUG ', msg )
 
-############################################# END getRemoteFile
+    _getTar( 'DIRAC-scripts-HEAD', 60 )
+    sys.path.insert( 0, os.path.join( tmpPath, 'scripts' ) )
+    
+  except Exception, x:
+    print sys.stderr >> 'ERROR python interpreter does not support necessary modules'
+    print sys.stderr >> 'ERROR', x
+    print sys.stderr >> ''
+    sys.exit(-1)
 
 
-if __name__ == "__main__":
-    main(sys.argv)
+def parse_options():
+  """
+   parse command line options:
+  """
+  import getopt
+  global dirac, siteName, ceName
+  help = """
+   -b --build                  Force local compilation
+   -d --debug                  Set debug flag
+   -e --external=<version>     DIRAC-external <version> to install (overwrites -v)
+   -h --help                   Print this
+   -i --python=<24|25>         Use python<24|25> interpreter
+   -n --name=<Site>            Set <Site> as Site Name
+   -p --platform=<platform>    Use <platform> instead of local one
+   -r --repository=<rep>       Use <rep> as cvs repository
+   -u --url=<url>              Use <url> to download tarballs
+   -v --version=<version>      DIRAC <version> to install
+   -C --cvs                    Retrieve from CVS (implies -b)
+   -N --Name=<CEName>          Use <CEName> to determine Site Name
+   -P --path=<root>            Install under <root>
+   -S --server                 Make a full server installation
+
+  from DIRAC framework:
+
+    -o --option=<Option=value> <Option=value> to add
+    -s --section=<section>     Set base <section> for relative parsed options
+    -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
+
+  """
+  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:S'
+  longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name', 
+                  'platform=', 'repository=', 'url=', 'version=', 
+                  'cvs', 'Name=', 'path=', 'server',
+                  'option=', 'section=', 'cert=']
+  try:
+    ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
+  except getopt.GetoptError, x:
+    dirac.logERROR( 'Parsing command line: %s' % x )
+    optionVals = [ ('-h','') ]
+
+  if ('-h','') in optionVals or ('--help','') in optionVals:
+    dirac.logHelp( help )
+
+  ext = None
+    
+  for o,v in optionVals:
+    if o == '-b' or o == '--build':
+      dirac.build()
+    elif o == '-d' or o == '--debug':
+      dirac.debug()
+    elif o == '-e' or o == '--external':
+      ext = v
+    elif o == '-i' or o == '--python':
+      dirac.setPython(v)
+    elif o == '-n' or o == '--name':
+      siteName = v
+    elif o == '-p' or o == '--platform':
+      dirac.platform(v)
+    elif o == '-r' or o == '--repository':
+      dirac.setCVS(v)
+    elif o == '-u' or o == '--url':
+      dirac.setURL( v )
+    elif o == '-v' or o == '--version':
+      dirac.setVersion(v)
+    elif o == '-C' or o == '--cvs':
+      dirac.cvsFlag()
+      dirac.build()
+    elif o == '-N' or o == '--Name':
+      ceName = v
+    elif o in ('-P', '--path'):
+      dirac.setRoot( os.path.join( v, 'scripts', myShortName ) )
+    elif o == '-S' or o == '--server':
+      dirac.requireServer()
+
+    if ext: dirac.setExternal(ext)
+
+import os, sys
+import dirac_functions
+if dirac_functions.__VERSION__.find( functionVersion ) == -1:
+  print >> sys.stderr, 'Wrong version of dirac_functions.py'
+  sys.exit(-1)
+
+from dirac_functions import functions
+  
+if not tmpPath:
+  myFullName  = os.path.realpath( sys.argv[0] )
+  myShortName = os.path.basename( myFullName )
+else:
+  myShortName = os.path.basename( sys.argv[0] )
+  myFullName = os.path.join( tmpPath, 'scripts', myShortName )
+
+dirac = functions( myFullName )
+# by default install from tar
+dirac.tarFlag()
+
+parse_options()
+if not dirac.localPlatform:
+  dirac.platform()
+
+if tmpPath:
+  # if dirac_functions could not be imported, install by default at current
+  # working directory.
+  dirac.setRoot( os.path.join( cwdPath, 'scripts', myShortName ) )
+
+dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
+dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
+
+if not dirac.checkInterpreter( ):
+  myLib = os.path.join( dirac.root(), dirac.localPlatform, 'lib' )
+  os.environ['LD_LIBRARY_PATH'] = myLib
+  dirac.installExternal()
+  dirac.checkDirac( )
+  dirac.diracMagic(  '#! %s' % dirac.localPython )
+  # if we are not running with our onw python let's call ourself again
+  dirac.logINFO( 'Will retry now with DIRAC python' )
+  args         = str.join(' ',sys.argv[1:]) + ' -v %s' % dirac.version
+  myScript = os.path.join( dirac.root(),'scripts', myShortName )
+  myCmd = '%s %s %s ' % ( dirac.localPython, myScript, args )
+  dirac.logDEBUG( myCmd )
+  ret = os.system( myCmd )
+  sys.exit(ret)
+
+else:
+  import platform, sys
+  platformTuple = (platform.system(),platform.machine())
+  if platformTuple[0] == 'Linux':
+    platformTuple += ( '-'.join(platform.libc_ver()),)
+  elif platformTuple[0] == 'MacOS':
+    platformTuple += ( '.'.join(platform.mac_ver()[0].split(".")[:2]),)
+  elif platformTuple[0] == 'Windows':
+    platformTuple += ( platform.win32_ver()[0],)
+  else:
+    platfromTuple += ( platfrom.release() )
+
+  platform = "%s_%s_%s" % platformTuple
+  dirac.logINFO( 'DIRAC-platform = %s' % platform )
+
+  dirac.checkDirac( )
+  dirac.diracMagic(  '#! %s' % dirac.localPython )
+  from DIRACEnvironment import DIRAC
+  if dirac.debugFlag:
+    DIRAC.gLogger.setLevel( 'DEBUG' )
+  else:
+    DIRAC.gLogger.setLevel( 'INFO' )
+  from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
+  
+  setDIRACGroup( 'lhcb_user' )
+  
+  from DIRAC.Core.Base import Script
+
+  Script.registerSwitch( "b",  "build",     "Allow compilation if platform not available" )
+  Script.registerSwitch( "d",  "debug",     "Set debug flag" )
+  Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
+  Script.registerSwitch( "i:", "python=",   "Use python<24|25> interpreter" )
+  Script.registerSwitch( "n:", "name=",     "Set <Site> as Site Name" )
+  Script.registerSwitch( "p:", "platform=", "Use <platform> instead of local one" )
+  Script.registerSwitch( "u:", "url=",      "Use <url> to download tarballs" )
+  Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
+  Script.registerSwitch( "C",  "cvs",       "Retrieve from CVS (implies -b)" )
+  Script.registerSwitch( "N:", "Name=",     "Use <CEName> to determine Site Name" )
+  Script.registerSwitch( "P:", "path=",     "Install under <root>" )
+  Script.registerSwitch( "S",  "server",    "Make a full server installation" )
+  
+  from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+  localCfg = LocalConfiguration()
+  localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Development' )
+  localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
+                            'dips://lhcbprod.pic.es:9135/Configuration/Server, '
+                            'dips://volhcb03.cern.ch:9135/Configuration/Server' )
+  localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.localPlatform )
+  localCfg.addDefaultEntry( '/LocalSite/CPUScalingFactor', '0.0' )
+  localCfg.addDefaultEntry( '/LocalSite/Root', dirac.root() )
+  if not dirac.serverFlag:
+    localCfg.addDefaultEntry( '/DIRAC/Security/UseServerCertificate', 'no' )
+  if siteName:
+    localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
+  Script.parseCommandLine( script = myShortName, ignoreErrors = True )
+
+  
+  # further checks can be implemented here
+  diracSetup = DIRAC.gConfig.getValue( '/DIRAC/Setup' )
+  dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
+  if ceName:
+    diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
+    dirac.logINFO( 'Setting /LocalSite/Site = %s' % diracCE )
+    localCfg.addDefaultEntry( '/LocalSite/Site', diracCE )
+    localSE = DIRAC.gConfig.getValue( '/Resources/SiteLocalSEMapping/%s' % diracCE, 'None' )
+    localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
+    dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
+    Script.parseCommandLine( script = myShortName, ignoreErrors = True )
+
+  DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
+  dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
+  dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
+
+  sys.exit(0)
