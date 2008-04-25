@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.3 2008/04/24 15:17:31 rgracian Exp $
+# $Id: LocalSoftwareInstall.py,v 1.4 2008/04/25 09:46:28 rgracian Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.3 2008/04/24 15:17:31 rgracian Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.4 2008/04/25 09:46:28 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -66,7 +66,7 @@ class LocalSoftwareInstall:
       ret = S_OK()
     os.chdir(initialDir)
     shutil.copy( os.path.join('lib','LHCb_config.py'),'LHCb_config.py')
-    from LHCb_config import *
+#    from LHCb_config import *
     return ret
 
 def log( n, line ):
