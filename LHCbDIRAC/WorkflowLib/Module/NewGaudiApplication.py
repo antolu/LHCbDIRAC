@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.1 2008/04/25 08:59:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.2 2008/04/25 10:04:48 rgracian Exp $
 # File :   NewGaudiApplication
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.1 2008/04/25 08:59:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.2 2008/04/25 10:04:48 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -312,6 +312,11 @@ class GaudiApplication(object):
       except:
         self.result = S_ERROR()
         return self.result
+    else:
+      self.log.error([ '/bin/bash', '-c', extCMT + envAsDict ])
+      self.log.error(ret)
+      self.result = S_ERROR()
+      return self.result
 
     # Run SetupProject
     if platformTuple[0] == 'Windows':
@@ -327,6 +332,11 @@ class GaudiApplication(object):
       except:
         self.result = S_ERROR()
         return self.result
+    else:
+      self.log.error([ '/bin/bash', '-c', setupProject + envAsDict ])
+      self.log.error(ret)
+      self.result = S_ERROR()
+      return self.result
 
     for k in gaudiEnv:
       print k, '=', gaudiEnv[k]
@@ -391,6 +401,11 @@ class GaudiApplication(object):
     ret = systemCall(0,gaudiCmd,env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
     if not ret['OK']:
+      self.log.error(gaudiCmd)
+      self.log.error(ret)
+      self.result = S_ERROR()
+      return self.result
+
       self.result = ret
       return self.result
 
