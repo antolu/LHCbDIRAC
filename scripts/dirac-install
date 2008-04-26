@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.13 2008/04/25 13:38:55 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.14 2008/04/26 05:42:18 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.13 2008/04/25 13:38:55 rgracian Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: dirac-install,v 1.14 2008/04/26 05:42:18 rgracian Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -236,7 +236,8 @@ dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
 if not dirac.checkInterpreter( ):
   myLib = os.path.join( dirac.root(), dirac.localPlatform, 'lib' )
-  os.environ['LD_LIBRARY_PATH'] = myLib
+  myCompat = os.path.join( dirac.root(), dirac.localPlatform, 'compat' )
+  os.environ['LD_LIBRARY_PATH'] = "%s:%s" % (myLib,myCompat)
   dirac.installExternal()
   dirac.checkDirac( )
   dirac.diracMagic(  '#! %s' % dirac.localPython )
