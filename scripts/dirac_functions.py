@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.48 2008/04/27 16:11:35 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.49 2008/04/27 18:08:24 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.48 2008/04/27 16:11:35 rgracian Exp $"
-__VERSION__ = "$Revision: 1.48 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.49 2008/04/27 18:08:24 rgracian Exp $"
+__VERSION__ = "$Revision: 1.49 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -26,6 +26,7 @@ lcgVer = '3.1.10-0'
 availablePlatforms =  [ 'Linux_x86_64_glibc-2.3.4',    # slc4 64 bits
                         'Linux_i686_glibc-2.3.4',      # slc4 32 bits
                         'Linux_i686_glibc-2.3.3',      # slc3 32 bits
+                        'Linux_i686_glibc-2.6',        # ubuntu 7.1 32 bits
                          ]
 
 
@@ -96,7 +97,8 @@ class functions:
     self.URL         = 'http://cern.ch/lhcbproject/dist/DIRAC3'
     self.setVersion( 'HEAD' )
     self.setPython( '24' )
-
+    self.architecture()
+    
     self.cvsFlag()
     self.requireClient()
     
@@ -186,6 +188,18 @@ class functions:
     """
     self.fromTar = False
     self.fromCVS = True
+
+  def architecture(self):
+    """
+      determine local architecture as defined by LHCb
+    """
+    dirac_architecture = os.path.join( self.scriptsPath, 'dirac-architecture' )
+    if not os.path.exists( dirac_architecture ):
+      self.logERROR( 'Missing file %s' % dirac_architecture )
+      sys.exit(-1)
+    (child_stdout, child_stdin) = popen2.popen2( dirac_architecture )
+    self.architecture = child_stdout.read().strip()
+    child_stdout.close()
 
   def requireServer(self):
     """
