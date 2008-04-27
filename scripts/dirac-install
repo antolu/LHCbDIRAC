@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.21 2008/04/27 16:51:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.22 2008/04/27 18:09:23 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.21 2008/04/27 16:51:28 rgracian Exp $"
-__VERSION__ = "$Revision: 1.21 $"
+__RCSID__   = "$Id: dirac-install,v 1.22 2008/04/27 18:09:23 rgracian Exp $"
+__VERSION__ = "$Revision: 1.22 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 uploadFlag = False
 
-functionVersion = "1.48"
+functionVersion = "1.49"
 
 try:
   import dirac_functions
@@ -149,7 +149,7 @@ def parse_options():
    -N --Name=<CEName>          Use <CEName> to determine Site Name
    -P --path=<root>            Install under <root>
    -S --server                 Make a full server installation
-   -U --Upload								 Upload compiled distribution to lhcbweb (if -b)
+   -U --Upload                 Upload compiled distribution to lhcbweb (if -b)
 
   from DIRAC framework:
 
@@ -247,7 +247,7 @@ if not dirac.checkInterpreter( ):
     tars = dirac.createSrcTars()
     tars = dirac.createBinTars()
     if tars > 0:
-      dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3' % dirac.root() )
+      dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3/new' % dirac.root() )
   dirac.checkDirac( )
   dirac.diracMagic(  '#! %s' % dirac.localPython )
   # if we are not running with our onw python let's call ourself again
@@ -295,7 +295,7 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
                             'dips://volhcb03.cern.ch:9135/Configuration/Server' )
-  localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.localPlatform )
+  localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.architecture )
   localCfg.addDefaultEntry( '/LocalSite/CPUScalingFactor', '0.0' )
   localCfg.addDefaultEntry( '/LocalSite/Root', dirac.root() )
   if not dirac.serverFlag:
