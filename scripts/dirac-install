@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.14 2008/04/26 05:42:18 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.15 2008/04/27 13:06:39 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.14 2008/04/26 05:42:18 rgracian Exp $"
-__VERSION__ = "$Revision: 1.14 $"
+__RCSID__   = "$Id: dirac-install,v 1.15 2008/04/27 13:06:39 rgracian Exp $"
+__VERSION__ = "$Revision: 1.15 $"
 """
     Script to prepare/update a DIRAC instalation
 """
 tmpPath  = None
 siteName = None
 ceName   = None
+uploadFlag = False
 
 functionVersion = "1.45"
 
@@ -148,6 +149,7 @@ def parse_options():
    -N --Name=<CEName>          Use <CEName> to determine Site Name
    -P --path=<root>            Install under <root>
    -S --server                 Make a full server installation
+   -U --Upload								 Upload compiled distribution to lhcbweb (if -b)
 
   from DIRAC framework:
 
@@ -156,10 +158,10 @@ def parse_options():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:S'
+  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:SU'
   longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name', 
                   'platform=', 'repository=', 'url=', 'version=', 
-                  'cvs', 'Name=', 'path=', 'server',
+                  'cvs', 'Name=', 'path=', 'server', 'Upload',
                   'option=', 'section=', 'cert=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
@@ -200,6 +202,8 @@ def parse_options():
       dirac.setRoot( os.path.join( v, 'scripts', myShortName ) )
     elif o == '-S' or o == '--server':
       dirac.requireServer()
+    elif o == '-U' or o == '--Upload':
+      uploadFlag = True
 
     if ext: dirac.setExternal(ext)
 
@@ -238,7 +242,12 @@ if not dirac.checkInterpreter( ):
   myLib = os.path.join( dirac.root(), dirac.localPlatform, 'lib' )
   myCompat = os.path.join( dirac.root(), dirac.localPlatform, 'compat' )
   os.environ['LD_LIBRARY_PATH'] = "%s:%s" % (myLib,myCompat)
-  dirac.installExternal()
+  if uploadFlag:
+    tars = dirac.createBinTars()
+    if tars > 0:
+      dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3' % dirac.root() )
+  else:
+    dirac.installExternal()
   dirac.checkDirac( )
   dirac.diracMagic(  '#! %s' % dirac.localPython )
   # if we are not running with our onw python let's call ourself again
@@ -290,6 +299,7 @@ else:
   Script.registerSwitch( "N:", "Name=",     "Use <CEName> to determine Site Name" )
   Script.registerSwitch( "P:", "path=",     "Install under <root>" )
   Script.registerSwitch( "S",  "server",    "Make a full server installation" )
+  Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
   
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
   localCfg = LocalConfiguration()
