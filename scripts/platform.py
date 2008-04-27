@@ -1251,7 +1251,7 @@ if __name__ == '__main__':
     platformTuple = (system(),machine())
     if platformTuple[0] == 'Linux':
       # get version of higher libc installed
-      if '64' in machine():
+      if machine().find('64') != -1:
         lib = '/lib64'
       else:
         lib = '/lib'
