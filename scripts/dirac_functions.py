@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.46 2008/04/27 14:52:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.47 2008/04/27 15:24:23 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.46 2008/04/27 14:52:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.46 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.47 2008/04/27 15:24:23 rgracian Exp $"
+__VERSION__ = "$Revision: 1.47 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -215,7 +215,7 @@ class functions:
 
   def platform( self, platform=None ):
     """
-     Use dirac-architecture script to retrieve the local platform
+     Use platform.py script to retrieve the local platform
     """
     if not platform:
       dirac_platform = os.path.join( self.scriptsPath, 'platform.py' )
