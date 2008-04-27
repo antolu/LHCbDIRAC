@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.45 2008/04/22 18:58:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.46 2008/04/27 14:52:31 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.45 2008/04/22 18:58:25 rgracian Exp $"
-__VERSION__ = "$Revision: 1.45 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.46 2008/04/27 14:52:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.46 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -218,11 +218,11 @@ class functions:
      Use dirac-architecture script to retrieve the local platform
     """
     if not platform:
-      dirac_architecture = os.path.join( self.scriptsPath, 'dirac-architecture' )
-      if not os.path.exists( dirac_architecture ):
-        self.logERROR( 'Missing file %s' % dirac_architecture )
+      dirac_platform = os.path.join( self.scriptsPath, 'platform.py' )
+      if not os.path.exists( dirac_platform ):
+        self.logERROR( 'Missing file %s' % dirac_platform )
         sys.exit(-1)
-      (child_stdout, child_stdin) = popen2.popen2( dirac_architecture )
+      (child_stdout, child_stdin) = popen2.popen2( dirac_platform )
       self.localPlatform = child_stdout.read().strip()
       child_stdout.close()
     else:
