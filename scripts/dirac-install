@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.24 2008/04/27 19:05:18 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.25 2008/04/28 08:52:14 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.24 2008/04/27 19:05:18 rgracian Exp $"
-__VERSION__ = "$Revision: 1.24 $"
+__RCSID__   = "$Id: dirac-install,v 1.25 2008/04/28 08:52:14 rgracian Exp $"
+__VERSION__ = "$Revision: 1.25 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -239,7 +239,6 @@ dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
 dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
 if not dirac.checkInterpreter( ):
-  dirac.installExternal()
   if uploadFlag:
     dirac.build()
     tars = dirac.createSrcTars()
@@ -247,6 +246,8 @@ if not dirac.checkInterpreter( ):
     if tars > 0:
       dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3/new' % dirac.root() )
       os.system( 'gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3/new' % dirac.root() )
+  else:
+    dirac.installExternal()
   dirac.checkDirac( )
   dirac.diracMagic(  '#! %s' % dirac.localPython )
   # if we are not running with our onw python let's call ourself again
