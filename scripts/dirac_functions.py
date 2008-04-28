@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.49 2008/04/27 18:08:24 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.50 2008/04/28 15:17:49 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.49 2008/04/27 18:08:24 rgracian Exp $"
-__VERSION__ = "$Revision: 1.49 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.50 2008/04/28 15:17:49 rgracian Exp $"
+__VERSION__ = "$Revision: 1.50 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -23,7 +23,8 @@ python = {'python24':'external/Python-2.4.4',
 
 lcgVer = '3.1.10-0'
 
-availablePlatforms =  [ 'Linux_x86_64_glibc-2.3.4',    # slc4 64 bits
+availablePlatforms =  [ 'Linux_x86_64_glibc-2.5',      # slc5 64 bits
+                        'Linux_x86_64_glibc-2.3.4',    # slc4 64 bits
                         'Linux_i686_glibc-2.3.4',      # slc4 32 bits
                         'Linux_i686_glibc-2.3.3',      # slc3 32 bits
                         'Linux_i686_glibc-2.6',        # ubuntu 7.1 32 bits
