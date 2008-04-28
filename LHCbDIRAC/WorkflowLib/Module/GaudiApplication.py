@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.32 2008/04/24 15:18:24 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.33 2008/04/28 10:01:32 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.32 2008/04/24 15:18:24 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.33 2008/04/28 10:01:32 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -431,7 +431,7 @@ rm -f scrtmp.py
     logfile.close()
 
     failed = False
-    if status > 0:
+    if status != 0:
       self.log.error( "%s execution completed with errors:" % self.appName )
       failed = True
     elif len(stdError) > 0:
