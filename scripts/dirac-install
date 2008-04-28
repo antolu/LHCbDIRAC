@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.25 2008/04/28 08:52:14 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.26 2008/04/28 15:24:34 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.25 2008/04/28 08:52:14 rgracian Exp $"
-__VERSION__ = "$Revision: 1.25 $"
+__RCSID__   = "$Id: dirac-install,v 1.26 2008/04/28 15:24:34 rgracian Exp $"
+__VERSION__ = "$Revision: 1.26 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 uploadFlag = False
 
-functionVersion = "1.49"
+functionVersion = "1.50"
 
 try:
   import dirac_functions
@@ -213,7 +213,7 @@ if dirac_functions.__VERSION__.find( functionVersion ) == -1:
   print >> sys.stderr, 'Wrong version of dirac_functions.py'
   sys.exit(-1)
 
-from dirac_functions import functions
+from dirac_functions import functions, lcgVer, externalTimeout
   
 if not tmpPath:
   myFullName  = os.path.realpath( sys.argv[0] )
@@ -243,9 +243,12 @@ if not dirac.checkInterpreter( ):
     dirac.build()
     tars = dirac.createSrcTars()
     tars = dirac.createBinTars()
+    # name = 'DIRAC-lcg-%s-%s-%s' % ( lcgVer, dirac.localPlatform, dirac.python )
+    # dirac._getTar( name, externalTimeout )
     if tars > 0:
-      dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3/new' % dirac.root() )
-      os.system( 'gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3/new' % dirac.root() )
+      for file in os.listdir( dirac.root() ):
+        if file.find('.tar.gz') != -1 :
+          os.system( 'lcg-cp file:%s/%s gsiftp://lcg-se.ecm.ub.es/flatfiles/lhcb/distribution/%s' % ( dirac.root(), file, file ) )
   else:
     dirac.installExternal()
   dirac.checkDirac( )
