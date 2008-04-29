@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.46 2008/04/28 10:42:44 paterson Exp $
+# $Id: JobFinalization.py,v 1.47 2008/04/29 21:22:19 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.46 2008/04/28 10:42:44 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.47 2008/04/29 21:22:19 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -54,6 +54,7 @@ class JobFinalization(object):
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
+    self.InputData=None
     self.log.setLevel('debug')
 
   def execute(self):
@@ -80,7 +81,10 @@ class JobFinalization(object):
     error = 0
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
-    self.LFN_ROOT = getLFNRoot(self.SourceData)
+    #self.LFN_ROOT = getLFNRoot(self.SourceData)
+    #SourceData seems to be a copy of InputData
+    self.LFN_ROOT = getLFNRoot(self.InputData)
+
     result = self.finalize(error)
 
     return result
