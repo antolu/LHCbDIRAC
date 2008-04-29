@@ -1,9 +1,9 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.4 2008/04/29 07:41:59 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.5 2008/04/29 17:47:52 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.4 2008/04/29 07:41:59 rgracian Exp $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.5 2008/04/29 17:47:52 rgracian Exp $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -313,9 +313,10 @@ class GaudiApplication(object):
       import shutil
       shutil.rmtree( appDir )
     # add shipped libraries if available
-    extraLibs = os.path.join( mySiteRoot, self.systemConfig )
+    extraLibs = os.path.join( mySiteRoot, 'lib', self.systemConfig )
     if os.path.exists( extraLibs ):
       gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % extraLibs
+      self.log.info( 'Adding %s to LD_LIBRARY_PATH' % extraLibs )
     gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
     # 
