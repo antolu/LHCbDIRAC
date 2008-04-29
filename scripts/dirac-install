@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.27 2008/04/29 09:48:32 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.28 2008/04/29 12:20:40 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.27 2008/04/29 09:48:32 rgracian Exp $"
-__VERSION__ = "$Revision: 1.27 $"
+__RCSID__   = "$Id: dirac-install,v 1.28 2008/04/29 12:20:40 rgracian Exp $"
+__VERSION__ = "$Revision: 1.28 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -122,9 +122,9 @@ except:
     sys.path.insert( 0, os.path.join( tmpPath, 'scripts' ) )
     
   except Exception, x:
-    print sys.stderr >> 'ERROR python interpreter does not support necessary modules'
-    print sys.stderr >> 'ERROR', x
-    print sys.stderr >> ''
+    print >> sys.stderr, 'ERROR python interpreter does not support necessary modules'
+    print >> sys.stderr, 'ERROR', x
+    print >> sys.stderr, ''
     sys.exit(-1)
 
 
