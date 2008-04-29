@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.26 2008/04/28 15:24:34 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.27 2008/04/29 09:48:32 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.26 2008/04/28 15:24:34 rgracian Exp $"
-__VERSION__ = "$Revision: 1.26 $"
+__RCSID__   = "$Id: dirac-install,v 1.27 2008/04/29 09:48:32 rgracian Exp $"
+__VERSION__ = "$Revision: 1.27 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -298,7 +298,10 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
                             'dips://volhcb03.cern.ch:9135/Configuration/Server' )
-  localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.architecture )
+  if dirac.architecture == 'ERROR':
+    localCfg.addDefaultEntry( '/LocalSite/Architecture', 'slc3_ia32_gcc323' )
+  else:
+    localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.architecture )
   localCfg.addDefaultEntry( '/LocalSite/CPUScalingFactor', '0.0' )
   localCfg.addDefaultEntry( '/LocalSite/Root', dirac.root() )
   if not dirac.serverFlag:
