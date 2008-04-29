@@ -1,19 +1,44 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.5 2008/04/13 20:34:27 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.6 2008/04/29 17:19:14 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
 
 """LHCb Job Class
 
-   The LHCb Job class inherits generic functionality from the Job base class
+   The LHCb Job class inherits generic VO functionality from the Job base class
    and provides VO-specific functionality to aid in the construction of
    workflows.
 
    Helper functions are documented with example usage for the DIRAC API.
+
+   This class is under intensive development and currently only provides
+   the functionality to construct LHCb project jobs.  The following use-cases
+   are pending:
+    - Root macros
+    - GaudiPython / Bender scripts.
+
+   An example script (for a simple DaVinci job) would be::
+
+     from DIRAC.Interfaces.API.Dirac import Dirac
+     from DIRAC.Interfaces.API.LHCbJob import LHCbJob
+
+     j = LHCbJob()
+     j.setCPUTime(5000)
+     j.setSystemConfig('slc4_ia32_gcc34')
+     j.setApplication('DaVinci','v19r11','DaVinciv19r11.opts')
+     j.setInputData(['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
+     j.setName('MyJobName')
+     #j.setDestination('LCG.CERN.ch')
+
+     dirac = Dirac()
+     jobID = dirac.submit(j)
+     print 'Submission Result: ',jobID
+
+   The setDestination() method is optional and takes the DIRAC site name as an argument.
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.5 2008/04/13 20:34:27 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.6 2008/04/29 17:19:14 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -51,19 +76,21 @@ class LHCbJob(Job):
        given, the default application options file will be used.  If this is
        specified, the file is automatically appended to the job input sandbox.
 
+       Any additional options files should be specified in the job...
+
        Example usage:
 
-       >>> job = Job()
-       >>> job.setApplication('DaVinci','v19r5')
+       >>> job = LHCbJob()
+       >>> job.setApplication('DaVinci','v19r5',optionsFile='MyDV.opts',logFile='dv.log')
 
        @param appName: Application name
-       @type appMame: string
+       @type appName: string
        @param appVersion: Application version
        @type appVersion: string
        @param logFile: Optional log file name
-       @type appVersion: string
+       @type logFile: string
        @param optionsFile: Can specify options file for application here
-       @type appVersion: string
+       @type optionsFile: string
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
       raise TypeError,'Expected strings for application name and version'
@@ -204,7 +231,7 @@ class LHCbJob(Job):
 
        Example usage:
 
-       >>> job = Job()
+       >>> job = LHCbJob()
        >>> job.addPackage('DaVinci','v17r6')
 
        @param pname: Package name
@@ -213,8 +240,7 @@ class LHCbJob(Job):
        @type pversion: Package version string
 
     """
-    print 'To implement addPackage()'
-    #To review because currently relying on the sw shared area
+    print 'To implement addPackage(), pending update to install_project to cope with local + shared installations'
 
   #############################################################################
   def setAncestorDepth(self,depth):
@@ -224,6 +250,15 @@ class LHCbJob(Job):
 
        For analysis jobs running over RDSTs the ancestor depth may be specified
        to ensure that the parent DIGI / DST files are staged before job execution.
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> job.setAncestorDepth(2)
+
+       @param depth: Ancestor depth
+       @type depth: string or int
+
     """
     description = 'Level at which ancestor files are retrieved from the bookkeeping'
     if type(depth)==type(" "):
@@ -243,16 +278,16 @@ class LHCbJob(Job):
        Explicitly set the input data type to be conveyed to Gaudi Applications.
 
        Default is DATA, e.g. for DST / RDST files.  Other options include:
-       - MDF, for .raw files
-       - ETC, for running on a public or private Event Tag Collections.
+        - MDF, for .raw files
+        - ETC, for running on a public or private Event Tag Collections.
 
        Example usage:
 
-       >>> job = Job()
+       >>> job = LHCbJob()
        >>> job.setInputDataType('ETC')
 
-       @param lfns: Input Data Type
-       @type lfns: String
+       @param inputDataType: Input Data Type
+       @type inputDataType: String
 
     """
     description = 'User specified input data type'
@@ -275,11 +310,11 @@ class LHCbJob(Job):
 
        Example usage:
 
-       >>> job = Job()
+       >>> job = LHCbJob()
        >>> job.setCondDBTags({'DDDB':'DC06','LHCBCOND':'DC06'})
 
-       @param lfns: Logical File Names
-       @type lfns: Single LFN string or list of LFNs
+       @param condDict: CondDB tags
+       @type condDict: Dict of DB, tag pairs
     """
     if not type(condDict)==type({}):
       raise TypeError, 'Expected dictionary for CondDB tags'
@@ -302,16 +337,16 @@ class LHCbJob(Job):
     """Under development. Helper function.
 
        For LHCb Gaudi Applications, may add options to be appended
-       to application options file.  This must be a triple quoted string,
-       e.g." " " ApplicationMgr.EvtMax=-1; " " "
+       to application options file.  This must be a triple quoted string if multiple lines,
+       are to be added e.g." " " ApplicationMgr.EvtMax=-1; " " "
 
        Example usage:
 
-       >>> job = Job()
+       >>> job = LHCbJob()
        >>> job.setOption('ApplicationMgr.EvtMax=-1;')
 
        @param optsLine: Options line
-       @param optsLine: string
+       @type optsLine: string
     """
     if type(optsLine)==type(' '):
       prefix = self.__getCurrentStepPrefix()
