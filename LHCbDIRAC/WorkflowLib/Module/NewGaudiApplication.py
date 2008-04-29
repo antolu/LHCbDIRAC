@@ -1,15 +1,15 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.3 2008/04/25 12:47:12 rgracian Exp $
-# File :   NewGaudiApplication
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.4 2008/04/29 07:41:59 rgracian Exp $
+# File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.3 2008/04/25 12:47:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.4 2008/04/29 07:41:59 rgracian Exp $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
 from DIRAC.Core.Utilities                                import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
+from DIRAC.Core.Utilities                                import Source
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
@@ -257,6 +257,8 @@ class GaudiApplication(object):
 
 
 #    os.environ['JOBOPTPATH'] = optfile
+#    gaudiEnv['JOBOPTPATH'] = 'gaudirun.opts'
+
 
     cmtEnv = dict(os.environ)
     gaudiEnv = {}
@@ -265,25 +267,8 @@ class GaudiApplication(object):
     cmtEnv['MYSITEROOT'] = mySiteRoot
     cmtEnv['CMTCONFIG']  = self.systemConfig
 
-    extCMT = os.path.join( mySiteRoot, 'scripts', 'ExtCMT' )
-    if platformTuple[0] == 'Windows':
-      extCMT += '.bat'
-    else:
-      extCMT += '.sh'
-
-    if not os.path.exists( extCMT ):
-      self.log.warn( 'Missing ExtCMT script: %s' % extCMT )
-      self.result = S_ERROR( 'Missing ExtCMT script: %s' % extCMT )
-      return self.result
-
-    # gaudiEnv['JOBOPTPATH'] = 'gaudirun.opts'
-
+    extCMT       = os.path.join( mySiteRoot, 'scripts', 'ExtCMT' )
     setupProject = os.path.join( mySiteRoot, 'scripts', 'SetupProject' )
-    if platformTuple[0] == 'Windows':
-      setupProject += '.bat'
-    else:
-      setupProject += '.sh'
-      extCMT = '. %s' % extCMT
 
     setupProject = [setupProject]
     setupProject.append( '--ignore-missing' )
@@ -293,58 +278,36 @@ class GaudiApplication(object):
     setupProject.append( self.appVersion )
     setupProject.append( 'gfal CASTOR dcache_client lfc oracle' )
 
-    setupProject = '. '+' '.join(setupProject)
-
-    envAsDict = '; python -c "import os,sys ; print >> sys.stderr, os.environ"'
+    timeout = 300
 
     # Run ExtCMT
-    timeout = 300
-    if platformTuple[0] == 'Windows':
-      # this needs to be tested
-      ret = shellCall( timeout, [ extCMT + envAsDict ], env=cmtEnv ) 
+    ret = Source( timeout, [extCMT], cmtEnv )
+    if ret['OK']:
+      self.log.info( ret['stdout'] )
+      setupProjectEnv = ret['outputEnv']
     else:
-      ret = systemCall( timeout, [ '/bin/bash', '-c', extCMT + envAsDict ], env = cmtEnv )
-
-    if ret['OK'] and ret['Value'][0] == 0:
-      self.log.info( ret['Value'][1] )
-      try:
-        setupProjectEnv = eval( ret['Value'][2] )
-      except:
-        self.log.error([ '/bin/bash', '-c', extCMT + envAsDict ])
-        self.log.error( ret )
-        self.result = S_ERROR()
-        return self.result
-    else:
-      self.log.error([ '/bin/bash', '-c', extCMT + envAsDict ])
-      self.log.error(ret)
-      self.result = S_ERROR()
+      self.log.error( ret['Message'])
+      self.log.error( ret['stdout'] )
+      self.log.error( ret['stderr'] )
+      self.result = ret
       return self.result
 
     # Run SetupProject
-    if platformTuple[0] == 'Windows':
-      # this needs to be tested
-      ret = shellCall( timeout, [ setupProject + envAsDict ], env=setupProjectEnv ) 
+    ret = Source( timeout, setupProject, setupProjectEnv )
+    if ret['OK']:
+      self.log.info( ret['stdout'] )
+      gaudiEnv = ret['outputEnv']
     else:
-      ret = systemCall( timeout, [ '/bin/bash', '-c', setupProject + envAsDict ], env = setupProjectEnv )
-
-    if ret['OK'] and ret['Value'][0] == 0:
-      self.log.info( ret['Value'][1] )
-      try:
-        gaudiEnv = eval( ret['Value'][2] )
-      except:
-        self.log.error([ '/bin/bash', '-c', setupProject + envAsDict ])
-        self.log.error(ret)
-        self.result = S_ERROR()
-        return self.result
-    else:
-      self.log.error([ '/bin/bash', '-c', setupProject + envAsDict ])
-      self.log.error(ret)
-      self.result = S_ERROR()
+      self.log.error( ret['Message'])
+      self.log.error( ret['stdout'] )
+      self.log.error( ret['stderr'] )
+      self.result = ret
       return self.result
 
     for k in gaudiEnv:
       print k, '=', gaudiEnv[k]
 
+    # Now link all libraries in a single directory
     appDir = os.path.join(os.getcwd(),'%s_%s' % ( self.appName, self.appVersion ))
     if os.path.exists( appDir ):
       import shutil
