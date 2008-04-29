@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.6 2008/04/25 10:47:33 rgracian Exp $
+# $Id: LocalSoftwareInstall.py,v 1.7 2008/04/29 12:41:54 rgracian Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.6 2008/04/25 10:47:33 rgracian Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.7 2008/04/29 12:41:54 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -28,6 +28,8 @@ class LocalSoftwareInstall:
   def __init__(self,argumentsDict):
     """ Standard constructor
     """
+    os.environ['CMTCONFIG'] = argumentsDict['Job']['SystemConfig']
+
     apps = argumentsDict['Job']['SoftwarePackages']
     if type(apps) == type(' '):
       apps = [apps]
