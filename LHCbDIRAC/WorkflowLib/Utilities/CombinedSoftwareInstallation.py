@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.1 2008/04/29 07:35:44 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.2 2008/04/29 08:20:36 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,7 +21,7 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__ = "$Id: CombinedSoftwareInstallation.py,v 1.1 2008/04/29 07:35:44 rgracian Exp $"
+__RCSID__ = "$Id: CombinedSoftwareInstallation.py,v 1.2 2008/04/29 08:20:36 rgracian Exp $"
 
 import os, shutil
 import DIRAC
@@ -35,10 +35,10 @@ class CombinedSoftwareInstallation:
   def __init__(self,argumentsDict):
     """ Standard constructor
     """
-    self.job = []
+    self.job = {}
     if argumentsDict.has_key('Job'):
       self.job = argumentsDict['Job']
-    self.ce = []
+    self.ce = {}
     if argumentsDict.has_key('CE'):
       self.ce = argumentsDict['CE']
     
@@ -60,7 +60,7 @@ class CombinedSoftwareInstallation:
       self.jobConfig = self.job['SystemConfig']
 
     self.ceConfigs = []
-    if self.ce.has_key['CompatiblePlatforms']:
+    if self.ce.has_key('CompatiblePlatforms'):
       self.ceConfigs = self.ce['CompatiblePlatforms']
       if type(self.ceConfigs) == type(''):
         self.ceConfigs = [self.ceConfigs]
