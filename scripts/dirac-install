@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.31 2008/04/29 16:03:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.32 2008/04/30 18:09:44 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.31 2008/04/29 16:03:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.31 $"
+__RCSID__   = "$Id: dirac-install,v 1.32 2008/04/30 18:09:44 rgracian Exp $"
+__VERSION__ = "$Revision: 1.32 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 uploadFlag = False
 
-functionVersion = "1.50"
+functionVersion = "1.51"
 
 try:
   import dirac_functions
@@ -210,7 +210,11 @@ def parse_options():
 import os, sys
 import dirac_functions
 if dirac_functions.__VERSION__.find( functionVersion ) == -1:
-  print >> sys.stderr, 'Wrong version of dirac_functions.py'
+  print >> sys.stderr, '%s was not up-to-date, it has now been updated' % sys.argv[0]
+  print >> sys.stderr, ' Run again the same command'
+  curScript = os.path.join( cwdPath, sys.argv[0] )
+  newScript = os.path.join( 'scripts', 'dirac-install' )
+  os.rename( newScript, curScript )
   sys.exit(-1)
 
 from dirac_functions import functions, lcgVer, externalTimeout
@@ -338,5 +342,10 @@ else:
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
   dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
+
+  curScript = os.path.join( dirac.root(), 'scripts', 'dirac-update' )
+  newScript = os.path.join( dirac.root(), 'scripts', 'dirac-install' )
+  if os.path.exists( newScript ):
+    os.rename( newScript, curScript )
 
   sys.exit(0)
