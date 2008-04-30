@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.50 2008/04/28 15:17:49 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.51 2008/04/30 18:03:17 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.50 2008/04/28 15:17:49 rgracian Exp $"
-__VERSION__ = "$Revision: 1.50 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.51 2008/04/30 18:03:17 rgracian Exp $"
+__VERSION__ = "$Revision: 1.51 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -352,9 +352,9 @@ class functions:
     """
     # remove requested platform directory if it exists
     externalDir = os.path.join( self.__rootPath, self.localPlatform )
-    self.__rmDir( externalDir )
 
     if self.buildFlag:
+      self.__rmDir( externalDir )
       self.buildExternal( )
     else:
       if not self.localPlatform in availablePlatforms:
@@ -367,7 +367,7 @@ class functions:
       else:
         name = 'DIRAC-external-client-%s-%s-%s' % \
         ( self.external, self.localPlatform, self.python )
-      self._getTar( name, externalTimeout )
+      self._getTar( name, externalTimeout, externalDir )
 
     name = 'DIRAC-lcg-%s-%s-%s' % ( lcgVer, self.localPlatform, self.python )
     self._getTar( name, externalTimeout )
@@ -484,7 +484,7 @@ class functions:
         self.logERROR( 'Failed to rename "%s" to "%s"' % (cvsDir, destDir ) )
         self.logEXCEP(x)        
 
-  def _getTar( self, name, timeout ):
+  def _getTar( self, name, timeout, dir=None ):
   
     try:
       ( file, localName ) = tempfile.mkstemp()
@@ -500,6 +500,7 @@ class functions:
       tar = tarfile.open( localName , 'r' )
       try:
         error = 'Extracting file "%s"' % localName
+        self.__rmDir( dir )
         tar.extractall( )
         os.remove( localName )
       except:
@@ -510,6 +511,11 @@ class functions:
     except Exception, x:
       try:
         error = 'Extracting file "%s"' % localName
+        ret = os.system( 'tar -tzf %s' % localName )
+        if ret != 0:
+          raise Exception( 'Fail to extract tarfile'  )        
+        if dir:
+          self.__rmDir( dir )
         ret = os.system( 'tar xzf %s' % localName )
         if ret != 0:
           raise Exception( 'Fail to extract tarfile'  )        
