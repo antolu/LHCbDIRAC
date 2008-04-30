@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.16 2008/04/30 08:00:22 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.17 2008/04/30 08:13:26 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.16 2008/04/30 08:00:22 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.17 2008/04/30 08:13:26 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -26,7 +26,7 @@ class BookkeepingReport(object):
     self.inputData = None
     self.STEP_ID = None
     self.JOB_ID = None # to check
-    self.InputData=None
+    self.SourceData=None
     self.log = gLogger.getSubLogger("BookkeepingReport")
     pass
 
@@ -111,7 +111,7 @@ class BookkeepingReport(object):
     else:
       s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
 
-    self.LFN_ROOT= getLFNRoot(self.InputData)
+    self.LFN_ROOT= getLFNRoot(self.SourceData)
     for inputname in self.inputData.split(';'):
       lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
       s = s+'  <InputFile    Name="'+lfn+'"/>\n'
