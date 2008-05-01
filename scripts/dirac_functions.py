@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.52 2008/04/30 18:44:09 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.53 2008/05/01 16:37:47 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.52 2008/04/30 18:44:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.52 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.53 2008/05/01 16:37:47 rgracian Exp $"
+__VERSION__ = "$Revision: 1.53 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -370,7 +370,10 @@ class functions:
       self._getTar( name, externalTimeout, externalDir )
 
     name = 'DIRAC-lcg-%s-%s-%s' % ( lcgVer, self.localPlatform, self.python )
-    self._getTar( name, externalTimeout )
+    try:
+      self._getTar( name, externalTimeout )
+    except:
+      self.logINFO( 'LCG tool tar file is not available for your platform' )
 
   def diracMagic( self, magic ):
     """
