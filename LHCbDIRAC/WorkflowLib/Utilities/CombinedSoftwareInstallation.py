@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.5 2008/05/01 02:33:23 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.6 2008/05/01 11:08:27 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.5 2008/05/01 02:33:23 rgracian Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.6 2008/05/01 11:08:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import os, shutil, sys
 import DIRAC
@@ -82,11 +82,18 @@ class CombinedSoftwareInstallation:
     for app in self.apps:
       # 1.- check if application is available in shared area
       if CheckApplication( app, self.jobConfig, self.sharedArea ):
+        DIRAC.gLogger.info( 'Application %s %s found in Shared Area.' % app )
         continue
       if CheckApplication( app, self.jobConfig, self.localArea ):
+        DIRAC.gLogger.info( 'Application %s %s found in Local Area.' % app )
         continue
       if InstallApplication( app, self.jobConfig, self.localArea ):
-        continue
+        DIRAC.gLogger.info( 'Application %s %s installed in Local Area.' % app )
+        if CheckApplication( app, self.jobConfig, self.localArea ):
+          DIRAC.gLogger.info( 'Application %s %s found in Local Area.' % app )
+          continue
+        else:
+          DIRAC.gLogger.warn( 'Could not find %s %s in Local Area after installation' % app )
       return DIRAC.S_ERROR( 'Failed to install %s_%s' % app )
 
     return DIRAC.S_OK()
