@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.3 2008/04/30 22:23:00 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.4 2008/05/01 01:02:12 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,14 +21,13 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.3 2008/04/30 22:23:00 rgracian Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.4 2008/05/01 01:02:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
-import os, shutil
+import os, shutil, sys
 import DIRAC
 
 InstallProject = 'install_project.py'
-LHCbConfig     = 'LHCb_config.py'
 
 class CombinedSoftwareInstallation:
 
@@ -88,9 +87,9 @@ class CombinedSoftwareInstallation:
         continue
       if InstallApplication( app, self.jobConfig, self.localArea ):
         continue
-      return S_ERROR( 'Failed to install %s_%s' % app )
+      return DIRAC.S_ERROR( 'Failed to install %s_%s' % app )
 
-    return S_OK()
+    return DIRAC.S_OK()
 
 def log( n, line ):
   DIRAC.gLogger.info( line )   
@@ -103,6 +102,8 @@ def InstallApplication(app, config, area ):
   """
   if not area:
     return False
+  appName    = app[0]
+  appVersion = app[1]
   # make a copy of the environment dictionary
   cmtEnv = dict(os.environ)
   cmtEnv['MYSITEROOT'] = area
@@ -126,24 +127,18 @@ def InstallApplication(app, config, area ):
   cmdTuple += [ '-v', appVersion ]
   cmdTuple += [ '-b', '-m', 'do_config' ]
 
-  ret = systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
+  ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
   if not ret['OK']:
     DIRAC.gLogger.warn( 'Fail software Installation:', app.join('_') )
     DIRAC.gLogger.warn( ret['Message'] )
+    os.chdir(curDir)
     return False
   if ret['Value'][0]: # != 0
     DIRAC.gLogger.warn( 'Fail software Installation:', app.join('_') )
+    os.chdir(curDir)
     return False
   
   os.chdir(curDir)
-
-  # copy LHCb_config.py, should be the most up-to-date
-  if os.path.exists( LHCbConfig ):
-    try:
-      os.remove( LHCbConfig )
-    except:
-      return True
-  shutil.copy( os.path.join( area, LHCbConfig), curDir )
 
   return True
 
@@ -201,7 +196,7 @@ def CheckApplication(app, config, area):
     DIRAC.gLogger.warn( 'Executable does not exist:', gaudiExe )
     return False
 
-  return True
+  return gaudiExe
 
 def SharedArea():
   """
