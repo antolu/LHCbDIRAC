@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.8 2008/05/01 01:29:35 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.9 2008/05/01 11:10:04 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.8 2008/05/01 01:29:35 rgracian Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.9 2008/05/01 11:10:04 rgracian Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -309,6 +309,9 @@ class GaudiApplication(object):
     gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
     # 
+    if not gaudiEnv.has_key('GAUDIALGROOT'):
+      self.result = S_ERROR( 'Can not determine Gaudi Root' )
+      return self.result
     gaudiRoot = gaudiEnv['GAUDIALGROOT']
     gaudiVer = os.path.basename( gaudiRoot )
     while gaudiVer.find('GAUDI_v') != 0:
