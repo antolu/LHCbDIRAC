@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.36 2008/05/02 07:25:59 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.37 2008/05/02 07:29:41 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.36 2008/05/02 07:25:59 rgracian Exp $"
-__VERSION__ = "$Revision: 1.36 $"
+__RCSID__   = "$Id: dirac-install,v 1.37 2008/05/02 07:29:41 rgracian Exp $"
+__VERSION__ = "$Revision: 1.37 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -25,7 +25,7 @@ try:
 except:
   try:
     # if dirac_function is not available, retrive DIRAC-scripts tar
-    import sys, os, signal, time, shutils
+    import sys, os, signal, time, shutil
     import tempfile, urllib
     defaultURL = 'http://cern.ch/lhcbproject/dist/DIRAC3'
     # defaultURL = 'http://lhcbweb.pic.es/distribution/DIRAC3'
@@ -207,14 +207,14 @@ def parse_options():
 
     if ext: dirac.setExternal(ext)
 
-import os, sys, shutils
+import os, sys, shutil
 import dirac_functions
 if dirac_functions.__VERSION__.find( functionVersion ) == -1:
   print >> sys.stderr, '%s was not up-to-date, it has now been updated' % sys.argv[0]
   print >> sys.stderr, ' Run again the same command'
   curScript = os.path.join( cwdPath, sys.argv[0] )
   newScript = os.path.join( 'scripts', 'dirac-install' )
-  shutils.move( newScript, curScript )
+  shutil.move( newScript, curScript )
   sys.exit(-1)
 
 from dirac_functions import functions, lcgVer, externalTimeout
@@ -346,6 +346,6 @@ else:
   curScript = os.path.join( dirac.root(), 'scripts', 'dirac-update' )
   newScript = os.path.join( dirac.root(), 'scripts', 'dirac-install' )
   if os.path.exists( newScript ):
-    shutils.move( newScript, curScript )
+    shutil.move( newScript, curScript )
 
   sys.exit(0)
