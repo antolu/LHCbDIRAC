@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.6 2008/05/01 11:08:27 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.7 2008/05/02 17:14:56 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.6 2008/05/01 11:08:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.7 2008/05/02 17:14:56 rgracian Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 
 import os, shutil, sys
 import DIRAC
@@ -136,12 +136,12 @@ def InstallApplication(app, config, area ):
 
   ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
   if not ret['OK']:
-    DIRAC.gLogger.warn( 'Fail software Installation:', app.join('_') )
+    DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app) )
     DIRAC.gLogger.warn( ret['Message'] )
     os.chdir(curDir)
     return False
   if ret['Value'][0]: # != 0
-    DIRAC.gLogger.warn( 'Fail software Installation:', app.join('_') )
+    DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app)  )
     os.chdir(curDir)
     return False
   
