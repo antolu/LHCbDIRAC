@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.38 2008/05/02 16:47:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.39 2008/05/02 16:51:42 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.38 2008/05/02 16:47:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.38 $"
+__RCSID__   = "$Id: dirac-install,v 1.39 2008/05/02 16:51:42 rgracian Exp $"
+__VERSION__ = "$Revision: 1.39 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -215,7 +215,7 @@ if dirac_functions.__VERSION__.find( functionVersion ) == -1:
   curScript = os.path.join( cwdPath, sys.argv[0] )
   newScript = os.path.join( 'scripts', 'dirac-install' )
   shutil.move( newScript, curScript )
-  sys.exit(-1)
+  sys.exit(2)
 
 from dirac_functions import functions, lcgVer, externalTimeout
   
