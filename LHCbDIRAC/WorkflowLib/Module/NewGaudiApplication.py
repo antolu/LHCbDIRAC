@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.9 2008/05/01 11:10:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.10 2008/05/02 16:37:00 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.9 2008/05/01 11:10:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.10 2008/05/02 16:37:00 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -306,6 +306,10 @@ class GaudiApplication(object):
     #if os.path.exists( extraLibs ):
     #  gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % extraLibs
     #  self.log.info( 'Adding %s to LD_LIBRARY_PATH' % extraLibs )
+    # Add compat libs
+    compatLib = os.path.join( self.root, self.systemConfig, compat )
+    if os.path.exists(compatLib):
+      gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % compatLib
     gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
     # 
