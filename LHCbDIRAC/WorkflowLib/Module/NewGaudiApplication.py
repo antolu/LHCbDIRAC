@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.11 2008/05/02 17:50:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.12 2008/05/03 08:57:43 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.11 2008/05/02 17:50:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.12 2008/05/03 08:57:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -215,6 +215,7 @@ class GaudiApplication(object):
       if appCmd:
         mySiteRoot = localArea
       else:
+        self.log.warn( 'Application not Found' )
         return S_ERROR( 'Application not Found' )
     self.log.info( 'Application Found:', appCmd )
 
@@ -314,6 +315,8 @@ class GaudiApplication(object):
 
     # 
     if not gaudiEnv.has_key('GAUDIALGROOT'):
+      self.log.warn( 'GAUDIALGROOT not defined' )
+      self.log.warn( 'Can not determine Gaudi Root' )
       self.result = S_ERROR( 'Can not determine Gaudi Root' )
       return self.result
     gaudiRoot = gaudiEnv['GAUDIALGROOT']
