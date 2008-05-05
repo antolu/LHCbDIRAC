@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.13 2008/05/05 19:04:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.14 2008/05/05 22:01:34 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.13 2008/05/05 19:04:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.14 2008/05/05 22:01:34 rgracian Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -150,7 +150,7 @@ class GaudiApplication(object):
   def manageOpts(self):
 
     options = open('gaudirun.opts','w')
-    options.write('#include %s  ' % self.optfile)
+    options.write('#include "%s"  ' % self.optfile)
     options.write('\n\n//////////////////////////////////////////////////////\n')
     options.write('// Dynamically generated options in a production or analysis job\n\n')
 
