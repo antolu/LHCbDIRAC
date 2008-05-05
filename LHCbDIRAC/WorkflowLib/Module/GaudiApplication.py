@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.34 2008/05/05 15:48:19 joel Exp $
+# $Id: GaudiApplication.py,v 1.35 2008/05/05 17:36:20 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.34 2008/05/05 15:48:19 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.35 2008/05/05 17:36:20 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -253,7 +253,8 @@ class GaudiApplication(object):
 
     if os.path.exists(self.appName+'Run.sh'): os.remove(self.appName+'Run.sh')
     script = open(self.appName+'Run.sh','w')
-    script.write('#!/bin/sh \n')
+#    script.write('#!/bin/sh \n')
+    script.write('#!/bin/bash \n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
     script.write('#####################################################################\n')
@@ -289,11 +290,13 @@ class GaudiApplication(object):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
+# +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
 #                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
@@ -321,7 +324,6 @@ for var in $varlist; do
   fi
 done
 """ % (ld_base_path,ld_base_path))
-
 
     #To ensure correct LD LIBRARY PATH now reconstruct
     script.write('declare -x LD_LIBRARY_PATH\n')
@@ -377,7 +379,7 @@ rm -f scrtmp.py
     script.write('echo PATH is\n')
     script.write('echo $PATH\n')
     script.write('env | sort >> localEnv.log\n')
-
+    script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
     comp_path = self.root+'/'+localDir+'/'+self.systemConfig
     if os.path.exists(comp_path):
