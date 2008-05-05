@@ -1,19 +1,19 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.2 2008/05/04 20:05:34 atsareg Exp $
+# $Id: NewJobFinalization.py,v 1.3 2008/05/05 19:52:12 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
     accomplish all the Job operations. It performs the following operations
-    
+
     - Stores the output log files in a secure (failover) way;
     - Stores the output data taking into account all the possible
       storage destinations in an efficient and failover safe way;
     - Sends the Bookkeeping information in a failover safe way;
     - Attempts to accomplish accumulated in the entire workflow
-      failover requests and prepares a combined request if necessary;    
+      failover requests and prepares a combined request if necessary;
 
     Variables that JobFinalization module relies on as input:
-    
+
     self.PRODUCTION_ID
     self.JOB_ID
     self.listoutput
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.2 2008/05/04 20:05:34 atsareg Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.3 2008/05/05 19:52:12 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -42,38 +42,39 @@ import os, time, re, random, shutil, commands
 class JobFinalization(object):
 
   def __init__(self):
-    
+
     ############### TODO
     # Remove unused variables
-    # Make checks of the necessary variables   
+    # Make checks of the necessary variables
 
     #####################################################
-    # Variables supposed to be set by the workflow  
-  
+    # Variables supposed to be set by the workflow
+
     self.PRODUCTION_ID = None
     self.JOB_ID = None
-    
-    # A list of dictionaries specifying the output data 
+
+    # A list of dictionaries specifying the output data
     self.listoutput = []
-    
+
     self.poolXMLCatName = None
     self.SourceData = None
     self.workflow_commons = None
 
     #####################################################
-    # Local variables 
-   
+    # Local variables
+
     self.jobID = ""
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
-    
-    self.LFN_ROOT = None    
+
+    self.LFN_ROOT = None
     self.logdir = '.'
     self.mode = None
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    
+    self.site = gConfig.getValue('/LocalSite/Site','localSite')
+
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
     self.bkDB = BookkeepingDBClient()
@@ -81,8 +82,8 @@ class JobFinalization(object):
     self.request = DataManagementRequest()
     self.request.setRequestName('job_%s_request.xml' % self.jobID)
     self.request.setJobID(self.jobID)
-    self.request.setSourceComponent("Job_%s" % self.jobID)               
-          
+    self.request.setSourceComponent("Job_%s" % self.jobID)
+
     self.log = gLogger.getSubLogger("JobFinalization")
     self.log.setLevel('debug')
 
@@ -90,11 +91,11 @@ class JobFinalization(object):
   def execute(self):
     """ Main executon method
     """
-  
-    # Add global reporting tool    
+
+    # Add global reporting tool
     if self.workflow_commons.has_key('JobReport'):
       self.jobReport  = self.workflow_commons['JobReport']
- 
+
     result = self.__report('Job Finalization')
 
     print "AT ->>>>>>>>>>>>>", self.listoutput
@@ -103,7 +104,7 @@ class JobFinalization(object):
       self.log.info("final listing : %s" % (str(res['Value'][1])))
     else:
       self.log.info("final listing with error: %s" % (str(res['Value'][2])))
-      
+
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
     self.__loadLocalCFGFiles(self.root)
@@ -118,7 +119,7 @@ class JobFinalization(object):
     if self.step_commons.has_key('Status'):
       if step_commons['Status'] == "Error":
         error = 1
-    
+
     self.LFN_ROOT = getLFNRoot(self.SourceData)
 
     result = self.finalize(error)
@@ -129,16 +130,16 @@ class JobFinalization(object):
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
     """
-    
+
     self.uploadFileFailover('')
-    
+
     result = S_OK()
     logs_done = True
     data_done = True
     bk_done = True
     request_done = True
     error_message = ''
-    
+
     self.log.info( "Start finalization %s %s" % ( str( error ), str( self.PRODUCTION_ID ) ) )
     if not self.PRODUCTION_ID:
       return S_OK()
@@ -156,7 +157,7 @@ class JobFinalization(object):
 
     if not error:
       ########################################################
-      # Upload the output data  
+      # Upload the output data
 
       resultUpload = self.uploadOutput()
 
@@ -170,38 +171,38 @@ class JobFinalization(object):
           bk_done = False
       else:
         data_done = False
-        
+
     if not data_done:
       self.__report('Failed to save output data')
-      result = S_ERROR('Failed to save output data')      
+      result = S_ERROR('Failed to save output data')
 
     if logs_done and data_done and bk_done and not error:
-      self.__report('Job Finished Successfully')        
+      self.__report('Job Finished Successfully')
 
     if not logs_done:
-      error_message = "failed to save logs, "   
+      error_message = "failed to save logs, "
     if not bk_done and not request_done:
-      error_message += "failed to send bk data, "  
-      
-    if error_message:    
+      error_message += "failed to send bk data, "
+
+    if error_message:
       error_message = error_message[:-2]
       self.__setJobParameter('FinalizationError',error_message)
-      
+
     ##################################################################
     # Create failover request if necessary
 
-    resultRequest = self.createRequest(send=False)
+    resultRequest = self.createRequest()
     if not resultRequest['OK']:
       self.log.error('Failed to create overall job request for job %s' % self.jobID)
       result = S_ERROR('Failed to create overall job request')
-       
+
     return result
 
 ################################################################################
   def reportBookkeeping(self):
     """ Collect and send safely the bookkeeping reports
     """
-    
+
     result = S_OK()
     books = []
     files = os.listdir('.')
@@ -234,7 +235,7 @@ class JobFinalization(object):
     return result
 
 ################################################################################
-  def getPoolXMLCatalogs(self):
+  def __getPoolXMLCatalogs(self):
     """ Collect the available Pool XML catalogs in one object
     """
 
@@ -368,10 +369,10 @@ class JobFinalization(object):
     else:
       self.log.info("Transferring log files to the main LogSE successful")
       return S_OK()
-      
+
     if not result['OK']:
-      # Make failover copy and set the corresponding request  
-      
+      # Make failover copy and set the corresponding request
+
       ldir = os.path.abspath(self.logdir)
       ldirname = os.path.dirname(ldir)
       lbasename = os.path.basename(self.logdir)
@@ -386,25 +387,25 @@ class JobFinalization(object):
             self.setPfnReplicationRequest(lfn,'LogSE',result,removeOrigin=True)
           else:
             self.setReplicationRequest(lfn,'LogSE')
-          return S_OK()  
+          return S_OK()
         else:
           self.log.error('Failed to store log files to LogSE and failover SEs')
       else:
-        self.log.error('Failed to create log files tar archive for job %s' % self.jobID) 
-        
-                 
-    return S_ERROR('Failed to store log files to LogSE and failover SEs')  
-      
+        self.log.error('Failed to create log files tar archive for job %s' % self.jobID)
+
+
+    return S_ERROR('Failed to store log files to LogSE and failover SEs')
+
 ################################################################################
   def uploadOutput(self):
     """ Perform all the necessary operations for the output data upload
-    """      
-    
+    """
+
     all_done = True
 
     ####################################
     # Get the Pool XML catalog if any
-    self.getPoolXMLCatalogs()
+    self.__getPoolXMLCatalogs()
 
     #########################################################################
     # Store to the grid and register the output files
@@ -419,16 +420,16 @@ class JobFinalization(object):
     for item in self.listoutput:
       outputName = ''
       outputSE = ''
-      outputMode = ''
+      outputMode = 'Local'
       outputType = ''
       if item.has_key('outputDataName'):
         outputName = item['outputDataName']
       if item.has_key('outputDataSE'):
         outputSE = item['outputDataSE']
       if item.has_key('outputDataMode'):
-        outputMode = item['outputDataMode']    
+        outputMode = item['outputDataMode']
       if item.has_key('outputDataType'):
-        outputType = item['outputDataType']   
+        outputType = item['outputDataType']
       outputs.append((outputName,outputSE,outputType,outputMode))
     outputs_done = []
     all_done = False
@@ -446,7 +447,7 @@ class JobFinalization(object):
           else:
             all_done = False
       count += 1
-    
+
     return S_OK()
 
 ################################################################################
@@ -454,84 +455,59 @@ class JobFinalization(object):
     """ Determine the output file destination SEs and upload file to the grid
     """
 
-    ses = []
-    # Add output SE defined in the job description
-    self.log.info(outputse)
-    if outputse != None:
-      outses = outputse.split(',')
-      for outse in outses:
-        outses = gConfig.getValue('/Operations/StorageElementGroups/'+outse,[])
-        ses += outses
-
-    # Attempt to store first file to the LocalSE if it is in the list of
-    # requested SEs
-
-    if len(ses) == 0:
-      # Processing for this output type/file is not requested
-      return S_OK()
-
-    self.log.info( "Processing output %s %s" % ( str( output ), str( otype ) ) )
-
-    # Check the validity of SEs
-    ses_trial = uniq(ses)
-    self.log.info(ses_trial)
-    ses = []
-    ses_local = []
-    seValue = None
-    try:
-      seValue = gConfig.getValue('/LocalSite/LocalSE','')
-    except Exception,x:
-      self.log.warn('Could not get local SE list with exception')
-      self.log.warn(str(x))
-    if not seValue:
-      self.log.info('Trying again to find the LocalSE list')
-      self.__loadLocalCFGFiles(self.root+'/../')
-      self.__loadLocalCFGFiles(os.getcwd())
-      self.__loadLocalCFGFiles(os.getcwd()+'/../')
-      seValue = gConfig.getValue('/LocalSite/LocalSE','')
-      self.log.info('Finally resolved LocalSE %s' %(seValue))
-
-    self.log.info('/LocalSite/LocalSE is: %s' %seValue)
-    if not seValue:
-      self.log.warn('LocalSE list is null from CS')
-      return S_ERROR('Site/LocalSE list is null')
-
-    resultSEList = None
-    if type(seValue) == type(" "):
-      resultSEList = seValue.replace(' ','').split(',')
-    elif type(seValue) == type([]):
-      resultSEList = seValue
-    else:
-      self.log.info('CS returned problematic value for /LocalSite/LocalSE')
-      return S_ERROR('LocalSite/LocalSE error from CS')
-
-    self.log.info('Site LocalSE list is: %s' %resultSEList)
-    for se in resultSEList:
-      ses_local.append(se)
-    looping = 0
-    for se in ses_trial:
-      for sel in ses_local:
-        if sel == se:
-          ses.append(sel)
-          looping = 1
-          break
-      if looping == 1:
-        break
-
-    ses = uniq(ses)
-
-    if len(ses) > 0:
-      self.log.info("File %s will be stored to the following SEs:\n%s" % (output, str(ses)))
-
-      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
-      result = self.uploadDataFile(output,lfn,ses)
-      return result
-    else:
+    result = self.__getDestinationSEList(outputse)
+    if not result['OK']:
       self.log.error('No valid SEs defined as file destinations')
-      return S_ERROR('No valid SEs defined as file destinations')
+      return result
+    ses = result['Value']
 
+    self.log.info("File %s will be stored to the following SEs:\n%s" % (output, str(ses)))
 
-  #############################################################################
+    lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
+    if outputmode == "Any":
+      result = self.uploadDataFile(output,lfn,ses,allSEs=False)
+    elif outputmode == "All":
+      result = self.uploadDataFile(output,lfn,ses,allSEs=True)
+    elif outputmode == "Local":
+      ses = ses[:1]
+      result = self.uploadDataFile(output,lfn,ses,allSEs=False)
+    return result
+
+#############################################################################
+  def __getDestinationSEList(self,outputSE):
+    """ Evaluate the output SE list
+    """
+
+    SEs = []
+    # Add output SE defined in the job description
+    self.log.info(outputSE)
+    if outputSE != None:
+      outSEs = outputSE.split(',')
+      for outSE in outSEs:
+        csSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outSE,[])
+        if outSEs:
+          SEs += outSEs
+        else:
+          # Check if this is a conrete SE name
+          se =  gConfig.getValue('/Resources/StorageElement/'+outSE,'')
+          if se:
+            SEs.append(se)
+
+    if not SEs:
+      return S_ERROR('No valid SE names specified')
+
+    localSEs = self.__getLocalSEList()
+
+    # Make sure that local SEs are passing first
+    newSEList = []
+    for se in SEs:
+      if se in localSEs:
+        newSEList.append(se)
+    SEs = uniq(newSEList+SEs)
+
+    return S_OK(SEs)
+
+#############################################################################
   def __loadLocalCFGFiles(self,localRoot):
     """Loads any extra CFG files residing in the local DIRAC site root.
     """
@@ -541,6 +517,25 @@ class JobFinalization(object):
       if re.search('.cfg$',i):
         gConfig.loadFile('%s/%s' %(localRoot,i))
         self.log.verbose('Found local .cfg file %s' %i)
+
+###################################################################################################
+  def __getLocalSEList(self):
+    """ Ge the list of local Storage Element names
+    """
+
+    # This should be done in a better defined way elsewhere
+    self.__loadLocalCFGFiles(self.root+'/../')
+    self.__loadLocalCFGFiles(os.getcwd())
+    self.__loadLocalCFGFiles(os.getcwd()+'/../')
+
+    # SEs defined locally
+    localses = gConfig.getValue('/LocalSite/LocalSE',[])
+    prefix = self.site.split('.')[0]
+    sname = self.site.replace(prefix+'.','')
+    # SEs defined in the Configuration Service
+    csses = gConfig.getValue('/Resources/Sites/%s/%s/SE' % (prefix,sname),[])
+    ses = uniq(localses+csses)
+    return ses
 
 ###################################################################################################
   def uploadDataFile(self,datafile,lfn,destinationSEList,allSEs=True):
@@ -580,14 +575,14 @@ class JobFinalization(object):
           # We can stop here by setting appropriate requests
           for sse in destination_ses:
             if sse != se and sse not in done_ses:
-              self.setReplicationRequest(lfn,se,removeOrigin=False)  
+              self.setReplicationRequest(lfn,se,removeOrigin=False)
               request_ses.append(sse)
           resultDict = {}
           resultDict['Successful'] = done_ses
           resultDict['Failed'] = failed_ses
-          resultDict['RequestSet'] = request_ses    
-          result = S_OK(resultDict)    
-            
+          resultDict['RequestSet'] = request_ses
+          result = S_OK(resultDict)
+
       else:
         self.log.warn(result)
         self.__setJobParam('Upload failed for file: %s to SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
@@ -598,21 +593,21 @@ class JobFinalization(object):
           if result.has_key('Register'):
             self.setPfnReplicationRequest(lfn,se,result,removeOrigin=True)
           else:
-            self.setReplicationRequest(lfn,se,removeOrigin=True) 
-          failover_ses.append(se)      
+            self.setReplicationRequest(lfn,se,removeOrigin=True)
+          failover_ses.append(se)
         else:
-          failed_ses.append(se)      
+          failed_ses.append(se)
 
     resultDict = {}
     resultDict['Successful'] = done_ses
     resultDict['Failed'] = failed_ses
-    resultDict['RequestSet'] = request_ses  
-    resultDict['Failed'] = failover_ses  
+    resultDict['RequestSet'] = request_ses
+    resultDict['Failed'] = failover_ses
     if failed_ses:
       result = S_ERROR('Failed to save file %s' % lfn)
       result['Value']
     else:
-      return S_OK(resultDict)  
+      return S_OK(resultDict)
 
 ############################################################################################
   def uploadDataFileToSE(self,datafile,lfn,guid,se):
@@ -624,7 +619,7 @@ class JobFinalization(object):
     fname = os.path.basename(datafile)
     lfn_directory = os.path.dirname(lfn)
     size = getfilesize(datafile)
-    
+
     self.log.info("Copying %s to %s" % (datafile,se))
     result = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
     if result['OK']:
@@ -640,23 +635,24 @@ class JobFinalization(object):
           return res
         else:
           self.log.warn('Error while %s file upload:' % fname)
-          self.log.warn(str(resDict))      
+          self.log.warn(str(resDict))
+          return S_ERROR('Unknown error')
       else:
         return S_OK()
     else:
-      return result    
-            
-    
+      return result
+
+
 #############################################################################################
   def uploadFileFailover(self,datafile,lfn,guid):
     """ Upload file to a failover SE
-    """    
-    
+    """
+
     fname = os.path.basename(datafile)
     failover_ses = gConfig.getValue('/Operations/StorageElementGroups/Tier1-Failover',[])
     random.shuffle(failover_ses)
     print failover_ses
-    
+
     count = 0
     max_count = 3
     while (count < max_count):
@@ -666,51 +662,81 @@ class JobFinalization(object):
         if result['OK']:
           result['FailoverSE'] = se
           return result
-          
-            
-    return S_ERROR('Failed to store %s file to any failover SE' % fname)    
-    
+
+
+    return S_ERROR('Failed to store %s file to any failover SE' % fname)
+
 #############################################################################################
   def setReplicationRequest(self,lfn,se,removeOrigin=False):
-    """ Set replication request for lfn with se Storage Element destination 
-    """         
-    
-    pass
-    
-#############################################################################################
-  def setRegistrationRequest(self,result):
-    """ Set replication request for lfn with se Storage Element destination 
-    """         
-    
-    pass    
-    
-#############################################################################################
-  def setPfnReplicationRequest(self,lfn,se,result,removeOrigin=False):
-    """ Set replication request for lfn with se Storage Element destination 
-    """         
-    
-    pass    
-
-
-  #############################################################################################
-  def getSEName(self,se):
-    """ Get non-aliased SE name
+    """ Set replication request for lfn with se Storage Element destination
     """
 
-    section = gConfig.getSections('Resources/StorageElements/'+se)
-    if section['OK'] != True:
-      return ''
-    selement = StorageElement(se)
-    if not selement.isValid():
-      return ''
+    result = self.request.initiateSubRequest('transfer')
+    if not result['OK']:
+      return result
+
+    index = result['Value']
+    fileDict = {'LFN':lfn,'TargetSE':se}
+    result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
+    if removeOrigin:
+      result = self.addSubRequestAttributeValue(index,'transfer','Operation','moveAndRegister')
     else:
-      return selement.name
+      result = self.addSubRequestAttributeValue(index,'transfer','Operation','replicateAndRegister')
+
+    return S_OK()
+
+#############################################################################################
+  def setRegistrationRequest(self,fileDict):
+    """ Set replication request for lfn with se Storage Element destination
+    """
+
+    result = self.request.initiateSubRequest('register')
+    if not result['OK']:
+      return result
+
+    index = result['Value']
+    result = self.request.setSubRequestFiles(index,'register',[fileDict])
+    result = self.addSubRequestAttributeValue(index,'register','Operation','registerFile')
+
+    return S_OK()
+
+#############################################################################################
+  def setPfnReplicationRequest(self,lfn,se,fileDict,removeOrigin=False):
+    """ Set replication request for lfn with se Storage Element destination
+    """
+
+    result = self.request.initiateSubRequest('transfer')
+    if not result['OK']:
+      return result
+
+    index = result['Value']
+    result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
+    if removeOrigin:
+      result = self.addSubRequestAttributeValue(index,'transfer','Operation','moveAndRegister')
+    else:
+      result = self.addSubRequestAttributeValue(index,'transfer','Operation','copyAndRegister')
+
+    return S_OK()
+
 
   #############################################################################
-  def createRequest(self, send=True):
+  def createRequest(self):
     """ Create and send a combined request for all the pending operations
     """
-    
+
+    # get the accumulated reporting request
+    if self.jobReport:
+      reportRequest = self.jobReport.generateRequest()
+
+    self.request.update(reportRequest)
+    request_string = self.request.toXML()
+
+    # Write out the request string
+    fname = self.PRODUCTION_ID+"_"+self.JOB_ID+"_request.xml"
+    xmlfile = open(fname,'w')
+    xmlfile.write(request_string)
+    xmlfile.close()
+
     return S_OK()
 
   #############################################################################
