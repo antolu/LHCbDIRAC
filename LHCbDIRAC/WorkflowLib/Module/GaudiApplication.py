@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.35 2008/05/05 17:36:20 paterson Exp $
+# $Id: GaudiApplication.py,v 1.36 2008/05/05 17:57:49 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.35 2008/05/05 17:36:20 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.36 2008/05/05 17:57:49 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -290,12 +290,14 @@ class GaudiApplication(object):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.0.35 lfc oracle\n')
+#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 # +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.0.35 lfc oracle\n')
+#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
 #                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
