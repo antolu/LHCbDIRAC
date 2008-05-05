@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.33 2008/04/28 10:01:32 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.34 2008/05/05 15:48:19 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.33 2008/04/28 10:01:32 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.34 2008/05/05 15:48:19 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -253,7 +253,7 @@ class GaudiApplication(object):
 
     if os.path.exists(self.appName+'Run.sh'): os.remove(self.appName+'Run.sh')
     script = open(self.appName+'Run.sh','w')
-    script.write('#!/bin/bash \n')
+    script.write('#!/bin/sh \n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
     script.write('#####################################################################\n')
@@ -289,11 +289,11 @@ class GaudiApplication(object):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
 #                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+ ' '+\
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client -v 1.7.35 lfc oracle\n')
 #                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
