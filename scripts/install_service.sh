@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.2 2008/04/19 11:04:34 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.3 2008/05/06 09:24:50 rgracian Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -13,12 +13,13 @@ System=$1
 Service=$2
 [ -z "$Service" ] && exit 1
 echo ${System}/${Service} ..
-CURDIR=`dirname $0`
-CURDIR=`cd $CURDIR; pwd -P`
 #
 ServiceDir=$DESTDIR/runit/${System}/${Service}Service
-rm -rf $ServiceDir
-mkdir -p $ServiceDir/log
+if [ -z "$3" ] || [ -d  $ServiceDir ] ; then
+  # Create a new installation or Replace existing on if required
+  rm -rf $ServiceDir
+  mkdir -p $ServiceDir/log
+fi
 #
 cat >> $ServiceDir/log/config << EOF
 s10000000
@@ -38,17 +39,11 @@ source $DESTDIR/bashrc
 #
 exec 2>&1
 #
+dirac-service -o LogLevel=VERBOSE $System/$Service \$DIRAC/etc/${System}_${Service}.cfg
 EOF
-
 chmod +x $ServiceDir/log/run $ServiceDir/run
 
-
 touch $DIRAC/etc/${System}_${Service}.cfg
-cat >> $ServiceDir/run << EOF
-dirac-service -o LogLevel=VERBOSE $System/$Service \$DIRAC/etc/${System}_${Service}.cfg
-
-EOF
-
 cd $ServiceDir
 
 runsv . &
