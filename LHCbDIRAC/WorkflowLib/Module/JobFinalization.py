@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.49 2008/05/06 14:41:24 atsareg Exp $
+# $Id: JobFinalization.py,v 1.50 2008/05/06 15:26:15 atsareg Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.49 2008/05/06 14:41:24 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.50 2008/05/06 15:26:15 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -60,8 +60,8 @@ class JobFinalization(object):
   def execute(self):
     self.__report('Starting Job Finalization')
     # first lets collect all outputs in single
-    self.listoutput = self.listoutput_1+self.listoutput_2+self.listoutput_3+self.listoutput_4+self.listoutput_5+self.listoutput_6
-    print "KGG ->>>>>>>>>>>>>", self.listoutput
+    #self.listoutput = self.listoutput_1+self.listoutput_2+self.listoutput_3+self.listoutput_4+self.listoutput_5+self.listoutput_6
+    #print "KGG ->>>>>>>>>>>>>", self.listoutput
     #if len(self.listoutput) == 0:
       #self.listoutput = self.listoutput1+self.listoutput2
     res = shellCall(0,'ls -al')
