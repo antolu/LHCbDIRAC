@@ -1261,7 +1261,7 @@ if __name__ == '__main__':
       libs.sort()
       platformTuple += ( '-'.join(libc_ver(libs[-1])),)
       # platformTuple += ( '-'.join(libc_ver('/lib/libc.so.6')),)
-    elif platformTuple[0] == 'MacOS':
+    elif platformTuple[0] == 'Darwin':
       platformTuple += ( '.'.join(mac_ver()[0].split(".")[:2]),)
     elif platformTuple[0] == 'Windows':
       platformTuple += ( win32_ver()[0],)
