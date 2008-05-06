@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.17 2008/04/30 08:13:26 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.18 2008/05/06 16:48:18 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.17 2008/04/30 08:13:26 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.18 2008/05/06 16:48:18 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -49,7 +49,10 @@ class BookkeepingReport(object):
 
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
     site = gConfig.getValue('/LocalSite/Site','Site')
-    job_mode = gConfig.getValue('/LocalSite/Site','Setup')
+    if self.workflow_commons.has_key('DataType'):
+      job_mode = self.workflow_commons['DataType'].lower()
+    else:
+      job_mode = 'test'
     ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
     ltime = time.strftime("%H:%M",time.localtime(time.time()))
 
