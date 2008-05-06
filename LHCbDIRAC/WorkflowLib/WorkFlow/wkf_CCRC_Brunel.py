@@ -109,6 +109,7 @@ module6 = ModuleDefinition('Dummy')
 module6.setDescription('Dummy module')
 module6.setBody('from WorkflowLib.Module.Dummy import * \n')
 
+
 ###############   STEPS ##################################
 #### step 1 we are creating step definition
 step1 = StepDefinition('Gaudi_App_Step')
@@ -125,8 +126,6 @@ moduleInstance4.setLink('NUMBER_OF_EVENTS_INPUT',moduleInstance3.getName(),'NUMB
 moduleInstance4.setLink('NUMBER_OF_EVENTS_OUTPUT',moduleInstance3.getName(),'NUMBER_OF_EVENTS_OUTPUT')
 # in principle we can link parameters of moduleInstance2 with moduleInstance1 but
 # in this case we going to use link with the step
-step1.addModule(module5)
-moduleInstance5 = step1.createModuleInstance('JobFinalization','module5')
 
 # now we can add parameters for the STEP but instead of typing them we can just use old one from modules
 step1.addParameterLinked(module3.parameters)
@@ -142,6 +141,13 @@ step1.unlink(["SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_O
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
 
 #outdata = "@{STEP_ID}.{appType}"
+step2 = StepDefinition('Job_Finalization')
+step2.addModule(module5)
+moduleInstance6 = step2.createModuleInstance('JobFinalization','module5')
+step2.addParameterLinked(module5.parameters)
+step2.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+step2.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
+step2.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 
 
 ##############  WORKFLOW #################################
@@ -169,6 +175,17 @@ stepInstance1.setLink("inputData","self", "InputData") # KGG linked with InputDa
 list_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"rdst","outputDataSE":"Tier1-RDST"}]
 stepInstance1.setValue("listoutput",list_out)
 
+workflow1.addStep(step2)
+step2_prefix="step2_"
+stepInstance2 = workflow1.createStepInstance('Job_Finalization', 'Step2')
+stepInstance2.linkUp(stepInstance2.parameters, step2_prefix)
+stepInstance2.linkUp("CONFIG_NAME")
+stepInstance2.linkUp("CONFIG_VERSION")
+stepInstance2.linkUp("DataType")
+stepInstance2.linkUp("SourceData")
+stepInstance2.linkUp("poolXMLCatName")
+stepInstance2.unlink(["listoutput","inputData"])
+stepInstance2.setLink("listoutput1",stepInstance1.getName(),"listoutput")
 
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
@@ -205,7 +222,7 @@ workflow1.unlink(workflow1.parameters)
 workflow1.addParameter(Parameter("PRODUCTION_ID","00003033","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000011","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
-workflow1.addParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
+workflow1.addParameter(Parameter("DataType","data","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
