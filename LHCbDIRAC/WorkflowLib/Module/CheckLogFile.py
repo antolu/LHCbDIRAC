@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: CheckLogFile.py,v 1.12 2008/03/04 15:04:37 joel Exp $
+# $Id: CheckLogFile.py,v 1.13 2008/05/06 14:41:12 atsareg Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: CheckLogFile.py,v 1.12 2008/03/04 15:04:37 joel Exp $"
+__RCSID__ = "$Id: CheckLogFile.py,v 1.13 2008/05/06 14:41:12 atsareg Exp $"
 
 import commands, os
 
@@ -66,7 +66,11 @@ class CheckLogFile(object):
     subject = self.appName+' '+ self.appVersion + \
               " "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+jid
 
-    self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+    #self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+    if self.workflow_commons.has_key('DataType'):
+      self.mode = self.workflow_commons['DataType'].lower()
+    else:
+      self.mode = 'test'
     # a convertir
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 #    logpath = '/lhcb/test/DIRAC3/'+self.prod_id+'/'+self.job_id

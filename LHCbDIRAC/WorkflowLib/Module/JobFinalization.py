@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.48 2008/04/30 08:14:08 paterson Exp $
+# $Id: JobFinalization.py,v 1.49 2008/05/06 14:41:24 atsareg Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.48 2008/04/30 08:14:08 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.49 2008/05/06 14:41:24 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -72,7 +72,11 @@ class JobFinalization(object):
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
     self.__loadLocalCFGFiles(self.root)
-    self.mode = gConfig.getValue('LocalSite/Setup','test')
+    #self.mode = gConfig.getValue('LocalSite/Setup','test')
+    if self.workflow_commons.has_key('DataType'):
+      self.mode = self.workflow_commons['DataType'].lower()
+    else:
+      self.mode = 'test'
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
     self.logdir = self.root+'/job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID
     self.log.info('Log directory is %s' %self.logdir)

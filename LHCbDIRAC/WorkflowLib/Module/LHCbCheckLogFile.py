@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LHCbCheckLogFile.py,v 1.16 2008/03/06 14:26:35 joel Exp $
+# $Id: LHCbCheckLogFile.py,v 1.17 2008/05/06 14:41:35 atsareg Exp $
 ########################################################################
 """ Base LHCb Gaudi applications log checking utility """
 
-__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.16 2008/03/06 14:26:35 joel Exp $"
+__RCSID__ = "$Id: LHCbCheckLogFile.py,v 1.17 2008/05/06 14:41:35 atsareg Exp $"
 
 import os, string,sys
 
@@ -40,7 +40,11 @@ class LHCbCheckLogFile(CheckLogFile):
       err = 'None'
 
       if self.iClient is None:
-         self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+         #self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+         if self.workflow_commons.has_key('DataType'):
+           self.mode = self.workflow_commons['DataType'].lower()
+         else:
+           self.mode = 'test'
          url = gConfig.getValue('/Systems/ProductionManagement/Development/URLs/ProcessingDB')
          self.server = xmlrpclib.Server(url)
          try:
