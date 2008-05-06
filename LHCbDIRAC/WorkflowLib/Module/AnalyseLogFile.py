@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.4 2008/04/15 14:11:14 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.5 2008/05/06 06:02:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.4 2008/04/15 14:11:14 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.5 2008/05/06 06:02:04 joel Exp $"
 
 import commands, os, time
 
@@ -251,6 +251,11 @@ class AnalyseLogFile(object):
       linenextevt,n = self.grep(self.appLog,'Terminating event processing loop due to errors')
       if n != 0:
           return S_ERROR(mailto + 'Event loop no terminated')
+
+      self.log.info('GLIBC error')
+      linenextevt,n = self.grep(self.appLog,' glibc ')
+      if n != 0:
+          return S_ERROR(mailto + 'Problem with glibc ')
 
       writerr = 'Writer failed'
       if self.appName == 'Gauss':
