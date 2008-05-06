@@ -10,14 +10,18 @@ module1 = ModuleDefinition('BaseModule')#during constraction class creates dupli
 module1.setDescription('Gaudi Application module')
 module1.setBody('from WorkflowLib.Module.BaseModule import BaseModule\n')
 module1.addParameter(Parameter("enable","true","string","","",True, False, "enabling module"))
-module1.addParameter(Parameter("result_prev","None","string","","",True, False, "result from prev modile"))
-module1.addParameter(Parameter("result","None","string","","",False, True, "result"))
+module1.addParameter(Parameter("result_prev","None","dict","","",True, False, "result from prev modile"))
+module1.addParameter(Parameter("result","None","dict","","",False, True, "result"))
 # we are ignoring parameter "result_prev" t keep initial value given by module
 
 module2 = ModuleDefinition('BaseModuleFinalization')#during constraction class creates duplicating copies of the params
 module2.setDescription('Gaudi Application module')
 module2.setBody('from WorkflowLib.Module.BaseModuleFinalization import BaseModuleFinalization\n')
 module2.addParameter(Parameter("enable","true","string","","",True, False, "enabling module"))
+module2.addParameter(Parameter("result","None","dict","","",False, True, "result"))
+module2.addParameter(Parameter("result_1","None","dict","","",True, False, "result"))
+module2.addParameter(Parameter("result_2","None","dict","","",True, False, "result"))
+module2.addParameter(Parameter("result_3","None","dict","","",True, False, "result"))
 
 ###############   STEPS ##################################
 step1 = StepDefinition('Gaudi_App_Step')
