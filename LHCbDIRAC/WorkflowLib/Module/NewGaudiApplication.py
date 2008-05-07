@@ -1,9 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.16 2008/05/07 13:51:20 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.17 2008/05/07 13:58:05 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.16 2008/05/07 13:51:20 rgracian Exp $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.17 2008/05/07 13:58:05 rgracian Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -14,10 +15,11 @@ from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
 
+from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+
 import shutil, re, string, os, sys
 
 class GaudiApplication(object):
-  
 
   #############################################################################
   def __init__(self):
@@ -39,10 +41,20 @@ class GaudiApplication(object):
     self.generator_name=''
     self.optfile_extra = ''
     self.optfile = ''
-    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
+    # FIXME: the JobID can be taken from the Job Dictionary by the LHCbJob module
+    # like Application Name/Version, Options file, InputData,...
+    # we do not need an evieonmental variable
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
+    # FIXME: Other parameters fixed by the calling module
+    self.appName = ''
+    self.appVersion = ''
+    self.optionsFile = ''
+    self.optionsLine = ''
+    # FIXME: We should find a better name 
+    self.systemConfig = ''
+    self.logfile = ''
 
   #############################################################################
   def resolveInputDataOpts(self,options):
@@ -136,24 +148,15 @@ class GaudiApplication(object):
 
   #############################################################################
   def manageOpts(self):
-    print "manage options OPTS",self.optfile
-    options = open('gaudi.opts','w')
+
+    options = open('gaudirun.opts','w')
+    options.write('#include "%s"  ' % self.optfile)
     options.write('\n\n//////////////////////////////////////////////////////\n')
     options.write('// Dynamically generated options in a production or analysis job\n\n')
-    if os.path.exists('gaudirun.opts'): os.remove('gaudirun.opts')
-    if os.path.exists('gaudiruntmp.opts'): os.remove('gaudiruntmp.opts')
-    if re.search('\$',self.optfile) is None:
-      comm = 'cat '+self.optfile+' > gaudiruntmp.opts'
-      output = shellCall(0,comm)
-    else:
-      comm = 'echo "#include '+self.optfile+'" > gaudiruntmp.opts'
-      commtmp = open('gaudiruntmp.opts','w')
-      newline = '#include "'+self.optfile+'"'
-      commtmp.write(newline)
-      commtmp.close()
 
-    self.optfile = 'gaudiruntmp.opts'
+    self.log.info("Adding extra options : %s" % (self.optionsLine))
     for opt in self.optionsLine.split(';'):
+      # FIXME: I do not understand what this magic does, why "tring" is searched?
       if not re.search('tring',opt):
         if re.search('#include',opt):
           options.write(opt+'\n')
@@ -170,101 +173,100 @@ class GaudiApplication(object):
     options.write('\n//EOF\n')
     options.close()
 
-    comm = 'cat '+self.optfile+' gaudi.opts > gaudirun.opts'
-    output = shellCall(0,comm)
     self.optfile = 'gaudirun.opts'
-    os.environ['JOBOPTPATH'] = 'gaudirun.opts'
 
   #############################################################################
   def managePy(self):
-    if os.path.exists(self.optfile_extra): os.remove(self.optfile_extra)
 
-    try:
-        self.log.info("Adding extra options : %s" % (self.optionsLine))
-        options = open(self.optfile_extra,'a')
-        options.write('\n\n#//////////////////////////////////////////////////////\n')
-        options.write('# Dynamically generated options in a production or analysis job\n\n')
-        options.write('from Gaudi.Configuration import *\n')
-        for opt in self.optionsLine.split(';'):
-            options.write(opt+'\n')
-            self.resolveInputDataPy(options)
-            if self.NUMBER_OF_EVENTS != None:
-               options.write("""ApplicationMgr().EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
-        options.close()
-    except Exception, x:
-        print "No additional options"
+    self.log.info("Adding extra options : %s" % (self.optionsLine))
+    options = open(self.optfile_extra,'w')
+    options.write('\n\n#//////////////////////////////////////////////////////\n')
+    options.write('# Dynamically generated options in a production or analysis job\n\n')
+    options.write('from Gaudi.Configuration import *\n')
+    for opt in self.optionsLine.split(';'):
+        options.write(opt+'\n')
+    if self.NUMBER_OF_EVENTS != None:
+       options.write("""ApplicationMgr().EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
+    options.write('\n# EOF\n')
+    options.close()
 
   #############################################################################
   def execute(self):
-    self.__report('Initializing GaudiApplication')
-    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    
+    self.result = S_OK()
+    if not self.appName or not self.appVersion:
+      self.resul = S_ERROR( 'No Gaudi Application defined' )
+    elif not self.systemConfig:
+      self.result = S_ERROR( 'No LHCb platform selected' )
+    # FIXME: clarify if appLog or logfile is to be used
+    elif not self.logfile and not self.appLog:
+      self.result = S_ERROR( 'No Log file provided' )
+    
+    if not self.result['OK']:
+      return self.result
+    
+    if not self.optionsFile and not self.optionsLine:
+      self.log.warn( 'No options File nor options Line provided' )
+    
+    self.__report( 'Initializing GaudiApplication' )
 
-    cwd = os.getcwd()
-    self.log.debug(self.version)
+    self.cwd  = os.getcwd()
+    self.root = gConfig.getValue( '/LocalSite/Root', self.cwd )
+
+    self.log.debug( self.version )
     self.log.info( "Executing application %s %s" % ( self.appName, self.appVersion ) )
-    self.log.info("Platform for job is %s" % ( self.systemConfig ) )
-    self.log.info("Root directory for job is %s" % ( self.root ) )
-    localDir = 'lib' #default
+    self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
+    self.log.info( "Root directory for job is %s" % ( self.root ) )
 
-    # Check if the specified options file exists in the current directory,
-    # for example, it is supplied in the job input sandbox
-    try:
-        exec 'from LHCb_config import *'
-    except Exception, x:
-        self.log.error("failed to import LHCb_config.py : %s" % (x))
-        self.__report('failed to import LHCb_config.py')
-        self.result = S_ERROR('failed to import LHCb_config.py')
-        return self.result
+    sharedArea = SharedArea()
+    localArea  = LocalArea()
 
-    if applications.has_key(string.upper(self.appName)) == 1:
-        prefix = applications[string.upper(self.appName)]
+    # 1. Check if Application is available in Shared Area
+    appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, sharedArea )
+    if appCmd:
+      mySiteRoot = sharedArea
     else:
-        self.log.error("Application unknown :%s" % (self.appName))
-
-
-    #will think about this later
-    #############################################################
-
-    app_dir_path = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
-                   string.upper(self.appName)+'_'+self.appVersion+'/'+prefix+'/' \
-                   +self.appVersion
-    app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
-                   string.upper(self.appName)+'_'+self.appVersion+'/InstallArea'
-
-    mysiteroot = self.root
-    if os.path.exists('%s/%s' %(cwd,self.optionsFile)):
-      self.optfile = self.optionsFile
-    # Otherwise take the one from the application options directory
-    else:
-      optpath = app_dir_path+'/options'
-      if os.path.exists(optpath+'/'+self.optionsFile):
-        self.optfile = optpath+'/'+self.optionsFile
+      # 2. If not, check if available in Local Area
+      appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, localArea )
+      if appCmd:
+        mySiteRoot = localArea
       else:
-        self.optfile = self.optionsFile
+        self.log.warn( 'Application not Found' )
+        self.__report( 'Appliaction not Found' )
+        self.result = S_ERROR( 'Application not Found' )
 
+    if not self.result['OK']:
+      return self.result
+      
+    self.__report( 'Application Found' )
+    self.log.info( 'Application Found:', appCmd )
+    appRoot = os.path.dirname(os.path.dirname( appCmd ))
+
+    # 3. Check Name options file in options directory of the Application 
+    self.optfile = os.path.join( appRoot, 'options', self.optionsFile )
+    # if there is a $ character in self.optionsFile the lower will never match
+    if os.path.exists( self.optionsFile ):
+      self.optfile = self.optionsFile
+      self.log.info( 'Using default options file:', self.optfile )
+
+    # 4. Check user provided options file and Manage Options
+    # it is done here so that it can be used of the environment
     if self.optionsFile.find('.opts') > 0:
-      self.optfile_extra = './gaudi_extra_options.opts'
       optionsType = 'opts'
       self.manageOpts()
-    else:
+    elif self.optionsFile.find('.py') > 0:
       optionsType = 'py'
       self.optfile_extra = './gaudi_extra_options.py'
       self.managePy()
+    else:
+      pass
 
-#    comm = open(optfile,'a')
-#    newline = """OutputStream("DstWriter").Output = "DATAFILE='PFN:joel.dst' TYPE='POOL_ROOTTREE' OPT='REC'"\n """
-#    comm.write(newline)
-#    comm.close()
-
-
-#    os.environ['JOBOPTPATH'] = optfile
-#    gaudiEnv['JOBOPTPATH'] = 'gaudirun.opts'
-
+# This is not necessary since it is passed as argument
+#    os.environ['JOBOPTPATH'] = 'gaudirun.opts'
 
     cmtEnv = dict(os.environ)
     gaudiEnv = {}
 
-    mySiteRoot = os.path.join( self.root, localDir )
     cmtEnv['MYSITEROOT'] = mySiteRoot
     cmtEnv['CMTCONFIG']  = self.systemConfig
 
@@ -284,32 +286,39 @@ class GaudiApplication(object):
     # Run ExtCMT
     ret = Source( timeout, [extCMT], cmtEnv )
     if ret['OK']:
-      self.log.info( ret['stdout'] )
+      if ret['stdout']:
+        self.log.info( ret['stdout'] )
+      if ret['stderr']:
+        self.log.warn( ret['stderr'] )
       setupProjectEnv = ret['outputEnv']
     else:
       self.log.error( ret['Message'])
-      self.log.error( ret['stdout'] )
-      self.log.error( ret['stderr'] )
+      if ret['stdout']:
+        self.log.info( ret['stdout'] )
+      if ret['stderr']:
+        self.log.warn( ret['stderr'] )
       self.result = ret
       return self.result
 
     # Run SetupProject
     ret = Source( timeout, setupProject, setupProjectEnv )
     if ret['OK']:
-      self.log.info( ret['stdout'] )
+      if ret['stdout']:
+        self.log.info( ret['stdout'] )
+      if ret['stderr']:
+        self.log.warn( ret['stderr'] )
       gaudiEnv = ret['outputEnv']
     else:
       self.log.error( ret['Message'])
-      self.log.error( ret['stdout'] )
-      self.log.error( ret['stderr'] )
+      if ret['stdout']:
+        self.log.info( ret['stdout'] )
+      if ret['stderr']:
+        self.log.warn( ret['stderr'] )
       self.result = ret
       return self.result
 
-    for k in gaudiEnv:
-      print k, '=', gaudiEnv[k]
-
     # Now link all libraries in a single directory
-    appDir = os.path.join(os.getcwd(),'%s_%s' % ( self.appName, self.appVersion ))
+    appDir = os.path.join( self.cwd, '%s_%s' % ( self.appName, self.appVersion ))
     if os.path.exists( appDir ):
       import shutil
       shutil.rmtree( appDir )
@@ -318,9 +327,19 @@ class GaudiApplication(object):
     #if os.path.exists( extraLibs ):
     #  gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % extraLibs
     #  self.log.info( 'Adding %s to LD_LIBRARY_PATH' % extraLibs )
+    # Add compat libs
+    compatLib = os.path.join( self.root, self.systemConfig, 'compat' )
+    if os.path.exists(compatLib):
+      gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % compatLib
     gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
+
     # 
+    if not gaudiEnv.has_key('GAUDIALGROOT'):
+      self.log.warn( 'GAUDIALGROOT not defined' )
+      self.log.warn( 'Can not determine Gaudi Root' )
+      self.result = S_ERROR( 'Can not determine Gaudi Root' )
+      return self.result
     gaudiRoot = gaudiEnv['GAUDIALGROOT']
     gaudiVer = os.path.basename( gaudiRoot )
     while gaudiVer.find('GAUDI_v') != 0:
@@ -334,8 +353,8 @@ class GaudiApplication(object):
     gaudiMinor = int(gaudiVer.split('_v')[1].split('r')[1])
 
     if gaudiMajor > 19 or ( gaudiMajor == 19 and gaudiMinor > 6 ) :
-      self.log.INFO( 'Gaudi Version %s' % gaudiVer )
-      self.log.INFO( 'Replace  PoolDbCacheSvc.Catalog by FileCatalog.Catalogs in options file.' )
+      self.log.info( 'Gaudi Version %s' % gaudiVer )
+      self.log.info( 'Replace  PoolDbCacheSvc.Catalog by FileCatalog.Catalogs in options file.' )
       f1 = open( self.optionsFile, 'r' )
       f2 = open( self.optionsFile+'.new', 'w')
       lines = f1.readlines()
@@ -358,16 +377,17 @@ class GaudiApplication(object):
       gaudiCmd.append(self.optfile_extra)
     else:
       # Default
-      gaudiCmd = [ os.path.join( app_dir_path_install, self.systemConfig, 'bin', self.appName+'.exe' )]
+      gaudiCmd = [appCmd]
       if os.path.exists( os.path.join('lib',self.appName+'.exe')):
         gaudiCmd = [ os.path.join('lib',self.appName+'.exe' )]
-        self.log.INFO( 'Found User shipped executable %s' % self.appName+'.exe' )
+        self.log.info( 'Found User shipped executable %s' % self.appName+'.exe' )
       gaudiCmd.append( self.optfile )
 
     if self.appLog == None:
       self.appLog = self.logfile
     if os.path.exists(self.appLog): os.remove(self.appLog)
     self.__report('%s %s' %(self.appName,self.appVersion))
+    self.writeGaudiRun(gaudiCmd, gaudiEnv)
     ret = systemCall(0,gaudiCmd,env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
     if not ret['OK']:
@@ -386,14 +406,6 @@ class GaudiApplication(object):
     stdError = resultTuple[2]
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
-
-    # logfile = open(self.appLog,'w')
-    # logfile.write(stdOutput)
-
-    # if len(stdError) > 0:
-    #   logfile.write('\n\n\nError log:\n=============\n')
-    #   logfile.write(stdError)
-    # logfile.close()
 
     failed = False
     if status > 0:
@@ -416,6 +428,42 @@ class GaudiApplication(object):
     self.result = S_OK()
     return self.result
 
+  def writeGaudiRun( self, gaudiCmd, gaudiEnv, shell='/bin/bash'):
+    """
+     Write a shell script that can be used to run the application
+     with the same environment as in GaudiApplication.
+     This script is not used internally, but can be used "a posteriori" for 
+     debugging purposes 
+    """
+    if shell.find('csh'):
+      ext = 'csh'
+      environ = []
+      for var in gaudiEnv:
+        environ.append('setenv %s "%s"' % (var, gaudiEnv[var]) )
+    else:
+      ext = 'sh'
+      for var in gaudiEnv:
+        environ.append('export %s="%s"' % (var, gaudiEnv[var]) )
+
+    scriptName = '%sRun.%s' % ( self.appName, ext )
+    script = open( scriptName, 'w' )
+    script.write( """#! %s
+#
+# This is a debug script to run %s %s interactively
+#
+%s
+#
+%s | tee %s
+#
+exit $?
+#
+""" % (shell, self.appName, self.appVersion, 
+        '\n'.join(environ), 
+        ' '.join(gaudiCmd),
+        self.appLog ) )
+
+    script.close()
+
   #############################################################################
   def redirectLogOutput(self, fd, message):
     print message
@@ -436,7 +484,8 @@ class GaudiApplication(object):
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
+    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
+    jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])
 
