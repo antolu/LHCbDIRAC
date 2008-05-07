@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.8 2008/04/11 11:18:56 joel Exp $
+# $Id: LogChecker.py,v 1.9 2008/05/07 23:18:01 atsareg Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.8 2008/04/11 11:18:56 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.9 2008/05/07 23:18:01 atsareg Exp $"
 
-from WorkflowLib.Module.BooleCheckLogFile import *
-from WorkflowLib.Module.BrunelCheckLogFile import *
+#from WorkflowLib.Module.BooleCheckLogFile import *
+#from WorkflowLib.Module.BrunelCheckLogFile import *
 from WorkflowLib.Module.AnalyseLogFile import *
 #from WorkflowLib.Module.GaussCheckLogFile import *
 from WorkflowLib.Module.DaVinciCheckLogFile import *
@@ -33,12 +33,12 @@ class LogChecker(object):
   def execute(self):
 
     if self.appName == 'Boole':
-        self.logChecker = BooleCheckLogFile()
+        self.logChecker = AnalyseLogFile()
     elif  self.appName == 'Brunel':
 #        self.logChecker = BrunelCheckLogFile()
         self.logChecker = AnalyseLogFile()
     elif  self.appName == 'Gauss':
-        self.logChecker = GaussCheckLogFile()
+        self.logChecker = AnalyseLogFile()
     elif  self.appName == 'DaVinci':
 #        self.logChecker = DaVinciCheckLogFile()
         self.logChecker = AnalyseLogFile()
