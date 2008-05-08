@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.9 2008/02/27 10:57:37 gkuznets Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.10 2008/05/08 20:28:56 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.9 2008/02/27 10:57:37 gkuznets Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.10 2008/05/08 20:28:56 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -33,7 +33,6 @@ class TransformationAgent(Agent):
     self.server = RPCClient('ProductionManagement/ProductionManager')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
-    self.CCRC = True
     return result
 
   ##############################################################################
@@ -72,7 +71,13 @@ class TransformationAgent(Agent):
         if transStatus == 'Active':
           gLogger.info(self.name+".execute: Processing transformation '%s'." % transID)
           result = self.processTransformation(transDict, False)
-          gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
+          if result['OK']:
+            nJobs = result['Value']
+            gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
+            if nJobs > 0:
+              gLogger.info('%d jobs generated' % nJobs)
+          else:
+            gLogger.warn('Error while processing: '+result['Message'])    
 
         # flush transformations
         elif transStatus == 'Flush':
@@ -82,6 +87,9 @@ class TransformationAgent(Agent):
             gLogger.error(self.name+".execute: Failed to flush transformation '%s'." % transID, res['Message'])
           else:
             gLogger.info(self.name+".execute: Transformation '%s' flushed in %s seconds." % (transID,time.time()-startTime))
+            nJobs = result['Value']
+            if nJobs > 0:
+              gLogger.info('%d jobs generated' % nJobs)
             result = self.server.setTransformationStatus(transID, 'Stopped')
             if not result['OK']:
               gLogger.error(self.name+".execute: Failed to update transformation status to 'Stopped'.", res['Message'])
@@ -96,12 +104,20 @@ class TransformationAgent(Agent):
 
   #############################################################################
   def processTransformation(self, transDict, flush=False):
-    """Process one Transformation defined by its dictionary
+    """ Process one Transformation defined by its dictionary. Jobs are generated
+        using various plugin functions of the kind generateJob_<plugin_name>.
+        The plugin name is defined in the Production parameters. If not defined,
+        'Standard' plugin is used. 
     """
+
+    available_plugins = ['CCRC_RAW','Standard']
 
     prodID = long(transDict['TransID'])
     prodName = transDict['Name']
     group_size = int(transDict['GroupSize'])
+    plugin = transDict['Plugin']
+    if not plugin in available_plugins:
+      plugin = 'Standard' 
     result = self.server.getInputData(prodName,'')
     sflag = True #WARNING KGG this is possibly an error
     if result['OK']:
@@ -112,29 +128,37 @@ class TransformationAgent(Agent):
 
     gLogger.debug("Input data number of files %d" % len(data))
 
+    nJobs = 0
+
     if flush:
       while len(data) >0:
         ldata = len(data)
-        if self.CCRR:
-          data = self.generateJob_CCRC_2008(data,prodID,sflag,group_size, flush)
-        else:  
-          data = self.generateJob(data,prodID,sflag,group_size, flush)
+        data = eval('self.generateJob_'+plugin+'(data,prodID,sflag,group_size, flush)')
+        #if plugin == 'CCRC_RAW':
+        #  data = self.generateJob_CCRC_RAW(data,prodID,sflag,group_size, flush)
+        #else:  
+        #  data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
+        else:
+          nJobs += 1  
     else:
       while len(data) >= group_size:
         ldata = len(data)
-        if self.CCRC:
-          data = self.generateJob_CCRC_2008(data,prodID,sflag,group_size, flush)
-        else:  
-          data = self.generateJob(data,prodID,sflag,group_size, flush)
+        data = eval('self.generateJob_'+plugin+'(data,prodID,sflag,group_size, flush)')
+        #if plugin == 'CCRC_RAW':
+        #  data = self.generateJob_CCRC_RAW(data,prodID,sflag,group_size, flush)
+        #else:  
+        #  data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
+        else:
+          nJobs += 1  
 
-    return S_OK()
+    return S_OK(nJobs)
   
   #####################################################################################  
-  def generateJob_CCRC_2008(self,data,production,sflag,group_size,flush=False):  
+  def generateJob_CCRC_RAW(self,data,production,sflag,group_size,flush=False):  
     """ Generate a job according to the CCRC 2008 site shares 
     """
     
@@ -219,7 +243,7 @@ class TransformationAgent(Agent):
     return data_m              
 
   #####################################################################################
-  def generateJob(self,data,production,sflag,group_size,flush=False):
+  def generateJob_Standard(self,data,production,sflag,group_size,flush=False):
     """ Generates a job based on the input data, adds job to the repository
         and returns a reduced list of the lfns that rest to be processed
         If flush is true, the group_size is not taken into account
