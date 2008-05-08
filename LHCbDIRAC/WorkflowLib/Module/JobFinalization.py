@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.51 2008/05/06 18:23:56 atsareg Exp $
+# $Id: JobFinalization.py,v 1.52 2008/05/08 16:24:29 paterson Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.51 2008/05/06 18:23:56 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.52 2008/05/08 16:24:29 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -158,7 +158,7 @@ class JobFinalization(object):
       #########################################################################
       # At least some files failed uploading to the destination,
       # still trying to save the work
-
+      failoverUpload = True
       if not all_done:
         ok = True
         if self.TmpCacheSE != None:
@@ -173,10 +173,12 @@ class JobFinalization(object):
 #                pfname = result['PFN']
                 self.log.info(resCopy)
                 ok = False
-                self.log.info("NOT IMPLEMENTED : Setting delayed transfer request for %s %s %s %s " % (fname, lfn, fname, cache_se))
+                self.log.info("File saved to FailoverSE  %s %s %s %s " % (fname, lfn, fname, cache_se))
+                self.__setJobParam('OutputFile: %s' %(fname),'Saved to FailoverSE %s with LFN:%s' %(cache_se,lfn))
 #                self.setTransferRequest(lfn,pfname,size,cache_se,guid)
               else:
                 ok = False
+                failoverUpload = False
           if ok:
             all_done = True
         else:
@@ -196,8 +198,12 @@ class JobFinalization(object):
     #  If the Transfer request is not empty, send it for later retry
 
     if not all_done:
-      self.__report('Failed To Save Job Outputs')
-      result = S_ERROR('Failed To Save Job Outputs')
+      if not failoverUpload:
+        self.__report('Failed To Save Job Outputs')
+        result = S_ERROR('Failed To Save Job Outputs')
+      else:
+        self.__report('Output Sent To Failover')
+        result = S_OK('Outputs sent to FailoverSE')
     elif not error:
       self.__report('Job Finished Successfully')
 
