@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.5 2008/04/30 07:26:50 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.6 2008/05/08 15:04:55 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.5 2008/04/30 07:26:50 atsareg Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.6 2008/05/08 15:04:55 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -16,7 +16,8 @@ import os, time
 
 
 AGENT_NAME = 'ProductionManagement/ProductionUpdateAgent'
-UPDATE_STATUS = ['Created','Submitted','Received','Checking','Staging','Waiting','Matched','Running','Stalled','Completed']
+#UPDATE_STATUS = ['Created','Submitted','Received','Checking','Staging','Waiting','Matched','Running','Stalled','Completed']
+UPDATE_STATUS = []
 WAITING_STATUS = ['Submitted','Received','Checking','Staging','Waiting']
 RUNNING_STATUS = ['Running','Completed']
 FINAL_STATUS = ['Done','Failed']
@@ -73,8 +74,9 @@ class ProductionUpdateAgent(Agent):
       for jobWMS in jobIDs:
         jobID = jobDict[jobWMS][0]
         old_status = jobDict[jobWMS][1]
-        status = statusDict[jobWMS]['Status']
+        status = statusDict[jobWMS]['Status']        
         if old_status != status:
+          gLogger.verbose('Setting job status for Production/Job %d/%d to %s' % (transID,jobID,status))
           result = self.prodDB.setJobStatus(transID,jobID,status)
           if not result['OK']:
             gLogger.warn('Failed to set job status for jobID: '+str(jobID))
@@ -82,32 +84,41 @@ class ProductionUpdateAgent(Agent):
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
             gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
-          if result['Value'].has_key('InputData'):
-            lfns = result['Value']['Input'].split(',')
-            for lfn in lfns:
-              result = self.dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdate agent')    
+          elif result['Value'].has_key('InputVector'):
+            lfns = result['Value']['InputVector'].split(',')
+            for l in lfns:
+              lfn = l.replace('LFN:','')
+              gLogger.verbose('Setting Data logging for %s to Job waiting' % lfn)
+              result = self.dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdateAgent')    
         elif old_status in WAITING_STATUS and status in RUNNING_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
             gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
-          if result['Value'].has_key('InputData'):
-            lfns = result['Value']['Input'].split(',')
-            for lfn in lfns:
-              result = self.dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdate agent')
+          elif result['Value'].has_key('InputVector'):
+            lfns = result['Value']['InputVector'].split(',')
+            for l in lfns:
+              lfn = l.replace('LFN:','')
+              gLogger.verbose('Setting Data logging for %s to Job running' % lfn)
+              result = self.dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdateAgent')
         elif old_status in RUNNING_STATUS and status in FINAL_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
             gLogger.warn('Failed to get job info for production %d job %d' % (int(transID),int(jobID)))
-          if result['Value'].has_key('InputData'):
-            lfns = result['Value']['Input'].split(',')
-            for lfn in lfns:
+          elif result['Value'].has_key('InputVector'):
+            lfns = result['Value']['InputVector'].split(',')
+            for l in lfns:
+              lfn = l.replace('LFN:','')
+              dstatus = ''
               if status == "Done":
-                result = self.dataLog.addFileRecord(lfn,'Job done','','','ProductionUpdate agent')
+                dstatus = 'Job done'
               elif status == "Failed":
-                result = self.dataLog.addFileRecord(lfn,'Job failed','','','ProductionUpdate agent')
+                dstatus = 'Job failed'
               elif status == "Stalled":
-                result = self.dataLog.addFileRecord(lfn,'Job stalled','','','ProductionUpdate agent')
+                dstatus = 'Job stalled'
               else:
                 gLogger.warn('Unknown status %s for job %d/%d' % (status,jobID,jobWMS))  
+              if dstatus:
+                gLogger.verbose('Setting Data logging for %s to %s' % (lfn,dstatus)) 
+                result = self.dataLog.addFileRecord(lfn,dstatus,'','','ProductionUpdateAgent') 
 
     return S_OK()
