@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.5 2008/05/08 15:23:13 atsareg Exp $
+# $Id: NewJobFinalization.py,v 1.6 2008/05/08 21:13:11 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.5 2008/05/08 15:23:13 atsareg Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.6 2008/05/08 21:13:11 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -130,8 +130,6 @@ class JobFinalization(object):
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
     """
-
-    self.uploadFileFailover('')
 
     result = S_OK()
     logs_done = True
@@ -443,12 +441,23 @@ class JobFinalization(object):
         if not outputName in outputs_done:
           resUpload = self.uploadOutputData(outputName,outputType.upper(),outputSE,outputMode)
           if resUpload['OK']:
-            outputs_done.append(output)
+            outputs_done.append(outputName)
           else:
+            
             all_done = False
       count += 1
 
-    return S_OK()
+    outputs_failed = []
+    for outputName,outputSE,outputType,outputMode in outputs:
+      if not outputName in outputs_done:
+        outputs_failed.append(outputName) 
+    if all_done:
+      return S_OK()
+    else:
+      result = S_ERROR('Failed to upload output data')  
+      result['Value'] = {}
+      result['Value']['Failed'] = outputs_failed
+      result['Value']['Successful'] = outputs_done
 
 ################################################################################
   def uploadOutputData(self,output,otype,outputse,outputmode):
@@ -461,8 +470,6 @@ class JobFinalization(object):
       return result
     ses = result['Value']
 
-    self.log.info("File %s will be stored to the following SEs:\n%s" % (output, str(ses)))
-
     lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
     if outputmode == "Any":
       result = self.uploadDataFile(output,lfn,ses,allSEs=False)
@@ -470,7 +477,7 @@ class JobFinalization(object):
       result = self.uploadDataFile(output,lfn,ses,allSEs=True)
     elif outputmode == "Local":
       ses = ses[:1]
-      result = self.uploadDataFile(output,lfn,ses,allSEs=False)
+      result = self.uploadDataFile(output,lfn,ses,allSEs=True)
     return result
 
 #############################################################################
@@ -484,11 +491,12 @@ class JobFinalization(object):
     if outputSE != None:
       outSEs = outputSE.split(',')
       for outSE in outSEs:
+        print "AT>>>>>>>>>>>>>>>>> ", outSE, '/Operations/StorageElementGroups/'+outSE
         csSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outSE,[])
-        if outSEs:
-          SEs += outSEs
+        if csSEs:
+          SEs += csSEs
         else:
-          # Check if this is a conrete SE name
+          # Check if this is a concrete SE name
           se =  gConfig.getValue('/Resources/StorageElement/'+outSE,'')
           if se:
             SEs.append(se)
@@ -541,6 +549,12 @@ class JobFinalization(object):
   def uploadDataFile(self,datafile,lfn,destinationSEList,allSEs=True):
     """ Upload a datafile to the grid and set necessary replication requests
     """
+
+    if allSEs:
+      self.log.info("File %s will be stored to the following SEs:\n%s" % (datafile, str(destinationSEList)))
+    else:
+      self.log.info("File %s will be stored to any of the following SEs:\n%s" % (datafile, str(destinationSEList)))
+
 
     # Get the GUID first
     guid = None
@@ -603,6 +617,10 @@ class JobFinalization(object):
     resultDict['Failed'] = failed_ses
     resultDict['RequestSet'] = request_ses
     resultDict['Failed'] = failover_ses
+    
+    
+    print "AT >>>>>>>>>>>>>>>>>>>>>>> __________", resultDict
+    
     if failed_ses:
       result = S_ERROR('Failed to save file %s' % lfn)
       result['Value']
@@ -610,7 +628,7 @@ class JobFinalization(object):
       return S_OK(resultDict)
 
 ############################################################################################
-  def uploadDataFileToSE(self,datafile,lfn,guid,se):
+  def uploadDataFileToSE(self,datafile,lfn,se,guid):
     """ Upload a datafile to a destination SE, set replica registration request if necessary
     """
 
@@ -622,6 +640,10 @@ class JobFinalization(object):
 
     self.log.info("Copying %s to %s" % (datafile,se))
     result = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
+    
+    
+    print "AT >>>>>>>>>>>>>>>>>>", result
+    
     if result['OK']:
       # Transfer is OK, let's check the registration part
       if result['Value']['Failed']:
@@ -658,7 +680,7 @@ class JobFinalization(object):
     while (count < max_count):
       count =+ 1
       for se in failover_ses:
-        result = self.uploadDataFileToSE(datafile,lfn,guid,se)
+        result = self.uploadDataFileToSE(datafile,lfn,se,guid)
         if result['OK']:
           result['FailoverSE'] = se
           return result
@@ -725,11 +747,20 @@ class JobFinalization(object):
     """
 
     # get the accumulated reporting request
+    reportRequest = None
     if self.jobReport:
-      reportRequest = self.jobReport.generateRequest()
+      result = self.jobReport.generateRequest()
+      reportRequest = result['Value']
 
-    self.request.update(reportRequest)
-    request_string = self.request.toXML()
+    if reportRequest:
+      self.request.update(reportRequest)
+      
+    if self.request.isEmpty():
+      return S_OK()
+        
+    request_string = self.request.toXML()['Value']
+
+    print "AT >>>>>>>>>>>>>>>@@@@@@@@@@@@@@@@@@@",request_string
 
     # Write out the request string
     fname = self.PRODUCTION_ID+"_"+self.JOB_ID+"_request.xml"
