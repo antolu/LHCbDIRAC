@@ -1257,7 +1257,7 @@ if __name__ == '__main__':
         lib = '/lib'
       libs = []
       for lib in os.listdir(lib):
-        if lib.find('libc-') == 0: libs.append(os.path.join('/lib',lib))
+        if lib.find('libc-') == 0 or lib.find('libc.so') == 0 : libs.append(os.path.join('/lib',lib))
       libs.sort()
       platformTuple += ( '-'.join(libc_ver(libs[-1])),)
       # platformTuple += ( '-'.join(libc_ver('/lib/libc.so.6')),)
