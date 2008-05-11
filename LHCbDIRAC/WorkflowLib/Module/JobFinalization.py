@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.58 2008/05/11 07:43:18 rgracian Exp $
+# $Id: JobFinalization.py,v 1.59 2008/05/11 08:09:32 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.58 2008/05/11 07:43:18 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.59 2008/05/11 08:09:32 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -313,7 +313,7 @@ class JobFinalization(object):
       return
 
 ################################################################################
-  def saveLogFile(self,logfile,gzip_flag=1):
+  def saveLogFile(self,logfile,gzip_flag=0):
 
     if not os.path.exists(logfile):
       self.log.error( "Saving log file %s failed: no such file" % logfile )
@@ -341,7 +341,7 @@ class JobFinalization(object):
 
     # Do not leave gzipped files in the working directory.
     # They may be still used later
-    gunzip(logfile)
+    # gunzip(logfile)
 
 ##################################################################################
   def uploadLogFiles(self):
