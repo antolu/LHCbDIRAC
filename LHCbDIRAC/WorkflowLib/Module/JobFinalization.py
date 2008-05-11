@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.54 2008/05/11 06:40:43 rgracian Exp $
+# $Id: JobFinalization.py,v 1.55 2008/05/11 07:08:00 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.54 2008/05/11 06:40:43 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.55 2008/05/11 07:08:00 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -437,7 +437,7 @@ class JobFinalization(object):
         # resultSE = gConfig.getValue('/Operations/StorageElement/'+outse,None)
         # for se in resultSE.replace(' ','').split(','):
         #   ses.append(se)
-        ses += Config.getValue('/Operations/StorageElement/'+outse,[])
+        ses += gConfig.getValue('/Operations/StorageElement/'+outse,[])
 
     # Attempt to store first file to the LocalSE if it is in the list of
     # requested SEs
