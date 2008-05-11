@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.56 2008/05/11 07:14:00 rgracian Exp $
+# $Id: JobFinalization.py,v 1.57 2008/05/11 07:40:41 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.56 2008/05/11 07:14:00 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.57 2008/05/11 07:40:41 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -458,7 +458,7 @@ class JobFinalization(object):
     ses_local = []
     seValue = None
     try:
-      seValue = gConfig.getValue('/LocalSite/LocalSE','')
+      seValue = gConfig.getValue('/LocalSite/LocalSE',[])
     except Exception,x:
       self.log.warn('Could not get local SE list with exception')
       self.log.warn(str(x))
