@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.55 2008/05/11 07:08:00 rgracian Exp $
+# $Id: JobFinalization.py,v 1.56 2008/05/11 07:14:00 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.55 2008/05/11 07:08:00 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.56 2008/05/11 07:14:00 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -20,7 +20,7 @@ class JobFinalization(object):
 
   def __init__(self):
     self.STEP_ID = None
-    gLogger.setLevel('debug')
+    # gLogger.setLevel('debug')
     self.CONFIG_NAME = None
     self.RUN_NUMBER = None
     self.FIRST_EVENT_NUMBER = None
@@ -47,8 +47,11 @@ class JobFinalization(object):
     self.log = gLogger.getSubLogger("JobFinalization")
     self.nb_events_input = None
     self.rm = ReplicaManager()
+    self.log.info(self.rm)
     self.bk = BookkeepingClient()
+    self.log.info(self.bk)
     self.bkDB = BookkeepingDBClient()
+    self.log.info(self.bkDB)
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
