@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.59 2008/05/11 08:09:32 rgracian Exp $
+# $Id: JobFinalization.py,v 1.60 2008/05/11 08:43:00 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.59 2008/05/11 08:09:32 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.60 2008/05/11 08:43:00 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -47,11 +47,8 @@ class JobFinalization(object):
     self.log = gLogger.getSubLogger("JobFinalization")
     self.nb_events_input = None
     self.rm = ReplicaManager()
-    self.log.info(self.rm)
     self.bk = BookkeepingClient()
-    self.log.info(self.bk)
     self.bkDB = BookkeepingDBClient()
-    self.log.info(self.bkDB)
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.transferID = ''
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
@@ -59,10 +56,8 @@ class JobFinalization(object):
     self.bookkeepingTimeOut = 10 #seconds
     self.SourceData=None
     self.log.setLevel('debug')
-    self.log.info('__init__ done')
 
   def execute(self):
-    # return S_OK()
     self.__report('Starting Job Finalization')
     # first lets collect all outputs in single
     if not self.listoutput:
@@ -519,7 +514,6 @@ class JobFinalization(object):
   def uploadDataFile(self,datafile,lfn,destinationSEList):
     """ Upload a datafile to the grid and set necessary replication requests
     """
-    return S_OK()
     # Get the GUID first
     guid = None
     if self.poolcat:
