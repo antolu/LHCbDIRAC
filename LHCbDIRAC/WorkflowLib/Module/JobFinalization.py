@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.53 2008/05/11 05:44:55 rgracian Exp $
+# $Id: JobFinalization.py,v 1.54 2008/05/11 06:40:43 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.53 2008/05/11 05:44:55 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.54 2008/05/11 06:40:43 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -58,7 +58,7 @@ class JobFinalization(object):
     self.log.setLevel('debug')
 
   def execute(self):
-    return S_OK()
+    # return S_OK()
     self.__report('Starting Job Finalization')
     # first lets collect all outputs in single
     if not self.listoutput:
@@ -433,9 +433,11 @@ class JobFinalization(object):
     if outputse != None:
       outses = outputse.split(',')
       for outse in outses:
-        resultSE = gConfig.getValue('/Operations/StorageElement/'+outse,None)
-        for se in resultSE.replace(' ','').split(','):
-          ses.append(se)
+        # FIXME: this will fail misserably if the section does not exist
+        # resultSE = gConfig.getValue('/Operations/StorageElement/'+outse,None)
+        # for se in resultSE.replace(' ','').split(','):
+        #   ses.append(se)
+        ses += Config.getValue('/Operations/StorageElement/'+outse,[])
 
     # Attempt to store first file to the LocalSE if it is in the list of
     # requested SEs
@@ -462,7 +464,7 @@ class JobFinalization(object):
       self.__loadLocalCFGFiles(self.root+'/../')
       self.__loadLocalCFGFiles(os.getcwd())
       self.__loadLocalCFGFiles(os.getcwd()+'/../')
-      seValue = gConfig.getValue('/LocalSite/LocalSE','')
+      seValue = gConfig.getValue('/LocalSite/LocalSE',[])
       self.log.info('Finally resolved LocalSE %s' %(seValue))
 
     self.log.info('/LocalSite/LocalSE is: %s' %seValue)
@@ -470,14 +472,7 @@ class JobFinalization(object):
       self.log.warn('LocalSE list is null from CS')
       return S_ERROR('Site/LocalSE list is null')
 
-    resultSEList = None
-    if type(seValue) == type(" "):
-      resultSEList = seValue.replace(' ','').split(',')
-    elif type(seValue) == type([]):
-      resultSEList = seValue
-    else:
-      self.log.info('CS returned problematic value for /LocalSite/LocalSE')
-      return S_ERROR('LocalSite/LocalSE error from CS')
+    resultSEList = seValue
 
     self.log.info('Site LocalSE list is: %s' %resultSEList)
     for se in resultSEList:
@@ -520,7 +515,7 @@ class JobFinalization(object):
   def uploadDataFile(self,datafile,lfn,destinationSEList):
     """ Upload a datafile to the grid and set necessary replication requests
     """
-
+    return S_OK()
     # Get the GUID first
     guid = None
     if self.poolcat:
