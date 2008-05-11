@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.57 2008/05/11 07:40:41 rgracian Exp $
+# $Id: JobFinalization.py,v 1.58 2008/05/11 07:43:18 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.57 2008/05/11 07:40:41 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.58 2008/05/11 07:43:18 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -59,6 +59,7 @@ class JobFinalization(object):
     self.bookkeepingTimeOut = 10 #seconds
     self.SourceData=None
     self.log.setLevel('debug')
+    self.log.info('__init__ done')
 
   def execute(self):
     # return S_OK()
