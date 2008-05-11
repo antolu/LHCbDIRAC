@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.52 2008/05/08 16:24:29 paterson Exp $
+# $Id: JobFinalization.py,v 1.53 2008/05/11 05:44:55 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.52 2008/05/08 16:24:29 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.53 2008/05/11 05:44:55 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -58,6 +58,7 @@ class JobFinalization(object):
     self.log.setLevel('debug')
 
   def execute(self):
+    return S_OK()
     self.__report('Starting Job Finalization')
     # first lets collect all outputs in single
     if not self.listoutput:
