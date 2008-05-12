@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.20 2008/05/12 16:29:46 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.21 2008/05/12 16:47:04 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.20 2008/05/12 16:29:46 rgracian Exp $"
-__VERSION__ = "$Revision: 1.20 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.21 2008/05/12 16:47:04 rgracian Exp $"
+__VERSION__ = "$Revision: 1.21 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -369,8 +369,8 @@ class GaudiApplication(object):
             f2.write( line.replace('PoolDbCacheSvc.Catalog','FileCatalog.Catalogs'))
           f1.close()
           f2.close()
-          os.file.rename( optfile, optfile+'.old' )
-          os.file.rename( optfile+'.new', optfile )
+          os.rename( optfile, optfile+'.old' )
+          os.rename( optfile+'.new', optfile )
 
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
