@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.17 2008/05/07 13:58:05 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.18 2008/05/12 13:48:10 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.17 2008/05/07 13:58:05 rgracian Exp $"
-__VERSION__ = "$Revision: 1.17 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.18 2008/05/12 13:48:10 rgracian Exp $"
+__VERSION__ = "$Revision: 1.18 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -242,12 +242,14 @@ class GaudiApplication(object):
     self.log.info( 'Application Found:', appCmd )
     appRoot = os.path.dirname(os.path.dirname( appCmd ))
 
-    # 3. Check Name options file in options directory of the Application 
+    # 3. Check Named options file in options directory of the Application 
     self.optfile = os.path.join( appRoot, 'options', self.optionsFile )
+    self.log.info( 'Default options file:', self.optfile )
     # if there is a $ character in self.optionsFile the lower will never match
-    if os.path.exists( self.optionsFile ):
-      self.optfile = self.optionsFile
-      self.log.info( 'Using default options file:', self.optfile )
+    # looking for a user supplied one
+    if os.path.exists( os.path.join( self.cwd, self.optionsFile) ):
+      self.optfile = os.path.join( self.cwd, self.optionsFile )
+      self.log.info( 'Using user supplied options file:', self.optfile )
 
     # 4. Check user provided options file and Manage Options
     # it is done here so that it can be used of the environment
