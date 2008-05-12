@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.18 2008/05/12 13:48:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.19 2008/05/12 15:43:21 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.18 2008/05/12 13:48:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.18 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.19 2008/05/12 15:43:21 rgracian Exp $"
+__VERSION__ = "$Revision: 1.19 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -247,8 +247,8 @@ class GaudiApplication(object):
     self.log.info( 'Default options file:', self.optfile )
     # if there is a $ character in self.optionsFile the lower will never match
     # looking for a user supplied one
-    if os.path.exists( os.path.join( self.cwd, self.optionsFile) ):
-      self.optfile = os.path.join( self.cwd, self.optionsFile )
+    if os.path.exists( self.optionsFile ):
+      self.optfile = self.optionsFile
       self.log.info( 'Using user supplied options file:', self.optfile )
 
     # 4. Check user provided options file and Manage Options
@@ -357,15 +357,18 @@ class GaudiApplication(object):
     if gaudiMajor > 19 or ( gaudiMajor == 19 and gaudiMinor > 6 ) :
       self.log.info( 'Gaudi Version %s' % gaudiVer )
       self.log.info( 'Replace  PoolDbCacheSvc.Catalog by FileCatalog.Catalogs in options file.' )
-      f1 = open( self.optionsFile, 'r' )
-      f2 = open( self.optionsFile+'.new', 'w')
-      lines = f1.readlines()
-      for line in lines:
-        f2.write( line.replace('PoolDbCacheSvc.Catalog','FileCatalog.Catalogs'))
-      f1.close()
-      f2.close()
-      os.file.rename( self.optionsFile, self.optionsFile+'.old' )
-      os.file.rename( self.optionsFile+'.new', self.optionsFile )
+      # only apply if user optionFile supplied otherwise a proper version should be used.
+      # This should be removed in any case. Maybe do a check and report an error
+      if os.path.exists( self.optionsFile ):
+        f1 = open( self.optionsFile, 'r' )
+        f2 = open( self.optionsFile+'.new', 'w')
+        lines = f1.readlines()
+        for line in lines:
+          f2.write( line.replace('PoolDbCacheSvc.Catalog','FileCatalog.Catalogs'))
+        f1.close()
+        f2.close()
+        os.file.rename( self.optionsFile, self.optionsFile+'.old' )
+        os.file.rename( self.optionsFile+'.new', self.optionsFile )
 
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
@@ -390,6 +393,7 @@ class GaudiApplication(object):
     if os.path.exists(self.appLog): os.remove(self.appLog)
     self.__report('%s %s' %(self.appName,self.appVersion))
     self.writeGaudiRun(gaudiCmd, gaudiEnv)
+    self.log.info( 'Running', ' '.join(gaudiCmd)  )
     ret = systemCall(0,gaudiCmd,env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
     if not ret['OK']:
