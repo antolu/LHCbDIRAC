@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.19 2008/05/12 15:43:21 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.20 2008/05/12 16:29:46 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.19 2008/05/12 15:43:21 rgracian Exp $"
-__VERSION__ = "$Revision: 1.19 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.20 2008/05/12 16:29:46 rgracian Exp $"
+__VERSION__ = "$Revision: 1.20 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -359,16 +359,18 @@ class GaudiApplication(object):
       self.log.info( 'Replace  PoolDbCacheSvc.Catalog by FileCatalog.Catalogs in options file.' )
       # only apply if user optionFile supplied otherwise a proper version should be used.
       # This should be removed in any case. Maybe do a check and report an error
-      if os.path.exists( self.optionsFile ):
-        f1 = open( self.optionsFile, 'r' )
-        f2 = open( self.optionsFile+'.new', 'w')
-        lines = f1.readlines()
-        for line in lines:
-          f2.write( line.replace('PoolDbCacheSvc.Catalog','FileCatalog.Catalogs'))
-        f1.close()
-        f2.close()
-        os.file.rename( self.optionsFile, self.optionsFile+'.old' )
-        os.file.rename( self.optionsFile+'.new', self.optionsFile )
+      for optfile in [self.optionsFile, self.optfile]:
+
+        if os.path.exists( optfile ):
+          f1 = open( optfile, 'r' )
+          f2 = open( optfile+'.new', 'w')
+          lines = f1.readlines()
+          for line in lines:
+            f2.write( line.replace('PoolDbCacheSvc.Catalog','FileCatalog.Catalogs'))
+          f1.close()
+          f2.close()
+          os.file.rename( optfile, optfile+'.old' )
+          os.file.rename( optfile+'.new', optfile )
 
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
