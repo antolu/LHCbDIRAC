@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.5 2008/05/06 06:02:04 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.6 2008/05/13 06:20:45 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.5 2008/05/06 06:02:04 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.6 2008/05/13 06:20:45 joel Exp $"
 
 import commands, os, time
 
@@ -246,6 +246,11 @@ class AnalyseLogFile(object):
       line,tread = self.grep(self.appLog,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
       if tread >= 1:
          return S_ERROR(mailto + ' TDCacheFile error')
+
+      self.log.info('Check connectionIO error')
+      line,tread = self.grep(self.appLog,'Error: connectDataIO')
+      if tread >= 1:
+         return S_ERROR(mailto + ' connectDataIO error')
 
       self.log.info('Check loop errors')
       linenextevt,n = self.grep(self.appLog,'Terminating event processing loop due to errors')
