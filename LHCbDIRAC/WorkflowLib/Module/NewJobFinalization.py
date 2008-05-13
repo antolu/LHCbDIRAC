@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.6 2008/05/08 21:13:11 atsareg Exp $
+# $Id: NewJobFinalization.py,v 1.7 2008/05/13 21:01:40 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.6 2008/05/08 21:13:11 atsareg Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.7 2008/05/13 21:01:40 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -35,7 +35,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
-from DIRAC.RequestManagementSystem.Client.DataManagementRequest import DataManagementRequest
+from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 import os, time, re, random, shutil, commands
 
@@ -95,6 +95,13 @@ class JobFinalization(object):
     # Add global reporting tool
     if self.workflow_commons.has_key('JobReport'):
       self.jobReport  = self.workflow_commons['JobReport']
+    if self.workflow_commons.has_key('Request'):
+      self.request = self.workflow_commons['Request']
+    else:
+      self.request = RequestContainer()
+    self.request.setRequestName('job_%s_request.xml' % self.jobID)
+    self.request.setJobID(self.jobID)
+    self.request.setSourceComponent("Job_%s" % self.jobID)
 
     result = self.__report('Job Finalization')
 
@@ -418,17 +425,14 @@ class JobFinalization(object):
     for item in self.listoutput:
       outputName = ''
       outputSE = ''
-      outputMode = 'Local'
       outputType = ''
       if item.has_key('outputDataName'):
         outputName = item['outputDataName']
       if item.has_key('outputDataSE'):
         outputSE = item['outputDataSE']
-      if item.has_key('outputDataMode'):
-        outputMode = item['outputDataMode']
       if item.has_key('outputDataType'):
         outputType = item['outputDataType']
-      outputs.append((outputName,outputSE,outputType,outputMode))
+      outputs.append((outputName,outputSE,outputType))
     outputs_done = []
     all_done = False
     count = 0
@@ -437,30 +441,30 @@ class JobFinalization(object):
       if count > 0:
         self.log.info("Output data upload retry number "+str(count))
       all_done = True
-      for outputName,outputSE,outputType,outputMode in outputs:
+      for outputName,outputSE,outputType in outputs:
         if not outputName in outputs_done:
-          resUpload = self.uploadOutputData(outputName,outputType.upper(),outputSE,outputMode)
+          resUpload = self.uploadOutputData(outputName,outputType.upper(),outputSE)
           if resUpload['OK']:
             outputs_done.append(outputName)
           else:
-            
+
             all_done = False
       count += 1
 
     outputs_failed = []
-    for outputName,outputSE,outputType,outputMode in outputs:
+    for outputName,outputSE,outputType in outputs:
       if not outputName in outputs_done:
-        outputs_failed.append(outputName) 
+        outputs_failed.append(outputName)
     if all_done:
       return S_OK()
     else:
-      result = S_ERROR('Failed to upload output data')  
+      result = S_ERROR('Failed to upload output data')
       result['Value'] = {}
       result['Value']['Failed'] = outputs_failed
       result['Value']['Successful'] = outputs_done
 
 ################################################################################
-  def uploadOutputData(self,output,otype,outputse,outputmode):
+  def uploadOutputData(self,output,otype,outputse):
     """ Determine the output file destination SEs and upload file to the grid
     """
 
@@ -491,7 +495,6 @@ class JobFinalization(object):
     if outputSE != None:
       outSEs = outputSE.split(',')
       for outSE in outSEs:
-        print "AT>>>>>>>>>>>>>>>>> ", outSE, '/Operations/StorageElementGroups/'+outSE
         csSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outSE,[])
         if csSEs:
           SEs += csSEs
@@ -617,10 +620,10 @@ class JobFinalization(object):
     resultDict['Failed'] = failed_ses
     resultDict['RequestSet'] = request_ses
     resultDict['Failed'] = failover_ses
-    
-    
+
+
     print "AT >>>>>>>>>>>>>>>>>>>>>>> __________", resultDict
-    
+
     if failed_ses:
       result = S_ERROR('Failed to save file %s' % lfn)
       result['Value']
@@ -640,10 +643,10 @@ class JobFinalization(object):
 
     self.log.info("Copying %s to %s" % (datafile,se))
     result = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
-    
-    
+
+
     print "AT >>>>>>>>>>>>>>>>>>", result
-    
+
     if result['OK']:
       # Transfer is OK, let's check the registration part
       if result['Value']['Failed']:
@@ -754,10 +757,10 @@ class JobFinalization(object):
 
     if reportRequest:
       self.request.update(reportRequest)
-      
+
     if self.request.isEmpty():
       return S_OK()
-        
+
     request_string = self.request.toXML()['Value']
 
     print "AT >>>>>>>>>>>>>>>@@@@@@@@@@@@@@@@@@@",request_string
