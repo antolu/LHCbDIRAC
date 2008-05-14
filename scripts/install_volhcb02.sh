@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.2 2008/05/14 14:14:03 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.3 2008/05/14 14:54:19 rgracian Exp $
 # File :   install_volhcb02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -140,7 +140,7 @@ for dir in etc data runit startup ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-$CURDIR/dirac-install -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
 #
 # Create pro and old links
