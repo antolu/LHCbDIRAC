@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.3 2008/05/14 14:54:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.4 2008/05/14 15:03:38 rgracian Exp $
 # File :   install_volhcb02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -80,15 +80,21 @@ System
     {
       Databases
       {
+        JobDB
+        {
+          LogLevel = INFO
+          User = Dirac
+          Host = volhcb03.cern.ch
+          Password = lhcbMySQL
+          DBName = JobDB
+        }
         PilotAgentsDB
         {
           LogLevel = INFO
-          LogOutputs = stdout
           User = Dirac
           Host = volhcb03.cern.ch
           Password = lhcbMySQL
           DBName = PilotAgentsDB
-          MaxRescheduling = 30
         }
 	  }
     }
