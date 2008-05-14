@@ -7,13 +7,13 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 
 ##########  PART TO EDIT  ##############
 wkf_name = "CCRC_Reconstruction_test"
-nb_evt_step1 = 5
-Brunel_version = "v32r4"
+nb_evt_step1 = 25000
+Brunel_version = "v32r5"
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
 opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\" "
-
+opt_brunel = opt_brunel+";HistogramPersistencySvc.OutputFile = \"\""
 ##########   DO NOT EDIT AFTER THIS LINE #############
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
 indata = "LFN:/lhcb/production/CCRC08/v0/00002090/RAW/0000/00002090_00002534_1.raw"
@@ -98,11 +98,12 @@ module5 = ModuleDefinition('JobFinalization')
 module5.setDescription('Job Finalization module')
 module5.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 module5.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
-module5.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module5.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module5.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module5.addParameter(Parameter("SourceData","","string","self","SourceData",True,False,"InputData"))
-module5.addParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
+module5.addParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
+module5.addParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
+module5.addParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
 
 #define module 6
 module6 = ModuleDefinition('Dummy')
@@ -137,7 +138,7 @@ step1.addParameter(Parameter("EVENTTYPE","30000000","string","","",True, False, 
 step1.addParameter(Parameter("outputData","@{STEP_ID}.rdst","string","","",True,False,"output data"))
 step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
 step1.unlink(["appLog","appName", "appType"])
-step1.unlink(["SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
+step1.unlink(["poolXMLCatName","SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION","NUMBER_OF_EVENTS"])
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
 
 #outdata = "@{STEP_ID}.{appType}"
@@ -146,8 +147,7 @@ step2.addModule(module5)
 moduleInstance6 = step2.createModuleInstance('JobFinalization','module5')
 step2.addParameterLinked(module5.parameters)
 step2.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
-step2.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
-step2.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
+step2.unlink(["poolXMLCatName","SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 
 
 ##############  WORKFLOW #################################
@@ -168,6 +168,7 @@ stepInstance1.setValue("optionsFile", "RealDataRdst.opts")
 stepInstance1.setValue("optionsLine",opt_brunel)
 stepInstance1.linkUp("CONFIG_NAME")
 stepInstance1.linkUp("CONFIG_VERSION")
+stepInstance1.linkUp("poolXMLCatName")
 stepInstance1.linkUp("DataType")
 stepInstance1.linkUp("SourceData")
 stepInstance1.linkUp("NUMBER_OF_EVENTS")
@@ -185,7 +186,7 @@ stepInstance2.linkUp("DataType")
 stepInstance2.linkUp("SourceData")
 stepInstance2.linkUp("poolXMLCatName")
 stepInstance2.unlink(["listoutput","inputData"])
-stepInstance2.setLink("listoutput1",stepInstance1.getName(),"listoutput")
+stepInstance2.setLink("listoutput",stepInstance1.getName(),"listoutput")
 
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
@@ -195,8 +196,7 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.setValue(step1_prefix+"appVersion", Brunel_version)
 workflow1.setValue(step1_prefix+"nb_events_input", "@{NUMBER_OF_EVENTS}")
-workflow1.setValue(step1_prefix+"poolXMLCatName","pool_xml_catalog.xml")
-#workflow1.setValue(step1_prefix+"inputData",indata)
+workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","MDF")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","20")
@@ -227,8 +227,10 @@ workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False,
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
 workflow1.addParameter(Parameter("NUMBER_OF_EVENTS",nb_evt_step1,"string","","",True, False, "number of events requested"))
-workflow1.toXMLFile('wkf_CCRC.xml')
-#w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
+if os.path.exists('wkf_CCRC_Brunel.xml'):
+  print 'Removed existing workflow'
+  os.remove('wkf_CCRC_Brunel.xml')
+workflow1.toXMLFile('wkf_CCRC_Brunel.xml')
 #print 'Creating code for the workflow'
 print workflow1.createCode()
 #eval(compile(workflow1.createCode(),'<string>','exec'))
