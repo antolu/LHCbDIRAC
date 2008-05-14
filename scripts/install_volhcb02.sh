@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.1 2008/05/14 14:12:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.2 2008/05/14 14:14:03 rgracian Exp $
 # File :   install_volhcb02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB02.CERN.CH
 DIRACSETUP=LHCb-Development
-DIRACVERSION=HEAD
+DIRACVERSION=CCRC08-v3
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit work"
@@ -140,7 +140,7 @@ for dir in etc data runit startup ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
 #
 # Create pro and old links
