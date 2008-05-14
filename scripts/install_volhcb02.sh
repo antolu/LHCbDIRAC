@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.4 2008/05/14 15:03:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.5 2008/05/14 15:24:39 rgracian Exp $
 # File :   install_volhcb02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -72,7 +72,7 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 }
-System
+Systems
 {
   WorkloadManagement
   {
@@ -87,6 +87,22 @@ System
           Host = volhcb03.cern.ch
           Password = lhcbMySQL
           DBName = JobDB
+        }
+        JobLoggingDB
+        {
+          LogLevel = INFO
+          User = Dirac
+          Host = volhcb03.cern.ch
+          Password = lhcbMySQL
+          DBName = JobLoggingDB
+        }
+        ProxyRepositoryDB
+        {
+          LogLevel = INFO
+          User = Dirac
+          Host = volhcb03.cern.ch
+          Password = lhcbMySQL
+          DBName = ProxyRepositoryDB
         }
         PilotAgentsDB
         {
@@ -174,6 +190,8 @@ grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HO
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
+
+cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotStatusAgent
