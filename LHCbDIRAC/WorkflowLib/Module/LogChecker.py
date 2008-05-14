@@ -1,15 +1,11 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.10 2008/05/08 20:29:57 atsareg Exp $
+# $Id: LogChecker.py,v 1.11 2008/05/14 09:40:43 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.10 2008/05/08 20:29:57 atsareg Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.11 2008/05/14 09:40:43 joel Exp $"
 
-#from WorkflowLib.Module.BooleCheckLogFile import *
-#from WorkflowLib.Module.BrunelCheckLogFile import *
 from WorkflowLib.Module.AnalyseLogFile import *
-#from WorkflowLib.Module.GaussCheckLogFile import *
-#from WorkflowLib.Module.DaVinciCheckLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -32,15 +28,8 @@ class LogChecker(object):
 
   def execute(self):
 
-    if self.appName == 'Boole':
-        self.logChecker = AnalyseLogFile()
-    elif  self.appName == 'Brunel':
-#        self.logChecker = BrunelCheckLogFile()
-        self.logChecker = AnalyseLogFile()
-    elif  self.appName == 'Gauss':
-        self.logChecker = AnalyseLogFile()
-    elif  self.appName == 'DaVinci':
-#        self.logChecker = DaVinciCheckLogFile()
+#    if self.appName == 'Boole':
+    if self.appName in ('Boole', 'Gauss','Brunel', 'DaVinci'):
         self.logChecker = AnalyseLogFile()
     else:
         self.log.error('appName is not defined or known %s' %(self.appName))
