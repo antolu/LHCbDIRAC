@@ -10,25 +10,27 @@ nb_evt_step1 = -1
 nb_evt_step2 = -1
 Brunel_version = "v32r5"
 DaVinci_version = "v19r12"
+
+opt_dav = "EvtTupleSvc.Output = {}"
+opt_dav = opt_dav+";ApplicationMgr.OutStream -= {'DstWriter'}"
+opt_dav = opt_dav+";ApplicationMgr.OutStream = {'Sequencer/SeqWriteTag'}"
+opt_dav = opt_dav+";ApplicationMgr.TopAlg -= { \"GaudiSequencer/SeqPreselHWZ2bbl\" }"
+opt_dav = opt_dav+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_dav = opt_dav+";WR.Output = \"Collection=\'EVTTAGS/TagCreator/1\' ADDRESS=\'/Event\' DATAFILE=\'@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
+opt_dav = opt_dav+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
+
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
 opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
-#opt_brunel = opt_brunel+";EventSelector.Input = {\"COLLECTION=\'TagCreator/1\' DATAFILE=\'@{InputData}\' TYPE=\'POOL_ROOTTREE\' SEL=\'(GlobalOr>=1)\' OPT=\'READ\'\"}"
 opt_brunel = opt_brunel+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
 opt_brunel = opt_brunel+";HistogramPersistencySvc.OutputFile = \"\""
-#opt_brunel = opt_brunel+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
-#opt_brunel = opt_brunel+";StoreExplorerAlg.Load = 1"
-#opt_brunel = opt_brunel+";StoreExplorerAlg.PrintFreq = 0.99"
 opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
 indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst"
 #indata1 = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/22808/022808_0000018192.raw"
 #indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
-#etcf = "joel.root"
-#indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
-
 
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
@@ -110,8 +112,6 @@ module5.addParameter(Parameter("SourceData","","string","self","SourceData",True
 module6 = ModuleDefinition('JobFinalization')
 module6.setDescription('Job Finalization module')
 module6.setBody('from WorkflowLib.Module.JobFinalization import * \n')
-#module6.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
-#module6.addParameter(Parameter("outputData",'',"string","self","outputData",True,False,"list of output data"))
 module6.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module6.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module6.addParameter(Parameter("SourceData","","string","self","SourceData",True,False,"InputData"))
@@ -154,27 +154,12 @@ step1.addParameterLinked(module2.parameters)
 # and we can add additional parameter which will be used as a global
 step1.addParameter(Parameter("STEP_ID","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}","string","","",True, False, "Temporary fix"))
 step1.addParameter(Parameter("EVENTTYPE","30000000","string","","",True, False, "Event Type"))
-step1.addParameter(Parameter("outputData","@{STEP_ID}.root","string","","",True,False,"etc name"))
+step1.addParameter(Parameter("outputData","FETC_@{STEP_ID}.root","string","","",True,False,"etc name"))
 step1.addParameter(Parameter("etcf","SETC_@{STEP_ID}.root","string","","",True,False,"etc name"))
 step1.setValue("appLog","@{appName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
 step1.unlink(["appLog","appName", "appType"])
 step1.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
-
-#outputData = "@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}"
-opt_dav = "EvtTupleSvc.Output = {}"
-opt_dav = opt_dav+";ApplicationMgr.OutStream -= {'DstWriter'}"
-opt_dav = opt_dav+";ApplicationMgr.OutStream = {'Sequencer/SeqWriteTag'}"
-opt_dav = opt_dav+";ApplicationMgr.TopAlg -= { \"GaudiSequencer/SeqPreselHWZ2bbl\" }"
-opt_dav = opt_dav+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_dav = opt_dav+";WR.Output = \"Collection=\'EVTTAGS/TagCreator/1\' ADDRESS=\'/Event\' DATAFILE=\'@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
-opt_dav = opt_dav+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
-opt_dav = opt_dav+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
-opt_dav = opt_dav+";StoreExplorerAlg.Load = 1"
-opt_dav = opt_dav+";StoreExplorerAlg.PrintFreq = 0.99"
-opt_dav = opt_dav+";StoreExplorerAlg.AccessForeign = true"
-
-#etcf = "SETC_@{STEP_ID}.root"
 
 step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
@@ -199,7 +184,7 @@ stepInstance1.setLink("systemConfig","self", "SystemConfig") # capital letter co
 stepInstance1.unlink(["listoutput","STEP_ID", "optionsFile", "optionsLine", "appLog","appName", "etcf", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "DaVinci")
 stepInstance1.setValue("appType", "root")
-stepInstance1.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
+stepInstance1.setValue("outputData","FETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 stepInstance1.setValue("optionsFile", "DVOfficialStrippingFile.opts")
 stepInstance1.setValue("optionsLine",opt_dav)
 stepInstance1.linkUp("CONFIG_NAME")
@@ -208,7 +193,7 @@ stepInstance1.linkUp("DataType")
 stepInstance1.linkUp("SourceData")
 stepInstance1.linkUp("poolXMLCatName")
 stepInstance1.setLink("inputData","self", "InputData") # KGG linked with InputData of the Workflow
-list1_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"FETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
