@@ -6,10 +6,10 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 
 # Variable which need to be set
 wkf_name = "CCRC_Stripping_test"
-nb_evt_step1 = 5
+nb_evt_step1 = -1
 nb_evt_step2 = -1
-Brunel_version = "v32r4"
-DaVinci_version = "v19r11"
+Brunel_version = "v32r5"
+DaVinci_version = "v19r12"
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
@@ -17,12 +17,14 @@ opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TY
 opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
 #opt_brunel = opt_brunel+";EventSelector.Input = {\"COLLECTION=\'TagCreator/1\' DATAFILE=\'@{InputData}\' TYPE=\'POOL_ROOTTREE\' SEL=\'(GlobalOr>=1)\' OPT=\'READ\'\"}"
 opt_brunel = opt_brunel+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
-opt_brunel = opt_brunel+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
-opt_brunel = opt_brunel+";StoreExplorerAlg.Load = 1"
-opt_brunel = opt_brunel+";StoreExplorerAlg.PrintFreq = 0.99"
+opt_brunel = opt_brunel+";HistogramPersistencySvc.OutputFile = \"\""
+#opt_brunel = opt_brunel+";ApplicationMgr.TopAlg += {\"StoreExplorerAlg\"}"
+#opt_brunel = opt_brunel+";StoreExplorerAlg.Load = 1"
+#opt_brunel = opt_brunel+";StoreExplorerAlg.PrintFreq = 0.99"
 opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst"
+indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst"
+#indata1 = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/22808/022808_0000018192.raw"
 #indata = "LFN:/lhcb/data/CCRC08/RDST/00000106/0000/00000106_00007918_1.rdst;/lhcb/data/CCRC08/RAW/LHCb/CCRC/420217/420217_0000116193.raw"
 #etcf = "joel.root"
 #indata = "LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047096.raw;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/402154/402154_0000047097.raw"
@@ -114,8 +116,11 @@ module6.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatNa
 module6.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module6.addParameter(Parameter("SourceData","","string","self","SourceData",True,False,"InputData"))
 module6.addParameter(Parameter("listoutput",[],"list","self","listoutput",True,False,"list of output data"))
-module6.addParameter(Parameter("listoutput1",[],"list","self","listoutput1",True,False,"list of output data"))
-module6.addParameter(Parameter("listoutput2",[],"list","self","listoutput2",True,False,"list of output data"))
+module6.addParameter(Parameter("listoutput_1",[],"list","self","listoutput_1",True,False,"list of output data"))
+module6.addParameter(Parameter("listoutput_2",[],"list","self","listoutput_2",True,False,"list of output data"))
+#module6.addParameter(Parameter("DataType","","string","self","DataType",True, False, "data type"))
+#module6.addParameter(Parameter("CONFIG_NAME","","string","self","CONFIG_NAME",True, False, "Configuration Name"))
+#module6.addParameter(Parameter("CONFIG_VERSION","","string","self","CONFIG_VERSION",True, False, "Configuration Version"))
 
 #define module 7
 module7 = ModuleDefinition('Dummy')
@@ -176,8 +181,8 @@ step3.addModule(module6)
 moduleInstance6 = step3.createModuleInstance('JobFinalization','module6')
 step3.addParameterLinked(module6.parameters)
 step3.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
-step3.addParameter(Parameter("listoutput1",[],"list","","",True,False,"list of output data"))
-step3.addParameter(Parameter("listoutput2",[],"list","","",True,False,"list of output data"))
+step3.addParameter(Parameter("listoutput_1",[],"list","","",True,False,"list of output data"))
+step3.addParameter(Parameter("listoutput_2",[],"list","","",True,False,"list of output data"))
 step3.unlink(["poolXMLCatName", "SourceData", "DataType", "CONFIG_NAME","CONFIG_VERSION"])
 
 
@@ -239,8 +244,8 @@ stepInstance3.linkUp("DataType")
 stepInstance3.linkUp("SourceData")
 stepInstance3.linkUp("poolXMLCatName")
 stepInstance3.unlink(["listoutput","inputData"])
-stepInstance3.setLink("listoutput1",stepInstance1.getName(),"listoutput")
-stepInstance3.setLink("listoutput2",stepInstance2.getName(),"listoutput")
+stepInstance3.setLink("listoutput_1",stepInstance1.getName(),"listoutput")
+stepInstance3.setLink("listoutput_2",stepInstance2.getName(),"listoutput")
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 workflow1.addParameterLinked(step1.parameters, step1_prefix)
@@ -284,12 +289,15 @@ workflow1.unlink(workflow1.parameters)
 workflow1.addParameter(Parameter("PRODUCTION_ID","00003033","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000011","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
-workflow1.addParameter(Parameter("DataType","DATA","string","","",True, False, "type of Datatype"))
+workflow1.addParameter(Parameter("DataType","data","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("CONFIG_NAME","LHCb","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("CONFIG_VERSION","CCRC08","string","","",True, False, "Configuration Version"))
 #workflow1.addParameter(Parameter("NUMBER_OF_EVENTS","5","string","","",True, False, "number of events requested"))
+if os.path.exists('wkf_CCRC_Stripping.xml'):
+  print 'Removed existing workflow'
+  os.remove('wkf_CCRC_Stripping.xml')
 workflow1.toXMLFile('wkf_CCRC_Stripping.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
