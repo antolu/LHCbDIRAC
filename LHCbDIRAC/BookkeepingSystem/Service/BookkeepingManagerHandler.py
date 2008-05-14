@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.27 2008/04/22 16:18:47 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.28 2008/05/14 13:56:32 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.27 2008/04/22 16:18:47 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.28 2008/05/14 13:56:32 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -15,12 +15,12 @@ from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.OracleBookkeepingDB import OracleBookkeepingDB
 import time,sys,os
 
-
+global dataMGMT_
+dataMGMT_ = OracleBookkeepingDB()
+  
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
-  global dataMGMT_
-  dataMGMT_ = OracleBookkeepingDB()
   return S_OK()
 
 ToDoPath = gConfig.getValue("stuart","/opt/bookkeeping/XMLProcessing/ToDo")
