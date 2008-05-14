@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.61 2008/05/14 09:20:17 joel Exp $
+# $Id: JobFinalization.py,v 1.62 2008/05/14 11:16:17 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.61 2008/05/14 09:20:17 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.62 2008/05/14 11:16:17 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -33,12 +33,12 @@ class JobFinalization(object):
     self.JOB_ID = None
     self.LFN_ROOT = None
     self.listoutput = []
-    self.listoutput1 = []
-    self.listoutput2 = []
-    self.listoutput3 = []
-    self.listoutput4 = []
-    self.listoutput5 = []
-    self.listoutput6 = []
+    self.listoutput_1 = []
+    self.listoutput_2 = []
+    self.listoutput_3 = []
+    self.listoutput_4 = []
+    self.listoutput_5 = []
+    self.listoutput_6 = []
     self.tmpdir = '.'
     self.logdir = '.'
     self.mode = None
@@ -61,7 +61,7 @@ class JobFinalization(object):
     self.__report('Starting Job Finalization')
     # first lets collect all outputs in single
     if not self.listoutput:
-      self.listoutput = self.listoutput1+self.listoutput2+self.listoutput3+self.listoutput4+self.listoutput5+self.listoutput6
+      self.listoutput = self.listoutput_1+self.listoutput_2+self.listoutput_3+self.listoutput_4+self.listoutput_5+self.listoutput_6
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
