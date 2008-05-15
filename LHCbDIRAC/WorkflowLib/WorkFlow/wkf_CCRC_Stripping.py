@@ -245,7 +245,7 @@ workflow1.setValue(step1_prefix+"NUMBER_OF_EVENTS", nb_evt_step1)
 workflow1.setValue(step2_prefix+"NUMBER_OF_EVENTS", nb_evt_step2)
 workflow1.removeParameter(step1_prefix+"inputData") # KGG wrong parameter
 workflow1.setValue(step1_prefix+"inputDataType","RDST")
-workflow1.setValue(step2_prefix+"inputDataType","ETC")
+workflow1.setValue(step2_prefix+"inputDataType","FETC")
 workflow1.setValue(step1_prefix+"OUTPUT_MAX","20")
 # remove unwanted
 workflow1.removeParameter(step1_prefix+"outputData")
