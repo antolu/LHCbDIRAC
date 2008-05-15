@@ -5,6 +5,7 @@ import datetime
 import commands
 import string
 from tempfile import mktemp
+from DIRAC.Core.Utilities.GridCredentials import getDIRACGroup
 home = os.environ["HOME"]
 
 debug=0
@@ -130,7 +131,7 @@ for f in output:
         t = "0:00:00"
       else:
         t = date1 - date2
-#				print t
+#        print t
 #				print t.days
 #				t = str(t.days*24),":00:00"
 #				print t
@@ -143,11 +144,15 @@ for f in output:
         m, s = divmod(t, 60)
         if h > 24:
           d = float(h)/24
-          t = "%s (%1.1f days)" % (t,d)
+          t = "%ss (%1.1f days)" % (t,d)
         else:
           t = "%s:%s:%s" % (str(h).zfill(2),str(m).zfill(2),str(s).zfill(2))
-print """subject  : /%s
-issuer   : /%s
-strength : %ss
-path     : %s
-timeleft : %s""" % (subject,issuer,key,proxyfile,t)
+
+dirac_group = getDIRACGroup()
+
+print """subject     : /%s
+issuer      : /%s
+strength    : %ss
+path        : %s
+timeleft    : %s
+DIRAC group : %s""" % (subject,issuer,key,proxyfile,t,dirac_group)
