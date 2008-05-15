@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.38 2008/05/06 05:48:49 joel Exp $
+# $Id: GaudiApplication.py,v 1.39 2008/05/15 14:40:55 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.38 2008/05/06 05:48:49 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.39 2008/05/15 14:40:55 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -70,7 +70,7 @@ class GaudiApplication(object):
       for lfn in self.inputData:
         if self.inputDataType == "MDF":
           inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
-        elif self.inputDataType == "ETC":
+        elif self.inputDataType in ("ETC","SETC","FETC"):
           inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
         else:
           inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
@@ -113,7 +113,7 @@ class GaudiApplication(object):
       for lfn in self.inputData:
         if self.inputDataType == "MDF":
           inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
-        elif self.inputDataType == "ETC":
+        elif self.inputDataType in ("ETC","SETC","FETC"):
           inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
         else:
           inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
