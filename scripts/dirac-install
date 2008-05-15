@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.41 2008/05/07 08:45:45 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.42 2008/05/15 13:14:01 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.41 2008/05/07 08:45:45 rgracian Exp $"
-__VERSION__ = "$Revision: 1.41 $"
+__RCSID__   = "$Id: dirac-install,v 1.42 2008/05/15 13:14:01 rgracian Exp $"
+__VERSION__ = "$Revision: 1.42 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -301,8 +301,7 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Development' )
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
-                            'dips://volhcb01.cern.ch:9135/Configuration/Server, '
-                            'dips://volhcb03.cern.ch:9135/Configuration/Server' )
+                            'dips://volhcb01.cern.ch:9135/Configuration/Server' )
   if dirac.architecture == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
     if DIRAC.platformTuple[1] == 'i686':
       arch = 'ia32'
