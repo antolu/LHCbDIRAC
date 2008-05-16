@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.11 2008/05/14 09:40:43 joel Exp $
+# $Id: LogChecker.py,v 1.12 2008/05/16 11:47:47 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.11 2008/05/14 09:40:43 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.12 2008/05/16 11:47:47 paterson Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -44,4 +44,7 @@ class LogChecker(object):
     self.NUMBER_OF_EVENTS_OUTPUT = self.logChecker.NUMBER_OF_EVENTS_OUTPUT
     if not rc['OK']:
       self.logChecker.checkApplicationLog(rc['Message'])
+      return rc
+
+    return rc
 

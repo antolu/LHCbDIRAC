@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.7 2008/05/16 08:19:12 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.8 2008/05/16 11:48:32 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.7 2008/05/16 08:19:12 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.8 2008/05/16 11:48:32 paterson Exp $"
 
 import commands, os, time
 
@@ -65,14 +65,15 @@ class AnalyseLogFile(object):
       result = self.goodJob()
       if result['OK']:
          resultnb = self.nbEvent()
-         if result['OK']:
+         if resultnb['OK']:
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
            self.__report('%s step OK' % (self.appName))
            return resultnb
          else:
-           self.log.info('Checking number of events returned result:\n%s' %(result))
+           self.log.info('Checking number of events returned result:\n%s' %(resultnb))
       else:
          self.__report('%s step Failed' % (self.appName))
+
       # This is DIRAC problem, no need to proceed further
       if result['Message'].find('DIRAC_EMAIL') != -1 :
         return result
