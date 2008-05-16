@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.3 2008/05/10 11:17:41 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.4 2008/05/16 18:25:22 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -55,6 +55,27 @@ DIRAC
   }
 
 }
+Systems
+{
+  RequestManagement
+  {
+    Production
+    {
+      URLs
+      {
+        localURL = dips://localhost:9143/RequestManagement/RequestManager
+      }
+      Services
+      {
+        RequestManager
+        {
+          Backend = file
+          Path = $DESTDIR/requestDB
+        }
+      }
+    }
+  }
+}
 EOF
 fi
 
@@ -68,9 +89,13 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${VERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-for dir in etc data runit startup ; do
+for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
+
+# to make sure we do not use DIRAC python
+dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
+PATH=`echo $PATH | sed "s/$dir://"`
 
 $CURDIR/dirac-install -S -P $VERDIR -v $VERSION -p $ARCH -i $PYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
@@ -85,6 +110,14 @@ cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1,
 $DESTDIR/pro/$ARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
 $DESTDIR/pro/$ARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
+#
+# fix user .bashrc
+#
+# grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
+#   echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
+grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
+  echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
+
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $VERSION $ARCH python$PYTHON || exit 1
 
@@ -95,7 +128,7 @@ $DESTDIR/pro/scripts/install_agent.sh   DataManagement TransferAgent
 
 # startup script
 STARTDIR=`dirname $DESTDIR`/start
-[ ! -d $STARTDIR ] && rm -rf $STARTDIR && mkdir $STARTDIR || exit 1
+[ ! -d $STARTDIR ] && rm -rf $STARTDIR && mkdir $STARTDIR
 cat > $STARTDIR/runsvdir-start << EOF
 #!/bin/bash
 exec 2>&1
@@ -107,7 +140,7 @@ chmod +x $STARTDIR/runsvdir-start
 
 # stop script
 STOPDIR=`dirname $DESTDIR`/stop
-[ ! -d $STOPDIR ] && rm -rf $STOPDIR && mkdir $STOPDIR || exit 1
+[ ! -d $STOPDIR ] && rm -rf $STOPDIR && mkdir $STOPDIR
 cat > $STOPDIR/runsvdir-stop << EOF
 #!/bin/bash
 killall -9 runsvdir
