@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.62 2008/05/14 11:16:17 joel Exp $
+# $Id: JobFinalization.py,v 1.63 2008/05/16 12:54:18 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.62 2008/05/14 11:16:17 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.63 2008/05/16 12:54:18 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -162,10 +162,25 @@ class JobFinalization(object):
           cache_se = self.TmpCacheSE
 #          for output,otype,oversion,outputse in outputs:
           for outputFile,outputSE,outputType in outputs:
+            guid = None
+            if self.poolcat:
+              guid = self.poolcat.getGuidByPfn(outputFile)
+              if not guid: guid = None
+
+            if guid is None:
+              self.log.warn("GUID is not defined for file %s" % outputFile)
+              result = shellCall(0,'uuidgen')
+              status = result['Value'][0]
+              guid = result['Value'][1]
+              self.log.info("Generated GUID: %s" % str(guid))
+            else:
+              self.log.info("File: %s GUID: %s" % (str(outputFile), str(guid)))
+
             if not outputFile in outputs_done:
               fname = os.path.basename(outputFile)
-              lfn = self.LFN_ROOT+'/'+fname
-              resCopy = self.rm.put(lfn,os.getcwd()+'/'+fname,cache_se)
+#              lfn = self.LFN_ROOT+'/'+fname
+              lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(outputFile,outputType),self.mode,self.PRODUCTION_ID)
+              resCopy = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,cache_se,guid)
               if resCopy['OK'] == True:
 #                pfname = result['PFN']
                 self.log.info(resCopy)
