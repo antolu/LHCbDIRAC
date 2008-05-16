@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.2 2008/05/16 17:04:56 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.3 2008/05/16 17:14:52 rgracian Exp $
 # File :   install_store02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -254,7 +254,7 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-for dir in etc data runit startup ; do
+for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
