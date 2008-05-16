@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.6 2008/05/13 06:20:45 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.7 2008/05/16 08:19:12 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.6 2008/05/13 06:20:45 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.7 2008/05/16 08:19:12 joel Exp $"
 
 import commands, os, time
 
@@ -71,7 +71,8 @@ class AnalyseLogFile(object):
            return resultnb
          else:
            self.log.info('Checking number of events returned result:\n%s' %(result))
-
+      else:
+         self.__report('%s step Failed' % (self.appName))
       # This is DIRAC problem, no need to proceed further
       if result['Message'].find('DIRAC_EMAIL') != -1 :
         return result
@@ -247,9 +248,20 @@ class AnalyseLogFile(object):
       if tread >= 1:
          return S_ERROR(mailto + ' TDCacheFile error')
 
+      self.log.info('Check IODataManager error')
+      line,resolv = self.grep(self.appLog,'Failed to resolve')
+      if resolv >= 1:
+         self.log.debug(line)
+         return S_ERROR(mailto + ' IODataManager error')
+
       self.log.info('Check connectionIO error')
-      line,tread = self.grep(self.appLog,'Error: connectDataIO')
-      if tread >= 1:
+      line,cdio = self.grep(self.appLog,'Error: connectDataIO')
+      if cdio >= 1:
+         return S_ERROR(mailto + ' connectDataIO error')
+
+      self.log.info('Check connectionIO error')
+      line,cdio = self.grep(self.appLog,'Error:connectDataIO')
+      if cdio >= 1:
          return S_ERROR(mailto + ' connectDataIO error')
 
       self.log.info('Check loop errors')
