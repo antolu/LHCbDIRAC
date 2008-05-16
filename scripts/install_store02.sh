@@ -1,6 +1,6 @@
-#!/bin/bash 
+#!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.1 2008/05/06 09:57:21 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.2 2008/05/16 17:04:56 acsmith Exp $
 # File :   install_store02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -182,6 +182,27 @@ Systems
 }
 Resources
 {
+  FileCatalogs
+  {
+    LcgFileCatalogCombined
+    {
+      AccessType = Read-Write
+      Status = Active
+      LcgGfalInfosys = lcg-bdii.cern.ch:2170
+      MasterHost = lfc-lhcb.cern.ch
+      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
+    }
+    PlacementDB
+    {
+      AccessType = Write
+      Status = Active
+    }
+    BookkeepingDB
+    {
+      AccessType = Write
+      Status = Stopped
+    }
+  }
   StorageElements
   {
     OnlineRunDB
@@ -192,7 +213,7 @@ Resources
         ProtocolName = LHCbOnline
         Access = local
         Protocol = http
-        Host = rundb01.lbdaq.cern.ch
+        Host = rundb02.lbdaq.cern.ch
         Port = 8080
         Path =
         SpaceToken =
