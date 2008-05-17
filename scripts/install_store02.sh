@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.5 2008/05/17 14:01:44 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.6 2008/05/17 18:08:20 acsmith Exp $
 # File :   install_store02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -110,6 +110,7 @@ Systems
     {
       URLs
       {
+        PlacementDB = dips://volhcb03.cern.ch:9147/DataManagement/ReplicationPlacement
         RAWIntegrity = dips://volhcb03.cern.ch:9198/DataManagement/RAWIntegrity
         DataLogging = dips://volhcb03.cern.ch:9146/DataManagement/DataLogging
       }
@@ -135,7 +136,10 @@ Systems
           ControlDirectory = /opt/dirac/runit/TransferAgent
           NumberOfThreads = 4
           ThreadPoolDepth = 4
-          UseProxies = False
+          ProxyDN = /C=UK/O=eScience/OU=Edinburgh/L=NeSC/CN=andrew cameron smith
+          ProxyGroup = lhcb_prod
+          ProxyLocation = /opt/DIRAC3/runit/DataManagement/TransferAgentAgent/proxy
+          UseProxies = True
         }
       }
     }
@@ -197,10 +201,10 @@ Resources
       AccessType = Write
       Status = Active
     }
-    BookkeepingDB
+    RAWIntegrity
     {
       AccessType = Write
-      Status = Stopped
+      Status = Active
     }
   }
   StorageElements
