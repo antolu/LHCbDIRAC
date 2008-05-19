@@ -44,5 +44,6 @@ class Script(object):
     fopen.close()
     print 'Output written to %s' % (self.LogFile)
     self.Output = '%s\n%s' %(stdout,stderr)
+    return S_OK()
 
 
