@@ -1,5 +1,6 @@
 
 from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC                           import S_OK, S_ERROR
 
 import os,sys,re
 
