@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.39 2008/05/15 14:40:55 joel Exp $
+# $Id: GaudiApplication.py,v 1.40 2008/05/19 12:55:48 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.39 2008/05/15 14:40:55 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.40 2008/05/19 12:55:48 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -446,7 +446,7 @@ rm -f scrtmp.py
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
       self.__report('%s Exited With Status %s' %(self.appName,status))
-      return S_ERROR(self.appName+" execution completed with errors")
+      return S_OK('%s execution completed with errors' % (self.appName))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
     self.__report('%s %s Successful' %(self.appName,self.appVersion))
