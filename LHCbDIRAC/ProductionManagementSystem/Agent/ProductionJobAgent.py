@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.5 2008/02/22 14:42:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.6 2008/05/19 09:00:05 paterson Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,12 +8,12 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.5 2008/02/22 14:42:21 paterson Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.6 2008/05/19 09:00:05 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from DIRAC.Interfaces.API.DiracProduction                 import DiracProduction
-from DIRAC.Core.Utilities.GridCredentials                 import setupProxy,restoreProxy,setDIRACGroup, getProxyTimeLeft
+from DIRAC.Core.Utilities.GridCredentials                 import setupProxyFile,restoreProxy,setDIRACGroup,getProxyTimeLeft,setupProxy
 from DIRAC                                                import S_OK, S_ERROR, gConfig, gMonitor
 
 import os, time, string
@@ -112,14 +112,11 @@ class ProductionJobAgent(Agent):
       self.log.info("No proxy found")
       obtainProxy = True
     else:
-      currentProxy = open(self.proxyLocation,'r')
-      oldProxyStr = currentProxy.read()
-      res = getProxyTimeLeft(oldProxyStr)
+      res = setupProxyFile(self.proxyLocation)
       if not res["OK"]:
         self.log.error("Could not determine the time left for proxy", res['Message'])
         return S_OK()
       proxyValidity = int(res['Value'])
-      self.log.debug('Current proxy found to be valid for %s seconds' %proxyValidity)
       self.log.info('%s proxy found to be valid for %s seconds' %(prodDN,proxyValidity))
       if proxyValidity <= self.minProxyValidity:
         obtainProxy = True
