@@ -277,7 +277,6 @@ workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "An
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
-workflow1.addParameter(Parameter("SoftwarePackages","Brunel.v32r4","JDL","","",True, False, "software"))
 
 workflow1.addParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))
@@ -301,7 +300,7 @@ if os.path.exists('wkf_CCRC_Stripping.xml'):
 workflow1.toXMLFile('wkf_CCRC_Stripping.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
-print workflow1.showCode()
+#print workflow1.showCode()
 print workflow1.createCode()
 #eval(compile(workflow1.createCode(),'<string>','exec'))
 #workflow1.execute()
