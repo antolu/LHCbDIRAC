@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.8 2008/05/16 11:48:32 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.9 2008/05/20 13:13:54 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.8 2008/05/16 11:48:32 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.9 2008/05/20 13:13:54 joel Exp $"
 
 import commands, os, time
 
@@ -70,13 +70,11 @@ class AnalyseLogFile(object):
            self.__report('%s step OK' % (self.appName))
            return resultnb
          else:
+           self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
       else:
+         self.sendErrorMail(result['Message'])
          self.__report('%s step Failed' % (self.appName))
-
-      # This is DIRAC problem, no need to proceed further
-      if result['Message'].find('DIRAC_EMAIL') != -1 :
-        return result
 
       return result
 
@@ -211,7 +209,9 @@ class AnalyseLogFile(object):
       self.log.info('Check application ended successfully')
       line,n = self.grep(self.appLog,'Application Manager Finalized successfully')
       if n == 0:
-        return S_ERROR(mailto + ' not finalized')
+        if self.appName:
+            mailto = self.appName.upper()+'_EMAIL'
+        return S_ERROR(mailto+' not finalized')
 
 # trap POOL error to open a file through POOL
       self.log.info('Check POOL connection error')
@@ -316,6 +316,59 @@ class AnalyseLogFile(object):
         result = S_ERROR('no logfile available')
 
     return result
+
+  def sendErrorMail(self,message):
+    genmail = message.split(' ')[0]
+    subj = message.split()[1]
+    try:
+        if self.EMAIL:
+            mailadress = self.EMAIL
+    except:
+        self.log.info('No EMAIL adress supplied')
+        return
+
+    self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
+    subject = self.appName+' '+ self.appVersion + \
+              ": "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+str(self.jobID)
+    lfile = open('logmail','w')
+    lfile.write('The Application %s %s had a problem \n' %(self.appName,self.appVersion))
+    if self.inputData:
+      lfile.write('\n\nInput Data:\n')
+      for inputname in self.inputData.split(';'):
+        lfile.write(inputname+'\n')
+
+    self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+    self.LFN_ROOT= getLFNRoot(self.SourceData)
+    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
+
+    if self.appLog:
+
+      logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
+      logurl = 'http://lhcb-logs.cern.ch/storage'+logpath
+      lfile.write('\n\nLog Files directory for the job:\n')
+      url = logurl+'/'+ self.JOB_ID+'/'
+      lfile.write(url+'\n')
+      lfile.write('\n\nLog File for the problematic step:\n')
+      url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog + '.gz'
+      lfile.write(url+'\n')
+      lfile.write('\n\nJob StdOut:\n')
+      url = logurl+'/'+ self.JOB_ID+'/std.out'
+      lfile.write(url+'\n')
+      lfile.write('\n\nJob StdErr:\n')
+      url = logurl+'/'+ self.JOB_ID+'/std.err'
+      lfile.write(url+'\n')
+
+    lfile.close()
+
+    if os.path.exists('corecomm.log'):
+      comm = 'cat corecomm.log logmail | mail -s "'+subject+'" '+ mailadress
+    else:
+      comm = 'cat logmail | mail -s "'+subject+'" '+ mailadress
+
+    self.result = shellCall(0,comm)
+    #status = 0
+    if self.result['Value'][0]:
+      self.log.error( "Sending mail failed %s" % str( self.result['Value'][1] ) )
 
 
   def checkApplicationLog(self,error):
