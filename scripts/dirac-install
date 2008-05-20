@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.42 2008/05/15 13:14:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.43 2008/05/20 17:15:02 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.42 2008/05/15 13:14:01 rgracian Exp $"
-__VERSION__ = "$Revision: 1.42 $"
+__RCSID__   = "$Id: dirac-install,v 1.43 2008/05/20 17:15:02 rgracian Exp $"
+__VERSION__ = "$Revision: 1.43 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -225,6 +225,9 @@ if not tmpPath:
 else:
   myShortName = os.path.basename( sys.argv[0] )
   myFullName = os.path.join( tmpPath, 'scripts', myShortName )
+
+# use a different LCG version
+dirac_functions.lcgVer = "3.1.10-0-new"
 
 dirac = functions( myFullName )
 # by default install from tar
