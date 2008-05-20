@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.40 2008/05/19 12:55:48 joel Exp $
+# $Id: GaudiApplication.py,v 1.41 2008/05/20 15:17:02 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.40 2008/05/19 12:55:48 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.41 2008/05/20 15:17:02 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
 import shutil, re, string, os, sys
@@ -191,6 +192,21 @@ class GaudiApplication(object):
   #############################################################################
   def execute(self):
     self.__report('Initializing GaudiApplication')
+    self.result = S_OK()
+    if not self.appName or not self.appVersion:
+      self.result = S_ERROR( 'No Gaudi Application defined' )
+    elif not self.systemConfig:
+      self.result = S_ERROR( 'No LHCb platform selected' )
+    # FIXME: clarify if appLog or logfile is to be used
+    elif not self.logfile and not self.appLog:
+      self.result = S_ERROR( 'No Log file provided' )
+
+    if not self.result['OK']:
+      return self.result
+
+    if not self.optionsFile and not self.optionsLine:
+      self.log.warn( 'No options File nor options Line provided' )
+
     cwd = os.getcwd()
     self.root = gConfig.getValue('/LocalSite/Root',cwd)
     self.log.debug(self.version)
@@ -198,28 +214,23 @@ class GaudiApplication(object):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
     localDir = 'lib' #default
+    sharedArea = SharedArea()
 
-    # Check if the specified options file exists in the current directory,
-    # for example, it is supplied in the job input sandbox
-    try:
-        exec 'from LHCb_config import *'
-    except Exception, x:
-        self.log.error("failed to import LHCb_config.py : %s" % (x))
-        self.__report('failed to import LHCb_config.py')
-        return S_ERROR('failed to import LHCb_config.py')
-
-    if applications.has_key(string.upper(self.appName)) == 1:
-        prefix = applications[string.upper(self.appName)]
+    appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, sharedArea )
+    self.log.info(appCmd)
+    if appCmd:
+      mySiteRoot = sharedArea
     else:
-        self.log.error("Application unknown :%s" % (self.appName))
+      self.log.info( 'Application not Found' )
+      self.__report( 'Appliaction not Found' )
+      self.result = S_ERROR( 'Application not Found' )
 
+    if not self.result['OK']:
+      return self.result
 
-    #will think about this later
-    #############################################################
-
-    app_dir_path = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
-                   string.upper(self.appName)+'_'+self.appVersion+'/'+prefix+'/' \
-                   +self.appVersion
+    self.__report( 'Application Found' )
+    self.log.info( 'Application Found:' )
+    app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
     app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
                    string.upper(self.appName)+'_'+self.appVersion+'/InstallArea'
 
@@ -238,18 +249,11 @@ class GaudiApplication(object):
       self.optfile_extra = 'gaudi_extra_options.opts'
       optionsType = 'opts'
       self.manageOpts()
-    else:
+    elif self.optionsFile.find('.py') > 0:
       optionsType = 'py'
       self.optfile_extra = 'gaudi_extra_options.py'
       self.managePy()
 
-#    comm = open(optfile,'a')
-#    newline = """OutputStream("DstWriter").Output = "DATAFILE='PFN:joel.dst' TYPE='POOL_ROOTTREE' OPT='REC'"\n """
-#    comm.write(newline)
-#    comm.close()
-
-
-#    os.environ['JOBOPTPATH'] = optfile
 
     if os.path.exists(self.appName+'Run.sh'): os.remove(self.appName+'Run.sh')
     script = open(self.appName+'Run.sh','w')
