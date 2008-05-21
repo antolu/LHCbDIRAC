@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.64 2008/05/21 08:32:21 joel Exp $
+# $Id: JobFinalization.py,v 1.65 2008/05/21 13:29:24 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.64 2008/05/21 08:32:21 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.65 2008/05/21 13:29:24 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -117,6 +117,7 @@ class JobFinalization(object):
        self.log.info('Stop this module before uploading data, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.log.info('Step Status %s' %(self.stepStatus))
+       self.__report('Job Completed With Errors')
        return S_OK()
 
     all_done = True
