@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.11 2008/05/21 12:19:38 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.12 2008/05/21 13:29:54 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.11 2008/05/21 12:19:38 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.12 2008/05/21 13:29:54 joel Exp $"
 
 import commands, os, time
 
@@ -67,16 +67,16 @@ class AnalyseLogFile(object):
          resultnb = self.nbEvent()
          if resultnb['OK']:
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
-           self.__report('%s step OK' % (self.appName))
+           self.__report('%s Step OK' % (self.appName))
            return resultnb
          else:
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
-           self.__report('%s step Failed' % (self.appName))
+           self.__report('%s Step Failed' % (self.appName))
            return resultnb
       else:
          self.sendErrorMail(result['Message'])
-         self.__report('%s step Failed' % (self.appName))
+         self.__report('%s Step Failed' % (self.appName))
 
       return result
 
