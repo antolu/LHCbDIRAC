@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.41 2008/05/20 15:17:02 joel Exp $
+# $Id: GaudiApplication.py,v 1.42 2008/05/21 07:19:38 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.41 2008/05/20 15:17:02 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.42 2008/05/21 07:19:38 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -192,6 +192,11 @@ class GaudiApplication(object):
   #############################################################################
   def execute(self):
     self.__report('Initializing GaudiApplication')
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+       self.log.info('Skip this module, failure detected in a previous step :')
+       self.log.info('Workflow status : %s' %(self.workflowStatus))
+       self.log.info('Step Status %s' %(self.stepStatus))
+       return S_OK()
     self.result = S_OK()
     if not self.appName or not self.appVersion:
       self.result = S_ERROR( 'No Gaudi Application defined' )
@@ -450,7 +455,7 @@ rm -f scrtmp.py
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
       self.__report('%s Exited With Status %s' %(self.appName,status))
-      return S_OK('%s execution completed with errors' % (self.appName))
+      return S_ERROR('%s execution completed with errors' % (self.appName))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
     self.__report('%s %s Successful' %(self.appName,self.appVersion))
