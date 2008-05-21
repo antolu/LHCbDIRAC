@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.10 2008/05/21 07:16:55 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.11 2008/05/21 12:19:38 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.10 2008/05/21 07:16:55 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.11 2008/05/21 12:19:38 joel Exp $"
 
 import commands, os, time
 
@@ -72,6 +72,8 @@ class AnalyseLogFile(object):
          else:
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
+           self.__report('%s step Failed' % (self.appName))
+           return resultnb
       else:
          self.sendErrorMail(result['Message'])
          self.__report('%s step Failed' % (self.appName))
@@ -320,8 +322,8 @@ class AnalyseLogFile(object):
     return result
 
   def sendErrorMail(self,message):
-    genmail = message.split(' ')[0]
-    subj = message.split()[1]
+    genmail = message.split()[0]
+    subj = message.replace(genmail,'')
     try:
         if self.EMAIL:
             mailadress = self.EMAIL
