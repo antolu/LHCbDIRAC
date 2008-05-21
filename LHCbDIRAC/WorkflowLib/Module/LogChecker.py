@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.12 2008/05/16 11:47:47 paterson Exp $
+# $Id: LogChecker.py,v 1.13 2008/05/21 07:18:14 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.12 2008/05/16 11:47:47 paterson Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.13 2008/05/21 07:18:14 joel Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -27,8 +27,6 @@ class LogChecker(object):
     self.OUTPUT_MAX = 'None'
 
   def execute(self):
-
-#    if self.appName == 'Boole':
     if self.appName in ('Boole', 'Gauss','Brunel', 'DaVinci'):
         self.logChecker = AnalyseLogFile()
     else:
