@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.9 2008/05/20 13:13:54 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.10 2008/05/21 07:16:55 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.9 2008/05/20 13:13:54 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.10 2008/05/21 07:16:55 joel Exp $"
 
 import commands, os, time
 
@@ -58,8 +58,8 @@ class AnalyseLogFile(object):
 # check the is the logfile exist
       result = self.getLogFile()
       if not result['OK'] :
-         self.log.warn(self.argv0 + '.LogFile - no logfile available - EXIT')
-         return S_ERROR(self.argv0 + '.LogFile - no logfile available - EXIT')
+         self.log.info(result['Message'])
+         return S_ERROR(result['Message'])
 
 # check if this is a good job
       result = self.goodJob()
@@ -301,7 +301,7 @@ class AnalyseLogFile(object):
 #-----------------------------------------------------------------------
 #
   def getLogFile(self):
-    self.log.debug(' OpenLogFile - try to open %s'%(self.appLog))
+    self.log.debug(' OpenLogFile - try to open %s' %(self.appLog))
 
     result = S_OK()
     if not os.path.exists(self.appLog):
@@ -311,9 +311,11 @@ class AnalyseLogFile(object):
         resultTuple = result['Value']
         if resultTuple[0] > 0:
           self.log.info(resultTuple[1])
-          result = S_ERROR('no logfile available')
+          result = S_ERROR('%s is not available' %(self.appLog))
       else:
-        result = S_ERROR('no logfile available')
+        result = S_ERROR('%s is not available' %(self.appLog))
+    elif os.stat(self.appLog)[6] == 0:
+        result = S_ERROR('%s is empty' %(self.appLog))
 
     return result
 
