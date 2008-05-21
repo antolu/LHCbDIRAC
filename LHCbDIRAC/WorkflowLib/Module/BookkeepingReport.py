@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.18 2008/05/06 16:48:18 joel Exp $
+# $Id: BookkeepingReport.py,v 1.19 2008/05/21 07:17:40 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.18 2008/05/06 16:48:18 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.19 2008/05/21 07:17:40 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -31,6 +31,11 @@ class BookkeepingReport(object):
     pass
 
   def execute(self):
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+       self.log.info('Skip this module, failure detected in a previous step :')
+       self.log.info('Workflow status : %s' %(self.workflowStatus))
+       self.log.info('Step Status %s' %(self.stepStatus))
+       return S_OK()
 
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
