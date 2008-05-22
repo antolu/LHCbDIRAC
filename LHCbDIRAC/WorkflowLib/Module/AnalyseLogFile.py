@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.12 2008/05/21 13:29:54 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.13 2008/05/22 07:48:20 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.12 2008/05/21 13:29:54 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.13 2008/05/22 07:48:20 joel Exp $"
 
 import commands, os, time
 
@@ -353,7 +353,7 @@ class AnalyseLogFile(object):
       url = logurl+'/'+ self.JOB_ID+'/'
       lfile.write(url+'\n')
       lfile.write('\n\nLog File for the problematic step:\n')
-      url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog + '.gz'
+      url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog
       lfile.write(url+'\n')
       lfile.write('\n\nJob StdOut:\n')
       url = logurl+'/'+ self.JOB_ID+'/std.out'
