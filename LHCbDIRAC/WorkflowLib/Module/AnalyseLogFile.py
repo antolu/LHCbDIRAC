@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.13 2008/05/22 07:48:20 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.14 2008/05/23 12:52:45 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.13 2008/05/22 07:48:20 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.14 2008/05/23 12:52:45 joel Exp $"
 
-import commands, os, time
+import commands, os, time, smtplib
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -20,6 +20,7 @@ class AnalyseLogFile(object):
   def __init__(self):
       self.log = gLogger.getSubLogger("AnalyseLogFile")
       self.site = gConfig.getValue('/LocalSite/Site','localSite')
+      self.systemConfig = 'None'
       self.result = S_ERROR()
       self.mailadress = 'None'
       self.NUMBER_OF_EVENTS_INPUT = None
@@ -332,47 +333,48 @@ class AnalyseLogFile(object):
         return
 
     self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
-    subject = self.appName+' '+ self.appVersion + \
+    subject = '['+self.site+']['+self.appName+'] '+ self.appVersion + \
               ": "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+str(self.jobID)
-    lfile = open('logmail','w')
-    lfile.write('The Application %s %s had a problem \n' %(self.appName,self.appVersion))
+    msg='From:joel.closier@cern.ch\r\nTo:'+mailadress+'\r\nSubject:'+subject+'\r\n'
+    msg = msg + 'The Application '+self.appName+' '+self.appVersion+' had a problem \n'
+    msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
+    msg = msg +'JobID is '+str(self.jobID)+'\n'
+    msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
     if self.inputData:
-      lfile.write('\n\nInput Data:\n')
+      msg = msg + '\n\nInput Data:\n'
       for inputname in self.inputData.split(';'):
-        lfile.write(inputname+'\n')
+        msg = msg +inputname+'\n'
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     self.LFN_ROOT= getLFNRoot(self.SourceData)
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 
     if self.appLog:
-
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
       logurl = 'http://lhcb-logs.cern.ch/storage'+logpath
-      lfile.write('\n\nLog Files directory for the job:\n')
-      url = logurl+'/'+ self.JOB_ID+'/'
-      lfile.write(url+'\n')
-      lfile.write('\n\nLog File for the problematic step:\n')
-      url = logurl+'/'+ self.JOB_ID+'/'+ self.appLog
-      lfile.write(url+'\n')
-      lfile.write('\n\nJob StdOut:\n')
-      url = logurl+'/'+ self.JOB_ID+'/std.out'
-      lfile.write(url+'\n')
-      lfile.write('\n\nJob StdErr:\n')
-      url = logurl+'/'+ self.JOB_ID+'/std.err'
-      lfile.write(url+'\n')
-
-    lfile.close()
+      msg = msg + '\n\nLog Files directory for the job:\n'
+      msg = msg+logurl+'/'+ self.JOB_ID+'/\n'
+      msg = msg +'\n\nLog File for the problematic step:\n'
+      msg = msg+logurl+'/'+ self.JOB_ID+'/'+ self.appLog+'\n'
+      msg = msg + '\n\nJob StdOut:\n'
+      msg = msg+logurl+'/'+ self.JOB_ID+'/std.out\n'
+      msg = msg +'\n\nJob StdErr:\n'
+      msg = msg+logurl+'/'+ self.JOB_ID+'/std.err\n'
 
     if os.path.exists('corecomm.log'):
-      comm = 'cat corecomm.log logmail | mail -s "'+subject+'" '+ mailadress
-    else:
-      comm = 'cat logmail | mail -s "'+subject+'" '+ mailadress
+      fd = open('corecomm.log')
+      msgtmp = fd.readlines()
+      msg = msg + '\n\nCore dump:\n\n'
+      for j in msgtmp:
+          msg = msg + str(j)
 
-    self.result = shellCall(0,comm)
-    #status = 0
-    if self.result['Value'][0]:
-      self.log.error( "Sending mail failed %s" % str( self.result['Value'][1] ) )
+    try:
+      server = smtplib.SMTP('localhost')
+      server.sendmail('joel.closier@cern.ch',mailadress,msg)
+      server.quit()
+    except Exception, x:
+       self.log.error( "Sending mail failed %s" % str( x ) )
+       self.__report('Sending Mail Failed')
 
 
   def checkApplicationLog(self,error):
