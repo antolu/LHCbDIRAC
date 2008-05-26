@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.55 2008/05/07 08:41:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.56 2008/05/26 09:33:13 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.55 2008/05/07 08:41:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.55 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.56 2008/05/26 09:33:13 rgracian Exp $"
+__VERSION__ = "$Revision: 1.56 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -499,7 +499,7 @@ class functions:
     try:
       self.urlretrieveTimeout( remoteName, localName, timeout )
       error = 'Openning file "%s"' % localName
-      import tarfile
+      # import tarfile
       tar = tarfile.open( localName , 'r' )
       try:
         error = 'Extracting file "%s"' % localName
