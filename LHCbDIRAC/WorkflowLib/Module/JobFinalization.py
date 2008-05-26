@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.66 2008/05/26 08:19:53 joel Exp $
+# $Id: JobFinalization.py,v 1.67 2008/05/26 08:40:28 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.66 2008/05/26 08:19:53 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.67 2008/05/26 08:40:28 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -437,6 +437,7 @@ class JobFinalization(object):
     if not result['OK']:
       self.log.error("Transferring log files to the main LogSE failed")
       self.log.error( result )
+      self.__setJobParam('Upload failed for logfile: %s at SE: %s' %(self.logdir,self.logSE),result['Message'])
       self.__report('Transferring log files to the main LogSE failed')
     else:
       self.log.info("Transferring log files to the main LogSE successful")
