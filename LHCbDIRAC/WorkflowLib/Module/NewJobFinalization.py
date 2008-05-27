@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.8 2008/05/26 14:37:26 atsareg Exp $
+# $Id: NewJobFinalization.py,v 1.9 2008/05/27 13:12:41 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.8 2008/05/26 14:37:26 atsareg Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.9 2008/05/27 13:12:41 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -81,11 +81,7 @@ class JobFinalization(ModuleBase):
     self.bkDB = BookkeepingDBClient()
     self.jobReport  = None
     self.fileReport = None
-    self.accountingReport = None
-    self.request = DataManagementRequest()
-    self.request.setRequestName('job_%s_request.xml' % self.jobID)
-    self.request.setJobID(self.jobID)
-    self.request.setSourceComponent("Job_%s" % self.jobID)
+    self.request = None
 
     self.log = gLogger.getSubLogger("JobFinalization")
     self.log.setLevel('debug')
@@ -95,22 +91,26 @@ class JobFinalization(ModuleBase):
     """ Main executon method
     """
 
+    print "AT >>>>>>>> Starting Job Finalization",self.workflow_commons
+    print "AT >>>>>>>> Starting Job Finalization",self.workflowStatus, self.stepStatus
+
     # Add global reporting tool
-    if self.workflow_commons.has_key('JobReport'):
-      self.jobReport  = self.workflow_commons['JobReport']
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
     else:
       self.request = RequestContainer()
-    if self.workflow_commons.has_key('FileReport'):
-      self.fileReport  = self.workflow_commons['FileReport']
-    if self.workflow_commons.has_key('AccountingReport'):
-      self.accountingReport  = self.workflow_commons['AccountingReport']
+
     self.request.setRequestName('job_%s_request.xml' % self.jobID)
     self.request.setJobID(self.jobID)
     self.request.setSourceComponent("Job_%s" % self.jobID)
 
-    result = self.__report('Job Finalization')
+    print "AT >>>>>>>>>>>> FileReport"
+    result = self.setFileStatus(self.PRODUCTION_ID,
+                       '/lhcb/data/CCRC08//00000130/0000/00000130_00000136_1.rdst',
+                       'Processed')
+    print "AT >>>>>>>>>>>> FileReport", result                   
+
+    result = self.setApplicationStatus('Job Finalization')
 
     print "AT ->>>>>>>>>>>>>", self.listoutput
     res = shellCall(0,'ls -al')
@@ -131,12 +131,14 @@ class JobFinalization(ModuleBase):
 
     error = 0
     if self.step_commons.has_key('Status'):
-      if step_commons['Status'] == "Error":
+      if self.step_commons['Status'] == "Error":
         error = 1
+        self.log.info('Job finished with errors. Reduced finalization will be done')
 
     self.LFN_ROOT = getLFNRoot(self.SourceData)
 
     result = self.finalize(error)
+    
     return result
 
 ##############################################################################
@@ -185,11 +187,11 @@ class JobFinalization(ModuleBase):
         data_done = False
 
     if not data_done:
-      self.__report('Failed to save output data')
+      self.setApplicationStatus('Failed to save output data')
       result = S_ERROR('Failed to save output data')
 
     if logs_done and data_done and bk_done and not error:
-      self.__report('Job Finished Successfully')
+      self.setApplicationStatus('Job Finished Successfully')
 
     if not logs_done:
       error_message = "failed to save logs, "
@@ -198,10 +200,12 @@ class JobFinalization(ModuleBase):
 
     if error_message:
       error_message = error_message[:-2]
-      self.__setJobParameter('FinalizationError',error_message)
+      self.setJobParameter('FinalizationError',error_message)
 
     ##################################################################
     # Create failover request if necessary
+
+    print "AT >>>>>>> createRequest"
 
     resultRequest = self.createRequest()
     if not resultRequest['OK']:
@@ -373,7 +377,7 @@ class JobFinalization(ModuleBase):
     else:
       logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s/log.tar.gz">Log file directory</a>' % (target_path, str(self.JOB_ID))
       self.log.info(logref)
-      self.__setJobParam('Log URL',logref)
+      self.setJobParameter('Log URL',logref)
 
     if not result['OK']:
       self.log.error("Transferring log files to the main LogSE failed")
@@ -454,8 +458,8 @@ class JobFinalization(ModuleBase):
           if resUpload['OK']:
             outputs_done.append(outputName)
           else:
-
             all_done = False
+            
       count += 1
 
     outputs_failed = []
@@ -463,65 +467,110 @@ class JobFinalization(ModuleBase):
       if not outputName in outputs_done:
         outputs_failed.append(outputName)
     if all_done:
-      return S_OK()
+      result = S_OK()
     else:
       result = S_ERROR('Failed to upload output data')
       result['Value'] = {}
       result['Value']['Failed'] = outputs_failed
       result['Value']['Successful'] = outputs_done
+    return result
 
 ################################################################################
   def uploadOutputData(self,output,otype,outputse):
     """ Determine the output file destination SEs and upload file to the grid
     """
 
-    result = self.__getDestinationSEList(outputse)
-    if not result['OK']:
-      self.log.error('No valid SEs defined as file destinations')
-      return result
-    ses = result['Value']
-
+    se_groups = [ x.strip() for x in outputse.split(',')]
+    out_ses = []
+    other_ses = []
     lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
-    if outputmode == "Any":
-      result = self.uploadDataFile(output,lfn,ses,allSEs=False)
-    elif outputmode == "All":
-      result = self.uploadDataFile(output,lfn,ses,allSEs=True)
-    elif outputmode == "Local":
-      ses = ses[:1]
-      result = self.uploadDataFile(output,lfn,ses,allSEs=True)
-    return result
+
+    # Process each SE or SE group in turn. Make the first pass without failover
+    # enabled. If no destination succeeds, enable failover
+    for failoverFlag in [False,True]:
+      for se_group in se_groups:
+        index = se_group.find(':')
+        if index != -1:
+          outputmode = se_group[:index]
+          se_group = se_group[index+1:]
+        else:
+          outputmode = "Local"  
+
+        print "AT >>>>>>>> outputmode,se_group", outputmode,se_group
+
+        result = self.__getDestinationSEList(se_group, outputmode)
+        if not result['OK']:
+          self.log.error('No valid SEs defined as file destinations')
+          return result
+        ses = result['Value']  
+        if outputmode == "Any":
+          random.shuffle(ses)
+          out_ses.append(ses[0])
+          other_ses += ses[1:]
+        else:
+          out_ses += ses    
+
+        result = self.uploadDataFile(output,lfn,out_ses,allSEs=False,failover=failoverFlag)
+        if not result['OK']:
+          # Try other SEs from Any Type group
+          for se in other_ses:
+            new_ses = [se]+out_ses
+            result = self.uploadDataFile(output,lfn,new_ses,allSEs=False)
+            if result['OK']:
+              return result
+        else:
+          return result      
+        
+    return S_ERROR('Failed to upload file ' + output)
 
 #############################################################################
-  def __getDestinationSEList(self,outputSE):
+  def __getDestinationSEList(self,outputSE, outputmode):
     """ Evaluate the output SE list
     """
 
     SEs = []
     # Add output SE defined in the job description
-    self.log.info(outputSE)
-    if outputSE != None:
-      outSEs = outputSE.split(',')
-      for outSE in outSEs:
-        csSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outSE,[])
-        if csSEs:
-          SEs += csSEs
-        else:
-          # Check if this is a concrete SE name
-          se =  gConfig.getValue('/Resources/StorageElement/'+outSE,'')
-          if se:
-            SEs.append(se)
-
-    if not SEs:
-      return S_ERROR('No valid SE names specified')
-
+    self.log.verbose('Resolving '+outputSE+' SE')
+    
+    # Check if the SE is defined explicitly for the site 
+    prefix = self.site.split('.')[0]
+    sname = self.site.replace(prefix+'.','')
+    country = self.site.split('.')[-1]
+    # Concrete SE name
+    result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
+    if result['OK']:
+      return S_OK([outputSE])
+    # There is an alias defined for this Site  
+    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,sname,outputSE),'')
+    if alias_se:
+      return S_OK([alias_se])
+        
+        
     localSEs = self.__getLocalSEList()
+    groupSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outputSE,[])   
+     
+    if not groupSEs:
+      return S_ERROR('Failed to resolve SE '+outputSE) 
+     
+    if outputmode == "Local":
+      for se in localSEs:
+        if se in groupSEs:
+          return S_OK([se])
+      # Final check for country associated SE
+      alias_se = gConfig.getValue('/Resources/Country/%s/AssociatedSEs/%s' % (country,outputSE),'')  
+      if alias_se:
+        return S_OK([alias_se]) 
+      else:
+        return S_ERROR('Failed to resolve SE '+outputSE)
+          
+    # For collective Any and All modes return the whole group
 
     # Make sure that local SEs are passing first
     newSEList = []
-    for se in SEs:
+    for se in groupSEs:
       if se in localSEs:
         newSEList.append(se)
-    SEs = uniq(newSEList+SEs)
+    SEs = uniq(newSEList+groupSEs)
 
     return S_OK(SEs)
 
@@ -556,7 +605,7 @@ class JobFinalization(ModuleBase):
     return ses
 
 ###################################################################################################
-  def uploadDataFile(self,datafile,lfn,destinationSEList,allSEs=True):
+  def uploadDataFile(self,datafile,lfn,destinationSEList,allSEs=True,failover=False):
     """ Upload a datafile to the grid and set necessary replication requests
     """
 
@@ -590,6 +639,9 @@ class JobFinalization(ModuleBase):
     failover_ses = []
     for se in destination_ses:
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
+      
+      print "AT >>>>>>>> uploadDataFileToSE", result
+      
       if result['OK']:
         done_ses.append(se)
         if result.has_key('Register'):
@@ -601,41 +653,41 @@ class JobFinalization(ModuleBase):
             if sse != se and sse not in done_ses:
               self.setReplicationRequest(lfn,se,removeOrigin=False)
               request_ses.append(sse)
-          resultDict = {}
-          resultDict['Successful'] = done_ses
-          resultDict['Failed'] = failed_ses
-          resultDict['RequestSet'] = request_ses
-          result = S_OK(resultDict)
+          break
 
       else:
         self.log.warn(result)
-        self.__setJobParam('Upload failed for file: %s to SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
+        self.setJobParameter('Upload failed for file: %s to SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
         # Try failover destination now
-        result = self.uploadFileFailover(datafile,lfn,guid)
-        if result['OK']:
-          request_ses.append(se)
-          if result.has_key('Register'):
-            self.setPfnReplicationRequest(lfn,se,result,removeOrigin=True)
+        if failover:
+          result = self.uploadFileFailover(datafile,lfn,guid)
+          if result['OK']:
+            request_ses.append(se)
+            if result.has_key('Register'):
+              self.setPfnReplicationRequest(lfn,se,result,removeOrigin=True)
+            else:
+              self.setReplicationRequest(lfn,se,removeOrigin=True)
+            failover_ses.append(result['FailoverSE'])
           else:
-            self.setReplicationRequest(lfn,se,removeOrigin=True)
-          failover_ses.append(se)
+            failed_ses.append(se)
         else:
-          failed_ses.append(se)
+          failed_ses.append(se)    
 
     resultDict = {}
     resultDict['Successful'] = done_ses
     resultDict['Failed'] = failed_ses
     resultDict['RequestSet'] = request_ses
-    resultDict['Failed'] = failover_ses
+    resultDict['Failover'] = failover_ses
 
 
     print "AT >>>>>>>>>>>>>>>>>>>>>>> __________", resultDict
 
     if failed_ses:
       result = S_ERROR('Failed to save file %s' % lfn)
-      result['Value']
+      result['Value'] = resultDict
     else:
-      return S_OK(resultDict)
+      result = S_OK(resultDict)
+    return result  
 
 ############################################################################################
   def uploadDataFileToSE(self,datafile,lfn,se,guid):
@@ -703,17 +755,16 @@ class JobFinalization(ModuleBase):
     """ Set replication request for lfn with se Storage Element destination
     """
 
-    result = self.request.initiateSubRequest('transfer')
+    if removeOrigin:
+      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister'}},'transfer')
+    else:
+      result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister'}},'transfer')  
     if not result['OK']:
       return result
 
     index = result['Value']
-    fileDict = {'LFN':lfn,'TargetSE':se}
+    fileDict = {'LFN':lfn,'TargetSE':se,'Status':'Waiting'}
     result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
-    if removeOrigin:
-      result = self.addSubRequestAttributeValue(index,'transfer','Operation','moveAndRegister')
-    else:
-      result = self.addSubRequestAttributeValue(index,'transfer','Operation','replicateAndRegister')
 
     return S_OK()
 
@@ -722,13 +773,13 @@ class JobFinalization(ModuleBase):
     """ Set replication request for lfn with se Storage Element destination
     """
 
-    result = self.request.initiateSubRequest('register')
+    result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile'}},'register')
     if not result['OK']:
       return result
 
     index = result['Value']
+    fileDict['Status'] = "Waiting"
     result = self.request.setSubRequestFiles(index,'register',[fileDict])
-    result = self.addSubRequestAttributeValue(index,'register','Operation','registerFile')
 
     return S_OK()
 
@@ -737,16 +788,16 @@ class JobFinalization(ModuleBase):
     """ Set replication request for lfn with se Storage Element destination
     """
 
-    result = self.request.initiateSubRequest('transfer')
+    if removeOrigin:
+      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister'}},'transfer')
+    else:
+      result = self.request.addSubRequest({'Attributes':{'Operation':'copyAndRegister'}},'transfer')  
     if not result['OK']:
       return result
 
     index = result['Value']
+    fileDict = {'LFN':lfn,'TargetSE':se,'Status':'Waiting'}
     result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
-    if removeOrigin:
-      result = self.addSubRequestAttributeValue(index,'transfer','Operation','moveAndRegister')
-    else:
-      result = self.addSubRequestAttributeValue(index,'transfer','Operation','copyAndRegister')
 
     return S_OK()
 
@@ -757,6 +808,10 @@ class JobFinalization(ModuleBase):
     """
 
     # get the accumulated reporting request
+    print self.jobReport
+    print self.jobReport.jobStatusInfo
+    print self.jobReport.appStatusInfo
+    print self.jobReport.jobParameters
     reportRequest = None
     if self.jobReport:
       result = self.jobReport.generateRequest()
@@ -769,20 +824,21 @@ class JobFinalization(ModuleBase):
       result = self.fileReport.generateRequest()
       reportRequest = result['Value']
     if reportRequest:
-      self.request.update(reportRequest)
-
-    if self.accountingReport:
-      result = self.accountingReport.commit()
+      result = self.request.update(reportRequest)
+    
+    accountingReport = None
+    if self.workflow_commons.has_key('AccountingReport'):
+      accountingReport  = self.workflow_commons['AccountingReport']
+    if accountingReport:
+      result = accountingReport.commit()
       if not result['OK']:
         self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'accounting')
 
-    if self.request.isEmpty():
+    if self.request.isEmpty()['Value']:
       return S_OK()
 
     request_string = self.request.toXML()['Value']
-
-    print "AT >>>>>>>>>>>>>>>@@@@@@@@@@@@@@@@@@@",request_string
-
+    self.log.debug(request_string)
     # Write out the request string
     fname = self.PRODUCTION_ID+"_"+self.JOB_ID+"_request.xml"
     xmlfile = open(fname,'w')
