@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.1 2008/05/26 14:37:54 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.2 2008/05/27 13:13:05 atsareg Exp $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,21 +7,25 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.1 2008/05/26 14:37:54 atsareg Exp $"
+__RCSID__ = "$Id: ModuleBase.py,v 1.2 2008/05/27 13:13:05 atsareg Exp $"
 
-from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC  import S_OK, S_ERROR, gLogger
 
 class ModuleBase(object):
 
     
   #############################################################################
-  def __report(self,status):
+  def setApplicationStatus(self,status):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not self.jobID:
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'JobFinalization'))
+
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport  = self.workflow_commons['JobReport']
+      
     if not self.jobReport:
       return S_OK('No reporting tool given')
     jobStatus = self.jobReport.setApplicationStatus(status)
@@ -31,13 +35,17 @@ class ModuleBase(object):
     return jobStatus
 
   #############################################################################
-  def __setJobParam(self,name,value):
+  def setJobParameter(self,name,value):
     """Wraps around setJobParameter of state update client
     """
     if not self.jobID:
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobParameter(%s,%s,%s)' %(self.jobID,name,value))
+    
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport  = self.workflow_commons['JobReport']
+      
     if not self.jobReport:
       return S_OK('No reporting tool given')
     jobParam = self.jobReport.setJobParameter(str(name),str(value))
