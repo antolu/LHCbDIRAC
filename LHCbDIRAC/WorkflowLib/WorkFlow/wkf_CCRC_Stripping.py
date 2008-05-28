@@ -18,19 +18,19 @@ opt_dav = opt_dav+";ApplicationMgr.TopAlg -= { \"GaudiSequencer/SeqPreselHWZ2bbl
 opt_dav = opt_dav+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_dav = opt_dav+";WR.Output = \"Collection=\'EVTTAGS/TagCreator/1\' ADDRESS=\'/Event\' DATAFILE=\'@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_dav = opt_dav+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCnvSvc\" }"
-opt_dav = opt_dav+";DaVinciMainSeq.Members += { \"CheckPV\" }; CheckPV.MaxPVs = 2 ;StdNoPIDsKaonsSeq.Members = { \"CheckPV\" };StdLooseKaonsSeq.Members = { \"CheckPV\" };StdTightKaonsSeq.Members = { \"CheckPV\" };StdNoPIDsPionsSeq.Members = { \"CheckPV\" };StdLoosePionsSeq.Members = { \"CheckPV\" };StdTightPionsSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLooseVTTPionsSeq.Members = { \"CheckPV\" };StdLooseDownstreamPionsSeq.Members = { \"CheckPV\" };StdNoPIDsProtonsSeq.Members = { \"CheckPV\" };StdLooseProtonsSeq.Members = { \"CheckPV\" };StdTightProtonsSeq.Members = { \"CheckPV\" };StdLooseVTTProtonsSeq.Members = { \"CheckPV\" };StdLooseDownstreamProtonsSeq.Members = { \"CheckPV\" };StdNoPIDsMuonsSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLooseMuonsSeq.Members = { \"CheckPV\" };StdTightMuonsSeq.Members = { \"CheckPV\" };StdNoPIDsElectronsSeq.Members = { \"CheckPV\" };StdLooseElectronsSeq.Members = { \"CheckPV\" };StdTightElectronsSeq.Members = { \"CheckPV\" };StdLooseResolvedPi0sSeq.Members = { \"CheckPV\" };StdLoosePhotonsSeq.Members = { \"CheckPV\" };StdLooseCnvPhotonsSeq.Members = { \"CheckPV\" };StdLooseAllPhotonsSeq.Members = { \"CheckPV\" };StdLooseD02KPiSeq.Members = { \"CheckPV\" };StdLooseD02PiPiSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLooseD02KKSeq.Members = { \"CheckPV\" };StdLooseD02KsPiPiSeq.Members = { \"CheckPV\" };StdLooseD02KsKKSeq.Members = { \"CheckPV\" };StdLooseD02KKPiPiNoCCSeq.Members = { \"CheckPV\" };StdLooseD02KPiPiPiCASeq.Members = { \"CheckPV\" };StdLooseD2KPiPiSeq.Members = { \"CheckPV\" };StdLooseDs2KKPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02PiPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KKSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdUnbiasedHeavyDimuonSeq.Members = { \"CheckPV\" };StdUnbiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseJpsi2eeSeq.Members = { \"CheckPV\" };StdLooseKsLLSeq.Members = { \"CheckPV\" };StdTightKsLLSeq.Members = { \"CheckPV\" };StdLooseKsDDSeq.Members = { \"CheckPV\" };StdTightKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseRho02PiPiSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLoosePhi2KKSeq.Members = { \"CheckPV\" };StdLooseLambda1115_LL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LU_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_UL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LU_Seq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdTightLambda1115_UL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DL_Seq.Members = { \"CheckPV\" };StdLooseD02KPiSeq.Members = { \"CheckPV\" };StdLooseD02PiPiSeq.Members = { \"CheckPV\" };StdLooseD02KKSeq.Members = { \"CheckPV\" };StdLooseD02KsPiPiSeq.Members = { \"CheckPV\" };StdLooseD02KsKKSeq.Members = { \"CheckPV\" };StdLooseD02KsKPiSeq.Members = { \"CheckPV\" };StdLooseD02KKPiPiNoCCSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLooseD02KPiPiPiCASeq.Members = { \"CheckPV\" };StdLooseD2KPiPiSeq.Members = { \"CheckPV\" };StdTightD2KPiPiSeq.Members = { \"CheckPV\" };StdLooseDs2KKPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02PiPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KKSeq.Members = { \"CheckPV\" };StdNoPIDsElectronsSeq.Members = { \"CheckPV\" };StdLooseElectronsSeq.Members = { \"CheckPV\" };StdTightElectronsSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdUnbiasedHeavyDimuonSeq.Members = { \"CheckPV\" };StdLoosePenguinDimuonSeq.Members = { \"CheckPV\" };StdUnbiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseJpsi2eeSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2eeSeq.Members = { \"CheckPV\" };StdNoPIDsKaonsSeq.Members = { \"CheckPV\" };StdLooseKaonsSeq.Members  += { \"CheckPV\" };StdTightKaonsSeq.Members  += { \"CheckPV\" };StdLooseKsLLSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdTightKsLLSeq.Members = { \"CheckPV\" };StdLooseKsDDSeq.Members = { \"CheckPV\" };StdTightKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseLambda1115_LL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LU_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_UL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DL_Seq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdTightLambda1115_LL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LU_Seq.Members = { \"CheckPV\" };StdTightLambda1115_UL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DL_Seq.Members = { \"CheckPV\" };StdNoPIDsMuonsSeq.Members = { \"CheckPV\" };StdLooseMuonsSeq.Members = { \"CheckPV\" };StdTightMuonsSeq.Members = { \"CheckPV\" };StdLoosePhi2KKSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLoosePhotonsSeq.Members = { \"CheckPV\" };StdLooseCnvPhotonsSeq.Members = { \"CheckPV\" };StdLooseAllPhotonsSeq.Members = { \"CheckPV\" };StdNoPIDsPionsSeq.Members = { \"CheckPV\" };StdLoosePionsSeq.Members = { \"CheckPV\" };StdLooseVTTPionsSeq.Members = { \"CheckPV\" };StdNoPIDsVTTPionsSeq.Members = { \"CheckPV\" };StdLooseDownstreamPionsSeq.Members = { \"CheckPV\" };StdTightPionsSeq.Members = { \"CheckPV\" };StdNoPIDsProtonsSeq.Members = { \"CheckPV\" }"
-opt_dav = opt_dav+";StdLooseProtonsSeq.Members = { \"CheckPV\" };StdLooseVTTProtonsSeq.Members = { \"CheckPV\" };StdLooseDownstreamProtonsSeq.Members = { \"CheckPV\" };StdTightProtonsSeq.Members = { \"CheckPV\" };StdLooseResolvedPi0sSeq.Members = { \"CheckPV\" };StdLooseRho02PiPiSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = "DaVinciMainSeq.Members += { \"CheckPV\" }; CheckPV.MaxPVs = 2 ;StdNoPIDsKaonsSeq.Members = { \"CheckPV\" };StdLooseKaonsSeq.Members = { \"CheckPV\" };StdTightKaonsSeq.Members = { \"CheckPV\" };StdNoPIDsPionsSeq.Members = { \"CheckPV\" };StdLoosePionsSeq.Members = { \"CheckPV\" };StdTightPionsSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLooseVTTPionsSeq.Members = { \"CheckPV\" };StdLooseDownstreamPionsSeq.Members = { \"CheckPV\" };StdNoPIDsProtonsSeq.Members = { \"CheckPV\" };StdLooseProtonsSeq.Members = { \"CheckPV\" };StdTightProtonsSeq.Members = { \"CheckPV\" };StdLooseVTTProtonsSeq.Members = { \"CheckPV\" };StdLooseDownstreamProtonsSeq.Members = { \"CheckPV\" };StdNoPIDsMuonsSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLooseMuonsSeq.Members = { \"CheckPV\" };StdTightMuonsSeq.Members = { \"CheckPV\" };StdNoPIDsElectronsSeq.Members = { \"CheckPV\" };StdLooseElectronsSeq.Members = { \"CheckPV\" };StdTightElectronsSeq.Members = { \"CheckPV\" };StdLooseResolvedPi0sSeq.Members = { \"CheckPV\" };StdLoosePhotonsSeq.Members = { \"CheckPV\" };StdLooseCnvPhotonsSeq.Members = { \"CheckPV\" };StdLooseAllPhotonsSeq.Members = { \"CheckPV\" };StdLooseD02KPiSeq.Members = { \"CheckPV\" };StdLooseD02PiPiSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLooseD02KKSeq.Members = { \"CheckPV\" };StdLooseD02KsPiPiSeq.Members = { \"CheckPV\" };StdLooseD02KsKKSeq.Members = { \"CheckPV\" };StdLooseD02KKPiPiNoCCSeq.Members = { \"CheckPV\" };StdLooseD02KPiPiPiCASeq.Members = { \"CheckPV\" };StdLooseD2KPiPiSeq.Members = { \"CheckPV\" };StdLooseDs2KKPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02PiPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KKSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdUnbiasedHeavyDimuonSeq.Members = { \"CheckPV\" };StdUnbiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseJpsi2eeSeq.Members = { \"CheckPV\" };StdLooseKsLLSeq.Members = { \"CheckPV\" };StdTightKsLLSeq.Members = { \"CheckPV\" };StdLooseKsDDSeq.Members = { \"CheckPV\" };StdTightKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseRho02PiPiSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLoosePhi2KKSeq.Members = { \"CheckPV\" };StdLooseLambda1115_LL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LU_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_UL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LU_Seq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdTightLambda1115_UL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DL_Seq.Members = { \"CheckPV\" };StdLooseD02KPiSeq.Members = { \"CheckPV\" };StdLooseD02PiPiSeq.Members = { \"CheckPV\" };StdLooseD02KKSeq.Members = { \"CheckPV\" };StdLooseD02KsPiPiSeq.Members = { \"CheckPV\" };StdLooseD02KsKKSeq.Members = { \"CheckPV\" };StdLooseD02KsKPiSeq.Members = { \"CheckPV\" };StdLooseD02KKPiPiNoCCSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLooseD02KPiPiPiCASeq.Members = { \"CheckPV\" };StdLooseD2KPiPiSeq.Members = { \"CheckPV\" };StdTightD2KPiPiSeq.Members = { \"CheckPV\" };StdLooseDs2KKPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02PiPiSeq.Members = { \"CheckPV\" };StdLooseDstarWithD02KKSeq.Members = { \"CheckPV\" };StdNoPIDsElectronsSeq.Members = { \"CheckPV\" };StdLooseElectronsSeq.Members = { \"CheckPV\" };StdTightElectronsSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdUnbiasedHeavyDimuonSeq.Members = { \"CheckPV\" };StdLoosePenguinDimuonSeq.Members = { \"CheckPV\" };StdUnbiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2MuMuSeq.Members = { \"CheckPV\" };StdLooseJpsi2eeSeq.Members = { \"CheckPV\" };StdLooseBiasedJpsi2eeSeq.Members = { \"CheckPV\" };StdNoPIDsKaonsSeq.Members = { \"CheckPV\" };StdLooseKaonsSeq.Members  += { \"CheckPV\" };StdTightKaonsSeq.Members  += { \"CheckPV\" };StdLooseKsLLSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdTightKsLLSeq.Members = { \"CheckPV\" };StdLooseKsDDSeq.Members = { \"CheckPV\" };StdTightKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseKstar2KPiSeq.Members = { \"CheckPV\" };StdLooseLambda1115_LL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LU_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_UL_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_LD_Seq.Members = { \"CheckPV\" };StdLooseLambda1115_DL_Seq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdTightLambda1115_LL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LU_Seq.Members = { \"CheckPV\" };StdTightLambda1115_UL_Seq.Members = { \"CheckPV\" };StdTightLambda1115_LD_Seq.Members = { \"CheckPV\" };StdTightLambda1115_DL_Seq.Members = { \"CheckPV\" };StdNoPIDsMuonsSeq.Members = { \"CheckPV\" };StdLooseMuonsSeq.Members = { \"CheckPV\" };StdTightMuonsSeq.Members = { \"CheckPV\" };StdLoosePhi2KKSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLoosePhotonsSeq.Members = { \"CheckPV\" };StdLooseCnvPhotonsSeq.Members = { \"CheckPV\" };StdLooseAllPhotonsSeq.Members = { \"CheckPV\" };StdNoPIDsPionsSeq.Members = { \"CheckPV\" };StdLoosePionsSeq.Members = { \"CheckPV\" };StdLooseVTTPionsSeq.Members = { \"CheckPV\" };StdNoPIDsVTTPionsSeq.Members = { \"CheckPV\" };StdLooseDownstreamPionsSeq.Members = { \"CheckPV\" };StdTightPionsSeq.Members = { \"CheckPV\" };StdNoPIDsProtonsSeq.Members = { \"CheckPV\" }"
+opt_dav_prev = opt_dav_prev+";StdLooseProtonsSeq.Members = { \"CheckPV\" };StdLooseVTTProtonsSeq.Members = { \"CheckPV\" };StdLooseDownstreamProtonsSeq.Members = { \"CheckPV\" };StdTightProtonsSeq.Members = { \"CheckPV\" };StdLooseResolvedPi0sSeq.Members = { \"CheckPV\" };StdLooseRho02PiPiSeq.Members = { \"CheckPV\" }"
 
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
@@ -42,6 +42,7 @@ opt_brunel = opt_brunel+";HistogramPersistencySvc.OutputFile = \"\""
 opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
 indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst"
+#GRIDKAindata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00000282_1.rdst"
 #indata =  "LFN:/lhcb/data/CCRC08/RDST/00000130/0001/00000130_00010149_1.rdst;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/22848/022848_0000021562.raw"
 
 #indata1 = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/22808/022808_0000018192.raw"
@@ -65,7 +66,8 @@ module2.addParameter(Parameter("inputData","","jdl","self","inputData",True, Fal
 module2.addParameter(Parameter("inputDataType","","string","self","inputDataType",True, False, "Input Data Type"))
 module2.addParameter(Parameter("NUMBER_OF_EVENTS","","string","self","NUMBER_OF_EVENTS",True, False, "number of events requested"))
 module2.addParameter(Parameter("optionsFile","","string","self","optionsFile",True,False,"Options File"))
-module2.addParameter(Parameter("optionsLine","","string","self","optionsLine",True,False,"Number of Event","option"))
+module2.addParameter(Parameter("optionsLine","","string","self","optionsLine",True,False,"option to be added last","option"))
+module2.addParameter(Parameter("optionsLinePrev","","string","self","optionsLinePrev",True,False,"options to be added first","option"))
 module2.addParameter(Parameter("systemConfig","","string","self","systemConfig",True,False,"Job Platform"))
 module2.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 
@@ -86,6 +88,7 @@ module3.addParameter(Parameter("appName","","string","self","appName",True, Fals
 module3.addParameter(Parameter("appVersion","","string","self","appVersion",True, False, "Application Version"))
 module3.addParameter(Parameter("appType","","string","self","appType",True,False,"Application Version"))
 module3.addParameter(Parameter("appLog","","string","self","appLog",True,False,"list of logfile"))
+module3.addParameter(Parameter("systemConfig","","string","self","systemConfig",True,False,"Job Platform"))
 module3.addParameter(Parameter("poolXMLCatName","","string","self","poolXMLCatName",True,False,"POOL XML slice"))
 module3.addParameter(Parameter("inputData","","string","self","inputData",True,False,"InputData"))
 module3.addParameter(Parameter("OUTPUT_MAX","","string","self","OUTPUT_MAX",True,False,"nb max of output to keep"))
@@ -196,12 +199,13 @@ stepInstance1 = workflow1.createStepInstance('Gaudi_App_Step', 'Step1')
 # lets link all parameters them up with the level of workflow
 stepInstance1.linkUp(stepInstance1.parameters, step1_prefix)
 stepInstance1.setLink("systemConfig","self", "SystemConfig") # capital letter corrected
-stepInstance1.unlink(["listoutput","STEP_ID", "optionsFile", "optionsLine", "appLog","appName", "etcf", "appType", "outputData", "EVENTTYPE"])
+stepInstance1.unlink(["listoutput","STEP_ID", "optionsFile", "optionsLine","optionsLinePrev", "appLog","appName", "etcf", "appType", "outputData", "EVENTTYPE"])
 stepInstance1.setValue("appName", "DaVinci")
 stepInstance1.setValue("appType", "root")
 stepInstance1.setValue("outputData","FETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 stepInstance1.setValue("optionsFile", "DVOfficialStrippingFile.opts")
 stepInstance1.setValue("optionsLine",opt_dav)
+stepInstance1.setValue("optionsLinePrev",opt_dav_prev)
 stepInstance1.linkUp("CONFIG_NAME")
 stepInstance1.linkUp("CONFIG_VERSION")
 stepInstance1.linkUp("DataType")
@@ -217,13 +221,14 @@ stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'Step2')
 stepInstance2.linkUp(stepInstance2.parameters, step2_prefix)
 stepInstance2.setLink("systemConfig","self", "SystemConfig") # capital letter corrected
 # except "STEP_ID", "appLog"
-stepInstance2.unlink(["listoutput","STEP_ID", "optionsFile", "outputData", "optionsLine","appLog","appName", "appType", "etcf", "EVENTTYPE"])
+stepInstance2.unlink(["listoutput","STEP_ID", "optionsFile", "outputData", "optionsLine","optionsLinePrev","appLog","appName", "appType", "etcf", "EVENTTYPE"])
 stepInstance2.setValue("appName", "Brunel")
 stepInstance2.setValue("appType", "dst")
 stepInstance2.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{appType}")
 stepInstance2.setValue("etcf","SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root")
 stepInstance2.setValue("optionsFile", "RealData-ETC.opts")
 stepInstance2.setValue("optionsLine",opt_brunel)
+stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.linkUp("CONFIG_NAME")
 stepInstance2.linkUp("CONFIG_VERSION")
@@ -287,7 +292,7 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00003033","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000011","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("EMAILNAME","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
+workflow1.addParameter(Parameter("EMAILNAME","lhcb-datacrash@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("DataType","data","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("SourceData",indata,"string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
