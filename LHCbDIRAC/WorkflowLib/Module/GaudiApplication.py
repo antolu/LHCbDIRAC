@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.42 2008/05/21 07:19:38 joel Exp $
+# $Id: GaudiApplication.py,v 1.43 2008/05/28 11:55:49 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.42 2008/05/21 07:19:38 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.43 2008/05/28 11:55:49 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -138,12 +138,24 @@ class GaudiApplication(object):
     options.write('// Dynamically generated options in a production or analysis job\n\n')
     if os.path.exists('gaudirun.opts'): os.remove('gaudirun.opts')
     if os.path.exists('gaudiruntmp.opts'): os.remove('gaudiruntmp.opts')
+    commtmp = open('gaudiruntmp.opts','w')
+    for opt in self.optionsLinePrev.split(';'):
+      if not re.search('tring',opt):
+        if re.search('#include',opt):
+          commtmp.write(opt+'\n')
+        else:
+          if opt != "None":
+            commtmp.write(opt+';\n')
+      else:
+        self.log.warn('Options line not in correct format ignoring string')
+    commtmp.close()
+
     if re.search('\$',self.optfile) is None:
-      comm = 'cat '+self.optfile+' > gaudiruntmp.opts'
+      comm = 'cat '+self.optfile+' >> gaudiruntmp.opts'
       output = shellCall(0,comm)
     else:
       comm = 'echo "#include '+self.optfile+'" > gaudiruntmp.opts'
-      commtmp = open('gaudiruntmp.opts','w')
+      commtmp = open('gaudiruntmp.opts','a')
       newline = '#include "'+self.optfile+'"'
       commtmp.write(newline)
       commtmp.close()
