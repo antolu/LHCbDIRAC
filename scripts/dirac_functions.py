@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.58 2008/05/28 13:23:37 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.59 2008/05/28 13:33:47 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.58 2008/05/28 13:23:37 rgracian Exp $"
-__VERSION__ = "$Revision: 1.58 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.59 2008/05/28 13:33:47 rgracian Exp $"
+__VERSION__ = "$Revision: 1.59 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -469,22 +469,29 @@ class functions:
     """
      Check access to CVS repository (retrieve scripts)
     """
+    cvsPackages = []
+    
     for destDir in packages:
       # remove existing directories, if any
       cvsDir = 'DIRAC3/%s' % destDir
+      cvsPackages.append(cvsDir)
+            
       self.__rmDir( cvsDir )
       self.__rmDir( destDir )
-      self.logINFO( 'Retrieving %s' % cvsDir )
-      cvsCmd = 'cvs -Q -d %s export -f -r %s %s' \
-               % ( self.CVS, version, cvsDir )
-      if self.debugFlag:
-        cvsCmd = 'cvs -q -d %s export -f -r %s %s' \
-                 % ( self.CVS, version, cvsDir )
-      self.logDEBUG( cvsCmd )  
-      ret = os.system( cvsCmd )
-      if ret != 0:
-        self.logEXCEP( 'Check your cvs installation' )
-      # Move the resulting dir
+      
+    self.logINFO( 'Retrieving %s' % ', '.join(cvsPackages) )
+    cvsCmd = 'cvs -Q -d %s export -f -r %s %s' \
+             % ( self.CVS, version, ' '.join(cvsPackages) )
+    if self.debugFlag:
+      cvsCmd = 'cvs -q -d %s export -f -r %s %s' \
+               % ( self.CVS, version, ' '.join(cvsPackages) )
+    self.logDEBUG( cvsCmd )  
+    ret = os.system( cvsCmd )
+    if ret != 0:
+      self.logEXCEP( 'Check your cvs installation' )
+    # Move the resulting dirs
+    for destDir in packages:
+      cvsDir = 'DIRAC3/%s' % destDir
       try:
         os.renames( cvsDir, destDir )
       except Exception, x:
