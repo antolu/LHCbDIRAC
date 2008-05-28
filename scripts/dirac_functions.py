@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.57 2008/05/28 10:46:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.58 2008/05/28 13:23:37 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.57 2008/05/28 10:46:01 rgracian Exp $"
-__VERSION__ = "$Revision: 1.57 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.58 2008/05/28 13:23:37 rgracian Exp $"
+__VERSION__ = "$Revision: 1.58 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -320,7 +320,7 @@ class functions:
       n -= 1
     else:
       # add mysql platfrom independent directory
-      tarDirs.append['mysql']
+      tarDirs.append('mysql')
     for i in range(n):
       tar = bin_tars[i]
       name = tar['name']
