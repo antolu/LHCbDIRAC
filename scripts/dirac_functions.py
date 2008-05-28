@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.59 2008/05/28 13:33:47 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.60 2008/05/28 15:41:11 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.59 2008/05/28 13:33:47 rgracian Exp $"
-__VERSION__ = "$Revision: 1.59 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.60 2008/05/28 15:41:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.60 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -318,9 +318,6 @@ class functions:
     if not self.serverFlag:
       # prepare tars only for a client distribution
       n -= 1
-    else:
-      # add mysql platfrom independent directory
-      tarDirs.append('mysql')
     for i in range(n):
       tar = bin_tars[i]
       name = tar['name']
@@ -331,7 +328,9 @@ class functions:
           self._diracMake( python[self.python] )
           # need to check zlib module
       tarName = '%s-%s-%s-%s' % ( name, self.external, self.localPlatform, self.python )
-      self._createTar( tarName,  )
+      if n == binNo - 1:
+        tarDirs.append('mysql')
+      self._createTar( tarName, tarDirs )
       tars += 1
     return tars
   
