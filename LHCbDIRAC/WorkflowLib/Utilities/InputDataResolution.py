@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.4 2008/04/13 14:14:29 paterson Exp $
+# $Id: InputDataResolution.py,v 1.5 2008/05/28 07:46:20 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.4 2008/04/13 14:14:29 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.5 2008/05/28 07:46:20 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -43,13 +43,16 @@ class InputDataResolution:
     if not result['OK']:
       self.log.warn('InputData resolution failed with result:\n%s' %(result))
 
-    #For LHCb, as long as one TURL exists, this can be conveyed to the application
+    #For LHCb original policy was as long as one TURL exists, this can be conveyed to the application
+    #this breaks due to the stripping so the policy has been changed.
     failedReplicas = result['Failed']
     if failedReplicas:
-      self.log.info('InputDataByProtocol failed to obtain a TURL for the following files:\n%s' %(string.join(failedReplicas,'\n')))
+      self.log.info('Failed to obtain access to the following files:\n%s' %(string.join(failedReplicas,'\n')))
+      return S_ERROR('Failed to access all of requested input data')
+
 
     if not result['Successful']:
-      return S_ERROR('InputDataByProtocol returned no TURLs for requested input data')
+      return S_ERROR('Could not access requested input data')
 
     #TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
     #term this will be derived from file catalog metadata information but for now is based
