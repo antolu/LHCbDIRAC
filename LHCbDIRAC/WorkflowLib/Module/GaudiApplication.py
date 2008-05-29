@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.43 2008/05/28 11:55:49 joel Exp $
+# $Id: GaudiApplication.py,v 1.44 2008/05/29 15:29:34 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.43 2008/05/28 11:55:49 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.44 2008/05/29 15:29:34 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -34,6 +34,7 @@ class GaudiApplication(object):
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
     self.optfile_extra = ''
+    self.optionsLinePrev = 'None'
     self.optfile = ''
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
@@ -276,6 +277,7 @@ class GaudiApplication(object):
     script = open(self.appName+'Run.sh','w')
 #    script.write('#!/bin/sh \n')
     script.write('#!/bin/sh \n')
+#    script.write('exit 23\n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
     script.write('#####################################################################\n')
