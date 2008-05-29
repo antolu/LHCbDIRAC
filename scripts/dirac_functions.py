@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.60 2008/05/28 15:41:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.61 2008/05/29 08:12:13 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.60 2008/05/28 15:41:11 rgracian Exp $"
-__VERSION__ = "$Revision: 1.60 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.61 2008/05/29 08:12:13 rgracian Exp $"
+__VERSION__ = "$Revision: 1.61 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -328,7 +328,7 @@ class functions:
           self._diracMake( python[self.python] )
           # need to check zlib module
       tarName = '%s-%s-%s-%s' % ( name, self.external, self.localPlatform, self.python )
-      if n == binNo - 1:
+      if i == binNo - 1:
         tarDirs.append('mysql')
       self._createTar( tarName, tarDirs )
       tars += 1
