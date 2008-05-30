@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.28 2008/05/14 13:56:32 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.29 2008/05/30 07:34:34 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.28 2008/05/14 13:56:32 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.29 2008/05/30 07:34:34 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -87,3 +87,18 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFiles = [StringType, StringType, StringType, StringType, StringType, LongType, LongType]
   def export_getSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
     return dataMGMT_.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, eventTypeId, production)
+  
+  #############################################################################  
+  types_getProcessingPass = []
+  def export_getProcessingPass(self):
+    return dataMGMT_.getProcessingPass()
+  
+  #############################################################################  
+  types_getProductions = [StringType]
+  def export_getProductions(self, processingPass):
+    return dataMGMT_.getProductions(processingPass)
+  
+  #############################################################################  
+  types_getFilesByProduction = [LongType]
+  def export_getFilesByProduction(self, production):
+    return dataMGMT_getFilesByProduction(production)

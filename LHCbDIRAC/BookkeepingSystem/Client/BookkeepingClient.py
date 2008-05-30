@@ -58,3 +58,18 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def getProcessingPass(self):
+    result = self.server.getProcessingPass()
+    return result
+  
+  #############################################################################  
+  def getProductions(self, processingPass):
+    result = self.server.getProductions(processingPass)
+    return result
+  
+  #############################################################################  
+  def getFilesByProduction(self, production):
+    result = self.server.getFilesByProduction(long(production))
+    return result
+  
+  #############################################################################  

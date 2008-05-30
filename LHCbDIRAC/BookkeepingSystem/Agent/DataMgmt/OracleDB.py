@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.15 2008/05/14 14:06:00 zmathe Exp $
+# $Id: OracleDB.py,v 1.16 2008/05/30 07:34:33 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.15 2008/05/14 14:06:00 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.16 2008/05/30 07:34:33 zmathe Exp $"
 
 class OracleDB:
   
@@ -135,4 +135,42 @@ class OracleDB:
       gLogger.error(ex)    
     return results;
   
+  #############################################################################
+  def executegetProcessingPass(self):
+    results = None
+    try:
+      result = cx_Oracle.Cursor(self.connection_)
+      cursor = cx_Oracle.Cursor(self.connection_)
+      cursor.callproc('BKK_ORACLE.getProcessingPass', [result])
+      results = result.fetchall()
+    except Exception, ex:
+      gLogger.error(ex)    
+    return results;
+    
+  #############################################################################  
+  def executegetProductions(self, processingPass):
+    results = None
+    try:
+      result = cx_Oracle.Cursor(self.connection_)
+      cursor = cx_Oracle.Cursor(self.connection_)
+      cursor.callproc('BKK_ORACLE.getProductions', [processingPass, result])
+      results = result.fetchall()
+    except Exception, ex:
+      gLogger.error(ex)    
+    return results;
+  
+  
+  #############################################################################  
+  def executegetFilesByProduction(self, production):
+    results = None
+    try:
+      result = cx_Oracle.Cursor(self.connection_)
+      cursor = cx_Oracle.Cursor(self.connection_)
+      cursor.callproc('BKK_ORACLE.getFilesByProduction', [production, result])
+      results = result.fetchall()
+    except Exception, ex:
+      gLogger.error(ex)    
+    return results;
+  
+  #############################################################################  
   
