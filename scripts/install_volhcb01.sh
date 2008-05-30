@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.2 2008/05/16 18:26:13 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.3 2008/05/30 10:48:31 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -11,18 +11,20 @@ DIRACUSER=dirac
 # Host where it es allow to run the script
 DIRACHOST=volhcb01.cern.ch
 #
-# Location of the installtion
+# Location of the installation
 DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB01.CERN.CH
 DIRACSETUP=LHCb-Production
 DIRACVERSION=HEAD
-DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
-DIRACDIRS="startup runit data"
+DIRACDIRS="startup runit data work"
+
+export LOGLEVEL=INFO
 #
 # Uncomment to install from CVS (default install from TAR)
-# it imples -b (build from sources)
+# it implies -b (build from sources)
 # DIRACCVS=-C
 #
 # check if we are called in the rigth host
@@ -105,7 +107,7 @@ pro=$DESTDIR/pro
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
-## Compile all python files .py -> .pyc
+## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
