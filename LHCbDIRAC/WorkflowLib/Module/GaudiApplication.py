@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.44 2008/05/29 15:29:34 joel Exp $
+# $Id: GaudiApplication.py,v 1.45 2008/06/02 11:01:47 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.44 2008/05/29 15:29:34 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.45 2008/06/02 11:01:47 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -292,6 +292,8 @@ class GaudiApplication(object):
     script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('declare -x JOBOPTPATH=gaudirun.opts\n')
+    script.write('declare -x CSEC_TRACE=1\n')
+    script.write('declare -x CSEC_TRACEFILE=csec.log\n')
     script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
 
     # DLL fix which creates fake CMT package
