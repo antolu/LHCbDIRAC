@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.67 2008/05/26 08:40:28 joel Exp $
+# $Id: JobFinalization.py,v 1.68 2008/06/03 15:16:52 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.67 2008/05/26 08:40:28 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.68 2008/06/03 15:16:52 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -12,11 +12,12 @@ from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
+from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 
 import os, time, re, random, shutil
 
-class JobFinalization(object):
+class JobFinalization(ModuleBase):
 
   def __init__(self):
     self.STEP_ID = None
@@ -58,7 +59,7 @@ class JobFinalization(object):
     self.log.setLevel('debug')
 
   def execute(self):
-    self.__report('Starting Job Finalization')
+    self.setApplicationStatus('Starting Job Finalization')
     # first lets collect all outputs in single
     if not self.listoutput:
       self.listoutput = self.listoutput_1+self.listoutput_2+self.listoutput_3+self.listoutput_4+self.listoutput_5+self.listoutput_6
@@ -117,7 +118,7 @@ class JobFinalization(object):
        self.log.info('Stop this module before uploading data, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.log.info('Step Status %s' %(self.stepStatus))
-       self.__report('Job Completed With Errors')
+       self.setApplicationStatus('Job Completed With Errors')
        return S_OK()
 
     all_done = True
@@ -193,7 +194,7 @@ class JobFinalization(object):
                 self.log.info(resCopy)
                 ok = False
                 self.log.info("File saved to FailoverSE  %s %s %s %s " % (fname, lfn, fname, cache_se))
-                self.__setJobParam('OutputFile: %s' %(fname),'Saved to FailoverSE %s with LFN:%s' %(cache_se,lfn))
+                self.setJobParameter('OutputFile: %s' %(fname),'Saved to FailoverSE %s with LFN:%s' %(cache_se,lfn))
 #                self.setTransferRequest(lfn,pfname,size,cache_se,guid)
               else:
                 ok = False
@@ -218,13 +219,13 @@ class JobFinalization(object):
 
     if not all_done:
       if not failoverUpload:
-        self.__report('Failed To Save Job Outputs')
+        self.setApplicationStatus('Failed To Save Job Outputs')
         result = S_ERROR('Failed To Save Job Outputs')
       else:
-        self.__report('Output Sent To Failover')
+        self.setApplicationStatus('Output Sent To Failover')
         result = S_OK('Outputs sent to FailoverSE')
     elif not error:
-      self.__report('Job Finished Successfully')
+      self.setApplicationStatus('Job Finished Successfully')
 
     return result
 
@@ -233,7 +234,7 @@ class JobFinalization(object):
   def reportBookkeeping(self):
     """ Collect and send safely the bookkeeping reports
     """
-    self.__report('Sending Bookkeeping Report')
+    self.setApplicationStatus('Sending Bookkeeping Report')
     result = S_OK()
     books = []
     files = os.listdir('.')
@@ -264,7 +265,7 @@ class JobFinalization(object):
             if bad_counter > 3:
               self.log.error( "Failed to send bookkeeping information for %s after %s attempts" % (str( f ) , str(bad_counter)) )
               self.log.error(result)
-              self.__report('Failed To Send Bookkeeping Information')
+              self.setApplicationStatus('Failed To Send Bookkeeping Information')
               CONTINUE = 1
           else:
             self.log.info( "Bookkeeping information sent successfully" )
@@ -432,16 +433,16 @@ class JobFinalization(object):
       # Construct the http reference to the Log directory
       logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s/">Log file directory</a>' % (target_path, str(self.JOB_ID))
       self.log.info(logref)
-      self.__setJobParam('Log URL',logref)
+      self.setJobParameter('Log URL',logref)
 
     if not result['OK']:
       self.log.error("Transferring log files to the main LogSE failed")
       self.log.error( result )
-      self.__setJobParam('Upload failed for logfile: %s at SE: %s' %(self.logdir,self.logSE),result['Message'])
-      self.__report('Transferring log files to the main LogSE failed')
+      self.setJobParameter('Upload failed for logfile: %s at SE: %s' %(self.logdir,self.logSE),result['Message'])
+      self.setApplicationStatus('Transferring log files to the main LogSE failed')
     else:
       self.log.info("Transferring log files to the main LogSE successful")
-      self.__report('Transferring log files to the main LogSE successful')
+      self.setApplicationStatus('Transferring log files to the main LogSE successful')
 
 ################################################################################
   def uploadOutputData(self,output,otype,oversion,outputse):
@@ -560,8 +561,8 @@ class JobFinalization(object):
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
       if not result['OK']:
         self.log.warn(result)
-        self.__setJobParam('Upload failed for file: %s at SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
-        self.__report('Data Upload Failed')
+        self.setJobParameter('Upload failed for file: %s at SE: %s' %(datafile,se),'Size: %s, LFN: %s, GUID: %s' %(size,lfn,guid))
+        self.setApplicationStatus('Data Upload Failed')
         return S_ERROR('Data Upload Failed')
 
     return S_OK()
@@ -635,30 +636,3 @@ class JobFinalization(object):
     else:
       return selement.name
 
-  #############################################################################
-  def __report(self,status):
-    """Wraps around setJobApplicationStatus of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'JobFinalization'))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'JobFinalization')
-    if not jobStatus['OK']:
-      self.log.warn(jobStatus['Message'])
-
-    return jobStatus
-
-  #############################################################################
-  def __setJobParam(self,name,value):
-    """Wraps around setJobParameter of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobParameter(%s,%s,%s)' %(self.jobID,name,value))
-    jobParam = self.jobReport.setJobParameter(int(self.jobID),str(name),str(value))
-    if not jobParam['OK']:
-      self.log.warn(jobParam['Message'])
-
-    return jobParam

@@ -1,19 +1,20 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.13 2008/05/21 07:18:14 joel Exp $
+# $Id: LogChecker.py,v 1.14 2008/06/03 15:16:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.13 2008/05/21 07:18:14 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.14 2008/06/03 15:16:04 joel Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
+from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools                         import *
 
 import commands, os
 
-class LogChecker(object):
+class LogChecker(ModuleBase):
 
   def __init__(self):
     self.result = S_ERROR()

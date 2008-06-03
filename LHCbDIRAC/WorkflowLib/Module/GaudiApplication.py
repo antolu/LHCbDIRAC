@@ -1,19 +1,20 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.46 2008/06/03 06:35:58 joel Exp $
+# $Id: GaudiApplication.py,v 1.47 2008/06/03 15:15:34 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.46 2008/06/03 06:35:58 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.47 2008/06/03 15:15:34 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+from WorkflowLib.Module.ModuleBase                       import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
 import shutil, re, string, os, sys
 
-class GaudiApplication(object):
+class GaudiApplication(ModuleBase):
 
   #############################################################################
   def __init__(self):
@@ -204,7 +205,7 @@ class GaudiApplication(object):
 
   #############################################################################
   def execute(self):
-    self.__report('Initializing GaudiApplication')
+    self.setApplicationStatus('Initializing GaudiApplication')
     optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
@@ -241,13 +242,13 @@ class GaudiApplication(object):
       mySiteRoot = sharedArea
     else:
       self.log.info( 'Application not Found' )
-      self.__report( 'Appliaction not Found' )
+      self.setApplicationStatus( 'Application not Found' )
       self.result = S_ERROR( 'Application not Found' )
 
     if not self.result['OK']:
       return self.result
 
-    self.__report( 'Application Found' )
+    self.setApplicationStatus( 'Application Found' )
     self.log.info( 'Application Found:' )
     app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
     app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
@@ -440,7 +441,7 @@ rm -f scrtmp.py
 
     os.chmod(self.appName+'Run.sh',0755)
     comm = 'sh -c "./'+self.appName+'Run.sh"'
-    self.__report('%s %s' %(self.appName,self.appVersion))
+    self.setApplicationStatus('%s %s' %(self.appName,self.appVersion))
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput)
     resultTuple = self.result['Value']
 
@@ -471,11 +472,11 @@ rm -f scrtmp.py
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.__report('%s Exited With Status %s' %(self.appName,status))
+      self.setApplicationStatus('%s Exited With Status %s' %(self.appName,status))
       return S_ERROR('%s execution completed with errors' % (self.appName))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
-    self.__report('%s %s Successful' %(self.appName,self.appVersion))
+    self.setApplicationStatus('%s %s Successful' %(self.appName,self.appVersion))
     return S_OK()
 
   #############################################################################
@@ -489,19 +490,5 @@ rm -f scrtmp.py
         log.close()
       else:
         self.log.error("Application Log file not defined")
-
-  #############################################################################
-  def __report(self,status):
-    """Wraps around setJobApplicationStatus of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
-    if not jobStatus['OK']:
-      self.log.warn(jobStatus['Message'])
-
-    return jobStatus
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
