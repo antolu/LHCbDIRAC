@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.62 2008/05/30 07:33:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.63 2008/06/03 07:47:30 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.62 2008/05/30 07:33:56 rgracian Exp $"
-__VERSION__ = "$Revision: 1.62 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.63 2008/06/03 07:47:30 rgracian Exp $"
+__VERSION__ = "$Revision: 1.63 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -66,6 +66,12 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                                'external']
              },
            ]
+           
+workflowLib_tars = [ { 'name': 'WorkflowLib',
+                    'packages': ['WorkflowLib'],
+                   'directories': ['WorkflowLib']
+             }                  
+                  ]
 bin_tars = [ { 'name': 'DIRAC-external-client',
                'packages': ['external/sqlite-3.5.4',
                             'contrib/pyGSI']
@@ -189,6 +195,13 @@ class functions:
     """
     self.fromTar = False
     self.fromCVS = True
+
+  def workflowLib(self,version):
+    src_tars = workflowLib_tars
+    self.buildFlag = False
+    self.cvsFlag()
+    self.setVersion( version )
+    self.requireServer()
 
   def architecture(self):
     """
