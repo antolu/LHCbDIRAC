@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.63 2008/06/03 07:47:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.64 2008/06/03 08:10:26 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.63 2008/06/03 07:47:30 rgracian Exp $"
-__VERSION__ = "$Revision: 1.63 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.64 2008/06/03 08:10:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.64 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -197,10 +197,13 @@ class functions:
     self.fromCVS = True
 
   def workflowLib(self,version):
+    global src_tars, srcNo
     src_tars = workflowLib_tars
+    srcNo = len( workflowLib_tars )
     self.buildFlag = False
     self.cvsFlag()
     self.setVersion( version )
+    # Hack not to reduce the number of tars
     self.requireServer()
 
   def architecture(self):
