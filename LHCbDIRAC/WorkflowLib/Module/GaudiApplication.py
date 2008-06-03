@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.45 2008/06/02 11:01:47 joel Exp $
+# $Id: GaudiApplication.py,v 1.46 2008/06/03 06:35:58 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.45 2008/06/02 11:01:47 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.46 2008/06/03 06:35:58 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -205,6 +205,7 @@ class GaudiApplication(object):
   #############################################################################
   def execute(self):
     self.__report('Initializing GaudiApplication')
+    optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
