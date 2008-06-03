@@ -1,11 +1,11 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.1 2008/05/26 14:36:06 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.2 2008/06/03 14:26:26 atsareg Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.1 2008/05/26 14:36:06 atsareg Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.2 2008/06/03 14:26:26 atsareg Exp $"
 
 import datetime
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -42,6 +42,15 @@ class FileReport:
     # Add the file status info to the internal cache for later retry
     self.statusDict[lfn] = status
     return result
+
+  def setCommonStatus(self,status):
+    """ Set common status for all files in the internal cache
+    """
+
+    for lfn in self.statusDict.keys():
+      self.statusDict[lfn] = status
+
+    return S_OK()
 
   def commit(self):
     """ Commit pending file status update records
