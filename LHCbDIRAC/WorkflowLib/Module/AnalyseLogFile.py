@@ -1,21 +1,23 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.14 2008/05/23 12:52:45 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.15 2008/06/03 15:14:47 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.14 2008/05/23 12:52:45 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.15 2008/06/03 15:14:47 joel Exp $"
 
 import commands, os, time, smtplib
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
+from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from WorkflowLib.Utilities.Tools import *
+from WorkflowLib.Utilities.Tools                         import *
+from WorkflowLib.Module.ModuleBase                       import *
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
 
-class AnalyseLogFile(object):
+class AnalyseLogFile(ModuleBase):
 
   def __init__(self):
       self.log = gLogger.getSubLogger("AnalyseLogFile")
@@ -30,6 +32,7 @@ class AnalyseLogFile(object):
       self.inputData = None
       self.JOB_ID = None
       self.jobID = None
+      self.mail=Mail.Mail()
       if os.environ.has_key('JOBID'):
         self.jobID = os.environ['JOBID']
       self.timeoffset = 0
@@ -68,16 +71,16 @@ class AnalyseLogFile(object):
          resultnb = self.nbEvent()
          if resultnb['OK']:
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
-           self.__report('%s Step OK' % (self.appName))
+           self.setApplicationStatus('%s Step OK' % (self.appName))
            return resultnb
          else:
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
-           self.__report('%s Step Failed' % (self.appName))
+           self.setApplicationStatus('%s Step Failed' % (self.appName))
            return resultnb
       else:
          self.sendErrorMail(result['Message'])
-         self.__report('%s Step Failed' % (self.appName))
+         self.setApplicationStatus('%s Step Failed' % (self.appName))
 
       return result
 
@@ -164,7 +167,7 @@ class AnalyseLogFile(object):
       #report job parameter with timestamp
       curTime = time.asctime(time.gmtime())
       report = 'Events processed by %s on %s [UTC]' %(self.appName,curTime)
-      self.__setJobParam(report,nprocessed)
+      self.setJobParameter(report,nprocessed)
 
 # find number of events written
       loutput,n = self.grep(self.appLog,'Events output:')
@@ -332,10 +335,12 @@ class AnalyseLogFile(object):
         self.log.info('No EMAIL adress supplied')
         return
 
+    mailadress = List.fromChar(mailadress, ",")
     self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
     subject = '['+self.site+']['+self.appName+'] '+ self.appVersion + \
               ": "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+str(self.jobID)
-    msg='From:joel.closier@cern.ch\r\nTo:'+mailadress+'\r\nSubject:'+subject+'\r\n'
+#    msg='From:joel.closier@cern.ch\r\nTo:'+mailadress+'\r\nSubject:'+subject+'\r\n'
+    msg = 'new'
     msg = msg + 'The Application '+self.appName+' '+self.appVersion+' had a problem \n'
     msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
     msg = msg +'JobID is '+str(self.jobID)+'\n'
@@ -368,43 +373,18 @@ class AnalyseLogFile(object):
       for j in msgtmp:
           msg = msg + str(j)
 
-    try:
-      server = smtplib.SMTP('localhost')
-      server.sendmail('joel.closier@cern.ch',mailadress,msg)
-      server.quit()
-    except Exception, x:
-       self.log.error( "Sending mail failed %s" % str( x ) )
-       self.__report('Sending Mail Failed')
+    self.mail._subject = subject
+    self.mail._mailAddress = mailadress
+    self.mail._FromAddress = 'joel.closier@cern.ch'
+    self.mail._message = msg
+    result = self.mail._send()
+    self.log.info('new mail loop')
+    self.log.info(result)
+    if not result[ 'OK' ]:
+        self.log.warn( "The mail could not be sent" )
 
 
   def checkApplicationLog(self,error):
     self.log.debug(' appLog - from %s'%(self.appLog))
     self.log.info(error)
 
-  #############################################################################
-  def __report(self,status):
-    """Wraps around setJobApplicationStatus of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'AnalyseLogFile'))
-    jobStatus = self.jobReport.setJobApplicationStatus(int(self.jobID),status,'AnalyseLogFile')
-    if not jobStatus['OK']:
-      self.log.warn(jobStatus['Message'])
-
-    return jobStatus
-
-  #############################################################################
-  def __setJobParam(self,name,value):
-    """Wraps around setJobParameter of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobParameter(%s,%s,%s)' %(self.jobID,name,value))
-    jobParam = self.jobReport.setJobParameter(int(self.jobID),str(name),str(value))
-    if not jobParam['OK']:
-      self.log.warn(jobParam['Message'])
-
-    return jobParam
