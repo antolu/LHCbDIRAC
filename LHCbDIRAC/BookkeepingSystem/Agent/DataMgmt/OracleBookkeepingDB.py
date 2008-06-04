@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.28 2008/06/04 15:30:30 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.29 2008/06/04 16:19:32 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.28 2008/06/04 15:30:30 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.29 2008/06/04 16:19:32 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -81,6 +81,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getNumberOfEvents(self, configName, configversion, eventTypeId, production):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getNumberOfEvents',[configName, configversion, eventTypeId, production])
   
+  #############################################################################
+  def getEventTyesWithProduction(self, production):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTyesWithProduction',[production])
   #############################################################################  
   """
   data insertation into the database
