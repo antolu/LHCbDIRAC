@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.19 2008/06/04 15:30:30 zmathe Exp $
+# $Id: OracleDB.py,v 1.20 2008/06/04 17:17:15 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.19 2008/06/04 15:30:30 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.20 2008/06/04 17:17:15 zmathe Exp $"
 
 class OracleDB:
   
@@ -160,7 +160,7 @@ class OracleDB:
       gLogger.error(ex)    
     return results;
   """
-  
+  """
   #############################################################################  
   def executegetFilesByProduction(self, production):
     results = None
@@ -172,6 +172,6 @@ class OracleDB:
     except Exception, ex:
       gLogger.error(ex)    
     return results;
-  
+  """
   #############################################################################  
   

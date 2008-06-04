@@ -68,8 +68,8 @@ class BookkeepingClient:
     return result
   
   #############################################################################  
-  def getFilesByProduction(self, production):
-    result = self.server.getFilesByProduction(long(production))
+  def getFilesByProduction(self, production, eventtype, filetype):
+    result = self.server.getFilesByProduction(long(production), long(eventtype), filetype)
     return result
   
   #############################################################################  
