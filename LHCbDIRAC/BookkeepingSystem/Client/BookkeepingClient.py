@@ -73,8 +73,8 @@ class BookkeepingClient:
     return result
   
   #############################################################################  
-  def getProductions(self, configName,configversion):
-    result = self.server.getProductions(configName,configversion)
+  def getProductions(self, configName, configversion, eventTypeId):
+    result = self.server.getProductions(configName, configversion, eventTypeId)
     return result
    
   #############################################################################  
