@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.16 2008/05/30 07:34:33 zmathe Exp $
+# $Id: OracleDB.py,v 1.17 2008/06/04 12:32:03 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.16 2008/05/30 07:34:33 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.17 2008/06/04 12:32:03 zmathe Exp $"
 
 class OracleDB:
   
@@ -39,6 +39,18 @@ class OracleDB:
       gLogger.error(ex)
     return results
   
+  #############################################################################
+  def executeStoredProcedure(self, packageName, parameters):
+    results = None
+    try:
+      result = cx_Oracle.Cursor(self.connection_)
+      cursor = cx_Oracle.Cursor(self.connection_)
+      parameters +=[result]
+      cursor.callproc(packageName, parameters)
+      results = result.fetchall()
+    except Exception, ex:
+      gLogger.error(ex)    
+    return results
   #############################################################################
   def executeAviableEventNbCursor(self):
     results = None
