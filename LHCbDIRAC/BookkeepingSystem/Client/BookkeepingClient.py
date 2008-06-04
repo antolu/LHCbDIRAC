@@ -76,5 +76,9 @@ class BookkeepingClient:
   def getProductions(self, configName, configversion, eventTypeId):
     result = self.server.getProductions(configName, configversion, long(eventTypeId))
     return result
+  
+  def getNumberOfEvents(self, configName, configversion, eventTypeId, production):
+    result = self.server.getNumberOfEvents(configName, configversion, long(eventTypeId), long(production))
+    return result
    
   #############################################################################  
