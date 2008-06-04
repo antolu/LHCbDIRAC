@@ -86,4 +86,10 @@ class BookkeepingClient:
   def getEventTyesWithProduction(self, production):
     result = self.server.getEventTyesWithProduction(long(production))
     return result
+  
+  #############################################################################  
+  def getFileTypesWithProduction(self, production, eventtype):
+    result = self.server.getFileTypesWithProduction(long(production), long(eventtype))
+    return result
+  
   #############################################################################  
