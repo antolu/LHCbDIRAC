@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.17 2008/06/04 12:32:03 zmathe Exp $
+# $Id: OracleDB.py,v 1.18 2008/06/04 12:41:05 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.17 2008/06/04 12:32:03 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.18 2008/06/04 12:41:05 zmathe Exp $"
 
 class OracleDB:
   
@@ -58,18 +58,6 @@ class OracleDB:
       result = cx_Oracle.Cursor(self.connection_)
       cursor = cx_Oracle.Cursor(self.connection_)
       cursor.callproc('BKK_ORACLE.getAviableEventTypes', [result])
-      results = result.fetchall()
-    except Exception, ex:
-      gLogger.error(ex)    
-    return results;
-  
-  #############################################################################
-  def executeEventTypesCursor(self, configName, configVersion):
-    results = None
-    try:
-      result = cx_Oracle.Cursor(self.connection_)
-      cursor = cx_Oracle.Cursor(self.connection_)
-      cursor.callproc('BKK_ORACLE.getEventTypes', [configName, configVersion, result])
       results = result.fetchall()
     except Exception, ex:
       gLogger.error(ex)    
