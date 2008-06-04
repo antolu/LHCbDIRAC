@@ -63,8 +63,8 @@ class BookkeepingClient:
     return result
   
   #############################################################################  
-  def getProductions(self, processingPass):
-    result = self.server.getProductions(processingPass)
+  def getProductionsWithPocessingPass(self, processingPass):
+    result = self.server.getProductionsWithPocessingPass(processingPass)
     return result
   
   #############################################################################  
