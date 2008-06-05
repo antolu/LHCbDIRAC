@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.31 2008/06/04 17:17:15 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.32 2008/06/05 13:11:07 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.31 2008/06/04 17:17:15 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.32 2008/06/05 13:11:07 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -29,7 +29,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getAviableConfigNameAndVersion(self):
     """
     """
-    return self.db_.execute('select distinct jobs.ConfigName, jobs.ConfigVersion from jobs')
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getAviableConfiguration',[])
   
   #############################################################################
   def getAviableEventTypes(self):
