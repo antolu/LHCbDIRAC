@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: OracleDB.py,v 1.20 2008/06/04 17:17:15 zmathe Exp $
+# $Id: OracleDB.py,v 1.21 2008/06/05 13:26:57 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import cx_Oracle
 
-__RCSID__ = "$Id: OracleDB.py,v 1.20 2008/06/04 17:17:15 zmathe Exp $"
+__RCSID__ = "$Id: OracleDB.py,v 1.21 2008/06/05 13:26:57 zmathe Exp $"
 
 class OracleDB:
   
@@ -52,6 +52,7 @@ class OracleDB:
       gLogger.error(ex)    
     return results
   #############################################################################
+  """
   def executeAviableEventNbCursor(self):
     results = None
     try:
@@ -110,7 +111,7 @@ class OracleDB:
     except Exception, ex:
       gLogger.error(ex)    
     return results;
-    
+  
   #############################################################################
   def executegetEventTypeAndNumber(self, fileType, eventTypeId):
     results = None
@@ -148,7 +149,7 @@ class OracleDB:
     return results;
     
   #############################################################################  
-  """
+  
   def executegetProductions(self, processingPass):
     results = None
     try:
