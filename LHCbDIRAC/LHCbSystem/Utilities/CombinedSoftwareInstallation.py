@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.1 2008/06/03 12:46:24 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.2 2008/06/05 14:10:41 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -17,17 +17,18 @@
     DIRAC assumes an execute() method will exist during usage.
 
     It first checks Shared area
-    Then it checks if the Application can be configured based on the existing SW 
+    Then it checks if the Application can be configured based on the existing SW
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.1 2008/06/03 12:46:24 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.2 2008/06/05 14:10:41 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
-import os, shutil, sys
+import os, shutil, sys, urllib
 import DIRAC
 
 InstallProject = 'install_project.py'
+InstallProjectURL = 'http://cern.ch/lhcbproject/dist/'
 
 class CombinedSoftwareInstallation:
 
@@ -40,7 +41,10 @@ class CombinedSoftwareInstallation:
     self.ce = {}
     if argumentsDict.has_key('CE'):
       self.ce = argumentsDict['CE']
-    
+    self.source = {}
+    if argumentsDict.has_key('Source'):
+      self.source = argumentsDict['Source']
+
     apps = []
     if self.job.has_key('SoftwarePackages'):
       if type( self.job['SoftwarePackages'] ) == type(''):
@@ -53,7 +57,7 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.verbose( 'Requested Package %s' % app )
       app = tuple(app.split('.'))
       self.apps.append(app)
-      
+
     self.jobConfig = ''
     if self.job.has_key( 'SystemConfig' ):
       self.jobConfig = self.job['SystemConfig']
@@ -66,8 +70,8 @@ class CombinedSoftwareInstallation:
 
     self.sharedArea = SharedArea()
     self.localArea  = LocalArea()
-    
-        
+
+
   def execute(self):
     """
      Main method of the class executed by DIRAC jobAgent
@@ -78,7 +82,7 @@ class CombinedSoftwareInstallation:
     if not self.jobConfig in self.ceConfigs:
       DIRAC.gLogger.warn( 'Requested arquitecture not supported by CE' )
       return DIRAC.S_ERROR()
-    
+
     for app in self.apps:
       # 1.- check if application is available in shared area
       if CheckApplication( app, self.jobConfig, self.sharedArea ):
@@ -99,7 +103,7 @@ class CombinedSoftwareInstallation:
     return DIRAC.S_OK()
 
 def log( n, line ):
-  DIRAC.gLogger.info( line )   
+  DIRAC.gLogger.info( line )
 
 def InstallApplication(app, config, area ):
   """
@@ -107,6 +111,11 @@ def InstallApplication(app, config, area ):
    it will check already installed packages in shared area and install locally
    only missing parts
   """
+  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+      return DIRAC.S_ERROR('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+
   if not area:
     return False
   appName    = app[0]
@@ -144,7 +153,7 @@ def InstallApplication(app, config, area ):
     DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app)  )
     os.chdir(curDir)
     return False
-  
+
   os.chdir(curDir)
 
   return True
@@ -162,7 +171,7 @@ def CheckApplication(app, config, area):
   cmtEnv = dict(os.environ)
   cmtEnv['MYSITEROOT'] = area
   cmtEnv['CMTCONFIG']  = config
-  
+
   extCMT       = os.path.join( area, 'scripts', 'ExtCMT' )
   setupProject = os.path.join( area, 'scripts', 'SetupProject' )
 
@@ -191,7 +200,7 @@ def CheckApplication(app, config, area):
     if ret['stderr']:
       DIRAC.gLogger.warn( ret['stderr'] )
     return False
-  
+
   gaudiEnv = ret['outputEnv']
 
   appRoot = appName.upper() + 'ROOT'
@@ -230,7 +239,7 @@ def SharedArea():
 def LocalArea():
   """
    Discover Location of Local SW Area.
-   This area is populated by DIRAC job Agent for jobs needing SW not present 
+   This area is populated by DIRAC job Agent for jobs needing SW not present
    in the Shared Area.
   """
   if DIRAC.gConfig.getValue('/LocalSite/LocalArea',''):
@@ -254,3 +263,57 @@ def LocalArea():
         DIRAC.gLogger.warn( 'Can not create:', localArea )
         localArea = ''
   return localArea
+
+def RemoveApplication(app, config, area ):
+  """
+   Install given application at given area, at some point (when supported)
+   it will check already installed packages in shared area and install locally
+   only missing parts
+  """
+  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+      return DIRAC.S_ERROR('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+
+  if not area:
+    return False
+  appName    = app[0]
+  appVersion = app[1]
+  # make a copy of the environment dictionary
+  cmtEnv = dict(os.environ)
+  cmtEnv['MYSITEROOT'] = area
+  cmtEnv['CMTCONFIG']  = config
+
+  installProject = os.path.join( area, InstallProject )
+  if not os.path.exists( installProject ):
+    try:
+      shutil.copy( InstallProject, area )
+    except:
+      DIRAC.gLogger.warn( 'Failed to create:', installProject )
+      return False
+
+  curDir = os.getcwd()
+
+  # Move to requested are and run the installation
+  os.chdir(area)
+  cmdTuple =  [sys.executable]
+  cmdTuple += [InstallProject]
+  cmdTuple += [ '-p', appName ]
+  cmdTuple += [ '-v', appVersion ]
+  #removal options
+  cmdTuple += [ '-r', '-d' ]
+
+  ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
+  if not ret['OK']:
+    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join(app) )
+    DIRAC.gLogger.warn( ret['Message'] )
+    os.chdir(curDir)
+    return False
+  if ret['Value'][0]: # != 0
+    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join(app)  )
+    os.chdir(curDir)
+    return False
+
+  os.chdir(curDir)
+
+  return True
