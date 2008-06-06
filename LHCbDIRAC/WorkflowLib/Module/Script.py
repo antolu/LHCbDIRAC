@@ -20,6 +20,8 @@ class Script(object):
     cmd = self.Executable
     if re.search('.py$',self.Executable):
       cmd = '%s %s' %(sys.executable,self.Executable)
+    if re.search('.sh$',self.Executable) or re.search('.csh$',self.Executable):
+      cmd = './%s' %(self.Executable)
     print cmd
     outputDict = shellCall(0,cmd)
     print '---------------------------------------------------------------'
@@ -39,7 +41,7 @@ class Script(object):
       print 'Removing existing %s' % self.LogFile
       os.remove(self.LogFile)
     fopen = open(self.LogFile,'w')
-    fopen.write('<<<<<<<<<< Standard Output>>>>>>>>>>\n\n%s ' % stdout)
+    fopen.write('<<<<<<<<<< Standard Output >>>>>>>>>>\n\n%s ' % stdout)
     if stderr:
       fopen.write('<<<<<<<<<< Standard Error: >>>>>>>>>>\n\n%s ' % stderr)
     fopen.close()
