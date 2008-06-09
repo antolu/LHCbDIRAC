@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.3 2008/05/19 09:16:08 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.4 2008/06/09 11:51:41 paterson Exp $
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,7 +18,7 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.3 2008/05/19 09:16:08 paterson Exp $"
+__RCSID__ = "$Id: CondDBAgent.py,v 1.4 2008/06/09 11:51:41 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -264,6 +264,9 @@ class CondDBAgent(Optimizer):
     for site in condDBSites:
       if site in mask:
         activeSites.append(site)
+
+    if not activeSites:
+      return S_ERROR('Destination site(s) not present in site mask:\n%s' %(string.join(condDBSites,', ')))
 
     tagMissingSites=[]
     for site in activeSites:
