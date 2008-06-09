@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: IEntitySystemStateless.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $
+# $Id: IEntitySystemStateless.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $
 ########################################################################
 
-  """
-   Interface for stateless entity system operations
-  """
+"""
+  Interface for stateless entity system operations
+"""
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IEntitySystemStateless.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $"
+__RCSID__ = "$Id: IEntitySystemStateless.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $"
 
 #############################################################################
 class IEntitySystemStateless(object):

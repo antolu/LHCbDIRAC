@@ -1,17 +1,17 @@
 ########################################################################
-# $Id: BaseESClient.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $
+# $Id: BaseESClient.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $
 ########################################################################
 
-    """
-      Base Entity System client
-    """
+"""
+ Base Entity System client
+"""
 
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $"
+__RCSID__ = "$Id: BaseESClient.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):

@@ -1,15 +1,15 @@
 ########################################################################
-# $Id: IEntitySystemManager.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $
+# $Id: IEntitySystemManager.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $
 ########################################################################
 
 
-    """
-     Interface for entity system managers
-    """
+"""
+ Interface for entity system managers
+"""
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IEntitySystemManager.py,v 1.1 2008/06/09 10:10:56 zmathe Exp $"
+__RCSID__ = "$Id: IEntitySystemManager.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $"
 
 #############################################################################
 class IEntitySystemManager(IEntitySystemStateless):
