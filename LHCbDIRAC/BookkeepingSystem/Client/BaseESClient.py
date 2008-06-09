@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESClient.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $
+# $Id: BaseESClient.py,v 1.3 2008/06/09 10:27:59 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py,v 1.2 2008/06/09 10:16:55 zmathe Exp $"
+__RCSID__ = "$Id: BaseESClient.py,v 1.3 2008/06/09 10:27:59 zmathe Exp $"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):
@@ -19,13 +19,13 @@ class BaseESClient(IEntitySystemClient):
   #############################################################################
   def __init__(self, ESManager = BaseESManager(), path ="/"):
     self.__ESManager = ESManager
-    self.__currentDirectory = self.getManager().getAbsolutePath(path).result()
-  
+    self.__currentDirectory = self.getManager().getAbsolutePath(path)['Value']
+
   #############################################################################
   def list(self, path=""):
     res = self.getManager().mergePaths(self.__currentDirectory, path)
     if res.isOK():
-      return self.getManager().list(res.result())
+      return self.getManager().list(res['Value'])
     else:
       return S_ERROR("list")
   
