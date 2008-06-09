@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESClient.py,v 1.4 2008/06/09 10:31:57 zmathe Exp $
+# $Id: BaseESClient.py,v 1.5 2008/06/09 10:49:35 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py,v 1.4 2008/06/09 10:31:57 zmathe Exp $"
+__RCSID__ = "$Id: BaseESClient.py,v 1.5 2008/06/09 10:49:35 zmathe Exp $"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):
@@ -20,7 +20,8 @@ class BaseESClient(IEntitySystemClient):
   def __init__(self, ESManager = BaseESManager(), path ="/"):
     self.__ESManager = ESManager
     result = self.getManager().getAbsolutePath(path)
-    self.__currentDirectory = result['Value']
+    if result['OK']:
+      self.__currentDirectory = result['Value']
 
   #############################################################################
   def list(self, path=""):
@@ -28,7 +29,7 @@ class BaseESClient(IEntitySystemClient):
     if res['OK']:
       return self.getManager().list(res['Value'])
     else:
-      return S_ERROR("list")
+      return S_ERROR(res['Message'])
   
   #############################################################################
   def getManager(self):
