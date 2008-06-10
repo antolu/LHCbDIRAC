@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.6 2008/06/10 12:25:40 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.7 2008/06/10 12:27:24 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.6 2008/06/10 12:25:40 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.7 2008/06/10 12:27:24 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -112,7 +112,7 @@ class LHCB_BKKDBManager(BaseESManager):
     fileNameDetected = False        
     for token in tokens:
       prefix, suffix = self._splitPathElement(token)
-      if prefix == self.LHCB_BKDB_PREFIXES[11]:    # '' i.e. filename
+      if prefix == self.LHCB_BKDB_PREFIXES[2]:    # '' i.e. filename
         if counter not in [2]:            # any of the possible locations in the prefixes list
           correctPath = False
           break
