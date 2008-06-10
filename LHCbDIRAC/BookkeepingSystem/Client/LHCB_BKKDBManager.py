@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.1 2008/06/10 11:38:33 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.2 2008/06/10 11:45:00 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,11 @@ from DIRAC                                                               import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from DIRAC.BookkeepingSystem.Client.objects                              import Entity
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.1 2008/06/10 11:38:33 zmathe Exp $"
+import os
+import types
+import sys
+
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.2 2008/06/10 11:45:00 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
