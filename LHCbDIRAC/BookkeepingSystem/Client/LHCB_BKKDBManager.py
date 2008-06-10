@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.5 2008/06/10 12:23:16 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.6 2008/06/10 12:25:40 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.5 2008/06/10 12:23:16 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.6 2008/06/10 12:25:40 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -128,7 +128,17 @@ class LHCB_BKKDBManager(BaseESManager):
       gLogger.debug("processPath=" + str(result))    
     
     return (correctPath, result)
-    
+
+  ############################################################################# 
+  def _splitPathElement(self, pathElement):
+    t = pathElement.split(self.LHCB_BKDB_PREFIX_SEPARATOR, 1)
+    if (pathElement[0] == self.LHCB_BKDB_PREFIX_SEPARATOR or  # starts with separator
+        len(t) == 1 or                                         # contains no separator
+        t[0] not in self.LHCB_BKDB_PREFIXES                    # no declared prefix
+        ):
+      t = ['', pathElement]    # then it will be a filename
+    return t 
+
 #   it caches an entity or a list of entities
   ############################################################################# 
   def _cacheIt(self, entityList):
