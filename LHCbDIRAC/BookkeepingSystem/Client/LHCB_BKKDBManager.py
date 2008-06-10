@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.4 2008/06/10 11:49:36 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.5 2008/06/10 12:23:16 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.4 2008/06/10 11:49:36 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.5 2008/06/10 12:23:16 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -26,8 +26,7 @@ class LHCB_BKKDBManager(BaseESManager):
     
                                        
   LHCB_BKDB_FOLDER_PROPERTIES = ['name', 
-                                 'fullpath',
-                                 'expandable' # normally true
+                                'fullpath',
                                         ]    
     # watch out for this ad hoc solution
     # if any changes made check all functions
@@ -45,7 +44,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
-    self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/', 'expandable':True, 'type':self.LHCB_BKDB_FOLDER_TYPE}), 0)}
+    self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
 
   ############################################################################# 
   def list(self, path=""):
@@ -65,14 +64,15 @@ class LHCB_BKKDBManager(BaseESManager):
       gLogger.debug("listing configurations")
       dbResult = self.db_.getAviableConfiguration()
       for record in dbResult:
-        entityList += [self._getEntityFromPath(path, record, levels)]
+        configs = record[0]+' '+record[1]
+        entityList += [self._getEntityFromPath(path, configs, levels)]
         self._cacheIt(entityList)
     
     return S_OK(entityList)                    
  
   ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level):
-    
+     
     if isinstance(newPathElement, types.DictType):
       # this must be a file
       entity = Entity(newPathElement)
@@ -92,7 +92,7 @@ class LHCB_BKKDBManager(BaseESManager):
       fullPath  = presentPath.rstrip(INTERNAL_PATH_SEPARATOR)
       fullPath += INTERNAL_PATH_SEPARATOR + \
       newPathElement
-      entity.update({'name':newPathElement, 'fullpath':fullPath, 'expandable':expandable, 'type':type})
+      entity.update({'name':newPathElement, 'fullpath':fullPath})
     
     return entity
        
