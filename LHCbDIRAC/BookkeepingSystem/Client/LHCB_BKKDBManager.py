@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.3 2008/06/10 11:46:41 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.4 2008/06/10 11:49:36 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.3 2008/06/10 11:46:41 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.4 2008/06/10 11:49:36 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -63,7 +63,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if levels == 0:    
       # list root
       gLogger.debug("listing configurations")
-      dbResult = self.db_.getAviableConfigNameAndVersion()
+      dbResult = self.db_.getAviableConfiguration()
       for record in dbResult:
         entityList += [self._getEntityFromPath(path, record, levels)]
         self._cacheIt(entityList)
