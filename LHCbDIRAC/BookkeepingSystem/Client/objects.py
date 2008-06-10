@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: objects.py,v 1.2 2008/06/09 10:10:57 zmathe Exp $
+# $Id: objects.py,v 1.3 2008/06/10 11:43:04 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ import types
 
 
 
-__RCSID__ = "$Id: objects.py,v 1.2 2008/06/09 10:10:57 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.3 2008/06/10 11:43:04 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   
@@ -126,7 +126,7 @@ class Entity(dict):
           #childrenString += str(Entity(child)) + "\n"
         else:
           s +=  str(value)
-    s += "\n}"                
-  #        s = IndentMaker.prepend(s, "_______")                
-  return s
+      s += "\n}"                
+     #        s = IndentMaker.prepend(s, "_______")                
+    return s
         
