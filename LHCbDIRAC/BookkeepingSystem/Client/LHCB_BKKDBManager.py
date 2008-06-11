@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.19 2008/06/11 15:15:44 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.20 2008/06/11 15:27:38 zmathe Exp $
 ########################################################################
 
 """
@@ -10,12 +10,12 @@ from DIRAC                                                               import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from DIRAC.BookkeepingSystem.Client.objects                              import Entity
-from DIRAC.DataManagementSystem.Client.FileCatalog                       import FileCatalog
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
 import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.19 2008/06/11 15:15:44 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.20 2008/06/11 15:27:38 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -57,7 +57,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
-    self.fileCatalogue = FileCatalog()
+    self.lfc_ = LcgFileCatalogCombinedClient()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
@@ -111,7 +111,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getFilesPFN(self):
     lfns = self.files_
-    res = self.fileCatalogue.getReplicas(lfns)
+    res = self.lfc_.getPfnsByLfnList(lfns)
     return res
   
   ############################################################################# 
