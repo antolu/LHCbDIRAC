@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.2 2008/06/11 11:34:39 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.3 2008/06/11 12:08:43 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.2 2008/06/11 11:34:39 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.3 2008/06/11 12:08:43 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -26,6 +26,10 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def help(self):
     return self.getManager().help()
+  
+  #############################################################################
+  def setParameter(self, name):
+    return self.getManager().setParameter(name)
 
 
         

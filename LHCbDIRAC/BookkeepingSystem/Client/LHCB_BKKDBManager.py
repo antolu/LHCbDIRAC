@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.12 2008/06/11 12:05:31 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.13 2008/06/11 12:08:43 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.12 2008/06/11 12:05:31 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.13 2008/06/11 12:08:43 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -79,7 +79,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return self.LHCB_BKDB_PARAMETERS
   
   ############################################################################# 
-  def setParameters(self, name):
+  def setParameter(self, name):
     if self.LHCB_BKDB_PARAMETERS.contains(name):
       self.parameter_ = name
     else:
