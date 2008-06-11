@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.18 2008/06/11 14:25:13 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.19 2008/06/11 15:15:44 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.18 2008/06/11 14:25:13 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.19 2008/06/11 15:15:44 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -95,10 +95,12 @@ class LHCB_BKKDBManager(BaseESManager):
   def setParameter(self, name):
     if self.LHCB_BKDB_PARAMETERS.__contains__(name):
       self.parameter_ = name
+      self.treeLevels_ = -1
       if name == 'Configuration':
       	self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
       else:
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PROCESSING
+   
     else:
       print "Wrong Parameter!"
   
@@ -121,28 +123,28 @@ class LHCB_BKKDBManager(BaseESManager):
       print "--------------------------------------"
     elif self._getTreeLevels()==0:
       print "-----------------------------------------"
-      print "| Please choise one configuration!       |"
+      print "| Please choose one configuration!       |"
       print "| For example:                           |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5') |"
       print "------------------------------------------"
       
     elif self._getTreeLevels()==1:
       print "-------------------------------------------------------"
-      print "| Please choise one event type!                       |"
+      print "| Please choose one event type!                       |"
       print "| For example:                                        |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010') |"
       print "-------------------------------------------------------"
       
     elif self._getTreeLevels()==2:
       print "-----------------------------------------------------------------"
-      print "| Please choise one production!                                 |"
+      print "| Please choose one production!                                 |"
       print "| For example:                                                  |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933') |"
       print "-----------------------------------------------------------------"
     
     elif self._getTreeLevels()==3:
       print "---------------------------------------------------------------------------------------------------------------"
-      print "| Please choise one file type!                                                                                 |"
+      print "| Please choose one file type!                                                                                 |"
       print "| For example:                                                                                                 |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17 Number Of Events:223032') |"
       print "----------------------------------------------------------------------------------------------------------------"
@@ -157,14 +159,14 @@ class LHCB_BKKDBManager(BaseESManager):
       print "--------------------------------------"
     elif self._getTreeLevels()==0:
       print "-----------------------------------------"
-      print "| Please choise one Processing Pass!     |"
+      print "| Please choose one Processing Pass!     |"
       print "| For example:                           |"
       print "| client.list('/PPA_Pass342')            |"
       print "------------------------------------------"
 
     elif self._getTreeLevels()==1:
       print "-------------------------------------------------------"
-      print "| Please choise one production!                       |"
+      print "| Please choose one production!                       |"
       print "| For example:                                        |"
       print "| client.list('/PPA_Pass342/PRO_1858')                |"
       print "-------------------------------------------------------"
@@ -178,7 +180,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
     elif self._getTreeLevels()==3:
       print "-----------------------------------------------------------------"
-      print "| Please choise one file type!                                  |"
+      print "| Please choose one file type!                                  |"
       print "| For example:                                                  |"
       print "| client.list('/PPA_Pass342/PRO_1858/EVT_10000000/FTY_RDST')    |"
       print "-----------------------------------------------------------------"
