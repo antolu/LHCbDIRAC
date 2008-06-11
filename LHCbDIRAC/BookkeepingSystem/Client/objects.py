@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: objects.py,v 1.4 2008/06/10 12:23:16 zmathe Exp $
+# $Id: objects.py,v 1.5 2008/06/11 10:12:05 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ import types
 
 
 
-__RCSID__ = "$Id: objects.py,v 1.4 2008/06/10 12:23:16 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.5 2008/06/11 10:12:05 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   
@@ -98,6 +98,7 @@ class Entity(dict):
       gLogger.warn("Cannot create Entity from properties:" + str(properties))
             
   #############################################################################
+  """
   def __repr__(self):
     if len(self) == 0 :
       s = "{\n " + str(None) + "\n}"
@@ -106,7 +107,7 @@ class Entity(dict):
       keys = self.keys()
       
       for key in keys:
-        if key == 'fullpath':
+        #if key == 'fullpath':
           s += "\n " + str(key) + " : "
           value = self[key]
 
@@ -119,4 +120,35 @@ class Entity(dict):
           s += "\n}"                
      #        s = IndentMaker.prepend(s, "_______")                
     return s
-     
+  """
+  def __repr__(self):
+        if len(self) == 0 :
+            s = "{\n " + str(None) + "\n}"
+        else:
+            s  = "{"
+            keys = self.keys()
+            
+            # this part is only replacing temporarily the part commented out
+            #if 'name' in keys:
+            #    s += 'name: ' + str(self['name']);
+            if 'fullpath' in keys:
+                s += '\n' + 'fullpath: ' + str(self['fullpath'])
+            for key in keys:
+                s += "\n " + str(key) + " : "
+                value = self[key]
+                # some entities do not have this key. Ignore then.
+                try:
+                    if key in self['not2show']:
+                        s +=  '-- not shown --'
+                        continue
+                except:
+                    pass
+                if isinstance(value, types.DictType):
+                    value = Entity(value)
+                    s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
+                #childrenString += str(Entity(child)) + "\n"
+                else:
+                    s +=  str(value)
+            s += "\n}"                
+#        s = IndentMaker.prepend(s, "_______")                
+        return s   

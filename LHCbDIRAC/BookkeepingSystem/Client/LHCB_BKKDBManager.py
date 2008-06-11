@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.7 2008/06/10 12:27:24 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.8 2008/06/11 10:12:05 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.7 2008/06/10 12:27:24 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.8 2008/06/11 10:12:05 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -32,8 +32,10 @@ class LHCB_BKKDBManager(BaseESManager):
     # if any changes made check all functions
     #
   LHCB_BKDB_PREFIXES =     ['CFG',    # configurations
-                                 'EVT',    # event type
-                                 '',    # filename                                 
+                            'EVT',    # event type
+                            'PROD',   #production 
+                            'FTY',    #file type 
+                             '',    # filename                                 
                                  ]
     
   LHCB_BKDB_PREFIX_SEPARATOR = "_"
@@ -52,14 +54,19 @@ class LHCB_BKKDBManager(BaseESManager):
     entityList = list()
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     valid, processedPath = self._processPath(path)
+   
     if not valid:
       gLogger.error(path + " is not valid!");
       raise ValueError, "Invalid path '%s'" % path
         # get directory content
     levels = len(processedPath)
-        
-        
+           
+    
     if levels == 0:    
+      print "-----------------------------------------------------------"
+      print "Configurations name and version:\n"
+      print "-----------------------------------------------------------"
+
       # list root
       gLogger.debug("listing configurations")
       dbResult = self.db_.getAviableConfiguration()
@@ -67,6 +74,113 @@ class LHCB_BKKDBManager(BaseESManager):
         configs = record[0]+' '+record[1]
         entityList += [self._getEntityFromPath(path, configs, levels)]
         self._cacheIt(entityList)
+    
+    if levels == 1:
+      gLogger.debug("listing Event Types")
+      config = processedPath[0][1]
+      configName = config.split(' ')[0]
+      configVersion = config.split(' ')[1]
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:"
+      print "-----------------------------------------------------------"
+      print "Configuration Name      | "+configName
+      print "Configuration Version   | "+configVersion
+      print "-----------------------------------------------------------"
+
+      print "Aviable Event types:\n"
+
+      dbResult = self.db_.getEventTypes(configName, configVersion) 
+      for record in dbResult:
+        eventtypes = str(record[0])
+        entityList += [self._getEntityFromPath(path, eventtypes, levels)]
+        self._cacheIt(entityList)
+    
+    if levels == 2: 
+      gLogger.debug("listing productions")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      eventType = int(processedPath[1][1])
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:"
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Event type             | "+str(eventType)
+      print "-----------------------------------------------------------"
+
+      print "Aviable productions:\n"
+
+      dbResult = self.db_.getProductions(configName, configVersion, eventType)
+      for record in dbResult:
+        prod = str(record[0])
+        entityList += [self._getEntityFromPath(path, prod, levels)]
+        self._cacheIt(entityList)
+
+    if levels == 3:
+      gLogger.debug("listing filetypes")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      eventType = int(processedPath[1][1])
+      prod = int(processedPath[2][1])
+ 
+      print "-----------------------------------------------------------"
+      print "Selected parameters: "
+      print "-----------------------------------------------------------"
+
+      print "Configuration Name      | "+configName
+      print "Configuration Version   | "+configVersion
+      print "Event type              | "+str(eventType)
+      print "Production              | "+str(prod)
+      print "-----------------------------------------------------------"
+
+      print "Aviable file types:\n"
+
+      dbResult = self.db_.getNumberOfEvents(configName, configVersion, eventType, prod)
+      for record in dbResult:
+        fType = record[5]
+        pname = record[3]
+        pversion = record[4]
+        nb= str(record[6])
+        #fileType = fType+' '+pname+' '+pversion+' '+'Number Of Events:'+nb
+        value = {'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
+        entityList += [self._getSpecificEntityFromPath(path, value, fType, levels)]
+        self._cacheIt(entityList)
+
+    if levels == 4:
+      gLogger.debug("listing files")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      eventType = int(processedPath[1][1])
+      prod = int(processedPath[2][1])
+      value = processedPath[3][1]
+      filetype = value.split(' ')[0]
+      pname = value.split(' ')[1]
+      pversion = value.split(' ')[2]
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Event type             | "+str(eventType)
+      print "Production             | "+str(prod)
+      print "File type              | "+filetype
+      print "Program name           | "+pname
+      print "Program version        | "+pversion
+      print "-----------------------------------------------------------"
+      print "File list:\n"
+
+      dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
+      for record in dbResult:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        entityList += [self._getEntityFromPath(path, value, levels)]
+        self._cacheIt(entityList)    
+
     
     return S_OK(entityList)                    
  
@@ -95,7 +209,23 @@ class LHCB_BKKDBManager(BaseESManager):
       entity.update({'name':newPathElement, 'fullpath':fullPath})
     
     return entity
-       
+  
+  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level):
+    if isinstance(newPathElement, types.DictType):
+      entity = Entity(value)
+      expandable = False
+      type = self.LHCB_BKDB_FILE_TYPE
+      newPathElement = self.LHCB_BKDB_PREFIXES[level]+ \
+      self.LHCB_BKDB_PREFIX_SEPARATOR + \
+      newPathElement
+
+      fullPath  = presentPath.rstrip(INTERNAL_PATH_SEPARATOR)
+      fullPath += INTERNAL_PATH_SEPARATOR + \
+      newPathElement
+      entity.update({'name':newPathElement, 'fullpath':fullPath})  
+    return entity
+    
+
 #    takes an absolute path and returns of tuples with prefixes and posfixes
 #    of path elements. If invalid path returns null
   ############################################################################# 
@@ -112,8 +242,8 @@ class LHCB_BKKDBManager(BaseESManager):
     fileNameDetected = False        
     for token in tokens:
       prefix, suffix = self._splitPathElement(token)
-      if prefix == self.LHCB_BKDB_PREFIXES[2]:    # '' i.e. filename
-        if counter not in [2]:            # any of the possible locations in the prefixes list
+      if prefix == self.LHCB_BKDB_PREFIXES[3]:    # '' i.e. filename
+        if counter not in [3]:            # any of the possible locations in the prefixes list
           correctPath = False
           break
         fileNameDetected = True                    # remember that the path should be closed
