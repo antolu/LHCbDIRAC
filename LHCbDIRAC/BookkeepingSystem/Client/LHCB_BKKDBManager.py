@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.11 2008/06/11 11:37:54 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.12 2008/06/11 12:05:31 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.11 2008/06/11 11:37:54 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.12 2008/06/11 12:05:31 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -51,6 +51,13 @@ class LHCB_BKKDBManager(BaseESManager):
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.treeLevels_ = -1
+    print "First please choise which kind of queries you want to use!"
+    print "The default value is Configuration!"
+    print "The possible parameters:"
+    print self.getPossibleParameters()
+    print "For Example:"
+    print "client.setParameter('Processing Pass')"
+    print "If you need help, you will use client.help() commnad."
 
   ############################################################################# 
   def _updateTreeLevels(self, level):
@@ -68,28 +75,50 @@ class LHCB_BKKDBManager(BaseESManager):
       self.helpProcessing()
   
   ############################################################################# 
+  def getPossibleParameters(self):
+    return self.LHCB_BKDB_PARAMETERS
+  
+  ############################################################################# 
+  def setParameters(self, name):
+    if self.LHCB_BKDB_PARAMETERS.contains(name):
+      self.parameter_ = name
+    else:
+      print "Wromg Parameter!"
+  
+  ############################################################################# 
   def helpConfig(self):
     if self._getTreeLevels()==-1:
-      print "Please use the following comand:"
-      print "client.list()"
+      print "-------------------------------------"
+      print "| Please use the following comand:   |"
+      print "| client.list()                      |"
+      print "--------------------------------------"
     elif self._getTreeLevels()==0:
-      print "Please choise one configuration!"
-      print "For example:"
-      print "client.list('/CFG_DC06 phys-v3-lumi5')"
+      print "------------------------------------"
+      print "| Please choise one configuration!       |"
+      print "| For example:                           |"
+      print "| client.list('/CFG_DC06 phys-v3-lumi5') |"
+      print "------------------------------------------"
       
     elif self._getTreeLevels()==1:
-      print "Please choise one event type!"
-      print "For example:"
-      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010')"
+      print "-------------------------------------------------------"
+      print "| Please choise one event type!                       |"
+      print "| For example:                                        |"
+      print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010') |"
+      print "-------------------------------------------------------"
       
     elif self._getTreeLevels()==2:
-      print "Please choise one production!"
-      print "For example:"
-      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933')"
+      print "-----------------------------------------------------------------"
+      print "| Please choise one production!                                 |"
+      print "| For example:                                                  |"
+      print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933') |"
+      print "-----------------------------------------------------------------"
+    
     elif self._getTreeLevels()==3:
-      print "Please choise one file type!"
-      print "For example:"
-      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17 Number Of Events:223032')"
+      print "---------------------------------------------------------------------------------------------------------------"
+      print "| Please choise one file type!                                                                                 |"
+      print "| For example:                                                                                                 |"
+      print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17 Number Of Events:223032') |"
+      print "----------------------------------------------------------------------------------------------------------------"
 
   
   ############################################################################# 
@@ -98,7 +127,14 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def list(self, path=""):
-       
+    
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+      self._listConfigs() 
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+      self._listProcessing()
+  
+  ############################################################################# 
+  def _listConfigs(self):
     entityList = list()
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     valid, processedPath = self._processPath(path)
@@ -231,7 +267,11 @@ class LHCB_BKKDBManager(BaseESManager):
         self._cacheIt(entityList)    
 
     
-    return S_OK(entityList)                    
+    return entityList
+  
+  ############################################################################# 
+  def listProcessing(self):
+    print "under construction!"                   
  
   ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level):
