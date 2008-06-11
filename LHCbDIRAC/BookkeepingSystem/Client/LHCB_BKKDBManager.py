@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.15 2008/06/11 12:25:38 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.16 2008/06/11 13:34:27 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.15 2008/06/11 12:25:38 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.16 2008/06/11 13:34:27 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -31,13 +31,21 @@ class LHCB_BKKDBManager(BaseESManager):
     # watch out for this ad hoc solution
     # if any changes made check all functions
     #
-  LHCB_BKDB_PREFIXES =     ['CFG',    # configurations
-                            'EVT',    # event type
-                            'PROD',   #production 
-                            'FTY',    #file type 
-                             '',    # filename                                 
-                                 ]
+  LHCB_BKDB_PREFIXES_CONFIG =     ['CFG',    # configurations
+                                   'EVT',    # event type
+                                   'PROD',   #production 
+                                   'FTY',    #file type 
+                                    '',    # filename                                 
+                                   ]
   
+  LHCB_BKDB_PREFIXES_PROCESSING = ['PPA',
+                                   'PRO',
+                                   'EVT',
+                                   'FTY',
+                                   ''
+                                  ]
+  LHCB_BKDB_PREFIXES=[]
+
   LHCB_BKDB_PARAMETERS = ['Configuration','Processing Pass' ]
     
   LHCB_BKDB_PREFIX_SEPARATOR = "_"
@@ -50,6 +58,8 @@ class LHCB_BKKDBManager(BaseESManager):
     self.db_ = BookkeepingClient()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
+    self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
+
     self.treeLevels_ = -1
     print "First please choise which kind of queries you want to use!"
     print "The default value is Configuration!"
@@ -82,6 +92,10 @@ class LHCB_BKKDBManager(BaseESManager):
   def setParameter(self, name):
     if self.LHCB_BKDB_PARAMETERS.__contains__(name):
       self.parameter_ = name
+      if name == 'Configuration':
+      	self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
+      else:
+        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PROCESSING
     else:
       print "Wromg Parameter!"
   
@@ -93,7 +107,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "| client.list()                      |"
       print "--------------------------------------"
     elif self._getTreeLevels()==0:
-      print "------------------------------------"
+      print "-----------------------------------------"
       print "| Please choise one configuration!       |"
       print "| For example:                           |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5') |"
@@ -123,7 +137,40 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def helpProcessing(self):
-    print "under construction"
+    if self._getTreeLevels()==-1:
+      print "-------------------------------------"
+      print "| Please use the following comand:   |"
+      print "| client.list()                      |"
+      print "--------------------------------------"
+    elif self._getTreeLevels()==0:
+      print "-----------------------------------------"
+      print "| Please choise one Processing Pass!     |"
+      print "| For example:                           |"
+      print "| client.list('/PPA_Pass342')            |"
+      print "------------------------------------------"
+
+    elif self._getTreeLevels()==1:
+      print "-------------------------------------------------------"
+      print "| Please choise one production!                       |"
+      print "| For example:                                        |"
+      print "| client.list('/PPA_Pass342/PRO_1858')                |"
+      print "-------------------------------------------------------"
+
+    elif self._getTreeLevels()==2:
+      print "-----------------------------------------------------------------"
+      print "| Please choise one event type!                                 |"
+      print "| For example:                                                  |"
+      print "| client.list('/PPA_Pass342/PRO_1858/EVT_10000000')             |"
+      print "-----------------------------------------------------------------"
+
+    elif self._getTreeLevels()==3:
+      print "-----------------------------------------------------------------"
+      print "| Please choise one file type!                                  |"
+      print "| For example:                                                  |"
+      print "| client.list('/PPA_Pass342/PRO_1858/EVT_10000000/FTY_RDST')    |"
+      print "-----------------------------------------------------------------"
+
+
   
   ############################################################################# 
   def list(self, path=""):
@@ -292,8 +339,90 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getProcessingPass()
       for record in dbResult:
         processing = record[0]
-        entityList += [self._getEntityFromPath(path, processing, levels)]
-        self._cacheIt(entityList)                   
+        value = {'Generation':record[1],'Digitization':record[2],'Reconstruction':record[3],'Stripping':record[4],'Reconstruction2':record[5],'Quality':record[6]}
+        entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
+        self._cacheIt(entityList)                  
+   
+    if levels == 1:
+      gLogger.debug("listing productions")
+      processingPass = processedPath[0][1]
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:    "
+      print "-----------------------------------------------------------"
+      print "Processing Pass:      | "+str(processingPass)
+      print "-----------------------------------------------------------"
+     
+      print "Aviable productions:"
+      dbResult = self.db_.getProductionsWithPocessingPass(processingPass)
+      for record in dbResult:
+        prod = str(record[0])
+        entityList += [self._getEntityFromPath(path, prod, levels)]
+        self._cacheIt(entityList)
+
+    if levels == 2:
+      processingPass = processedPath[0][1]
+      prod =  int(processedPath[1][1])
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Processing Pass:       |"+str(processingPass)
+      print "Production:            | "+str(prod)
+      print "-----------------------------------------------------------"
+      
+      print "Aviable Event types:"
+      
+      dbResult = self.db_.getEventTyesWithProduction(prod)
+      for record in dbResult:
+        eventtype = str(record[0])
+        entityList += [self._getEntityFromPath(path, eventtype, levels)]
+        self._cacheIt(entityList)
+   
+    if levels == 3:
+      processingPass = processedPath[0][1]
+      prod =  int(processedPath[1][1])
+      evt = int(processedPath[2][1])
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Processing Pass:       |"+str(processingPass)
+      print "Production:            |"+str(prod)
+      print "Event type:            |"+str(evt)
+      print "-----------------------------------------------------------"
+
+      print "Aviable file types:"
+
+      dbResult = self.db_.getFileTypesWithProduction(prod, evt)
+      for record in dbResult:
+        fileType = str(record[0])
+        entityList += [self._getEntityFromPath(path, fileType, levels)]
+        self._cacheIt(entityList)
+
+    if levels == 4:
+      processingPass = processedPath[0][1]
+      prod =  int(processedPath[1][1])
+      evt = int(processedPath[2][1])
+      fileType = str(processedPath[3][1])
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Processing Pass:       |"+str(processingPass)
+      print "Production:            |"+str(prod)
+      print "Event type:            |"+str(evt)
+      print "File type              |"+fileType
+      print "-----------------------------------------------------------"
+
+      print "Aviable files:"
+
+      dbResult = self.db_.getFilesByProduction(prod, evt, fileType)
+      for record in dbResult:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        entityList += [self._getEntityFromPath(path, value, levels)]
+        self._cacheIt(entityList)
+
+ 
+
+    return entityList
  
   ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level):
