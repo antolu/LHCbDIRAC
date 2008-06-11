@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.14 2008/06/11 12:21:33 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.15 2008/06/11 12:25:38 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.14 2008/06/11 12:21:33 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.15 2008/06/11 12:25:38 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -272,7 +272,28 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def _listProcessing(self, path):
-    print "under construction!"                   
+    entityList = list()
+    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
+    valid, processedPath = self._processPath(path)
+   
+    if not valid:
+      gLogger.error(path + " is not valid!");
+      raise ValueError, "Invalid path '%s'" % path
+        # get directory content
+    levels = len(processedPath)
+    self._updateTreeLevels(levels)
+  
+    if levels == 0:    
+      print "-----------------------------------------------------------"
+      print "Processing Pass:"
+      print "-----------------------------------------------------------"
+
+      gLogger.debug("listing processing pass")
+      dbResult = self.db_.getProcessingPass()
+      for record in dbResult:
+        processing = record[0]
+        entityList += [self._getEntityFromPath(path, processing, levels)]
+        self._cacheIt(entityList)                   
  
   ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level):
