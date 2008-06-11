@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: objects.py,v 1.6 2008/06/11 10:49:03 zmathe Exp $
+# $Id: objects.py,v 1.7 2008/06/11 11:21:27 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ import types
 
 
 
-__RCSID__ = "$Id: objects.py,v 1.6 2008/06/11 10:49:03 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.7 2008/06/11 11:21:27 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   
@@ -121,34 +121,28 @@ class Entity(dict):
     return s
   """
   def __repr__(self):
-        if len(self) == 0 :
-            s = "{\n " + str(None) + "\n}"
-        else:
-            s  = "{"
-            keys = self.keys()
-            
-            # this part is only replacing temporarily the part commented out
-            #if 'name' in keys:
-            #    s += 'name: ' + str(self['name']);
-            #if 'fullpath' in keys:
-            #    s += '\n' + 'fullpath: ' + str(self['fullpath'])
-            for key in keys:
-              if key != 'name':
-                s += "\n " + str(key) + " : "
-                value = self[key]
-                # some entities do not have this key. Ignore then.
-                try:
-                    if key in self['not2show']:
-                        s +=  '-- not shown --'
-                        continue
-                except:
-                    pass
-                if isinstance(value, types.DictType):
-                    value = Entity(value)
-                    s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
-                #childrenString += str(Entity(child)) + "\n"
-                else:
-                    s +=  str(value)
-            s += "\n}"                
-#        s = IndentMaker.prepend(s, "_______")                
-        return s   
+    if len(self) == 0 :
+        s = "{\n " + str(None) + "\n}"
+    else:
+        s  = "{"
+        keys = self.keys()
+        for key in keys:
+          if key != 'name':
+            s += "\n " + str(key) + " : "
+            value = self[key]
+            # some entities do not have this key. Ignore then.
+            try:
+                if key in self['not2show']:
+                    s +=  '-- not shown --'
+                    continue
+            except:
+                pass
+            if isinstance(value, types.DictType):
+                value = Entity(value)
+                s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
+            #childrenString += str(Entity(child)) + "\n"
+            else:
+                s +=  str(value)
+        s += "\n}"                
+  #        s = IndentMaker.prepend(s, "_______")                
+    return s   

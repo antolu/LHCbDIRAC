@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.9 2008/06/11 10:49:03 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.10 2008/06/11 11:21:27 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.9 2008/06/11 10:49:03 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.10 2008/06/11 11:21:27 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -37,6 +37,8 @@ class LHCB_BKKDBManager(BaseESManager):
                             'FTY',    #file type 
                              '',    # filename                                 
                                  ]
+  
+  LHCB_BKDB_PARAMETERS = ['Configuration','Processing Pass' ]
     
   LHCB_BKDB_PREFIX_SEPARATOR = "_"
   
@@ -47,7 +49,53 @@ class LHCB_BKKDBManager(BaseESManager):
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
+    self.parameter_ = LHCB_BKDB_PARAMETERS[0]
+    self.treeLevels_ = -1
 
+  ############################################################################# 
+  def _updateTreeLevels(self, level):
+    self.treeLevels_ = level
+  
+  ############################################################################# 
+  def _getTreeLevels(self):
+    return self.treeLevels_
+  
+  ############################################################################# 
+  def help(self):
+    if self.parameter_ == LHCB_BKDB_PARAMETERS[0]:
+      self.helpConfig()
+    elif self.parameter_ == LHCB_BKDB_PARAMETERS[1]:
+      self.helpProcessing()
+  
+  ############################################################################# 
+  def helpConfig(self):
+    if self._getTreeLevels()==-1:
+      print "Please use the following comand:"
+      print "client.list()"
+    elif self._getTreeLevels()==0:
+      print "Please choise one configuration!"
+      print "For example:"
+      print "client.list('/CFG_DC06 phys-v3-lumi5')"
+      
+    elif self._getTreeLevels()==1:
+      print "Please choise one event type!"
+      print "For example:"
+      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010')"
+      
+    elif self._getTreeLevels()==2:
+      print "Please choise one production!"
+      print "For example:"
+      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933')"
+    elif self._getTreeLevels()==3:
+      print "Please choise one file type!"
+      print "For example:"
+      print "client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17 Number Of Events:223032')"
+
+  
+  ############################################################################# 
+  def helpProcessing(self):
+    print "under construction"
+  
   ############################################################################# 
   def list(self, path=""):
        
@@ -60,8 +108,8 @@ class LHCB_BKKDBManager(BaseESManager):
       raise ValueError, "Invalid path '%s'" % path
         # get directory content
     levels = len(processedPath)
-           
-    
+    self._updateTreeLevels(levels)
+  
     if levels == 0:    
       print "-----------------------------------------------------------"
       print "Configurations name and version:\n"
