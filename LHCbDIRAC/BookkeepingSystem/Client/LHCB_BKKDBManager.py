@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.8 2008/06/11 10:12:05 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.9 2008/06/11 10:49:03 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.8 2008/06/11 10:12:05 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.9 2008/06/11 10:49:03 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -145,9 +145,10 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = record[3]
         pversion = record[4]
         nb= str(record[6])
-        #fileType = fType+' '+pname+' '+pversion+' '+'Number Of Events:'+nb
-        value = {'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
-        entityList += [self._getSpecificEntityFromPath(path, value, fType, levels)]
+        fileType = fType+' '+pname+' '+pversion+' '+'Number Of Events:'+nb
+        entityList += [self._getEntityFromPath(path, fileType, levels)]
+        #value = {'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
+        #entityList += [self._getSpecificEntityFromPath(path, value, fileType, levels)]
         self._cacheIt(entityList)
 
     if levels == 4:
@@ -211,7 +212,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entity
   
   def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level):
-    if isinstance(newPathElement, types.DictType):
+    if isinstance(value, types.DictType):
       entity = Entity(value)
       expandable = False
       type = self.LHCB_BKDB_FILE_TYPE
