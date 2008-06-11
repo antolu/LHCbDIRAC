@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.16 2008/06/11 13:34:27 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.17 2008/06/11 14:19:20 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.16 2008/06/11 13:34:27 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.17 2008/06/11 14:19:20 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -59,6 +59,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
+    self.files_ = []
 
     self.treeLevels_ = -1
     print "First please choise which kind of queries you want to use!"
@@ -97,7 +98,11 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PROCESSING
     else:
-      print "Wromg Parameter!"
+      print "Wrong Parameter!"
+  
+  #############################################################################
+  def getFiles(self):
+    return self.files_ 
   
   ############################################################################# 
   def helpConfig(self):
@@ -284,6 +289,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self._cacheIt(entityList)
 
     if levels == 4:
+      self.files_ = []
       gLogger.debug("listing files")
       value = processedPath[0][1]
       configName = value.split(' ')[0]
@@ -311,6 +317,7 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)    
 
@@ -399,6 +406,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self._cacheIt(entityList)
 
     if levels == 4:
+      self.files_ = []
       processingPass = processedPath[0][1]
       prod =  int(processedPath[1][1])
       evt = int(processedPath[2][1])
@@ -417,6 +425,7 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getFilesByProduction(prod, evt, fileType)
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)
 
