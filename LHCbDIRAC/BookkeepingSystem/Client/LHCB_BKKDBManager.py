@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.13 2008/06/11 12:08:43 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.14 2008/06/11 12:21:33 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.13 2008/06/11 12:08:43 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.14 2008/06/11 12:21:33 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -80,7 +80,7 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def setParameter(self, name):
-    if self.LHCB_BKDB_PARAMETERS.contains(name):
+    if self.LHCB_BKDB_PARAMETERS.__contains__(name):
       self.parameter_ = name
     else:
       print "Wromg Parameter!"
@@ -129,12 +129,13 @@ class LHCB_BKKDBManager(BaseESManager):
   def list(self, path=""):
     
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
-      self._listConfigs() 
+      return self._listConfigs(path) 
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
-      self._listProcessing()
+      return self._listProcessing(path)
   
   ############################################################################# 
-  def _listConfigs(self):
+  def _listConfigs(self, path):
+    
     entityList = list()
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     valid, processedPath = self._processPath(path)
@@ -270,7 +271,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
-  def listProcessing(self):
+  def _listProcessing(self, path):
     print "under construction!"                   
  
   ############################################################################# 
