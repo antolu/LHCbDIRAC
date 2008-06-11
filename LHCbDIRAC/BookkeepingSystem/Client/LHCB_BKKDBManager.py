@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.17 2008/06/11 14:19:20 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.18 2008/06/11 14:25:13 zmathe Exp $
 ########################################################################
 
 """
@@ -10,11 +10,12 @@ from DIRAC                                                               import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from DIRAC.BookkeepingSystem.Client.objects                              import Entity
+from DIRAC.DataManagementSystem.Client.FileCatalog                       import FileCatalog
 import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.17 2008/06/11 14:19:20 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.18 2008/06/11 14:25:13 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -56,6 +57,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
+    self.fileCatalogue = FileCatalog()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
@@ -101,8 +103,14 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Wrong Parameter!"
   
   #############################################################################
-  def getFiles(self):
+  def getLogicalFiles(self):
     return self.files_ 
+  
+  #############################################################################
+  def getFilesPFN(self):
+    lfns = self.files_
+    res = self.fileCatalogue.getReplicas(lfns)
+    return res
   
   ############################################################################# 
   def helpConfig(self):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.4 2008/06/11 14:19:20 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.5 2008/06/11 14:25:13 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.4 2008/06/11 14:19:20 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.5 2008/06/11 14:25:13 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -32,9 +32,10 @@ class LHCB_BKKDBClient(BaseESClient):
     return self.getManager().setParameter(name)
 
   #############################################################################
-  def getFiles(self):
-    return self.getManager().getFiles()
-
-
-
-        
+  def getLogicalFiles(self):
+    return self.getManager().getLogicalFiles()
+    
+  #############################################################################
+  def getFilesPFN(self):
+    return self.getManager().getFilesPFN()
+      
