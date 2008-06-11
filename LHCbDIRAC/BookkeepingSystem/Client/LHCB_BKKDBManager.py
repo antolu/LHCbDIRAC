@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.20 2008/06/11 15:27:38 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.21 2008/06/11 16:01:28 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.20 2008/06/11 15:27:38 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.21 2008/06/11 16:01:28 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -111,7 +111,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getFilesPFN(self):
     lfns = self.files_
-    res = self.lfc_.getPfnsByLfnList(lfns)
+    res = []#self.lfc_.getPfnsByLfnList(lfns)
     return res
   
   ############################################################################# 
@@ -265,6 +265,10 @@ class LHCB_BKKDBManager(BaseESManager):
         prod = str(record[0])
         entityList += [self._getEntityFromPath(path, prod, levels)]
         self._cacheIt(entityList)
+        
+      entityList += [self._getEntityFromPath(path, "ALL", levels)]
+      self._cacheIt(entityList)
+          
 
     if levels == 3:
       gLogger.debug("listing filetypes")
@@ -376,6 +380,9 @@ class LHCB_BKKDBManager(BaseESManager):
         prod = str(record[0])
         entityList += [self._getEntityFromPath(path, prod, levels)]
         self._cacheIt(entityList)
+        
+      entityList += [self._getEntityFromPath(path, "ALL", levels)]
+      self._cacheIt(entityList)
 
     if levels == 2:
       processingPass = processedPath[0][1]
