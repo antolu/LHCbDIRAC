@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.10 2008/06/11 11:21:27 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.11 2008/06/11 11:37:54 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.10 2008/06/11 11:21:27 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.11 2008/06/11 11:37:54 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -49,7 +49,7 @@ class LHCB_BKKDBManager(BaseESManager):
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
-    self.parameter_ = LHCB_BKDB_PARAMETERS[0]
+    self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.treeLevels_ = -1
 
   ############################################################################# 
@@ -62,9 +62,9 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def help(self):
-    if self.parameter_ == LHCB_BKDB_PARAMETERS[0]:
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
       self.helpConfig()
-    elif self.parameter_ == LHCB_BKDB_PARAMETERS[1]:
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
       self.helpProcessing()
   
   ############################################################################# 
