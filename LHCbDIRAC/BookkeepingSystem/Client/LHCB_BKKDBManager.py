@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.22 2008/06/11 16:02:17 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.23 2008/06/11 16:03:06 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.22 2008/06/11 16:02:17 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.23 2008/06/11 16:03:06 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -57,7 +57,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient()
-    self.lfc_ = LcgFileCatalogCombinedClient()
+    self.lfc_ = None #LcgFileCatalogCombinedClient()
     self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
