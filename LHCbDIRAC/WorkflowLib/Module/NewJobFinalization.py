@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.10 2008/06/06 15:13:36 joel Exp $
+# $Id: NewJobFinalization.py,v 1.11 2008/06/12 14:31:51 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.10 2008/06/06 15:13:36 joel Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.11 2008/06/12 14:31:51 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -99,6 +99,12 @@ class JobFinalization(ModuleBase):
       self.request = self.workflow_commons['Request']
     else:
       self.request = RequestContainer()
+
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport = self.workflow_commons['JobReport']
+
+    if self.workflow_commons.has_key('FileReport'):
+      self.fileReport = self.workflow_commons['FileReport']
 
     if self.workflow_commons.has_key('DataType'):
       self.mode = self.workflow_commons['DataType'].lower()
