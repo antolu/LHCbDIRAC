@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.24 2008/06/12 09:32:19 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.25 2008/06/12 09:34:43 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.24 2008/06/12 09:32:19 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.25 2008/06/12 09:34:43 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -400,7 +400,7 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getEventTyesWithProduction(prod)
       for record in dbResult:
         eventtype = str(record[0])
-        value = {'EventTypeID':eventtypes, 'Description':record[1]}
+        value = {'EventTypeID':eventtype, 'Description':record[1]}
         entityList += [self._getSpecificEntityFromPath(path, value, eventtype, levels)]
         self._cacheIt(entityList)
    
