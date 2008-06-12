@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.23 2008/06/11 16:03:06 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.24 2008/06/12 09:32:19 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.23 2008/06/11 16:03:06 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.24 2008/06/12 09:32:19 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -240,7 +240,8 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getEventTypes(configName, configVersion) 
       for record in dbResult:
         eventtypes = str(record[0])
-        entityList += [self._getEntityFromPath(path, eventtypes, levels)]
+        value = {'EventTypeID':eventtypes, 'Description':record[1]}
+        entityList += [self._getSpecificEntityFromPath(path, value, eventtypes, levels)]
         self._cacheIt(entityList)
     
     if levels == 2: 
@@ -399,7 +400,8 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = self.db_.getEventTyesWithProduction(prod)
       for record in dbResult:
         eventtype = str(record[0])
-        entityList += [self._getEntityFromPath(path, eventtype, levels)]
+        value = {'EventTypeID':eventtypes, 'Description':record[1]}
+        entityList += [self._getSpecificEntityFromPath(path, value, eventtype, levels)]
         self._cacheIt(entityList)
    
     if levels == 3:
