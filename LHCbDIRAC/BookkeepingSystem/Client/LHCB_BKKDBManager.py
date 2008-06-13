@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.25 2008/06/12 09:34:43 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.26 2008/06/13 12:25:36 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.25 2008/06/12 09:34:43 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.26 2008/06/13 12:25:36 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -146,7 +146,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "---------------------------------------------------------------------------------------------------------------"
       print "| Please choose one file type!                                                                                 |"
       print "| For example:                                                                                                 |"
-      print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17 Number Of Events:223032') |"
+      print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17')                         |"
       print "----------------------------------------------------------------------------------------------------------------"
 
   
@@ -277,7 +277,10 @@ class LHCB_BKKDBManager(BaseESManager):
       configName = value.split(' ')[0]
       configVersion = value.split(' ')[1]
       eventType = int(processedPath[1][1])
-      prod = int(processedPath[2][1])
+      if processedPath[2][1]!= 'ALL':
+      	prod = int(processedPath[2][1])
+      else:
+        prod = processedPath[2][1]
  
       print "-----------------------------------------------------------"
       print "Selected parameters: "
@@ -290,17 +293,20 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
 
       print "Aviable file types:\n"
-
-      dbResult = self.db_.getNumberOfEvents(configName, configVersion, eventType, prod)
+      dbResult = None
+      if prod != 'ALL':
+        dbResult = self.db_.getNumberOfEvents(configName, configVersion, eventType, prod)
+      else:
+      	dbResult = self.db_.getFullEventTypesAndNumbers(configName, configVersion, eventType)
       for record in dbResult:
         fType = record[5]
         pname = record[3]
         pversion = record[4]
         nb= str(record[6])
-        fileType = fType+' '+pname+' '+pversion+' '+'Number Of Events:'+nb
-        entityList += [self._getEntityFromPath(path, fileType, levels)]
-        #value = {'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
-        #entityList += [self._getSpecificEntityFromPath(path, value, fileType, levels)]
+        fileType = fType+' '+pname+' '+pversion
+        #entityList += [self._getEntityFromPath(path, fileType, levels)]
+        value = {'File type':fType,'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
+        entityList += [self._getSpecificEntityFromPath(path, value, fileType, levels)]
         self._cacheIt(entityList)
 
     if levels == 4:
@@ -310,7 +316,11 @@ class LHCB_BKKDBManager(BaseESManager):
       configName = value.split(' ')[0]
       configVersion = value.split(' ')[1]
       eventType = int(processedPath[1][1])
-      prod = int(processedPath[2][1])
+      if prod != 'ALL':
+        prod = int(processedPath[2][1])
+      else:
+        prod = processedPath[2][1]
+
       value = processedPath[3][1]
       filetype = value.split(' ')[0]
       pname = value.split(' ')[1]
@@ -328,8 +338,13 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Program version        | "+pversion
       print "-----------------------------------------------------------"
       print "File list:\n"
+      
+      dbResult = None
+      if prod != 'ALL':
+        dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
+      else:
+        dbResult = self.db_.getSpecificFilesWithoutProd(configName,configVersion,pname,pversion,filetype,eventType)
 
-      dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
         self.files_ += [record[0]]

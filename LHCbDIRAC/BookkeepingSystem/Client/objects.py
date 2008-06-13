@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: objects.py,v 1.7 2008/06/11 11:21:27 zmathe Exp $
+# $Id: objects.py,v 1.8 2008/06/13 12:25:36 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ import types
 
 
 
-__RCSID__ = "$Id: objects.py,v 1.7 2008/06/11 11:21:27 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.8 2008/06/13 12:25:36 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   
@@ -126,8 +126,10 @@ class Entity(dict):
     else:
         s  = "{"
         keys = self.keys()
+        if 'fullpath' in keys:
+          s += '\n' + 'fullpath: ' + str(self['fullpath'])
         for key in keys:
-          if key != 'name':
+          if key != 'name' and key != 'fullpath':
             s += "\n " + str(key) + " : "
             value = self[key]
             # some entities do not have this key. Ignore then.

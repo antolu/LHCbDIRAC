@@ -16,4 +16,5 @@ args = Script.getPositionalArgs()
 cl = LHCB_BKKDBClient()
 path = args[0]
 
-cl.list(path)
+print cl.list(path)
+
