@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.11 2008/06/12 14:31:51 atsareg Exp $
+# $Id: NewJobFinalization.py,v 1.12 2008/06/13 08:49:11 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,10 +22,11 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.11 2008/06/12 14:31:51 atsareg Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.12 2008/06/13 08:49:11 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
+
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -58,7 +59,7 @@ class JobFinalization(ModuleBase):
     self.listoutput = []
 
     self.poolXMLCatName = None
-    self.SourceData = None
+    self.sourceData = None
     self.workflow_commons = None
 
     #####################################################
@@ -91,10 +92,10 @@ class JobFinalization(ModuleBase):
     """ Main executon method
     """
 
-    print "AT >>>>>>>> Starting Job Finalization",self.workflow_commons
-    print "AT >>>>>>>> Starting Job Finalization",self.workflowStatus, self.stepStatus
-
     # Add global reporting tool
+    if self.workflow_commons.has_key('sourceData'):
+        self.sourceData = self.workflow_commons['sourceData']
+
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
     else:
@@ -106,10 +107,13 @@ class JobFinalization(ModuleBase):
     if self.workflow_commons.has_key('FileReport'):
       self.fileReport = self.workflow_commons['FileReport']
 
-    if self.workflow_commons.has_key('DataType'):
-      self.mode = self.workflow_commons['DataType'].lower()
+    if self.workflow_commons.has_key('dataType'):
+      self.mode = self.workflow_commons['dataType'].lower()
     else:
       self.mode = 'test'
+
+    if self.workflow_commons.has_key('outputList'):
+       self.listoutput = self.workflow_commons['outputList']
 
     self.request.setRequestName('job_%s_request.xml' % self.jobID)
     self.request.setJobID(self.jobID)
@@ -117,7 +121,6 @@ class JobFinalization(ModuleBase):
 
     result = self.setApplicationStatus('Job Finalization')
 
-    print "AT ->>>>>>>>>>>>>", self.listoutput
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
@@ -135,13 +138,13 @@ class JobFinalization(ModuleBase):
     self.log.info('Log tar file name is %s' %self.logtar)
 
     error = 0
-    if self.step_commons.has_key('Status'):
-      if self.step_commons['Status'] == "Error":
-        error = 1
-        self.log.info('Job finished with errors. Reduced finalization will be done')
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+      error = 1
+      self.fileReport.setCommonStatus('unused')
+      self.fileReport.commit()
+      self.log.info('Job finished with errors. Reduced finalization will be done')
 
-    self.LFN_ROOT = getLFNRoot(self.SourceData)
-
+    self.LFN_ROOT = getLFNRoot(self.sourceData)
     result = self.finalize(error)
 
     return result
@@ -215,9 +218,6 @@ class JobFinalization(ModuleBase):
 
     ##################################################################
     # Create failover request if necessary
-
-    print "AT >>>>>>> createRequest"
-
     resultRequest = self.createRequest()
     if not resultRequest['OK']:
       self.log.error('Failed to create overall job request for job %s' % self.jobID)
@@ -303,7 +303,7 @@ class JobFinalization(ModuleBase):
       self.poolcat = PoolXMLCatalog(fcnames)
 
 ################################################################################
-  def saveLogFile(self,logfile,gzip_flag=1):
+  def saveLogFile(self,logfile,gzip_flag=0):
 
     if not os.path.exists(logfile):
       self.log.error( "Saving log file %s failed: no such file" % logfile )
@@ -330,7 +330,8 @@ class JobFinalization(ModuleBase):
 
     # Do not leave gzipped files in the working directory.
     # They may be still used later
-    gunzip(logfile)
+    if gzip_flag:
+      gunzip(logfile)
     return S_OK()
 
 ##################################################################################
@@ -508,8 +509,6 @@ class JobFinalization(ModuleBase):
         else:
           outputmode = "Local"
 
-        print "AT >>>>>>>> outputmode,se_group", outputmode,se_group
-
         result = self.__getDestinationSEList(se_group, outputmode)
         if not result['OK']:
           self.log.error('No valid SEs defined as file destinations')
@@ -652,8 +651,6 @@ class JobFinalization(ModuleBase):
     for se in destination_ses:
       result = self.uploadDataFileToSE(datafile,lfn,se,guid)
 
-      print "AT >>>>>>>> uploadDataFileToSE", result
-
       if result['OK']:
         done_ses.append(se)
         if result.has_key('Register'):
@@ -691,9 +688,6 @@ class JobFinalization(ModuleBase):
     resultDict['RequestSet'] = request_ses
     resultDict['Failover'] = failover_ses
 
-
-    print "AT >>>>>>>>>>>>>>>>>>>>>>> __________", resultDict
-
     if failed_ses:
       result = S_ERROR('Failed to save file %s' % lfn)
       result['Value'] = resultDict
@@ -714,9 +708,6 @@ class JobFinalization(ModuleBase):
 
     self.log.info("Copying %s to %s" % (datafile,se))
     result = self.rm.putAndRegister(lfn,os.getcwd()+'/'+fname,se,guid)
-
-
-    print "AT >>>>>>>>>>>>>>>>>>", result
 
     if result['OK']:
       # Transfer is OK, let's check the registration part
@@ -820,10 +811,6 @@ class JobFinalization(ModuleBase):
     """
 
     # get the accumulated reporting request
-    print self.jobReport
-    print self.jobReport.jobStatusInfo
-    print self.jobReport.appStatusInfo
-    print self.jobReport.jobParameters
     reportRequest = None
     if self.jobReport:
       result = self.jobReport.generateRequest()
@@ -835,6 +822,7 @@ class JobFinalization(ModuleBase):
     if self.fileReport and fileReportFlag:
       result = self.fileReport.generateRequest()
       reportRequest = result['Value']
+      print "JC filereport>>>>",result
     if reportRequest:
       result = self.request.update(reportRequest)
 
