@@ -1,11 +1,11 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.3 2008/06/13 08:21:17 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.4 2008/06/15 15:10:24 atsareg Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.3 2008/06/13 08:21:17 atsareg Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.4 2008/06/15 15:10:24 atsareg Exp $"
 
 import datetime
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -56,18 +56,28 @@ class FileReport:
     """ Commit pending file status update records
     """
 
-    sendList = []
+    # create intermediate status dictionary
+    sDict = {}
+    for lfn,status in self.statusDict.items():
+      if not sDict.has_key(status):
+        sDict[status] = []
+      sDict[status].append(lfn)
+
+    statusList = []
+    for status,lfns in sDict.items():
+      statusList.append((status,lfns))
+
     if self.statusDict:
-      for lfn_s,status_s in self.statusDict.items():
-          sendList.append((lfn_s,status_s))
-      result = self.productionSvc.setFileStatusForTransformation(self.production,sendList)
+      result = self.productionSvc.setFileStatusForTransformation(self.production,statusList)
     else:
       return S_OK()
 
     if result['OK']:
       self.statusDict = {}
+      return S_OK()
 
     return result
+
 
   def generateRequest(self):
     """ Commit the accumulated records and generate request eventually
@@ -79,6 +89,8 @@ class FileReport:
     if not result['OK']:
       # Generate Request
       request = RequestContainer()
-      request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'filestatus_procdb')
+      if result.has_key('rpcStubs'):
+        for rpcStub in result['rpcStubs']:
+          request.addSubRequest(DISETSubRequest(rpcStub).getDictionary(),'filestatus_procdb')
 
     return S_OK(request)
