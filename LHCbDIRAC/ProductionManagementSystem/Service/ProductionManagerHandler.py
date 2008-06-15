@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.33 2008/06/15 14:42:51 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.34 2008/06/15 17:04:17 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.33 $"
+__RCSID__ = "$Revision: 1.34 $"
 
 from types import *
 import threading
@@ -203,24 +203,6 @@ class ProductionManagerHandler( TransformationHandler ):
       authorDN = self._clientTransport.peerCredentials['DN']
       message = "Transformation %s deleted" % transID
       resultlog = productionDB.updateTransformationLogging(transID,message,authorDN)
-    return result
-
-  #types_updateProductionBody = [ StringType, StringType ]
-  #def export_updateProductionBody( self, name_id, body ):
-  #  result = productionDB.updateProductionBody(name_id, body)
-  #  if not result['OK']:
-  #    gLogger.error(result['Message'])
-  #  return result
-
-  # Obsoleted to keep temporarily
-  types_getListProductions = [ ]
-  def export_getListProductions(self):
-    gLogger.verbose('Getting list of Productions')
-    result = productionDB.getProductionList()
-    if not result['OK']:
-      error = 'Can not get list of Transformations because %s' % result['Message']
-      gLogger.error( error )
-      return S_ERROR( error )
     return result
 
   types_getProductionList = [ ]
