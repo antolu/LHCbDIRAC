@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.32 2008/03/04 19:39:11 gkuznets Exp $
+# $Id: ProductionManagerHandler.py,v 1.33 2008/06/15 14:42:51 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.32 $"
+__RCSID__ = "$Revision: 1.33 $"
 
 from types import *
 import threading
@@ -280,11 +280,14 @@ class ProductionManagerHandler( TransformationHandler ):
     resultlog = productionDB.updateTransformationLogging(id_,message,authorDN)
     return result
 
-  types_setFileStatusForTransformation = [ LongType, StringType, ListType ]
-  def export_setFileStatusForTransformation( self, id_,status,lfns ):
-    result = productionDB.setFileStatusForTransformation(id_,status,lfns)
-    if not result['OK']:
-      gLogger.error(result['Message'])
+  types_setFileStatusForTransformation = [ [IntType,LongType], ListType ]
+  def export_setFileStatusForTransformation( self, prod_id, statusList):
+    """ Set file status in the context of a given production
+    """
+    for status,lfns in statusList:
+      result = productionDB.setFileStatusForTransformation(prod_id,status,lfns)
+      if not result['OK']:
+        gLogger.error(result['Message'])
     return result
 
   types_setFileSEForTransformation = [ LongType, StringType, ListType ]
