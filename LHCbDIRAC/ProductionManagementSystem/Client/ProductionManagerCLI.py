@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.1 2008/04/17 15:07:24 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.2 2008/06/15 17:03:24 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.1 2008/04/17 15:07:24 rgracian Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.2 2008/06/15 17:03:24 atsareg Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import cmd
 import sys, os
@@ -18,6 +18,20 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Transformation.TransformationDBCLI   import TransformationDBCLI
 #job submission
 from DIRAC.Interfaces.API.DiracProduction   import DiracProduction
+
+def printDict(dictionary):
+  """ Dictionary pretty printing
+  """
+
+  key_max = 0
+  value_max = 0
+  for key,value in dictionary.items():
+    if len(key) > key_max:
+      key_max = len(key)
+    if len(str(value)) > value_max:
+      value_max = len(str(value))
+  for key,value in dictionary.items():
+    print key.rjust(key_max),' : ',str(value).ljust(value_max)
 
 class ProductionManagerCLI( TransformationDBCLI ):
 
@@ -33,10 +47,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
 ################ WORKFLOW SECTION ####################################
 
-  def do_uploadWF(self, args):
-    """
-    Upload Workflow in the repository
-      Usage: uploadWF <filename>
+  def do_uploadWorkflow(self, args):
+    """ Upload Workflow in the repository
+
+      Usage: uploadWorkflow <filename>
       <filename> is a path to the file with the xml description of the workflow
       If workflow already exists, publishing will be refused.
     """
@@ -55,10 +69,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     else:
       print "File %s does not exists" % tr_file
 
-  def do_updateWF(self, args):
-    """
-    Publish or Update Workflow in the repository
-      Usage: updateWF <filename>
+  def do_updateWorkflow(self, args):
+    """ Publish or Update Workflow in the repository
+
+      Usage: updateWorkflow <filename>
       <filename> is a path to the file with the xml description of the workflow
       If workflow already exists, it will be replaced.
     """
@@ -78,10 +92,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
       print "File %s does not exists" % tr_file
 
 
-  def do_getWF(self, args):
-    """
-    Read Workflow from the repository
-      Usage: getWF <WFName> <filename>
+  def do_getWorkflow(self, args):
+    """ Read Workflow from the repository
+
+      Usage: getWorkflow <WFName> <filename>
       <WFName> - the name of the workflow
       <filename> is a path to the file to write xml of the workflow
     """
@@ -105,10 +119,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     fd.write(body)
     fd.close()
 
-  def do_deleteWF(self, args):
-    """
-    Delete Workflow from the the repository
-      Usage: deleteWF WorkflowName
+  def do_deleteWorkflow(self, args):
+    """ Delete Workflow from the the repository
+
+      Usage: deleteWorkflow WorkflowName
     """
     argss, length = self.check_params(args, 1)
     if not argss:
@@ -118,27 +132,45 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
 
-  def do_listWF(self, args):
+  def do_listWorkflow(self, args):
+    """ List all Workflows in the repository
+
+      Usage: listWorkflow [-d]
+
+      -d    more detailed output
     """
-    List all Workflows in the repository
-      Usage: listWF
-    """
+
+    argss = args.split()
+    detailed = False
+    if len(args) > 0:
+      if argss[0] == '-d':
+        detailed = True
+
     result = self.server.getListWorkflows()
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
     else:
-      print "----------------------------------------------------------------------------------"
-      print "|    Name    |   Parent   |         Time        |          DN          |   Group   | Short Description |   Long Description   |"
-      print "----------------------------------------------------------------------------------"
-      for wf in result['Value']:
-        print "| %010s | %010s | %014s | %s | %s | %s | %s |" % (wf['WFName'],wf['WFParent'],wf['PublishingTime'],wf['AuthorDN'][wf['AuthorDN'].rfind('/CN=')+4:],
-                                                       wf['AuthorGroup'],wf['Description'],wf['LongDescription'])
-      print "----------------------------------------------------------------------------------"
+      if detailed:
+        print "----------------------------------------------------------------------------------"
+        print "|    Name    |   Parent   |         Time        |          DN          |   Group   | Short Description |   Long Description   |"
+        print "----------------------------------------------------------------------------------"
+        for wf in result['Value']:
+          print "| %010s | %010s | %014s | %s | %s | %s | %s |" % (wf['WFName'],wf['WFParent'],wf['PublishingTime'],wf['AuthorDN'][wf['AuthorDN'].rfind('/CN=')+4:],
+                                                         wf['AuthorGroup'],wf['Description'],wf['LongDescription'])
+        print "----------------------------------------------------------------------------------"
+      else:
+        for wf in result['Value']:
+          print "%s %s %s %s %s" % (wf['WFName'].ljust(25),
+                                    wf['PublishingTime'].ljust(20),
+                                    wf['AuthorDN'][wf['AuthorDN'].rfind('/CN=')+4:].ljust(20),
+                                    wf['AuthorGroup'].ljust(12),
+                                    wf['Description'].ljust(20))
 
-  def do_getWFInfo(self, args):
+
+  def do_getWorkflowInfo(self, args):
     """
     Read Workflow from the repository
-      Usage: getWFInfo <WFName>
+      Usage: getWorkflowInfo <WFName>
       <WFName> - the name of the workflow
     """
 
@@ -149,14 +181,14 @@ class ProductionManagerCLI( TransformationDBCLI ):
     result = self.server.getWorkflowInfo(wf_name)
     if not result['OK']:
       print "Error during command execution: %s" % result['Message']
-    print result['Value']
+    printDict(result['Value'])
 
 ################ PRODUCTION SECTION ####################################
 
-  def do_uploadPR(self, args):
-    """
-    Upload Production in to the transformation table
-      Usage: uploadPR <filename> <filemask> <groupsize>
+  def do_uploadProduction(self, args):
+    """ Upload Production in to the transformation table
+
+      Usage: uploadProduction <filename> <filemask> <groupsize>
       <filename> is a path to the file with the xml description of the workflow
       If transformation with this name already exists, publishing will be refused.
       <filemask> mask to match files going to be accepted by transformation
@@ -186,10 +218,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     else:
       print "File %s does not exists" % tr_file
 
-  def do_uploadDerivedPR(self, args):
+  def do_uploadDerivedProduction(self, args):
     """
     Upload Production in to the transformation table
-      Usage: uploadDerivedPR <ProductionNameOrID> <filename> <filemask> <groupsize>
+      Usage: uploadDerivedProduction <ProductionNameOrID> <filename> <filemask> <groupsize>
       <ProductionNameOrID> ID or name production used as derived
       <filename> is a path to the file with the xml description of the workflow
       If transformation with this name already exists, publishing will be refused.
@@ -254,10 +286,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
 #    else:
 #      print "File %s does not exists" % tr_file
 
-  def do_getPRBody(self, args):
+  def do_getProductionBody(self, args):
     """
     Read Workflow from the repository
-      Usage: getPRBody <ProductionNameOrID> <filename>
+      Usage: getProductionBody <ProductionNameOrID> <filename>
       <ProductionNameOrID> - Production Name or ID
       <filename> is a path to the file to write xml
     """
@@ -280,10 +312,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     fd.write(body)
     fd.close()
 
-  def do_setPRBody(self, args):
+  def do_setProductionBody(self, args):
     """
     Upload new body for the production
-      Usage: setPRBody <ProductionNameOrID> <filename>
+      Usage: setProductionBody <ProductionNameOrID> <filename>
       <ProductionNameOrID> - Production Name or ID
       <filename> is a path to the file with body
     """
@@ -303,10 +335,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     else:
       print "File %s does not exists" % path
 
-  def do_deletePR(self, args):
+  def do_deleteProduction(self, args):
     """
     Delete Production from the the repository
-      Usage: deletePR <ProductionNameOrID>
+      Usage: deleteProduction <ProductionNameOrID>
     """
     argss, length = self.check_params(args, 1)
     if not argss:
@@ -314,44 +346,69 @@ class ProductionManagerCLI( TransformationDBCLI ):
     prodID = self.check_id_or_name(argss[0])
     print self.server.deleteProduction(prodID)
 
-  def do_listPR(self, args):
+  def do_listProduction(self, args):
+    """ List all Productions in the repository
+
+      Usage: listProduction [-d]
     """
-    List all Productions in the repository
-      Usage: listPR
-    """
-    ret = self.server.getAllProductions()
-    if not ret['OK']:
+
+    argss = args.split()
+    detailed = False
+    if len(args) > 0:
+      if argss[0] == '-d':
+        detailed = True
+
+    result = self.server.getAllProductions()
+    if not result['OK']:
       print "Error during command execution: %s" % ret['Message']
     else:
-      print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-      print "| ID |    Name    |  Parent  |   Description   |   LongDescription  | CreationDate |   Author   | AuthorGroup |  Type    | Plugin | AgentType | Status | FileMask | GroupSize | InheritedFrom |"
-      print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-      for pr in ret['Value']:
-        print "| %06s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s | %s | %s | %s |" % (pr["TransID"],
-               pr['Name'], pr['Parent'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
-               pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'], pr['InheritedFrom'])
-      print "-----------------------------------------------------------------------------------------------------------------------------------------"
+      if detailed:
+        print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+        print "| ID |    Name    |  Parent  |   Description   |   LongDescription  | CreationDate |   Author   | AuthorGroup |  Type    | Plugin | AgentType | Status | FileMask | GroupSize | InheritedFrom |"
+        print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+        for pr in result['Value']:
+          print "| %06s | %010s | %08s | %010s | %08s | %08s | %08s | %014s | %s | %s | %s | %s | %s | %s | %s |" % (pr["TransID"],
+                 pr['Name'], pr['Parent'], pr['Description'], pr['LongDescription'], pr['CreationDate'],
+                 pr['AuthorDN'], pr['AuthorGroup'], pr['Type'], pr['Plugin'], pr['AgentType'], pr['Status'], pr['FileMask'], pr['GroupSize'], pr['InheritedFrom'])
+        print "-----------------------------------------------------------------------------------------------------------------------------------------"
+      else:
+        for pr in result['Value']:
+          print "%s %s %s %s %s" % (str(pr['TransID']).ljust(8),
+                                    pr['Status'].ljust(12),
+                                    str(pr['CreationDate']).ljust(20),
+                                    pr['AuthorDN'][pr['AuthorDN'].rfind('/CN=')+4:].ljust(20),
+                                    pr['Description'].ljust(32))
 
-  def do_getPRInfo(self, args):
-    """
-    Returns information about production
+  def do_getProductionInfo(self, args):
+    """Returns information about production
+
       Usage: getProductionInfo <ProductionNameOrID>
     """
     argss, length = self.check_params(args, 1)
     if not argss:
       return
     prodID = self.check_id_or_name(argss[0])
-    print self.server.getProductionInfo(prodID)
-    print "Job statistics"
-    print self.server.getJobWmsStats(prodID)
-    print self.server.getJobStats(prodID)
-    print "Transformation statistics"
-    print self.server.getTransformationStats(prodID)
+    result = self.server.getProductionInfo(prodID)
+    if result['OK']:
+      print "\nGeneral information:"
+      printDict(result['Value']['Value'])
+    result = self.server.getJobWmsStats(prodID)
+    if result['OK']:
+      print "\nJob statistics:"
+      printDict(result['Value'])
+    result = self.server.getJobStats(prodID)
+    if result['OK']:
+      printDict(result['Value'])
+    result = self.server.getTransformationStats(prodID)
+    if result['OK']:
+      print "\nTransformation files statistics:"
+      printDict(result['Value'])
 
 
-  def do_setPRStatus(self, args):
+  def do_setProductionStatus(self, args):
     """ Set status of the production
-    Usage: setPRStatus ProdName Status
+
+    Usage: setProductionStatus ProdName Status
       New - newly created, equivalent to STOPED
       Active - can submit
       Flush - final stage, ignoring GroupSize
@@ -368,9 +425,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     status = argss[1].lower().capitalize()
     self.server.setTransformationStatus(prodID, status)
 
-  def do_getPRLog(self, args):
+  def do_getProductionLog(self, args):
     """ Get Log of the given ProductionID
-    Usage: getPRLog <ProductionNameOrID>
+
+    Usage: getProductionLog <ProductionNameOrID>
     """
     argss, length = self.check_params(args, 1)
     if not argss:
@@ -383,8 +441,9 @@ class ProductionManagerCLI( TransformationDBCLI ):
     for mess in result['Value']:
       print mess['Message'], mess['MessageDate'], mess['AuthorDN']
 
-  def do_setPRSubmissionType(self, args):
+  def do_setSubmissionType(self, args):
     """ Set status of the production
+
     Usage: setSubmissionType <ProdNameOrID> <SubmissionStatus>
       Manual - submission by production manager only
       Automatic - submission by ProductionJobAgent
@@ -396,9 +455,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     status = argss[1].lower().capitalize()
     self.server.setTransformationAgentType(prodID, status)
 
-  def do_setPRMask(self, args):
-    """ Overrites transformation mask for the production
-    Usage: setPRMask <ProdNameOrID> <Mask>
+  def do_setProductionMask(self, args):
+    """ Overrides transformation mask for the production
+
+    Usage: setProductionMask <ProdNameOrID> <Mask>
     """
     argss, length = self.check_params(args, 2)
     if not argss:
@@ -408,8 +468,9 @@ class ProductionManagerCLI( TransformationDBCLI ):
     self.server.setTransformationMask(prodID, mask)
 
   def do_updateProduction(self, args):
-    """ Get Log of the given ProductionID
-    Usage: getPRLog <ProductionNameOrID>
+    """ Updates the files for a given production
+
+    Usage: updateProduction <ProductionNameOrID>
     """
     argss, length = self.check_params(args, 1)
     if not argss:
@@ -422,6 +483,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
   def do_addJob(self, args):
     """ Add single job to the Production
+
     Usage: addJob <ProductionNameOrID> [inputVector] [SE]
       <ProductionNameOrID> - Production Name or ID
       [inputVector] - input vector for Job
@@ -442,8 +504,8 @@ class ProductionManagerCLI( TransformationDBCLI ):
     self.server.addProductionJob(prodID, vector, se)
 
   def do_getJobInfo(self, args):
-    """
-    Returns information about specified job
+    """Returns information about specified job
+
       Usage: getJobInfoo <ProductionNameOrID> <JobID>
     """
     argss, length = self.check_params(args, 2)
@@ -468,6 +530,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
   def do_deleteJobs(self, args):
     """ Delete jobs from the Production
+
     Usage: deleteJob ProductionNameOrID JobID
     """
     argss, length = self.check_params(args, 2)
@@ -484,7 +547,8 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
   def do_submitJobs(self, args):
     """ Submit jobs given number of jobs of the specified Production
-    Usage: addProdJob productionID [numJobs=1] [site]
+
+    Usage: submitJobs productionID [numJobs=1] [site]
     list of sites = LCG.CERN.ch LCG.CNAF.it LCG.PIC.es LCG.IN2P3.fr LCG.NIKHEF.nl LCG.GRIDKA.de LCG.RAL.uk DIRAC.CERN.ch
     """
     argss, length = self.check_params(args, 1)
@@ -595,6 +659,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
   def do_testMode(self, args):
     """ Changes Production manager handler to the testing version
+
         /opt/dirac/slc4_ia32_gcc34/bin/python2.4 /afs/cern.ch/user/g/gkuznets/workspace/DIRAC3/DIRAC/Core/scripts/dirac-service ProductionManagement/serverTest -o LogLevel=debug
     """
 
