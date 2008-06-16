@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.34 2008/06/15 17:04:17 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.35 2008/06/16 07:28:05 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.34 $"
+__RCSID__ = "$Revision: 1.35 $"
 
 from types import *
 import threading
@@ -231,6 +231,13 @@ class ProductionManagerHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
+    
+  types_extendProduction = [ [LongType, IntType, StringType], [LongType, IntType]]
+  def export_extendProduction( self, productionID, nJobs):
+    result = productionDB.extendProduction(productionID, nJobs)
+    if not result['OK']:
+      gLogger.error(result['Message'])
+    return result  
 
   types_getProductionInfo = [ [LongType, IntType, StringType]]
   def export_getProductionInfo( self, productionID):
@@ -306,7 +313,7 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR('Failed to get production body for production %d with message %s'%(production,result["Message"]))
 
     resultDict = result['Value']
-    status_corrected = resultDict['Status'].lower().capitalize() # catitalize status
+    status_corrected = resultDict['Status'].lower().capitalize() # capitalize status
     jobDict={}
 
     if status_corrected == 'Active' or status_corrected == 'Flush':
