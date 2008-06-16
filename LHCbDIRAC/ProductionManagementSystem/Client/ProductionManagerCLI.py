@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.2 2008/06/15 17:03:24 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.3 2008/06/16 07:32:04 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.2 2008/06/15 17:03:24 atsareg Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.3 2008/06/16 07:32:04 atsareg Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import cmd
 import sys, os
@@ -334,6 +334,19 @@ class ProductionManagerCLI( TransformationDBCLI ):
         print "Error during command execution: %s" % result['Message']
     else:
       print "File %s does not exists" % path
+
+  def do_extendProduction(self, args):
+    """ Extend Simulation type Production by nJobs numer of jobs
+      Usage: extendProduction <ProductionNameOrID> nJobs
+    """
+    argss, length = self.check_params(args, 2)
+    if not argss:
+      return
+
+    prodID = self.check_id_or_name(argss[0])
+    nJobs = int(argss[1])
+    result = self.server.extendProduction(prodID,nJobs)
+    print result
 
   def do_deleteProduction(self, args):
     """
