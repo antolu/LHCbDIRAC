@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.35 2008/06/16 09:08:02 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.36 2008/06/16 09:47:17 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.35 2008/06/16 09:08:02 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.36 2008/06/16 09:47:17 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -99,6 +99,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getFileTypes(self, configName, configVersion, eventType, prod):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypes',[configName, configVersion, eventType, prod]) 
   
+  #############################################################################  
+  def getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProgramNameAndVersion', [configName, configVersion, eventType, prod, fileType])
+    
   """
   data insertation into the database
   """

@@ -102,3 +102,8 @@ class BookkeepingClient:
     result = self.server.getFileTypes(configName, configVersion, long(eventType), long(prod))
     return result
   
+  #############################################################################  
+  def getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
+    result = self.server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
+    return result
+  

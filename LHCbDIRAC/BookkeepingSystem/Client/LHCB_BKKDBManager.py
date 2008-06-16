@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.28 2008/06/16 09:08:02 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.29 2008/06/16 09:47:17 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.28 2008/06/16 09:08:02 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.29 2008/06/16 09:47:17 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -319,8 +319,32 @@ class LHCB_BKKDBManager(BaseESManager):
         fileType = record[0]
         entityList += [self._getEntityFromPath(path, fileType, levels)]
         self._cacheIt(entityList)
-        
+    
     if levels == 4:
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      eventType = int(processedPath[1][1])
+      prod = processedPath[2][1]
+      filetype = processedPath[3][1]
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Event type             | "+str(eventType)
+      print "Production             | "+str(prod)
+      print "File type              | "+filetype
+      print "-----------------------------------------------------------"
+      print "Available Program Name and Program Version:"
+      for record in dbResult:
+        programName = record[0]
+        programVersion = record[1]
+        program = programName+'  '+programVersion
+        entityList += [self._getEntityFromPath(path, program, levels)]
+        self._cacheIt(entityList)
+    
+    if levels == 5:
       self.files_ = []
       gLogger.debug("listing files")
       value = processedPath[0][1]
@@ -331,10 +355,9 @@ class LHCB_BKKDBManager(BaseESManager):
       if prod != 'ALL':
         prod = int(processedPath[2][1])
       
-      value = processedPath[3][1]
-      filetype = value.split(' ')[0]
-      pname = value.split(' ')[1]
-      pversion = value.split(' ')[2]
+      filetype = processedPath[3][1]
+      pname = processedPath[4][1]
+      pversion = processedPath[5][1]
 
       print "-----------------------------------------------------------"
       print "Selected parameters:   "
