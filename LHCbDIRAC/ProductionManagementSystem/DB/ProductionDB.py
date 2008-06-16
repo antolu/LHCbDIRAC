@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.33 2008/05/08 15:04:05 atsareg Exp $
+# $Id: ProductionDB.py,v 1.34 2008/06/16 07:27:24 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.33 $"
+__RCSID__ = "$Revision: 1.34 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -132,6 +132,7 @@ class ProductionDB(TransformationDB):
       type_ = "PROCESSING"
     plugin = "NONE"
     agentType = "MANUAL"
+
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
     TransformationID = self.getTransformationID(name)
@@ -142,6 +143,8 @@ class ProductionDB(TransformationDB):
 
     result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
 
+    print result, 'This is the result of addTransformation'
+
     if not result['OK']:
       error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
       gLogger.error(error)
@@ -149,14 +152,16 @@ class ProductionDB(TransformationDB):
 
     TransformationID = result['Value']
     result = self.__insertProductionParameters(TransformationID, groupsize, parent, body, inheritedFrom)
+    print result, 'This is the result of __insertProductionParameters'
     if not result['OK']:
-      # if for some reason this faled we have to roll back
+      # if for some reason this failed we have to roll back
       result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
       error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
 
     result = self.__addJobTable(TransformationID)
+    print result,'This is the result of __addJobTable'
     if not result['OK']:
       # if for some reason this failed we have to roll back
       result_rollback2 = self.__deleteProductionParameters(TransformationID)
@@ -304,7 +309,7 @@ CREATE TABLE Jobs_%s(
 JobID INTEGER NOT NULL AUTO_INCREMENT,
 WmsStatus char(16) DEFAULT 'Created',
 JobWmsID char(16) DEFAULT '',
-TargetSE char(32) DEFAULT '',
+TargetSE char(32) DEFAULT 'Unknown',
 CreationTime DATETIME NOT NULL,
 LastUpdateTime DATETIME NOT NULL,
 InputVector BLOB,
@@ -440,7 +445,7 @@ INDEX(WmsStatus)
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
 
 
-  def addProductionJob(self, transName, inputVector, se):
+  def addProductionJob(self, transName, inputVector='', se='Unknown'):
       """ Add one job to Production
       """
       productionID = self.getTransformationID(transName)
@@ -467,6 +472,27 @@ INDEX(WmsStatus)
       jobID = int(result2['Value'][0][0])
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
       return S_OK(jobID)
+      
+  def extendProduction(self, transName, nJobs):
+    """ Extend SIMULATION type production by nJobs number of jobs
+    """    
+    result = self.getTransformation(transName)
+    if not result['OK']:
+      return result
+      
+    ttype = result['Value']['Type']
+    if ttype.lower() != 'simulation':
+      return S_ERROR('Can not extend non-SIMULATION type production')  
+    
+    jobIDs = []
+    for job in range(nJobs):
+      result = self.addProductionJob(transName)
+      if result['OK']:
+        jobIDs.append(result['Value'])
+      else:
+        return result
+    return S_OK(jobIDs)      
+    
 
 ######################## Job section ############################
 
