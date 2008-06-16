@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.3 2008/06/16 07:32:04 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.4 2008/06/16 07:32:59 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.3 2008/06/16 07:32:04 atsareg Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.4 2008/06/16 07:32:59 atsareg Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 import cmd
 import sys, os
@@ -185,10 +185,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
 
 ################ PRODUCTION SECTION ####################################
 
-  def do_uploadProduction(self, args):
+  def do_createProduction(self, args):
     """ Upload Production in to the transformation table
 
-      Usage: uploadProduction <filename> <filemask> <groupsize>
+      Usage: createProduction <filename> <filemask> <groupsize>
       <filename> is a path to the file with the xml description of the workflow
       If transformation with this name already exists, publishing will be refused.
       <filemask> mask to match files going to be accepted by transformation
@@ -218,10 +218,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     else:
       print "File %s does not exists" % tr_file
 
-  def do_uploadDerivedProduction(self, args):
+  def do_createDerivedProduction(self, args):
     """
     Upload Production in to the transformation table
-      Usage: uploadDerivedProduction <ProductionNameOrID> <filename> <filemask> <groupsize>
+      Usage: createDerivedProduction <ProductionNameOrID> <filename> <filemask> <groupsize>
       <ProductionNameOrID> ID or name production used as derived
       <filename> is a path to the file with the xml description of the workflow
       If transformation with this name already exists, publishing will be refused.
