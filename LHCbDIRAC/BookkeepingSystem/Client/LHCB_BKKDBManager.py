@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.30 2008/06/16 09:50:27 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.31 2008/06/16 09:55:56 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.30 2008/06/16 09:50:27 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.31 2008/06/16 09:55:56 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -36,6 +36,7 @@ class LHCB_BKKDBManager(BaseESManager):
                                    'EVT',    # event type
                                    'PROD',   #production 
                                    'FTY',    #file type 
+                                   'PRO',    #program name and version
                                     '',    # filename                                 
                                    ]
   
@@ -561,16 +562,13 @@ class LHCB_BKKDBManager(BaseESManager):
     for token in tokens:
       prefix, suffix = self._splitPathElement(token)
       if prefix == self.LHCB_BKDB_PREFIXES[3]:    # '' i.e. filename
-        if counter not in [3]:            # any of the possible locations in the prefixes list
-          correctPath = False
-          break
-        fileNameDetected = True                    # remember that the path should be closed
+        fileNameDetected = True  
       else:
         if self.LHCB_BKDB_PREFIXES[counter] != prefix or fileNameDetected:
           # the prefix is not at the right location in the path or it is coming too late
           correctPath = False
           break                        
-
+      
       result += [(prefix, suffix)]
       counter += 1
       gLogger.debug("processPath=" + str(result))    
