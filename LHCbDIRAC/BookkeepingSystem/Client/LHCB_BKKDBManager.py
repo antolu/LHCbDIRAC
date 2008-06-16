@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.27 2008/06/16 08:49:04 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.28 2008/06/16 09:08:02 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.27 2008/06/16 08:49:04 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.28 2008/06/16 09:08:02 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -293,6 +293,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
 
       print "Aviable file types:\n"
+      """
       dbResult = None
       if prod != 'ALL':
         dbResult = self.db_.getNumberOfEvents(configName, configVersion, eventType, prod)
@@ -308,7 +309,17 @@ class LHCB_BKKDBManager(BaseESManager):
         value = {'File type':fType,'Program Name':pname,'Program version':pversion,'Number Of Events':nb}
         entityList += [self._getSpecificEntityFromPath(path, value, fileType, levels)]
         self._cacheIt(entityList)
-
+      """
+      dbResult = None
+      if prod != 'ALL':
+        dbResult = self.db_.getFileTypes(configName, configVersion, eventType, prod)
+      else:
+        S_ERROR("NOT implemented!")
+      for record in dbResult:
+        fileType = record[0]
+        entityList += [self._getEntityFromPath(path, fileType, levels)]
+        self._cacheIt(entityList)
+        
     if levels == 4:
       self.files_ = []
       gLogger.debug("listing files")

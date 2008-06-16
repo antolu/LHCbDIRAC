@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.44 2008/06/16 08:49:05 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.45 2008/06/16 09:08:03 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.44 2008/06/16 08:49:05 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.45 2008/06/16 09:08:03 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -128,3 +128,7 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getSpecificFilesWithoutProd(self, configName, configVersion, pname, pversion, filetype, eventType):
     return dataMGMT_.getSpecificFilesWithoutProd(configName, configVersion, pname, pversion, filetype, eventType)
   
+  #############################################################################  
+  types_getFileTypes = [StringType, StringType, LongType, LongType]
+  def export_getFileTypes(self, configName, configVersion, eventType, prod):
+    return dataMGMT_.getFileTypes( configName, configVersion, eventType, prod)
