@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.26 2008/06/13 12:25:36 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.27 2008/06/16 08:49:04 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.26 2008/06/13 12:25:36 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.27 2008/06/16 08:49:04 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -316,11 +316,10 @@ class LHCB_BKKDBManager(BaseESManager):
       configName = value.split(' ')[0]
       configVersion = value.split(' ')[1]
       eventType = int(processedPath[1][1])
+      prod = processedPath[2][1]
       if prod != 'ALL':
         prod = int(processedPath[2][1])
-      else:
-        prod = processedPath[2][1]
-
+      
       value = processedPath[3][1]
       filetype = value.split(' ')[0]
       pname = value.split(' ')[1]
@@ -344,7 +343,7 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
       else:
         dbResult = self.db_.getSpecificFilesWithoutProd(configName,configVersion,pname,pversion,filetype,eventType)
-
+      
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
         self.files_ += [record[0]]

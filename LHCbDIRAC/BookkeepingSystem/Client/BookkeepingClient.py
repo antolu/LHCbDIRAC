@@ -95,4 +95,5 @@ class BookkeepingClient:
   #############################################################################  
   def getSpecificFilesWithoutProd(self, configName, configVersion, pname, pversion, filetype, eventType):
     result = self.server.getSpecificFilesWithoutProd(configName, configVersion, pname, pversion, filetype, long(eventType))
+    return result
   #############################################################################  
