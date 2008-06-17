@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.37 2008/06/17 13:33:55 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.38 2008/06/17 14:33:22 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.37 2008/06/17 13:33:55 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.38 2008/06/17 14:33:22 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -118,7 +118,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithEventType', [configName, configVersion, eventTypeId, production])
-
+  
+  #############################################################################
+  def getFileTypesWithEventType(self, configName, configVersion, eventTypeId):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithEventType', [configName, configVersion, eventTypeId])
+  
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFilesByEventType', [configName, configVersion, fileType, eventTypeId, production])

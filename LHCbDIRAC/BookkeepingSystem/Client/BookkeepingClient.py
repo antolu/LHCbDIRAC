@@ -124,6 +124,10 @@ class BookkeepingClient:
   #############################################################################
   def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
     return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
+  
+  #############################################################################
+  def getFileTypesWithEventType(self, configName, configVersion, eventTypeId):
+    return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
