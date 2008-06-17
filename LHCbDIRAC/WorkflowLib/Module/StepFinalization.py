@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.6 2008/05/06 17:11:21 atsareg Exp $
+# $Id: StepFinalization.py,v 1.7 2008/06/17 09:56:32 joel Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.6 2008/05/06 17:11:21 atsareg Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.7 2008/06/17 09:56:32 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -68,7 +68,7 @@ class StepFinalization(object):
     error = 0
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
 
-    self.LFN_ROOT = getLFNRoot(self.SourceData)
+    self.LFN_ROOT = getLFNRoot(self.sourceData)
 
     result = self.finalize(error)
 
