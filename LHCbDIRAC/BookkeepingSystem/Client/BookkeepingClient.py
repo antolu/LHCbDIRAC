@@ -115,19 +115,19 @@ class BookkeepingClient:
   
   #############################################################################  
   def getConfigNameAndVersion(self, eventTypeId):
-    return self.server.getConfigNameAndVersion(eventTypeId)
+    return self.server.getConfigNameAndVersion(long(eventTypeId))
   
   #############################################################################  
   def getAvailableProcessingPass(self, configName, configVersion, eventTypeId):
-    return self.server.getAvailableProcessingPass(configName, configVersion, eventTypeId)
+    return self.server.getAvailableProcessingPass(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
-    return self.server.getFileTypesWithEventType(configName, configVersion, eventTypeId, production)
+    return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
 
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
-    return self.server.getFilesByEventType(configName, configVersion, fileType, eventTypeId, production)
+    return self.server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId), long(production))
   #############################################################################
   
   

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.33 2008/06/17 13:33:55 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.34 2008/06/17 13:40:00 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.33 2008/06/17 13:33:55 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.34 2008/06/17 13:40:00 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -465,7 +465,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)
-
+    return entityList
   
   ############################################################################# 
   def _listProcessing(self, path):
