@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.74 2008/06/17 15:52:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.75 2008/06/17 19:25:22 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.74 2008/06/17 15:52:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.74 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.75 2008/06/17 19:25:22 rgracian Exp $"
+__VERSION__ = "$Revision: 1.75 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -401,31 +401,45 @@ class functions:
     except:
       self.logINFO( 'LCG tool tar file is not available for your platform' )
 
-  def diracMagic( self, magic ):
+  def diracMagic( self ):
     """
      Replace first magic line of all python scripts in scripts
     """
+    # Use the default python for the following scripts
+    nativeScripts = [ 'platform.py', 'dirac-distribution' ]
+
     os.chdir( self.scriptsPath )
     files = os.listdir( '.' )
+
     for file in files:
-      # exclude CVS directory if present
-      if file.find('CVS') != -1:
+      # exclude any directory if present
+      if os.path.isdir( file ):
         files.remove(file)
+
+    for file in nativeScripts:
+      if file in files:
+        files.remove( file )
+
     output = []
     input = fileinput.FileInput( files, inplace = 1 )
     for line in input:
       if input.isfirstline():
         if re.compile( '^#!.*python').match(line):
           output.append( input.filename() )
-          if len( magic ) < 100:
-            print magic
-          else:
-            # to avoid a long magic line, make it a paragraph
-            python = magic[magic.find('/'):]
-            print '#! /usr/bin/env python'
-            print 'import sys, os'
-            print 'if sys.executable != "%s":' % python
-            print '  sys.exit( os.system( "%%s %%s" %% ( "%s", str.join(" ",sys.argv ) ) ) )' % python
+          print line,
+          print 'import os, sys, popen2'
+          print '# Determine python for current platform and check if it is the calling one'
+          print 'dirac_platform = os.path.join("%s","platform.py")' % self.scriptsPath
+          print 'if not os.path.exists( dirac_platform ):'
+          print '  print >> sys.stderr, "Missing file %s" % dirac_platform'
+          print '  sys.exit(-1)'
+          print '(child_stdout, child_stdin) = popen2.popen2( dirac_platform )'
+          print 'localPlatform = child_stdout.read().strip()'
+          print 'if not localPlatform or localPlatform == "ERROR":'
+          print '  print >> sys.stderr, "Can not determine local platform"'
+          print 'diracPython = os.path.join( "%s", localPlatform, "bin", "python" ) ' % self.__rootPath
+          print 'if sys.executable != diracPython:'
+          print '  sys.exit( os.system( "%s %s" % ( diracPython, " ".join( sys.argv ) ) ) ) '
         else:
           print line,
       else:
