@@ -210,7 +210,6 @@ workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job 
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
-workflow1.addParameter(Parameter("SoftwarePackages","Brunel.v32r4","JDL","","",True, False, "software"))
 
 workflow1.addParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("Site","LCG.CERN.ch","JDLReqt","","",True, False, "Site"))

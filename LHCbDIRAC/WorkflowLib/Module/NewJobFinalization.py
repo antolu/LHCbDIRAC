@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: NewJobFinalization.py,v 1.12 2008/06/13 08:49:11 joel Exp $
+# $Id: NewJobFinalization.py,v 1.13 2008/06/17 09:55:50 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: NewJobFinalization.py,v 1.12 2008/06/13 08:49:11 joel Exp $"
+__RCSID__ = "$Id: NewJobFinalization.py,v 1.13 2008/06/17 09:55:50 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -130,7 +130,6 @@ class JobFinalization(ModuleBase):
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
     self.__loadLocalCFGFiles(self.root)
-    self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
     self.logdir = os.path.realpath('./job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID)
     self.log.info('Log directory is %s' %self.logdir)
