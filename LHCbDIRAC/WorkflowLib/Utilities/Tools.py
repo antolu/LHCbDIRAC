@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.17 2008/04/09 13:57:36 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.17 2008/04/09 13:57:36 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.18 2008/06/17 09:40:36 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.18 2008/06/17 09:40:36 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -186,6 +186,13 @@ def uniq(list):
   return new_list
 
 
+def runNumber(prod,step):
+  "Define run number from the step parameters"
+
+  run = int(prod)*100+int(step)
+  return run
+
+
 def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
 
 #    self.prod_id = self.PRODUCTION_ID
@@ -277,29 +284,33 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
       self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
 
-def getLFNRoot(lfn):
+def getLFNRoot(lfn,mcYear=0):
     """
     return the root path of a given lfn
 
     eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
+    eg : /lhcb/MC/<year>/  = getLFNRoot(None)
     """
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
-    for inputname in lfn.split(';'):
-      LFN_ROOT = ''
-      lfnroot = inputname.split('/')
-      if len(lfnroot) > 1:
-          CONTINUE = 1
-          j = 1
-          while CONTINUE == 1:
-            if not lfnroot[j] in dataTypes:
-              LFN_ROOT = LFN_ROOT+'/'+lfnroot[j]
-            else:
-              CONTINUE = 0
-              break
-            j = j + 1
-            if j > len(lfnroot):
-              CONTINUE = 0
-              break
+    if lfn:
+        for inputname in lfn.split(';'):
+          LFN_ROOT = ''
+          lfnroot = inputname.split('/')
+          if len(lfnroot) > 1:
+              CONTINUE = 1
+              j = 1
+              while CONTINUE == 1:
+                if not lfnroot[j] in dataTypes:
+                  LFN_ROOT = LFN_ROOT+'/'+lfnroot[j]
+                else:
+                  CONTINUE = 0
+                  break
+                j = j + 1
+                if j > len(lfnroot):
+                  CONTINUE = 0
+                  break
+    else:
+        LFN_ROOT = '/lhcb/MC/'+str(mcYear)
     return LFN_ROOT
 
 def copyClassAttributes(from_, to_, except_=[]):
