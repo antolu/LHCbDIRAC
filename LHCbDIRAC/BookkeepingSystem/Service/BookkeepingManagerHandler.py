@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.48 2008/06/17 14:33:22 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.49 2008/06/17 14:46:20 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.48 2008/06/17 14:33:22 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.49 2008/06/17 14:46:20 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -167,5 +167,11 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFilesByEventType = [StringType, StringType, StringType, LongType, LongType]
   def export_getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
     return dataMGMT_.getFilesByEventType(configName, configVersion, fileType, eventTypeId, production)
+  
+  #############################################################################
+  types_getFilesByEventType = [StringType, StringType, StringType, LongType]
+  def export_getFilesByEventType(self, configName, configVersion, fileType, eventTypeId):
+    return dataMGMT_.getFilesByEventType(configName, configVersion, fileType, eventTypeId)
+  
   #############################################################################
     #-----------------------------------END Event Types------------------------------------------------------------------
