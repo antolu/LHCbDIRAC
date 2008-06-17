@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.70 2008/06/17 10:08:00 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.71 2008/06/17 10:40:10 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.70 2008/06/17 10:08:00 rgracian Exp $"
-__VERSION__ = "$Revision: 1.70 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.71 2008/06/17 10:40:10 rgracian Exp $"
+__VERSION__ = "$Revision: 1.71 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -446,7 +446,8 @@ class functions:
     else:
       if os.path.exists( 'DIRAC' ):
         self.__rmDir( 'DIRAC.old' )
-        shutil.move( 'DIRAC', 'DIRAC.old' )
+        shutil.copytree( newScript, curScript )
+        shutil.rmtree( newScript )
       if self.fromTar:
         name = 'DIRAC-%s' % self.version
         self._getTar( name, diracTimeout )
