@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.72 2008/06/17 11:05:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.73 2008/06/17 13:03:46 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.72 2008/06/17 11:05:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.72 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.73 2008/06/17 13:03:46 rgracian Exp $"
+__VERSION__ = "$Revision: 1.73 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -470,7 +470,8 @@ class functions:
         shutil.rmtree( 'DIRAC.old' )
         sys.exit(-1)
       # Hack to handle LHCbSystem
-      shutil.move( 'LHCbSystem', os.path.join( 'DIRAC', 'LHCbSystem' ) )
+      shutil.copytree( 'LHCbSystem', os.path.join( 'DIRAC', 'LHCbSystem' ) )
+      shutil.rmtree( 'LHCbSystem' )
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
       ch_err.close()
