@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.34 2008/06/17 13:40:00 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.35 2008/06/17 14:29:44 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.34 2008/06/17 13:40:00 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.35 2008/06/17 14:29:44 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -379,6 +379,7 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "Available processing pass:"
       dbResult = self.db_.getAvailableProcessingPass(configName, configVersion, int(eventType))
+      print dbResult
       for record in dbResult:
         processing = record[0]
         value = {'Step 0':record[1],'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 4':record[5]}
@@ -399,7 +400,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Event Type              | "+ str(eventType)
       print "Configuration Name      | "+configName
       print "Configuration Version   | "+configVersion
-      print "Production              | "+processingPass
+      print "Processing pass         | "+processingPass
       print "-----------------------------------------------------------"
       
       print "Aviable productions:"
@@ -427,15 +428,20 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Event Type              | "+ str(eventType)
       print "Configuration Name      | "+configName
       print "Configuration Version   | "+configVersion
-      print "Production              | "+processingPass
+      print "Processing pass         | "+processingPass
+      print "Production              | "+production
       print "-----------------------------------------------------------"
       
       print "Available file type:"
-      dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventtype), int(production))
-      for record in dbResult:
-        fileType = str(record[0])
-        entityList += [self._getEntityFromPath(path, fileType, levels)]
-        self._cacheIt(entityList)
+      if production != 'ALL':
+        dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
+      else:
+        dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType))
+      if dbResult['OK']:
+        for record in dbResult:
+          fileType = str(record[0])
+          entityList += [self._getEntityFromPath(path, fileType, levels)]
+          self._cacheIt(entityList)
 
     if levels == 5:
       gLogger.debug("listing files!")
@@ -459,12 +465,13 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "File list:"
       
-      dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventtype), int(production))
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
-        self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels)]
-        self._cacheIt(entityList)
+      dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))
+      if dbResult['OK']:      
+        for record in dbResult:
+       	  value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+          self.files_ += [record[0]]
+          entityList += [self._getEntityFromPath(path, value, levels)]
+          self._cacheIt(entityList)
     return entityList
   
   ############################################################################# 
