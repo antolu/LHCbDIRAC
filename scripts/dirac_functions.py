@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.66 2008/06/17 07:15:32 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.67 2008/06/17 08:00:55 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.66 2008/06/17 07:15:32 rgracian Exp $"
-__VERSION__ = "$Revision: 1.66 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.67 2008/06/17 08:00:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.67 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -77,7 +77,7 @@ workflowLib_tars = [ { 'name': 'WorkflowLib',
                        'packages': ['LHCbSystem'],
                        'directories': ['LHCbSystem']
                      },
-                     {}  # Empty dict
+                     {}  # Empty dictionary
                    ]
 
 
