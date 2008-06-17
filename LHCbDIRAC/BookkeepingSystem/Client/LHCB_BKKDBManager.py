@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.31 2008/06/16 09:55:56 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.32 2008/06/17 10:54:12 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.31 2008/06/16 09:55:56 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.32 2008/06/17 10:54:12 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -343,8 +343,10 @@ class LHCB_BKKDBManager(BaseESManager):
       for record in dbResult:
         programName = record[0]
         programVersion = record[1]
-        program = programName+'  '+programVersion
-        entityList += [self._getEntityFromPath(path, program, levels)]
+        nb = record[2]
+        program = programName+' '+programVersion
+        value = { 'Program Name':programName,'Program Version':programVersion,'Number Of Events':nb }
+        entityList += [self._getSpecificEntityFromPath(path, value, program, levels)]
         self._cacheIt(entityList)
     
     if levels == 5:
@@ -359,8 +361,9 @@ class LHCB_BKKDBManager(BaseESManager):
         prod = int(processedPath[2][1])
       
       filetype = processedPath[3][1]
-      pname = processedPath[4][1]
-      pversion = processedPath[5][1]
+
+      pname = processedPath[4][1].split(' ')[0]
+      pversion = processedPath[4][1].split(' ')[1]
 
       print "-----------------------------------------------------------"
       print "Selected parameters:   "
@@ -510,7 +513,7 @@ class LHCB_BKKDBManager(BaseESManager):
       # this must be a file
       entity = Entity(newPathElement)
       newPathElement = str(entity['name']).rsplit("/", 1)[1]
-      entity.update({'gname':entity['name']})
+      entity.update({'Logical file name':entity['name']})
       expandable = False
       type = self.LHCB_BKDB_FILE_TYPE                            
     else:
@@ -558,17 +561,13 @@ class LHCB_BKKDBManager(BaseESManager):
       return True, []
     result = []
     counter = 0;
-    fileNameDetected = False        
+    correctPath = True        
     for token in tokens:
       prefix, suffix = self._splitPathElement(token)
-      if prefix == self.LHCB_BKDB_PREFIXES[3]:    # '' i.e. filename
-        fileNameDetected = True  
-      else:
-        if self.LHCB_BKDB_PREFIXES[counter] != prefix or fileNameDetected:
-          # the prefix is not at the right location in the path or it is coming too late
-          correctPath = False
-          break                        
-      
+      if self.LHCB_BKDB_PREFIXES[counter] != prefix:
+        # the prefix is not at the right location in the path or it is coming too late
+        correctPath = False
+        break                        
       result += [(prefix, suffix)]
       counter += 1
       gLogger.debug("processPath=" + str(result))    
