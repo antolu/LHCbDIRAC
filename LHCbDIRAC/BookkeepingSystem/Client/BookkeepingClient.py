@@ -107,3 +107,23 @@ class BookkeepingClient:
     result = self.server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
     return result
   
+  def export_getAvailableEventTypes(self):
+    return dataMGMT_.getAvailableEventTypes()
+  
+  #############################################################################  
+  def getConfigNameAndVersion(self, eventTypeId):
+    return self.server.getConfigNameAndVersion(eventTypeId)
+  
+  #############################################################################  
+  def getAvailableProcessingPass(self, configName, configVersion, eventTypeId):
+    return self.server.getAvailableProcessingPass(configName, configVersion, eventTypeId)
+
+  #############################################################################
+  def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
+    return self.server.getFileTypesWithEventType(configName, configVersion, eventTypeId, production)
+
+  #############################################################################
+  def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
+    return self.server.getFilesByEventType(configName, configVersion, fileType, eventTypeId, production)
+  #############################################################################
+  

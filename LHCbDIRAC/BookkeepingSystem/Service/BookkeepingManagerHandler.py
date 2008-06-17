@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.46 2008/06/16 09:47:18 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.47 2008/06/17 13:33:57 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.46 2008/06/16 09:47:18 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.47 2008/06/17 13:33:57 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -137,3 +137,31 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getProgramNameAndVersion = [StringType, StringType, LongType, LongType, StringType]
   def export_getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
     return dataMGMT_.getProgramNameAndVersion(configName, configVersion, eventType, prod, fileType)
+  
+  #-----------------------------------Event Types------------------------------------------------------------------
+  #############################################################################  
+  types_getAvailableEventTypes = []
+  def export_getAvailableEventTypes(self):
+    return dataMGMT_.getAvailableEventTypes()
+  
+  #############################################################################  
+  types_getConfigNameAndVersion = [LongType]
+  def export_getConfigNameAndVersion(self, eventTypeId):
+    return dataMGMT_.getConfigNameAndVersion(eventTypeId)
+  
+  #############################################################################  
+  types_getAvailableProcessingPass = [StringType, StringType, LongType]
+  def export_getAvailableProcessingPass(self, configName, configVersion, eventTypeId):
+    return dataMGMT_.getAvailableProcessingPass(configName, configVersion, eventTypeId)
+
+  #############################################################################
+  types_getFileTypesWithEventType = [StringType, StringType, LongType, LongType]
+  def export_getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
+    return dataMGMT_.getFileTypesWithEventType(configName, configVersion, eventTypeId, production)
+
+  #############################################################################
+  types_getFilesByEventType = [StringType, StringType, StringType, LongType, LongType]
+  def export_getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
+    return dataMGMT_.getFilesByEventType(configName, configVersion, fileType, eventTypeId, production)
+  #############################################################################
+    #-----------------------------------END Event Types------------------------------------------------------------------
