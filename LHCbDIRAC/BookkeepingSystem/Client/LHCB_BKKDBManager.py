@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.37 2008/06/17 14:46:19 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.38 2008/06/17 14:58:31 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.37 2008/06/17 14:46:19 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.38 2008/06/17 14:58:31 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -379,7 +379,7 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "Available processing pass:"
       dbResult = self.db_.getAvailableProcessingPass(configName, configVersion, int(eventType))
-      print dbResult
+
       for record in dbResult:
         processing = record[0]
         value = {'Step 0':record[1],'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 4':record[5]}
@@ -740,3 +740,10 @@ class LHCB_BKKDBManager(BaseESManager):
       return None
         
     return entity
+  
+  #############################################################################       
+  def getNumberOfEvents(self, files):
+    sum = 0
+    for file in files:
+      sum += int(file['EventStat'])
+    return sum
