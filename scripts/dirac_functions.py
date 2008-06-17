@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.64 2008/06/03 08:10:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.65 2008/06/17 06:57:43 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.64 2008/06/03 08:10:26 rgracian Exp $"
-__VERSION__ = "$Revision: 1.64 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.65 2008/06/17 06:57:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.65 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -40,10 +40,12 @@ src_tars = [ { 'name': 'DIRAC-scripts',
              },
              { 'name': 'DIRAC',
                'packages': ['DIRAC',
-                            'WorkflowLib'],
+                            'WorkflowLib',
+                            'LHCbSystem'],
                'directories': ['scripts',
                                'DIRAC',
-                               'WorkflowLib']
+                               'WorkflowLib',
+                               'LHCbSystem']
              },
              { 'name': 'DIRAC-external-client',
                'packages': ['contrib/pyGSI',
@@ -68,10 +70,17 @@ src_tars = [ { 'name': 'DIRAC-scripts',
            ]
            
 workflowLib_tars = [ { 'name': 'WorkflowLib',
-                    'packages': ['WorkflowLib'],
-                   'directories': ['WorkflowLib']
-             }                  
-                  ]
+                       'packages': ['WorkflowLib'],
+                       'directories': ['WorkflowLib']
+                     },
+                     { 'name': 'LHCbSystem',
+                       'packages': ['LHCbSystem'],
+                       'directories': ['LHCbSystem']
+                     },
+                     {}  # Empty dict
+                   ]
+
+
 bin_tars = [ { 'name': 'DIRAC-external-client',
                'packages': ['external/sqlite-3.5.4',
                             'contrib/pyGSI']
@@ -203,8 +212,6 @@ class functions:
     self.buildFlag = False
     self.cvsFlag()
     self.setVersion( version )
-    # Hack not to reduce the number of tars
-    self.requireServer()
 
   def architecture(self):
     """
@@ -455,6 +462,8 @@ class functions:
         except Exception, x:
           self.logEXCEP( x )
         sys.exit(-1)
+      # Hack to handle LHCbSystem
+      shutil.move( 'LHCbSystem', 'DIRAC' )
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
       ch_err.close()
