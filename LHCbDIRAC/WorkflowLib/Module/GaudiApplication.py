@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.48 2008/06/17 09:43:13 joel Exp $
+# $Id: GaudiApplication.py,v 1.49 2008/06/17 11:39:43 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.48 2008/06/17 09:43:13 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.49 2008/06/17 11:39:43 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -285,7 +285,7 @@ class GaudiApplication(ModuleBase):
     app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.applicationName)+'/'+ \
                    string.upper(self.applicationName)+'_'+self.applicationVersion+'/InstallArea'
 
-    if self.applicationName and self.PRODUCTION_ID and self.JOB_ID:
+    if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
     mysiteroot = self.root
