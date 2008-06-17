@@ -1,11 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.68 2008/06/17 08:16:20 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.69 2008/06/17 08:20:34 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.68 2008/06/17 08:16:20 rgracian Exp $"
-__VERSION__ = "$Revision: 1.68 $"
-__TAG__     = "$LocalKeyword$"
+__RCSID__   = "$Id: dirac_functions.py,v 1.69 2008/06/17 08:20:34 rgracian Exp $"
+__VERSION__ = "$Revision: 1.69 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
