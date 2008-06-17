@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.71 2008/06/17 10:40:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.72 2008/06/17 11:05:04 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.71 2008/06/17 10:40:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.71 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.72 2008/06/17 11:05:04 rgracian Exp $"
+__VERSION__ = "$Revision: 1.72 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -446,8 +446,8 @@ class functions:
     else:
       if os.path.exists( 'DIRAC' ):
         self.__rmDir( 'DIRAC.old' )
-        shutil.copytree( newScript, curScript )
-        shutil.rmtree( newScript )
+        shutil.copytree( 'DIRAC', 'DIRAC.old' )
+        shutil.rmtree( 'DIRAC' )
       if self.fromTar:
         name = 'DIRAC-%s' % self.version
         self._getTar( name, diracTimeout )
@@ -466,7 +466,8 @@ class functions:
         except Exception, x:
           self.logEXCEP( x )
         self.__rmDir( 'DIRAC' )
-        shutil.move( 'DIRAC.old', 'DIRAC' )
+        shutil.copytree( 'DIRAC.old', 'DIRAC' )
+        shutil.rmtree( 'DIRAC.old' )
         sys.exit(-1)
       # Hack to handle LHCbSystem
       shutil.move( 'LHCbSystem', os.path.join( 'DIRAC', 'LHCbSystem' ) )
