@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.35 2008/06/17 14:29:44 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.36 2008/06/17 14:41:45 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.35 2008/06/17 14:29:44 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.36 2008/06/17 14:41:45 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -433,15 +433,16 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
       
       print "Available file type:"
+      dbResult = None
       if production != 'ALL':
         dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
       else:
         dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType))
-      if dbResult['OK']:
-        for record in dbResult:
-          fileType = str(record[0])
-          entityList += [self._getEntityFromPath(path, fileType, levels)]
-          self._cacheIt(entityList)
+
+      for record in dbResult:
+        fileType = str(record[0])
+        entityList += [self._getEntityFromPath(path, fileType, levels)]
+        self._cacheIt(entityList)
 
     if levels == 5:
       gLogger.debug("listing files!")
@@ -465,13 +466,12 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "File list:"
       
-      dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))
-      if dbResult['OK']:      
-        for record in dbResult:
-       	  value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
-          self.files_ += [record[0]]
-          entityList += [self._getEntityFromPath(path, value, levels)]
-          self._cacheIt(entityList)
+      dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))     
+      for record in dbResult:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        self.files_ += [record[0]]
+        entityList += [self._getEntityFromPath(path, value, levels)]
+        self._cacheIt(entityList)
     return entityList
   
   ############################################################################# 
