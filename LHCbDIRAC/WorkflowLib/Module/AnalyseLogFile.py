@@ -1,14 +1,15 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.15 2008/06/03 15:14:47 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.16 2008/06/17 09:42:41 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.15 2008/06/03 15:14:47 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.16 2008/06/17 09:42:41 joel Exp $"
 
 import commands, os, time, smtplib
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
-from DIRAC.Core.Utilities                                import Mail, List
+from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
+#from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
@@ -25,24 +26,30 @@ class AnalyseLogFile(ModuleBase):
       self.systemConfig = 'None'
       self.result = S_ERROR()
       self.mailadress = 'None'
-      self.NUMBER_OF_EVENTS_INPUT = None
-      self.NUMBER_OF_EVENTS_OUTPUT = None
-      self.NUMBER_OF_EVENTS = None
-      self.appName = 'None'
+      self.numberOfEventsInput = None
+      self.numberOfEventsOutput = None
+      self.numberOfEvents = None
+      self.applicationName = None
       self.inputData = None
+      self.sourceData = None
       self.JOB_ID = None
       self.jobID = None
-      self.mail=Mail.Mail()
       if os.environ.has_key('JOBID'):
         self.jobID = os.environ['JOBID']
       self.timeoffset = 0
       self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
       self.poolXMLCatName = 'pool_xml_catalog.xml'
-      self.appVersion = 'None'
+      self.applicationLog = None
+      self.applicationVersion = None
 
   def execute(self):
-      self.log.info( "Analyse Log File for %s" %(self.appLog) )
+      self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
       self.site = gConfig.getValue('/LocalSite/Site','Site')
+      self.notify = NotificationClient()
+
+
+      if self.step_commons.has_key('inputData'):
+         self.inputData = self.step_commons['inputData']
 
       if (int(self.JOB_ID) > 200):
          comm = 'rm -f *monitor*'
@@ -54,36 +61,78 @@ class AnalyseLogFile(ModuleBase):
       else:
          self.max_app = 'None'
 
-#      if self.max_app != 'None':
-#         if (int(self.JOB_ID) > int(self.max_app)):
-#           if self.outputDataSE != None:
-#             self.outputDataSE = None
+      inputs = {}
+      if self.sourceData:
+        for f in self.sourceData.split(';'):
+          inputs[f.replace("LFN:","")] = 'OK'
 
 # check the is the logfile exist
       result = self.getLogFile()
       if not result['OK'] :
          self.log.info(result['Message'])
+         self.update_status( inputs, "unused")
          return S_ERROR(result['Message'])
 
 # check if this is a good job
       result = self.goodJob()
+      self.log.info(result)
       if result['OK']:
          resultnb = self.nbEvent()
          if resultnb['OK']:
-           self.log.info(' AnalyseLogFile - %s is OK ' % (self.appLog))
-           self.setApplicationStatus('%s Step OK' % (self.appName))
-           return resultnb
+           self.log.info(' AnalyseLogFile - %s is OK ' % (self.applicationLog))
+           self.setApplicationStatus('%s Step OK' % (self.applicationName))
+           resultstatus = self.update_status( inputs, "Processed")
+           if resultstatus['OK']:
+             return resultnb
+           else:
+             return resultstatus
          else:
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
-           self.setApplicationStatus('%s Step Failed' % (self.appName))
-           return resultnb
+           self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+           resultstatus = self.update_status( inputs, "unused")
+           if resultstatus['OK']:
+             return resultnb
+           else:
+             return resultstatus
       else:
          self.sendErrorMail(result['Message'])
-         self.setApplicationStatus('%s Step Failed' % (self.appName))
+         self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+         resultstatus = self.update_status( inputs, "unused")
+         if not resultstatus['OK']:
+            result = resultstatus
 
       return result
 
+  def update_status(self,inputs,fileStatus):
+      result = S_OK()
+      for f in inputs.keys():
+         stat = inputs[f]
+         if stat == 'Problematic':
+           stat = 'unused'
+           self.log.info(f+' is problematic at '+self.site+' - reset as unused')
+           try:
+             result = self.setReplicaProblematic(f,self.site,'Problematic')
+           except:
+             self.log.info('LFC not accessible')
+             result = S_ERROR('LFC not accessible')
+         elif stat == 'unused':
+           self.log.info(f+' was not processed - reset as unused')
+         elif stat == 'AncestorProblem':
+           self.log.info(f+' should not be reprocessed - set to '+stat)
+         else:
+           if fileStatus == "Processed":
+             self.log.info(f+" status set as "+fileStatus)
+           else:
+             self.log.info(f+" status set as "+fileStatus)
+           stat = fileStatus
+         try:
+           result = self.setFileStatus(self.PRODUCTION_ID,f,stat)
+         except:
+           self.log.info('processing DB not accessible')
+           result = S_ERROR('processing DB not accessible')
+
+      return result
 
 #
 #-----------------------------------------------------------------------
@@ -116,14 +165,14 @@ class AnalyseLogFile(ModuleBase):
   def nbEvent(self):
       self.timeoffset = 0
       lastev = 0
-      mailto = self.appName.upper()+'_EMAIL'
-      line,appinit = self.grep(self.appLog,'ApplicationMgr    SUCCESS')
+      mailto = self.applicationName.upper()+'_EMAIL'
+      line,appinit = self.grep(self.applicationLog,'ApplicationMgr    SUCCESS')
       if line.split(' ')[2] == 'UTC':
           self.timeoffset = 3
 
-      lEvtMax,n = self.grep(self.appLog,'.EvtMax','-cl')
+      lEvtMax,n = self.grep(self.applicationLog,'.EvtMax','-cl')
       if n == 0:
-          if self.appName != 'Gauss':
+          if self.applicationName != 'Gauss':
               EvtMax = -1
           else:
               result = S_ERROR(mailto + ' missing job options')
@@ -133,9 +182,9 @@ class AnalyseLogFile(ModuleBase):
 
       self.log.info('EvtMax = %s' % (str(EvtMax)))
 
-      line,nev = self.grep(self.appLog,'Reading Event record','-cl')
+      line,nev = self.grep(self.applicationLog,'Reading Event record','-cl')
       if nev == 0:
-         line,nev = self.grep(self.appLog,'Nr. in job =','-cl')
+         line,nev = self.grep(self.applicationLog,'Nr. in job =','-cl')
          if nev == 0:
             result = S_ERROR(mailto + ' no event')
             return result
@@ -146,10 +195,10 @@ class AnalyseLogFile(ModuleBase):
 
       result = S_OK()
 
-      line,nomore = self.grep(self.appLog,'No more events')
-      lprocessed,n =self.grep(self.appLog,'events processed')
+      line,nomore = self.grep(self.applicationLog,'No more events')
+      lprocessed,n =self.grep(self.applicationLog,'events processed')
       if n == 0:
-          if self.appName == 'Gauss' or nomore == 0:
+          if self.applicationName == 'Gauss' or nomore == 0:
             result = S_ERROR(mailto + ' crash in event ' + lastev)
             self.log.info('nbEvent - result = ',result['Message'])
             return result
@@ -162,28 +211,28 @@ class AnalyseLogFile(ModuleBase):
             nprocessed = int(string.split(lprocessed)[2+self.timeoffset])
 
       self.log.info(" %s events processed " % nprocessed)
-      self.NUMBER_OF_EVENTS_INPUT = str(nprocessed)
+      self.numberOfEventsInput = str(nprocessed)
 
       #report job parameter with timestamp
       curTime = time.asctime(time.gmtime())
-      report = 'Events processed by %s on %s [UTC]' %(self.appName,curTime)
+      report = 'Events processed by %s on %s [UTC]' %(self.applicationName,curTime)
       self.setJobParameter(report,nprocessed)
 
 # find number of events written
-      loutput,n = self.grep(self.appLog,'Events output:')
+      loutput,n = self.grep(self.applicationLog,'Events output:')
       if n == 0:
-         if self.appName == 'Gauss ' or self.appName == 'Brunel':
+         if self.applicationName == 'Gauss ' or self.applicationName == 'Brunel':
             result = S_ERROR('no events written')
       else:
          noutput = int(string.split(loutput)[4+self.timeoffset])
          self.log.info(" %s events written " % str(noutput))
-         self.NUMBER_OF_EVENTS_OUTPUT = str(noutput)
+         self.numberOfEventsOutput = str(noutput)
 
       if nprocessed == EvtMax or nomore == 1:
         if noutput != nprocessed:
-          if self.appName == 'Gauss' or self.appName == 'Brunel':
+          if self.applicationName == 'Gauss' or self.applicationName == 'Brunel':
              result = S_ERROR(mailto + ' too few events on output')
-             if self.appName == 'Gauss' and (nprocessed-noutput) < EvtMax/10:
+             if self.applicationName == 'Gauss' and (nprocessed-noutput) < EvtMax/10:
                result = S_OK()
       else:
         if EvtMax != -1 and nprocessed != EvtMax:
@@ -192,7 +241,7 @@ class AnalyseLogFile(ModuleBase):
         elif nomore != 1 and EvtMax == -1:
           self.log.error("Number of events processed "+str(nprocessed)+", the end of input not reached")
           file_end = False
-          linenextevt,n = self.grep(self.appLog,'Failed to receieve the next event')
+          linenextevt,n = self.grep(self.applicationLog,'Failed to receieve the next event')
           self.log.info('failed next event %s' %( str(n)))
           if n == 0:
             file_end = True
@@ -213,15 +262,21 @@ class AnalyseLogFile(ModuleBase):
       # check if the logfile contain timestamp information
 # check if the application finish successfully
       self.log.info('Check application ended successfully')
-      line,n = self.grep(self.appLog,'Application Manager Finalized successfully')
+      line,n = self.grep(self.applicationLog,'Application Manager Finalized successfully')
       if n == 0:
-        if self.appName:
-            mailto = self.appName.upper()+'_EMAIL'
+        if self.applicationName:
+            mailto = self.applicationName.upper()+'_EMAIL'
         return S_ERROR(mailto+' not finalized')
 
 # trap POOL error to open a file through POOL
+      if self.poolXMLCatName != None:
+        catalogfile = self.poolXMLCatName
+      else:
+        catalogfile = 'pool_xml_catalog.xml'
+
+      catalog = PoolXMLCatalog(catalogfile)
       self.log.info('Check POOL connection error')
-      line,poolroot = self.grep(self.appLog,'Error: connectDatabase>','-c')
+      line,poolroot = self.grep(self.applicationLog,'Error: connectDatabase>','-c')
       if poolroot >= 1:
          for file in line.split('\n'):
             if poolroot > 0:
@@ -231,73 +286,112 @@ class AnalyseLogFile(ModuleBase):
                      result = S_ERROR('Navigation error from guid via LFC for input file')
                      return result
                   else:
-                     if self.PoolXMLCatalog != None:
-                        catalogfile = self.PoolXMLCatalog
-                     else:
-                        catalogfile = 'pool_xml_catalog.xml'
-
-                     catalog = PoolXMLCatalog(catalogfile)
                      cat_guid = catalog.getGuidByPfn(file_input)
                      cat_lfn = catalog.getLfnsByGuid(cat_guid)
-                     self.update_status('Bad',cat_lfn['Logical'])
+                     lfn = cat_lfn['Logical'].replace("LFN:","")
+                     # Set the the file as problematic in the input list
+                     if inputs.has_key(lfn):
+                        inputs[lfn] = 'Problematic'
+                     else:
+                        # The problematic file is not an input but a derived file
+                        ##### Should put here something for setting replica as problematic in the LFC
+                        self.log.warn(lfn+" is problematic, but not a job input file - status not changed")
+                        # This means the input files cannot be reset yo unused due to ancestor problems
+                        # Get the status of input files for this job
+                        prod = self.projectname
+                        job = prod + "_" + self.job_id
+                        try:
+                           result = self.client().getFilesForJob(prod,job)
+                        except:
+                           result=  {'Status':'Bad'}
+                           self.log.error("ProcessingDB not accessible")
+                        if result['Status'] == 'OK':
+                           files = result['Files']
+                           lfns = [f['LFN'] for f in files]
+                           self.log.info("    Input files found:"+str(lfns))
+                        else:
+                           files = []
+                           self.log.warn("    Coundn't get input files from procDB")
+                        for lfn in inputs.keys():
+                           status = 'Processed'
+                           for f in files:
+                              if f['LFN'] == lfn:
+                                 # Check the status of the file in the processingDB
+                                 status = f['Status']
+                                 break
+                           if status == 'Processed':
+                              inputs[lfn] = 'AncestorProblem'
+                           else:
+                              inputs[lfn] = 'unused'
+#                     self.update_status('Bad',cat_lfn['Logical'])
 
                poolroot = poolroot-1
+         for lfn in inputs.keys():
+           pfn = catalog.getPfnsByLfn(lfn)
+           if not pfn['Status'] == 'OK' and inputs[lfn] == 'OK':
+             inputs[lfn] = 'unused'
+
          return S_ERROR(mailto + ' error to connectDatabase')
 
 # trap CASTOR error
+      self.log.info('Check error database connection')
+      line,castor = self.grep(self.applicationLog,'Cannot connect to database')
+      if castor >= 1:
+         return S_ERROR(mailto + ' Could not connect to database')
+
       self.log.info('Check CASTOR error connection')
-      line,castor = self.grep(self.appLog,'Could not connect')
+      line,castor = self.grep(self.applicationLog,'Could not connect')
       if castor >= 1:
          return S_ERROR(mailto + ' Could not connect to a file')
 
       self.log.info('Check DCACHE connection error')
-      line,tread = self.grep(self.appLog,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
+      line,tread = self.grep(self.applicationLog,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
       if tread >= 1:
          return S_ERROR(mailto + ' TDCacheFile error')
 
       self.log.info('Check IODataManager error')
-      line,resolv = self.grep(self.appLog,'Failed to resolve')
+      line,resolv = self.grep(self.applicationLog,'Failed to resolve')
       if resolv >= 1:
          self.log.debug(line)
          return S_ERROR(mailto + ' IODataManager error')
 
       self.log.info('Check connectionIO error')
-      line,cdio = self.grep(self.appLog,'Error: connectDataIO')
+      line,cdio = self.grep(self.applicationLog,'Error: connectDataIO')
       if cdio >= 1:
          return S_ERROR(mailto + ' connectDataIO error')
 
       self.log.info('Check connectionIO error')
-      line,cdio = self.grep(self.appLog,'Error:connectDataIO')
+      line,cdio = self.grep(self.applicationLog,'Error:connectDataIO')
       if cdio >= 1:
          return S_ERROR(mailto + ' connectDataIO error')
 
       self.log.info('Check loop errors')
-      linenextevt,n = self.grep(self.appLog,'Terminating event processing loop due to errors')
+      linenextevt,n = self.grep(self.applicationLog,'Terminating event processing loop due to errors')
       if n != 0:
           return S_ERROR(mailto + 'Event loop no terminated')
 
       self.log.info('GLIBC error')
-      linenextevt,n = self.grep(self.appLog,' glibc ')
+      linenextevt,n = self.grep(self.applicationLog,' glibc ')
       if n != 0:
           return S_ERROR(mailto + 'Problem with glibc ')
 
       writerr = 'Writer failed'
-      if self.appName == 'Gauss':
+      if self.applicationName == 'Gauss':
          writerr = 'GaussTape failed'
 
-      line,n = self.grep(self.appLog,writerr)
+      line,n = self.grep(self.applicationLog,writerr)
       if n == 1:
          result = S_ERROR(mailto + ' POOL error')
       else:
-         line,n = self.grep(self.appLog,'bus error')
+         line,n = self.grep(self.applicationLog,'bus error')
          if n == 1:
             result = S_ERROR(mailto + ' bus error')
          else:
-            line,n = self.grep(self.appLog,'User defined signal 1')
+            line,n = self.grep(self.applicationLog,'User defined signal 1')
             if n == 1:
                result = S_ERROR(mailto + ' User defined signal 1')
             else:
-               line,n = self.grep(self.appLog,'Not found DLL')
+               line,n = self.grep(self.applicationLog,'Not found DLL')
                if n == 1:
                   result = S_ERROR(mailto + ' Not found DLL')
 
@@ -307,21 +401,21 @@ class AnalyseLogFile(ModuleBase):
 #-----------------------------------------------------------------------
 #
   def getLogFile(self):
-    self.log.debug(' OpenLogFile - try to open %s' %(self.appLog))
+    self.log.debug(' OpenLogFile - try to open %s' %(self.applicationLog))
 
     result = S_OK()
-    if not os.path.exists(self.appLog):
-      if os.path.exists(self.appLog+'.gz'):
-        fn = self.appLog+'.gz'
+    if not os.path.exists(self.applicationLog):
+      if os.path.exists(self.applicationLog+'.gz'):
+        fn = self.applicationLog+'.gz'
         result = shellCall(0,"gunzip "+fn)
         resultTuple = result['Value']
         if resultTuple[0] > 0:
           self.log.info(resultTuple[1])
-          result = S_ERROR('%s is not available' %(self.appLog))
+          result = S_ERROR('%s is not available' %(self.applicationLog))
       else:
-        result = S_ERROR('%s is not available' %(self.appLog))
-    elif os.stat(self.appLog)[6] == 0:
-        result = S_ERROR('%s is empty' %(self.appLog))
+        result = S_ERROR('%s is not available' %(self.applicationLog))
+    elif os.stat(self.applicationLog)[6] == 0:
+        result = S_ERROR('%s is empty' %(self.applicationLog))
 
     return result
 
@@ -329,19 +423,17 @@ class AnalyseLogFile(ModuleBase):
     genmail = message.split()[0]
     subj = message.replace(genmail,'')
     try:
-        if self.EMAIL:
-            mailadress = self.EMAIL
+        if self.workflow_commons.has_key('emailAddress'):
+            mailadress = self.workflow_commons['emailAddress']
     except:
-        self.log.info('No EMAIL adress supplied')
+        self.log.error('No EMAIL adress supplied')
         return
 
-    mailadress = List.fromChar(mailadress, ",")
     self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
-    subject = '['+self.site+']['+self.appName+'] '+ self.appVersion + \
+    subject = '['+self.site+']['+self.applicationName+'] '+ self.applicationVersion + \
               ": "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+str(self.jobID)
-#    msg='From:joel.closier@cern.ch\r\nTo:'+mailadress+'\r\nSubject:'+subject+'\r\n'
     msg = 'new'
-    msg = msg + 'The Application '+self.appName+' '+self.appVersion+' had a problem \n'
+    msg = msg + 'The Application '+self.applicationName+' '+self.applicationVersion+' had a problem \n'
     msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
     msg = msg +'JobID is '+str(self.jobID)+'\n'
     msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
@@ -351,16 +443,16 @@ class AnalyseLogFile(ModuleBase):
         msg = msg +inputname+'\n'
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
-    self.LFN_ROOT= getLFNRoot(self.SourceData)
+    self.LFN_ROOT= getLFNRoot(self.sourceData)
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 
-    if self.appLog:
+    if self.applicationLog:
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
       logurl = 'http://lhcb-logs.cern.ch/storage'+logpath
       msg = msg + '\n\nLog Files directory for the job:\n'
       msg = msg+logurl+'/'+ self.JOB_ID+'/\n'
       msg = msg +'\n\nLog File for the problematic step:\n'
-      msg = msg+logurl+'/'+ self.JOB_ID+'/'+ self.appLog+'\n'
+      msg = msg+logurl+'/'+ self.JOB_ID+'/'+ self.applicationLog+'\n'
       msg = msg + '\n\nJob StdOut:\n'
       msg = msg+logurl+'/'+ self.JOB_ID+'/std.out\n'
       msg = msg +'\n\nJob StdErr:\n'
@@ -373,18 +465,13 @@ class AnalyseLogFile(ModuleBase):
       for j in msgtmp:
           msg = msg + str(j)
 
-    self.mail._subject = subject
-    self.mail._mailAddress = mailadress
-    self.mail._FromAddress = 'joel.closier@cern.ch'
-    self.mail._message = msg
-    result = self.mail._send()
-    self.log.info('new mail loop')
+    result = self.notify.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
     self.log.info(result)
     if not result[ 'OK' ]:
         self.log.warn( "The mail could not be sent" )
 
 
   def checkApplicationLog(self,error):
-    self.log.debug(' appLog - from %s'%(self.appLog))
+    self.log.debug(' applicationLog - from %s'%(self.applicationLog))
     self.log.info(error)
 

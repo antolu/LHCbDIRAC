@@ -1,32 +1,36 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.19 2008/05/21 07:17:40 joel Exp $
+# $Id: BookkeepingReport.py,v 1.20 2008/06/17 09:43:04 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.19 2008/05/21 07:17:40 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.20 2008/06/17 09:43:04 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
+from WorkflowLib.Module.ModuleBase import ModuleBase
 from DIRAC import  *
 
 import os, time, re
 
-class BookkeepingReport(object):
+class BookkeepingReport(ModuleBase):
 
   def __init__(self):
     self.STEP_ID = None
-    self.CONFIG_NAME = None
+    self.configName = None
+    self.configVersion = None
     self.RUN_NUMBER = None
     self.FIRST_EVENT_NUMBER = None
-    self.NUMBER_OF_EVENTS = None
-    self.NUMBER_OF_EVENTS_INPUT = None
-    self.NUMBER_OF_EVENTS_OUTPUT = ""
-    self.EVENTTYPE = None
+    self.numberOfEvents = None
+    self.numberOfEventsInput = None
+    self.numberOfEventsOutput = None
+    self.eventType = None
     self.poolXMLCatName = None
     self.inputData = None
     self.STEP_ID = None
     self.JOB_ID = None # to check
-    self.SourceData=None
+    self.sourceData=None
+    self.applicationName = None
+    self.applicationLog = None
     self.log = gLogger.getSubLogger("BookkeepingReport")
     pass
 
@@ -37,11 +41,45 @@ class BookkeepingReport(object):
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
 
+    if self.workflow_commons.has_key('sourceData'):
+        self.sourceData = self.workflow_commons['sourceData']
+
+    if self.step_commons.has_key('eventType'):
+        self.eventType = self.step_commons['eventType']
+
+    if self.step_commons.has_key('numberOfEvents'):
+       self.numberOfEvents = self.step_commons['numberOfEvents']
+
+    if self.step_commons.has_key('numberOfEventsOutput'):
+       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
+
+    if self.step_commons.has_key('numberOfEventsInput'):
+       self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
+
+    if self.step_commons.has_key('inputDataType'):
+       self.inputDataType = self.step_commons['inputDataType']
+
+    if self.step_commons.has_key('inputData'):
+       self.inputData = self.step_commons['inputData']
+
+    if self.step_commons.has_key('listoutput'):
+       self.listoutput = self.step_commons['listoutput']
+
+    if self.step_commons.has_key('applicationName'):
+       self.applicationName = self.step_commons['applicationName']
+       self.applicationVersion = self.step_commons['applicationVersion']
+       self.applicationLog = self.step_commons['applicationLog']
+
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
     print >> bfile,self.makeBookkeepingXMLString()
     bfile.close()
+
+    if self.workflow_commons.has_key('outputList'):
+        self.workflow_commons['outputList'] = self.workflow_commons['outputList'] + self.listoutput
+    else:
+        self.workflow_commons['outputList'] = self.listoutput
 
     return S_OK()
 
@@ -54,8 +92,8 @@ class BookkeepingReport(object):
 
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
     site = gConfig.getValue('/LocalSite/Site','Site')
-    if self.workflow_commons.has_key('DataType'):
-      job_mode = self.workflow_commons['DataType'].lower()
+    if self.workflow_commons.has_key('dataType'):
+      job_mode = self.workflow_commons['dataType'].lower()
     else:
       job_mode = 'test'
     ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
@@ -66,12 +104,12 @@ class BookkeepingReport(object):
     s = s+'<!DOCTYPE Job SYSTEM "book.dtd">\n'
 
     # Get the Config name from the environment if any
-    if self.CONFIG_NAME != None:
-      configName = self.CONFIG_NAME
-      configVersion = self.CONFIG_VERSION
+    if self.workflow_commons.has_key('configName'):
+      configName = self.workflow_commons['configName']
+      configVersion = self.workflow_commons['configVersion']
     else:
-      configName = self.appName
-      configVersion = self.appVersion
+      configName = self.applicationName
+      configVersion = self.applicationVersion
 
     s = s+'<Job ConfigName="'+configName+ \
           '" ConfigVersion="'+configVersion+ \
@@ -96,8 +134,8 @@ class BookkeepingReport(object):
     if  os.environ.has_key('XMLDDDB_VERSION'):
       s = s+self.__parameter_string("XmlDDDBVersion",os.environ["XMLDDDB_VERSION"],'Info')
 
-    s = s+self.__parameter_string("ProgramName",self.appName,'Info')
-    s = s+self.__parameter_string("ProgramVersion",self.appVersion,'Info')
+    s = s+self.__parameter_string("ProgramName",self.applicationName,'Info')
+    s = s+self.__parameter_string("ProgramVersion",self.applicationVersion,'Info')
 
     # DIRAC version
     s = s+self.__parameter_string('DIRAC_Version',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
@@ -111,18 +149,23 @@ class BookkeepingReport(object):
     else:
       s = s+self.__parameter_string('FirstEventNumber',"1","Info")
 
-    if self.NUMBER_OF_EVENTS != None:
-      s = s+self.__parameter_string('StatisticsRequested',self.NUMBER_OF_EVENTS,"Info")
+    if self.numberOfEvents != None:
+      s = s+self.__parameter_string('StatisticsRequested',self.numberOfEvents,"Info")
 
-    if self.NUMBER_OF_EVENTS_INPUT != None:
-      s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS_INPUT,"Info")
+    if self.numberOfEventsInput != None:
+      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEventsInput,"Info")
     else:
-      s = s+self.__parameter_string('NumberOfEvents',self.NUMBER_OF_EVENTS,"Info")
+      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
-    self.LFN_ROOT= getLFNRoot(self.SourceData)
-    for inputname in self.inputData.split(';'):
-      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
-      s = s+'  <InputFile    Name="'+lfn+'"/>\n'
+    if self.sourceData:
+      self.LFN_ROOT= getLFNRoot(self.sourceData)
+    else:
+      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
+    if self.inputData:
+      for inputname in self.inputData.split(';'):
+        lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+        s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
 
     ####################################################################
@@ -130,20 +173,20 @@ class BookkeepingReport(object):
     # Define DATA TYPES - ugly! should find another way to do that
 
 
-    if self.EVENTTYPE != None:
-      eventtype = self.EVENTTYPE
+    if self.eventType != None:
+      eventtype = self.eventType
     else:
-      self.log.warn( 'BookkeepingReport: no EVENTTYPE specified' )
+      self.log.warn( 'BookkeepingReport: no eventType specified' )
       eventtype = 'Unknown'
-    self.log.info( 'Event type = %s' % (str(self.EVENTTYPE)))
-    self.log.info( 'stats = %s' %(self.NUMBER_OF_EVENTS_OUTPUT))
+    self.log.info( 'Event type = %s' % (str(self.eventType)))
+    self.log.info( 'stats = %s' %(self.numberOfEventsOutput))
 
-    if self.NUMBER_OF_EVENTS_OUTPUT != None:
-      statistics = self.NUMBER_OF_EVENTS_OUTPUT
-    elif self.NUMBER_OF_EVENTS != None:
-      statistics = self.NUMBER_OF_EVENTS
+    if self.numberOfEventsOutput != None:
+      statistics = self.numberOfEventsOutput
+    elif self.numberOfEvents != None:
+      statistics = self.numberOfEvents
     else:
-      self.log.warn( 'BookkeepingReport: no NUMBER_OF_EVENTS specified' )
+      self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
       statistics = "0"
 
 
@@ -154,7 +197,7 @@ class BookkeepingReport(object):
         outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
       count=count+1
     outputs_done = []
-    outputs.append(((self.appLog),('LogSE'),('LOG')))
+    outputs.append(((self.applicationLog),('LogSE'),('LOG')))
     self.log.info(outputs)
     for output,outputse,outputtype in outputs:
       typeName = outputtype.upper()
@@ -199,8 +242,8 @@ class BookkeepingReport(object):
       ############################################################
       # Log file replica information
 #      if typeName == "LOG":
-      if self.appLog != None:
-          logfile = self.appLog
+      if self.applicationLog != None:
+          logfile = self.applicationLog
           if logfile == output:
 #            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
             logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID,log=True)

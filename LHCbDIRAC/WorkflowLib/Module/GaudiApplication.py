@@ -1,15 +1,16 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.47 2008/06/03 15:15:34 joel Exp $
+# $Id: GaudiApplication.py,v 1.48 2008/06/17 09:43:13 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.47 2008/06/03 15:15:34 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.48 2008/06/17 09:43:13 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 from WorkflowLib.Module.ModuleBase                       import *
+from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
 import shutil, re, string, os, sys
@@ -21,21 +22,25 @@ class GaudiApplication(ModuleBase):
     self.enable = True
     self.version = __RCSID__
     self.debug = True
+    self.systemConfig = None
     self.log = gLogger.getSubLogger( "GaudiApplication" )
-    self.appLog = None
+    self.applicationLog = None
+    self.applicationName = None
     self.appOutputData = 'NoOutputName'
     self.appInputData = 'NoInputName'
     self.inputDataType = 'MDF'
+    self.firstEventNumber = 1
+    self.run_number = 0
     self.result = S_ERROR()
     self.logfile = None
-    self.NUMBER_OF_EVENTS = None
-    self.inputData = '' # to be resolved
-    self.InputData = '' # from the (JDL WMS approach)
+    self.numberOfEvents = None
+    self.inputData = None # to be resolved
+    self.InputData = None # from the (JDL WMS approach)
     self.outputData = None
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name=''
     self.optfile_extra = ''
-    self.optionsLinePrev = 'None'
+    self.optionsLinePrev = None
     self.optfile = ''
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
@@ -59,13 +64,8 @@ class GaudiApplication(ModuleBase):
       self.log.info('Input data defined in workflow for this Gaudi Application step')
       if type(self.inputData) != type([]):
         self.inputData = self.inputData.split(';')
-    elif os.path.exists(self.poolXMLCatName):
-      self.log.info('Determining input data from Pool XML slice')
-      inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
-      inputDataList = inputDataCatalog.getLfnsList()
-      self.inputData = inputDataList
     else:
-      self.log.verbose('Job has no input data requirement')
+      self.log.info('Job has no input data requirement')
 
     if self.inputData:
       #write opts
@@ -173,10 +173,15 @@ class GaudiApplication(ModuleBase):
         self.log.warn('Options line not in correct format ignoring string')
 
     self.resolveInputDataOpts(options)
-    if self.NUMBER_OF_EVENTS != None:
-        options.write("""ApplicationMgr.EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
-#    for opt in self.outputData.split(';'):
-#      options.write("""DigiWriter.Output = "DATAFILE='PFN:"""+opt+"""' TYP='POOL_ROOTTREE' OPT='RECREATE'";\n""")
+    if self.run_number != 0:
+        options.write("""GaussGen.RunNumber = """+str(self.run_number)+""";\n""")
+
+    if self.step_commons.has_key('firstEventNumber'):
+        self.firstEventNumber = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
+        options.write("""GaussGen.FirstEventNumber = """+str(self.firstEventNumber)+""";\n""")
+
+    if self.numberOfEvents != None:
+        options.write("""ApplicationMgr.EvtMax ="""+self.numberOfEvents+""" ;\n""")
     options.write('\n//EOF\n')
     options.close()
 
@@ -197,8 +202,8 @@ class GaudiApplication(ModuleBase):
         for opt in self.optionsLine.split(';'):
             options.write(opt+'\n')
             self.resolveInputDataPy(options)
-            if self.NUMBER_OF_EVENTS != None:
-               options.write("""ApplicationMgr().EvtMax ="""+self.NUMBER_OF_EVENTS+""" ;\n""")
+            if self.numberOfEvents != None:
+               options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
         options.close()
     except Exception, x:
         print "No additional options"
@@ -206,6 +211,32 @@ class GaudiApplication(ModuleBase):
   #############################################################################
   def execute(self):
     self.setApplicationStatus('Initializing GaudiApplication')
+    if self.workflow_commons.has_key('systemConfig'):
+       self.systemConfig = self.workflow_commons['systemConfig']
+
+    if self.step_commons.has_key('applicationName'):
+       self.applicationName = self.step_commons['applicationName']
+       self.applicationVersion = self.step_commons['applicationVersion']
+       self.applicationLog = self.step_commons['applicationLog']
+
+    if self.step_commons.has_key('numberOfEvents'):
+       self.numberOfEvents = self.step_commons['numberOfEvents']
+
+    if self.step_commons.has_key('optionsFile'):
+       self.optionsFile = self.step_commons['optionsFile']
+
+    if self.step_commons.has_key('optionsLine'):
+       self.optionsLine = self.step_commons['optionsLine']
+
+    if self.step_commons.has_key('optionsLinePrev'):
+       self.optionsLinePrev = self.step_commons['optionsLinePrev']
+
+    if self.step_commons.has_key('inputDataType'):
+       self.inputDataType = self.step_commons['inputDataType']
+
+    if self.step_commons.has_key('inputData'):
+       self.inputData = self.step_commons['inputData']
+
     optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
@@ -213,12 +244,12 @@ class GaudiApplication(ModuleBase):
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
     self.result = S_OK()
-    if not self.appName or not self.appVersion:
+    if not self.applicationName or not self.applicationVersion:
       self.result = S_ERROR( 'No Gaudi Application defined' )
     elif not self.systemConfig:
       self.result = S_ERROR( 'No LHCb platform selected' )
-    # FIXME: clarify if appLog or logfile is to be used
-    elif not self.logfile and not self.appLog:
+    # FIXME: clarify if applicationLog or logfile is to be used
+    elif not self.logfile and not self.applicationLog:
       self.result = S_ERROR( 'No Log file provided' )
 
     if not self.result['OK']:
@@ -230,13 +261,13 @@ class GaudiApplication(ModuleBase):
     cwd = os.getcwd()
     self.root = gConfig.getValue('/LocalSite/Root',cwd)
     self.log.debug(self.version)
-    self.log.info( "Executing application %s %s" % ( self.appName, self.appVersion ) )
+    self.log.info( "Executing application %s %s" % ( self.applicationName, self.applicationVersion ) )
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
     localDir = 'lib' #default
     sharedArea = SharedArea()
 
-    appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, sharedArea )
+    appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     self.log.info(appCmd)
     if appCmd:
       mySiteRoot = sharedArea
@@ -251,8 +282,11 @@ class GaudiApplication(ModuleBase):
     self.setApplicationStatus( 'Application Found' )
     self.log.info( 'Application Found:' )
     app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
-    app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.appName)+'/'+ \
-                   string.upper(self.appName)+'_'+self.appVersion+'/InstallArea'
+    app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.applicationName)+'/'+ \
+                   string.upper(self.applicationName)+'_'+self.applicationVersion+'/InstallArea'
+
+    if self.applicationName and self.PRODUCTION_ID and self.JOB_ID:
+      self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
     mysiteroot = self.root
     if os.path.exists('%s/%s' %(cwd,self.optionsFile)):
@@ -275,8 +309,8 @@ class GaudiApplication(ModuleBase):
       self.managePy()
 
 
-    if os.path.exists(self.appName+'Run.sh'): os.remove(self.appName+'Run.sh')
-    script = open(self.appName+'Run.sh','w')
+    if os.path.exists(self.applicationName+'Run.sh'): os.remove(self.applicationName+'Run.sh')
+    script = open(self.applicationName+'Run.sh','w')
 #    script.write('#!/bin/sh \n')
     script.write('#!/bin/sh \n')
 #    script.write('exit 23\n')
@@ -304,9 +338,9 @@ class GaudiApplication(ModuleBase):
     if os.path.exists(ld_base_path+'/lib/requirements'):
       self.log.debug('User requirements file found, creating fake CMT package...')
       script.write('echo Creating Fake CMT package for user requirements file...\n')
-      cmtStr = ld_base_path+'/'+self.appName+'_'+self.appVersion
-      cmtProjStr = self.appName+'_'+self.appVersion
-      cmtUpperStr = string.upper(self.appName)+' '+string.upper(self.appName)+'_'+self.appVersion
+      cmtStr = ld_base_path+'/'+self.applicationName+'_'+self.applicationVersion
+      cmtProjStr = self.applicationName+'_'+self.applicationVersion
+      cmtUpperStr = string.upper(self.applicationName)+' '+string.upper(self.applicationName)+'_'+self.applicationVersion
       script.write('mkdir -p '+cmtStr+'/cmttemp/v1/cmt\n')
       script.write('mkdir -p '+cmtStr+'/cmt\n')
       script.write('echo use '+cmtUpperStr+' >  '+cmtStr+'/cmt/project.cmt\n')
@@ -317,14 +351,14 @@ class GaudiApplication(ModuleBase):
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 +self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
+                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 +self.appName+' '+self.appVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 self.appName+' '+self.appVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
+                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+#                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
@@ -415,12 +449,12 @@ rm -f scrtmp.py
       if optionsType == 'py':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
-        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe ' #default
-        if os.path.exists('lib/'+self.appName+'.exe'):
-          exe_path = 'lib/'+self.appName+'.exe '
-          print 'Found user shipped executable '+self.appName+'.exe...'
+        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.applicationName+'.exe ' #default
+        if os.path.exists('lib/'+self.applicationName+'.exe'):
+          exe_path = 'lib/'+self.applicationName+'.exe '
+          print 'Found user shipped executable '+self.applicationName+'.exe...'
         else:
-          exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.appName+'.exe '
+          exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.applicationName+'.exe '
 
         #comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+
         comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'
@@ -432,16 +466,16 @@ rm -f scrtmp.py
     script.write('exit $appstatus\n')
     script.close()
 
-    if self.appLog == None:
-      self.appLog = self.logfile
+    if self.applicationLog == None:
+      self.applicationLog = self.logfile
 #    else:
-#      self.appLog = self.appName+'_'+self.appVersion+'.log'
+#      self.applicationLog = self.applicationName+'_'+self.applicationVersion+'.log'
 
-    if os.path.exists(self.appLog): os.remove(self.appLog)
+    if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
-    os.chmod(self.appName+'Run.sh',0755)
-    comm = 'sh -c "./'+self.appName+'Run.sh"'
-    self.setApplicationStatus('%s %s' %(self.appName,self.appVersion))
+    os.chmod(self.applicationName+'Run.sh',0755)
+    comm = 'sh -c "./'+self.applicationName+'Run.sh"'
+    self.setApplicationStatus('%s %s' %(self.applicationName,self.applicationVersion))
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput)
     resultTuple = self.result['Value']
 
@@ -451,7 +485,7 @@ rm -f scrtmp.py
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
-    logfile = open(self.appLog,'w')
+    logfile = open(self.applicationLog,'w')
     logfile.write(stdOutput)
 
     if len(stdError) > 0:
@@ -461,22 +495,22 @@ rm -f scrtmp.py
 
     failed = False
     if status != 0:
-      self.log.error( "%s execution completed with errors:" % self.appName )
+      self.log.error( "%s execution completed with errors:" % self.applicationName )
       failed = True
     elif len(stdError) > 0:
-      self.log.error( "%s execution completed with application Warning:" % self.appName )
+      self.log.error( "%s execution completed with application Warning:" % self.applicationName )
     else:
-      self.log.info( "%s execution completed succesfully:" % self.appName )
+      self.log.info( "%s execution completed succesfully:" % self.applicationName )
 
 
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.setApplicationStatus('%s Exited With Status %s' %(self.appName,status))
-      return S_ERROR('%s execution completed with errors' % (self.appName))
+      self.setApplicationStatus('%s Exited With Status %s' %(self.applicationName,status))
+      return S_ERROR('%s execution completed with errors' % (self.applicationName))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
-    self.setApplicationStatus('%s %s Successful' %(self.appName,self.appVersion))
+    self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
     return S_OK()
 
   #############################################################################
@@ -484,8 +518,8 @@ rm -f scrtmp.py
     print message
     sys.stdout.flush()
     if message:
-      if self.appLog:
-        log = open(self.appLog,'a')
+      if self.applicationLog:
+        log = open(self.applicationLog,'a')
         log.write(message+'\n')
         log.close()
       else:
