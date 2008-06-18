@@ -139,7 +139,7 @@ class BookkeepingClient:
   
   #############################################################################
   def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
-    return self.server.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
+    return self.server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
   
   #############################################################################
   
