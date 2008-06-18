@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.51 2008/06/18 07:57:27 joel Exp $
+# $Id: GaudiApplication.py,v 1.52 2008/06/18 14:05:29 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.51 2008/06/18 07:57:27 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.52 2008/06/18 14:05:29 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -22,31 +22,29 @@ class GaudiApplication(ModuleBase):
     self.enable = True
     self.version = __RCSID__
     self.debug = True
-    self.systemConfig = None
     self.log = gLogger.getSubLogger( "GaudiApplication" )
-    self.applicationLog = None
-    self.applicationName = None
-    self.appOutputData = 'NoOutputName'
-    self.appInputData = 'NoInputName'
-    self.inputDataType = 'MDF'
-    self.firstEventNumber = 1
-    self.run_number = 0
     self.result = S_ERROR()
-    self.logfile = None
-    self.numberOfEvents = None
-    self.inputData = None # to be resolved
-    self.InputData = None # from the (JDL WMS approach)
-    self.outputData = None
-    self.poolXMLCatName = 'pool_xml_catalog.xml'
-    self.generator_name=''
-    self.optfile_extra = ''
-    self.optionsLinePrev = None
-    self.optionsLine = None
     self.optfile = ''
+    self.run_number = 0
+    self.firstEventNumber = 1
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
+
+    self.systemConfig = ''
+    self.applicationLog = ''
+    self.applicationName = ''
+    self.inputDataType = 'MDF'
+    self.numberOfEvents = 0
+    self.inputData = '' # to be resolved
+    self.InputData = '' # from the (JDL WMS approach)
+    self.outputData = ''
+    self.poolXMLCatName = 'pool_xml_catalog.xml'
+    self.generator_name=''
+    self.optfile_extra = ''
+    self.optionsLinePrev = ''
+    self.optionsLine = ''
 
   #############################################################################
   def resolveInputDataOpts(self,options):
@@ -183,7 +181,7 @@ class GaudiApplication(ModuleBase):
         self.firstEventNumber = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
         options.write("""GaussGen.FirstEventNumber = """+str(self.firstEventNumber)+""";\n""")
 
-    if self.numberOfEvents != None:
+    if self.numberOfEvents != 0:
         options.write("""ApplicationMgr.EvtMax ="""+self.numberOfEvents+""" ;\n""")
     options.write('\n//EOF\n')
     options.close()
@@ -206,15 +204,13 @@ class GaudiApplication(ModuleBase):
           for opt in self.optionsLine.split(';'):
               options.write(opt+'\n')
               self.resolveInputDataPy(options)
-              if self.numberOfEvents != None:
+              if self.numberOfEvents != 0:
                  options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
         options.close()
     except Exception, x:
         print "No additional options"
 
-  #############################################################################
-  def execute(self):
-    self.setApplicationStatus('Initializing GaudiApplication')
+  def resolveInputVariables(self):
     if self.workflow_commons.has_key('SystemConfig'):
        self.systemConfig = self.workflow_commons['SystemConfig']
 
@@ -241,6 +237,10 @@ class GaudiApplication(ModuleBase):
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
 
+  #############################################################################
+  def execute(self):
+    self.setApplicationStatus('Initializing GaudiApplication')
+    self.resolveInputVariables()
     optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
@@ -253,7 +253,7 @@ class GaudiApplication(ModuleBase):
     elif not self.systemConfig:
       self.result = S_ERROR( 'No LHCb platform selected' )
     # FIXME: clarify if applicationLog or logfile is to be used
-    elif not self.logfile and not self.applicationLog:
+    elif not self.applicationLog:
       self.result = S_ERROR( 'No Log file provided' )
 
     if not self.result['OK']:
@@ -470,8 +470,8 @@ rm -f scrtmp.py
     script.write('exit $appstatus\n')
     script.close()
 
-    if self.applicationLog == None:
-      self.applicationLog = self.logfile
+#    if self.applicationLog:
+#      self.applicationLog = self.logfile
 #    else:
 #      self.applicationLog = self.applicationName+'_'+self.applicationVersion+'.log'
 
