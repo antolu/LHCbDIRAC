@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.42 2008/06/18 10:09:11 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.43 2008/06/18 10:23:27 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.42 2008/06/18 10:09:11 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.43 2008/06/18 10:23:27 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -96,11 +96,11 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def help(self):
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
-      self.helper_.helpConfig()
+      self.helper_.helpConfig(self._getTreeLevels())
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
-      self.helper_.helpEventType()  
+      self.helper_.helpEventType(self._getTreeLevels())  
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
-      self.helper_.helpProcessing()
+      self.helper_.helpProcessing(self._getTreeLevels())
   
   ############################################################################# 
   def getPossibleParameters(self):
