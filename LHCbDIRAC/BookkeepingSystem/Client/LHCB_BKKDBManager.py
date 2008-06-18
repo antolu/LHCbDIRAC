@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.40 2008/06/18 08:42:30 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.41 2008/06/18 09:40:43 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.40 2008/06/18 08:42:30 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.41 2008/06/18 09:40:43 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -383,7 +383,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
       for record in dbResult:
         processing = record[0]
-        value = {'Step 0':record[1],'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 4':record[5]}
+        value = {'Total processing pass':record[0]}
         entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
         self._cacheIt(entityList)  
       
