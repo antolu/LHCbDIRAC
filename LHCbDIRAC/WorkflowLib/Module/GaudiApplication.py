@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.50 2008/06/17 15:03:13 joel Exp $
+# $Id: GaudiApplication.py,v 1.51 2008/06/18 07:57:27 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.50 2008/06/17 15:03:13 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.51 2008/06/18 07:57:27 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -41,6 +41,7 @@ class GaudiApplication(ModuleBase):
     self.generator_name=''
     self.optfile_extra = ''
     self.optionsLinePrev = None
+    self.optionsLine = None
     self.optfile = ''
     self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
@@ -141,15 +142,16 @@ class GaudiApplication(ModuleBase):
     if os.path.exists('gaudirun.opts'): os.remove('gaudirun.opts')
     if os.path.exists('gaudiruntmp.opts'): os.remove('gaudiruntmp.opts')
     commtmp = open('gaudiruntmp.opts','w')
-    for opt in self.optionsLinePrev.split(';'):
-      if not re.search('tring',opt):
-        if re.search('#include',opt):
-          commtmp.write(opt+'\n')
+    if self.optionsLinePrev:
+      for opt in self.optionsLinePrev.split(';'):
+        if not re.search('tring',opt):
+          if re.search('#include',opt):
+            commtmp.write(opt+'\n')
+          else:
+            if opt != "None":
+              commtmp.write(opt+';\n')
         else:
-          if opt != "None":
-            commtmp.write(opt+';\n')
-      else:
-        self.log.warn('Options line not in correct format ignoring string')
+          self.log.warn('Options line not in correct format ignoring string')
     commtmp.close()
 
     if re.search('\$',self.optfile) is None:
@@ -163,14 +165,15 @@ class GaudiApplication(ModuleBase):
       commtmp.close()
 
     self.optfile = 'gaudiruntmp.opts'
-    for opt in self.optionsLine.split(';'):
-      if not re.search('tring',opt):
-        if re.search('#include',opt):
-          options.write(opt+'\n')
+    if self.optionsLine:
+      for opt in self.optionsLine.split(';'):
+        if not re.search('tring',opt):
+          if re.search('#include',opt):
+            options.write(opt+'\n')
+          else:
+            options.write(opt+';\n')
         else:
-          options.write(opt+';\n')
-      else:
-        self.log.warn('Options line not in correct format ignoring string')
+          self.log.warn('Options line not in correct format ignoring string')
 
     self.resolveInputDataOpts(options)
     if self.run_number != 0:
@@ -199,11 +202,12 @@ class GaudiApplication(ModuleBase):
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
         options.write('from Gaudi.Configuration import *\n')
-        for opt in self.optionsLine.split(';'):
-            options.write(opt+'\n')
-            self.resolveInputDataPy(options)
-            if self.numberOfEvents != None:
-               options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
+        if self.optionsLine:
+          for opt in self.optionsLine.split(';'):
+              options.write(opt+'\n')
+              self.resolveInputDataPy(options)
+              if self.numberOfEvents != None:
+                 options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
         options.close()
     except Exception, x:
         print "No additional options"
