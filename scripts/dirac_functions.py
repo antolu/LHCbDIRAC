@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.75 2008/06/17 19:25:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.76 2008/06/18 19:02:22 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.75 2008/06/17 19:25:22 rgracian Exp $"
-__VERSION__ = "$Revision: 1.75 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.76 2008/06/18 19:02:22 rgracian Exp $"
+__VERSION__ = "$Revision: 1.76 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -433,12 +433,13 @@ class functions:
           print 'if not os.path.exists( dirac_platform ):'
           print '  print >> sys.stderr, "Missing file %s" % dirac_platform'
           print '  sys.exit(-1)'
-          print '(child_stdout, child_stdin) = popen2.popen2( dirac_platform )'
-          print 'localPlatform = child_stdout.read().strip()'
+          print ' p3 = popen2.Popen3( dirac_platform )'
+          print ' localPlatform = p3.fromchild.read().strip()'
+          print ' p3.wait()'
           print 'if not localPlatform or localPlatform == "ERROR":'
           print '  print >> sys.stderr, "Can not determine local platform"'
           print 'diracPython = os.path.join( "%s", localPlatform, "bin", "python" ) ' % self.__rootPath
-          print 'if sys.executable != diracPython:'
+          print 'if os.path.realpath(sys.executable) != os.path.realpath(diracPython):'
           print '  sys.exit( os.system( "%s %s" % ( diracPython, " ".join( sys.argv ) ) ) ) '
         else:
           print line,
