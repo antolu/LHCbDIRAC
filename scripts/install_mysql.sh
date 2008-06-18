@@ -34,6 +34,42 @@ for DB in ` find DIRAC/*/DB -name "*DB.sql" -exec basename {} .sql \;` ; do
              { if ( tolower($0) ~ tolower("use "ENVIRON["DB"]";") ) N=1;
                if ( N == 1 ) print }' $file | mysql -u root $DB
 
+SYSTEM=`dirname $file` ; SYSTEM=`dirname $SYSTEM` ;SYSTEM=`basename $SYSTEM System`
+cat << EOF > /tmp/$DB.cfg
+Systems
+{
+  $SYSTEM
+  {
+    Production
+    {
+      Databases
+      {
+        $DB
+        {
+          User = Dirac
+          Host = localhost
+          Password = $diracpwd
+          DBName = $DB
+        }
+      }
+    }
+  }
+}
+EOF
+
+python << EOF
+from DIRAC.ConfigurationSystem.Client.CFG import CFG
+mainCFG = CFG()
+mainCFG.loadFromFile( "etc/dirac.cfg" )
+
+db = CFG()
+
+db.loadFromFile( "/tmp/$DB.cfg" )
+
+open( "etc/dirac.cfg", "w" ).write( str(mainCFG.mergeWith( db )) )
+
+EOF
+
 done
 
 mysqladmin flush-privileges
