@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.10 2008/06/17 22:30:48 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.11 2008/06/18 15:44:41 atsareg Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -18,7 +18,7 @@ GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.
 FLUSH PRIVILEGES;
 
 -------------------------------------------------------------------------------
-USE ProductionRepositoryDB;
+USE ProductionDB;
 -------------------------------------------------------------------------------
 -- This table keeps Workflow for the purpose of creating Productions
 -- WFName - name of the WF taken from the xml field "name"
@@ -87,4 +87,4 @@ CREATE TABLE ProductionParameters (
 -- Added the standard base class database tables here
 --
 --------------------------------------------------------------------------------
-SOURCE TransformationDB.sql
+SOURCE ../../Core/Transformation/TransformationDB.sql
