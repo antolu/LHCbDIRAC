@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.3 2008/05/30 10:48:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.4 2008/06/18 17:43:47 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -16,7 +16,8 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB01.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=HEAD
+DIRACVERSION=v0r2p2
+EXTVERSION=v0r2p0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work"
@@ -65,8 +66,8 @@ DIRAC
   Setup = $DIRACSETUP
   Configuration
   {
-    Servers =  dips://volhcb03.cern.ch:9135/Configuration/Server
-    Name = LHCb-Devel
+    Servers =  dips://volhcb01.cern.ch:9135/Configuration/Server
+    Name = LHCb-Prod
   }
   Security
   {
@@ -88,7 +89,7 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-for dir in etc data runit startup ; do
+for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
@@ -96,7 +97,7 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
 #
 # Create pro and old links
@@ -125,6 +126,16 @@ grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
 
+#
+# Configure MySQL if not yet done
+#
+
+$CURDIR/install_mysql.sh $DIRACHOST
+
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
+
+# WorkloadManagement
+# ProductionManagement
+# RequestManagement
 
 exit
