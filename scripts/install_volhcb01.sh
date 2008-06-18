@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.5 2008/06/18 17:46:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.6 2008/06/18 18:13:27 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -61,6 +61,10 @@ if [ ! -d $DESTDIR/etc ]; then
 fi
 if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
   cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
+LocalSite
+{
+  EnableAgentMonitoring = yes
+}
 DIRAC
 {
   Setup = $DIRACSETUP
