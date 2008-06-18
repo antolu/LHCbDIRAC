@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.11 2008/06/18 15:44:41 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.12 2008/06/18 16:01:57 rgracian Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -87,4 +87,4 @@ CREATE TABLE ProductionParameters (
 -- Added the standard base class database tables here
 --
 --------------------------------------------------------------------------------
-SOURCE ../../Core/Transformation/TransformationDB.sql
+SOURCE DIRAC/Core/Transformation/TransformationDB.sql
