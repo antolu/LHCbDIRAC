@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /opt/dirac/bashrc
+
 for dir in /opt/dirac/mysql/db /opt/dirac/mysql/log ; do
   [ -e $dir ] && echo "Existing directory $dir" && echo "Skip MySQL installation" && exit
 done
