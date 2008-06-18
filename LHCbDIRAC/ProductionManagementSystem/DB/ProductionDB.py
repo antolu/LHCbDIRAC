@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.34 2008/06/16 07:27:24 atsareg Exp $
+# $Id: ProductionDB.py,v 1.35 2008/06/18 17:10:52 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.34 $"
+__RCSID__ = "$Revision: 1.35 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -538,6 +538,7 @@ INDEX(WmsStatus)
       req += " LIMIT %d" % numJobs
 
     result = self._query(req)
+    
     if not result['OK']:
       return result
 
@@ -554,27 +555,33 @@ INDEX(WmsStatus)
       if not site:
         # We do not care about the destination site
         for row in result['Value']:
-          se = row[2]
-          targetSite = ''
-          for s,sList in site_se_mapping.items():
-            if se in sList:
-              targetSite = s
-          if targetSite:
-            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':se,'Status':row[3],'Site':targetSite}
-          else:
-            gLogger.warn('Can not find corresponding site for se: '+se)
-      else:
-        # Get the jobs now
-
-        for row in result['Value']:
-          if len(resultDict) < numJobs:
+          if row[1]:
             se = row[2]
             targetSite = ''
             for s,sList in site_se_mapping.items():
               if se in sList:
                 targetSite = s
-            if targetSite and targetSite == site:
-              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':targetSite}
+            if targetSite:
+              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':se,'Status':row[3],'Site':targetSite}
+            else:
+              gLogger.warn('Can not find corresponding site for se: '+se)
+          else:
+            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}  
+      else:
+        # Get the jobs now
+
+        for row in result['Value']:
+          if len(resultDict) < numJobs:
+            if row[1]:
+              se = row[2]
+              targetSite = ''
+              for s,sList in site_se_mapping.items():
+                if se in sList:
+                  targetSite = s
+              if targetSite and targetSite == site:
+                resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':targetSite}
+            else:
+              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'} 
           else:
             break
 
