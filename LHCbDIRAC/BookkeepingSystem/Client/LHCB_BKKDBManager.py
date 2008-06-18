@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.41 2008/06/18 09:40:43 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.42 2008/06/18 10:09:11 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.41 2008/06/18 09:40:43 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.42 2008/06/18 10:09:11 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -405,7 +405,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
       
       print "Aviable productions:"
-      dbResult = self.db_.getProductionsWithPocessingPass(processingPass)
+      dbResult = self.db_.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
       for record in dbResult:
         prod = str(record[0])
         entityList += [self._getEntityFromPath(path, prod, levels)]
@@ -438,7 +438,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if production != 'ALL':
         dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
       else:
-        dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType))
+        dbResult = self.db_.getFileTypesWithEventTypeALL(configName, configVersion, int(eventType))
 
       for record in dbResult:
         fileType = str(record[0])
@@ -469,7 +469,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if production != 'ALL':    
         dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))     
       else:
-        dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType))
+        dbResult = self.db_.getFilesByEventTypeALL(configName, configVersion, fileType, int(eventType))
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
         self.files_ += [record[0]]

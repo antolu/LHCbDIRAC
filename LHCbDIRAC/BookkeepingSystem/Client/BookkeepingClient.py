@@ -126,17 +126,20 @@ class BookkeepingClient:
     return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
   
   #############################################################################
-  def getFileTypesWithEventType(self, configName, configVersion, eventTypeId):
-    return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId))
+  def getFileTypesWithEventTypeALL(self, configName, configVersion, eventTypeId):
+    return self.server.getFileTypesWithEventTypeALL(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
     return self.server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId), long(production))
   
   #############################################################################
-  def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId):
-    return self.server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId))
+  def getFilesByEventTypeALL(self, configName, configVersion, fileType, eventTypeId):
+    return self.server.getFilesByEventTypeALL(configName, configVersion, fileType, long(eventTypeId))
   
+  #############################################################################
+  def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
+    return self.server.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
   
   #############################################################################
   

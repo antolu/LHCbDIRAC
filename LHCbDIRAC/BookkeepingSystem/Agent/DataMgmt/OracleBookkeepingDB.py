@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.39 2008/06/17 14:46:20 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.40 2008/06/18 10:09:11 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.39 2008/06/17 14:46:20 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.40 2008/06/18 10:09:11 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -120,7 +120,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithEventType', [configName, configVersion, eventTypeId, production])
   
   #############################################################################
-  def getFileTypesWithEventType(self, configName, configVersion, eventTypeId):
+  def getFileTypesWithEventTypeALL(self, configName, configVersion, eventTypeId):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithEventType', [configName, configVersion, eventTypeId])
   
   #############################################################################
@@ -128,8 +128,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFilesByEventType', [configName, configVersion, fileType, eventTypeId, production])
   
   #############################################################################
-  def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId):
+  def getFilesByEventTypeALL(self, configName, configVersion, fileType, eventTypeId):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getFilesByEventType', [configName, configVersion, fileType, eventTypeId])
+  
+  #############################################################################
+  def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProductionsWithEventTypes', [eventType, configName,  configVersion, processingPass])
   
     
   
