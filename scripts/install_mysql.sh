@@ -32,6 +32,7 @@ for DB in ` find DIRAC/*/DB -name "*DB.sql" -exec basename {} .sql \;` ; do
         mysqladmin create $DB
         echo "GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON $DB.* TO Dirac@localhost IDENTIFIED BY '"$diracpwd"'" | mysql -u root
         echo "GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON $DB.* TO Dirac@'%' IDENTIFIED BY '"$diracpwd"'" | mysql -u root
+        export DB
         awk 'BEGIN { N = 0 }
              { if ( tolower($0) ~ tolower("use "ENVIRON["DB"]";") ) N=1;
                if ( N == 1 ) print }' $file | mysql -u root $DB
