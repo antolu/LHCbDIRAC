@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.1 2008/05/06 09:57:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.2 2008/06/18 09:19:27 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -39,7 +39,7 @@ source $DESTDIR/bashrc
 #
 exec 2>&1
 #
-dirac-agent -o LogLevel=VERBOSE $System/$Agent \$DIRAC/etc/${System}_${Agent}.cfg
+exec dirac-agent -o LogLevel=VERBOSE $System/$Agent \$DIRAC/etc/${System}_${Agent}.cfg
 EOF
 chmod +x $AgentDir/log/run $AgentDir/run
 
