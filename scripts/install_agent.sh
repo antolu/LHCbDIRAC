@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.2 2008/06/18 09:19:27 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.3 2008/06/18 09:24:11 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -30,7 +30,7 @@ cat >> $AgentDir/log/run << EOF
 #
 source $DESTDIR/bashrc
 #
-svlogd .
+exec svlogd .
 EOF
 cat >> $AgentDir/run << EOF
 #!/bin/bash

@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.5 2008/06/18 09:19:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.6 2008/06/18 09:24:22 rgracian Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -32,7 +32,7 @@ cat > $ServiceDir/log/run << EOF
 #
 source $DESTDIR/bashrc
 #
-svlogd .
+exec svlogd .
 EOF
 cat > $ServiceDir/run << EOF
 #!/bin/bash
