@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.39 2008/06/17 15:19:10 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.40 2008/06/18 08:42:30 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.39 2008/06/17 15:19:10 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.40 2008/06/18 08:42:30 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -182,7 +182,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Configuration Version   | "+configVersion
       print "-----------------------------------------------------------"
 
-      print "Aviable Event types:\n"
+      print "Available Event types:\n"
 
       dbResult = self.db_.getEventTypes(configName, configVersion) 
       for record in dbResult:
@@ -206,7 +206,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Event type             | "+str(eventType)
       print "-----------------------------------------------------------"
 
-      print "Aviable productions:\n"
+      print "Available productions:\n"
 
       dbResult = self.db_.getProductions(configName, configVersion, eventType)
       for record in dbResult:
@@ -239,6 +239,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Production              | "+str(prod)
       print "-----------------------------------------------------------"
 
+      print "Available file types:"
       dbResult = None
       if prod != 'ALL':
         dbResult = self.db_.getFileTypes(configName, configVersion, eventType, prod)
@@ -512,7 +513,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Processing Pass:      | "+str(processingPass)
       print "-----------------------------------------------------------"
      
-      print "Aviable productions:"
+      print "Available productions:"
       dbResult = self.db_.getProductionsWithPocessingPass(processingPass)
       for record in dbResult:
         prod = str(record[0])
@@ -532,7 +533,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Production:            | "+str(prod)
       print "-----------------------------------------------------------"
       
-      print "Aviable Event types:"
+      print "Available Event types:"
       
       dbResult = self.db_.getEventTyesWithProduction(prod)
       for record in dbResult:
@@ -553,7 +554,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Event type:            |"+str(evt)
       print "-----------------------------------------------------------"
 
-      print "Aviable file types:"
+      print "Available file types:"
 
       dbResult = self.db_.getFileTypesWithProduction(prod, evt)
       for record in dbResult:
@@ -576,7 +577,7 @@ class LHCB_BKKDBManager(BaseESManager):
       print "File type              |"+fileType
       print "-----------------------------------------------------------"
 
-      print "Aviable files:"
+      print "Available files:"
 
       dbResult = self.db_.getFilesByProduction(prod, evt, fileType)
       for record in dbResult:
