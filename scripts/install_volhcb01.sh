@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.9 2008/06/19 13:26:18 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.10 2008/06/19 17:29:35 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -137,6 +137,7 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 #
 
 $CURDIR/install_mysql.sh $DIRACHOST
+/opt/dirac/pro/mysql/share/mysql/mysql.server start
 
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
 
