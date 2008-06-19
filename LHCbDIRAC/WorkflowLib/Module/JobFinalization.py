@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.69 2008/06/17 09:52:18 joel Exp $
+# $Id: JobFinalization.py,v 1.70 2008/06/19 20:32:11 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.69 2008/06/17 09:52:18 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.70 2008/06/19 20:32:11 atsareg Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -557,7 +557,7 @@ class JobFinalization(ModuleBase):
 
 
     localSEs = self.__getLocalSEList()
-    groupSEs = gConfig.getValue('/Operations/StorageElementGroups/'+outputSE,[])
+    groupSEs = gConfig.getValue('/Resources/StorageElementGroups/'+outputSE,[])
 
     if not groupSEs:
       return S_ERROR('Failed to resolve SE '+outputSE)
@@ -735,7 +735,7 @@ class JobFinalization(ModuleBase):
     """
 
     fname = os.path.basename(datafile)
-    failover_ses = gConfig.getValue('/Operations/StorageElementGroups/Tier1-Failover',[])
+    failover_ses = gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover',[])
     random.shuffle(failover_ses)
     print failover_ses
 
