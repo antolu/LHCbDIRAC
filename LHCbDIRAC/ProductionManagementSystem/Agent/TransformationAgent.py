@@ -1,16 +1,17 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.10 2008/05/08 20:28:56 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.11 2008/06/19 16:12:03 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.10 2008/05/08 20:28:56 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.11 2008/06/19 16:12:03 atsareg Exp $"
 
-from DIRAC.Core.Base.Agent    import Agent
-from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC.Core.Base.Agent      import Agent
+from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
 import os, time, random
 
 AGENT_NAME = 'ProductionManagement/TransformationAgent'
@@ -29,8 +30,11 @@ class TransformationAgent(Agent):
     """
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
+    self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','no')
+    #self.checkLFC = 'yes'
     self.dataLog = RPCClient('DataManagement/DataLogging')
     self.server = RPCClient('ProductionManagement/ProductionManager')
+    self.lfc = LcgFileCatalogCombinedClient()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
     return result
@@ -75,7 +79,7 @@ class TransformationAgent(Agent):
             nJobs = result['Value']
             gLogger.info(self.name+".execute: Transformation '%s' processed in %s seconds." % (transID,time.time()-startTime))
             if nJobs > 0:
-              gLogger.info('%d jobs generated' % nJobs)
+              gLogger.info('%d job(s) generated' % nJobs)
           else:
             gLogger.warn('Error while processing: '+result['Message'])    
 
@@ -89,7 +93,7 @@ class TransformationAgent(Agent):
             gLogger.info(self.name+".execute: Transformation '%s' flushed in %s seconds." % (transID,time.time()-startTime))
             nJobs = result['Value']
             if nJobs > 0:
-              gLogger.info('%d jobs generated' % nJobs)
+              gLogger.info('%d job(s) generated' % nJobs)
             result = self.server.setTransformationStatus(transID, 'Stopped')
             if not result['OK']:
               gLogger.error(self.name+".execute: Failed to update transformation status to 'Stopped'.", res['Message'])
@@ -125,6 +129,9 @@ class TransformationAgent(Agent):
     else:
       print "Failed to get data for transformation", prodID, result['Message']
       return S_ERROR("Failed to get data for transformation %d %s"%(prodID,result['Message']))
+
+    if self.checkLFC == 'yes' and data:
+      result = self.checkDataWithLFC(data)     
 
     gLogger.debug("Input data number of files %d" % len(data))
 
@@ -216,7 +223,7 @@ class TransformationAgent(Agent):
       if result['OK']:
         jobID = long(result['Value'])
         if jobID:
-          result = self.server.setFileStatusForTransformation(production,'Assigned',lfns)
+          result = self.server.setFileStatusForTransformation(production,[('Assigned',lfns)])
           if not result['OK']:
             gLogger.error("Failed to update file status for production %d"%production)
 
@@ -290,7 +297,7 @@ class TransformationAgent(Agent):
         if result['OK']:
           jobID = long(result['Value'])
           if jobID:
-            result = self.server.setFileStatusForTransformation(production,'Assigned',lfns)
+            result = self.server.setFileStatusForTransformation(production,[('Assigned',lfns)])
             if not result['OK']:
               gLogger.error("Failed to update file status for production %d"%production)
 
@@ -337,3 +344,22 @@ class TransformationAgent(Agent):
       
     result = self.server.addProductionJob(prodID, vector, se)
     return result
+
+  ######################################################################################
+  def checkDataWithLFC(self,data):
+    """ Check the lfns and replicas with the LFC catalog
+    """
+    
+    # Sort files by LFN
+    datadict = {}
+    for lfn,se in data:
+      print "AT >>>>>>",lfn,se
+      if not datadict.has_key(lfn):
+        datadict[lfn] = []
+      datadict[lfn].append(se)
+      
+    lfns = datadict.keys()
+    result = self.lfc.getReplicas(lfns)
+    if result['OK']:
+      print result
+      
