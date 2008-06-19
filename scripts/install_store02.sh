@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.6 2008/05/17 18:08:20 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.7 2008/06/19 06:21:50 rgracian Exp $
 # File :   install_store02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -295,8 +295,8 @@ grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
 
-$DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager no
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement    TransferAgent  no
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement    RemovalAgent   no
+$DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement    TransferAgent
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement    RemovalAgent
 
 exit
