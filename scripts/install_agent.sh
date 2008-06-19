@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.3 2008/06/18 09:24:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.4 2008/06/19 06:19:47 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@ Agent=$2
 echo ${System}/${Agent} ..
 #
 AgentDir=$DESTDIR/runit/${System}/${Agent}Agent
-if [ -z "$3" ] || [ -d  $AgentDir ] ; then
+if [ -d  $AgentDir ] && [ ! -z "$3" ] ; then
   # Create a new installation or Replace existing on if required
   rm -rf $AgentDir
   mkdir -p $AgentDir/log
