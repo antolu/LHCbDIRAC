@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.5 2008/06/19 13:07:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.6 2008/06/19 13:08:31 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -48,6 +48,9 @@ chmod +x $AgentDir/log/run $AgentDir/run
 
 touch $DIRAC/etc/${System}_${Agent}.cfg
 cd $AgentDir
+
+# If the installation is not new do not try to restart the agent
+[ -z "$NewInstall" ] && exit 1
 
 runsv . &
 id=$!
