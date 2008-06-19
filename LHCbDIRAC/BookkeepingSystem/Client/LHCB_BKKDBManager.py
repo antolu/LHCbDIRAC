@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.44 2008/06/19 14:35:39 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.45 2008/06/19 14:42:05 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.44 2008/06/19 14:35:39 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.45 2008/06/19 14:42:05 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -314,7 +314,7 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = self.db_.getSpecificFilesWithoutProd(configName,configVersion,pname,pversion,filetype,eventType)
       
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':filetype, 'EvtTypeId':int(eventType)}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)    
