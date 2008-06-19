@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.8 2008/06/19 11:08:41 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.9 2008/06/19 13:26:18 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -70,7 +70,8 @@ DIRAC
   Setup = $DIRACSETUP
   Configuration
   {
-    Servers =  dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
+    Servers += dips://volhcb03.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
