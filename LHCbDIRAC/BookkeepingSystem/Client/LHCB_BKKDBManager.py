@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.43 2008/06/18 10:23:27 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.44 2008/06/19 14:35:39 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.43 2008/06/18 10:23:27 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.44 2008/06/19 14:35:39 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -748,3 +748,51 @@ class LHCB_BKKDBManager(BaseESManager):
     for file in files:
       sum += int(file['EventStat'])
     return sum
+  
+  #############################################################################       
+  def writeJobOptions(self, files, optionsFile = "jobOptions.opts"):
+    # get lst of event types
+    import time
+    evtTypes = {}
+    nbEvts = 0
+    fileType = None
+    for file in files:
+        type = int(file['EvtTypeId'])
+        stat = int(file['EventStat'])
+        if not evtTypes.has_key(type):
+            evtTypes[type] = [0, 0, 0.]
+        evtTypes[type][0] += 1
+        evtTypes[type][1] += stat
+        evtTypes[type][2] += int(file['Size'])/1000000000.
+        nbEvts += stat
+        if not fileType:
+            fileType = file['FileType']
+        if file['FileType'] != fileType:
+            print "All files don't have the same type, impossible to write jobOptions"
+            return 1
+
+    fd = open(optionsFile, 'w')
+    fd.write("//-- GAUDI jobOptions generated on " + time.asctime() + "\n")
+    fd.write("//-- Contains event types : \n")
+    types = evtTypes.keys()
+    types.sort()
+    for type in types:
+        fd.write("//--   %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2]))
+
+    # Now write the event selector option
+    fd.write("\nEventSelector.Input   = {\n")
+    fileType = fileType.split()[0]
+    poolTypes = ["DST", "RDST", "DIGI", "SIM"]
+    mdfTypes = ["RAW"]
+    etcTypes = ["SETC", "FETC", "ETC"]
+    lfns = [file['FileName'] for file in files]
+    lfns.sort()
+    for lfn in lfns:
+        if fileType in poolTypes:
+            fd.write("\"DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"\n")
+        elif fileType in mdfTypes:
+            continue
+        elif fileType in etcTypes:
+            fd.write("\"COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"\n")
+    fd.write("};\n")
+    fd.close
