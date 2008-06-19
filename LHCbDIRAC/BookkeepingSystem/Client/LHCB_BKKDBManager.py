@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.47 2008/06/19 16:31:01 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.48 2008/06/19 16:32:43 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.47 2008/06/19 16:31:01 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.48 2008/06/19 16:32:43 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -763,7 +763,7 @@ class LHCB_BKKDBManager(BaseESManager):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
-        evtTypes[type][2] += int(file['Size'])/1000000000.
+        evtTypes[type][2] += int(file['FileSize'])/1000000000.
         nbEvts += stat
         if not fileType:
             fileType = file['FileType']
