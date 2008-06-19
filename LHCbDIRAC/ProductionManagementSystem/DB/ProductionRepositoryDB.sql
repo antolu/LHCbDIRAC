@@ -97,16 +97,16 @@ CREATE TABLE Transformations (
 --   DONE - job finished
 -- JobWmsID - index of this job in the WMS
 --------------------------------------------------------------------------------
-DROP TABLE IF EXISTS Jobs_<ProductionID>;
-CREATE TABLE  Jobs_<ProductionID>(
-  JobID INTEGER NOT NULL AUTO_INCREMENT,
-  WmsStatus char(16) DEFAULT 'CREATED',
-  JobWmsID char(16),
-  InputVector BLOB DEFAULT 0,
-  PRIMARY KEY(JobID)
-);
-
-
+-- DROP TABLE IF EXISTS Jobs_<ProductionID>;
+-- CREATE TABLE  Jobs_<ProductionID>(
+--   JobID INTEGER NOT NULL AUTO_INCREMENT,
+--   WmsStatus char(16) DEFAULT 'CREATED',
+--   JobWmsID char(16),
+--   InputVector BLOB DEFAULT 0,
+--   PRIMARY KEY(JobID)
+-- );
+-- 
+-- 
 --    self.always    = 'ALWAYS'
 --    self.info      = 'INFO'
 --    self.verbose   = 'VERB'
