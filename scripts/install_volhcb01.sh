@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.7 2008/06/19 06:28:14 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.8 2008/06/19 11:08:41 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -138,6 +138,30 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 $CURDIR/install_mysql.sh $DIRACHOST
 
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
+
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobManager
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobMonitoring
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement OptimizerFIFO
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProxyRenewalAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
+# Missing in CS
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
+# $DESTDIR/pro/scripts/install_service.sh WorkloadManagement ProxyManager
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
 # WorkloadManagement
 # ProductionManagement
