@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.6 2008/06/19 13:08:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.7 2008/06/19 15:16:54 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -54,7 +54,7 @@ cd $AgentDir
 
 runsv . &
 id=$!
-sleep 2
+sleep 5
 echo d > supervise/control
 sleep 1
 kill  $id

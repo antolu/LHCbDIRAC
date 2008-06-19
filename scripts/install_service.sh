@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.9 2008/06/19 13:07:15 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.10 2008/06/19 15:17:16 rgracian Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -55,7 +55,7 @@ cd $ServiceDir
 
 runsv . &
 id=$!
-sleep 2
+sleep 5
 echo d > supervise/control
 sleep 1
 kill  $id
