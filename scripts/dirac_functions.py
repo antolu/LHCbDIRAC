@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.79 2008/06/19 13:57:23 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.80 2008/06/19 15:33:57 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.79 2008/06/19 13:57:23 rgracian Exp $"
-__VERSION__ = "$Revision: 1.79 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.80 2008/06/19 15:33:57 rgracian Exp $"
+__VERSION__ = "$Revision: 1.80 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -64,6 +64,7 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                             'external/MySQL-python',
                             'external/rrdtool',
                             'contrib/pyPlotTools',
+                            'contrib/ClassAdCondor',
                             'external/Pylons'],
                'directories': ['contrib',
                                'external']
@@ -88,7 +89,7 @@ bin_tars = [ { 'name': 'DIRAC-external-client',
              },
              { 'name' : 'DIRAC-external',
                'packages': ['contrib/pyPlotTools',
-                            'external/classads-0.9.9',
+                            'contrib/ClassAdCondor',
                             'external/MySQL',
                             'external/MySQL-python',
                             'external/Pylons',
