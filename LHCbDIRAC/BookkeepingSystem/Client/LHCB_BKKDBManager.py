@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.46 2008/06/19 14:45:09 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.47 2008/06/19 16:31:01 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.46 2008/06/19 14:45:09 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.47 2008/06/19 16:31:01 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -751,7 +751,7 @@ class LHCB_BKKDBManager(BaseESManager):
   
   #############################################################################       
   def writeJobOptions(self, files, optionsFile = "jobOptions.opts"):
-    # get lst of event types
+       # get lst of event types
     import time
     evtTypes = {}
     nbEvts = 0
@@ -763,7 +763,7 @@ class LHCB_BKKDBManager(BaseESManager):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
-        evtTypes[type][2] += int(file['FileSize'])/1000000000.
+        evtTypes[type][2] += int(file['Size'])/1000000000.
         nbEvts += stat
         if not fileType:
             fileType = file['FileType']
@@ -772,27 +772,44 @@ class LHCB_BKKDBManager(BaseESManager):
             return 1
 
     fd = open(optionsFile, 'w')
-    fd.write("//-- GAUDI jobOptions generated on " + time.asctime() + "\n")
-    fd.write("//-- Contains event types : \n")
+    n,ext = os.path.splitext(optionsFile)
+    pythonOpts = ext == '.py'
+    if pythonOpts:
+        comment = "#-- "
+    else:
+        comment = "//-- "
+    fd.write(comment + "GAUDI jobOptions generated on " + time.asctime() + "\n")
+    fd.write(comment + "Contains event types : \n")
     types = evtTypes.keys()
     types.sort()
     for type in types:
-        fd.write("//--   %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2]))
+        fd.write(comment + "  %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2]))
 
     # Now write the event selector option
-    fd.write("\nEventSelector.Input   = {\n")
+    if pythonOpts:
+        fd.write("\nEventSelector.Input()   = [\n")
+    else:
+        fd.write("\nEventSelector.Input   = {\n")
     fileType = fileType.split()[0]
     poolTypes = ["DST", "RDST", "DIGI", "SIM"]
     mdfTypes = ["RAW"]
     etcTypes = ["SETC", "FETC", "ETC"]
     lfns = [file['FileName'] for file in files]
     lfns.sort()
+    first = True
     for lfn in lfns:
+        if not first:
+            fd.write(",\n")
+        first = False
         if fileType in poolTypes:
-            fd.write("\"DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"\n")
+            fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"")
         elif fileType in mdfTypes:
-            continue
+            fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"")
         elif fileType in etcTypes:
-            fd.write("\"COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"\n")
-    fd.write("};\n")
+            fd.write("\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"")
+    if pythonOpts:
+        fd.write("]\n")
+    else:
+        fd.write("\n};\n")
     fd.close
+
