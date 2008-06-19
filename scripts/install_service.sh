@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.7 2008/06/19 06:16:07 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.8 2008/06/19 11:25:13 rgracian Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -19,9 +19,9 @@ ServiceDir=$DESTDIR/runit/${System}/${Service}
 if [ -d  $ServiceDir ] && [ ! -z "$3" ] ; then
   # Create a new installation or Replace existing on if required
   rm -rf $ServiceDir
-  mkdir -p $ServiceDir/log
   NewInstall=1
 fi
+mkdir -p $ServiceDir/log
 #
 cat > $ServiceDir/log/config << EOF
 s10000000
