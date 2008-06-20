@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.40 2008/06/18 10:09:11 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.41 2008/06/20 16:41:02 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.40 2008/06/18 10:09:11 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.41 2008/06/20 16:41:02 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -141,9 +141,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
   data insertation into the database
   """
   #############################################################################
-  def file(self, fileName):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+  def checkfile(self, fileName): #file
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])
+    result = []
+    if len(result!=0):
+      return S_OK(result)
+    else:
+      gLogger.error("File not found! with" + str(fileName))
+      return S_ERROR("File not found! with" + str(fileName))
   
   #############################################################################
   def fileTypeAndFileTypeVersion(self, type, version):
