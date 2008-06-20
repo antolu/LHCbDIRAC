@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.13 2008/06/20 04:57:44 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.14 2008/06/20 04:59:04 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -149,7 +149,6 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement OptimizerFIFO
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProxyRenewalAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
