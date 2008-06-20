@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.11 2008/06/19 17:43:55 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.12 2008/06/20 04:56:22 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -165,8 +165,12 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
-# WorkloadManagement
-# ProductionManagement
+$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
+$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionRepository
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
+
 # RequestManagement
 
 exit
