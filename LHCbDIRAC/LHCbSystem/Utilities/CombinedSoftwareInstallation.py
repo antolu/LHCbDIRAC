@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.2 2008/06/05 14:10:41 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.3 2008/06/20 16:17:59 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.2 2008/06/05 14:10:41 paterson Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.3 2008/06/20 16:17:59 paterson Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -211,7 +211,11 @@ def CheckApplication(app, config, area):
   gaudiExe = os.path.join( appRoot, config, appName+'.exe' )
   if not os.path.exists( gaudiExe ):
     DIRAC.gLogger.warn( 'Executable does not exist:', gaudiExe )
-    return False
+   #Should rely on setup project to determine whether a project is
+   #installed, the NewGaudiApplication module relies on the executable
+   #path but this is the only module hence retaining the functionality.
+   #the True below allows e.g. Bender to be discovered.
+    return True
 
   return gaudiExe
 
