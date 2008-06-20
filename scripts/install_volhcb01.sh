@@ -1,6 +1,6 @@
 #!/bin/bash 
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.14 2008/06/20 04:59:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.15 2008/06/20 06:08:50 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -17,7 +17,7 @@ DESTDIR=/opt/dirac
 SiteName=VOLHCB01.CERN.CH
 DIRACSETUP=LHCb-Production
 DIRACVERSION=v0r2p1
-EXTVERSION=v0r2p1
+EXTVERSION=v0r2p0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work"
