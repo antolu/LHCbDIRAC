@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.1 2008/06/06 15:55:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.2 2008/06/20 09:19:49 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -56,7 +56,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.1 2008/06/06 15:55:00 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.2 2008/06/20 09:19:49 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -66,6 +66,8 @@ from DIRAC.Core.Workflow.Step                       import *
 from DIRAC.Core.Workflow.Workflow                   import *
 from DIRAC.Core.Workflow.WorkflowReader             import *
 from DIRAC.Interfaces.API.Job                       import Job
+from DIRAC.Core.Utilities.File                      import makeGuid
+from DIRAC                                          import gConfig
 
 COMPONENT_NAME='/WorkflowLib/API/LHCbJob'
 
@@ -80,9 +82,10 @@ class LHCbJob(Job):
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
+    self.scratchDir = gConfig.getValue(self.section+'/LocalSite/ScratchDir','/tmp')
 
   #############################################################################
-  def setApplication(self,appName,appVersion,optionsFile='',logFile=''):
+  def setApplication(self,appName,appVersion,optionsFiles,inputData='',optionsLine='',inputDataType='',logFile=''):
     """Helper function.
 
        Specify application for DIRAC workflows.
@@ -90,116 +93,111 @@ class LHCbJob(Job):
        For LHCb these could be e.g. Gauss, Boole, Brunel,
        DaVinci, Bender, etc.
 
-       The options file for the application step can also be specified, if not
-       given, the default application options file will be used.  If this is
-       specified, the file is automatically appended to the job input sandbox.
+       The optionsFiles parameter can be the path to an options file or a list of paths to options files.
+       All options files are automatically appended to the job input sandbox but the first in the case of a
+       list is assumed to be the 'master' options file.
 
-       Any additional options files should be specified in the job...
+       Input data for application can be specified here, please note that if this is set at the job level,
+       e.g. via setInputData() the full list is passed to each application step. The above inputData parameter
+       can optionally be used to specify a subset of the job input data required for this application step.
+
+       Any input data specified at this level that is not already specified at the job level is added automatically
+       as a requirement for the job.
 
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setApplication('DaVinci','v19r5',optionsFile='MyDV.opts',logFile='dv.log')
+       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',logFile='dv.log')
 
        @param appName: Application name
        @type appName: string
        @param appVersion: Application version
        @type appVersion: string
+       @param optionsFiles: Path to options file(s) for application
+       @type optionsFiles: string or list
+       @param inputData: Input data for application (if a subset of the overall input data for a given job is required)
+       @type inputData: single LFN or list of LFNs
+       @param optionsLine: Additional options lines for application
+       @type optionsLine: string
+       @param inputDataType: Input data type for application (e.g. DATA, MDF, ETC)
+       @type inputDataType: string
        @param logFile: Optional log file name
        @type logFile: string
-       @param optionsFile: Can specify options file for application here
-       @type optionsFile: string
     """
-    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
+    if not type(appName) in types.StringTypes or not type(appVersion) in types.StringTypes:
       raise TypeError,'Expected strings for application name and version'
 
     if logFile:
-      if type(logFile) == type(' '):
+      if type(logFile) in types.StringTypes:
         logName = logFile
       else:
         raise TypeError,'Expected string for log file name'
     else:
       logName = '%s_%s.log' %(appName,appVersion)
 
-    self.gaudiStepCount +=1
-    module =  self.__getGaudiApplicationModule()
 
-    moduleName = '%s%s' %(appName,appVersion)
+    if not type(inputDataType) in types.StringTypes:
+      raise TypeError,'Expected string for input data type'
+    if not inputDataType:
+      inputDataType=self.inputDataType
+
+    optionsFile=None
+    if not optionsFiles:
+      raise TypeError,'Expected string or list for optionsFiles'
+    if type(optionsFiles) in types.StringTypes:
+      optionsFiles = [optionsFiles]
+    if not type(optionsFiles) == type([]):
+      raise TypeError,'Expected string or list for optionsFiles'
+    for optsFile in optionsFiles:
+      if not optionsFile:
+        self.log.verbose('Found master options file %s' %optsFile)
+        optionsFile = optsFile
+      if os.path.exists(optsFile):
+        self.log.verbose('Found specified options file: %s' %optsFile)
+        self.addToInputSandbox.append(optsFile)
+      else:
+        raise TypeError,'Specified options file %s does not exist' %(optsFile)
+
+    if inputData:
+      if type(inputData) in types.StringTypes:
+        inputData = [inputData]
+      if not type(inputData)==type([]):
+        raise TypeError,'Expected single LFN string or list of LFN(s) for inputData'
+      for i in xrange(len(inputData)):
+        inputData[i] = inputData[i].replace('LFN:','')
+      inputData = map( lambda x: 'LFN:'+x, inputData)
+      inputDataStr = string.join(inputData,';')
+      self.addToInputData.append(inputDataStr)
+
+    self.gaudiStepCount +=1
     stepNumber = self.gaudiStepCount
     stepDefn = '%sStep%s' %(appName,stepNumber)
+    step =  self.__getGaudiApplicationStep(stepDefn)
+
     stepName = 'Run%sStep%s' %(appName,stepNumber)
 
     logPrefix = 'Step%s_' %(stepNumber)
     logName = '%s%s' %(logPrefix,logName)
     self.addToOutputSandbox.append(logName)
 
-    step = StepDefinition(stepDefn)
-    step.addModule(module)
-    #TODO: add links to input data and set value for input data type
-    inputParamNames = ['appName','appVersion','optionsFile','optionsLine','systemConfig','logfile']
-    for p in inputParamNames:
-      step.addParameter(module.findParameter(p))
-
-    step.addParameter(module.findParameter('inputData'))
-    step.addParameter(module.findParameter('inputDataType'))
-
-    moduleInstance = step.createModuleInstance('GaudiApplication',moduleName)
-    for p in inputParamNames:
-      moduleInstance.findParameter(p).link('self',p)
-
-    moduleInstance.findParameter('inputData').link('self','inputData')
-    moduleInstance.findParameter('inputDataType').link('self','inputDataType')
-
-    outputParamNames = ['result']
-    for p in outputParamNames:
-      outputParam = moduleInstance.findParameter(p)
-      step.addParameter(Parameter(parameter=outputParam))
-      step.findParameter(p).link(moduleName,p)
-
-    step.findParameter('inputData').link(moduleName,'inputData')
-    step.findParameter('inputDataType').link(moduleName,'inputDataType')
-
     self.workflow.addStep(step)
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
-    for p in inputParamNames:
-      self.workflow.addParameter(step.findParameter(p),stepPrefix)
-    for p in outputParamNames:
-      self.workflow.addParameter(step.findParameter(p),stepPrefix)
-
+    # Define Step and its variables
     stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
 
-    gaudiParams = ParameterCollection()
-    for p in inputParamNames:
-      gaudiParams.append(moduleInstance.findParameter(p))
-
-    stepInstance.linkUp(gaudiParams,stepPrefix)
-    stepInstance.setLink("inputData","self", "InputData")
-    stepInstance.setLink("inputDataType","self", "InputDataType")
-    self.workflow.findParameter('%sappName' %(stepPrefix)).setValue(appName)
-    self.workflow.findParameter('%sappVersion' %(stepPrefix)).setValue(appVersion)
-    self.workflow.findParameter('%slogfile' %(stepPrefix)).setValue(logName)
-
-    if not optionsFile:
-      self.workflow.findParameter('%soptionsFile' %(stepPrefix)).setValue('')
-    elif os.path.exists(optionsFile):
-      self.workflow.findParameter('%soptionsFile' %(stepPrefix)).setValue(os.path.basename(optionsFile))
-      self.addToInputSandbox.append(optionsFile)
-    else:
-      raise TypeError,'Specified options file should exist locally'
-
-    if not self.systemConfig:
-      raise TypeError, 'Job system configuration (CMTCONFIG) must be specified before application'
-    else:
-      self.workflow.findParameter('%ssystemConfig' %(stepPrefix)).setValue(self.systemConfig)
-
-    for p in outputParamNames:
-      self.workflow.findParameter('%s%s' %(stepPrefix,p)).link(stepInstance.getName(),'%s' %(p))
-
-    # set the value for input data type (can be overidden explicitly)
-    description = 'Default input data type field'
-    self._addParameter(self.workflow,'InputDataType','JDL',self.inputDataType,description)
+    stepInstance.setValue("applicationName",appName)
+    stepInstance.setValue("applicationVersion",appVersion)
+    stepInstance.setValue("applicationLog",logName)
+    if optionsFile:
+      stepInstance.setValue("optionsFile",optionsFile)
+    if optionsLine:
+      stepInstance.setValue("optionsLine",optionsLine)
+    if inputDataType:
+      stepInstance.setValue("inputDataType",inputDataType)
+    if inputData:
+      stepInstance.setValue("inputData",inputData)
 
     # now we have to tell DIRAC to install the necessary software
     currentApp = '%s.%s' %(appName,appVersion)
@@ -213,26 +211,32 @@ class LHCbJob(Job):
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
-  def __getGaudiApplicationModule(self):
+  def __getGaudiApplicationStep(self,name='GaudiApplication'):
     """Internal function.
 
-      This method controls the definition for a GaudiApplication module.
+        This method controls the definition for a GaudiApplication step.
     """
+    # Create the GaudiApplication module first
     moduleName = 'GaudiApplication'
     module = ModuleDefinition(moduleName)
-    self._addParameter(module,'appName','Parameter','string','Application Name')
-    self._addParameter(module,'appVersion','Parameter','string','Application Version')
-    self._addParameter(module,'optionsFile','Parameter','string','Options File Name')
-    self._addParameter(module,'optionsLine','String','string','Options Line')
-    self._addParameter(module,'systemConfig','Parameter','string','CMTCONFIG Value')
-    self._addParameter(module,'logfile','Parameter','string','Log File Name')
-    self._addParameter(module,'result','Parameter','string','Execution Result',io='output')
-    self._addParameter(module,'inputData','Parameter','','Input data')
-    self._addParameter(module,'inputDataType','String','','Automatically resolved input data type')
     module.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
     body = 'from WorkflowLib.Module.GaudiApplication import GaudiApplication\n'
     module.setBody(body)
-    return module
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    moduleInstance = step.createModuleInstance('GaudiApplication',name)
+    # Define step parameters
+    step.addParameter(Parameter("applicationName","","string","","",False, False, "Application Name"))
+    step.addParameter(Parameter("applicationVersion","","string","","",False, False, "Application Name"))
+    step.addParameter(Parameter("applicationLog","","string","","",False,False,"Name of the output file of the application"))
+    step.addParameter(Parameter("optionsFile","","string","","",False,False,"Options File"))
+    step.addParameter(Parameter("optionsLine","","string","","",False,False,"This is appended to standard options"))
+    #step.addParameter(Parameter("optionsLinePrev","","string","","",False,False,"options to be added first","option"))
+    #step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))
+    step.addParameter(Parameter("inputDataType","","string","","",False, False, "Input Data Type"))
+    step.addParameter(Parameter("inputData","","string","","",False, False, "Input Data Type"))
+    return step
 
   #############################################################################
   def setApplicationScript(self,appName,appVersion,script,arguments='',poolXMLCatalog='pool_xml_catalog.xml',logFile=''):
@@ -352,7 +356,7 @@ class LHCbJob(Job):
     self.addToInputSandbox.append(script)
 
     if not self.systemConfig:
-      raise TypeError, 'Job system configuration (CMTCONFIG) must be specified before application'
+      raise TypeError, 'Job system configuration (CMTCONFIG) must be specified before LHCb application'
     else:
       self.workflow.findParameter('%ssystemConfig' %(stepPrefix)).setValue(self.systemConfig)
 
@@ -396,6 +400,72 @@ class LHCbJob(Job):
     body = 'from WorkflowLib.Module.GaudiApplicationScript import GaudiApplicationScript\n'
     module.setBody(body)
     return module
+
+  #############################################################################
+  def setBenderModule(self,benderVersion,modulePath,inputData=[],numberOfEvents=-1):
+    """Helper function.
+
+       Specify application for DIRAC workflows.
+
+       For LHCb these could be e.g. Gauss, Boole, Brunel,
+       DaVinci, Bender, etc.
+
+       The options file for the application step can also be specified, if not
+       given, the default application options file will be used.  If this is
+       specified, the file is automatically appended to the job input sandbox.
+
+       Any additional options files should be specified in the job...
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> job.setBenderModule('v8r3','BenderExample.PhiMC',inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
+
+       @param benderVersion: Bender Project Version
+       @type benderVersion: string
+       @param appVersion: Application version
+       @type appVersion: string
+       @param logFile: Optional log file name
+       @type logFile: string
+       @param optionsFile: Can specify options file for application here
+       @type optionsFile: string
+    """
+    if not type(benderVersion)==type(' '):
+      raise TypeError, 'Bender version should be a string'
+    if not type(modulePath)==type(' '):
+      raise TypeError, 'Bender module path should be a string'
+    if not type(numberOfEvents)==type(2):
+      try:
+        numberOfEvents=int(numberOfEvents)
+      except Exception,x:
+        raise TypeError, 'Number of events should be an integer or convertible to an integer'
+    if not type(inputData)==type([]):
+      raise TypeError, 'Input datas should be specified as a list'
+
+    poolCatName='xmlcatalog_file:pool_xml_catalog.xml'
+    benderScript = ['#!/usr/bin/env python']
+    benderScript.append('from Gaudi.Configuration import FileCatalog')
+    benderScript.append('FileCatalog   ( Catalogs = [ "%s" ] )' %poolCatName)
+    benderScript.append('import %s as USERMODULE' %modulePath)
+    benderScript.append('USERMODULE.configure()')
+    benderScript.append('gaudi = USERMODULE.appMgr()')
+    benderScript.append('evtSel = gaudi.evtSel()')
+    benderScript.append('evtSel.open ( %s ) ' %inputData)
+    benderScript.append('USERMODULE.run( %s )' %numberOfEvents)
+    guid = makeGuid()
+    tmpdir = self.scratchDir+'/'+guid
+    self.log.verbose('Created temporary directory for submission %s' % (tmpdir))
+    os.mkdir(tmpdir)
+    fopen = open('%s/BenderScript.py' %tmpdir,'w')
+    self.log.verbose('Bender script is: %s/BenderScript.py' %tmpdir)
+    fopen.write(string.join(benderScript,'\n'))
+    fopen.close()
+    userModule = '%s.py' %(string.split(modulePath,'.')[-1])
+    self.log.verbose('Looking for user module with name: %s' %userModule)
+    if os.path.exists(userModule):
+      self.addToInputSandbox.append(userModule)
+    self.setInputData(inputData)
+    self.setApplicationScript('Bender', benderVersion, '%s/BenderScript.py' %tmpdir, logFile='Bender%s.log' %benderVersion)
 
   #############################################################################
   def __getCurrentStepPrefix(self):
