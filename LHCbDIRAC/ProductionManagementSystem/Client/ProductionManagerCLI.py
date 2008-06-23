@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.4 2008/06/16 07:32:59 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.5 2008/06/23 11:24:00 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.4 2008/06/16 07:32:59 atsareg Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.5 2008/06/23 11:24:00 atsareg Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 import cmd
 import sys, os
@@ -38,8 +38,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
   def __init__( self ):
     TransformationDBCLI.__init__( self )
     self.identSpace = 20
-    self.serverUrl = gConfig.getValue('/Systems/ProductionManagement/Development/URLs/ProductionManager')
-    self.server=RPCClient(self.serverUrl)
+    self.server=RPCClient('ProductionManagement/ProductionManager')
     self.lfc = None
 
   #def stripDN(self, dn):
