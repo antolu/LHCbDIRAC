@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.3 2008/06/23 11:23:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.4 2008/06/23 13:19:06 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -56,7 +56,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.3 2008/06/23 11:23:58 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.4 2008/06/23 13:19:06 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -447,8 +447,8 @@ class LHCbJob(Job):
     return self.currentStepPrefix
 
   #############################################################################
-  def addPackage(self,pname,pversion):
-    """Under development. Helper function.
+  def addPackage(self,appName,appVersion):
+    """Helper function.
 
        Specify additional software packages to be installed on Grid
        Worker Node before job execution commences.
@@ -464,7 +464,18 @@ class LHCbJob(Job):
        @type pversion: Package version string
 
     """
-    print 'To implement addPackage(), pending update to install_project to cope with local + shared installations'
+    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
+      raise TypeError,'Expected strings for application name and version'
+    currentApp = '%s.%s' %(appName,appVersion)
+    swPackages = 'SoftwarePackages'
+    description='List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter(swPackages):
+      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    else:
+      apps = self.workflow.findParameter(swPackages).getValue()
+      if apps:
+        apps += ';'+currentApp
+        self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
   def setAncestorDepth(self,depth):
