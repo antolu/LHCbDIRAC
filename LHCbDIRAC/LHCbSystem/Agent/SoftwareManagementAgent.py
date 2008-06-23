@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.1 2008/06/05 13:55:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.2 2008/06/23 15:20:41 paterson Exp $
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.1 2008/06/05 13:55:20 paterson Exp $"
+__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.2 2008/06/23 15:20:41 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
@@ -98,29 +98,40 @@ class SoftwareManagementAgent(Agent):
 
     for systemConfig in localPlatforms:
       self.log.info('The following software packages will be installed by %s:\n%s\nfor system configuration %s' %(AGENT_NAME,string.join(installList,'\n'),systemConfig))
+      packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig)).replace(' ','').split(',')
+
       for installPackage in installList:
         appNameVersion = string.split(installPackage,'.')
         if not len(appNameVersion)==2:
           return self.__finish('Could not determine name and version of package: %s' %installPackage)
-        self.log.info('Attempting to install %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-        result = InstallApplication(appNameVersion, systemConfig, sharedArea )
-        #result = True
-        if not result: #or not result['OK']:
-          return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+        #Must check that package to install is supported by LHCb for requested system configuration
+
+        if installPackage in packageList:
+          self.log.info('Attempting to install %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          result = InstallApplication(appNameVersion, systemConfig, sharedArea )
+          #result = True
+          if not result: #or not result['OK']:
+            return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+          else:
+            self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
         else:
-          self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          self.log.info('%s is not supported for system configuration %s, nothing to install.' %(installPackage,systemConfig))
 
       for removePackage in removeList:
         appNameVersion = string.split(removePackage,'.')
         if not len(appNameVersion)==2:
           return self.__finish('Could not determine name and version of package: %s' %installPackage)
-        self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-        result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
-        result = True
-        if not result: # or not result['OK']:
-          return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+
+        if removePackage in packageList:
+          self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
+          result = True
+          if not result: # or not result['OK']:
+            return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+          else:
+            self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
         else:
-          self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
 
     return S_OK()
 
