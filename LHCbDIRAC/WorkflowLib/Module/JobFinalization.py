@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.70 2008/06/19 20:32:11 atsareg Exp $
+# $Id: JobFinalization.py,v 1.71 2008/06/23 14:29:13 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.70 2008/06/19 20:32:11 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.71 2008/06/23 14:29:13 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -96,6 +96,18 @@ class JobFinalization(ModuleBase):
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
 
+    if self.step_commons.has_key('applicationName'):
+       self.applicationName = self.step_commons['applicationName']
+       self.applicationVersion = self.step_commons['applicationVersion']
+       self.applicationLog = self.step_commons['applicationLog']
+
+    if self.workflow_commons.has_key('configName'):
+      configName = self.workflow_commons['configName']
+      configVersion = self.workflow_commons['configVersion']
+    else:
+      configName = self.applicationName
+      configVersion = self.applicationVersion
+
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
     else:
@@ -143,7 +155,11 @@ class JobFinalization(ModuleBase):
       self.fileReport.commit()
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
-    self.LFN_ROOT = getLFNRoot(self.sourceData)
+    if self.sourceData:
+      self.LFN_ROOT= getLFNRoot(self.sourceData)
+    else:
+      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
     result = self.finalize(error)
 
     return result

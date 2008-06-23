@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.16 2008/06/17 09:42:41 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.17 2008/06/23 14:28:19 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.16 2008/06/17 09:42:41 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.17 2008/06/23 14:28:19 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -443,7 +443,17 @@ class AnalyseLogFile(ModuleBase):
         msg = msg +inputname+'\n'
 
     self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
-    self.LFN_ROOT= getLFNRoot(self.sourceData)
+    if self.workflow_commons.has_key('configName'):
+       configName = self.workflow_commons['configName']
+       configVersion = self.workflow_commons['configVersion']
+    else:
+       configName = self.applicationName
+       configVersion = self.applicationVersion
+
+    if self.sourceData:
+      self.LFN_ROOT= getLFNRoot(self.sourceData)
+    else:
+      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 
     if self.applicationLog:
