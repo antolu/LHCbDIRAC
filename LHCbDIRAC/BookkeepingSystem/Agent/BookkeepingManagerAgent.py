@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.23 2008/06/24 11:29:24 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.24 2008/06/24 14:53:31 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.23 2008/06/24 11:29:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.24 2008/06/24 14:53:31 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -60,7 +60,7 @@ class BookkeepingManagerAgent(Agent):
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
-      result = self.__processReplicas(replica)
+      result = self.__processReplicas(replica) 
       if result['OK']:
         self.__moveFileToDoneDirectory(replica.getFileName())
     

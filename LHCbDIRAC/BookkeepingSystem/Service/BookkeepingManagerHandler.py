@@ -1,18 +1,18 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.52 2008/06/18 10:14:08 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.53 2008/06/24 14:53:31 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.52 2008/06/18 10:14:08 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.53 2008/06/24 14:53:31 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Service.copyFiles                  import copyXMLfile
 from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.OracleBookkeepingDB import OracleBookkeepingDB
+from DIRAC.BookkeepingSystem.DB.OracleBookkeepingDB             import OracleBookkeepingDB
 import time,sys,os
 
 global dataMGMT_
