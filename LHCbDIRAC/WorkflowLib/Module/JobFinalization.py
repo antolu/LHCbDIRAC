@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.71 2008/06/23 14:29:13 joel Exp $
+# $Id: JobFinalization.py,v 1.72 2008/06/24 12:04:06 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.71 2008/06/23 14:29:13 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.72 2008/06/24 12:04:06 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -184,13 +184,6 @@ class JobFinalization(ModuleBase):
     ########################################################
     # Store log files if even the job failed
 
-    try:
-      resultLog = self.uploadLogFiles()
-      if not resultLog['OK']:
-        logs_done = False
-    except Exception,x:
-      self.log.error("Exception while log files uploading:")
-      self.log.error(str(x))
 
     if not self.workflowStatus['OK']:
        self.log.info('Stop this module before uploading data, failure detected in a previous step :')
@@ -215,6 +208,14 @@ class JobFinalization(ModuleBase):
       else:
         data_done = False
 
+    try:
+      resultLog = self.uploadLogFiles()
+      if not resultLog['OK']:
+        logs_done = False
+    except Exception,x:
+      self.log.error("Exception while log files uploading:")
+      self.log.error(str(x))
+
     if not data_done:
       self.setApplicationStatus('Failed to save output data')
       result = S_ERROR('Failed to save output data')
@@ -237,6 +238,7 @@ class JobFinalization(ModuleBase):
     if not resultRequest['OK']:
       self.log.error('Failed to create overall job request for job %s' % self.jobID)
       result = S_ERROR('Failed to create overall job request')
+
 
     return result
 
