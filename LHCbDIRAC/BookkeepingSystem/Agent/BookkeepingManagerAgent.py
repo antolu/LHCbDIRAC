@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.22 2008/05/28 11:00:30 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.23 2008/06/24 11:29:24 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.22 2008/05/28 11:00:30 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.23 2008/06/24 11:29:24 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -14,7 +14,7 @@ from DIRAC.Core.Base.Agent                                                      
 from DIRAC                                                                        import S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.BookkeepingDatabaseClient         import AMGABookkeepingDatabaseClient
+from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                      import Replica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam                 import ReplicaParam
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig

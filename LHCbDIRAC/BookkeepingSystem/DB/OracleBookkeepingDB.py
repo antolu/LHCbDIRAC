@@ -1,17 +1,16 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.43 2008/06/20 16:55:08 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.43 2008/06/20 16:55:08 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $"
 
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
+from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.OracleDB                 import OracleDB
-
+from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
@@ -142,87 +141,166 @@ class OracleBookkeepingDB(IBookkeepingDB):
   """
   #############################################################################
   def checkfile(self, fileName): #file
-    
+
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])
     if len(result)!=0:
       return S_OK(result)
     else:
-      gLogger.error("File not found! with" + str(fileName))
-      return S_ERROR("File not found! with" + str(fileName))
+      gLogger.error("File not found! ",str(fileName))
+      return S_ERROR("File not found!",str(fileName))
   
   #############################################################################
-  def fileTypeAndFileTypeVersion(self, type, version):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+  def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
+    
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])
+    if len(result)!=0:
+      return S_OK(result)
+    else:
+      gLogger.error("File not found! ",str(fileName))
+      return S_ERROR("File not found!",str(fileName))
   
   #############################################################################
-  def eventType(self, eventTypeId):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-  
-  #############################################################################
-  def insertJob(self, jobName, jobConfVersion, date):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+  def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
+    
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])
+    if len(result)!=0:
+      return S_OK(result)
+    else:
+      gLogger.error("File not found! ",str(fileName))
+      return S_ERROR("File not found!",str(fileName))
   
   #############################################################################
   def insertJob(self, config, jobParams):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-  
-  #############################################################################
-  def insertJobParameter(self, jobID, name, value, type):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-  
-  #############################################################################
-  def insertInputFile(self, jobID, inputfile):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-  
-  #############################################################################
-  def insertOutputFile(self, jobID, name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-  
-  #############################################################################
-  def insertOutputFile(self, job, file):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+      
+    attrList = {'ConfigName':config.getConfigName(), \
+                 'ConfigVersion':config.getConfigVersion(), \
+                 'DAQPeriodId':"NULL", \
+                 'DiracJobId':"NULL", \
+                 'DiracVersion':"NULL", \
+                 'EventInputStat':"NULL", \
+                 'ExecTime':"NULL", \
+                 'FirstEventNumber':"NULL", \
+                 'Generator':"NULL", \
+                 'GeometryVersion':"NULL", \
+                 'GridJobId':"NULL", \
+                 'JobEnd':"NULL", \
+                 'JobStart':"NULL", \
+                 'LocalJobId':"NULL", \
+                 'Location':"NULL", \
+                 'LuminosityEnd':"NULL", \
+                 'LuminosityStart':"NULL", \
+                 'Name':"NULL", \
+                 'NumberOfEvents':"NULL", \
+                 'Production':"NULL", \
+                 'ProgramName':"NULL", \
+                 'ProgramVersion':"NULL", \
+                 'StatisticsRequested':"NULL", \
+                 'WNCPUPower':"NULL", \
+                 'WNCPUTime':"NULL", \
+                 'WNCache':"NULL", \
+                 'WNMemory':"NULL", \
+                 'WNModel':"NULL", \
+                 'WorkerNode':"NULL"}
+    
+    for param in jobParams:
+      attrList[str(param.getName())] = param.getValue()
+      
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.insertJobsRow',[ attrList['ConfigName'], attrList['ConfigVersion'], \
+                  attrList['DAQPeriodId'], \
+                  attrList['DiracJobId'], \
+                  attrList['DiracVersion'], \
+                  attrList['EventInputStat'], \
+                  attrList['ExecTime'], \
+                  attrList['FirstEventNumber'], \
+                  attrList['Generator'], \
+                  attrList['GeometryVersion'], \
+                  attrList['GridJobId'], \
+                  attrList['JobEnd'], \
+                  attrList['JobStart'], \
+                  attrList['LocalJobId'], \
+                  attrList['Location'], \
+                  attrList['LuminosityEnd'], \
+                  attrList['LuminosityStart'], \
+                  attrList['Name'], \
+                  attrList['NumberOfEvents'], \
+                  attrList['Production'], \
+                  attrList['ProgramName'], \
+                  attrList['ProgramVersion'], \
+                  attrList['StatisticsRequested'], \
+                  attrList['WNCPUPower'], \
+                  attrList['WNCPUTime'], \
+                  attrList['WNCache'], \
+                  attrList['WNMemory'], \
+                  attrList['WNModel'], \
+                  attrList['WorkerNode'] ])           
+    return result
+    
     
   #############################################################################
-  def insertFileParam(self, fileID, name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+  def insertInputFile(self, jobID, FileId):
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.insertInputFilesRow',[jobID, FileId])
+    return result
+  #############################################################################
+  def insertOutputFile(self, job, file):
   
+      attrList = {  'Adler32':"NULL", \
+                    'CreationDate':"NULL", \
+                    'EventStat':"NULL", \
+                    'EventTypeId':"NULL", \
+                    'FileName':"NULL",  \
+                    'FileTypeId':outputFile.getTypeID(), \
+                    'GotReplica':"NULL", \
+                    'Guid':"NULL",  \
+                    'JobId':job.getJobId(), \
+                    'MD5Sum':"NULL", \
+                    'FileSize':"NULL" }
+      
+      
+      fileParams = outputFile.getFileParams()
+      for param in fileParams:
+        attrList[str(param.getName())] = param.getValue()
+      
+      result = self.db_.executeStoredProcedure('BKK_ORACLE.insertFilesRow',[  attrList['Adler32'], \
+                    attrList['CreationDate'], \
+                    attrList['EventStat'], \
+                    attrList['EventTypeId'], \
+                    attrList['FileName'],  \
+                    attrList['FileTypeId'], \
+                    attrList['GotReplica'], \
+                    attrList['Guid'],  \
+                    attrList['JobId'], \
+                    attrList['MD5Sum'], \
+                    attrList['FileSize'] ] ) 
+      return result
+      
   #############################################################################
   def insertReplica(self, fileID, name, location):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################
   def deleteJob(self, job):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################
   def deleteFile(self, file):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################
   def insertQuality(self, fileID, group, flag ):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################
   def insertQualityParam(self, fileID, qualityID, name, value):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################
   def modifyReplica(self, fileID , name, value):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
   
   #############################################################################

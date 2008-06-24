@@ -1,17 +1,17 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py,v 1.19 2008/04/08 11:23:08 zmathe Exp $
+# $Id: AMGABookkeepingDB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.IBookkeepingDB           import IBookkeepingDB
-from DIRAC.BookkeepingSystem.Agent.DataMgmt.DB                       import DB
+from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
+from DIRAC.BookkeepingSystem.DB.DB                                   import DB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.19 2008/04/08 11:23:08 zmathe Exp $"
+__RCSID__ = "$Id: AMGABookkeepingDB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   

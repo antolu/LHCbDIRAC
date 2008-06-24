@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: DB.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $
+# $Id: DB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                 import gLogger, S_OK, S_ERROR
 import mdclient
 
-__RCSID__ = "$Id: DB.py,v 1.1 2008/02/29 11:52:24 zmathe Exp $"
+__RCSID__ = "$Id: DB.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $"
 
 class DB(mdclient.MDClient,object):
   

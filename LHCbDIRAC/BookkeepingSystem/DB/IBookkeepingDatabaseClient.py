@@ -1,99 +1,88 @@
 ########################################################################
-# $Id: IBookkeepingDB.py,v 1.6 2008/04/07 16:39:27 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: IBookkeepingDB.py,v 1.6 2008/04/07 16:39:27 zmathe Exp $"
+from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
+from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-from DIRAC                                      import gLogger, S_OK, S_ERROR
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $"
 
-class IBookkeepingDB(object):
-  
+class IBookkeepingDatabaseClient(object):
+    
   #############################################################################
-  def __init__(self):
-    pass
+  def __init__(self, DatabaseManager = IBookkeepingDB()):
+    self.databaseManager_ = DatabaseManager
+    
+  #############################################################################
+  def getManager(self):
+    return self.databaseManager_
   
   #############################################################################
   def file(self, fileName):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().file(fileName)
   
   #############################################################################
   def fileTypeAndFileTypeVersion(self, type, version):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().fileTypeAndFileTypeVersion(type, version)
   
   #############################################################################
   def eventType(self, eventTypeId):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().eventType(eventTypeId)
   
   #############################################################################
   def insertJob(self, jobName, jobConfVersion, date):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertJob(jobName, jobConfVersion, date)
   
   #############################################################################
   def insertJob(self, config, jobParams):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertJob(config, jobParams)
   
   #############################################################################
   def insertJobParameter(self, jobID, name, value, type):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertJobParameter(jobID, name, value, type)
   
   #############################################################################
   def insertInputFile(self, jobID, inputfile):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertInputFile(jobID, inputfile)
   
   #############################################################################
   def insertOutputFile(self, jobID, name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertOutputFile(jobID, name, value)
   
   #############################################################################
   def insertOutputFile(self, job, file):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
-    
+    return self.getManager().insertOutputFile(job, file)
+  
   #############################################################################
   def insertFileParam(self, fileID, name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertFileParam(fileID, name, value)
   
   #############################################################################
   def insertReplica(self, fileID, name, location):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertReplica(fileID, name, location)
   
   #############################################################################
   def deleteJob(self, job):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().deleteJob(job)
   
   #############################################################################
   def deleteFile(self, file):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().deleteFile(file)
   
   #############################################################################
   def insertQuality(self, fileID, group, flag ):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertQuality(fileID, group, flag)
   
   #############################################################################
   def insertQualityParam(self, fileID, qualityID, name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().insertQualityParam(fileID, name, value)
   
   #############################################################################
   def modifyReplica(self, fileID , name, value):
-    gLoogger.warn("not implemented")
-    return S_ERROR()
+    return self.getManager().modifyReplica(fileID , name, value)
   
   #############################################################################
