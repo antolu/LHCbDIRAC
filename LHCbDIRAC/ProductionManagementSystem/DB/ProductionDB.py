@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.35 2008/06/18 17:10:52 atsareg Exp $
+# $Id: ProductionDB.py,v 1.36 2008/06/25 16:54:40 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.35 $"
+__RCSID__ = "$Revision: 1.36 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -472,18 +472,18 @@ INDEX(WmsStatus)
       jobID = int(result2['Value'][0][0])
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
       return S_OK(jobID)
-      
+
   def extendProduction(self, transName, nJobs):
     """ Extend SIMULATION type production by nJobs number of jobs
-    """    
+    """
     result = self.getTransformation(transName)
     if not result['OK']:
       return result
-      
+
     ttype = result['Value']['Type']
     if ttype.lower() != 'simulation':
-      return S_ERROR('Can not extend non-SIMULATION type production')  
-    
+      return S_ERROR('Can not extend non-SIMULATION type production')
+
     jobIDs = []
     for job in range(nJobs):
       result = self.addProductionJob(transName)
@@ -491,8 +491,8 @@ INDEX(WmsStatus)
         jobIDs.append(result['Value'])
       else:
         return result
-    return S_OK(jobIDs)      
-    
+    return S_OK(jobIDs)
+
 
 ######################## Job section ############################
 
@@ -525,6 +525,29 @@ INDEX(WmsStatus)
 
     return S_OK(resultDict)
 
+  def __get_site_se_mapping(self):
+    """ Helper function to prepare a dictionary of local SEs per site defined
+        in the Configuration Service
+    """
+
+    mappingDict = {}
+
+    result = gConfig.getSections('/Resources/Sites')
+    if not result['OK']:
+      return result
+    gridTypes = result['Value']
+    for gridType in gridTypes:
+      result = gConfig.getSections('/Resources/Sites/'+gridType)
+      if not result['OK']:
+        continue
+      siteList = result['Value']
+      for site in siteList:
+        ses = gConfig.getValue('/Resources/Sites/%s/%s/SE' % (gridType,site),[])
+        if ses:
+          mappingDict[site] = ses
+
+    return S_OK(mappingDict)
+
   def selectJobs(self,productionID,statusList = [],numJobs=1,site=''):
     """ Select jobs with the given status from the given production
     """
@@ -538,17 +561,15 @@ INDEX(WmsStatus)
       req += " LIMIT %d" % numJobs
 
     result = self._query(req)
-    
+
     if not result['OK']:
       return result
 
     # Prepare Site-SE resolution mapping
+    result = self.__get_site_se_mapping()
     site_se_mapping = {}
-    mappingKeys = gConfig.getOptions('/Resources/SiteLocalSEMapping')
-    for site_tmp in mappingKeys['Value']:
-      seStr = gConfig.getValue('/Resources/SiteLocalSEMapping/%s' %(site_tmp))
-      site_se_mapping[site_tmp] = [ x.strip() for x in string.split(seStr,',')]
-
+    if result['OK']:
+      site_se_mapping = result['Value']
 
     resultDict = {}
     if result['Value']:
@@ -566,7 +587,7 @@ INDEX(WmsStatus)
             else:
               gLogger.warn('Can not find corresponding site for se: '+se)
           else:
-            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}  
+            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
       else:
         # Get the jobs now
 
@@ -581,7 +602,7 @@ INDEX(WmsStatus)
               if targetSite and targetSite == site:
                 resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':targetSite}
             else:
-              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'} 
+              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
           else:
             break
 
