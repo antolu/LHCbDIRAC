@@ -6,17 +6,17 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 # Variable which need to be set
-wkf_name = "MC_test"
+wkf_name = "MC_realtest100"
 #eventTypeSignal = "13144001"
-eventTypeSignal = "10000000"
-numberEventSignal = 2
-numberEventMB = 2
+eventTypeSignal = "11114001"
+numberEventSignal = 50
+numberEventMB = 50
 numberEvent = -1
-Gauss_version = "v31r0"
-Gauss_optfile = "lhcb-200802.opts"
-Boole_version = "v15r1"
+Gauss_version = "v25r13"
+Gauss_optfile = "v200601.opts"
+Boole_version = "v12r10"
 Boole_optfile = "v200601.opts"
-Brunel_version = "v32r7"
+Brunel_version = "v31r12"
 Brunel_optfile = "v200601.opts"
 system_os = "slc4_ia32_gcc34"
 
@@ -57,7 +57,7 @@ module5.setBody('from WorkflowLib.Module.StepFinalization import * \n')
 #define module 6
 module6 = ModuleDefinition('JobFinalization')
 module6.setDescription('Job Finalization module')
-module6.setBody('from WorkflowLib.Module.NewJobFinalization import * \n')
+module6.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 
 #define module 7
 module7 = ModuleDefinition('Dummy')
@@ -211,6 +211,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r3.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
@@ -231,7 +232,6 @@ workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "ty
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("configVersion","2008","string","","",True, False, "Configuration Version"))
-workflow1.addParameter(Parameter("systemConfig",system_os,"string","","",True, False, "Application Name"))
 
 if os.path.exists('wkf_MC.xml'):
   print 'Removed existing workflow'
