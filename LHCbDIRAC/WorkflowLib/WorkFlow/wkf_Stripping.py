@@ -5,9 +5,9 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 # Variable which need to be set
-wkf_name = "CCRC_MC_test"
+wkf_name = "CCRC_strip"
 eventTypeSignal = "30000000"
-nb_evt_step1 = 10
+nb_evt_step1 = 100
 nb_evt_step2 = -1
 Brunel_version = "v32r5"
 Brunel_optfile = "RealData-ETC.opts"
@@ -67,7 +67,6 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
 module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
-module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 #define module 5
 module5 = ModuleDefinition('StepFinalization')
@@ -77,7 +76,7 @@ module5.setBody('from WorkflowLib.Module.StepFinalization import * \n')
 #define module 6
 module6 = ModuleDefinition('JobFinalization')
 module6.setDescription('Job Finalization module')
-module6.setBody('from WorkflowLib.Module.NewJobFinalization import * \n')
+module6.setBody('from WorkflowLib.Module.JobFinalization import * \n')
 
 #define module 7
 module7 = ModuleDefinition('Dummy')
@@ -103,7 +102,6 @@ step1.addParameterLinked(module3.parameters)
 step1.addParameterLinked(module2.parameters)
 
 # and we can add additional parameter which will be used as a global
-step1.addParameter(Parameter("STEP_ID","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}","string","","",True, False, "Temporary fix"))
 step1.addParameter(Parameter("eventType","","string","","",True, False, "Event Type"))
 step1.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 step1.addParameter(Parameter("outputData","","string","","",True,False,"etc name"))
@@ -125,7 +123,6 @@ step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
 moduleInstance6 = step3.createModuleInstance('JobFinalization','module6')
 step3.addParameterLinked(module6.parameters)
-step3.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
 
 
 ##############  WORKFLOW #################################
@@ -134,7 +131,7 @@ workflow1.setDescription('Workflow of GaudiApplication')
 
 workflow1.addStep(step1)
 step1_prefix="step1_"
-stepInstance1 = workflow1.createStepInstance('Gaudi_App_Step', 'Step1')
+stepInstance1 = workflow1.createStepInstance('Gaudi_App_Step', 'DaVinci')
 stepInstance1.setValue("eventType", eventTypeSignal)
 stepInstance1.setValue("numberOfEvents", nb_evt_step1)
 stepInstance1.setValue("numberOfEventsInput", 0)
@@ -143,32 +140,32 @@ stepInstance1.setValue("inputDataType","RDST")
 stepInstance1.setValue("applicationName", "DaVinci")
 stepInstance1.setValue("applicationVersion", DaVinci_version)
 stepInstance1.setValue("applicationType", "root")
-stepInstance1.setValue("applicationLog", "@{applicationName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
-stepInstance1.setValue("outputData","FETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{applicationType}")
+stepInstance1.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
+stepInstance1.setValue("outputData","FETC_@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", DaVinci_optfile)
 stepInstance1.setValue("optionsLine",opt_dav)
 stepInstance1.setValue("optionsLinePrev",opt_dav_prev)
 stepInstance1.setValue("inputData",indata) # KGG linked with InputData of the Workflow
-list1_out=[{"outputDataName":"FETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{applicationType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"FETC_@{STEP_ID}.@{applicationType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
-stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'Step2')
+stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'Brunel')
 stepInstance2.setValue("eventType", eventTypeSignal)
 stepInstance2.setValue("numberOfEvents", nb_evt_step2)
 stepInstance2.setValue("inputDataType","FETC")
 stepInstance2.setValue("applicationName", "Brunel")
 stepInstance2.setValue("applicationVersion", Brunel_version)
 stepInstance2.setValue("applicationType", "dst")
-stepInstance2.setValue("applicationLog", "@{applicationName}_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.log")
-stepInstance2.setValue("outputData","@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{applicationType}")
-stepInstance2.setValue("etcf","SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root")
+stepInstance2.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
+stepInstance2.setValue("outputData","@{STEP_ID}.@{applicationType}")
+stepInstance2.setValue("etcf","SETC_@{STEP_ID}.root")
 stepInstance2.setValue("optionsFile", Brunel_optfile)
 stepInstance2.setValue("optionsLine",opt_brunel)
 stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list2_out=[{"outputDataName":"@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.@{applicationType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{PRODUCTION_ID}_@{JOB_ID}_@{STEP_NUMBER}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
@@ -176,12 +173,13 @@ step3_prefix="step3_"
 stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
-workflow1.addParameterLinked(step1.parameters, step1_prefix)
-workflow1.addParameterLinked(step1.parameters, step2_prefix)
+#workflow1.addParameterLinked(step1.parameters, step1_prefix)
+#workflow1.addParameterLinked(step1.parameters, step2_prefix)
 #workflow1.addParameterLinked(step3.parameters, step3_prefix)
 # and finally we can unlink them because we inherit them linked
-workflow1.unlink(workflow1.parameters)
+#workflow1.unlink(workflow1.parameters)
 
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r3.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
