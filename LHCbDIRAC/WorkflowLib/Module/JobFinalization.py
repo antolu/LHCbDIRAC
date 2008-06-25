@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.72 2008/06/24 12:04:06 joel Exp $
+# $Id: JobFinalization.py,v 1.73 2008/06/25 08:26:36 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.72 2008/06/24 12:04:06 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.73 2008/06/25 08:26:36 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -88,11 +88,7 @@ class JobFinalization(ModuleBase):
     self.log.setLevel('debug')
 
 ######################################################################
-  def execute(self):
-    """ Main executon method
-    """
-
-    # Add global reporting tool
+  def resolveInputVariables(self):
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
 
@@ -102,11 +98,9 @@ class JobFinalization(ModuleBase):
        self.applicationLog = self.step_commons['applicationLog']
 
     if self.workflow_commons.has_key('configName'):
-      configName = self.workflow_commons['configName']
-      configVersion = self.workflow_commons['configVersion']
+      self.configVersion = self.workflow_commons['configVersion']
     else:
-      configName = self.applicationName
-      configVersion = self.applicationVersion
+      self.configVersion = self.applicationVersion
 
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
@@ -126,6 +120,14 @@ class JobFinalization(ModuleBase):
 
     if self.workflow_commons.has_key('outputList'):
        self.listoutput = self.workflow_commons['outputList']
+
+######################################################################
+  def execute(self):
+    """ Main executon method
+    """
+
+    # Add global reporting tool
+    self.resolveInputVariables()
 
     self.request.setRequestName('job_%s_request.xml' % self.jobID)
     self.request.setJobID(self.jobID)
@@ -158,7 +160,7 @@ class JobFinalization(ModuleBase):
     if self.sourceData:
       self.LFN_ROOT= getLFNRoot(self.sourceData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.sourceData,self.configVersion)
 
     result = self.finalize(error)
 
@@ -189,7 +191,7 @@ class JobFinalization(ModuleBase):
        self.log.info('Stop this module before uploading data, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.setApplicationStatus('Job Completed With Errors')
-       return S_OK()
+       error = 1
 
     if not error:
       ########################################################
@@ -839,7 +841,6 @@ class JobFinalization(ModuleBase):
     if self.fileReport and fileReportFlag:
       result = self.fileReport.generateRequest()
       reportRequest = result['Value']
-      print "JC filereport>>>>",result
     if reportRequest:
       result = self.request.update(reportRequest)
 
