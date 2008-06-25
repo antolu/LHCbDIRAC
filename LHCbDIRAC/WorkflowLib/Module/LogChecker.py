@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.15 2008/06/17 09:43:36 joel Exp $
+# $Id: LogChecker.py,v 1.16 2008/06/25 08:27:43 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.15 2008/06/17 09:43:36 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.16 2008/06/25 08:27:43 joel Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -29,7 +29,7 @@ class LogChecker(ModuleBase):
     self.numberOfEventsOutput = None
     self.OUTPUT_MAX = 'None'
 
-  def execute(self):
+  def resolveInputVariables(self):
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
 
@@ -47,6 +47,9 @@ class LogChecker(ModuleBase):
     if self.step_commons.has_key('numberOfEventsOutput'):
        self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
 
+
+  def execute(self):
+    self.resolveInputVariables()
     if self.applicationName in ('Boole', 'Gauss','Brunel', 'DaVinci'):
         self.logChecker = AnalyseLogFile()
     else:

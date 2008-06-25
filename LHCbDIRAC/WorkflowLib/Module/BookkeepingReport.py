@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.20 2008/06/17 09:43:04 joel Exp $
+# $Id: BookkeepingReport.py,v 1.21 2008/06/25 08:27:17 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.20 2008/06/17 09:43:04 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.21 2008/06/25 08:27:17 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -34,13 +34,7 @@ class BookkeepingReport(ModuleBase):
     self.log = gLogger.getSubLogger("BookkeepingReport")
     pass
 
-  def execute(self):
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-       self.log.info('Skip this module, failure detected in a previous step :')
-       self.log.info('Workflow status : %s' %(self.workflowStatus))
-       self.log.info('Step Status %s' %(self.stepStatus))
-       return S_OK()
-
+  def resolveInputVariables(self):
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
 
@@ -70,6 +64,14 @@ class BookkeepingReport(ModuleBase):
        self.applicationVersion = self.step_commons['applicationVersion']
        self.applicationLog = self.step_commons['applicationLog']
 
+
+  def execute(self):
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+       self.log.info('Skip this module, failure detected in a previous step :')
+       self.log.info('Workflow status : %s' %(self.workflowStatus))
+       self.log.info('Step Status %s' %(self.stepStatus))
+       return S_OK()
+    self.resolveInputVariables()
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
