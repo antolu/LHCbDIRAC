@@ -1,7 +1,7 @@
-#!/bin/bash 
+#!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.5 2008/05/14 15:24:39 rgracian Exp $
-# File :   install_volhcb02.sh
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.6 2008/06/25 17:18:06 atsareg Exp $
+# File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
 #
@@ -11,18 +11,21 @@ DIRACUSER=dirac
 # Host where it es allow to run the script
 DIRACHOST=volhcb02.cern.ch
 #
-# Location of the installtion
+# Location of the installation
 DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB02.CERN.CH
-DIRACSETUP=LHCb-Development
-DIRACVERSION=CCRC08-v3
+DIRACSETUP=LHCb-Production
+DIRACVERSION=v0r2p2
+EXTVERSION=v0r2p0
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
-DIRACDIRS="startup runit work"
+DIRACDIRS="startup runit data work requestDB"
+
+export LOGLEVEL=INFO
 #
 # Uncomment to install from CVS (default install from TAR)
-# it imples -b (build from sources)
+# it implies -b (build from sources)
 # DIRACCVS=-C
 #
 # check if we are called in the rigth host
@@ -58,12 +61,17 @@ if [ ! -d $DESTDIR/etc ]; then
 fi
 if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
   cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
+LocalSite
+{
+  EnableAgentMonitoring = yes
+}
 DIRAC
 {
   Setup = $DIRACSETUP
   Configuration
   {
-    Servers =  dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
+    Servers += dips://volhcb03.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -71,12 +79,13 @@ DIRAC
     CertFile = $DESTDIR/etc/grid-security/hostcert.pem
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
+
 }
 Systems
 {
   WorkloadManagement
   {
-    Development
+    Production
     {
       Databases
       {
@@ -84,7 +93,7 @@ Systems
         {
           LogLevel = INFO
           User = Dirac
-          Host = volhcb03.cern.ch
+          Host = volhcb01.cern.ch
           Password = lhcbMySQL
           DBName = JobDB
         }
@@ -92,7 +101,7 @@ Systems
         {
           LogLevel = INFO
           User = Dirac
-          Host = volhcb03.cern.ch
+          Host = volhcb01.cern.ch
           Password = lhcbMySQL
           DBName = JobLoggingDB
         }
@@ -100,7 +109,7 @@ Systems
         {
           LogLevel = INFO
           User = Dirac
-          Host = volhcb03.cern.ch
+          Host = volhcb01.cern.ch
           Password = lhcbMySQL
           DBName = ProxyRepositoryDB
         }
@@ -108,16 +117,15 @@ Systems
         {
           LogLevel = INFO
           User = Dirac
-          Host = volhcb03.cern.ch
+          Host = volhcb01.cern.ch
           Password = lhcbMySQL
           DBName = PilotAgentsDB
         }
-	  }
+    }
     }
   }
 }
 EOF
-#
 fi
 #
 # Special CS file for the pilotAgent
@@ -158,11 +166,16 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-for dir in etc data runit startup ; do
+for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+# to make sure we do not use DIRAC python
+dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
+PATH=`echo $PATH | sed "s/$dir://"`
+
+echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
 #
 # Create pro and old links
@@ -173,7 +186,7 @@ pro=$DESTDIR/pro
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
-## Compile all python files .py -> .pyc
+## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
@@ -190,10 +203,18 @@ grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HO
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
-
 cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotAgent
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotStatusAgent
+#
+# Configure MySQL if not yet done
+#
+
+#$CURDIR/install_mysql.sh $DIRACHOST
+#/opt/dirac/pro/mysql/share/mysql/mysql.server start
+
+$DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotAgent
+$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotMonitor
 
 exit
