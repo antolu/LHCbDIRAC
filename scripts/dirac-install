@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.68 2008/06/19 15:34:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.69 2008/06/25 12:39:44 paterson Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.68 2008/06/19 15:34:22 rgracian Exp $"
-__VERSION__ = "$Revision: 1.68 $"
+__RCSID__   = "$Id: dirac-install,v 1.69 2008/06/25 12:39:44 paterson Exp $"
+__VERSION__ = "$Revision: 1.69 $"
 """
     Script to prepare/update a DIRAC instalation
 """
@@ -57,7 +57,7 @@ except:
           for member in tar.getmembers():
             tar.extract( member, tmpPath )
           os.remove( localName )
-    
+
       except Exception, x:
         try:
           error = 'Extracting file "%s"' % localName
@@ -78,7 +78,7 @@ except:
       # NOTE: Not thread-safe, since all threads will catch same alarm.
       #       This is OK for dirac-install, since there are no threads.
       logINFO( 'Retrieving remote file "%s"' % fname )
-    
+
       signal.signal(signal.SIGALRM, alarmHandler)
       # set timeout alarm
       signal.alarm(timeout)
@@ -89,10 +89,10 @@ except:
           logERROR( 'Timeout after %s seconds on transfer request for "%s"' % \
           (str(timeout), fname) )
         raise x
-    
+
       # clear timeout alarm
       signal.alarm(0)
-      
+
     def alarmHandler(*args):
       """
        signal handler for SIGALRM, just raise an exception
@@ -120,7 +120,7 @@ except:
 
     _getTar( 'DIRAC-scripts-HEAD', 60 )
     sys.path.insert( 0, os.path.join( tmpPath, 'scripts' ) )
-    
+
   except Exception, x:
     print >> sys.stderr, 'ERROR python interpreter does not support necessary modules'
     print >> sys.stderr, 'ERROR', x
@@ -159,8 +159,8 @@ def parse_options():
 
   """
   shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:SU'
-  longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name', 
-                  'platform=', 'repository=', 'url=', 'version=', 
+  longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name',
+                  'platform=', 'repository=', 'url=', 'version=',
                   'cvs', 'Name=', 'path=', 'server', 'Upload',
                   'option=', 'section=', 'cert=']
   try:
@@ -173,7 +173,7 @@ def parse_options():
     dirac.logHelp( help )
 
   ext = None
-    
+
   for o,v in optionVals:
     if o == '-b' or o == '--build':
       dirac.build()
@@ -219,7 +219,7 @@ if dirac_functions.__VERSION__.find( functionVersion ) == -1:
   sys.exit(2)
 
 from dirac_functions import functions, lcgVer, externalTimeout
-  
+
 if not tmpPath:
   myFullName  = os.path.realpath( sys.argv[0] )
   myShortName = os.path.basename( myFullName )
@@ -281,9 +281,9 @@ else:
   else:
     DIRAC.gLogger.setLevel( 'INFO' )
   from DIRAC.Core.Utilities.GridCredentials import setDIRACGroup
-  
+
   setDIRACGroup( 'lhcb_user' )
-  
+
   from DIRAC.Core.Base import Script
 
   Script.registerSwitch( "b",  "build",     "Allow compilation if platform not available" )
@@ -299,7 +299,7 @@ else:
   Script.registerSwitch( "P:", "path=",     "Install under <root>" )
   Script.registerSwitch( "S",  "server",    "Make a full server installation" )
   Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
-  
+
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
   localCfg = LocalConfiguration()
   localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Development' )
@@ -330,7 +330,7 @@ else:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
   Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
-  
+
   # further checks can be implemented here
   try:
     import bz2
@@ -340,7 +340,22 @@ else:
   diracSetup = DIRAC.gConfig.getValue( '/DIRAC/Setup' )
   dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
   if ceName:
-    diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
+    #diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
+    #diracCE = gConfig.getValue('/Resources/Sites/LCG/%s/CE' % (site),[])
+    siteSections = gConfig.getSections('/Resources/Sites/LCG/')
+    if not siteSections['OK']:
+      dirac.logEXCEP('Could not get LCG site list')
+
+    diracCE = None
+    sites = siteSections['Value']
+    for site in sites:
+      lcgCEs = gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
+      if ceName in lcgCEs:
+        diracCE = site
+        break
+    if not diracCE:
+      dirac.logEXCEP('Could not determine local DIRAC site name from CE %s' %ceName)
+
     dirac.logINFO( 'Setting /LocalSite/Site = %s' % diracCE )
     localCfg.addDefaultEntry( '/LocalSite/Site', diracCE )
     localSE = DIRAC.gConfig.getValue( '/Resources/SiteLocalSEMapping/%s' % diracCE, 'None' )
