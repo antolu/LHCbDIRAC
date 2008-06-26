@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.73 2008/06/26 12:58:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.74 2008/06/26 13:07:55 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.73 2008/06/26 12:58:43 rgracian Exp $"
-__VERSION__ = "$Revision: 1.73 $"
+__RCSID__   = "$Id: dirac-install,v 1.74 2008/06/26 13:07:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.74 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -328,6 +328,8 @@ else:
     localCfg.addDefaultEntry( '/DIRAC/Security/UseServerCertificate', 'no' )
   if siteName:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
+
+  Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
   if ceName:
     siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
