@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.80 2008/06/19 15:33:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.81 2008/06/26 10:42:43 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.80 2008/06/19 15:33:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.80 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.81 2008/06/26 10:42:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.81 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -288,10 +288,13 @@ class functions:
 
   def setVersion( self, ver ):
     """
-     Set DIRAC version to install
+     Set DIRAC version to install, and correponding binary version by setting the patch level to 0.
     """
     self.version  = ver
-    self.external = ver
+    extVer = ver
+    if re.compile( '^v[0-9]+r[0-9]+p[0-9]+$' ).match( ver ):
+      extVer = ver[0:re.compile('p[0-9]+$').search( ver ).start()]+'p0'
+    self.external = extVer
 
   def setExternal( self, ver ):
     """
