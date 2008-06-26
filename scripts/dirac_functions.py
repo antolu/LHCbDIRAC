@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.81 2008/06/26 10:42:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.82 2008/06/26 15:19:00 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.81 2008/06/26 10:42:43 rgracian Exp $"
-__VERSION__ = "$Revision: 1.81 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.82 2008/06/26 15:19:00 rgracian Exp $"
+__VERSION__ = "$Revision: 1.82 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -412,7 +412,7 @@ class functions:
      Replace first magic line of all python scripts in scripts
     """
     # Use the default python for the following scripts
-    nativeScripts = [ 'platform.py', 'dirac-distribution' ]
+    nativeScripts = [ 'platform.py', 'dirac-distribution', 'dirac-install', 'dirac-update' ]
 
     os.chdir( self.scriptsPath )
     files = os.listdir( '.' )
