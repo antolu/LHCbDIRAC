@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.72 2008/06/26 11:05:08 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.73 2008/06/26 12:58:43 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.72 2008/06/26 11:05:08 rgracian Exp $"
-__VERSION__ = "$Revision: 1.72 $"
+__RCSID__   = "$Id: dirac-install,v 1.73 2008/06/26 12:58:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.73 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -329,6 +329,29 @@ else:
   if siteName:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
 
+  if ceName:
+    siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
+    if not siteSections['OK']:
+      dirac.logEXCEP('Could not get LCG site list')
+
+    siteName = None
+    sites = siteSections['Value']
+    for site in sites:
+      lcgCEs = DIRAC.gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
+      if ceName in lcgCEs:
+        siteName = site
+        break
+    if not diracCE:
+      dirac.logEXCEP('Could not determine DIRAC site name for CE:', ceName)
+
+    dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
+    localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
+    
+  if siteName:
+    localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % siteName, 'None' )
+    localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
+    dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )    
+
   Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
 
@@ -340,30 +363,6 @@ else:
     dirac.logEXCEP( x )
   diracSetup = DIRAC.gConfig.getValue( '/DIRAC/Setup' )
   dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
-  if ceName:
-    #diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
-    siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
-    print siteSections
-    if not siteSections['OK']:
-      dirac.logEXCEP('Could not get LCG site list')
-
-    diracCE = None
-    sites = siteSections['Value']
-    for site in sites:
-      lcgCEs = DIRAC.gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
-      print lcgCEs, ceName
-      if ceName in lcgCEs:
-        diracCE = site
-        break
-    if not diracCE:
-      dirac.logEXCEP('Could not determine local DIRAC site name from CE %s' %ceName)
-
-    dirac.logINFO( 'Setting /LocalSite/Site = %s' % diracCE )
-    localCfg.addDefaultEntry( '/LocalSite/Site', diracCE )
-    localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % diracCE, 'None' )
-    localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
-    dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
-    Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
   DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
   dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
