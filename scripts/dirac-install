@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.71 2008/06/26 10:57:58 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.72 2008/06/26 11:05:08 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.71 2008/06/26 10:57:58 rgracian Exp $"
-__VERSION__ = "$Revision: 1.71 $"
+__RCSID__   = "$Id: dirac-install,v 1.72 2008/06/26 11:05:08 rgracian Exp $"
+__VERSION__ = "$Revision: 1.72 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -328,6 +328,7 @@ else:
     localCfg.addDefaultEntry( '/DIRAC/Security/UseServerCertificate', 'no' )
   if siteName:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
+
   Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
 
@@ -341,14 +342,16 @@ else:
   dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
   if ceName:
     #diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
-    siteSections = gConfig.getSections('/Resources/Sites/LCG/')
+    siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
+    print siteSections
     if not siteSections['OK']:
       dirac.logEXCEP('Could not get LCG site list')
 
     diracCE = None
     sites = siteSections['Value']
     for site in sites:
-      lcgCEs = gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
+      lcgCEs = DIRAC.gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
+      print lcgCEs, ceName
       if ceName in lcgCEs:
         diracCE = site
         break
