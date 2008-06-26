@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.69 2008/06/25 12:39:44 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.70 2008/06/26 10:12:36 paterson Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.69 2008/06/25 12:39:44 paterson Exp $"
-__VERSION__ = "$Revision: 1.69 $"
+__RCSID__   = "$Id: dirac-install,v 1.70 2008/06/26 10:12:36 paterson Exp $"
+__VERSION__ = "$Revision: 1.70 $"
 """
-    Script to prepare/update a DIRAC instalation
+    Script to prepare/update a DIRAC installation
 """
 tmpPath  = None
 siteName = None
@@ -243,7 +243,7 @@ if tmpPath:
   # working directory.
   dirac.setRoot( os.path.join( cwdPath, 'scripts', myShortName ) )
 
-dirac.logINFO( 'Checking DIRAC instalation at "%s"' %  dirac.root() )
+dirac.logINFO( 'Checking DIRAC installation at "%s"' %  dirac.root() )
 dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
 
 if not dirac.checkInterpreter( ):
@@ -341,7 +341,6 @@ else:
   dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
   if ceName:
     #diracCE = DIRAC.gConfig.getValue( '/Resources/GridSites/LCG/%s' % ceName, 'Unknown' )
-    #diracCE = gConfig.getValue('/Resources/Sites/LCG/%s/CE' % (site),[])
     siteSections = gConfig.getSections('/Resources/Sites/LCG/')
     if not siteSections['OK']:
       dirac.logEXCEP('Could not get LCG site list')
@@ -358,7 +357,7 @@ else:
 
     dirac.logINFO( 'Setting /LocalSite/Site = %s' % diracCE )
     localCfg.addDefaultEntry( '/LocalSite/Site', diracCE )
-    localSE = DIRAC.gConfig.getValue( '/Resources/SiteLocalSEMapping/%s' % diracCE, 'None' )
+    localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % diracCE, 'None' )
     localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
     dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
