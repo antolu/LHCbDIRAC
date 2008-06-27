@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.52 2008/06/18 14:05:29 joel Exp $
+# $Id: GaudiApplication.py,v 1.53 2008/06/27 15:27:02 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.52 2008/06/18 14:05:29 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.53 2008/06/27 15:27:02 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -239,7 +239,8 @@ class GaudiApplication(ModuleBase):
 
   #############################################################################
   def execute(self):
-    self.setApplicationStatus('Initializing GaudiApplication')
+    self.setApplicationStatus('Initializing GaudiApplication ')
+    self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
     optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
