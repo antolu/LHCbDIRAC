@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.82 2008/06/26 15:19:00 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.83 2008/06/27 16:56:13 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.82 2008/06/26 15:19:00 rgracian Exp $"
-__VERSION__ = "$Revision: 1.82 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.83 2008/06/27 16:56:13 rgracian Exp $"
+__VERSION__ = "$Revision: 1.83 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -407,7 +407,7 @@ class functions:
     except:
       self.logINFO( 'LCG tool tar file is not available for your platform' )
 
-  def diracMagic( self ):
+  def _diracMagic( self ):
     """
      Replace first magic line of all python scripts in scripts
     """
@@ -430,9 +430,9 @@ class functions:
     input = fileinput.FileInput( files, inplace = 1 )
     for line in input:
       if input.isfirstline():
-        if re.compile( '^#!.*python').match(line):
+        if re.compile( '^#!/.*python').match(line):
           output.append( input.filename() )
-          print line,
+          print '#! /usr/bin/env python'
           print 'import os, sys, popen2'
           print '# Determine python for current platform and check if it is the calling one'
           print 'dirac_platform = os.path.join("%s","platform.py")' % self.scriptsPath
@@ -475,7 +475,14 @@ class functions:
       else:
         name = 'DIRAC'
         self._getCVS( self.version, [name] )
+      # Hack to handle LHCbSystem
+      try:
+        shutil.copytree( 'LHCbSystem', os.path.join( 'DIRAC', 'LHCbSystem' ) )
+        shutil.rmtree( 'LHCbSystem' )
+      except:
+        pass
       self._diracMake( 'DIRAC' )
+      self._diracMagic( )
       dirac_version = os.path.join( self.scriptsPath, 'dirac-version' )
       ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
         self.localPython, dirac_version ) )
@@ -490,12 +497,6 @@ class functions:
         shutil.copytree( 'DIRAC.old', 'DIRAC' )
         shutil.rmtree( 'DIRAC.old' )
         sys.exit(-1)
-      # Hack to handle LHCbSystem
-      try:
-        shutil.copytree( 'LHCbSystem', os.path.join( 'DIRAC', 'LHCbSystem' ) )
-        shutil.rmtree( 'LHCbSystem' )
-      except:
-        pass
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
       ch_err.close()

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.77 2008/06/26 15:25:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.78 2008/06/27 16:57:26 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.77 2008/06/26 15:25:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.77 $"
+__RCSID__   = "$Id: dirac-install,v 1.78 2008/06/27 16:57:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.78 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 uploadFlag = False
 
-functionVersion = "1.82"
+functionVersion = "1.83"
 
 try:
   import dirac_functions
@@ -260,7 +260,6 @@ if not dirac.checkInterpreter( ):
   else:
     dirac.installExternal()
   dirac.checkDirac( )
-  dirac.diracMagic( )
   # if we are not running with our onw python let's call ourself again
   dirac.logINFO( 'Will retry now with DIRAC python' )
   args         = str.join(' ',sys.argv[1:]) + ' -v %s' % dirac.version
@@ -274,7 +273,6 @@ else:
   dirac.logINFO( 'DIRAC-platform = %s' % dirac.localPlatform )
 
   dirac.checkDirac( )
-  dirac.diracMagic( )
   from DIRACEnvironment import DIRAC
   if dirac.debugFlag:
     DIRAC.gLogger.setLevel( 'DEBUG' )
