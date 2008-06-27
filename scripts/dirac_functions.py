@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.83 2008/06/27 16:56:13 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.84 2008/06/27 18:01:21 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.83 2008/06/27 16:56:13 rgracian Exp $"
-__VERSION__ = "$Revision: 1.83 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.84 2008/06/27 18:01:21 rgracian Exp $"
+__VERSION__ = "$Revision: 1.84 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -446,7 +446,7 @@ class functions:
           print '  print >> sys.stderr, "Can not determine local platform"'
           print 'diracPython = os.path.join( "%s", localPlatform, "bin", "python" ) ' % self.__rootPath
           print 'if os.path.realpath(sys.executable) != os.path.realpath(diracPython):'
-          print '  sys.exit( os.system( "%s %s" % ( diracPython, " ".join( sys.argv ) ) ) ) '
+          print '  sys.exit( os.system( "%s \'%s\'" % ( diracPython, "\' \'".join( sys.argv ) ) ) ) '
         else:
           print line,
       else:
