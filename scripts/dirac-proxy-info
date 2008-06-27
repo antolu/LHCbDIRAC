@@ -5,6 +5,7 @@ import datetime
 import commands
 import string
 from tempfile import mktemp
+from DIRACEnvironment import DIRAC
 from DIRAC.Core.Utilities.GridCredentials import getDIRACGroup
 home = os.environ["HOME"]
 
