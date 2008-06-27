@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClientOld.py,v 1.1 2008/06/26 16:53:10 zmathe Exp $
+# $Id: BookkeepingClientOld.py,v 1.2 2008/06/27 13:11:27 zmathe Exp $
 ########################################################################
 
 import DIRAC
@@ -12,7 +12,7 @@ __RCSID__ = "$Id: "
 class BookkeepingClientOld:
 
   def __init__(self):
-    self.server = RPCClient('BookkeepingOld/BookkeepingManagerOld')
+    self.server = RPCClient('Bookkeeping/BookkeepingManagerOld')
 
   #############################################################################
   def echo(self,string):
