@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.4 2008/06/30 15:06:57 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.5 2008/06/30 15:18:44 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.4 2008/06/30 15:06:57 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.5 2008/06/30 15:18:44 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -143,18 +143,37 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def checkfile(self, fileName): #file
 
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])['Value']
+    if len(result)!=0:
+      return S_OK(result)
+    else:
+      gLogger.error("File not found! ",str(fileName))
+      return S_ERROR("File not found!",str(fileName))
+    
     return result
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])['value']
+    if len(result)!=0:
+      return S_OK(result)
+    else:
+      gLogger.error("File type not found! ",str(fileName))
+      return S_ERROR("File type not found!",str(fileName))
+    
     return result
+
     
   
   #############################################################################
   def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
     
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])['Value']
+    if len(result)!=0:
+      return S_OK(result)
+    else:
+      gLogger.error("Event type not found! ",str(fileName))
+      return S_ERROR("Event type not found!",str(fileName))
+    
     return result
   
   #############################################################################
