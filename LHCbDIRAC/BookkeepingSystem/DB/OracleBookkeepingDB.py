@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.6 2008/06/30 15:26:00 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.7 2008/06/30 15:32:17 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.6 2008/06/30 15:26:00 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.7 2008/06/30 15:32:17 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -153,7 +153,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])['value']
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])['Value']
     if len(result)!=0:
       return S_OK(result)
     else:
