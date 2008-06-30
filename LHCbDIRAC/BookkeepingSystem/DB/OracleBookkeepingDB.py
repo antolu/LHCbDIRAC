@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.5 2008/06/30 15:18:44 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.6 2008/06/30 15:26:00 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.5 2008/06/30 15:18:44 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.6 2008/06/30 15:26:00 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -147,7 +147,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK(result)
     else:
       gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!",str(fileName))
+      return S_ERROR("File not found!"+str(fileName))
     
     return result
   
@@ -158,7 +158,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK(result)
     else:
       gLogger.error("File type not found! ",str(fileName))
-      return S_ERROR("File type not found!",str(fileName))
+      return S_ERROR("File type not found!"+str(fileName))
     
     return result
 
@@ -172,7 +172,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK(result)
     else:
       gLogger.error("Event type not found! ",str(fileName))
-      return S_ERROR("Event type not found!",str(fileName))
+      return S_ERROR("Event type not found!"+str(fileName))
     
     return result
   
