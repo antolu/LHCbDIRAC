@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.3 2008/06/30 14:43:16 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.4 2008/06/30 15:06:57 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.3 2008/06/30 14:43:16 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.4 2008/06/30 15:06:57 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -143,32 +143,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def checkfile(self, fileName): #file
 
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])['Value']
-    if len(result)!=0:
-      return S_OK(result)
-    else:
-      gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!")
+    return result
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-    
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])
-    print len(result)
-    if len(result)!=0:
-      return S_OK(result)
-    else:
-      gLogger.error("File not found! ")
-      return S_ERROR("File not found!")
+    return result
+    
   
   #############################################################################
   def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
     
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])
-    if len(result)!=0:
-      return S_OK(result)
-    else:
-      gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!",str(fileName))
+    return result
   
   #############################################################################
   def insertJob(self, config, jobParams):
