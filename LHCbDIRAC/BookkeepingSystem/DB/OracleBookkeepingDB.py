@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.2 2008/06/26 17:19:08 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.3 2008/06/30 14:43:16 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.2 2008/06/26 17:19:08 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.3 2008/06/30 14:43:16 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -147,17 +147,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK(result)
     else:
       gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!",str(fileName))
+      return S_ERROR("File not found!")
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
     
     result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])
+    print len(result)
     if len(result)!=0:
       return S_OK(result)
     else:
-      gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!",str(fileName))
+      gLogger.error("File not found! ")
+      return S_ERROR("File not found!")
   
   #############################################################################
   def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
@@ -274,15 +275,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return result
       
   #############################################################################
-  def insertReplica(self, fileID, name, location):
-    gLogger.warn("not implemented")
-    return S_ERROR()
+  def updateReplicaRow(self, fileID, replica): #, name, location):
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.updateReplicaRow',[FileId, replica])
+    return result
   
   #############################################################################
   def deleteJob(self, job):
-    gLogger.warn("not implemented")
-    return S_ERROR()
-  
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteJob',[jobID])
+    return result
+ 
   #############################################################################
   def deleteFile(self, file):
     gLogger.warn("not implemented")
