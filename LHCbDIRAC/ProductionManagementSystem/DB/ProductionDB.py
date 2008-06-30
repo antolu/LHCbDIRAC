@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.36 2008/06/25 16:54:40 atsareg Exp $
+# $Id: ProductionDB.py,v 1.37 2008/06/30 13:27:34 paterson Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.36 $"
+__RCSID__ = "$Revision: 1.37 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -552,6 +552,12 @@ INDEX(WmsStatus)
     """ Select jobs with the given status from the given production
     """
 
+    # Prepare Site-SE resolution mapping
+    result = self.__get_site_se_mapping()
+    site_se_mapping = {}
+    if result['OK']:
+      site_se_mapping = result['Value']
+
     req = "SELECT JobID,InputVector,TargetSE,WmsStatus FROM Jobs_%d" % int(productionID)
     if statusList:
       statusString = ','.join(["'"+x+"'" for x in statusList])
@@ -564,12 +570,6 @@ INDEX(WmsStatus)
 
     if not result['OK']:
       return result
-
-    # Prepare Site-SE resolution mapping
-    result = self.__get_site_se_mapping()
-    site_se_mapping = {}
-    if result['OK']:
-      site_se_mapping = result['Value']
 
     resultDict = {}
     if result['Value']:
