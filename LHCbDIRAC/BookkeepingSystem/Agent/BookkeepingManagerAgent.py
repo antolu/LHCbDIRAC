@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.24 2008/06/24 14:53:31 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.25 2008/06/30 14:35:00 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.24 2008/06/24 14:53:31 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.25 2008/06/30 14:35:00 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -81,31 +81,31 @@ class BookkeepingManagerAgent(Agent):
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
       name = file.getFileName()
-      result = self.dataManager_.file(name)
+      result = self.dataManager_.checkfile(name)
       
       if not result['OK']:
         self.errorMgmt_.reportError (10, "The file " + str(file) + " is missing.", deleteFileName) 
         return S_ERROR()
       else:
-        fileID = int(result['Value'])
+        fileID = int(result['Value'][0][0])
         file.setFileID(fileID)
 
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
       name = file.getFileName()
-      result = self.dataManager_.file(name)
+      result = self.dataManager_.checkfile(name)
       if result['OK']:
         self.errorMgmt_.reportError (11, "The file " + str(name) + " already exists.", deleteFileName)
         return S_ERROR()
       
       typeName = file.getFileType()
       typeVersion = file.getFileVersion()
-      result = self.dataManager_.fileTypeAndFileTypeVersion(typeName, typeVersion)
+      result = self.dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
       if not result['OK']:
         self.errorMgmt_.reportError (12, "The type " + str(typeName) + ", version " + str(typeVersion) +"is missing.\n", deleteFileName)
         return S_ERROR()
       else:
-        typeID = int(result['Value'])
+        typeID = int(result['Value'][0][0])
         file.setTypeID(typeID)
       
       params = file.getFileParams()
@@ -118,7 +118,7 @@ class BookkeepingManagerAgent(Agent):
             return S_ERROR()
         if paramName == "EventType":
           value = int(param.getParamValue())
-          result = self.dataManager_.eventType(value)
+          result = self.dataManager_.checkEventType(value)
           if not result['OK']:
             self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName)
             return S_ERROR()
@@ -182,9 +182,9 @@ class BookkeepingManagerAgent(Agent):
         for param in params: # just one param exist in params list, because JobReader only one param add to Replica
           name = param.getName()
           location = param.getLocation()
-        result = self.dataManager_.insertReplica(file.getFileID(), name, location)           
+        result = self.dataManager_.updateReplicaRow(file.getFileID(),'Yes')  #, name, location)           
         if not result['OK']:
-          self.errorMgmt_.reportError(21, "Unable to create Replica " + str(name) + " (in " + str(location) + ") for file " + str(file.getFileName()) + ".\n", deleteFileName)
+          self.errorMgmt_.reportError(21, "Unable to create Replica " + str(name) +".\n", deleteFileName)
           return S_ERROR()
     
     self.log.info("End Processing: " + deleteFileName)
@@ -209,7 +209,7 @@ class BookkeepingManagerAgent(Agent):
       location = param.getLocation()
       delete = param.getAction() == "Delete"
        
-      result = self.dataManager_.file(replicaFileName)
+      result = self.dataManager_.checkfile(replicaFileName)
       if not result['OK']:
         message = "No replica can be ";
         if (delete):
@@ -227,13 +227,13 @@ class BookkeepingManagerAgent(Agent):
         list = result['Value']
         replicaList = list['Successful']
         if len(replicaList) == 0:
-          result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "no")
+          result = self.dataManager_.updateReplicaRow(fileID,"no")
           if not result['OK']:
             gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
             self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
             return S_ERROR()
       else:
-        result = self.dataManager_.modifyReplica(fileID, "Got_Replica", "yes")
+        result = self.dataManager_.updateReplicaRow(fileID, "yes")
         if not result['OK']:
           self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
           return S_ERROR()
