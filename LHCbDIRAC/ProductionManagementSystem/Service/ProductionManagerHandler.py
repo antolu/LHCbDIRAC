@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.35 2008/06/16 07:28:05 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.36 2008/06/30 13:37:19 paterson Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.35 $"
+__RCSID__ = "$Revision: 1.36 $"
 
 from types import *
 import threading
@@ -231,13 +231,13 @@ class ProductionManagerHandler( TransformationHandler ):
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
-    
+
   types_extendProduction = [ [LongType, IntType, StringType], [LongType, IntType]]
   def export_extendProduction( self, productionID, nJobs):
     result = productionDB.extendProduction(productionID, nJobs)
     if not result['OK']:
       gLogger.error(result['Message'])
-    return result  
+    return result
 
   types_getProductionInfo = [ [LongType, IntType, StringType]]
   def export_getProductionInfo( self, productionID):
@@ -385,7 +385,11 @@ class ProductionManagerHandler( TransformationHandler ):
       if not result['OK']:
         gLogger.error('Could not get job info from Production DB in TransformationID=%d JobID=%d ' % (productionID,jobID))
       jobDict = result['Value']
-      lfns = jobDict['InputVector'].split(',')
+      lfns = jobDict['InputVector']
+      if lfns:
+        lfns = lfns.split(',')
+      else:
+        lfns = []
       for lfn in lfns:
         lfn = lfn.replace('LFN:','')
         result = dataLog.addFileRecord(lfn,'Job submitted', 'WMS JobID: %s' % jobWmsID, '','ProductionManager')
