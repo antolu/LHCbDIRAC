@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.2 2008/06/30 14:58:10 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.1 2008/06/24 11:29:23 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.2 2008/06/30 14:58:10 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -85,4 +85,39 @@ class IBookkeepingDatabaseClient(object):
   def modifyReplica(self, fileID , name, value):
     return self.getManager().modifyReplica(fileID , name, value)
   
+  #Oracle 
   #############################################################################
+  def checkfile(self, fileName): 
+    return self.getManager().checkfile(fileName)
+  
+  #############################################################################
+  def checkFileTypeAndVersion(self, type, version): 
+    return self.getManager().checkFileTypeAndVersion(type, version)
+  
+  def checkEventType(self, eventTypeId):  
+    return self.getManager().checkEventType(eventTypeId)
+  
+  #############################################################################
+  def insertJob(self, config, jobParams):
+    return self.getManager().insertJob(config, jobParams)
+    
+  #############################################################################
+  def insertInputFile(self, jobID, FileId):
+    return self.getManager().insertInputFile(jobID, FileId)
+    
+  #############################################################################
+  def insertOutputFile(self, job, file):
+    return self.getManager().insertOutputFile(job, file)
+      
+  #############################################################################
+  def updateReplicaRow(self, fileID, replica): #, name, location):
+    return self.getManager().updateReplicaRow(fileID, replica)
+    
+  #############################################################################
+  def deleteJob(self, job):
+    return self.getManager().deleteJob(job)
+  
+  #############################################################################
+  def deleteFile(self, file):
+    return self.getManager().deleteFile(file)
+  
