@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.19 2008/06/26 17:06:51 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.20 2008/07/01 14:33:10 paterson Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -172,6 +172,10 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement       TransferAgent
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement       RemovalAgent
+
+$DESTDIR/pro/scripts/install_service.sh Stager Stager
+$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorWMS
 
 # RequestManagement
 
