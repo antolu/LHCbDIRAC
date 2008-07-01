@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.1 2008/06/20 17:05:45 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.2 2008/07/01 14:48:10 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.1 2008/06/20 17:05:45 rgracian Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.2 2008/07/01 14:48:10 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -62,6 +62,7 @@ class UsersAndGroups(Agent):
     users = {}
     newUsers = []
     duplicateUsers = []
+    multiDNUsers   = []
     for item in List.fromChar(ret['Value'][1],'\n'):
       dn,ca = List.fromChar(item,',')
       ret = systemCall(0,['voms-admin','--vo','lhcb','--host','voms.cern.ch','list-user-attributes',dn,ca])
@@ -70,8 +71,10 @@ class UsersAndGroups(Agent):
         continue
       user = List.fromChar(ret['Value'][1],'=')[1]
       if user in users:
-        self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, users[user]) )
-        self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, { 'DN':dn, 'CA':ca }) )
+        if dn != users[user]['DN']:
+          self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, users[user]) )
+          self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, { 'DN':dn, 'CA':ca }) )
+          multiDNUsers.append( user )
         duplicateUsers.append( user )
         continue
       users[user] = { 'DN':dn, 'CA':ca }
@@ -97,6 +100,7 @@ class UsersAndGroups(Agent):
 
     self.log.info( 'New Users found', newUsers )
     self.log.info( 'Duplicated Users found', duplicateUsers )
+    
 
     for role in roles:
       print role, roles[role]
