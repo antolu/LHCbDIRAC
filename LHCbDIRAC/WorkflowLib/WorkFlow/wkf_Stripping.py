@@ -146,7 +146,7 @@ stepInstance1.setValue("optionsFile", DaVinci_optfile)
 stepInstance1.setValue("optionsLine",opt_dav)
 stepInstance1.setValue("optionsLinePrev",opt_dav_prev)
 stepInstance1.setValue("inputData",indata) # KGG linked with InputData of the Workflow
-list1_out=[{"outputDataName":"FETC_@{STEP_ID}.@{applicationType}","outputType":"FETC","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"FETC_@{STEP_ID}.@{applicationType}","outputDataType":"FETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
@@ -165,7 +165,7 @@ stepInstance2.setValue("optionsLine",opt_brunel)
 stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
@@ -179,7 +179,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r3.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r4.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))

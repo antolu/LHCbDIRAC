@@ -9,8 +9,8 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 wkf_name = "MC_realtest100"
 #eventTypeSignal = "13144001"
 eventTypeSignal = "11114001"
-numberEventSignal = 50
-numberEventMB = 50
+numberEventSignal = 100
+numberEventMB = 100
 numberEvent = -1
 Gauss_version = "v25r13"
 Gauss_optfile = "v200601.opts"
@@ -46,7 +46,7 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 #define module 4
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
-module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
+module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
 module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 #define module 5
@@ -124,7 +124,7 @@ stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"sim","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step11_prefix="step11_"
@@ -143,7 +143,7 @@ stepInstance11.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance11.setValue("optionsFile", Gauss_optfile)
 stepInstance11.setValue("optionsLine",opt_gauss)
 stepInstance11.setValue("optionsLinePrev","None")
-list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"sim","outputDataSE":"Tier1_M-DST"}]
+list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance11.setValue("listoutput",list11_out)
 
 step12_prefix="step12_"
@@ -162,7 +162,7 @@ stepInstance12.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance12.setValue("optionsFile", Gauss_optfile)
 stepInstance12.setValue("optionsLine",opt_gauss)
 stepInstance12.setValue("optionsLinePrev","None")
-list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"sim","outputDataSE":"Tier1_M-DST"}]
+list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance12.setValue("listoutput",list12_out)
 
 step2_prefix="step2_"
@@ -184,7 +184,7 @@ stepInstance2.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance2.setValue("optionsFile", Boole_optfile)
 stepInstance2.setValue("optionsLine",opt_boole)
 stepInstance2.setValue("optionsLinePrev","None")
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"digi","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 step3_prefix="step3_"
@@ -202,7 +202,7 @@ stepInstance3.setValue("optionsLine",opt_brunel)
 stepInstance3.setValue("optionsLinePrev","None")
 stepInstance3.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 stepInstance3.setLink("inputData",stepInstance2.getName(),"outputData")
-list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"dst","outputDataSE":"Tier1_M-DST"}]
+list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_MC-DST"}]
 stepInstance3.setValue("listoutput",list3_out)
 
 workflow1.addStep(step3)
@@ -211,9 +211,10 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r3.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r4.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
+workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("OUTPUT_MAX","20","string","","",True,False,"nb max of output to keep"))

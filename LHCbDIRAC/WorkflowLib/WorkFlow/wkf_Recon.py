@@ -117,7 +117,7 @@ stepInstance1.setValue("optionsLine",opt_brunel)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setValue("inputData",indata)
 #stepInstance1.setValue("outputDataSE","Tier1_M-DST")
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputType":"dst","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 workflow1.addStep(step3)
@@ -131,7 +131,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r3.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r4.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
