@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.9 2008/07/01 17:14:51 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.10 2008/07/01 17:46:06 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -213,8 +213,26 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 #/opt/dirac/pro/mysql/share/mysql/mysql.server start
 
 $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
-$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotStatusAgent
-$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotAgent
-$DESTDIR/pro/scripts/install_agent.sh  WorkloadManagement PilotMonitor
+
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
+
+$DESTDIR/pro/scripts/install_service.sh DataManagement     TransferDBMonitoring
+$DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
+$DESTDIR/pro/scripts/install_service.sh DataManagement     ReplicationPlacement
+$DESTDIR/pro/scripts/install_service.sh DataManagement     RAWIntegrity
+$DESTDIR/pro/scripts/install_service.sh DataManagement     DataIntegrity
+$DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
+
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSMonitor
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSRegister
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSSubmit
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     RAWIntegrityAgent
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     RemovalAgent
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     ReplicationPlacementAgent
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     ReplicationScheduler
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsage
+
 
 exit
