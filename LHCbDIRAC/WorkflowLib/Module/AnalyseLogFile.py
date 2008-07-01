@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.17 2008/06/23 14:28:19 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.18 2008/07/01 13:28:03 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.17 2008/06/23 14:28:19 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.18 2008/07/01 13:28:03 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -22,6 +22,7 @@ class AnalyseLogFile(ModuleBase):
 
   def __init__(self):
       self.log = gLogger.getSubLogger("AnalyseLogFile")
+      self.version = __RCSID__
       self.site = gConfig.getValue('/LocalSite/Site','localSite')
       self.systemConfig = 'None'
       self.result = S_ERROR()
@@ -43,6 +44,7 @@ class AnalyseLogFile(ModuleBase):
       self.applicationVersion = None
 
   def execute(self):
+      self.log.info('Initializing '+self.version)
       self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
       self.site = gConfig.getValue('/LocalSite/Site','Site')
       self.notify = NotificationClient()
