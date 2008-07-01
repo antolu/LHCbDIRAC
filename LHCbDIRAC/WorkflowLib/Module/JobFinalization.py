@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.73 2008/06/25 08:26:36 joel Exp $
+# $Id: JobFinalization.py,v 1.74 2008/07/01 17:17:15 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.73 2008/06/25 08:26:36 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.74 2008/07/01 17:17:15 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -33,6 +33,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC.BookkeepingSystem.Client.BookkeepingClientOld import BookkeepingClientOld
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
@@ -52,14 +53,15 @@ class JobFinalization(ModuleBase):
     #####################################################
     # Variables supposed to be set by the workflow
 
+    self.version = __RCSID__
     self.PRODUCTION_ID = None
     self.JOB_ID = None
 
     # A list of dictionaries specifying the output data
     self.listoutput = []
 
-    self.poolXMLCatName = None
-    self.sourceData = None
+    self.poolXMLCatName = ''
+    self.sourceData = ''
     self.workflow_commons = None
 
     #####################################################
@@ -69,9 +71,9 @@ class JobFinalization(ModuleBase):
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
 
-    self.LFN_ROOT = None
+    self.LFN_ROOT = ''
     self.logdir = '.'
-    self.mode = None
+    self.mode = ''
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
@@ -79,6 +81,7 @@ class JobFinalization(ModuleBase):
 
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
+    self.bkold = BookkeepingClientOld()
     self.bkDB = BookkeepingDBClient()
     self.jobReport  = None
     self.fileReport = None
@@ -107,6 +110,9 @@ class JobFinalization(ModuleBase):
     else:
       self.request = RequestContainer()
 
+    if self.workflow_commons.has_key('poolXMLCatName'):
+       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+
     if self.workflow_commons.has_key('JobReport'):
       self.jobReport = self.workflow_commons['JobReport']
 
@@ -134,6 +140,7 @@ class JobFinalization(ModuleBase):
     self.request.setSourceComponent("Job_%s" % self.jobID)
 
     result = self.setApplicationStatus('Job Finalization')
+    self.log.info('Initializing '+self.version)
 
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
@@ -158,7 +165,7 @@ class JobFinalization(ModuleBase):
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
     if self.sourceData:
-      self.LFN_ROOT= getLFNRoot(self.sourceData)
+      self.LFN_ROOT=getLFNRoot(self.sourceData)
     else:
       self.LFN_ROOT=getLFNRoot(self.sourceData,self.configVersion)
 
@@ -176,6 +183,7 @@ class JobFinalization(ModuleBase):
     logs_done = True
     data_done = True
     bk_done = True
+    bkold_done = True
     request_done = True
     error_message = ''
 
@@ -203,10 +211,14 @@ class JobFinalization(ModuleBase):
       # Send bookkeeping only if the data was uploaded successfully
 
       if resultUpload['OK']:
-        resultBK = self.reportBookkeeping()
-        if not resultBK['OK']:
-          self.log.error(resultBK['Message'])
-          bk_done = False
+#        resultBK = self.reportBookkeeping()
+#        if not resultBK['OK']:
+#          self.log.error(resultBK['Message'])
+#          bk_done = False
+        resultBKOld = self.reportBookkeepingOld()
+        if not resultBKOld['OK']:
+          self.log.error(resultBKOld['Message'])
+          bkold_done = False
       else:
         data_done = False
 
@@ -222,12 +234,12 @@ class JobFinalization(ModuleBase):
       self.setApplicationStatus('Failed to save output data')
       result = S_ERROR('Failed to save output data')
 
-    if logs_done and data_done and bk_done and not error:
+    if logs_done and data_done and bk_done and bkold_done and not error:
       self.setApplicationStatus('Job Finished Successfully')
 
     if not logs_done:
       error_message = "failed to save logs, "
-    if not bk_done and not request_done:
+    if not bk_done and not bkold_done and not request_done:
       error_message += "failed to send bk data, "
 
     if error_message:
@@ -253,6 +265,42 @@ class JobFinalization(ModuleBase):
     books = []
     files = os.listdir('.')
     for f in files:
+      if re.search('^newbookkeeping',f):
+        books.append(f)
+
+    for f in books:
+      counter = 0
+      send_flag = True
+      self.log.info( "Sending bookkeeping file %s" % str( f ) )
+      fm = f.replace('newbookkeeping_','')
+      reqfile = open(f,'r')
+      xmlstring = reqfile.read()
+      while (send_flag):
+        result = self.bk.sendBookkeeping(fm,xmlstring)
+        if not result['OK']:
+          counter += 1
+          if result['Message'].find('Connection timed out') != -1:
+            time.sleep(self.bookkeepingTimeOut)
+          if counter > 3:
+            self.log.error( "Failed to send bookkeeping information for %s: %s" % (str(f),result['Message']) )
+            self.request.addSubRequest('newbookkeeping',DISETSubRequest(result['rpcStub']))
+            send_flag = False
+            result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
+        else:
+          self.log.info( "Bookkeeping %s sent successfully" % f )
+          send_flag = False
+
+    return result
+
+################################################################################
+  def reportBookkeepingOld(self):
+    """ Collect and send safely the bookkeeping reports
+    """
+
+    result = S_OK()
+    books = []
+    files = os.listdir('.')
+    for f in files:
       if re.search('^bookkeeping',f):
         books.append(f)
 
@@ -264,7 +312,7 @@ class JobFinalization(ModuleBase):
       reqfile = open(f,'r')
       xmlstring = reqfile.read()
       while (send_flag):
-        result = self.bk.sendBookkeeping(fm,xmlstring)
+        result = self.bkold.sendBookkeeping(fm,xmlstring)
         if not result['OK']:
           counter += 1
           if result['Message'].find('Connection timed out') != -1:
@@ -286,14 +334,14 @@ class JobFinalization(ModuleBase):
     """
 
     fcname = []
-    if self.poolXMLCatName != None:
+    if not self.poolXMLCatName:
       fcn = self.poolXMLCatName
       if os.path.isfile(fcn+'.gz'):
         gunzip(fcn+'.gz')
       if os.path.exists(fcn):
         fcname.append(fcn)
     else:
-      if  self.poolXMLCatName != None:
+      if not self.poolXMLCatName:
         fcn = self.poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
