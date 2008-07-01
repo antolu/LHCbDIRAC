@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.18 2008/06/17 09:40:36 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.18 2008/06/17 09:40:36 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.19 2008/07/01 13:25:46 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.19 2008/07/01 13:25:46 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -200,7 +200,7 @@ def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
 
     ####################################
     # Get the Pool XML catalog if any
-    poolcat = None
+    poolcat = ''
     fcname = []
     if os.environ.has_key('PoolXMLCatalog'):
       fcn = os.environ['PoolXMLCatalog']
@@ -208,7 +208,7 @@ def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
         gunzip(fcn+'.gz')
       fcname.append(fcn)
     else:
-      if poolXMLCatName != None:
+      if not poolXMLCatName:
         fcn = poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
@@ -246,7 +246,7 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
 
     ####################################
     # Get the Pool XML catalog if any
-    poolcat = None
+    poolcat = ''
     fcname = []
     if os.environ.has_key('PoolXMLCatalog'):
       fcn = os.environ['PoolXMLCatalog']
@@ -254,7 +254,7 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
         gunzip(fcn+'.gz')
       fcname.append(fcn)
     else:
-      if poolXMLCatName != None:
+      if not poolXMLCatName:
         fcn = poolXMLCatName
         if os.path.isfile(fcn+'.gz'):
           gunzip(fcn+'.gz')
