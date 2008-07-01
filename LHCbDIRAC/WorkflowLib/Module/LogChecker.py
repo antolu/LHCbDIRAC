@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.16 2008/06/25 08:27:43 joel Exp $
+# $Id: LogChecker.py,v 1.17 2008/07/01 13:24:03 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.16 2008/06/25 08:27:43 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.17 2008/07/01 13:24:03 joel Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -37,6 +37,9 @@ class LogChecker(ModuleBase):
        self.applicationName = self.step_commons['applicationName']
        self.applicationVersion = self.step_commons['applicationVersion']
        self.applicationLog = self.step_commons['applicationLog']
+
+    if self.workflow_commons.has_key('poolXMLCatName'):
+       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
     if self.step_commons.has_key('numberOfEvents'):
        self.numberOfEvents = self.step_commons['numberOfEvents']
