@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: File.py,v 1.2 2008/03/03 09:58:46 zmathe Exp $
+# $Id: File.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: File.py,v 1.2 2008/03/03 09:58:46 zmathe Exp $"
+__RCSID__ = "$Id: File.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $"
 
 class File:
 
@@ -96,6 +96,9 @@ class File:
           
     return result
   
+  def writeToXML(self):
+    result = '  <InputFile    Name="'+self.getFileName()+'"/>\n'
+    return result
   #############################################################################  
 
         

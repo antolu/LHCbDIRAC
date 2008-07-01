@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $
+# $Id: Job.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $"
 
 
 class Job:
@@ -104,5 +104,23 @@ class Job:
       result +=  str(output)
     result += '\n'
     return result
+  
+  def writeToXML(self):
+    s = ''
+    s += '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
+    s += '<!DOCTYPE Job SYSTEM "book.dtd">\n'
+    
+    s +=  self.getJobConfiguration().writeToXML()
+    for param in  self.jobParameters_:
+      s +=  param.writeToXML()
+    
+    for input in self.jobInputFiles_:
+      s += input.writeToXML()   
+    
+    for output in self.jobOutputfiles_: 
+      result +=  output.writeToXML()
+      
+    return s
+          
       
 	#############################################################################  
