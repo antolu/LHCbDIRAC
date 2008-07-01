@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.7 2008/06/19 06:21:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.8 2008/07/01 15:56:25 rgracian Exp $
 # File :   install_store02.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -17,6 +17,7 @@ DESTDIR=/opt/dirac
 SiteName=DIRAC.ONLINE.ch
 DIRACSETUP=LHCb-Development
 DIRACVERSION=HEAD
+EXTVERSION=HEAD
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data requestDB"
@@ -266,7 +267,7 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
 #
 # Create pro and old links
@@ -277,7 +278,7 @@ pro=$DESTDIR/pro
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
-## Compile all python files .py -> .pyc
+## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
