@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.21 2008/06/25 08:27:17 joel Exp $
+# $Id: BookkeepingReport.py,v 1.22 2008/07/01 13:32:24 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.21 2008/06/25 08:27:17 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.22 2008/07/01 13:32:24 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -15,22 +15,21 @@ import os, time, re
 class BookkeepingReport(ModuleBase):
 
   def __init__(self):
-    self.STEP_ID = None
-    self.configName = None
-    self.configVersion = None
-    self.RUN_NUMBER = None
-    self.FIRST_EVENT_NUMBER = None
-    self.numberOfEvents = None
-    self.numberOfEventsInput = None
-    self.numberOfEventsOutput = None
-    self.eventType = None
-    self.poolXMLCatName = None
-    self.inputData = None
-    self.STEP_ID = None
+    self.version = __RCSID__
+    self.configName = ''
+    self.configVersion = ''
+    self.run_number = 0
+    self.firstEventNumber = 1
+    self.numberOfEvents = 0
+    self.numberOfEventsInput = 0
+    self.numberOfEventsOutput = 0
+    self.eventType = ''
+    self.poolXMLCatName = ''
+    self.inputData = ''
     self.JOB_ID = None # to check
-    self.sourceData=None
-    self.applicationName = None
-    self.applicationLog = None
+    self.sourceData=''
+    self.applicationName = ''
+    self.applicationLog = ''
     self.log = gLogger.getSubLogger("BookkeepingReport")
     pass
 
@@ -66,6 +65,7 @@ class BookkeepingReport(ModuleBase):
 
 
   def execute(self):
+    self.log.info('Initializing '+self.version)
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
