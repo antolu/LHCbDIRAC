@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.4 2008/03/03 11:57:48 zmathe Exp $
+# $Id: JobReader.py,v 1.5 2008/07/01 10:54:27 zmathe Exp $
 ########################################################################
 
 """
@@ -10,16 +10,17 @@ from xml.dom.ext.reader                                                     impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobConfiguration           import JobConfiguration
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobOption                  import JobOption
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.InputFile                  import InputFile
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters              import JobParameters
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Job                        import Job
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                  import FileParam
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                import Replica
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.FileReplica            import FileReplica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    import Quality
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.4 2008/03/03 11:57:48 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.5 2008/07/01 10:54:27 zmathe Exp $"
 
 
 class JobReader:
@@ -145,7 +146,7 @@ class JobReader:
     
     jobInputFile = doc.getElementsByTagName('InputFile')
     for node in jobInputFile:
-        inputFile = File()
+        inputFile = InputFile()
         input = node.getAttributeNode('Name')
         if input != None:
           inputFile.setFileName(input._get_value().encode('ascii'))   
@@ -202,7 +203,7 @@ class JobReader:
         replicas = doc.getElementsByTagName('Replica') ## I have to check doc ? no node? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         for replica in replicas:
-          rep = Replica()
+          rep = FileReplica()
           param = ReplicaParam()
           name = replica.getAttributeNode("Name")
           location = replica.getAttributeNode("Location")

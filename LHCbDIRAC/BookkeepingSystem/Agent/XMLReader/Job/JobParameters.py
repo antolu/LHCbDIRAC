@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: JobParameters.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $
+# $Id: JobParameters.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: JobParameters.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $"
+__RCSID__ = "$Id: JobParameters.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $"
 
 class JobParameters:
 
@@ -46,8 +46,8 @@ class JobParameters:
     result = self.name_ + '  ' + self.value_ + '  ' + self.type_ + '\n'
     return result
   
+  #############################################################################  
   def writeToXML(self):
-
     result = '  <TypedParameter Name="' + str(self.getName()) + \
                      '" Value="'+str(self.getValue())+'" Type="'+str(self.getType())+'"/>\n'
     return result

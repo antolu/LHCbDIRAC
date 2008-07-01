@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: FileParam.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $
+# $Id: FileParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: FileParam.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $"
+__RCSID__ = "$Id: FileParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $"
 
 class FileParam:
     
@@ -38,4 +38,8 @@ class FileParam:
     result += self.name_ + ' ' + self.value_ + '\n'
     return result
   
+  #############################################################################  
+  def writeToXML(self):
+    return '    <Parameter  Name="'+ self.getParamName() +'"     Value="'+self.getParamValue()+'"/>\n'
+    
   #############################################################################  

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.7 2008/06/30 15:32:17 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.8 2008/07/01 10:54:27 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.7 2008/06/30 15:32:17 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.8 2008/07/01 10:54:27 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
@@ -209,7 +209,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'WNModel':"NULL", \
                  'WorkerNode':"NULL"}
     
+    
     for param in jobParams:
+      if not attrList.__contains__(param.getName()):
+        gLogger.error("insert job error: "," the job table not contains "+param.getName()+" this attributte!!")
+        return S_ERROR(" The job table not contains "+param.getName()+" this attributte!!")
       attrList[str(param.getName())] = param.getValue()
       
     result = self.db_.executeStoredProcedure('BKK_ORACLE.insertJobsRow',[ attrList['ConfigName'], attrList['ConfigVersion'], \

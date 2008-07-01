@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $
+# $Id: Job.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $"
 
 
 class Job:
@@ -118,8 +118,9 @@ class Job:
       s += input.writeToXML()   
     
     for output in self.jobOutputfiles_: 
-      result +=  output.writeToXML()
-      
+      s +=  output.writeToXML()
+    s += '</Job>'
+    
     return s
           
       

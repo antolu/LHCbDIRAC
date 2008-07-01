@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.2 2008/03/03 16:14:46 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.3 2008/07/01 10:54:27 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                        import gConf
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.2 2008/03/03 16:14:46 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.3 2008/07/01 10:54:27 zmathe Exp $"
 
 class XMLFilesReaderManager:
   
@@ -95,10 +95,11 @@ class XMLFilesReaderManager:
         return 'none', None
     except Exception, ex:
       gLogger.warn(ex)
-      gLogger.warn(fn+"file removed the ErrorTmp directory")
+      gLogger.info(fn+"file removed the ErrorTmp directory")
       name = os.path.split(fn[:-6])[1]
       self.fileClient_.rename(fn[:-6], self.errorsTmp_+name)
-      self.fileClient_.rm(fn)
+      self.fileClient_.rename(fn, self.errorsTmp_+name)
+      #self.fileClient_.rm(fn)
       return 'none', None
 
   #############################################################################
@@ -118,7 +119,16 @@ class XMLFilesReaderManager:
         else:
           name = os.path.split(file)[1]
           self.fileClient_.rename(file, self.errorsTmp_ + name)
-        self.fileClient_.rm(fn)
+          gLogger.info(file+" file moved the ErrorTmp directory!!!")
+        
+        gLogger.info(fn+" file moved the ErrorTmp directory!!!")
+        
+        self.fileClient_.rename(fn, self.errorsTmp_ + name+".error") 
+        """
+        very important to remove also the error messages, because we have to now
+        what is the problem!!!!
+        """
+        #self.fileClient_.rm(fn)
     return files
   
   #############################################################################   
@@ -138,6 +148,11 @@ class XMLFilesReaderManager:
           job = self.jobReader_.readJob(doc, fullpath)
           self.jobs_ += [job]
         else:
+          name = os.path.split(fileName)[1]
+          self.fileClient_.rename(fileName, self.errorsTmp_ + name)
+          self.fileClient_.rm(fileName)
+          print fileName,self.errorsTmp_ + name
+          print 
           gLogger.error("unknown XML file!!!")
           
          
@@ -152,6 +167,10 @@ class XMLFilesReaderManager:
           job = self.jobReader_.readJob(doc, fullpath)
           self.jobs_ += [job]
         else:
+          name = os.path.split(fileName)[1]
+          self.fileClient_.rename(fileName, self.errorsTmp_ + name)
+          self.fileClient_.rm(fileName)
+          print fileName,self.errorsTmp_ + name
           gLogger.error("unknown XML file!!!")
           
   #############################################################################   

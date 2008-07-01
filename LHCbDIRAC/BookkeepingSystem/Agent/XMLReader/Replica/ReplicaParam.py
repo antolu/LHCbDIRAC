@@ -1,12 +1,14 @@
 ########################################################################
-# $Id: ReplicaParam.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $
+# $Id: ReplicaParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: ReplicaParam.py,v 1.1 2008/02/29 12:01:30 zmathe Exp $"
+from DIRAC                                           import gLogger, S_OK, S_ERROR
+
+__RCSID__ = "$Id: ReplicaParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $"
 
 class ReplicaParam:
     
@@ -67,4 +69,17 @@ class ReplicaParam:
     result += self.se_ + " " + self.action_
       
     return result
+  
+  #############################################################################  
+  def writeToXML(self, flag = True):
+    # job replica param
+    gLogger.info("replica param",str(flag))
+    if flag == True:
+      result = '     <Replica Name="'+self.getName()+'" Location="'+self.getLocation()+'"/>\n'
+    
+    else:
+      result = ''
+  
+    return result
+  
   #############################################################################  

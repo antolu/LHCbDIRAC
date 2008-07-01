@@ -1,12 +1,14 @@
 ########################################################################
-# $Id: File.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $
+# $Id: File.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: File.py,v 1.3 2008/07/01 08:58:30 zmathe Exp $"
+from DIRAC                                                                  import gLogger, S_OK, S_ERROR
+
+__RCSID__ = "$Id: File.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $"
 
 class File:
 
@@ -96,9 +98,19 @@ class File:
           
     return result
   
+  #############################################################################  
   def writeToXML(self):
-    result = '  <InputFile    Name="'+self.getFileName()+'"/>\n'
-    return result
+    s = '  <OutputFile   Name="'+self.getFileName()+'" TypeName="'+self.getFileType()+'" TypeVersion="'+self.getFileVersion()+'">\n'
+    
+    for replica in self.getReplicas():
+      s += replica.writeToXML()
+    
+    for param in self.getFileParams():
+      s += param.writeToXML()
+      
+    s += '  </OutputFile>\n'
+    
+    return s
   #############################################################################  
 
         

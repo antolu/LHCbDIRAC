@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: JobConfiguration.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $
+# $Id: JobConfiguration.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: JobConfiguration.py,v 1.2 2008/07/01 08:58:30 zmathe Exp $"
+__RCSID__ = "$Id: JobConfiguration.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $"
 
 class JobConfiguration:
     
@@ -59,7 +59,7 @@ class JobConfiguration:
     return result
 
   def writeToXML(self):
-    result = '<Job ConfigName="'+self.getConfigName + \
+    result = '<Job ConfigName="'+self.getConfigName() + \
           '" ConfigVersion="'+self.getConfigVersion()+ \
           '" Date="'+ self.getDate() + \
           '" Time="'+ self.getTime()+'">\n'
