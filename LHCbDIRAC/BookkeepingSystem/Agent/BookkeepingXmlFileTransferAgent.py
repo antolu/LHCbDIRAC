@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.9 2008/07/02 15:51:14 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.10 2008/07/02 16:01:23 zmathe Exp $
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.9 2008/07/02 15:51:14 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.10 2008/07/02 16:01:23 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -110,7 +110,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
         if attrlist.has_key(name.upper()):
           param.setName(attrlist[name.upper()])
         else:
-          del param
+          job.removeJobParam(param)
       
       for file in job.getJobOutputFiles():
         params = file.getFileParams()
@@ -118,6 +118,8 @@ class BookkeepingXmlFileTransferAgent(Agent):
           name = param.getParamName()
           if fileattr.has_key(name.upper()):
             param.setParamName(fileattr[name.upper()])
+          else:
+            file.removeFileParam(param)
       
       sim = SimulationConditions()
       sim.addParam("BeamCond", "Collisions")

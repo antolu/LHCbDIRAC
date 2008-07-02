@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.5 2008/07/02 14:21:59 zmathe Exp $
+# $Id: Job.py,v 1.6 2008/07/02 16:01:23 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.5 2008/07/02 14:21:59 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.6 2008/07/02 16:01:23 zmathe Exp $"
 
 
 class Job:
@@ -44,6 +44,8 @@ class Job:
   def addJobParams(self, jobParams):
     self.jobParameters_ += [jobParams]
 
+  def removeJobParam(self, paramName):
+    self.jobParameters_.remove(paramName)
   #############################################################################  
   def getJobParams(self):
     return  self.jobParameters_

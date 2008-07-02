@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: File.py,v 1.5 2008/07/02 09:49:11 zmathe Exp $
+# $Id: File.py,v 1.6 2008/07/02 16:01:23 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: File.py,v 1.5 2008/07/02 09:49:11 zmathe Exp $"
+__RCSID__ = "$Id: File.py,v 1.6 2008/07/02 16:01:23 zmathe Exp $"
 
 class File:
 
@@ -59,7 +59,11 @@ class File:
   #############################################################################  
   def addFileParam(self, param):
     self.params_ += [param]
-      
+  
+  #############################################################################  
+  def removeFileParam(self, param):
+    self.params_.remove(param)
+    
   #############################################################################  
   def getFileParams(self):
     return self.params_
