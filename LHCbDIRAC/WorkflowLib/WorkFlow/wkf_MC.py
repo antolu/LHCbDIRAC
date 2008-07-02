@@ -9,8 +9,8 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 wkf_name = "MC_realtest100"
 #eventTypeSignal = "13144001"
 eventTypeSignal = "11114001"
-numberEventSignal = 100
-numberEventMB = 100
+numberEventSignal = 1
+numberEventMB = 3
 numberEvent = -1
 Gauss_version = "v25r13"
 Gauss_optfile = "v200601.opts"
@@ -202,7 +202,7 @@ stepInstance3.setValue("optionsLine",opt_brunel)
 stepInstance3.setValue("optionsLinePrev","None")
 stepInstance3.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 stepInstance3.setLink("inputData",stepInstance2.getName(),"outputData")
-list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_MC-DST"}]
+list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
 stepInstance3.setValue("listoutput",list3_out)
 
 workflow1.addStep(step3)
@@ -211,7 +211,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r4.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r5.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
