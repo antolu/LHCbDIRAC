@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.3 2008/07/02 10:05:59 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.4 2008/07/02 11:02:03 zmathe Exp $
 ########################################################################
 
 """ 
@@ -9,12 +9,12 @@
 
 AGENT_NAME = 'Bookkeeping/BookkeepingXmlFileTransferAgent'
 
-from DIRAC.Core.Base.Agent                                                import Agent
-from DIRAC                                                                import S_OK, S_ERROR, gConfig
-from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager        import XMLFilesReaderManager
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient                     import BookkeepingClient
+from DIRAC.Core.Base.Agent                                                     import Agent
+from DIRAC                                                                     import S_OK, S_ERROR, gConfig
+from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
+from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.3 2008/07/02 10:05:59 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.4 2008/07/02 11:02:03 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -31,7 +31,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
     result           = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime', 60)
     self.bkkClient_ = BookkeepingClient()
-    self.xmlMgmt_ = XMLFilesReaderManager()
+    self.xmlMgmt_ = XMLFilesReaderManagerForTransfer()
     return result
 
   #############################################################################
