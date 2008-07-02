@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.16 2008/06/27 18:36:39 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac-distribution,v 1.17 2008/07/02 10:37:10 rgracian Exp $
 # File :   dirac-distribution
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-distribution,v 1.16 2008/06/27 18:36:39 rgracian Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: dirac-distribution,v 1.17 2008/07/02 10:37:10 rgracian Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 """
     Script to prepare DIRAC distribution tarballs
 """
@@ -105,8 +105,8 @@ tars += dirac.createBinTars()
 if tars > 0:
   dirac.logINFO( 'Upload tar files to repository:' )
   # dirac.logINFO( ' scp %s/*.tar.gz lhcbprod@lxplus.cern.ch:/afs/cern.ch/lhcb/distribution/DIRAC3' % rootPath )
-  dirac.logINFO( " tar -cf - %s/*.tar.gz | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
+  dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
   # dirac.logINFO( ' gsiscp -P 1975 %s/*.tar.gz lhcbweb.pic.es:/opt/dirac/webRoot/distribution/DIRAC3' % rootPath )
-  dirac.logINFO( " tar -cf - %s/*.tar.gz | gsissh -P 1975 lhcbweb.pic.es 'cd /opt/dirac/webRoot/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
+  dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz ) | gsissh -p 1975 lhcbweb.pic.es 'cd /opt/dirac/webRoot/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
 
 exit(0)
