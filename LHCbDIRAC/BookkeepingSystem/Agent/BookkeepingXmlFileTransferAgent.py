@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.6 2008/07/02 14:22:00 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.7 2008/07/02 15:07:44 zmathe Exp $
 ########################################################################
 
 """ 
@@ -12,9 +12,10 @@ AGENT_NAME = 'Bookkeeping/BookkeepingXmlFileTransferAgent'
 from DIRAC.Core.Base.Agent                                                     import Agent
 from DIRAC                                                                     import S_OK, S_ERROR, gConfig
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.6 2008/07/02 14:22:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.7 2008/07/02 15:07:44 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -87,15 +88,45 @@ class BookkeepingXmlFileTransferAgent(Agent):
                  'MODEL':'WNModel', \
                  'HOST':'WorkerNode' }
 
+ 
+
+    fileattr = {'EVENTSTAT':'EventStat', 
+                'EVENTTYPE':'EventTypeId' , 
+                'LOGNAME':'FileName', 
+                'GOT_REPLICA':'GotReplica',
+                'GUID':'Guid',
+                'MD5SUM':'MD5Sum', 
+                'SIZE':'FileSize' }
+
     
     configs = job.getJobConfiguration()
     if configs.getConfigName() == 'DC06':
       configs.setConfigName('MC')
       configs.setConfigVersion('2008')
-      self.log.info(job.writeToXML())
+      
+      for param in  job.getJobParams():
+        name = param.getName()
+        if attrlist.has_key(name.upper()):
+          param.setValue(attrlist[name.upper()])
+      
+      for file in job.getJobOutputFiles():
+        params = file.getFileParams()
+        for param in params:
+          name = getParamName()
+          if fileattr.has_key(name.upper()):
+            param.setParamValue(fileattr[name.upper()])
+      
+      sim = SimulationConditions()
+      sim.addParam("BeamCond", "Collisions")
+      sim.addParam("BeamEnergy" ,"7 TeV")
+      sim.addParam("Generator", "Pythia 6.325.2")
+      sim.addParam("MagneticField", "-100%")
+      sim.addParam("DetectorCond", "Normal")
+      sim.addParam("Luminosity", "Fixed 2 10**32")
+      job.addSimulationCond(sim)  
     else:
       return S_ERROR()
-    return S_ERROR()
+    return S_OK()
   
   #############################################################################
   def __translateReplicaAttributes(self, replica):
