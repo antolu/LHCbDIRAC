@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.4 2008/06/23 13:19:06 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.5 2008/07/02 11:17:36 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,11 +12,7 @@
 
    Helper functions are documented with example usage for the DIRAC API.
 
-   This class is under intensive development and currently only provides
-   the functionality to construct LHCb project jobs.  The following use-cases
-   are pending:
-    - Root macros
-    - GaudiPython / Bender scripts.
+   Below are several examples of LHCbJob usage.
 
    An example DaVinci application script would be::
 
@@ -26,8 +22,7 @@
      j = LHCbJob()
      j.setCPUTime(5000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setApplication('DaVinci','v19r11','DaVinciv19r11.opts')
-     j.setInputData(['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
+     j.setApplication('DaVinci','v19r12','DaVinciv19r12.opts',optionsLine='ApplicationMgr.EvtMax=1',inputData=['/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000054_5.dst'])
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
@@ -45,8 +40,7 @@
      j = LHCbJob()
      j.setCPUTime(5000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setApplicationScript('DaVinci','v19r11','myGaudiPythonScript.py')
-     j.setInputData(['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
+     j.setApplicationScript('DaVinci','v19r11','myGaudiPythonScript.py',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
@@ -54,9 +48,41 @@
      jobID = dirac.submit(j)
      print 'Submission Result: ',jobID
 
+   For execution of a python Bender module::
+
+     from DIRAC.Interfaces.API.Dirac import Dirac
+     from DIRAC.Interfaces.API.LHCbJob import LHCbJob
+
+     j = LHCbJob()
+     j.setCPUTime(5000)
+     j.setSystemConfig('slc4_ia32_gcc34')
+     j.setBenderModule('v8r3','BenderExample.PhiMC',inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
+     j.setName('MyJobName')
+
+     dirac = Dirac()
+     jobID = dirac.submit(j)
+     print 'Submission Result: ',jobID
+
+   To execute a ROOT Macro, Python script and Executable consecutively an example script would be::
+
+     from DIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+     from DIRAC.Interfaces.API.Dirac import Dirac
+
+     j = LHCbJob()
+     j.setCPUTime(50000)
+     j.setSystemConfig('slc4_ia32_gcc34')
+     j.setRootMacro('5.18.00a','test.C')
+     j.setRootPythonScript('5.18.00a','test.py')
+     j.setRootExecutable('5.18.00a','minexam')
+     j.setLogLevel('verbose')
+
+     dirac = Dirac()
+     jobID = dirac.submit(j,mode='local')
+     print 'Submission Result: ',jobID
+
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.4 2008/06/23 13:19:06 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.5 2008/07/02 11:17:36 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -83,6 +109,7 @@ class LHCbJob(Job):
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
     self.scratchDir = gConfig.getValue(self.section+'/LocalSite/ScratchDir','/tmp')
+    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
 
   #############################################################################
   def setApplication(self,appName,appVersion,optionsFiles,inputData='',optionsLine='',inputDataType='',logFile=''):
@@ -106,7 +133,7 @@ class LHCbJob(Job):
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',logFile='dv.log')
+       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
 
        @param appName: Application name
        @type appName: string
@@ -133,7 +160,6 @@ class LHCbJob(Job):
         raise TypeError,'Expected string for log file name'
     else:
       logName = '%s_%s.log' %(appName,appVersion)
-
 
     if not type(inputDataType) in types.StringTypes:
       raise TypeError,'Expected string for input data type'
@@ -293,6 +319,8 @@ class LHCbJob(Job):
     if not os.path.exists(script):
       raise TypeError,'Script must exist locally'
 
+    self.addToInputSandbox.append(script)
+
     if arguments:
       if not type(arguments)==type(' '):
         raise TypeError,'Expected string for optional script arguments'
@@ -439,6 +467,172 @@ class LHCbJob(Job):
       self.addToInputSandbox.append(userModule)
     self.setInputData(inputData)
     self.setApplicationScript('Bender', benderVersion, '%s/BenderScript.py' %tmpdir, logFile='Bender%s.log' %benderVersion)
+
+  #############################################################################
+  def setRootMacro(self,rootVersion,rootScript,arguments='',logFile=''):
+    """Helper function.
+
+       Specify ROOT version and macro to be executed (e.g. root -b -f <rootScript>).
+
+       Can optionally specify arguments to the script and a name for the output log file.
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> j.setRootMacro('5.18.00a','test.C')
+
+       @param rootVersion: LHCb supported ROOT version
+       @type rootVersion: string
+       @param rootScript: Path to ROOT macro script
+       @type rootScript: string
+       @param arguments: Optional arguments for macro
+       @type arguments: string
+       @param logFile: Optional log file name
+       @type logFile: string
+    """
+    rootType = 'c'
+    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+
+  #############################################################################
+  def setRootPythonScript(self,rootVersion,rootScript,arguments='',logFile=''):
+    """Helper function.
+
+       Specify ROOT version and python script to be executed (e.g. python <rootScript>).
+
+       Can optionally specify arguments to the script and a name for the output log file.
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> j.setRootPythonScript('5.18.00a','test.py')
+
+       @param rootVersion: LHCb supported ROOT version
+       @type rootVersion: string
+       @param rootScript: Path to ROOT python script
+       @type rootScript: string
+       @param arguments: Optional arguments for python script
+       @type arguments: string
+       @param logFile: Optional log file name
+       @type logFile: string
+    """
+    rootType = 'py'
+    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+
+  #############################################################################
+  def setRootExecutable(self,rootVersion,rootScript,arguments='',logFile=''):
+    """Helper function.
+
+       Specify ROOT version and executable (e.g. ./<rootScript>).
+
+       Can optionally specify arguments to the script and a name for the output log file.
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> j.setRootExecutable('5.18.00a','minexam')
+
+       @param rootVersion: LHCb supported ROOT version
+       @type rootVersion: string
+       @param rootScript: Path to ROOT macro script
+       @type rootScript: string
+       @param arguments: Optional arguments for macro
+       @type arguments: string
+       @param logFile: Optional log file name
+       @type logFile: string
+    """
+    rootType='bin'
+    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+
+  #############################################################################
+  def __configureRootModule(self,rootVersion,rootScript,rootType,arguments,logFile):
+    """ Internal function.
+
+        Supports the root macro, python and executable wrapper functions.
+    """
+    for param in [rootVersion,rootScript,rootType,arguments,logFile]:
+      if not type(param) in types.StringTypes:
+        raise TypeError,'Expected strings for Root application input parameters'
+
+    if not os.path.exists(rootScript):
+      raise TypeError,'ROOT Script %s must exist locally' %(rootScript)
+    self.addToInputSandbox.append(rootScript)
+
+    #Must check if ROOT version in available versions and define appName appVersion...
+    rootVersions = gConfig.getOptions(self.rootSection,[])
+    if not rootVersions['OK']:
+      raise Exception,'Could not contact DIRAC Configuration Service for supported ROOT version list'
+
+    rootList = rootVersions['Value']
+    if not rootVersion in rootList:
+      raise Exception,'Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', '))
+
+    rootName = os.path.basename(rootScript).replace('.','')
+    if logFile:
+      logName = logFile
+    else:
+      logName = '%s_%s.log' %(rootName,rootVersion.replace('.',''))
+
+    self.gaudiStepCount +=1
+    stepNumber = self.gaudiStepCount
+    stepDefn = '%sStep%s' %(rootName,stepNumber)
+    step =  self.__getRootApplicationStep(stepDefn)
+
+    stepName = 'Run%sStep%s' %(rootName,stepNumber)
+
+    logPrefix = 'Step%s_' %(stepNumber)
+    logName = '%s%s' %(logPrefix,logName)
+    self.addToOutputSandbox.append(logName)
+
+    self.workflow.addStep(step)
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
+
+    # Define Step and its variables
+    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance.setValue("rootVersion",rootVersion)
+    stepInstance.setValue("rootType",rootType)
+    stepInstance.setValue("rootScript",os.path.basename(rootScript))
+    stepInstance.setValue("logFile",logName)
+    if arguments:
+      stepInstance.setValue("arguments",arguments)
+
+    # now we have to tell DIRAC to install the necessary software
+    appRoot = '%s/%s' %(self.rootSection,rootVersion)
+    currentApp = gConfig.getValue(appRoot,'')
+    if not currentApp:
+      raise Exception,'Could not get value from DIRAC Configuration Service for option %s' %appRoot
+    swPackages = 'SoftwarePackages'
+    description='List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter(swPackages):
+      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    else:
+      apps = self.workflow.findParameter(swPackages).getValue()
+      apps += ';'+currentApp
+      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+
+  #############################################################################
+  def __getRootApplicationStep(self,name='RootApplication'):
+    """Internal function.
+
+        This method controls the definition for a RootApplication step.
+    """
+    # Create the GaudiApplication module first
+    moduleName = 'RootApplication'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A generic Root Application module that can execute macros, python scripts or executables')
+    body = 'from WorkflowLib.Module.RootApplication import RootApplication\n'
+    module.setBody(body)
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    moduleInstance = step.createModuleInstance('RootApplication',name)
+    # Define step parameters
+    step.addParameter(Parameter("rootVersion","","string","","",False, False, "Root version."))
+    step.addParameter(Parameter("rootScript","","string","","",False, False, "Root script."))
+    step.addParameter(Parameter("rootType","","string","","",False, False, "Root type."))
+    step.addParameter(Parameter("arguments","","string","","",False, False, "Optional arguments for payload."))
+    step.addParameter(Parameter("logFile","","string","","",False, False, "Log file name."))
+    return step
 
   #############################################################################
   def __getCurrentStepPrefix(self):
