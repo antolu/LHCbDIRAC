@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.8 2008/07/02 15:43:02 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.9 2008/07/02 15:51:14 zmathe Exp $
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.8 2008/07/02 15:43:02 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.9 2008/07/02 15:51:14 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -46,7 +46,8 @@ class BookkeepingXmlFileTransferAgent(Agent):
       result = self.__translateJobAttributes(job)
       if result['OK']:
         name = job.getFileName().split("/")[5]
-        gLogger.info("Send "+str(name)+"to volhcb07!!")
+        self.log.info(job.writeToXML())
+        self.log.info("Send "+str(name)+"to volhcb07!!")
         self.bkkClient_.sendBookkeeping(name, job.writeToXML())
     
     replicas = self.xmlMgmt_.getReplicas()
@@ -54,7 +55,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
       result = self.__translateReplicaAttributes(replica)
       if result['OK']:
         name = replicas.getFileName().split("/")[5]
-        gLogger.info("Send"+str(name)+"to volhcb07!!")
+        self.log.info("Send"+str(name)+"to volhcb07!!")
         self.bkkClient_.sendBookkeeping(name, result['Value'])
     
     self.xmlMgmt_.destroy()
@@ -108,6 +109,8 @@ class BookkeepingXmlFileTransferAgent(Agent):
         name = param.getName()
         if attrlist.has_key(name.upper()):
           param.setName(attrlist[name.upper()])
+        else:
+          del param
       
       for file in job.getJobOutputFiles():
         params = file.getFileParams()
