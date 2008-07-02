@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.7 2008/07/02 15:07:44 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.8 2008/07/02 15:43:02 zmathe Exp $
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.7 2008/07/02 15:07:44 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.8 2008/07/02 15:43:02 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -46,8 +46,8 @@ class BookkeepingXmlFileTransferAgent(Agent):
       result = self.__translateJobAttributes(job)
       if result['OK']:
         name = job.getFileName().split("/")[5]
-        gLogger.info("Send"+str(name)+"to volhcb07!!")
-        self.bkkClient_.sendBookkeeping(name, result['Value'])
+        gLogger.info("Send "+str(name)+"to volhcb07!!")
+        self.bkkClient_.sendBookkeeping(name, job.writeToXML())
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
@@ -107,14 +107,14 @@ class BookkeepingXmlFileTransferAgent(Agent):
       for param in  job.getJobParams():
         name = param.getName()
         if attrlist.has_key(name.upper()):
-          param.setValue(attrlist[name.upper()])
+          param.setName(attrlist[name.upper()])
       
       for file in job.getJobOutputFiles():
         params = file.getFileParams()
         for param in params:
-          name = getParamName()
+          name = param.getParamName()
           if fileattr.has_key(name.upper()):
-            param.setParamValue(fileattr[name.upper()])
+            param.setParamName(fileattr[name.upper()])
       
       sim = SimulationConditions()
       sim.addParam("BeamCond", "Collisions")
