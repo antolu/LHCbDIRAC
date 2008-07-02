@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.4 2008/07/02 09:49:11 zmathe Exp $
+# $Id: Job.py,v 1.5 2008/07/02 14:21:59 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.4 2008/07/02 09:49:11 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.5 2008/07/02 14:21:59 zmathe Exp $"
 
 
 class Job:
@@ -128,8 +128,11 @@ class Job:
     
     for output in self.jobOutputfiles_: 
       s +=  output.writeToXML()
-      
-    s += self.getSimulationCond().writeToXML()
+    
+    sim = self.getSimulationCond() 
+    if sim != None:
+      s += sim.writeToXML()
+    
     s += '</Job>'
     
     return s

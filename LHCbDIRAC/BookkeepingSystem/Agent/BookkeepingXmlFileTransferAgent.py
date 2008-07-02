@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.5 2008/07/02 14:04:42 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.6 2008/07/02 14:22:00 zmathe Exp $
 ########################################################################
 
 """ 
@@ -14,7 +14,7 @@ from DIRAC                                                                     i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.5 2008/07/02 14:04:42 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.6 2008/07/02 14:22:00 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -88,7 +88,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
                  'HOST':'WorkerNode' }
 
     
-    configs = jobs.getJobConfiguration()
+    configs = job.getJobConfiguration()
     if configs.getConfigName() == 'DC06':
       configs.setConfigName('MC')
       configs.setConfigVersion('2008')

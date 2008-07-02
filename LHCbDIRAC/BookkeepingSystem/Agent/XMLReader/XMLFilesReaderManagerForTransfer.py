@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.2 2008/07/02 11:21:15 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.3 2008/07/02 14:18:56 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                        import gConf
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.2 2008/07/02 11:21:15 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.3 2008/07/02 14:18:56 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -56,7 +56,7 @@ class XMLFilesReaderManagerForTransfer:
   
   #############################################################################
   def _listTodoDirectory(self):
-    return self.fileClient_.list(self.baseDir_+"Done")
+    return self.fileClient_.list(self.baseDir_+"Test")
   #############################################################################
   def fileaction(self, fn):
     """

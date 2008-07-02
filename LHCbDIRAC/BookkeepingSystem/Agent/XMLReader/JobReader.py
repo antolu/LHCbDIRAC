@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.6 2008/07/02 09:49:11 zmathe Exp $
+# $Id: JobReader.py,v 1.7 2008/07/02 14:18:56 zmathe Exp $
 ########################################################################
 
 """
@@ -21,7 +21,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.6 2008/07/02 09:49:11 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.7 2008/07/02 14:18:56 zmathe Exp $"
 
 
 class JobReader:
@@ -270,5 +270,5 @@ class JobReader:
           gLogger.warn("<Name>  or <Value> simulation XML tag is missing!!")
         else:
           simParam.addParam(name._get_value().encode('ascii'), value._get_value().encode('ascii'))    
-    job.addSimulationCond(simParam)  
+          job.addSimulationCond(simParam)  
         
