@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.8 2008/06/16 07:34:53 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.9 2008/07/02 11:37:12 paterson Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.8 2008/06/16 07:34:53 atsareg Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.9 2008/07/02 11:37:12 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -126,14 +126,14 @@ class ProductionJobAgent(Agent):
       res = self.wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
       if not res['OK']:
         self.log.error('Could not retrieve proxy from WMS Administrator', res['Message'])
-        return S_OK()
+        return S_ERROR('Could not retrieve proxy from WMS Administrator')
       proxyStr = res['Value']
       if not os.path.exists(os.path.dirname(self.proxyLocation)):
         os.makedirs(os.path.dirname(self.proxyLocation))
       res = setupProxy(proxyStr,self.proxyLocation)
       if not res['OK']:
-        self.log.error('Could not create environment for proxy.', res['Message'])
-        return S_OK()
+        self.log.error('Could not create environment for proxy', res['Message'])
+        return S_ERROR('Could not create environment for proxy')
 
       setDIRACGroup(prodGroup)
       self.log.info('Successfully renewed %s proxy' %prodDN)
