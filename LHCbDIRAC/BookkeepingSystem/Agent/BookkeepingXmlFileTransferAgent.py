@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.10 2008/07/02 16:01:23 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.11 2008/07/02 17:20:00 zmathe Exp $
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.10 2008/07/02 16:01:23 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.11 2008/07/02 17:20:00 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -105,21 +105,29 @@ class BookkeepingXmlFileTransferAgent(Agent):
       configs.setConfigName('MC')
       configs.setConfigVersion('2008')
       
+      removeParams = []
       for param in  job.getJobParams():
         name = param.getName()
         if attrlist.has_key(name.upper()):
           param.setName(attrlist[name.upper()])
         else:
-          job.removeJobParam(param)
+          removeParams += [param]
+       
+      for param in removeParams:    
+         job.removeJobParam(param)
+      
       
       for file in job.getJobOutputFiles():
+        removeFileParams = []
         params = file.getFileParams()
         for param in params:
           name = param.getParamName()
           if fileattr.has_key(name.upper()):
             param.setParamName(fileattr[name.upper()])
           else:
-            file.removeFileParam(param)
+            removeFileParams += [param]
+        for param in removeFileParams:
+          file.removeFileParam(param)
       
       sim = SimulationConditions()
       sim.addParam("BeamCond", "Collisions")
