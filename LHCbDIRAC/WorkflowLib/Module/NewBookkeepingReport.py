@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: NewBookkeepingReport.py,v 1.3 2008/07/02 12:47:34 joel Exp $
+# $Id: NewBookkeepingReport.py,v 1.4 2008/07/02 14:20:25 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.3 2008/07/02 12:47:34 joel Exp $"
+__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.4 2008/07/02 14:20:25 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -430,8 +430,8 @@ class BookkeepingReport(ModuleBase):
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
       s = s+'    <Parameter  Name="GUID"        Value="'+guid+'"/>\n'
       s = s+'  </OutputFile>\n'
-    if self.applicationName == "Gauss":
-        makeBeamConditions()
+#    if self.applicationName == "Gauss":
+#        self.makeBeamConditions(s)
 
     s = s+'</Job>'
     return s
