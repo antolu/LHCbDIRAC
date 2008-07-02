@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ReplicaParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $
+# $Id: ReplicaParam.py,v 1.3 2008/07/02 09:49:12 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ReplicaParam.py,v 1.2 2008/07/01 10:54:26 zmathe Exp $"
+__RCSID__ = "$Id: ReplicaParam.py,v 1.3 2008/07/02 09:49:12 zmathe Exp $"
 
 class ReplicaParam:
     
@@ -78,7 +78,10 @@ class ReplicaParam:
       result = '     <Replica Name="'+self.getName()+'" Location="'+self.getLocation()+'"/>\n'
     
     else:
-      result = ''
+        result =  '<Replica File="'+self.getFile()+'"\n'
+        result +=  '      Name="'+self.getName()+'"\n'
+        result +=  '      Location="'+self.getLocation()+'"\n'
+        result +=  '      SE="'+self.getSE()+'"/> \n'
   
     return result
   

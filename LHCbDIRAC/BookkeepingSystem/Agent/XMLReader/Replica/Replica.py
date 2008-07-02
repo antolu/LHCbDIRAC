@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: Replica.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $
+# $Id: Replica.py,v 1.5 2008/07/02 09:49:12 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica import ReplicaParam
 from DIRAC                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: Replica.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $"
+__RCSID__ = "$Id: Replica.py,v 1.5 2008/07/02 09:49:12 zmathe Exp $"
 
 class Replica:
 
@@ -47,6 +47,13 @@ class Replica:
   #############################################################################
   def writeToXML(self):
     gLogger.info("Replica XML writing!!!")
+    result = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Replicas SYSTEM "book.dtd">
+<Replicas>
+"""
     for param in self.getaprams():
-      param.writeToXML(False)
+      result += param.writeToXML(False)
+  
+    result += '</Replicas>'
+    return result
   #############################################################################

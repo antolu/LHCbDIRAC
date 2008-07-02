@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: QualityParameters.py,v 1.1 2008/03/03 09:59:25 zmathe Exp $
+# $Id: QualityParameters.py,v 1.2 2008/07/02 09:49:11 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: QualityParameters.py,v 1.1 2008/03/03 09:59:25 zmathe Exp $"
+__RCSID__ = "$Id: QualityParameters.py,v 1.2 2008/07/02 09:49:11 zmathe Exp $"
 
 class QualityParameters:
   
@@ -34,5 +34,13 @@ class QualityParameters:
   #############################################################################
   def __repr__(self):
     result = self.name_ + " " + self.value_ + "\n"
+  
+  #############################################################################
+  def writeToXML(self):
+     result = '  <Parameter Name="' + str(self.getName()) + \
+                     '" Value="'+str(self.getValue())+'"/>\n'
+
+     return result
+   
   
   #############################################################################

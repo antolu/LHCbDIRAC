@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $
+# $Id: Job.py,v 1.4 2008/07/02 09:49:11 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.3 2008/07/01 10:54:26 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.4 2008/07/02 09:49:11 zmathe Exp $"
 
 
 class Job:
@@ -19,6 +19,7 @@ class Job:
     self.jobParameters_ = []
     self.jobInputFiles_ = []
     self.jobOutputfiles_ = []
+    self.simulationCond_ = None
     self.jobId_ = -1
     self.name_ = ""
     self.file_name_ = ""
@@ -62,6 +63,14 @@ class Job:
   #############################################################################  
   def getJobOutputFiles(self):
     return self.jobOutputfiles_
+  
+  #############################################################################  
+  def addSimulationCond(self, cond):
+    self.simulationCond_ = cond
+  
+  #############################################################################  
+  def getSimulationCond(self):
+    return self.simulationCond_
 
   #############################################################################  
   def setFileName(self, name):
@@ -119,6 +128,8 @@ class Job:
     
     for output in self.jobOutputfiles_: 
       s +=  output.writeToXML()
+      
+    s += self.getSimulationCond().writeToXML()
     s += '</Job>'
     
     return s

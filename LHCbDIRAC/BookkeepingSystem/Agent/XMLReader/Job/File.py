@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: File.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $
+# $Id: File.py,v 1.5 2008/07/02 09:49:11 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: File.py,v 1.4 2008/07/01 10:54:26 zmathe Exp $"
+__RCSID__ = "$Id: File.py,v 1.5 2008/07/02 09:49:11 zmathe Exp $"
 
 class File:
 
@@ -107,7 +107,10 @@ class File:
     
     for param in self.getFileParams():
       s += param.writeToXML()
-      
+    """
+    for param in self.getQualities():
+      s += param.writeToXML()
+    """  
     s += '  </OutputFile>\n'
     
     return s

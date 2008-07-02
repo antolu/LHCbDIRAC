@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.5 2008/07/01 10:54:27 zmathe Exp $
+# $Id: JobReader.py,v 1.6 2008/07/02 09:49:11 zmathe Exp $
 ########################################################################
 
 """
@@ -14,13 +14,14 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.InputFile                  impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters              import JobParameters
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Job                        import Job
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                  import FileParam
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions       import SimulationConditions
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.FileReplica            import FileReplica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    import Quality
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.5 2008/07/01 10:54:27 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.6 2008/07/02 09:49:11 zmathe Exp $"
 
 
 class JobReader:
@@ -43,6 +44,7 @@ class JobReader:
     self.__readJobTypeParameters(doc, job)
     self.__readJobInputFiles(doc, job)
     self.__readJobOutputFiles(doc, job)
+    self.__readJobSimulationConditions(doc, job)
                     
     gLogger.info("Job reading fhinished succesfull!")
     return job
@@ -252,3 +254,21 @@ class JobReader:
         job.addJobOutputFiles(outputFile)
   
   ########################################################################
+  def __readJobSimulationConditions(self, doc, job):
+    gLogger.info("Read Simulation Conditions")
+    simcond = doc.getElementsByTagName('SimulationCondition')
+    if len(simcond) != 1:
+      gLogger.error("To many Simulation conditions!!")
+    else:
+      simParam = SimulationConditions()
+      node = simcond[0]
+      parameters = node.getElementsByTagName('Parameter')
+      for param in parameters:
+        name = param.getAttributeNode('Name')
+        value = param.getAttributeNode("Value")
+        if name == None or value == None:
+          gLogger.warn("<Name>  or <Value> simulation XML tag is missing!!")
+        else:
+          simParam.addParam(name._get_value().encode('ascii'), value._get_value().encode('ascii'))    
+    job.addSimulationCond(simParam)  
+        
