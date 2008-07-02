@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.4 2008/07/02 11:02:03 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.5 2008/07/02 14:04:42 zmathe Exp $
 ########################################################################
 
 """ 
@@ -14,7 +14,7 @@ from DIRAC                                                                     i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.4 2008/07/02 11:02:03 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.5 2008/07/02 14:04:42 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -43,7 +43,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
     
     for job in jobs:
       result = self.__translateJobAttributes(job)
-      if result['Ok']:
+      if result['OK']:
         name = job.getFileName().split("/")[5]
         gLogger.info("Send"+str(name)+"to volhcb07!!")
         self.bkkClient_.sendBookkeeping(name, result['Value'])
@@ -51,7 +51,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
       result = self.__translateReplicaAttributes(replica)
-      if result['Ok']:
+      if result['OK']:
         name = replicas.getFileName().split("/")[5]
         gLogger.info("Send"+str(name)+"to volhcb07!!")
         self.bkkClient_.sendBookkeeping(name, result['Value'])
@@ -65,15 +65,37 @@ class BookkeepingXmlFileTransferAgent(Agent):
   
   #############################################################################
   def __translateJobAttributes(self, job):
+
+    attrlist = { 'DIRAC_JOBID':'DiracJobId', \
+                 'DIRAC_VERSION':'DiracVersion', \
+                 'EXECTIME':'ExecTime', \
+                 'XMLDDDBVERSION':'GeometryVersion', \
+                 'EDG_WL_JOBID':'GridJobId', \
+                 'JOBDATE':'JobStart', \
+                 'LOCALJOBID':'LocalJobId', \
+                 'LOCATION':'Location', \
+                 'NAME':'Name', \
+                 'NUMBEROFEVENTS':'NumberOfEvents', \
+                 'PRODUCTION':'Production', \
+                 'PROGRAMNAME':'ProgramName', \
+                 'PROGRAMVERSION':'ProgramVersion', \
+                 'STATISTICSREQUESTED':'StatisticsRequested', \
+                 'CPU':'WNCPUPower', \
+                 'CPUTIME':'WNCPUTime', \
+                 'CACHE':'WNCache', \
+                 'MEMORY':'WNMemory', \
+                 'MODEL':'WNModel', \
+                 'HOST':'WorkerNode' }
+
+    
     configs = jobs.getJobConfiguration()
     if configs.getConfigName() == 'DC06':
-      gLogger.info("Send file to VOOOOOO")
+      configs.setConfigName('MC')
+      configs.setConfigVersion('2008')
+      self.log.info(job.writeToXML())
     else:
       return S_ERROR()
-  
-  #############################################################################
-  def isOld(self):
-    pass
+    return S_ERROR()
   
   #############################################################################
   def __translateReplicaAttributes(self, replica):
