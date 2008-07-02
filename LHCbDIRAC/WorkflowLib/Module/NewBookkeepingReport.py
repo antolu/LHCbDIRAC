@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: NewBookkeepingReport.py,v 1.2 2008/07/01 13:26:41 joel Exp $
+# $Id: NewBookkeepingReport.py,v 1.3 2008/07/02 12:47:34 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.2 2008/07/01 13:26:41 joel Exp $"
+__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.3 2008/07/02 12:47:34 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -205,7 +205,7 @@ class BookkeepingReport(ModuleBase):
     count = 0
     while (count < len(self.listoutput)):
       if self.listoutput[count].has_key('outputDataName'):
-        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
+        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
       count=count+1
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
@@ -370,7 +370,7 @@ class BookkeepingReport(ModuleBase):
     count = 0
     while (count < len(self.listoutput)):
       if self.listoutput[count].has_key('outputDataName'):
-        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
+        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
       count=count+1
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
@@ -430,9 +430,21 @@ class BookkeepingReport(ModuleBase):
       s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
       s = s+'    <Parameter  Name="GUID"        Value="'+guid+'"/>\n'
       s = s+'  </OutputFile>\n'
+    if self.applicationName == "Gauss":
+        makeBeamConditions()
 
     s = s+'</Job>'
     return s
 
+  def makeBeamConditions(self):
+      s = s+'<SimulationCondition>\n'
+      s = s+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
+      s = s+'    <Parameter Name="BeamCond"         Value="Collisions"/>\n'
+      s = s+'    <Parameter Name="BeamEnergy"       Value="7 TeV"/>\n'
+      s = s+'    <Parameter Name="Generator"        Value="Pythia 6.325.2"/>\n'
+      s = s+'    <Parameter Name="MagneticField"    Value="-100%"/>\n'
+      s = s+'    <Parameter Name="DetectorCond"     Value="Normal"/>\n'
+      s = s+'    <Parameter Name="Luminosity"       Value="Fixed 2 10**32"/>\n'
+      s = s+'</SimulationCondition>\n'
 
 
