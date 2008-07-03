@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.76 2008/07/03 15:01:37 paterson Exp $
+# $Id: JobFinalization.py,v 1.77 2008/07/03 15:33:55 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.76 2008/07/03 15:01:37 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.77 2008/07/03 15:33:55 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -211,10 +211,10 @@ class JobFinalization(ModuleBase):
       # Send bookkeeping only if the data was uploaded successfully
 
       if resultUpload['OK']:
-        resultBK = self.reportBookkeeping()
-        if not resultBK['OK']:
-          self.log.error(resultBK['Message'])
-          bk_done = False
+#        resultBK = self.reportBookkeeping()
+#        if not resultBK['OK']:
+#          self.log.error(resultBK['Message'])
+#          bk_done = False
         resultBKOld = self.reportBookkeepingOld()
         if not resultBKOld['OK']:
           self.log.error(resultBKOld['Message'])
