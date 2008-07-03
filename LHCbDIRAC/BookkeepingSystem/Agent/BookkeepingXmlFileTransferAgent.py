@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.11 2008/07/02 17:20:00 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.12 2008/07/03 10:17:18 zmathe Exp $
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.11 2008/07/02 17:20:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.12 2008/07/03 10:17:18 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -48,7 +48,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
         name = job.getFileName().split("/")[5]
         self.log.info(job.writeToXML())
         self.log.info("Send "+str(name)+"to volhcb07!!")
-        self.bkkClient_.sendBookkeeping(name, job.writeToXML())
+        self.bkkClient_.filetransfer(name, job.writeToXML())
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
@@ -56,7 +56,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
       if result['OK']:
         name = replicas.getFileName().split("/")[5]
         self.log.info("Send"+str(name)+"to volhcb07!!")
-        self.bkkClient_.sendBookkeeping(name, result['Value'])
+        self.bkkClient_.filetransfer(name, replica.writeToXML())
     
     self.xmlMgmt_.destroy()
     
@@ -143,4 +143,4 @@ class BookkeepingXmlFileTransferAgent(Agent):
   
   #############################################################################
   def __translateReplicaAttributes(self, replica):
-    return S_ERROR()
+    return S_OK()

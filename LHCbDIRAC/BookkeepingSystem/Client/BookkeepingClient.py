@@ -30,6 +30,11 @@ class BookkeepingClient:
       return result
 
   #############################################################################
+  def filetransfer(self, name, data):
+    result = self.server.filetransfer(name, data)
+    
+    
+  #############################################################################
   def getAviableConfiguration(self):
     result = self.server.getAviableConfiguration()
     return result

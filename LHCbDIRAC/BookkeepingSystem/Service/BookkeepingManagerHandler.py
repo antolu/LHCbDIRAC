@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.53 2008/06/24 14:53:31 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.54 2008/07/03 10:17:18 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.53 2008/06/24 14:53:31 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.54 2008/07/03 10:17:18 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
@@ -58,6 +58,21 @@ class BookkeepingManagerHandler(RequestHandler):
           print str(x)
           return S_ERROR('Error during processing '+name)
   
+  
+  #############################################################################
+  types_filetransfer = [StringType, StringType]
+  def export_filetransfer(self, name, data):
+    try:
+      gLogger.info("File Transfer: ", name)
+      f = open(ToDoPath+'/'+name,'w')
+      f.write(data)
+      f.close()
+      return S_OK("File Transfer fhinished successfully!")
+    except Exception, x:
+          print str(x)
+          return S_ERROR('Error during processing '+name)
+ 
+
   #############################################################################
   types_getAviableConfiguration = []
   def export_getAviableConfiguration(self):
