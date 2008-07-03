@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.2 2008/07/01 14:48:10 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.3 2008/07/03 07:10:59 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.2 2008/07/01 14:48:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.3 2008/07/03 07:10:59 rgracian Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -17,6 +17,8 @@ from DIRAC                                    import List
 
 AGENT_NAME = "LHCb/UsersAndGroups"
 
+VOMS_SERVER = 'voms.cern.ch'
+
 excludedRoles = []
 
 class UsersAndGroups(Agent):
@@ -26,10 +28,11 @@ class UsersAndGroups(Agent):
     """ Standard constructor
     """
     Agent.__init__(self,AGENT_NAME)
+    self.vomsServer = VOMS_SERVER
 
   def initialize(self):
     result = Agent.initialize(self)
-
+    
     return result
 
   def execute(self):
@@ -42,7 +45,7 @@ class UsersAndGroups(Agent):
     csapi = CSAPI()
     currentUsers = csapi.listUsers()
 
-    ret = systemCall(0,['voms-admin','--vo','lhcb','--host','voms.cern.ch','list-roles'],)
+    ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-roles'],)
     if not ret['OK']:
       self.log.error('Can not get Role List', ret['Message'])
       return ret
@@ -54,21 +57,23 @@ class UsersAndGroups(Agent):
       if not role in excludedRoles:
         roles[role] = []
 
-    ret = systemCall(0,['voms-admin','--vo','lhcb','--host','voms.cern.ch','list-users'],)
+    ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-users'],)
     if not ret['OK']:
       self.log.error('Can not get User List', ret['Message'])
       return ret
 
     users = {}
     newUsers = []
+    obsoleteUsers = []
     duplicateUsers = []
     multiDNUsers   = []
     for item in List.fromChar(ret['Value'][1],'\n'):
       dn,ca = List.fromChar(item,',')
-      ret = systemCall(0,['voms-admin','--vo','lhcb','--host','voms.cern.ch','list-user-attributes',dn,ca])
+      ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-user-attributes',dn,ca])
       if not ret['OK']:
         self.log.error('Can not not get User Alias',dn)
         continue
+      # the output has the format nickname=<nickname>
       user = List.fromChar(ret['Value'][1],'=')[1]
       if user in users:
         if dn != users[user]['DN']:
@@ -82,25 +87,29 @@ class UsersAndGroups(Agent):
       if not user in currentUsers:
         newUsers.append(user)
 
-      ret = systemCall(0,['voms-admin','--vo','lhcb','--host','voms.cern.ch','list-user-roles', dn, ca] )
+      ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-user-roles', dn, ca] )
       if not ret['OK']:
         self.log.error('Can not not get User Roles', user)
         continue
 
+      users[user]['Groups'] = []
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = List.fromChar(newItem,'=')[1]
         if not role in roles:
           self.log.error( 'User Role not valid:','%s = %s' % ( user, newItem ) )
           continue
         roles[role].append(user)
+        users[user]['Groups'].append( role )
 
     for user in currentUsers:
       if user not in users:
-        self.log.warn('Obsolete User', user )
+        self.log.error('Obsolete User', user )
+      obsoleteUsers.append(user)
 
     self.log.info( 'New Users found', newUsers )
     self.log.info( 'Duplicated Users found', duplicateUsers )
-    
+    self.log.info( 'Obsolete Users found', obsoleteUsers )
+    ret = csapi.deleteUsers( obsoleteUsers )    
 
     for role in roles:
       print role, roles[role]
