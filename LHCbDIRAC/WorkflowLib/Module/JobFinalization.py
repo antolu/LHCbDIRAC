@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.74 2008/07/01 17:17:15 joel Exp $
+# $Id: JobFinalization.py,v 1.75 2008/07/03 14:44:16 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.74 2008/07/01 17:17:15 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.75 2008/07/03 14:44:16 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -211,10 +211,10 @@ class JobFinalization(ModuleBase):
       # Send bookkeeping only if the data was uploaded successfully
 
       if resultUpload['OK']:
-#        resultBK = self.reportBookkeeping()
-#        if not resultBK['OK']:
-#          self.log.error(resultBK['Message'])
-#          bk_done = False
+        resultBK = self.reportBookkeeping()
+        if not resultBK['OK']:
+          self.log.error(resultBK['Message'])
+          bk_done = False
         resultBKOld = self.reportBookkeepingOld()
         if not resultBKOld['OK']:
           self.log.error(resultBKOld['Message'])
@@ -578,7 +578,7 @@ class JobFinalization(ModuleBase):
 
         result = self.__getDestinationSEList(se_group, outputmode)
         if not result['OK']:
-          self.log.error('No valid SEs defined as file destinations')
+          self.log.error('No valid SEs defined as file destinations :'+se_group)
           return result
         ses = result['Value']
         if outputmode == "Any":
@@ -616,6 +616,7 @@ class JobFinalization(ModuleBase):
     country = self.site.split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
+    print ">result>JC ",result
     if result['OK']:
       return S_OK([outputSE])
     # There is an alias defined for this Site
@@ -626,7 +627,7 @@ class JobFinalization(ModuleBase):
 
     localSEs = self.__getLocalSEList()
     groupSEs = gConfig.getValue('/Resources/StorageElementGroups/'+outputSE,[])
-
+    print "JC>groupSE> ",groupSEs
     if not groupSEs:
       return S_ERROR('Failed to resolve SE '+outputSE)
 
@@ -636,6 +637,7 @@ class JobFinalization(ModuleBase):
           return S_OK([se])
       # Final check for country associated SE
       alias_se = gConfig.getValue('/Resources/Country/%s/AssociatedSEs/%s' % (country,outputSE),'')
+      print "JC> alias> ",alias_se
       if alias_se:
         return S_OK([alias_se])
       else:
