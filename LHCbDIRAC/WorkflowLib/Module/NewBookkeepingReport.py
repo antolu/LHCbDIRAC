@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: NewBookkeepingReport.py,v 1.4 2008/07/02 14:20:25 joel Exp $
+# $Id: NewBookkeepingReport.py,v 1.5 2008/07/03 14:46:13 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.4 2008/07/02 14:20:25 joel Exp $"
+__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.5 2008/07/03 14:46:13 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -309,7 +309,7 @@ class BookkeepingReport(ModuleBase):
     elif os.environ.has_key("HOST"):
       host = os.environ["HOST"]
     if host is not None:
-      s = s+self.__parameter_string('Host',host,'Info')
+      s = s+self.__parameter_string('WorkerNode',host,'Info')
 
     if  os.environ.has_key('XMLDDDB_VERSION'):
       s = s+self.__parameter_string("GeometryVersion",os.environ["XMLDDDB_VERSION"],'Info')
@@ -318,7 +318,7 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("ProgramVersion",self.applicationVersion,'Info')
 
     # DIRAC version
-    s = s+self.__parameter_string('DIRACVersion',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
+    s = s+self.__parameter_string('DiracVersion',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
 
     if self.firstEventNumber != None:
       s = s+self.__parameter_string('FirstEventNumber',self.firstEventNumber,"Info")
@@ -411,7 +411,7 @@ class BookkeepingReport(ModuleBase):
       if typeName in dataTypes:
         s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
         s = s+'    <Parameter  Name="EventStat"       Value="'+statistics+'"/>\n'
-        s = s+'    <Parameter  Name="Size"        Value="'+outputsize+'"/>\n'
+        s = s+'    <Parameter  Name="FileSize"        Value="'+outputsize+'"/>\n'
 
 
       ############################################################
@@ -427,24 +427,25 @@ class BookkeepingReport(ModuleBase):
             url = logurl+logpath+'/'+self.JOB_ID+'/'
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
-      s = s+'    <Parameter  Name="MD5SUM"        Value="'+md5sum+'"/>\n'
-      s = s+'    <Parameter  Name="GUID"        Value="'+guid+'"/>\n'
+      s = s+'    <Parameter  Name="MD5Sum"        Value="'+md5sum+'"/>\n'
+      s = s+'    <Parameter  Name="Guid"        Value="'+guid+'"/>\n'
       s = s+'  </OutputFile>\n'
-#    if self.applicationName == "Gauss":
-#        self.makeBeamConditions(s)
+    if self.applicationName == "Gauss":
+        s = self.makeBeamConditions(s)
 
     s = s+'</Job>'
     return s
 
-  def makeBeamConditions(self):
-      s = s+'<SimulationCondition>\n'
-      s = s+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
-      s = s+'    <Parameter Name="BeamCond"         Value="Collisions"/>\n'
-      s = s+'    <Parameter Name="BeamEnergy"       Value="7 TeV"/>\n'
-      s = s+'    <Parameter Name="Generator"        Value="Pythia 6.325.2"/>\n'
-      s = s+'    <Parameter Name="MagneticField"    Value="-100%"/>\n'
-      s = s+'    <Parameter Name="DetectorCond"     Value="Normal"/>\n'
-      s = s+'    <Parameter Name="Luminosity"       Value="Fixed 2 10**32"/>\n'
-      s = s+'</SimulationCondition>\n'
+  def makeBeamConditions(self,sbeam):
+      sbeam = sbeam+'<SimulationCondition>\n'
+      sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
+      sbeam = sbeam+'    <Parameter Name="BeamCond"         Value="Collisions"/>\n'
+      sbeam = sbeam+'    <Parameter Name="BeamEnergy"       Value="7 TeV"/>\n'
+      sbeam = sbeam+'    <Parameter Name="Generator"        Value="Pythia 6.325.2"/>\n'
+      sbeam = sbeam+'    <Parameter Name="MagneticField"    Value="-100%"/>\n'
+      sbeam = sbeam+'    <Parameter Name="DetectorCond"     Value="Normal"/>\n'
+      sbeam = sbeam+'    <Parameter Name="Luminosity"       Value="Fixed 2 10**32"/>\n'
+      sbeam = sbeam+'</SimulationCondition>\n'
+      return sbeam
 
 
