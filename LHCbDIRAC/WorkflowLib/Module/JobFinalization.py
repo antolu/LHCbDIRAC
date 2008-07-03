@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.75 2008/07/03 14:44:16 joel Exp $
+# $Id: JobFinalization.py,v 1.76 2008/07/03 15:01:37 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.75 2008/07/03 14:44:16 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.76 2008/07/03 15:01:37 paterson Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -636,10 +636,25 @@ class JobFinalization(ModuleBase):
         if se in groupSEs:
           return S_OK([se])
       # Final check for country associated SE
-      alias_se = gConfig.getValue('/Resources/Country/%s/AssociatedSEs/%s' % (country,outputSE),'')
-      print "JC> alias> ",alias_se
+      count = 0
+      assignedCountry = country
+      while count<10:
+        opt = gConfig.getOption("/Resources/Countries/%s/AssignedTo" %assignedCountry)
+        if opt['OK']:
+          assignedCountry = opt['Value']
+          assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
+          count += 1
+          if assocCheck['OK']:
+            break
+        else:
+          break
+
+      if not assignedCountry:
+        return S_ERROR('Could not determine associated SE list for %s' %country)
+
+      alias_se = gConfig.getValue('/Resources/Countries/%s/AssociatedSEs/%s' %(assignedCountry,outputSE),[])
       if alias_se:
-        return S_OK([alias_se])
+        return S_OK(alias_se)
       else:
         return S_ERROR('Failed to resolve SE '+outputSE)
 
