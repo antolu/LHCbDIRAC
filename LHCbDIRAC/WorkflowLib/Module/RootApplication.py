@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.2 2008/07/02 11:16:12 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.3 2008/07/03 15:54:10 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.2 2008/07/02 11:16:12 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.3 2008/07/03 15:54:10 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities import systemCall
@@ -195,7 +195,7 @@ class RootApplication(object):
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.__report('%s Exited With Status %s' %(self.script,status))
+      self.__report('%s Exited With Status %s' %(self.rootScript,status))
       self.result = S_ERROR("Script execution completed with errors")
       return self.result
 
