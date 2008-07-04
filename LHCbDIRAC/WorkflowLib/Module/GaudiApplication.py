@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.54 2008/07/01 13:24:32 joel Exp $
+# $Id: GaudiApplication.py,v 1.55 2008/07/04 05:39:59 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.54 2008/07/01 13:24:32 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.55 2008/07/04 05:39:59 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -239,6 +239,9 @@ class GaudiApplication(ModuleBase):
 
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
+
+    if self.workflow_commons.has_key('InputData'):
+       self.InputData = self.workflow_commons['InputData']
 
   #############################################################################
   def execute(self):
