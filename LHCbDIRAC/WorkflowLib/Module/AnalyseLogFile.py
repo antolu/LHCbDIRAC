@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.18 2008/07/01 13:28:03 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.19 2008/07/04 13:39:31 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.18 2008/07/01 13:28:03 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.19 2008/07/04 13:39:31 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -24,24 +24,25 @@ class AnalyseLogFile(ModuleBase):
       self.log = gLogger.getSubLogger("AnalyseLogFile")
       self.version = __RCSID__
       self.site = gConfig.getValue('/LocalSite/Site','localSite')
-      self.systemConfig = 'None'
+      self.systemConfig = ''
       self.result = S_ERROR()
-      self.mailadress = 'None'
-      self.numberOfEventsInput = None
-      self.numberOfEventsOutput = None
-      self.numberOfEvents = None
-      self.applicationName = None
-      self.inputData = None
-      self.sourceData = None
-      self.JOB_ID = None
-      self.jobID = None
+      self.mailadress = ''
+      self.numberOfEventsInput = 0
+      self.numberOfEventsOutput = 0
+      self.numberOfEvents = 0
+      self.applicationName = ''
+      self.inputData = ''
+      self.InputData = ''
+      self.sourceData = ''
+      self.JOB_ID = ''
+      self.jobID = ''
       if os.environ.has_key('JOBID'):
         self.jobID = os.environ['JOBID']
       self.timeoffset = 0
       self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
       self.poolXMLCatName = 'pool_xml_catalog.xml'
-      self.applicationLog = None
-      self.applicationVersion = None
+      self.applicationLog = ''
+      self.applicationVersion = ''
 
   def execute(self):
       self.log.info('Initializing '+self.version)
@@ -64,8 +65,11 @@ class AnalyseLogFile(ModuleBase):
          self.max_app = 'None'
 
       inputs = {}
-      if self.sourceData:
-        for f in self.sourceData.split(';'):
+#      if self.sourceData:
+#        for f in self.sourceData.split(';'):
+#          inputs[f.replace("LFN:","")] = 'OK'
+      if self.InputData:
+        for f in self.InputData.split(';'):
           inputs[f.replace("LFN:","")] = 'OK'
 
 # check the is the logfile exist
@@ -271,7 +275,7 @@ class AnalyseLogFile(ModuleBase):
         return S_ERROR(mailto+' not finalized')
 
 # trap POOL error to open a file through POOL
-      if self.poolXMLCatName != None:
+      if not self.poolXMLCatName:
         catalogfile = self.poolXMLCatName
       else:
         catalogfile = 'pool_xml_catalog.xml'
@@ -452,10 +456,15 @@ class AnalyseLogFile(ModuleBase):
        configName = self.applicationName
        configVersion = self.applicationVersion
 
-    if self.sourceData:
-      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    if self.sourceData:
+#      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    else:
+#      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
+    if self.InputData:
+      self.LFN_ROOT= getLFNRoot(self.InputData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 
     if self.applicationLog:
