@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.3 2008/07/04 14:05:08 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.4 2008/07/04 18:30:05 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.3 2008/07/04 14:05:08 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.4 2008/07/04 18:30:05 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -105,6 +105,14 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def updateReplicaRow(self, fileID, replica): #, name, location):
     return self.getManager().updateReplicaRow(fileID, replica)
+  
+  #############################################################################
+  def removeReplica(self, File, Name, Locations, SE):
+    return self.getManager().removeReplica(File, Name, Locations, SE)
+  
+  #############################################################################
+  def addReplica(self, File, Name, Locations, SE):
+    return self.getManager().addReplica(File, Name, Locations, SE)
     
   #############################################################################
   def deleteJob(self, job):

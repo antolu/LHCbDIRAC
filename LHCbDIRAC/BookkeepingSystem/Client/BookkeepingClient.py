@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.36 2008/07/04 14:33:13 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.37 2008/07/04 18:30:02 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.36 2008/07/04 14:33:13 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.37 2008/07/04 18:30:02 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -175,6 +175,13 @@ class BookkeepingClient:
     return server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
 
   #############################################################################
-
+  def addReplica(self, File, Name, Locations, SE):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.addReplica(File, Name, Locations, SE)
+  
+  #############################################################################
+  def removeReplica(self, File, Name, Locations, SE):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.removeReplica(File, Name, Locations, SE)
 
   #----------------------------------- END Event Types------------------------------------------------------------------

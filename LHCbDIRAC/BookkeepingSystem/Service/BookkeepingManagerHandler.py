@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.56 2008/07/04 14:24:48 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.57 2008/07/04 18:30:05 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.56 2008/07/04 14:24:48 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.57 2008/07/04 18:30:05 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -48,19 +48,22 @@ class BookkeepingManagerHandler(RequestHandler):
       This method send XML file to the ToDo directory
       """
       try:
+          
+          result  = reader_.readXMLfromString(data)
+          if not result['OK']:
+            return S_ERROR(result['Message'])
+          """
           stamp = time.strftime('%Y.%m.%d-%H.%M.%S',time.gmtime())
           
           fileID=int(repr(time.time()).split('.')[1])
           
           filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
           update_file = open(filePath, "w")
-          result  = reader_.readXMLfromString(data)
-          if not result['OK']:
-            return S_ERROR(result['Message'])
           
           print >>update_file, data
           update_file.close()
           #copyXML(filePath)
+          """
           return S_OK("The send bookkeeping finished successfully!")
       except Exception, x:
           print str(x)
@@ -187,4 +190,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProductionsWithEventTypes(eventType, configName,  configVersion, processingPass)
   
   #############################################################################
+  types_addReplica = [StringType, StringType, StringType, StringType]
+  def export_addReplica(self, File, Name, Locations, SE):
+    return dataMGMT_.addReplica(File, Name, Locations, SE)
+  
+  #############################################################################
+  types_removeReplica = [StringType, StringType, StringType, StringType]
+  def export_removeReplica(self, File, Name, Locations, SE):
+    return dataMGMT_.removeReplica(File, Name, Locations, SE)
+  
     #-----------------------------------END Event Types------------------------------------------------------------------

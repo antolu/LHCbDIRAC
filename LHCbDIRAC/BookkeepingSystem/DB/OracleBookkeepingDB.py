@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.9 2008/07/04 14:05:08 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.10 2008/07/04 18:30:05 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.9 2008/07/04 14:05:08 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.10 2008/07/04 18:30:05 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -187,23 +187,23 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def insertJob(self, job):
     
     config = job.getJobConfiguration()
-    params = job.getJobParams()
     
-    simcondtitions = job.getSimulationCond()
+    jobsimcondtitions = job.getSimulationCond()
     simulations = {}
-    if simcondtitions!=None:
-      simcond = self.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
+    if jobsimcondtitions!=None:
+      simcondtitions=jobsimcondtitions.getParams()
+      simcond = self.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions['MagneticField'], simcondtitions['DetectorCond'], simcondtitions['Luminosity'])
       if not simcond['OK']:
           gLogger.error("Simulation conditions problem", simcond["Message"])
           return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
       elif simcond['Value'] != 0: # the simulation conditions exist in the database
-        simulation[simcond['Value']]=None
+        simulations[simcond['Value']]=None
       else:
         simcond = self.insertSimConditions(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
         if not simcond['OK']:
           gLogger.error("Simulation conditions problem", simcond["Message"])
           return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-        simulation[simcond['Value']]=None
+        simulations[simcond['Value']]=None
     else:
       for file in job.getJobInputFiles():
         simcond = self.getSimCondIDWhenFileName(file.getFileName())
@@ -251,13 +251,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'WorkerNode':"NULL"}
     
     
-    for param in jobParams:
+    for param in job.getJobParams():
       if not attrList.__contains__(param.getName()):
         gLogger.error("insert job error: "," the job table not contains "+param.getName()+" this attributte!!")
         return S_ERROR(" The job table not contains "+param.getName()+" this attributte!!")
       attrList[str(param.getName())] = param.getValue()
       
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.insertJobsRow',[ attrList['ConfigName'], attrList['ConfigVersion'], \
+    result = self.db_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',[ attrList['ConfigName'], attrList['ConfigVersion'], \
                   attrList['DAQPeriodId'], \
                   attrList['DiracJobId'], \
                   attrList['DiracVersion'], \
@@ -312,7 +312,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       for param in fileParams:
         attrList[str(param.getName())] = param.getValue()
       
-      result = self.db_.executeStoredProcedure('BKK_ORACLE.insertFilesRow',[  attrList['Adler32'], \
+      result = self.db_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',[  attrList['Adler32'], \
                     attrList['CreationDate'], \
                     attrList['EventStat'], \
                     attrList['EventTypeId'], \
@@ -327,12 +327,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
   #############################################################################
   def updateReplicaRow(self, fileID, replica): #, name, location):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.updateReplicaRow',[FileId, replica])
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.updateReplicaRow',[int(fileID), replica],False)
     return result
   
   #############################################################################
   def deleteJob(self, job):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteJob',[jobID])
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteJob',[jobID], False)
     return result
  
   #############################################################################
@@ -358,5 +358,32 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
-    
+  
   #############################################################################
+  def removeReplica(self, File, Name, Locations, SE):
+    result = self.checkfile(File) 
+    if result['OK']:
+      fileID = long(result['Value'][0][0])
+      res = self.updateReplicaRow(fileID, 'No')
+      if res['OK']:
+        return S_OK("Replica has ben removed!!!")
+      else:
+        return S_ERROR(res['Message'])      
+    else:
+      return S_ERROR('The file '+File+'not exist in the BKK database!!!')
+
+  
+  #############################################################################
+  def addReplica(self, File, Name, Locations, SE):
+    result = self.checkfile(File) 
+    if result['OK']:
+      fileID = long(result['Value'][0][0])
+      res = self.updateReplicaRow(fileID, 'Yes')
+      if res['OK']:
+        return S_OK("Replica has ben added!!!")
+      else:
+        return S_ERROR(res['Message'])      
+    else:
+      return S_ERROR('The file '+File+'not exist in the BKK database!!!')
+
+  
