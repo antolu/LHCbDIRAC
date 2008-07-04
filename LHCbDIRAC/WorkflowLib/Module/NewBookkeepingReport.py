@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: NewBookkeepingReport.py,v 1.6 2008/07/04 08:20:09 joel Exp $
+# $Id: NewBookkeepingReport.py,v 1.7 2008/07/04 10:00:41 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.6 2008/07/04 08:20:09 joel Exp $"
+__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.7 2008/07/04 10:00:41 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -26,6 +26,7 @@ class BookkeepingReport(ModuleBase):
     self.eventType = ''
     self.poolXMLCatName = ''
     self.inputData = ''
+    self.InputData = ''
     self.JOB_ID = None # to check
     self.sourceData=''
     self.applicationName = ''
@@ -56,7 +57,7 @@ class BookkeepingReport(ModuleBase):
        self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
     if self.workflow_commons.has_key('InputData'):
-       self.inputData = self.workflow_commons['InputData']
+       self.InputData = self.workflow_commons['InputData']
 
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
