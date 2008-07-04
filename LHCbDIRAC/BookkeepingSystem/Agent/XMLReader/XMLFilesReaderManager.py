@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.4 2008/07/04 14:05:07 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.5 2008/07/04 14:48:54 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ from DIRAC                                                          import gLogg
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient           import BookkeepingDatabaseClient
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.4 2008/07/04 14:05:07 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.5 2008/07/04 14:48:54 zmathe Exp $"
 
 class XMLFilesReaderManager:
   
@@ -38,34 +38,43 @@ class XMLFilesReaderManager:
     """
     
     """
-    stream = open(filename)
-    doc = self.reader_.fromStream(stream)
-    stream.close()
+    try:
+      stream = open(filename)
+      doc = self.reader_.fromStream(stream)
+      stream.close()
     
 
-    docType = doc.doctype #job or replica
-    type = docType._get_name().encode('ascii')
+      docType = doc.doctype #job or replica
+      type = docType._get_name().encode('ascii')
+    except Exception,e:
+      gLogger.error("XML reading error",e)
+      return S_ERROR(e)
         
     return type,doc,filename
   
   #############################################################################  
   def readXMLfromString(self, xmlString):
     
-    doc = self.reader_.fromString(xmlString)
+    try:
+      doc = self.reader_.fromString(xmlString)
     
-    docType = doc.doctype #job or replica
-    type = docType._get_name().encode('ascii')
+      docType = doc.doctype #job or replica
+      type = docType._get_name().encode('ascii')
     
-    if type == 'Replicas':
+      if type == 'Replicas':
         replica = self.replicaReader_.readReplica(doc, "IN Memory")
-        return S_OK(replica)
-    else: 
-      if type == 'Job':
-        job = self.jobReader_.readJob(doc, "IN Memory")
-        result = self.__processJob(job)
-        return result
-      else:
-        gLogger.error("unknown XML file!!!")
+        return replica
+      else: 
+        if type == 'Job':
+          job = self.jobReader_.readJob(doc, "IN Memory")
+          result = self.__processJob(job)
+          return result
+        else:
+          gLogger.error("unknown XML file!!!")
+    except Exception,ex:
+      gLogger.error("XML reading error",e)
+      return S_ERROR(e)
+       
   
   #############################################################################  
   def __processJob(self, job):
