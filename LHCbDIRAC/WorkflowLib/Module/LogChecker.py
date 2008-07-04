@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.17 2008/07/01 13:24:03 joel Exp $
+# $Id: LogChecker.py,v 1.18 2008/07/04 13:38:52 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.17 2008/07/01 13:24:03 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.18 2008/07/04 13:38:52 joel Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -18,18 +18,21 @@ class LogChecker(ModuleBase):
 
   def __init__(self):
     self.result = S_ERROR()
-    self.logfile = 'None'
+    self.logfile = ''
     self.log = gLogger.getSubLogger("CheckLogFile")
     self.logChecker = None
-    self.sourceData = None
-    self.applicationName = None
-    self.applicationLog = None
-    self.numberOfEvents = None
-    self.numberOfEventsInput = None
-    self.numberOfEventsOutput = None
-    self.OUTPUT_MAX = 'None'
+    self.sourceData = ''
+    self.applicationName = ''
+    self.applicationLog = ''
+    self.numberOfEvents = 0
+    self.numberOfEventsInput = 0
+    self.numberOfEventsOutput = 0
+    self.OUTPUT_MAX = ''
 
   def resolveInputVariables(self):
+    if self.workflow_commons.has_key('InputData'):
+       self.InputData = self.workflow_commons['InputData']
+
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
 
