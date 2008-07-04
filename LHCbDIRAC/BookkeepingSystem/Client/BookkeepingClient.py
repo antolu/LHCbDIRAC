@@ -1,3 +1,7 @@
+########################################################################
+# $Id: BookkeepingClient.py,v 1.36 2008/07/04 14:33:13 zmathe Exp $
+########################################################################
+
 """
 
 """
@@ -8,6 +12,7 @@ from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
 
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.36 2008/07/04 14:33:13 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -38,15 +43,15 @@ class BookkeepingClient:
     
     
   #############################################################################
-  def getAviableConfiguration(self):
+  def getAvailableConfigurations(self):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getAviableConfiguration()
+    result = server.getAvailableConfigurations()
     return result
 
   #############################################################################
-  def getAviableEventTypes(self):
+  def getAvailableEventTypes(self):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getAviableEventTypes()
+    result = server.getAvailableEventTypes()
     return result
 
   #############################################################################
@@ -59,12 +64,6 @@ class BookkeepingClient:
   def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getFullEventTypesAndNumbers(configName, configVersion, long(eventTypeId))
-    return result
-
-  #############################################################################
-  def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getFiles(configName, configVersion, fileType, long(eventTypeId), long(production))
     return result
 
   #############################################################################
