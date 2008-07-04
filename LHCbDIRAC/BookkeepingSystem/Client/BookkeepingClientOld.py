@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClientOld.py,v 1.5 2008/07/02 14:06:15 joel Exp $
+# $Id: BookkeepingClientOld.py,v 1.6 2008/07/04 14:08:30 zmathe Exp $
 ########################################################################
 
 import DIRAC
@@ -14,7 +14,7 @@ __RCSID__ = "$Id: "
 class BookkeepingClientOld:
 
   def __init__(self):
-    self.server = RPCClient('Bookkeeping/BookkeepingManagerOld')
+    pass
 
   #############################################################################
   def echo(self,string):
@@ -28,7 +28,8 @@ class BookkeepingClientOld:
       name- XML file name
       data - XML file
       """
-      result = self.server.sendBookkeeping(name, data)
+      server = RPCClient('Bookkeeping/BookkeepingManagerOld')
+      result = server.sendBookkeeping(name, data)
       return result
 
   #############################################################################
