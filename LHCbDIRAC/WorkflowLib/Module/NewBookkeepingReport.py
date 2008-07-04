@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: NewBookkeepingReport.py,v 1.5 2008/07/03 14:46:13 joel Exp $
+# $Id: NewBookkeepingReport.py,v 1.6 2008/07/04 08:20:09 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.5 2008/07/03 14:46:13 joel Exp $"
+__RCSID__ = "$Id: NewBookkeepingReport.py,v 1.6 2008/07/04 08:20:09 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -54,6 +54,9 @@ class BookkeepingReport(ModuleBase):
 
     if self.workflow_commons.has_key('poolXMLCatName'):
        self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+
+    if self.workflow_commons.has_key('InputData'):
+       self.inputData = self.workflow_commons['InputData']
 
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
@@ -168,10 +171,15 @@ class BookkeepingReport(ModuleBase):
     else:
       s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
-    if self.sourceData:
-      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    if self.sourceData:
+#      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    else:
+#      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
+    if self.InputData:
+      self.LFN_ROOT= getLFNRoot(self.InputData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
 
     if self.inputData:
       for inputname in self.inputData.split(';'):
