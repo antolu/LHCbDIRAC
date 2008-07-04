@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.79 2008/07/04 08:22:11 joel Exp $
+# $Id: JobFinalization.py,v 1.80 2008/07/04 10:00:29 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.79 2008/07/04 08:22:11 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.80 2008/07/04 10:00:29 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -74,6 +74,7 @@ class JobFinalization(ModuleBase):
     self.LFN_ROOT = ''
     self.logdir = '.'
     self.mode = ''
+    self.InputData = ''
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
@@ -114,7 +115,7 @@ class JobFinalization(ModuleBase):
        self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
     if self.workflow_commons.has_key('InputData'):
-       self.inputData = self.workflow_commons['InputData']
+       self.InputData = self.workflow_commons['InputData']
 
     if self.workflow_commons.has_key('JobReport'):
       self.jobReport = self.workflow_commons['JobReport']
@@ -175,7 +176,7 @@ class JobFinalization(ModuleBase):
     if self.InputData:
       self.LFN_ROOT= getLFNRoot(self.InputData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,self.configVersion)
 
     result = self.finalize(error)
 
