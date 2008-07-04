@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.55 2008/07/04 14:05:08 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.56 2008/07/04 14:24:48 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.55 2008/07/04 14:05:08 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.56 2008/07/04 14:24:48 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -19,7 +19,7 @@ import time,sys,os
 global dataMGMT_
 dataMGMT_ = BookkeepingDatabaseClient()
 
-global readre_
+global reader_
 reader_ = XMLFilesReaderManager()
   
 def initializeBookkeepingManagerHandler( serviceInfo ):
