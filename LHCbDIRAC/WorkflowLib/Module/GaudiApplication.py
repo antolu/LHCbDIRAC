@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.57 2008/07/04 10:00:14 joel Exp $
+# $Id: GaudiApplication.py,v 1.58 2008/07/04 14:04:29 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.57 2008/07/04 10:00:14 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.58 2008/07/04 14:04:29 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -20,6 +20,7 @@ class GaudiApplication(ModuleBase):
   #############################################################################
   def __init__(self):
     self.enable = True
+    self.STEP_NUMBER = ''
     self.version = __RCSID__
     self.debug = True
     self.log = gLogger.getSubLogger( "GaudiApplication" )
@@ -487,7 +488,7 @@ rm -f scrtmp.py
 
     os.chmod(self.applicationName+'Run.sh',0755)
     comm = 'sh -c "./'+self.applicationName+'Run.sh"'
-    self.setApplicationStatus('%s %s' %(self.applicationName,self.applicationVersion))
+    self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput)
     resultTuple = self.result['Value']
 
