@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.13 2008/06/20 07:56:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.14 2008/07/04 08:13:41 rgracian Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.13 2008/06/20 07:56:01 rgracian Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.14 2008/07/04 08:13:41 rgracian Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -32,8 +32,6 @@ class TransformationAgent(Agent):
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','no')
     #self.checkLFC = 'yes'
-    self.dataLog = RPCClient('DataManagement/DataLogging')
-    self.server = RPCClient('ProductionManagement/ProductionManager')
     self.lfc = LcgFileCatalogCombinedClient()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
@@ -45,7 +43,7 @@ class TransformationAgent(Agent):
     """
 
     gMonitor.addMark('Iteration',1)
-
+    server = RPCClient('ProductionManagement/ProductionManager')
     transID = gConfig.getValue(self.section+'/Transformation','')
     if transID:
       self.singleTransformation = long(transID)
@@ -54,7 +52,7 @@ class TransformationAgent(Agent):
       self.singleTransformation = False
       gLogger.info("TransformationAgent.execute: Initializing general purpose agent.")
 
-    result = self.server.getAllProductions()
+    result = server.getAllProductions()
     activeTransforms = []
     if not result['OK']:
       gLogger.error("TransformationAgent.execute: Failed to get transformations.", result['Message'])
@@ -95,7 +93,7 @@ class TransformationAgent(Agent):
             nJobs = result['Value']
             if nJobs > 0:
               gLogger.info('%d job(s) generated' % nJobs)
-            result = self.server.setTransformationStatus(transID, 'Stopped')
+            result = server.setTransformationStatus(transID, 'Stopped')
             if not result['OK']:
               gLogger.error(self.name+".execute: Failed to update transformation status to 'Stopped'.", res['Message'])
             else:
@@ -123,7 +121,8 @@ class TransformationAgent(Agent):
     plugin = transDict['Plugin']
     if not plugin in available_plugins:
       plugin = 'Standard' 
-    result = self.server.getInputData(prodName,'')
+    server = RPCClient('ProductionManagement/ProductionManager')
+    result = server.getInputData(prodName,'')
     sflag = True #WARNING KGG this is possibly an error
     if result['OK']:
       data = result['Value']
@@ -169,7 +168,8 @@ class TransformationAgent(Agent):
   def generateJob_CCRC_RAW(self,data,production,sflag,group_size,flush=False):  
     """ Generate a job according to the CCRC 2008 site shares 
     """
-    
+    dataLog = RPCClient('DataManagement/DataLogging')
+    server = RPCClient('ProductionManagement/ProductionManager')
     # Sort files by LFN
     datadict = {}
     for lfn,se in data:
@@ -224,19 +224,19 @@ class TransformationAgent(Agent):
       if result['OK']:
         jobID = long(result['Value'])
         if jobID:
-          result = self.server.setFileStatusForTransformation(production,[('Assigned',lfns)])
+          result = server.setFileStatusForTransformation(production,[('Assigned',lfns)])
           if not result['OK']:
             gLogger.error("Failed to update file status for production %d"%production)
 
-          result = self.server.setFileJobID(production,jobID,lfns)
+          result = server.setFileJobID(production,jobID,lfns)
           if not result['OK']:
             gLogger.error("Failed to set file job ID for production %d"%production)
 
-          result = self.server.setFileSEForTransformation(production,lse,lfns)
+          result = server.setFileSEForTransformation(production,lse,lfns)
           if not result['OK']:
             gLogger.error("Failed to set SE for production %d"%production)
           for lfn in lfns:
-            result = self.dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
+            result = dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
 
         # Remove used files from the initial list
         data_m = []
@@ -256,6 +256,8 @@ class TransformationAgent(Agent):
         and returns a reduced list of the lfns that rest to be processed
         If flush is true, the group_size is not taken into account
     """
+    dataLog = RPCClient('DataManagement/DataLogging')
+    server = RPCClient('ProductionManagement/ProductionManager')
     # Sort files by SE
     datadict = {}
     for lfn,se in data:
@@ -298,19 +300,19 @@ class TransformationAgent(Agent):
         if result['OK']:
           jobID = long(result['Value'])
           if jobID:
-            result = self.server.setFileStatusForTransformation(production,[('Assigned',lfns)])
+            result = server.setFileStatusForTransformation(production,[('Assigned',lfns)])
             if not result['OK']:
               gLogger.error("Failed to update file status for production %d"%production)
 
-            result = self.server.setFileJobID(production,jobID,lfns)
+            result = server.setFileJobID(production,jobID,lfns)
             if not result['OK']:
               gLogger.error("Failed to set file job ID for production %d"%production)
 
-            result = self.server.setFileSEForTransformation(production,lse,lfns)
+            result = server.setFileSEForTransformation(production,lse,lfns)
             if not result['OK']:
               gLogger.error("Failed to set SE for production %d"%production)
             for lfn in lfns:
-              result = self.dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')  
+              result = dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')  
 
           # Remove used files from the initial list
           data_m = []
@@ -342,8 +344,8 @@ class TransformationAgent(Agent):
       vector = vector + 'LFN:'+lfn+';'
     #removing last ';'
     vector = vector.rstrip(';')
-      
-    result = self.server.addProductionJob(prodID, vector, se)
+    server = RPCClient('ProductionManagement/ProductionManager')
+    result = server.addProductionJob(prodID, vector, se)
     return result
 
   ######################################################################################

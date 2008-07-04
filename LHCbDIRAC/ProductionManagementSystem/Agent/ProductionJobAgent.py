@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.9 2008/07/02 11:37:12 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.10 2008/07/04 08:13:41 rgracian Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.9 2008/07/02 11:37:12 paterson Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.10 2008/07/04 08:13:41 rgracian Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -33,7 +33,6 @@ class ProductionJobAgent(Agent):
     """Sets defaults
     """
     result = Agent.initialize(self)
-    self.wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.proxyLength = gConfig.getValue(self.section+'/DefaultProxyLength',12) # hours
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
@@ -123,7 +122,8 @@ class ProductionJobAgent(Agent):
 
     if obtainProxy:
       self.log.info('Attempting to renew %s proxy' %prodDN)
-      res = self.wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
+      wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
+      res = wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
       if not res['OK']:
         self.log.error('Could not retrieve proxy from WMS Administrator', res['Message'])
         return S_ERROR('Could not retrieve proxy from WMS Administrator')

@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.36 2008/06/30 13:37:19 paterson Exp $
+# $Id: ProductionManagerHandler.py,v 1.37 2008/07/04 08:15:15 rgracian Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.36 $"
+__RCSID__ = "$Revision: 1.37 $"
 
 from types import *
 import threading
@@ -17,13 +17,10 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 
 # This is a global instance of the ProductionDB class
 productionDB = False
-dataLog = False
 
 def initializeProductionManagerHandler( serviceInfo ):
   global productionDB
   productionDB = ProductionDB()
-  global dataLog
-  dataLog = RPCClient('DataManagement/DataLogging')
   return S_OK()
 
 ################ WORKFLOW SECTION ####################################
@@ -392,6 +389,7 @@ class ProductionManagerHandler( TransformationHandler ):
         lfns = []
       for lfn in lfns:
         lfn = lfn.replace('LFN:','')
+        dataLog = RPCClient('DataManagement/DataLogging')
         result = dataLog.addFileRecord(lfn,'Job submitted', 'WMS JobID: %s' % jobWmsID, '','ProductionManager')
         if not result['OK']:
           gLogger.warn('Failed to send Jobsubmitted status for lfn: '+lfn)

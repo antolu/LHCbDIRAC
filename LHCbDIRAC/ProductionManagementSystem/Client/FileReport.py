@@ -1,11 +1,11 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.4 2008/06/15 15:10:24 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.5 2008/07/04 08:15:15 rgracian Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.4 2008/06/15 15:10:24 atsareg Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.5 2008/07/04 08:15:15 rgracian Exp $"
 
 import datetime
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -17,7 +17,6 @@ from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 class FileReport:
 
   def __init__(self):
-    self.productionSvc = RPCClient('ProductionManagement/ProductionManager')
     self.statusDict = {}
     self.production = None
 
@@ -35,7 +34,8 @@ class FileReport:
         for lfn_s,status_s in self.statusDict.items():
           sendList.append((lfn_s,status_s))
       sendList.append((lfn,status))
-      result = self.productionSvc.setFileStatusForTransformation(production,sendList)
+      productionSvc = RPCClient('ProductionManagement/ProductionManager')
+      result = productionSvc.setFileStatusForTransformation(production,sendList)
       if result['OK']:
         return result
 
@@ -68,7 +68,8 @@ class FileReport:
       statusList.append((status,lfns))
 
     if self.statusDict:
-      result = self.productionSvc.setFileStatusForTransformation(self.production,statusList)
+      productionSvc = RPCClient('ProductionManagement/ProductionManager')
+      result = productionSvc.setFileStatusForTransformation(self.production,statusList)
     else:
       return S_OK()
 

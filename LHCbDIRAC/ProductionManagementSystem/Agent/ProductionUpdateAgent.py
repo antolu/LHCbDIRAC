@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.6 2008/05/08 15:04:55 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.7 2008/07/04 08:13:41 rgracian Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.6 2008/05/08 15:04:55 atsareg Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.7 2008/07/04 08:13:41 rgracian Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -39,9 +39,7 @@ class ProductionUpdateAgent(Agent):
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
 
-    self.jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
     self.prodDB = ProductionDB()
-    self.dataLog = RPCClient('DataManagement/DataLogging')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return result
 
@@ -49,6 +47,7 @@ class ProductionUpdateAgent(Agent):
   def execute(self):
     """ Main execution method
     """
+    dataLog = RPCClient('DataManagement/DataLogging')
 
     result = self.prodDB.getAllProductions()
     for transDict in result['Value']:
@@ -65,7 +64,8 @@ class ProductionUpdateAgent(Agent):
       jobIDs = jobDict.keys()
 
       # Get the job statuses from WMS
-      result = self.jobSvc.getJobsStatus(jobIDs)
+      jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
+      result = jobSvc.getJobsStatus(jobIDs)
       if not result['OK']:
         gLogger.warn('Failed to get job status from the WMS system')
         continue
@@ -89,7 +89,7 @@ class ProductionUpdateAgent(Agent):
             for l in lfns:
               lfn = l.replace('LFN:','')
               gLogger.verbose('Setting Data logging for %s to Job waiting' % lfn)
-              result = self.dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdateAgent')    
+              result = dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdateAgent')    
         elif old_status in WAITING_STATUS and status in RUNNING_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
@@ -99,7 +99,7 @@ class ProductionUpdateAgent(Agent):
             for l in lfns:
               lfn = l.replace('LFN:','')
               gLogger.verbose('Setting Data logging for %s to Job running' % lfn)
-              result = self.dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdateAgent')
+              result = dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdateAgent')
         elif old_status in RUNNING_STATUS and status in FINAL_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
@@ -119,6 +119,6 @@ class ProductionUpdateAgent(Agent):
                 gLogger.warn('Unknown status %s for job %d/%d' % (status,jobID,jobWMS))  
               if dstatus:
                 gLogger.verbose('Setting Data logging for %s to %s' % (lfn,dstatus)) 
-                result = self.dataLog.addFileRecord(lfn,dstatus,'','','ProductionUpdateAgent') 
+                result = dataLog.addFileRecord(lfn,dstatus,'','','ProductionUpdateAgent') 
 
     return S_OK()

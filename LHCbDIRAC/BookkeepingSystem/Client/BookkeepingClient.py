@@ -12,11 +12,12 @@ Script.parseCommandLine()
 class BookkeepingClient:
 
   def __init__(self):
-    self.server = RPCClient('Bookkeeping/BookkeepingManager')
+    pass
 
   #############################################################################
   def echo(self,string):
-    res = self.server.echo(string)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    res = server.echo(string)
     print res
 
   #############################################################################
@@ -26,127 +27,153 @@ class BookkeepingClient:
       name- XML file name
       data - XML file
       """
-      result = self.server.sendBookkeeping(name, data)
+      server = RPCClient('Bookkeeping/BookkeepingManager')
+      result = server.sendBookkeeping(name, data)
       return result
 
   #############################################################################
   def filetransfer(self, name, data):
-    result = self.server.filetransfer(name, data)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.filetransfer(name, data)
     
     
   #############################################################################
   def getAviableConfiguration(self):
-    result = self.server.getAviableConfiguration()
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getAviableConfiguration()
     return result
 
   #############################################################################
   def getAviableEventTypes(self):
-    result = self.server.getAviableEventTypes()
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getAviableEventTypes()
     return result
 
   #############################################################################
   def getEventTypes(self, configName, configVersion):
-    result = self.server.getEventTypes(configName, configVersion)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getEventTypes(configName, configVersion)
     return result
 
   #############################################################################
   def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
-    result = self.server.getFullEventTypesAndNumbers(configName, configVersion, long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getFullEventTypesAndNumbers(configName, configVersion, long(eventTypeId))
     return result
 
   #############################################################################
   def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-    result = self.server.getFiles(configName, configVersion, fileType, long(eventTypeId), long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getFiles(configName, configVersion, fileType, long(eventTypeId), long(production))
     return result
 
   #############################################################################
   def getSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
-    result = self.server.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, long(eventTypeId), long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, long(eventTypeId), long(production))
     return result
 
   #############################################################################
   def getProcessingPass(self):
-    result = self.server.getProcessingPass()
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getProcessingPass()
     return result
 
   #############################################################################
   def getProductionsWithPocessingPass(self, processingPass):
-    result = self.server.getProductionsWithPocessingPass(processingPass)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getProductionsWithPocessingPass(processingPass)
     return result
 
   #############################################################################
   def getFilesByProduction(self, production, eventtype, filetype):
-    result = self.server.getFilesByProduction(long(production), long(eventtype), filetype)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getFilesByProduction(long(production), long(eventtype), filetype)
     return result
 
   #############################################################################
   def getProductions(self, configName, configversion, eventTypeId):
-    result = self.server.getProductions(configName, configversion, long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getProductions(configName, configversion, long(eventTypeId))
     return result
 
   #############################################################################
   def getNumberOfEvents(self, configName, configversion, eventTypeId, production):
-    result = self.server.getNumberOfEvents(configName, configversion, long(eventTypeId), long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getNumberOfEvents(configName, configversion, long(eventTypeId), long(production))
     return result
 
    #############################################################################
   def getEventTyesWithProduction(self, production):
-    result = self.server.getEventTyesWithProduction(long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getEventTyesWithProduction(long(production))
     return result
 
   #############################################################################
   def getFileTypesWithProduction(self, production, eventtype):
-    result = self.server.getFileTypesWithProduction(long(production), long(eventtype))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getFileTypesWithProduction(long(production), long(eventtype))
     return result
 
   #############################################################################
   def getSpecificFilesWithoutProd(self, configName, configVersion, pname, pversion, filetype, eventType):
-    result = self.server.getSpecificFilesWithoutProd(configName, configVersion, pname, pversion, filetype, long(eventType))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getSpecificFilesWithoutProd(configName, configVersion, pname, pversion, filetype, long(eventType))
     return result
 
   #############################################################################
   def getFileTypes(self, configName, configVersion, eventType, prod):
-    result = self.server.getFileTypes(configName, configVersion, long(eventType), long(prod))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getFileTypes(configName, configVersion, long(eventType), long(prod))
     return result
 
   #############################################################################
   def getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
-    result = self.server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
     return result
 
   #-----------------------------------Event Types------------------------------------------------------------------
 
   #############################################################################
   def getAvailableEventTypes(self):
-    return self.server.getAvailableEventTypes()
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getAvailableEventTypes()
 
   #############################################################################
   def getConfigNameAndVersion(self, eventTypeId):
-    return self.server.getConfigNameAndVersion(long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getConfigNameAndVersion(long(eventTypeId))
 
   #############################################################################
   def getAvailableProcessingPass(self, configName, configVersion, eventTypeId):
-    return self.server.getAvailableProcessingPass(configName, configVersion, long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getAvailableProcessingPass(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
-    return self.server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
 
   #############################################################################
   def getFileTypesWithEventTypeALL(self, configName, configVersion, eventTypeId):
-    return self.server.getFileTypesWithEventTypeALL(configName, configVersion, long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFileTypesWithEventTypeALL(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
-    return self.server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId), long(production))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId), long(production))
 
   #############################################################################
   def getFilesByEventTypeALL(self, configName, configVersion, fileType, eventTypeId):
-    return self.server.getFilesByEventTypeALL(configName, configVersion, fileType, long(eventTypeId))
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFilesByEventTypeALL(configName, configVersion, fileType, long(eventTypeId))
 
   #############################################################################
   def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
-    return self.server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
 
   #############################################################################
 

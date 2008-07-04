@@ -1,10 +1,10 @@
-# $Id: ProductionManagerTestHandler.py,v 1.7 2008/03/04 19:39:11 gkuznets Exp $
+# $Id: ProductionManagerTestHandler.py,v 1.8 2008/07/04 08:15:15 rgracian Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.7 $"
+__RCSID__ = "$Revision: 1.8 $"
 
 from types import *
 import threading
@@ -17,13 +17,10 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 
 # This is a global instance of the ProductionDB class
 productionDB = False
-dataLog = False
 
 def initializeProductionManagerTestHandler( serviceInfo ):
   global productionDB
   productionDB = ProductionDB()
-  global dataLog
-  dataLog = RPCClient('DataManagement/DataLogging')
   return S_OK()
 
 ################ WORKFLOW SECTION ####################################
@@ -382,6 +379,7 @@ class ProductionManagerTestHandler( TransformationHandler ):
   def export_setJobStatusAndWmsID(self, productionID, jobID, status, jobWmsID):
     """ Set jobWmsID for a given Job
     """
+    dataLog = RPCClient('DataManagement/DataLogging')
     result = productionDB.setJobStatusAndWmsID(productionID, jobID, status, jobWmsID)
     if not result['OK']:
       error = 'Could set job status=%s and WmsID=%s in TransformationID=%d JobID=%d because %s' % (status, jobWmsID, productionID, jobID, result['Message'])
