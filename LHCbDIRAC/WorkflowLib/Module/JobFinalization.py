@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.77 2008/07/03 15:33:55 joel Exp $
+# $Id: JobFinalization.py,v 1.78 2008/07/04 08:20:43 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.77 2008/07/03 15:33:55 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.78 2008/07/04 08:20:43 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -616,7 +616,6 @@ class JobFinalization(ModuleBase):
     country = self.site.split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
-    print ">result>JC ",result
     if result['OK']:
       return S_OK([outputSE])
     # There is an alias defined for this Site
@@ -627,7 +626,6 @@ class JobFinalization(ModuleBase):
 
     localSEs = self.__getLocalSEList()
     groupSEs = gConfig.getValue('/Resources/StorageElementGroups/'+outputSE,[])
-    print "JC>groupSE> ",groupSEs
     if not groupSEs:
       return S_ERROR('Failed to resolve SE '+outputSE)
 
