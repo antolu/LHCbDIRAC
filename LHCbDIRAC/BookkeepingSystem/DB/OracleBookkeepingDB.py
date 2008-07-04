@@ -1,12 +1,13 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.8 2008/07/01 10:54:27 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.9 2008/07/04 14:05:08 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.8 2008/07/01 10:54:27 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.9 2008/07/04 14:05:08 zmathe Exp $"
 
+from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
@@ -25,14 +26,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     self.db_ = OracleDB("LHCB_BOOKKEEPING_INT", "Ginevra2008", "int12r")
   
   #############################################################################
-  def getAviableConfigNameAndVersion(self):
+  def getAvailableConfigurations(self):
     """
     """
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getAviableConfiguration',[])
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
   
   #############################################################################
-  def getAviableEventTypes(self):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getAviableEventTypes', [])
+  def getAvailableEventTypes(self):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableEventTypes', [])
   
   #############################################################################
   def getEventTypes(self, configName, configVersion):
@@ -134,7 +135,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getProductionsWithEventTypes', [eventType, configName,  configVersion, processingPass])
   
-    
+  #############################################################################
+  def getSimulationCondID(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.getSimulationCondID', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
+  
+  #############################################################################
+  def getSimCondIDWhenFileName(self, fileName):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.getSimCondIDWhenFileName', LongType, [fileName])
   
   """
   data insertation into the database
@@ -177,11 +184,45 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
   
   #############################################################################
-  def insertJob(self, config, jobParams):
-      
+  def insertJob(self, job):
+    
+    config = job.getJobConfiguration()
+    params = job.getJobParams()
+    
+    simcondtitions = job.getSimulationCond()
+    simulations = {}
+    if simcondtitions!=None:
+      simcond = self.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
+      if not simcond['OK']:
+          gLogger.error("Simulation conditions problem", simcond["Message"])
+          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+      elif simcond['Value'] != 0: # the simulation conditions exist in the database
+        simulation[simcond['Value']]=None
+      else:
+        simcond = self.insertSimConditions(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
+        if not simcond['OK']:
+          gLogger.error("Simulation conditions problem", simcond["Message"])
+          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+        simulation[simcond['Value']]=None
+    else:
+      for file in job.getJobInputFiles():
+        simcond = self.getSimCondIDWhenFileName(file.getFileName())
+        if not simcond['OK']:
+          gLogger.error("Simulation conditions problem", simcond["Message"])
+          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+        
+        if len(simulations) == 0:
+          value = simcond['Value']
+          simulations[value]=None
+        else:
+            value = simcond['Value']
+            if not simulations.__contains__(value):
+              gLogger.error("Different simmulation conditions!!!")
+              return S_ERROR("Different simmulation conditions!!!")
+
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
-                 'DAQPeriodId':"NULL", \
+                 'DAQPeriodId':simulations.items()[0][0], \
                  'DiracJobId':"NULL", \
                  'DiracVersion':"NULL", \
                  'EventInputStat':"NULL", \
@@ -314,4 +355,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     gLogger.warn("not implemented")
     return S_ERROR()
   
+  #############################################################################
+  def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
+    
   #############################################################################

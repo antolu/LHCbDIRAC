@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.3 2008/07/01 10:54:27 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.4 2008/07/04 14:05:07 zmathe Exp $
 ########################################################################
 
 """
@@ -12,9 +12,10 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader              import JobRe
 from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader          import ReplicaReader
 from DIRAC.ConfigurationSystem.Client.Config                        import gConfig
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
+from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient           import BookkeepingDatabaseClient
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.3 2008/07/01 10:54:27 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.4 2008/07/04 14:05:07 zmathe Exp $"
 
 class XMLFilesReaderManager:
   
@@ -29,6 +30,7 @@ class XMLFilesReaderManager:
     self.errorsTmp_ = self.baseDir_ + "ErrorsTmp/"
     self.jobs_ = []
     self.replicas_ = []
+    self.dataManager_ = BookkeepingDatabaseClient()
     
   
   #############################################################################
@@ -45,6 +47,132 @@ class XMLFilesReaderManager:
     type = docType._get_name().encode('ascii')
         
     return type,doc,filename
+  
+  #############################################################################  
+  def readXMLfromString(self, xmlString):
+    
+    doc = self.reader_.fromString(xmlString)
+    
+    docType = doc.doctype #job or replica
+    type = docType._get_name().encode('ascii')
+    
+    if type == 'Replicas':
+        replica = self.replicaReader_.readReplica(doc, "IN Memory")
+        return S_OK(replica)
+    else: 
+      if type == 'Job':
+        job = self.jobReader_.readJob(doc, "IN Memory")
+        result = self.__processJob(job)
+        return result
+      else:
+        gLogger.error("unknown XML file!!!")
+  
+  #############################################################################  
+  def __processJob(self, job):
+    """
+    
+    """    
+    self.log.info("Start Processing")
+
+    ##checking
+    inputFiles = job.getJobInputFiles()
+    for file in inputFiles:
+      name = file.getFileName()
+      result = self.dataManager_.checkfile(name)
+      
+      if result['OK']:
+        fileID = int(result['Value'][0][0])
+        file.setFileID(fileID)
+
+    outputFiles = job.getJobOutputFiles()
+    for file in outputFiles:
+      name = file.getFileName()
+      result = self.dataManager_.checkfile(name)
+      if result['OK']:
+        return S_ERROR("The file " + str(name) + " already exists.")
+      
+      typeName = file.getFileType()
+      typeVersion = file.getFileVersion()
+      result = self.dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
+      if not result['OK']:
+        return S_ERROR("The type " + str(typeName) + ", version " + str(typeVersion) +"is missing.\n")
+      else:
+        typeID = int(result['Value'][0][0])
+        file.setTypeID(typeID)
+      
+      params = file.getFileParams()
+      for param in params:
+        paramName = param.getParamName()
+        if paramName == "EventStat":
+          eventNb = int(param.getParamValue())
+          if eventNb <= 0:
+            return S_ERROR("The event number not greater 0!")
+        if paramName == "EventType":
+          value = int(param.getParamValue())
+          result = self.dataManager_.checkEventType(value)
+          if not result['OK']:
+            return S_ERROR("The event type " + str(value) + " is missing.\n")
+      ################
+      
+    config = job.getJobConfiguration()
+    params = job.getJobParams()
+            
+    result = self.dataManager_.insertJob(job)    
+    if not result['OK']:
+      return S_ERROR("Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n")
+    else:
+      jobID = int(result['Value'])
+      job.setJobId(jobID) 
+    inputFiles = job.getJobInputFiles()
+    for file in inputFiles:
+      result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
+      if not result['OK']:
+        self.dataManager_.deleteJob(job.getJobId())
+        return S_ERROR("Unable to add " + str(file.getFileName()))
+      
+  
+    outputFiles = job.getJobOutputFiles()
+    for file in outputFiles:
+      result = self.dataManager_.insertOutputFile(job, file)
+      if not result['OK']:
+        self.dataManager_.deleteJob(job.getJobId())
+        return S_ERROR("Unable to create file " + str(file.getFileName()) + "!")
+      else:
+        id = int(result['Value'])
+        file.setFileID(id)
+         
+      qualities = file.getQualities()
+      for quality in qualities:
+        group = quality.getGroup()
+        flag = quality.getFlag()
+        result = self.dataManager_.insertQuality(file.getFileID(), group, flag)           
+        if not result['OK']:
+          return S_ERROR("Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n")
+        else:
+          qualityID = int(result['Value'])
+          quality.setQualityID(qualityID)
+          
+        params = quality.getParams()
+        for param in params:
+           name = param.getName()
+           value = param.getValue()
+           result = self.dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
+           if not result['OK']:
+             return S_ERROR("Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n")
+                   
+      replicas = file.getReplicas()
+      for replica in replicas:
+        params = replica.getaprams()
+        for param in params: # just one param exist in params list, because JobReader only one param add to Replica
+          name = param.getName()
+          location = param.getLocation()
+        result = self.dataManager_.updateReplicaRow(file.getFileID(),'Yes')  #, name, location)           
+        if not result['OK']:
+          return S_ERROR("Unable to create Replica " + str(name) +".\n")
+    
+    self.log.info("End Processing!" )
+    
+    return S_OK()
   
   #############################################################################  
   def getJobs(self):  
@@ -120,10 +248,9 @@ class XMLFilesReaderManager:
           name = os.path.split(file)[1]
           self.fileClient_.rename(file, self.errorsTmp_ + name)
           gLogger.info(file+" file moved the ErrorTmp directory!!!")
+          gLogger.info(fn+" file moved the ErrorTmp directory!!!")  
+          self.fileClient_.rename(fn, self.errorsTmp_ + name+".error")       
         
-        gLogger.info(fn+" file moved the ErrorTmp directory!!!")
-        
-        self.fileClient_.rename(fn, self.errorsTmp_ + name+".error") 
         """
         very important to remove also the error messages, because we have to now
         what is the problem!!!!
@@ -172,7 +299,7 @@ class XMLFilesReaderManager:
           self.fileClient_.rm(fileName)
           print fileName,self.errorsTmp_ + name
           gLogger.error("unknown XML file!!!")
-          
+  
   #############################################################################   
   def destroy(self):
     del self.jobs_[:]      

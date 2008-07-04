@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.25 2008/06/30 14:35:00 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.26 2008/07/04 14:05:07 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.25 2008/06/30 14:35:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.26 2008/07/04 14:05:07 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -124,11 +124,10 @@ class BookkeepingManagerAgent(Agent):
             return S_ERROR()
       ################
       
-        
     config = job.getJobConfiguration()
     params = job.getJobParams()
-    
-    result = self.dataManager_.insertJob(config, params)    
+            
+    result = self.dataManager_.insertJob(job)    
     if not result['OK']:
       self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
       return S_ERROR()

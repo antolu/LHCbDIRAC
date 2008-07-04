@@ -1,22 +1,26 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.54 2008/07/03 10:17:18 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.55 2008/07/04 14:05:08 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.54 2008/07/03 10:17:18 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.55 2008/07/04 14:05:08 zmathe Exp $"
 
-from types                                                      import *
-from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
-from DIRAC                                                      import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Service.copyFiles                  import copyXMLfile
-from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
-from DIRAC.BookkeepingSystem.DB.OracleBookkeepingDB             import OracleBookkeepingDB
+from types                                                                        import *
+from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
+from DIRAC                                                                        import gLogger, S_OK, S_ERROR
+from DIRAC.BookkeepingSystem.Service.copyFiles                                    import copyXMLfile
+from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
+from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 import time,sys,os
 
 global dataMGMT_
-dataMGMT_ = OracleBookkeepingDB()
+dataMGMT_ = BookkeepingDatabaseClient()
+
+global readre_
+reader_ = XMLFilesReaderManager()
   
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
@@ -50,6 +54,10 @@ class BookkeepingManagerHandler(RequestHandler):
           
           filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
           update_file = open(filePath, "w")
+          result  = reader_.readXMLfromString(data)
+          if not result['OK']:
+            return S_ERROR(result['Message'])
+          
           print >>update_file, data
           update_file.close()
           #copyXML(filePath)
@@ -74,30 +82,15 @@ class BookkeepingManagerHandler(RequestHandler):
  
 
   #############################################################################
-  types_getAviableConfiguration = []
-  def export_getAviableConfiguration(self):
-    return dataMGMT_.getAviableConfigNameAndVersion()
-  
-  #############################################################################
-  types_getAviableEventTypes = []
-  def export_getAviableEventTypes(self):
-    return dataMGMT_.getAviableEventTypes()
+  types_getAvailableConfigurations = []
+  def export_getAvailableConfigurations(self):
+    return dataMGMT_.getAvailableConfigurations()
   
   #############################################################################
   types_getEventTypes = [StringType, StringType]
   def export_getEventTypes(self, configName, configVersion):
     return dataMGMT_.getEventTypes(configName, configVersion)
-  
-  #############################################################################
-  types_getFullEventTypesAndNumbers = [StringType, StringType, LongType]
-  def export_getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
-    return dataMGMT_.getFullEventTypesAndNumbers(configName, configVersion, eventTypeId)
-  
-  #############################################################################
-  types_getFiles = [StringType, StringType, StringType, LongType, LongType]
-  def export_getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-     return dataMGMT_.getFiles(configName, configVersion, fileType, eventTypeId, production)
-  
+   
   #############################################################################
   types_getSpecificFiles = [StringType, StringType, StringType, StringType, StringType, LongType, LongType]
   def export_getSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):

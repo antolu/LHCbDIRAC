@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.48 2008/06/19 16:32:43 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.49 2008/07/04 14:05:07 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.48 2008/06/19 16:32:43 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.49 2008/07/04 14:05:07 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -163,7 +163,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
       # list root
       gLogger.debug("listing configurations")
-      dbResult = self.db_.getAviableConfiguration()
+      dbResult = self.db_.getAvailableConfigurations()
       for record in dbResult:
         configs = record[0]+' '+record[1]
         entityList += [self._getEntityFromPath(path, configs, levels)]
