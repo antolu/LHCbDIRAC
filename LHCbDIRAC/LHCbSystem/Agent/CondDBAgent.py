@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.4 2008/06/09 11:51:41 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.5 2008/07/07 22:15:28 paterson Exp $
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,12 +18,13 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.4 2008/06/09 11:51:41 paterson Exp $"
+__RCSID__ = "$Id: CondDBAgent.py,v 1.5 2008/07/07 22:15:28 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Time                             import fromString,toEpoch
+from DIRAC.Core.Utilities.SiteSEMapping                    import getSitesForSE
 from DIRAC.Core.Utilities.GridCredentials                  import setupProxy,restoreProxy,setDIRACGroup,getProxyTimeLeft,setupProxyFile
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
 
@@ -49,13 +50,6 @@ class CondDBAgent(Optimizer):
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
     self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/CondDBAgent/shiftProdProxy')
     self.tagWaitTime = gConfig.getValue(self.section+'/MaxTagWaitTime',12) #hours
-    self.wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
-    self.site_se_mapping = {}
-    mappingKeys = gConfig.getOptions('/Resources/SiteLocalSEMapping')
-    for site in mappingKeys['Value']:
-      seStr = gConfig.getValue('/Resources/SiteLocalSEMapping/%s' %(site))
-      self.log.verbose('Site: %s, SEs: %s' %(site,seStr))
-      self.site_se_mapping[site] = [ x.strip() for x in string.split(seStr,',')]
 
     try:
       from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
@@ -206,13 +200,12 @@ class CondDBAgent(Optimizer):
     tags = catalogResult['Successful']
 
     fileSEs = {}
-    siteSEMapping = self.site_se_mapping
     for lfn,replicas in tags.items():
       siteList = []
       for se in replicas.keys():
-        sites = self.__getSitesForSE(se)
-        if sites:
-          siteList += sites
+        sites = getSitesForSE(se)
+        if sites['OK']:
+          siteList += sites['Value']
       fileSEs[lfn] = siteList
 
     siteCandidates = []
@@ -279,17 +272,6 @@ class CondDBAgent(Optimizer):
     return S_OK()
 
   #############################################################################
-  def __getSitesForSE(self,se):
-    """Returns a list of sites via the site SE mapping for a given SE.
-    """
-    sites = []
-    for site,ses in self.site_se_mapping.items():
-      if se in ses:
-        sites.append(site)
-
-    return sites
-
-  #############################################################################
   def __getProdProxy(self,prodDN):
     """This method sets up the proxy for immediate use if not available, and checks the existing
        proxy if this is available.
@@ -313,7 +295,8 @@ class CondDBAgent(Optimizer):
 
     if obtainProxy:
       self.log.info('Attempting to renew %s proxy' %prodDN)
-      res = self.wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
+      wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
+      res = wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
       if not res['OK']:
         self.log.error('Could not retrieve proxy from WMS Administrator', res['Message'])
         return S_OK()
