@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.84 2008/06/27 18:01:21 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.85 2008/07/07 10:07:58 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.84 2008/06/27 18:01:21 rgracian Exp $"
-__VERSION__ = "$Revision: 1.84 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.85 2008/07/07 10:07:58 rgracian Exp $"
+__VERSION__ = "$Revision: 1.85 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -567,7 +567,7 @@ class functions:
     try:
       self.urlretrieveTimeout( remoteName, localName, timeout )
       error = 'Openning file "%s"' % localName
-      import tarfile
+      # import tarfile
       tar = tarfile.open( localName , 'r' )
       try:
         error = 'Extracting file "%s"' % localName
@@ -605,7 +605,7 @@ class functions:
     self.logINFO( '  Creating tar file %s'  % tarFileName )
     self.logDEBUG( '   including directories: %s' % str.join( ', ', dirs ) )
     try:
-      import tarfile
+      # import tarfile
       tarFile = tarfile.open( tarFileName, 'w:gz' )
       for dir in dirs:
         cleanDir( dir )
