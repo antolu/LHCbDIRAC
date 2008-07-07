@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.49 2008/07/04 14:05:07 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.50 2008/07/07 14:38:34 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.49 2008/07/04 14:05:07 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.50 2008/07/07 14:38:34 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -163,11 +163,16 @@ class LHCB_BKKDBManager(BaseESManager):
 
       # list root
       gLogger.debug("listing configurations")
-      dbResult = self.db_.getAvailableConfigurations()
-      for record in dbResult:
-        configs = record[0]+' '+record[1]
-        entityList += [self._getEntityFromPath(path, configs, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getAvailableConfigurations()
+      
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          configs = record[0]+' '+record[1]
+          entityList += [self._getEntityFromPath(path, configs, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
     
     if levels == 1:
       gLogger.debug("listing Event Types")
@@ -184,12 +189,16 @@ class LHCB_BKKDBManager(BaseESManager):
 
       print "Available Event types:\n"
 
-      dbResult = self.db_.getEventTypes(configName, configVersion) 
-      for record in dbResult:
-        eventtypes = str(record[0])
-        value = {'EventTypeID':eventtypes, 'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, eventtypes, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getEventTypes(configName, configVersion) 
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          eventtypes = str(record[0])
+          value = {'EventTypeID':eventtypes, 'Description':record[1]}
+          entityList += [self._getSpecificEntityFromPath(path, value, eventtypes, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
     
     if levels == 2: 
       gLogger.debug("listing productions")
@@ -208,14 +217,17 @@ class LHCB_BKKDBManager(BaseESManager):
 
       print "Available productions:\n"
 
-      dbResult = self.db_.getProductions(configName, configVersion, eventType)
-      for record in dbResult:
-        prod = str(record[0])
-        entityList += [self._getEntityFromPath(path, prod, levels)]
+      result = self.db_.getProductions(configName, configVersion, eventType)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          prod = str(record[0])
+          entityList += [self._getEntityFromPath(path, prod, levels)]
+          self._cacheIt(entityList)
+        entityList += [self._getEntityFromPath(path, "ALL", levels)]
         self._cacheIt(entityList)
-        
-      entityList += [self._getEntityFromPath(path, "ALL", levels)]
-      self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
           
 
     if levels == 3:
@@ -242,7 +254,11 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Available file types:"
       dbResult = None
       if prod != 'ALL':
-        dbResult = self.db_.getFileTypes(configName, configVersion, eventType, prod)
+        result = self.db_.getFileTypes(configName, configVersion, eventType, prod)
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
       else:
         S_ERROR("NOT implemented!")
       for record in dbResult:
@@ -268,15 +284,19 @@ class LHCB_BKKDBManager(BaseESManager):
       print "File type              | "+filetype
       print "-----------------------------------------------------------"
       print "Available Program Name and Program Version:"
-      dbResult = self.db_.getProgramNameAndVersion(configName, configVersion, eventType, prod, filetype)
-      for record in dbResult:
-        programName = record[0]
-        programVersion = record[1]
-        nb = record[2]
-        program = programName+' '+programVersion
-        value = { 'Program Name':programName,'Program Version':programVersion,'Number Of Events':nb }
-        entityList += [self._getSpecificEntityFromPath(path, value, program, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getProgramNameAndVersion(configName, configVersion, eventType, prod, filetype)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          programName = record[0]
+          programVersion = record[1]
+          nb = record[2]
+          program = programName+' '+programVersion
+          value = { 'Program Name':programName,'Program Version':programVersion,'Number Of Events':nb }
+          entityList += [self._getSpecificEntityFromPath(path, value, program, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
     
     if levels == 5:
       self.files_ = []
@@ -309,9 +329,17 @@ class LHCB_BKKDBManager(BaseESManager):
       
       dbResult = None
       if prod != 'ALL':
-        dbResult = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
+        result = self.db_.getSpecificFiles(configName,configVersion,pname,pversion,filetype,eventType,prod)
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
       else:
-        dbResult = self.db_.getSpecificFilesWithoutProd(configName,configVersion,pname,pversion,filetype,eventType)
+        result = self.db_.getSpecificFilesWithoutProd(configName,configVersion,pname,pversion,filetype,eventType)
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
       
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':filetype, 'EvtTypeId':int(eventType)}
@@ -340,12 +368,16 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
 
       gLogger.debug("listing event types")
-      dbResult = self.db_.getAvailableEventTypes()
-      for record in dbResult:
-        event = str(record[0])
-        value = {'Event Type':record[0],'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, event, levels)]
-        self._cacheIt(entityList)                  
+      result = self.db_.getAvailableEventTypes()
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          event = str(record[0])
+          value = {'Event Type':record[0],'Description':record[1]}
+          entityList += [self._getSpecificEntityFromPath(path, value, event, levels)]
+          self._cacheIt(entityList)                  
+      else:
+        gLogger.error(result['Message'])
    
     if levels == 1:
       eventType = processedPath[0][1]
@@ -357,11 +389,15 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "Available configuration name and version:" 
       
-      dbResult = self.db_.getConfigNameAndVersion(int(eventType))
-      for record in dbResult:
-        configs = record[0]+' '+record[1]
-        entityList += [self._getEntityFromPath(path, configs, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getConfigNameAndVersion(int(eventType))
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          configs = record[0]+' '+record[1]
+          entityList += [self._getEntityFromPath(path, configs, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
     
     if levels == 2:
       gLogger.debug("listing processing pass")
@@ -379,13 +415,17 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
       
       print "Available processing pass:"
-      dbResult = self.db_.getAvailableProcessingPass(configName, configVersion, int(eventType))
+      result = self.db_.getAvailableProcessingPass(configName, configVersion, int(eventType))
+      if result['OK']:
+        dbResult = result['Value']
 
-      for record in dbResult:
-        processing = record[0]
-        value = {'Total processing pass':record[0]}
-        entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
-        self._cacheIt(entityList)  
+        for record in dbResult:
+          processing = record[0]
+          value = {'Total processing pass':record[0]}
+          entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
+          self._cacheIt(entityList)  
+      else:
+        gLogger.error(result['Message'])
       
     if levels == 3:
       gLogger.debug("listing production!")
@@ -405,14 +445,18 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
       
       print "Aviable productions:"
-      dbResult = self.db_.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
-      for record in dbResult:
-        prod = str(record[0])
-        entityList += [self._getEntityFromPath(path, prod, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          prod = str(record[0])
+          entityList += [self._getEntityFromPath(path, prod, levels)]
+          self._cacheIt(entityList)
         
-      entityList += [self._getEntityFromPath(path, "ALL", levels)]
-      self._cacheIt(entityList)
+        entityList += [self._getEntityFromPath(path, "ALL", levels)]
+        self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
       
     if levels == 4:
       gLogger.debug("listing production!")
@@ -436,9 +480,17 @@ class LHCB_BKKDBManager(BaseESManager):
       print "Available file type:"
       dbResult = None
       if production != 'ALL':
-        dbResult = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
+        result = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
       else:
-        dbResult = self.db_.getFileTypesWithEventTypeALL(configName, configVersion, int(eventType))
+        result = self.db_.getFileTypesWithEventTypeALL(configName, configVersion, int(eventType))
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
 
       for record in dbResult:
         fileType = str(record[0])
@@ -467,9 +519,18 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "File list:"
       if production != 'ALL':    
-        dbResult = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))     
+        result = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))     
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
       else:
-        dbResult = self.db_.getFilesByEventTypeALL(configName, configVersion, fileType, int(eventType))
+        result = self.db_.getFilesByEventTypeALL(configName, configVersion, fileType, int(eventType))
+        if result['OK']:
+          dbResult = result['Value']
+        else:
+          gLogger.error(result['Message'])
+          
       for record in dbResult:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
         self.files_ += [record[0]]
@@ -496,12 +557,17 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
 
       gLogger.debug("listing processing pass")
-      dbResult = self.db_.getProcessingPass()
-      for record in dbResult:
-        processing = record[0]
-        value = {'Step 0':record[1],'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 4':record[5]}
-        entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
-        self._cacheIt(entityList)                  
+      result = self.db_.getProcessingPass()
+      if result['OK']:
+        dbResult = result['Value']
+  
+        for record in dbResult:
+          processing = record[0]
+          value = {'Step 0':record[1],'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 4':record[5]}
+          entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
+          self._cacheIt(entityList)                  
+      else:
+        gLogger.error(result['Message'])
    
     if levels == 1:
       gLogger.debug("listing productions")
@@ -514,14 +580,18 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
      
       print "Available productions:"
-      dbResult = self.db_.getProductionsWithPocessingPass(processingPass)
-      for record in dbResult:
-        prod = str(record[0])
-        entityList += [self._getEntityFromPath(path, prod, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getProductionsWithPocessingPass(processingPass)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          prod = str(record[0])
+          entityList += [self._getEntityFromPath(path, prod, levels)]
+          self._cacheIt(entityList)
         
-      entityList += [self._getEntityFromPath(path, "ALL", levels)]
-      self._cacheIt(entityList)
+        entityList += [self._getEntityFromPath(path, "ALL", levels)]
+        self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
 
     if levels == 2:
       processingPass = processedPath[0][1]
@@ -535,12 +605,16 @@ class LHCB_BKKDBManager(BaseESManager):
       
       print "Available Event types:"
       
-      dbResult = self.db_.getEventTyesWithProduction(prod)
-      for record in dbResult:
-        eventtype = str(record[0])
-        value = {'EventTypeID':eventtype, 'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, eventtype, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getEventTyesWithProduction(prod)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          eventtype = str(record[0])
+          value = {'EventTypeID':eventtype, 'Description':record[1]}
+          entityList += [self._getSpecificEntityFromPath(path, value, eventtype, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
    
     if levels == 3:
       processingPass = processedPath[0][1]
@@ -556,11 +630,15 @@ class LHCB_BKKDBManager(BaseESManager):
 
       print "Available file types:"
 
-      dbResult = self.db_.getFileTypesWithProduction(prod, evt)
-      for record in dbResult:
-        fileType = str(record[0])
-        entityList += [self._getEntityFromPath(path, fileType, levels)]
-        self._cacheIt(entityList)
+      result = self.db_.getFileTypesWithProduction(prod, evt)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          fileType = str(record[0])
+          entityList += [self._getEntityFromPath(path, fileType, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
 
     if levels == 4:
       self.files_ = []
@@ -579,13 +657,16 @@ class LHCB_BKKDBManager(BaseESManager):
 
       print "Available files:"
 
-      dbResult = self.db_.getFilesByProduction(prod, evt, fileType)
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
-        self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels)]
-        self._cacheIt(entityList)
-
+      result = self.db_.getFilesByProduction(prod, evt, fileType)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
+          self.files_ += [record[0]]
+          entityList += [self._getEntityFromPath(path, value, levels)]
+          self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
  
 
     return entityList
