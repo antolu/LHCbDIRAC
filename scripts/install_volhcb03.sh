@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.3 2008/07/08 14:57:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.4 2008/07/08 15:50:52 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -24,7 +24,7 @@ DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
 
-export LOGLEVEL=INFO
+export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
