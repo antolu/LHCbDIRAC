@@ -77,6 +77,6 @@ done
 
 mysqladmin flush-privileges
 mysqladmin -u root password "$passwd"
-mysqladmin -u root -h volhcb01.cern.ch password "$passwd"
+mysqladmin -u root -h $1 password "$passwd"
 
 /opt/dirac/pro/mysql/share/mysql/mysql.server stop
