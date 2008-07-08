@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.2 2008/07/08 12:56:36 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.3 2008/07/08 14:57:28 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -18,6 +18,8 @@ SiteName=VOLHCB03.CERN.CH
 DIRACSETUP=LHCb-Development
 DIRACVERSION=v0r3p4
 EXTVERSION=v0r3p0
+DIRACVERSION=HEAD
+EXTVERSION=HEAD
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
@@ -26,7 +28,7 @@ export LOGLEVEL=INFO
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
-# DIRACCVS=-C
+DIRACCVS=yes
 #
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
@@ -158,6 +160,7 @@ $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARC
 old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
+
 #
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
@@ -228,5 +231,32 @@ $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 # RequestManagement
+
+if [ ! -z DIRACCVS ] ; then
+
+
+	cd `dirname $DESTDIR`
+	mv DIRAC3/DIRAC DIRAC3/DIRAC.save
+
+echo
+echo
+echo   To get a CVS installation:
+echo
+echo   "   login with your own user"
+echo   "   start a bash shell"
+echo   "   execute"
+echo
+echo
+cat << EOF
+umask 0002
+export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
+cd `dirname $DESTDIR`
+cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
+
+EOF
+
+fi
+
+
 
 exit
