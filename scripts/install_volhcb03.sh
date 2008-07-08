@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.1 2008/07/08 10:18:02 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.2 2008/07/08 12:56:36 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -80,6 +80,27 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 
+}
+Systems
+{
+  RequestManagement
+  {
+    Production
+    {
+      URLs
+      {
+        localURL = dips://localhost:9143/RequestManagement/RequestManager
+      }
+      Services
+      {
+        RequestManager
+        {
+          Backend = file
+          Path = $DESTDIR/requestDB
+        }
+      }
+    }
+  }
 }
 EOF
 # Special CS file for the pilotAgent
@@ -197,14 +218,14 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 
-# $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
-# $DESTDIR/pro/scripts/install_agent.sh   DataManagement       TransferAgent
-# $DESTDIR/pro/scripts/install_agent.sh   DataManagement       RemovalAgent
+$DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
+
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorWMS
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 # RequestManagement
 
