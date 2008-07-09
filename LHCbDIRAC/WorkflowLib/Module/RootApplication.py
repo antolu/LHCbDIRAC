@@ -1,20 +1,20 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.3 2008/07/03 15:54:10 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.4 2008/07/09 17:37:37 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.3 2008/07/03 15:54:10 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.4 2008/07/09 17:37:37 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities import systemCall
+from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
   from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 
-import string, os, sys
+import string, os, sys, fnmatch
 
 class RootApplication(object):
 
@@ -36,7 +36,6 @@ class RootApplication(object):
     self.rootType = ''
     self.arguments = ''
     self.systemConfig = ''
-
 
   #############################################################################
   def resolveInputVariables(self):
@@ -131,7 +130,6 @@ class RootApplication(object):
       self.log.info( 'rootScript not Found' )
       return S_ERROR( 'rootScript not Found' )
 
-
     if self.rootType.lower() == 'c':
       rootCmd = os.path.join(rootdir, 'bin/root')
       rootCmd = [rootCmd]
@@ -148,7 +146,13 @@ class RootApplication(object):
       else:
         rootEnv['PYTHONPATH'] = os.path.join(rootdir, 'lib')
 
-      pythondir = getPythonFromRoot(rootdir)
+      pythondir = self.getPythonFromRoot(rootdir)
+      if not pythondir['OK']:
+        self.log.warn('External python not found with message: %s' %(pythondir['Message']))
+        self.__report( 'Application Not Found' )
+        return S_ERROR( 'Application Not Found' )
+      pythondir = pythondir['Value']
+
       rootEnv['LD_LIBRARY_PATH'] += ":%s"%(os.path.join(pythondir, 'lib'))
       pythonbin = os.path.join(pythondir, 'bin', 'python')
 
@@ -168,11 +172,10 @@ class RootApplication(object):
     self.log.info( 'Running:', ' '.join(rootCmd)  )
     self.__report('Running ROOT %s' %(self.rootVersion))
 
-    ret = systemCall(0,rootCmd,env=rootEnv,callbackFunction=self.redirectLogOutput)
-
+    ret = shellCall(0,' '.join(rootCmd),env=rootEnv,callbackFunction=self.redirectLogOutput)
     if not ret['OK']:
-      self.log.error(rootCmd)
-      self.log.error(ret)
+      self.log.warn('Error during: %s ' %rootCmd)
+      self.log.warn(ret)
       self.result = ret
       return self.result
 
@@ -199,7 +202,7 @@ class RootApplication(object):
       self.result = S_ERROR("Script execution completed with errors")
       return self.result
 
-    # Return OK assuming that subsequent ChecklogFile will spot problems
+    # Return OK assuming that subsequent module will spot problems
     self.__report('%s (Root %s) Successful' %(self.rootScript,self.rootVersion))
     self.result = S_OK()
     return self.result
@@ -233,18 +236,27 @@ class RootApplication(object):
     return jobStatus
 
   #############################################################################
+  def getPythonFromRoot(self,rootsys):
+    """Locate the external python version that root was built with.
+    """
+    includedir = os.path.join(rootsys,'include')
+    pythondir = ''
+    for fname in os.listdir(includedir):
+      if fnmatch.fnmatch(fname, '*[cC]onfig*'):
+        f = file(os.path.join(includedir,fname))
+        for l in f:
+          i = l.find('PYTHONDIR')
+          if not i==-1:
+            pythondir = l[i:].split()[0].split('=')[1]
 
-def getPythonFromRoot(rootsys):
+    if not pythondir:
+      return S_ERROR('Root python version not found')
+    pythondir = pythondir.split('/lcg/external/')[1]
+    extdir = includedir.split('/lcg/external/')[0]
+    pythondir = os.path.join(extdir,'lcg','external',pythondir)
+    if not os.path.exists(pythondir):
+      return S_ERROR('External python %s not found' %(pythondir))
+    return S_OK(pythondir)
 
-  import fnmatch, os
-  includedir = os.path.join(rootsys,'include')
-
-  for fname in os.listdir(includedir):
-    if fnmatch.fnmatch(fname, '*[cC]onfig*'):
-      f = file(os.path.join(includedir,fname))
-      for l in f:
-        i = l.find('PYTHONDIR')
-        if not i==-1:
-          return l[i:].split()[0].split('=')[1]
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
