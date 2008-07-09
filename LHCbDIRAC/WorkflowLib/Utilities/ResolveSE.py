@@ -32,7 +32,7 @@ def resolveSE(site,outputSE,outputmode):
         assignedCountry = opt['Value']
         count += 1
       else:
-      	break
+        break
 
     assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs/%s' %(assignedCountry,outputSE) )
     if assocCheck['OK']:
