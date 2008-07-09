@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.80 2008/07/04 10:00:29 joel Exp $
+# $Id: JobFinalization.py,v 1.81 2008/07/09 12:18:01 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.80 2008/07/04 10:00:29 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.81 2008/07/09 12:18:01 paterson Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -40,6 +40,7 @@ from WorkflowLib.Utilities.Tools import *
 from WorkflowLib.Module.ModuleBase import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
+from DIRAC.Core.Utilities.SiteSEMapping                   import getSEsForSite
 import os, time, re, random, shutil, commands
 
 class JobFinalization(ModuleBase):
@@ -621,14 +622,13 @@ class JobFinalization(ModuleBase):
 
     # Check if the SE is defined explicitly for the site
     prefix = self.site.split('.')[0]
-    sname = self.site.replace(prefix+'.','')
     country = self.site.split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
     if result['OK']:
       return S_OK([outputSE])
     # There is an alias defined for this Site
-    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,sname,outputSE),'')
+    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),'')
     if alias_se:
       return S_OK([alias_se])
 
@@ -691,20 +691,11 @@ class JobFinalization(ModuleBase):
   def __getLocalSEList(self):
     """ Ge the list of local Storage Element names
     """
-
-    # This should be done in a better defined way elsewhere
-    self.__loadLocalCFGFiles(self.root+'/../')
-    self.__loadLocalCFGFiles(os.getcwd())
-    self.__loadLocalCFGFiles(os.getcwd()+'/../')
-
-    # SEs defined locally
-    localses = gConfig.getValue('/LocalSite/LocalSE',[])
-    prefix = self.site.split('.')[0]
-    sname = self.site.replace(prefix+'.','')
-    # SEs defined in the Configuration Service
-    csses = gConfig.getValue('/Resources/Sites/%s/%s/SE' % (prefix,sname),[])
-    ses = uniq(localses+csses)
-    return ses
+    result = getSEsForSite(self.site)
+    if not result['OK']:
+      self.log.warn('Could not get SEs for site with result\n%s' %result)
+      return []
+    return result['Value']
 
 ###################################################################################################
   def uploadDataFile(self,datafile,lfn,destinationSEList,allSEs=True,failover=False):
