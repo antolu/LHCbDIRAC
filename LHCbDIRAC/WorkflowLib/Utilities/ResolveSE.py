@@ -29,11 +29,11 @@ def resolveSE(site,outputSE,outputmode):
     while count<10:
       opt = gConfig.getOption("/Resources/Countries/%s/AssignedTo" %assignedCountry)
       if opt['OK']:
-	assignedCountry = opt['Value']
-	count += 1
+        assignedCountry = opt['Value']
+        count += 1
       else:
       	break
-    
+
     assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs/%s' %(assignedCountry,outputSE) )
     if assocCheck['OK']:
       return S_OK([assocCheck['Value']])
