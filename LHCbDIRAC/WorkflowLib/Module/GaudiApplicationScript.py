@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.3 2008/07/02 08:36:38 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.4 2008/07/09 18:27:01 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,10 +13,9 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.3 2008/07/02 08:36:38 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.4 2008/07/09 18:27:01 paterson Exp $"
 
-from DIRAC.Core.Utilities                                import systemCall
-from DIRAC.Core.Utilities                                import shellCall
+from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
 from DIRAC.Core.Utilities                                import Source
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -240,7 +239,7 @@ class GaudiApplicationScript(object):
     self.__report('%s %s' %(self.applicationName,self.applicationVersion))
     self.writeGaudiRun(gaudiCmd, gaudiEnv)
     self.log.info( 'Running:', ' '.join(gaudiCmd)  )
-    ret = systemCall(0,gaudiCmd,env=gaudiEnv,callbackFunction=self.redirectLogOutput)
+    ret = shellCall(0,' '.join(gaudiCmd),env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
     if not ret['OK']:
       self.log.error(gaudiCmd)
