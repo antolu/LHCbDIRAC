@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.5 2008/05/19 09:20:40 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.6 2008/07/10 13:33:03 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.5 2008/05/19 09:20:40 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.6 2008/07/10 13:33:03 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -87,7 +87,7 @@ class AncestorFilesAgent(Optimizer):
     """This method checks the input data with ancestors. The original job JDL
        is always extracted to obtain the input data, therefore rescheduled jobs
        will not recursively search for ancestors of ancestors etc.
-    """    
+    """
     classadJob = ClassAd(jdl)
     if not classadJob.isOK():
       self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
@@ -143,23 +143,23 @@ class AncestorFilesAgent(Optimizer):
       result = getAncestors(inputData,ancestorDepth)
     except Exception,x:
       self.log.warn('getAncestors failed with exception:\n%s' %x)
-      return S_ERROR(self.failedMinorStatus)    
+      return S_ERROR(self.failedMinorStatus)
 
     self.log.info('genCatalog.getAncestors lookup time %.2f s' %(time.time()-start))
     self.log.verbose(result)
     if not result:
       self.log.warn('Null result from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus) 
+      return S_ERROR(self.failedMinorStatus)
     if not type(result)==type({}):
       self.log.warn('Non-dict object returned from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus) 
+      return S_ERROR(self.failedMinorStatus)
     if not result.has_key('PFNs'):
       self.log.warn('----------BK-Result------------')
       self.log.warn(result)
       self.log.warn('--------End-BK-Result----------')
       self.log.warn('Missing key PFNs from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus) 
-      
+      return S_ERROR(self.failedMinorStatus)
+
     newInputData = result['PFNs']
 
     missingFiles = []
@@ -167,13 +167,17 @@ class AncestorFilesAgent(Optimizer):
       if not i in newInputData:
         missingFiles.append(i)
 
+    #If no missing files and ancestor depth is 1 can return
+    if ancestorDepth==1 and not missingFiles:
+      return S_OK(newInputData)
+
     if missingFiles:
       param = '%s input data files missing from genCatalog utility result:\n%s' %(len(missingFiles),string.join(missingFiles,',\n'))
       report = self.setJobParam(job,self.optimizerName,param)
       if not report['OK']:
         self.log.warn(report['Message'])
       self.log.warn('genCatalog did not return all of original input data requirement')
-      return S_ERROR(self.failedMinorStatus) 
+      return S_ERROR(self.failedMinorStatus)
     ancestorFiles = []
     for i in newInputData:
       if not i in inputData:
