@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.4 2008/07/03 10:17:38 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.5 2008/07/11 14:21:02 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.4 2008/07/03 10:17:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.5 2008/07/11 14:21:02 rgracian Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -26,47 +26,48 @@ class UsersAndGroups(Agent):
 
     """ Standard constructor
     """
-    self.pollingTime = 3600*6
     Agent.__init__(self,AGENT_NAME)
     self.vomsServer = VOMS_SERVER
 
   def initialize(self):
     result = Agent.initialize(self)
-
+    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',3600*6) # Every 6 hours
     return result
 
   def execute(self):
 
+    self.log.info( 'Starting Agent loop')
+
     mappingSection = 'Security/VOMSMapping'
     ret = gConfig.getOptionsDict( mappingSection )
     if not ret['OK']:
-      self.log.error('No VOMS to DIRAC Group Mapping Available')
+      self.log.fatal('No VOMS to DIRAC Group Mapping Available')
       return ret
 
     vomsMapping = ret['Value']
 
     ret = systemCall( 0, 'voms-proxy-init')
     if not ret['OK']:
-      self.log.error('Could not create Proxy',ret['Message'])
+      self.log.fatal('Could not create Proxy',ret['Message'])
       return ret
 
     csapi = CSAPI()
     ret = csapi.listUsers()
     if not ret['OK']:
-      self.log.error( 'Could not retrieve current list of Users' )
+      self.log.fatal( 'Could not retrieve current list of Users' )
       return ret
     currentUsers = ret['Value']
-    print currentUsers
+
     ret = csapi.describeUsers( currentUsers )
     if not ret['OK']:
-      self.log.error( 'Could not retrieve current list of Users' )
+      self.log.fatal( 'Could not retrieve current User description' )
       return ret
 
     currentUsers = ret['Value']
 
     ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-roles'],)
     if not ret['OK']:
-      self.log.error('Can not get Role List', ret['Message'])
+      self.log.fatal('Can not get Role List', ret['Message'])
       return ret
 
     roles = {}
@@ -79,7 +80,7 @@ class UsersAndGroups(Agent):
 
     ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-users'],)
     if not ret['OK']:
-      self.log.error('Can not get User List', ret['Message'])
+      self.log.fatal('Can not get User List', ret['Message'])
       return ret
 
     users = {}
@@ -103,13 +104,12 @@ class UsersAndGroups(Agent):
           multiDNUsers.append( user )
         duplicateUsers.append( user )
         continue
-      users[user] = { 'DN':dn, 'CA':ca }
+      users[user] = { 'DN': dn, 'CA': ca , 'email': '%s@cern.ch' % user }
 
       if not user in currentUsers:
         newUsers.append(user)
       else:
         oldUsers.append(user)
-
 
       ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-user-roles', dn, ca] )
       if not ret['OK']:
@@ -130,14 +130,12 @@ class UsersAndGroups(Agent):
         users[user]['Groups'].append('diracAdmin')
       users[user]['Groups'].sort()
       currentUsers[user]['Groups'].sort()
-      print 'Update User', user, users[user]['Groups'] == currentUsers[user]['Groups'], users[user]['Groups'], currentUsers[user]['Groups']
       ret = csapi.modifyUser( user, users[user] )
       if not ret['OK']:
         self.log.error( 'Fail to modifyUser User:', '(%s) %s' % ( user, users[user] ) )
 
     for user in newUsers:
       users[user]['Groups'].sort()
-      print 'New User', user, users[user]['Groups']
       ret = csapi.addUser( user, users[user])
       if not ret['OK']:
         self.log.error( 'Fail to add User:', '(%s) %s' % ( user, users[user] ) )
@@ -145,18 +143,15 @@ class UsersAndGroups(Agent):
     for user in currentUsers:
       if user not in users:
         self.log.error('Obsolete User', user )
-      obsoleteUsers.append(user)
+        obsoleteUsers.append(user)
 
     self.log.info( 'New Users found', newUsers )
     self.log.info( 'Duplicated Users found', duplicateUsers )
+    self.log.info( 'Users with multiple DN found', multiDNUsers )
     self.log.info( 'Obsolete Users found', obsoleteUsers )
 
     ret = csapi.deleteUsers( obsoleteUsers )
 
-    for role in roles:
-      print role, roles[role]
-
     ret = systemCall( 0, 'voms-proxy-destroy' )
 
-    self.log.info('Helo')
     return S_OK()
