@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.81 2008/07/09 12:18:01 paterson Exp $
+# $Id: JobFinalization.py,v 1.82 2008/07/11 09:51:54 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.81 2008/07/09 12:18:01 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.82 2008/07/11 09:51:54 paterson Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -618,7 +618,7 @@ class JobFinalization(ModuleBase):
 
     SEs = []
     # Add output SE defined in the job description
-    self.log.verbose('Resolving '+outputSE+' SE')
+    self.log.info('Resolving '+outputSE+' SE')
 
     # Check if the SE is defined explicitly for the site
     prefix = self.site.split('.')[0]
@@ -626,21 +626,26 @@ class JobFinalization(ModuleBase):
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
     if result['OK']:
+      self.log.info('Found local SE %s' %outputSE)
       return S_OK([outputSE])
     # There is an alias defined for this Site
     alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),'')
     if alias_se:
+      self.log.info('Found associated SE for site %s' %(alias_se))
       return S_OK([alias_se])
 
 
     localSEs = self.__getLocalSEList()
+    self.log.info('Local SE list is: %s' %(localSEs))
     groupSEs = gConfig.getValue('/Resources/StorageElementGroups/'+outputSE,[])
+    self.log.info('Group SE list is: %s' %(groupSEs))
     if not groupSEs:
       return S_ERROR('Failed to resolve SE '+outputSE)
 
     if outputmode == "Local":
       for se in localSEs:
         if se in groupSEs:
+          self.log.info('Found SE for Local mode: %s' %(se))
           return S_OK([se])
       # Final check for country associated SE
       count = 0
@@ -657,12 +662,15 @@ class JobFinalization(ModuleBase):
           break
 
       if not assignedCountry:
+        self.log.info('Could not establish associated country for site')
         return S_ERROR('Could not determine associated SE list for %s' %country)
 
       alias_se = gConfig.getValue('/Resources/Countries/%s/AssociatedSEs/%s' %(assignedCountry,outputSE),[])
       if alias_se:
+        self.log.info('Found alias SE for site: %s' %alias_se)
         return S_OK(alias_se)
       else:
+        self.log.info('Could not establish alias SE')
         return S_ERROR('Failed to resolve SE '+outputSE)
 
     # For collective Any and All modes return the whole group
@@ -673,7 +681,7 @@ class JobFinalization(ModuleBase):
       if se in localSEs:
         newSEList.append(se)
     SEs = uniq(newSEList+groupSEs)
-
+    self.log.info('Found unique SEs: %s' %(SEs))
     return S_OK(SEs)
 
 #############################################################################
@@ -896,14 +904,20 @@ class JobFinalization(ModuleBase):
     reportRequest = None
     if self.jobReport:
       result = self.jobReport.generateRequest()
-      reportRequest = result['Value']
+      if not result['OK']:
+        self.log.warn('Could not generate request for job report with result:\n%s' %(result))
+      else:
+        reportRequest = result['Value']
     if reportRequest:
       self.request.update(reportRequest)
 
 
     if self.fileReport and fileReportFlag:
       result = self.fileReport.generateRequest()
-      reportRequest = result['Value']
+      if not result['OK']:
+        self.log.warn('Could not generate request for file report with result:\n%s' %(result))
+      else:
+        reportRequest = result['Value']
     if reportRequest:
       result = self.request.update(reportRequest)
 
@@ -925,6 +939,5 @@ class JobFinalization(ModuleBase):
     xmlfile = open(fname,'w')
     xmlfile.write(request_string)
     xmlfile.close()
-
     return S_OK()
 
