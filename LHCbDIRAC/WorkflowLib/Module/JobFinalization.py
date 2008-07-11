@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.82 2008/07/11 09:51:54 paterson Exp $
+# $Id: JobFinalization.py,v 1.83 2008/07/11 15:03:46 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.82 2008/07/11 09:51:54 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.83 2008/07/11 15:03:46 joel Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -625,7 +625,9 @@ class JobFinalization(ModuleBase):
     country = self.site.split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
-    if result['OK']:
+    if not result['OK']:
+      return S_ERROR("CS not Accessible")
+    if result['Value']:
       self.log.info('Found local SE %s' %outputSE)
       return S_OK([outputSE])
     # There is an alias defined for this Site
@@ -652,11 +654,11 @@ class JobFinalization(ModuleBase):
       assignedCountry = country
       while count<10:
         opt = gConfig.getOption("/Resources/Countries/%s/AssignedTo" %assignedCountry)
-        if opt['OK']:
+        if opt['OK'] and opt['Value']:
           assignedCountry = opt['Value']
           assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
           count += 1
-          if assocCheck['OK']:
+          if assocCheck['OK'] and assocCheck['Value']:
             break
         else:
           break
