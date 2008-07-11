@@ -7,7 +7,7 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 # Variable which need to be set
 wkf_name = "CCRC_recon"
 eventTypeSignal = "30000000"
-nb_evt_step1 = 100
+nb_evt_step1 = 1000
 Brunel_version = "v32r5"
 Brunel_optfile = "RealDataRdst.opts"
 system_os = "slc4_ia32_gcc34"
@@ -39,12 +39,9 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 #define module 4
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
-module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
+module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
+module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
-#define module 5
-module5 = ModuleDefinition('StepFinalization')
-module5.setDescription('Step Finalization module')
-module5.setBody('from WorkflowLib.Module.StepFinalization import * \n')
 
 #define module 6
 module6 = ModuleDefinition('JobFinalization')
@@ -115,7 +112,7 @@ stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", Brunel_optfile)
 stepInstance1.setValue("optionsLine",opt_brunel)
 stepInstance1.setValue("optionsLinePrev","None")
-stepInstance1.setValue("inputData",indata)
+stepInstance1.setLink("inputData","self","InputData")
 #stepInstance1.setValue("outputDataSE","Tier1_M-DST")
 list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
@@ -131,8 +128,9 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r4.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r12.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
+#workflow1.addParameter(Parameter("AncestorDepth","1","JDL","","",True,False, "Ancestor Depth"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
@@ -148,7 +146,7 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00005055","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000011","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("emailAddress","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
+workflow1.addParameter(Parameter("emailAddress","lhcb-datacrash@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("dataType","DATA","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("sourceData",indata,"string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))

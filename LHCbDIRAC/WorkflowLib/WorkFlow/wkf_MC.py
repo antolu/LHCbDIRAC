@@ -9,8 +9,8 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 wkf_name = "MC_realtest100"
 #eventTypeSignal = "13144001"
 eventTypeSignal = "11114001"
-numberEventSignal = 1
-numberEventMB = 3
+numberEventSignal = 100
+numberEventMB = 100
 numberEvent = -1
 Gauss_version = "v25r13"
 Gauss_optfile = "v200601.opts"
@@ -211,7 +211,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-v1r5.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r12.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
@@ -228,11 +228,11 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00004044","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000101","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("emailAddress","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
+workflow1.addParameter(Parameter("emailAddress","lhcb-datacrash@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
-workflow1.addParameter(Parameter("configVersion","2008","string","","",True, False, "Configuration Version"))
+workflow1.addParameter(Parameter("configVersion","DC06","string","","",True, False, "Configuration Version"))
 
 if os.path.exists('wkf_MC.xml'):
   print 'Removed existing workflow'
