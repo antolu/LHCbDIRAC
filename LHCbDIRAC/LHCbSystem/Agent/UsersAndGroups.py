@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.6 2008/07/11 15:53:18 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.7 2008/07/11 17:21:56 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.6 2008/07/11 15:53:18 rgracian Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.7 2008/07/11 17:21:56 rgracian Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -127,6 +127,10 @@ class UsersAndGroups(Agent):
           continue
         roles[role]['Users'].append(user)
         users[user]['Groups'].append( roles[role]['Group'] )
+
+    if not 'msapunov' in users:
+      users['msapunov'] = currentUsers['msapunov']
+      
 
     for user in oldUsers:
       if 'diracAdmin' in currentUsers[user]['Groups']:
