@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.5 2008/07/11 14:21:02 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.6 2008/07/11 15:53:18 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.5 2008/07/11 14:21:02 rgracian Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.6 2008/07/11 15:53:18 rgracian Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -97,6 +97,9 @@ class UsersAndGroups(Agent):
         continue
       # the output has the format nickname=<nickname>
       user = List.fromChar(ret['Value'][1],'=')[1]
+      if user == 'None':
+        self.log.error('Wrong nickname for:', dn )
+        continue
       if user in users:
         if dn != users[user]['DN']:
           self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, users[user]) )
