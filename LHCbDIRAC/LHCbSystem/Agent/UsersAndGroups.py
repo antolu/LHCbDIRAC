@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.8 2008/07/11 18:01:45 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.9 2008/07/11 18:05:57 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.8 2008/07/11 18:01:45 rgracian Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.9 2008/07/11 18:05:57 rgracian Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -161,4 +161,5 @@ class UsersAndGroups(Agent):
 
     ret = systemCall( 0, 'voms-proxy-destroy' )
 
+    return S_OK()
     return csapi.commitChanges()
