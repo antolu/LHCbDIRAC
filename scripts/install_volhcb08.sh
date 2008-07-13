@@ -195,7 +195,7 @@ $DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
 $DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsage
 
-if [ ! -z DIRACCVS ] ; then
+if [ ! -z $DIRACCVS ] ; then
 
 
         cd `dirname $DESTDIR`

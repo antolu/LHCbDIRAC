@@ -195,7 +195,7 @@ $DESTDIR/pro/scripts/install_agent.sh SystemName AgentName
 
 ######################################################################
 
-if [ ! -z DIRACCVS ] ; then
+if [ ! -z $DIRACCVS ] ; then
 
 
         cd `dirname $DESTDIR`
