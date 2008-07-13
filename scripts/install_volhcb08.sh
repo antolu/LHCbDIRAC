@@ -193,7 +193,7 @@ $DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
 
 # The storage usage components
 $DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsage
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsageAgent
 
 if [ ! -z $DIRACCVS ] ; then
 
