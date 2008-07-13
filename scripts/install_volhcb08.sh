@@ -191,6 +191,9 @@ $DESTDIR/pro/scripts/install_agent.sh   DataManagement     LFCvsSEAgent
 # The data logging service
 $DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
 
+# The dataset manager service
+$DESTDIR/pro/scripts/install_service.sh DataManagement     DatasetManager
+
 # The storage usage components
 $DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsageAgent
