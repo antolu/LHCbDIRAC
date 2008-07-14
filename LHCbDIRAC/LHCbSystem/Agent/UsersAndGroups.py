@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.10 2008/07/14 15:52:02 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.11 2008/07/14 17:30:09 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.10 2008/07/14 15:52:02 rgracian Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.11 2008/07/14 17:30:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -119,7 +119,7 @@ class UsersAndGroups(Agent):
         self.log.error('Can not not get User Roles', user)
         continue
 
-      users[user]['Groups'] = ['lhcb']
+      users[user]['Groups'] = ['lhcb', 'private_pilot' ]
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = newItem
         if not role in roles:
@@ -127,6 +127,11 @@ class UsersAndGroups(Agent):
           continue
         roles[role]['Users'].append(user)
         users[user]['Groups'].append( roles[role]['Group'] )
+
+    ret = csapi.downloadCSData()
+    if not ret['OK']:
+      self.log.fatal('Can not update from CS', ret['Message'])
+      return ret
 
     for user in oldUsers:
       if 'diracAdmin' in currentUsers[user]['Groups']:
@@ -157,5 +162,5 @@ class UsersAndGroups(Agent):
 
     ret = systemCall( 0, 'voms-proxy-destroy' )
 
-    return S_OK()
+    # return S_OK()
     return csapi.commitChanges()
