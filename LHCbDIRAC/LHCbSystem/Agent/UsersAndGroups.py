@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.9 2008/07/11 18:05:57 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.10 2008/07/14 15:52:02 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.9 2008/07/11 18:05:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.10 2008/07/14 15:52:02 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -119,7 +119,7 @@ class UsersAndGroups(Agent):
         self.log.error('Can not not get User Roles', user)
         continue
 
-      users[user]['Groups'] = []
+      users[user]['Groups'] = ['lhcb']
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = newItem
         if not role in roles:
@@ -127,10 +127,6 @@ class UsersAndGroups(Agent):
           continue
         roles[role]['Users'].append(user)
         users[user]['Groups'].append( roles[role]['Group'] )
-
-    if not 'msapunov' in users:
-      users['msapunov'] = currentUsers['msapunov']
-      
 
     for user in oldUsers:
       if 'diracAdmin' in currentUsers[user]['Groups']:
