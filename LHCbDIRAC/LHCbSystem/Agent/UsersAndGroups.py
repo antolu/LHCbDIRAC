@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.11 2008/07/14 17:30:09 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.12 2008/07/14 18:14:38 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.11 2008/07/14 17:30:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.12 2008/07/14 18:14:38 rgracian Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -96,6 +96,9 @@ class UsersAndGroups(Agent):
         self.log.error('Can not not get User Alias',dn)
         continue
       # the output has the format nickname=<nickname>
+      if ret['Value'][0] <> 0:
+        self.log.fatal( 'Error executing voms-admin command:', str(ret['Value'][0]) + '\n'.join( ret['Value'][1:3] ) )
+        return S_ERROR( 'Error executing voms-admin command' )
       user = List.fromChar(ret['Value'][1],'=')[1]
       if user == 'None':
         self.log.error('Wrong nickname for:', dn )
