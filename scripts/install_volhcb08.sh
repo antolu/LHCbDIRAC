@@ -2,6 +2,9 @@
 ########################################################################
 # File :   install_volhcb08.sh
 ########################################################################
+echo "This machine has been installed with the DataManagementSystem and RequestManagementSystem checked out from CVS."
+echo "Are you sure you want to reinstall? Please ask A.C.S. if you are not..."
+exit
 #
 # User that is allow to execute the script
 DIRACUSER=dirac
@@ -193,6 +196,9 @@ $DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
 
 # The dataset manager service
 $DESTDIR/pro/scripts/install_service.sh DataManagement     DatasetManager
+
+# The lcg file catalog proxy
+$DESTDIR/pro/scripts/install_service.sh DataManagement     LcgFileCatalogProxy
 
 # The storage usage components
 $DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
