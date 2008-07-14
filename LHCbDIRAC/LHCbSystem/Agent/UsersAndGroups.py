@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.12 2008/07/14 18:14:38 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.13 2008/07/14 18:31:43 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.12 2008/07/14 18:14:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.13 2008/07/14 18:31:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -122,7 +122,7 @@ class UsersAndGroups(Agent):
         self.log.error('Can not not get User Roles', user)
         continue
 
-      users[user]['Groups'] = ['lhcb', 'private_pilot' ]
+      users[user]['Groups'] = ['lhcb', 'private_pilot', 'user']
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = newItem
         if not role in roles:
