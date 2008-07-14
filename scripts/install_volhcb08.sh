@@ -79,6 +79,7 @@ DIRAC
   {
     CertFile = $DESTDIR/etc/grid-security/hostcert.pem
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
+    UseServerCertificate = true
   }
 
 }
