@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.83 2008/07/11 15:03:46 joel Exp $
+# $Id: JobFinalization.py,v 1.84 2008/07/15 13:14:21 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.83 2008/07/11 15:03:46 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.84 2008/07/15 13:14:21 paterson Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -221,10 +221,10 @@ class JobFinalization(ModuleBase):
       # Send bookkeeping only if the data was uploaded successfully
 
       if resultUpload['OK']:
-#        resultBK = self.reportBookkeeping()
-#        if not resultBK['OK']:
-#          self.log.error(resultBK['Message'])
-#          bk_done = False
+        resultBK = self.reportBookkeeping()
+        if not resultBK['OK']:
+          self.log.error(resultBK['Message'])
+          bk_done = False
         resultBKOld = self.reportBookkeepingOld()
         if not resultBKOld['OK']:
           self.log.error(resultBKOld['Message'])
@@ -573,8 +573,9 @@ class JobFinalization(ModuleBase):
     se_groups = [ x.strip() for x in outputse.split(',')]
     out_ses = []
     other_ses = []
+    print 'Hi from upload output data'
     lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
-
+    print 'LFN is %s' %lfn
     # Process each SE or SE group in turn. Make the first pass without failover
     # enabled. If no destination succeeds, enable failover
     for failoverFlag in [False,True]:
