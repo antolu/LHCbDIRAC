@@ -1,16 +1,15 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.19 2008/07/01 13:25:46 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.19 2008/07/01 13:25:46 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.20 2008/07/15 13:12:03 paterson Exp $
+__RCSID__ = "$Id: Tools.py,v 1.20 2008/07/15 13:12:03 paterson Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 
 
-def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
+def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys-v4-lumi2'):
     """ Constructs the logical file name according to LHCb conventions.
     Returns the lfn without 'lfn:' prepended
     """
-
     try:
       jobid = int(JOB_ID)
       jobindex = string.zfill(jobid/10000,4)
@@ -23,6 +22,8 @@ def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
     else:
       if re.search('LFN:',fname):
         return fname.replace('LFN:','')
+      elif re.search('DC06',LFN_ROOT): #This should be reviewed, is a nasty fix.
+        return LFN_ROOT+'/'+prodConfig+'/'+prodstring+'/'+filetuple[1].upper()+'/'+jobindex+'/'+filetuple[0]
       else:
 #        path = makeProductionPath(self,mode,prodstring)
         return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
@@ -309,6 +310,8 @@ def getLFNRoot(lfn,mcYear=0):
                 if j > len(lfnroot):
                   CONTINUE = 0
                   break
+    elif mcYear=='DC06': #This should be reviewed.
+        LFN_ROOT = '/lhcb/production/DC06'
     else:
         LFN_ROOT = '/lhcb/MC/'+str(mcYear)
     return LFN_ROOT
