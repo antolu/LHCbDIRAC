@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.85 2008/07/15 13:15:32 paterson Exp $
+# $Id: JobFinalization.py,v 1.86 2008/07/16 13:14:07 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.85 2008/07/15 13:15:32 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.86 2008/07/16 13:14:07 paterson Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -60,10 +60,11 @@ class JobFinalization(ModuleBase):
 
     # A list of dictionaries specifying the output data
     self.listoutput = []
-
+    self.outputDataFileMask = ''
     self.poolXMLCatName = ''
     self.sourceData = ''
     self.workflow_commons = None
+
 
     #####################################################
     # Local variables
@@ -96,6 +97,11 @@ class JobFinalization(ModuleBase):
   def resolveInputVariables(self):
     if self.workflow_commons.has_key('sourceData'):
         self.sourceData = self.workflow_commons['sourceData']
+
+    if self.workflow_commons.has_key('outputDataFileMask'):
+        self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
+        if not type(self.outputDataFileMask)==type([]):
+          self.outputDataFileMask = self.outputDataFileMask.split(';')
 
     if self.step_commons.has_key('applicationName'):
        self.applicationName = self.step_commons['applicationName']
@@ -221,10 +227,10 @@ class JobFinalization(ModuleBase):
       # Send bookkeeping only if the data was uploaded successfully
 
       if resultUpload['OK']:
-        resultBK = self.reportBookkeeping()
-        if not resultBK['OK']:
-          self.log.error(resultBK['Message'])
-          bk_done = False
+#        resultBK = self.reportBookkeeping()
+#        if not resultBK['OK']:
+#          self.log.error(resultBK['Message'])
+#          bk_done = False
         resultBKOld = self.reportBookkeepingOld()
         if not resultBKOld['OK']:
           self.log.error(resultBKOld['Message'])
@@ -533,7 +539,17 @@ class JobFinalization(ModuleBase):
         outputSE = item['outputDataSE']
       if item.has_key('outputDataType'):
         outputType = item['outputDataType']
-      outputs.append((outputName,outputSE,outputType))
+
+      if self.outputDataFileMask:
+        if outputType in self.outputDataFileMask:
+          self.log.info('File name: %s will be uploaded to outputSE %s' %(outputName,outputSE))
+          outputs.append((outputName,outputSE,outputType))
+        else:
+          self.log.info('File name %s will be ignored since output data file mask is %s' %(outputName,string.join(self.outputDataFileMask,', ')))
+      else:
+        self.log.info('No output data file mask is specified, all outputs will be uploaded')
+        outputs.append((outputName,outputSE,outputType))
+
     outputs_done = []
     all_done = False
     count = 0
