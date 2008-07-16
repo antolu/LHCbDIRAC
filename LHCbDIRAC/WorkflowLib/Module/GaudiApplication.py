@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.58 2008/07/04 14:04:29 joel Exp $
+# $Id: GaudiApplication.py,v 1.59 2008/07/16 10:18:07 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.58 2008/07/04 14:04:29 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.59 2008/07/16 10:18:07 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -46,6 +46,7 @@ class GaudiApplication(ModuleBase):
     self.optfile_extra = ''
     self.optionsLinePrev = ''
     self.optionsLine = ''
+    self.extraPackages = ''
 
   #############################################################################
   def resolveInputDataOpts(self,options):
@@ -244,6 +245,11 @@ class GaudiApplication(ModuleBase):
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
 
+    if self.step_commons.has_key('generatorName'):
+      self.generator_name = self.step_commons['generatorName']
+
+    if self.step_commons.has_key('extraPackages'):
+      self.extraPackages = self.step_commons['extraPackages']
 
   #############################################################################
   def execute(self):
@@ -361,15 +367,40 @@ class GaudiApplication(ModuleBase):
       script.write('cp '+ld_base_path+'/lib/requirements '+cmtStr+'/cmttemp/v1/cmt\n')
       script.write('export CMTPATH='+cmtStr+'\n')
       cmtFlag = '--use="cmttemp v1" '
+
+    if not self.extraPackages == '':
+      cmtFlag = ''
+      if type(self.extraPackages) != type([]):
+        self.extraPackages = self.extraPackages.split(';')
+
+      self.log.info('Found extra package versions: %s' %(string.join(self.extraPackages,', ')))
+      for package in self.extraPackages:
+        cmtFlag += '--use="%s %s" ' %(package.split('.')[0],package.split('.')[1])
+
+    externals = ''
+    site = gConfig.getValue('/LocalSite/Site','')
+    if not site:
+      externals = 'gfal CASTOR dcache_client lfc oracle' #should never happen, site is always defined
+      self.log.info('/LocalSite/Site undefined so setting externals to: %s' %externals)
+    else:
+      if gConfig.getOption('/Operations/ExternalsPolicy/%s' %site)['OK']:
+        externals = gConfig.getValue('/Operations/ExternalsPolicy/%s' %site,[])
+        externals = string.join(externals,' ')
+        self.log.info('Found externals policy for %s = %s' %(site,externals))
+      else:
+        externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
+        externals = string.join(externals,' ')
+        self.log.info('Using default externals policy for %s = %s' %(site,externals))
+
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
       script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
