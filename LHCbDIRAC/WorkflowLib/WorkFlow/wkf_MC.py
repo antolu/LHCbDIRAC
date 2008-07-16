@@ -6,19 +6,21 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 # Variable which need to be set
-wkf_name = "MC_realtest100"
+wkf_name = "MC_DC06_Final"
 #eventTypeSignal = "13144001"
-eventTypeSignal = "11114001"
-numberEventSignal = 100
-numberEventMB = 100
+eventTypeSignal = "13144003"
+numberEventSignal = 500
+numberEventMB = 500
 numberEvent = -1
-Gauss_version = "v25r13"
+Gauss_version = "v26r0"
 Gauss_optfile = "v200601.opts"
 Boole_version = "v12r10"
 Boole_optfile = "v200601.opts"
 Brunel_version = "v31r12"
 Brunel_optfile = "v200601.opts"
+extraPackages = 'DecFiles.v14r5' #semicolon separated list if necessary
 system_os = "slc4_ia32_gcc34"
+outputDataFileMask = "dst" #semicolon separated list if necessary
 
 opt_gauss = "#include \"$DECFILESROOT/options/@{eventType}.opts\""
 opt_gauss = opt_gauss + ";GaussTape.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
@@ -97,6 +99,7 @@ step1.addParameter(Parameter("numberOfEventsInput","","string","","",True,False,
 step1.addParameter(Parameter("numberOfEventsOutput","","string","","",True,False,"number of events as input"))
 step1.addParameter(Parameter("inputDataType","","string","","",True, False, "Input Data Type"))
 step1.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+step1.addParameter(Parameter("extraPackages","","string","","",True,False,"Extra software packages to setup"))
 
 step3 = StepDefinition('Job_Finalization')
 step3.addModule(module6)
@@ -124,6 +127,7 @@ stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
+stepInstance1.setValue("extraPackages",extraPackages)
 list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance1.setValue("listoutput",list1_out)
 
@@ -143,6 +147,7 @@ stepInstance11.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance11.setValue("optionsFile", Gauss_optfile)
 stepInstance11.setValue("optionsLine",opt_gauss)
 stepInstance11.setValue("optionsLinePrev","None")
+stepInstance11.setValue("extraPackages",extraPackages)
 list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance11.setValue("listoutput",list11_out)
 
@@ -162,6 +167,7 @@ stepInstance12.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance12.setValue("optionsFile", Gauss_optfile)
 stepInstance12.setValue("optionsLine",opt_gauss)
 stepInstance12.setValue("optionsLinePrev","None")
+stepInstance12.setValue("extraPackages",extraPackages)
 list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
 stepInstance12.setValue("listoutput",list12_out)
 
@@ -184,6 +190,7 @@ stepInstance2.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance2.setValue("optionsFile", Boole_optfile)
 stepInstance2.setValue("optionsLine",opt_boole)
 stepInstance2.setValue("optionsLinePrev","None")
+stepInstance2.setValue("extraPackages",extraPackages)
 list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
@@ -202,7 +209,8 @@ stepInstance3.setValue("optionsLine",opt_brunel)
 stepInstance3.setValue("optionsLinePrev","None")
 stepInstance3.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 stepInstance3.setLink("inputData",stepInstance2.getName(),"outputData")
-list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
+stepInstance3.setValue("extraPackages",extraPackages)
+list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1-disk"}]
 stepInstance3.setValue("listoutput",list3_out)
 
 workflow1.addStep(step3)
@@ -211,8 +219,8 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r12.tar.gz","JDL","","",True, False, "Job TYpe"))
-workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r15.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("JobType","production","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
@@ -227,13 +235,13 @@ workflow1.addParameter(Parameter("SystemConfig",system_os,"JDLReqt","","",True, 
 workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00004044","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("JOB_ID","00000101","string","","",True, False, "Temporary fix"))
+workflow1.addParameter(Parameter("JOB_ID","00000104","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("emailAddress","lhcb-datacrash@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("configVersion","DC06","string","","",True, False, "Configuration Version"))
-
+workflow1.addParameter(Parameter("outputDataFileMask",outputDataFileMask,"string","","",True, False, "Only upload files with the extensions in this parameter"))
 if os.path.exists('wkf_MC.xml'):
   print 'Removed existing workflow'
   os.remove('wkf_MC.xml')
