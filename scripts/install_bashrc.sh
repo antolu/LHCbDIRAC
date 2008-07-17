@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.3 2008/07/17 13:43:53 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.4 2008/07/17 13:58:06 rgracian Exp $
 # File :   install_bashrc.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -36,10 +36,12 @@ DIRACBIN=$DESTDIR/pro/$ARCH/bin
 DIRACSCRIPTS=$DESTDIR/pro/scripts
 DIRACLIB=$DESTDIR/pro/$ARCH/lib
 
-sDIRACBIN=`echo $DESTDIR/pro/$ARCH/bin | sed 's/\//\\\\\//g'`
-sDIRACSCRIPTS=`echo $DESTDIR/pro/scripts | sed 's/\//\\\\\//g'`
-PATH=\`echo \$PATH | sed "s/${sDIRACBIN}://g"\`
-PATH=\`echo \$PATH | sed "s/${sDIRACSCRIPTS}://g"\`
+sDIRACBIN="`echo $DESTDIR/pro/$ARCH/bin | sed 's/\//\\\\\//g'`"
+sDIRACSCRIPTS="`echo $DESTDIR/pro/scripts | sed 's/\//\\\\\//g'`"
+PATH=\`echo \$PATH | sed "s/\$sDIRACBIN://g"\`
+echo \$PATH
+PATH=\`echo \$PATH | sed "s/\$sDIRACSCRIPTS://g"\`
+echo \$PATH
 
 ( echo \$PATH | grep -q \$DIRACBIN ) || export PATH=\$DIRACBIN:\$PATH
 ( echo \$PATH | grep -q \$DIRACSCRIPTS ) || export PATH=\$DIRACSCRIPTS:\$PATH
@@ -53,6 +55,7 @@ PATH=\`echo \$PATH | sed "s/${sDIRACSCRIPTS}://g"\`
 ( echo \$PATH | grep -q /usr/local/bin ) || export PATH=\$PATH:/usr/local/bin
 
 EOF
+
 
 source bashrc
 echo PATH=$PATH
