@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.9 2008/07/03 13:08:40 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.10 2008/07/17 14:08:02 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -25,18 +25,18 @@ elif [ ! -d $AgentDir ] ; then
 fi
 mkdir -p $AgentDir/log
 #
-cat >> $AgentDir/log/config << EOF
+cat > $AgentDir/log/config << EOF
 s10000000
 n100
 EOF
-cat >> $AgentDir/log/run << EOF
+cat > $AgentDir/log/run << EOF
 #!/bin/bash
 #
 source $DESTDIR/bashrc
 #
 exec svlogd .
 EOF
-cat >> $AgentDir/run << EOF
+cat > $AgentDir/run << EOF
 #!/bin/bash
 #
 source $DESTDIR/bashrc
