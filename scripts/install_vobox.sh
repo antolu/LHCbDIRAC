@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.4 2008/05/16 18:25:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.5 2008/07/17 13:17:38 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -12,11 +12,12 @@ fi
 SiteName=$1
 #
 DESTDIR=/opt/vobox/lhcb/dirac
-VERSION=CCRC08-v1
-ARCH=slc4_amd64_gcc34
-ARCH=Linux_i686_glibc-2.3.4
-PYTHON=24
-DIRACDIRS="startup runit data requestDB"
+DIRACSETUP=LHCb-Production
+DIRACVERSION=HEAD
+EXTVERSION=v0r3p0
+DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACPYTHON=24
+DIRACDIRS="startup runit data work requestDB"
 # Can not be done !!!!
 # export FROMCVS="yes"
 #
@@ -42,10 +43,12 @@ if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
   cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
 DIRAC
 {
-  Setup = LHCb-Production
+  Setup = $DIRACSETUP
   Configuration
   {
     Servers =  dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers+=  dips://volhcb03.cern.ch:9135/Configuration/Server
+    Servers+=  dips://lhcbprod.pic.es:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -87,7 +90,7 @@ done
 
 # give an unique name to dest directory
 # VERDIR
-VERDIR=$DESTDIR/versions/${VERSION}-`date +"%s"`
+VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
 for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
@@ -97,18 +100,25 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $VERSION -p $ARCH -i $PYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
+#
+# Create pro and old links
 old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
-
+#
+# Create bin link
+ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
-## Compile all python files .py -> .pyc
+## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
-$DESTDIR/pro/$ARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
-$DESTDIR/pro/$ARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
+$DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
+$DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
+
+chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
+$DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
 
 #
 # fix user .bashrc
@@ -117,14 +127,11 @@ $DESTDIR/pro/$ARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 #   echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
-
-chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
-$DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $VERSION $ARCH python$PYTHON || exit 1
-
+chmod +x $DESTDIR/pro/scripts/install_service.sh
 # Hack until permission are fix on cvs for install_service.sh
-bash $DESTDIR/pro/scripts/install_service.sh Configuration Server
-bash $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement TransferAgent
+$DESTDIR/pro/scripts/install_service.sh Configuration Server
+$DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement Zuzia
 
 # startup script
 STARTDIR=`dirname $DESTDIR`/start
