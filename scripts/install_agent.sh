@@ -1,13 +1,13 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.10 2008/07/17 14:08:02 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.11 2008/07/17 14:26:52 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
 #
 DESTDIR=`dirname $0`
 DESTDIR=`cd $DESTDIR/../..; pwd`
-
+[ -z "$LOGLEVEL" ] && LOGLEVEL=INFO
 #
 source $DESTDIR/bashrc
 System=$1

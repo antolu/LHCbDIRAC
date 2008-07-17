@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.5 2008/07/17 13:17:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.6 2008/07/17 14:22:43 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -18,6 +18,8 @@ EXTVERSION=v0r3p0
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work requestDB"
+
+export LOGLEVEL=INFO
 # Can not be done !!!!
 # export FROMCVS="yes"
 #
