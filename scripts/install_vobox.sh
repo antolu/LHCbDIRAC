@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.6 2008/07/17 14:22:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.7 2008/07/17 14:58:36 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -133,7 +133,7 @@ chmod +x $DESTDIR/pro/scripts/install_service.sh
 # Hack until permission are fix on cvs for install_service.sh
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
 $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
-$DESTDIR/pro/scripts/install_agent.sh   RequestManagement Zuzia
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement ZuziaAgent
 
 # startup script
 STARTDIR=`dirname $DESTDIR`/start
