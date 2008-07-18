@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.1 2008/07/16 21:07:08 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.2 2008/07/18 15:22:15 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.1 2008/07/16 21:07:08 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.2 2008/07/18 15:22:15 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -96,7 +96,7 @@ class SystemConfiguration(ModuleBaseSAM):
       return self.finalize('id -nu',result['Message'],'error')
 
     self.log.info('Current account: %s' %result['Value'])
-    if re.search('\d',result['Value']):
+    if not re.search('\d',result['Value']):
       self.log.info('%s uses static accounts' %self.site)
     else:
       self.log.info('%s uses pool accounts' %self.site)

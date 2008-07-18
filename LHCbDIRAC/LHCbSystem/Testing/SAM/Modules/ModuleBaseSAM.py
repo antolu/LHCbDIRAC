@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.1 2008/07/16 21:07:37 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.2 2008/07/18 15:22:39 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.1 2008/07/16 21:07:37 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.2 2008/07/18 15:22:39 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -162,7 +162,7 @@ class ModuleBaseSAM(object):
     fopen = open(self.logFile,'a')
     fopen.write(self.getMessageString('%s\n%s' %(message,result)))
     statusCode = self.samStatus[samResult]
-    fopen.write('Exiting with SAM status %s=%s' %(samResult,statusCode))
+    fopen.write(self.getMessageString('Exiting with SAM status %s=%s' %(samResult,statusCode),True))
     fopen.close()
     if not self.workflow_commons.has_key('SAMResults'):
       self.workflow_commons['SAMResults'] = {}
