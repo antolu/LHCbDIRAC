@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.2 2008/07/18 13:41:54 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.3 2008/07/20 17:01:11 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.2 2008/07/18 13:41:54 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.3 2008/07/20 17:01:11 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -324,9 +324,13 @@ class LHCbSAMJob(Job):
     result = gConfig.getOptionsDict(self.appTestPath)
     if not result['OK']:
       raise TypeError,'Section %s is not defined or could not be retrieved' %self.appTestPath
+    testList = gConfig.getValue('/Operations/SAM/ApplicationTestList',[])
+    if not testList:
+      raise TypeError,'Could not get list of tests from /Operations/SAM/ApplicationTestList'
 
-    self.log.verbose('Will generate tests for: %s' %(result['Value']))
-    for testName,appNameVersion in result['Value'].items():
+    self.log.verbose('Will generate tests for: %s' %(string.join(testList,', ')))
+    for testName in testList:
+      appNameVersion = result['Value'][testName]
       self.gaudiStepCount +=1
       stepNumber = self.gaudiStepCount
       stepDefn = '%sStep%s' %('SAM',stepNumber)
