@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.2 2008/07/21 09:15:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.3 2008/07/21 18:37:32 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.2 2008/07/21 09:15:32 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.3 2008/07/21 18:37:32 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -46,6 +46,7 @@ class SAMFinalization(ModuleBaseSAM):
     self.diracLogo = gConfig.getValue('/Operations/SAM/LogoURL','https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png')
     self.samVO = gConfig.getValue('/Operations/SAM/VO','lhcb')
     self.samLogFiles = gConfig.getValue('/Operations/SAM/LogFiles',[])
+    self.logURL = 'http://lhcb-logs.cern.ch/storage/'
     self.logSE = 'LogSE'
     self.jobID = None
     if os.environ.has_key('JOBID'):
@@ -187,11 +188,12 @@ status: %s
 detaileddata: EOT
 <br>
 <IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
+<br><br><br><br><br><br><br>
 %s Test Summary: %s <br>
-<br>
+<br><br><br>
 Link to log files: <br>
 <UL><br>
-<LI><A HREF='http://lhcb-logs.cern.ch/storage%s/log'>Log SE output</A><br>
+<LI><A HREF='%s%s'>Log SE output</A><br>
 </UL><br>
 
 A summary of the SAM status codes is:
@@ -204,10 +206,10 @@ A summary of the SAM status codes is:
 <LI>critical=60<br>
 <LI>maintenance=100<br>
 </UL><br>
-The LHCb SAM log files CE directory is <A HREF='http://lhcb-logs.cern.ch/storage/lhcb/test/sam/'>here</A>.<br>
+The LHCb SAM log files CE directory is <A HREF='%s%s/test/sam'>here</A>.<br>
 <br>
 EOT
-""" %(samNode,testName,self.jobID,counter,testStatus,samNode,self.diracLogo,testSummary,lfnPath)
+""" %(samNode,testName,self.jobID,counter,testStatus,samNode,self.diracLogo,testSummary,self.logURL,lfnPath,self.logURL,self.samVO)
 
       files = {}
       files[defFile]='.def'
@@ -248,7 +250,7 @@ EOT
     """Returns LFN path string according to SAM convention.
     """
     date = time.strftime('%Y-%m-%d')
-    return '/%s/test/sam/%s/%s/%s' %(self.samVO,samNode,date,self.jobID)
+    return '/%s/test/sam/%s/%s/%s/log' %(self.samVO,samNode,date,self.jobID)
 
   #############################################################################
   def __uploadSAMLogs(self,samNode):
@@ -262,7 +264,7 @@ EOT
         if os.path.isfile(check):
           logFiles.append(check)
 
-    logDir = '%s/%s' %(os.getcwd(),'samlogs')
+    logDir = '%s/%s' %(os.getcwd(),'log')
     self.log.verbose('Creating log directory %s' %logDir)
     try:
       os.mkdir(logDir)
@@ -283,7 +285,7 @@ EOT
     self.log.verbose(result)
     if not result['OK']:
       return result
-    logReference = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % (lfnPath)
+    logReference = '<a href="%s%s">Log file directory</a>' % (self.logURL,lfnPath)
     self.log.verbose('Adding Log URL job parameter: %s' %logReference)
     self.setJobParameter('Log URL',logReference)
     return S_OK()
