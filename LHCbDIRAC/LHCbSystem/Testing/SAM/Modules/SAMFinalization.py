@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.1 2008/07/20 21:57:10 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.2 2008/07/21 09:15:32 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.1 2008/07/20 21:57:10 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.2 2008/07/21 09:15:32 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -279,10 +279,12 @@ EOT
 
     lfnPath = self.__getLFNPathString(samNode)
     rm = ReplicaManager()
-    result = self.rm.putDirectory(lfnPath,logDir,self.logSE)
+    result = rm.putDirectory(lfnPath,logDir,self.logSE)
+    self.log.verbose(result)
     if not result['OK']:
       return result
     logReference = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % (lfnPath)
+    self.log.verbose('Adding Log URL job parameter: %s' %logReference)
     self.setJobParameter('Log URL',logReference)
     return S_OK()
 
