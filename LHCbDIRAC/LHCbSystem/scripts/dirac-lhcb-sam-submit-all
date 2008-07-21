@@ -1,0 +1,37 @@
+  #!/usr/bin/env python
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-all,v 1.1 2008/07/21 18:35:54 paterson Exp $
+# File :   dirac-lhcb-sam-submit-all
+# Author : Stuart Paterson
+########################################################################
+__RCSID__   = "$Id: dirac-lhcb-sam-submit-all,v 1.1 2008/07/21 18:35:54 paterson Exp $"
+__VERSION__ = "$Revision: 1.1 $"
+import sys
+from DIRACEnvironment import DIRAC
+from DIRAC.Core.Base import Script
+from DIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
+
+Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
+
+def usage():
+  print 'Usage: %s' %(Script.scriptName)
+  print 'SAM test jobs will be submitted to all CEs defined in the DIRAC CS'
+  DIRAC.exit(2)
+
+if args:
+  usage()
+
+exitCode = 0
+diracSAM = DiracSAM()
+result = diracSAM._promptUser('Are you sure you want to submit SAM jobs for all CEs known to DIRAC?')
+if not result['OK']:
+  print 'Action cancelled.'
+  DIRAC.exit(2)
+
+result = diracSAM.submitAllSAMJobs()
+if not result['OK']:
+  print 'ERROR %s' %result['Message']
+  exitCode = 2
+
+DIRAC.exit(exitCode)
