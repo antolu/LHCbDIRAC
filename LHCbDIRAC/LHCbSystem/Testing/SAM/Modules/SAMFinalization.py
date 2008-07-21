@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.3 2008/07/21 18:37:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.4 2008/07/21 21:29:15 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.3 2008/07/21 18:37:32 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.4 2008/07/21 21:29:15 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -160,7 +160,10 @@ class SAMFinalization(ModuleBaseSAM):
     """
     self.log.info('Preparing SAM publishing files')
     if not self.jobID:
-      self.log.verbose('No jobID defined, setting to 12345 for test purposes')
+      self.log.verbose('No jobID defined, setting to 12345 and samNode to test.node for test purposes')
+      self.jobID = 12345
+      samNode = 'test.node'
+
     lfnPath = self.__getLFNPathString(samNode)
     testSummary = ''
     for testName,testStatus in samResults.items():
@@ -189,11 +192,14 @@ detaileddata: EOT
 <br>
 <IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
 <br><br><br><br><br><br><br>
-%s Test Summary: %s <br>
+<br>DIRAC Site %s ( CE = %s )<br>
+<br>Test Summary %s:<br>
+<br> %s <br>
 <br><br><br>
 Link to log files: <br>
 <UL><br>
 <LI><A HREF='%s%s'>Log SE output</A><br>
+<LI><A HREF='%s%s/test/sam/%s'>Previous tests for %s</A><br>
 </UL><br>
 
 A summary of the SAM status codes is:
@@ -209,7 +215,7 @@ A summary of the SAM status codes is:
 The LHCb SAM log files CE directory is <A HREF='%s%s/test/sam'>here</A>.<br>
 <br>
 EOT
-""" %(samNode,testName,self.jobID,counter,testStatus,samNode,self.diracLogo,testSummary,self.logURL,lfnPath,self.logURL,self.samVO)
+""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO)
 
       files = {}
       files[defFile]='.def'
