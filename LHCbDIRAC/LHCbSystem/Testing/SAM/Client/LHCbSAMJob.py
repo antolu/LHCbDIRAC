@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.3 2008/07/20 17:01:11 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.4 2008/07/21 18:25:34 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -20,7 +20,7 @@
     from DIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
 
     j = LHCbSAMJob()
-    j.setDestination('LCG.PIC.es')
+    j.setDestinationCE('LCG.PIC.es')
     j.setSharedAreaLock(forceDeletion=False,enableFlag=False)
     j.checkSystemConfiguration(enableFlag=False)
     j.checkSiteQueues(enableFlag=False)
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.3 2008/07/20 17:01:11 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.4 2008/07/21 18:25:34 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -43,7 +43,7 @@ from DIRAC.Core.Workflow.Step                       import *
 from DIRAC.Core.Workflow.Workflow                   import *
 from DIRAC.Core.Workflow.WorkflowReader             import *
 from DIRAC.Interfaces.API.Job                       import Job
-from DIRAC.Core.Utilities.File                      import makeGuid
+from DIRAC.Core.Utilities.SiteCEMapping             import getSiteForCE
 from DIRAC                                          import gConfig
 
 COMPONENT_NAME='DIRAC/LHCbSystem/Testing/SAM/Client/LHCbSAMJob'
@@ -63,6 +63,7 @@ class LHCbSAMJob(Job):
     self.samPlatform = gConfig.getValue('/Operations/SAM/Platform','gLite')
     self.samOutputFiles = gConfig.getValue('/Operations/SAM/OutputSandbox',['*.log'])
     self.appTestPath = '/Operations/SAM/TestApplications'
+    self.gridReqs = 'other.GlueCEPolicyMaxCPUTime > ( <CPU> * 500 / other.GlueHostBenchmarkSI00 / 60 ) && ( other.GlueCEInfoHostName == "<CE>");'
     self.__setDefaults()
 
   #############################################################################
@@ -73,6 +74,7 @@ class LHCbSAMJob(Job):
     self.setCPUTime(self.samDefaultCPUTime)
     self.setPlatform(self.samPlatform)
     self.setOutputSandbox(self.samOutputFiles)
+    self.setType('sam')
     self._addJDLParameter('PilotType','private')
 
   #############################################################################
@@ -431,5 +433,22 @@ class LHCbSAMJob(Job):
     step.addParameter(Parameter("publishResultsFlag","","bool","","",False, False, "Flag to trigger publishing of results to SAM DB"))
     step.addParameter(Parameter("uploadLogsFlag","","bool","","",False, False, "Flag to trigger upload of SAM logs to LogSE"))
     return step
+
+  #############################################################################
+  def setDestinationCE(self,ceName):
+    """ Sets the Grid requirements for the pilot job to be directed to a particular SE.
+        At the same time this adds a requirement for the DIRAC site name for matchmaking.
+    """
+    diracSite = getSiteForCE(ceName)
+    if not diracSite['OK']:
+      raise TypeError,diracSite['Message']
+    if not diracSite['Value']:
+      raise TypeError,'No DIRAC site name found for CE %s' %(ceName)
+
+    diracSite = diracSite['Value']
+    self.setDestination(diracSite)
+    gridReqs = self.gridReqs.replace('<CPU>',str(self.samDefaultCPUTime)).replace('<CE>',str(ceName))
+    self.log.verbose(gridReqs)
+    self._addJDLParameter('GridRequirements',gridReqs)
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
