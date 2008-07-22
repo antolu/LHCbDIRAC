@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.4 2008/07/21 21:29:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.5 2008/07/22 11:30:16 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.4 2008/07/21 21:29:15 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.5 2008/07/22 11:30:16 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -47,6 +47,9 @@ class SAMFinalization(ModuleBaseSAM):
     self.samVO = gConfig.getValue('/Operations/SAM/VO','lhcb')
     self.samLogFiles = gConfig.getValue('/Operations/SAM/LogFiles',[])
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
+    self.siteRoot = gConfig.getValue('LocalSite/Root','')
+    self.samPublishClient = '%s/DIRAC/LHCbSystem/Testing/SAM/Distribution/sam.tar.gz' %(self.siteRoot)
+    self.samPublishScript = 'sam/bin/same-publish-tuples'
     self.logSE = 'LogSE'
     self.jobID = None
     if os.environ.has_key('JOBID'):
@@ -164,6 +167,14 @@ class SAMFinalization(ModuleBaseSAM):
       self.jobID = 12345
       samNode = 'test.node'
 
+    #Get SAM client
+    self.log.info('Publish Flag: %s, Enable Flag: %s' %(self.publishResultsFlag,self.enable))
+    if self.publishResultsFlag and self.enable:
+      result = self.__getSAMClient()
+      if not result['OK']:
+        self.setJobParameter(testName,'Failed to locate SAM client with message %s' %(result['Message']))
+        return result
+
     lfnPath = self.__getLFNPathString(samNode)
     testSummary = ''
     for testName,testStatus in samResults.items():
@@ -233,7 +244,7 @@ EOT
       if self.publishResultsFlag and self.enable:
         self.log.info('Attempting to publish results for %s to SAM DB' %(testName))
         samHome = '%s/sam' %(os.getcwd())
-        samPublish = '%s/sam/bin/same-publish-tuples' %(os.getcwd())
+        samPublish = '%s/%s' %(os.getcwd(),self.samPublishScript)
         os.environ['SAME_HOME'] = samHome
         sys.path.insert(0,samHome)
         if not os.path.exists(samPublish):
@@ -295,5 +306,17 @@ EOT
     self.log.verbose('Adding Log URL job parameter: %s' %logReference)
     self.setJobParameter('Log URL',logReference)
     return S_OK()
+
+  #############################################################################
+  def __getSAMClient(self):
+    """Locates the shipped SAM client tarball and unpacks it in the job working
+       directory if the publishing and enable flags are set to True.
+    """
+    if not os.path.exists(self.samPublishClient):
+      return S_ERROR('%s does not exist' %(self.samPublishClient))
+    shutil.copy(self.samPublishClient,os.getcwd())
+    #Untar not using tarfile so this is added to the sam logs
+    #SAM -> LCG -> Linux
+    return self.runCommand('tar -zxvf %s' %(os.path.basename(self.samPublishClient)))
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
