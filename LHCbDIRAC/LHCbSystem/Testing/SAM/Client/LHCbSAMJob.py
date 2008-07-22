@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.4 2008/07/21 18:25:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.5 2008/07/22 11:07:48 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.4 2008/07/21 18:25:34 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.5 2008/07/22 11:07:48 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -60,10 +60,9 @@ class LHCbSAMJob(Job):
     self.currentStepPrefix = ''
     self.samLogLevel = gConfig.getValue('/Operations/SAM/LogLevel','verbose')
     self.samDefaultCPUTime = gConfig.getValue('/Operations/SAM/CPUTime',50000)
-    self.samPlatform = gConfig.getValue('/Operations/SAM/Platform','gLite')
+    self.samPlatform = gConfig.getValue('/Operations/SAM/Platform','gLite-SAM')
     self.samOutputFiles = gConfig.getValue('/Operations/SAM/OutputSandbox',['*.log'])
     self.appTestPath = '/Operations/SAM/TestApplications'
-    self.gridReqs = 'other.GlueCEPolicyMaxCPUTime > ( <CPU> * 500 / other.GlueHostBenchmarkSI00 / 60 ) && ( other.GlueCEInfoHostName == "<CE>");'
     self.__setDefaults()
 
   #############################################################################
@@ -447,8 +446,7 @@ class LHCbSAMJob(Job):
 
     diracSite = diracSite['Value']
     self.setDestination(diracSite)
-    gridReqs = self.gridReqs.replace('<CPU>',str(self.samDefaultCPUTime)).replace('<CE>',str(ceName))
-    self.log.verbose(gridReqs)
-    self._addJDLParameter('GridRequirements',gridReqs)
+    self._addJDLParameter('GridRequiredCEs',ceName)
+    self.log.verbose('Set GridRequiredCEs to %s and destination to %s' %(ceName,diracSite))
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
