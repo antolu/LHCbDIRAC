@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.5 2008/07/22 11:07:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.6 2008/07/22 14:00:26 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.5 2008/07/22 11:07:48 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.6 2008/07/22 14:00:26 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -447,6 +447,7 @@ class LHCbSAMJob(Job):
     diracSite = diracSite['Value']
     self.setDestination(diracSite)
     self._addJDLParameter('GridRequiredCEs',ceName)
+    self.setName('SAM-%s' %(ceName))
     self.log.verbose('Set GridRequiredCEs to %s and destination to %s' %(ceName,diracSite))
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
