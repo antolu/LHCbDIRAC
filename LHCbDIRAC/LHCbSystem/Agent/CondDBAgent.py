@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.5 2008/07/07 22:15:28 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.6 2008/07/22 15:22:46 acasajus Exp $
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,14 +18,14 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.5 2008/07/07 22:15:28 paterson Exp $"
+__RCSID__ = "$Id: CondDBAgent.py,v 1.6 2008/07/22 15:22:46 acasajus Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Time                             import fromString,toEpoch
 from DIRAC.Core.Utilities.SiteSEMapping                    import getSitesForSE
-from DIRAC.Core.Utilities.GridCredentials                  import setupProxy,restoreProxy,setDIRACGroup,getProxyTimeLeft,setupProxyFile
+from DIRAC.Core.Utilities.Shifter                          import setupShifterProxyInEnv
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
 
 import os, re, time, string
@@ -50,7 +50,9 @@ class CondDBAgent(Optimizer):
     self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
     self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/CondDBAgent/shiftProdProxy')
     self.tagWaitTime = gConfig.getValue(self.section+'/MaxTagWaitTime',12) #hours
-
+    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
+    if not self.proxyLocation:
+      self.proxyLocation = False
     try:
       from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
       self.fileCatalog = LcgFileCatalogCombinedClient()
@@ -70,11 +72,10 @@ class CondDBAgent(Optimizer):
       self.log.warn('Production shift manager DN not defined (/Operations/Production/ShiftManager)')
       return S_OK('Production shift manager DN is not defined')
 
-    self.log.verbose('Checking proxy for %s' %(prodDN))
-    result = self.__getProdProxy(prodDN)
-    if not result['OK']:
-      self.log.warn('Could not set up proxy for shift manager %s %s' %(prodDN))
-      return S_OK('Production shift manager proxy could not be set up')
+    result = setupShifterProxyInEnv( "ProductionManager", self.proxyLocation )
+    if not result[ 'OK' ]:
+      self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
+      return result
 
     self.log.verbose("Checking JDL for job: %s" %(job))
     retVal = self.jobDB.getJobJDL(job)
@@ -270,48 +271,5 @@ class CondDBAgent(Optimizer):
       return S_ERROR('Requested CondDB tags not available at the following sites:\n%s' %(string.join(tagMissingSites,', ')))
 
     return S_OK()
-
-  #############################################################################
-  def __getProdProxy(self,prodDN):
-    """This method sets up the proxy for immediate use if not available, and checks the existing
-       proxy if this is available.
-    """
-    prodGroup = gConfig.getValue(self.section+'/ProductionGroup','lhcb_prod')
-    self.log.info("Determining the length of proxy for DN %s" %prodDN)
-    obtainProxy = False
-    if not os.path.exists(self.proxyLocation):
-      self.log.info("No proxy found")
-      obtainProxy = True
-    else:
-      res = setupProxyFile(self.proxyLocation)
-      if not res["OK"]:
-        self.log.error("Could not determine the time left for proxy", res['Message'])
-        res = S_OK(0) # force update of proxy
-
-      proxyValidity = int(res['Value'])
-      self.log.info('%s proxy found to be valid for %s seconds' %(prodDN,proxyValidity))
-      if proxyValidity <= self.minProxyValidity:
-        obtainProxy = True
-
-    if obtainProxy:
-      self.log.info('Attempting to renew %s proxy' %prodDN)
-      wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
-      res = wmsAdmin.getProxy(prodDN,prodGroup,self.proxyLength)
-      if not res['OK']:
-        self.log.error('Could not retrieve proxy from WMS Administrator', res['Message'])
-        return S_OK()
-      proxyStr = res['Value']
-      if not os.path.exists(os.path.dirname(self.proxyLocation)):
-        os.makedirs(os.path.dirname(self.proxyLocation))
-      res = setupProxy(proxyStr,self.proxyLocation)
-      if not res['OK']:
-        self.log.error('Could not create environment for proxy.', res['Message'])
-        return S_OK()
-
-      setDIRACGroup(prodGroup)
-      self.log.info('Successfully renewed %s proxy' %prodDN)
-
-    #os.system('voms-proxy-info -all')
-    return S_OK('Active proxy available')
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
