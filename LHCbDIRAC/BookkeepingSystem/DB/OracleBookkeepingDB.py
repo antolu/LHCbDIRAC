@@ -1,17 +1,18 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.10 2008/07/04 18:30:05 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.11 2008/07/22 14:14:50 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.10 2008/07/04 18:30:05 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.11 2008/07/22 14:14:50 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
+import datetime
 class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
@@ -23,7 +24,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     #self.password_ = gConfig.getValue("password", "Ginevra2008")
     #self.tns_ = gConfig.getValue("tns", "int12r")
    
-    self.db_ = OracleDB("LHCB_BOOKKEEPING_INT", "Ginevra2008", "int12r")
+    self.db_ = OracleDB("LHCB_BOOKKEEPING_INT_W", "Ginevra2008", "int12r")
   
   #############################################################################
   def getAvailableConfigurations(self):
@@ -40,28 +41,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypes', [configName, configVersion])
   
   #############################################################################
-  def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypeAndNumberAll', [configName, configVersion, eventTypeId])
-  
-  #############################################################################
-  def getFullEventTypesAndNumbers1(self, configName, configVersion, fileType, eventTypeId):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getFullEventTypeAndNumber1', [configName, configVersion, fileType,  eventTypeId])
-  
-  #############################################################################
-  def getFiles(self, configName, configVersion, fileType, eventTypeId, production):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getFiles', [configName, configVersion, fileType, eventTypeId, production])
-  
-  #############################################################################
   def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getSpecificFiles', [configName, configVersion, programName, programVersion, fileType, eventTypeId, production])
-  
-  #############################################################################
-  def getAviableFileTypesAndEventTypesAndNumberOfEvents(self,fileType, eventTypeId):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypeAndNumber', [fileType, eventTypeId])
-  
-  #############################################################################
-  def getAviableEventTypesAndNumberOfEvents(self, configName, configVersion, eventTypeId):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypeAndNumberAll', [configName, configVersion, eventTypeId])
   
   #############################################################################
   def getProcessingPass(self):
@@ -186,11 +167,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertJob(self, job):
     
+    gLogger.info("Insert job into database!")
     config = job.getJobConfiguration()
     
     jobsimcondtitions = job.getSimulationCond()
     simulations = {}
-    if jobsimcondtitions!=None:
+    if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
       simcondtitions=jobsimcondtitions.getParams()
       simcond = self.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions['MagneticField'], simcondtitions['DetectorCond'], simcondtitions['Luminosity'])
       if not simcond['OK']:
@@ -205,59 +187,70 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
         simulations[simcond['Value']]=None
     else:
-      for file in job.getJobInputFiles():
-        simcond = self.getSimCondIDWhenFileName(file.getFileName())
-        if not simcond['OK']:
-          gLogger.error("Simulation conditions problem", simcond["Message"])
-          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-        
-        if len(simulations) == 0:
-          value = simcond['Value']
-          simulations[value]=None
-        else:
+      inputfiles = job.getJobInputFiles()
+      if len(inputfiles) == 0:
+        gLogger.error("The ProgramName is not Gauss and it not have input file!!!")
+        return S_ERROR("The ProgramName is not Gauss and it not have input file!!!")
+      else:
+        for file in inputfiles:
+          simcond = self.getSimCondIDWhenFileName(file.getFileName())
+          if not simcond['OK']:
+            gLogger.error("Simulation conditions problem", simcond["Message"])
+            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+          if len(simulations) == 0:
             value = simcond['Value']
-            if not simulations.__contains__(value):
-              gLogger.error("Different simmulation conditions!!!")
-              return S_ERROR("Different simmulation conditions!!!")
+            simulations[value]=None
+          else:
+              value = simcond['Value']
+              if not simulations.__contains__(value):
+                gLogger.error("Different simmulation conditions!!!")
+                return S_ERROR("Different simmulation conditions!!!")
 
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
                  'DAQPeriodId':simulations.items()[0][0], \
-                 'DiracJobId':"NULL", \
-                 'DiracVersion':"NULL", \
-                 'EventInputStat':"NULL", \
-                 'ExecTime':"NULL", \
-                 'FirstEventNumber':"NULL", \
-                 'Generator':"NULL", \
-                 'GeometryVersion':"NULL", \
-                 'GridJobId':"NULL", \
-                 'JobEnd':"NULL", \
-                 'JobStart':"NULL", \
-                 'LocalJobId':"NULL", \
-                 'Location':"NULL", \
-                 'LuminosityEnd':"NULL", \
-                 'LuminosityStart':"NULL", \
-                 'Name':"NULL", \
-                 'NumberOfEvents':"NULL", \
-                 'Production':"NULL", \
-                 'ProgramName':"NULL", \
-                 'ProgramVersion':"NULL", \
-                 'StatisticsRequested':"NULL", \
-                 'WNCPUPower':"NULL", \
-                 'WNCPUTime':"NULL", \
-                 'WNCache':"NULL", \
-                 'WNMemory':"NULL", \
-                 'WNModel':"NULL", \
-                 'WorkerNode':"NULL"}
+                 'DiracJobId':None, \
+                 'DiracVersion':None, \
+                 'EventInputStat':None, \
+                 'ExecTime':None, \
+                 'FirstEventNumber':None, \
+                 'Generator':None, \
+                 'GeometryVersion':None, \
+                 'GridJobId':None, \
+                 'JobEnd':None, \
+                 'JobStart':None, \
+                 'LocalJobId':None, \
+                 'Location':None, \
+                 'LuminosityEnd':None, \
+                 'LuminosityStart':None, \
+                 'Name':None, \
+                 'NumberOfEvents':None, \
+                 'Production':None, \
+                 'ProgramName':None, \
+                 'ProgramVersion':None, \
+                 'StatisticsRequested':None, \
+                 'WNCPUPower':None, \
+                 'WNCPUTime':None, \
+                 'WNCache':None, \
+                 'WNMemory':None, \
+                 'WNModel':None, \
+                 'WorkerNode':None}
     
     
     for param in job.getJobParams():
       if not attrList.__contains__(param.getName()):
         gLogger.error("insert job error: "," the job table not contains "+param.getName()+" this attributte!!")
         return S_ERROR(" The job table not contains "+param.getName()+" this attributte!!")
+      
       attrList[str(param.getName())] = param.getValue()
       
-    result = self.db_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',[ attrList['ConfigName'], attrList['ConfigVersion'], \
+    if attrList['JobStart']==None:
+      date = config.getDate().split('-')
+      time = config.getTime().split(':')
+      dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+      attrList['JobStart']=dateAndTime
+      
+    result = self.db_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',LongType,[ attrList['ConfigName'], attrList['ConfigVersion'], \
                   attrList['DAQPeriodId'], \
                   attrList['DiracJobId'], \
                   attrList['DiracVersion'], \
@@ -286,8 +279,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['WNModel'], \
                   attrList['WorkerNode'] ])           
     return result
-    
-    
+  
+  #############################################################################
+  def __checkProgramNameIsGaussTMP(self, job):
+    '''
+    temporary method I will remove it
+    '''
+    gLogger.info('__checkProgramNameIsGaussTMP','Job is Gauss Job?')
+    for param in job.getJobParams():
+      if param.getName()=='ProgramName':
+        value=param.getValue()
+        if value.upper()=='GAUSS':
+          return True
+        else:
+          return False
+  
   #############################################################################
   def insertInputFile(self, jobID, FileId):
     result = self.db_.executeStoredProcedure('BKK_ORACLE.insertInputFilesRow',[jobID, FileId])
@@ -295,24 +301,24 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertOutputFile(self, job, file):
   
-      attrList = {  'Adler32':"NULL", \
-                    'CreationDate':"NULL", \
-                    'EventStat':"NULL", \
-                    'EventTypeId':"NULL", \
-                    'FileName':"NULL",  \
-                    'FileTypeId':outputFile.getTypeID(), \
-                    'GotReplica':"NULL", \
-                    'Guid':"NULL",  \
+      attrList = {  'Adler32':None, \
+                    'CreationDate':None, \
+                    'EventStat':None, \
+                    'EventTypeId':None, \
+                    'FileName':file.getFileName(),  \
+                    'FileTypeId':file.getTypeID(), \
+                    'GotReplica':None, \
+                    'Guid':None,  \
                     'JobId':job.getJobId(), \
-                    'MD5Sum':"NULL", \
-                    'FileSize':"NULL" }
+                    'MD5Sum':None, \
+                    'FileSize':None }
       
       
-      fileParams = outputFile.getFileParams()
+      fileParams = file.getFileParams()
       for param in fileParams:
-        attrList[str(param.getName())] = param.getValue()
+        attrList[str(param.getParamName())] = param.getParamValue()
       
-      result = self.db_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',[  attrList['Adler32'], \
+      result = self.db_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',LongType, [  attrList['Adler32'], \
                     attrList['CreationDate'], \
                     attrList['EventStat'], \
                     attrList['EventTypeId'], \
@@ -331,7 +337,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
   
   #############################################################################
-  def deleteJob(self, job):
+  def deleteJob(self, jobID):
     result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteJob',[jobID], False)
     return result
  
@@ -386,4 +392,35 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR('The file '+File+'not exist in the BKK database!!!')
 
+  #############################################################################
+  def insertEventTypes(self, evid, desc, primary):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.insertEventTypes',[desc, evid, primary], False)
+  
+  #############################################################################
+  #
+  #          MONITORING
+  #############################################################################
+  def getJobsNb(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getJobsNb', [prodid])
+  
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getNumberOfEvents', [prodid])
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getSizeOfFiles', [prodid])
+  
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getNbOfFiles', [prodid])
+  
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getProductionInformation', [prodid])
+  
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_MONITORING.getJobsbySites', [prodid])
+    
   

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.57 2008/07/04 18:30:05 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.58 2008/07/22 14:14:51 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.57 2008/07/04 18:30:05 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.58 2008/07/22 14:14:51 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -199,4 +199,78 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_removeReplica(self, File, Name, Locations, SE):
     return dataMGMT_.removeReplica(File, Name, Locations, SE)
   
+  #############################################################################
+  types_addEventType = [LongType, StringType, StringType]
+  def export_addEventType(self,evid, desc, primary):
+    return dataMGMT_.insertEventTypes(evid, desc, primary)
+  
+  '''
+  Monitoring
+  '''
+  
+  #############################################################################
+  types_getProductionInformations = [LongType]
+  def export_getProductionInformations(self, prodid):
+    
+    nbjobs = None
+    nbOfFiles = None
+    sizeofFiles = None
+    nbOfEvents = None
+    prodinfo = None
+    
+    value = dataMGMT_.getJobsNb(prodid)
+    if value['OK']==True:
+      nbjobs = value['Value']
+      
+    value = dataMGMT_.getNbOfFiles(prodid)
+    if value['OK']==True:
+      nbOfFiles =value['Value']
+      
+    value = dataMGMT_.getSizeOfFiles(prodid)
+    if value['OK']==True:
+      sizeofFiles =  value['Value']
+                 
+    value = dataMGMT_.getNumberOfEvents(prodid)
+    if value['OK']==True:
+      nbOfEvents = value['Value']
+      
+    value = dataMGMT_.getProductionInformation(prodid)
+    if value['OK']==True:
+      prodinfo = value['Value']
+  
+    result = {"Production Info":prodinfo,"Number Of jobs":nbjobs,"Number Of files":nbOfFiles,"Number of Events":nbOfEvents}
+    return result
+  
+  #############################################################################
+  types_getJobsNb = [LongType]
+  def export_getJobsNb(self, prodid):
+    return dataMGMT_.getJobsNb(prodid)
+  #############################################################################
+  types_getNumberOfEvents = [LongType]
+  def export_getNumberOfEvents(self, prodid):
+    return dataMGMT_.getNumberOfEvents(prodid)
+    
+  #############################################################################
+  types_getSizeOfFiles = [LongType]
+  def export_getSizeOfFiles(self, prodid):
+    return dataMGMT_.getSizeOfFiles(prodid)
+  
+  #############################################################################
+  types_getNbOfFiles = [LongType]
+  def export_getNbOfFiles(self, prodid):
+    return dataMGMT_.getNbOfFiles(prodid)
+  
+  #############################################################################
+  types_getProductionInformation = [LongType]
+  def export_getProductionInformation(self, prodid):
+    return dataMGMT_.getProductionInformation(prodid)
+  
+  #############################################################################
+  types_getNbOfJobsBySites = [LongType]
+  def export_getNbOfJobsBySites(self, prodid):
+    return dataMGMT_.getNbOfJobsBySites(prodid)
+  
+  '''
+  End Monitoring
+  '''
     #-----------------------------------END Event Types------------------------------------------------------------------

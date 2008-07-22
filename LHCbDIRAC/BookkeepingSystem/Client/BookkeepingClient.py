@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.37 2008/07/04 18:30:02 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.38 2008/07/22 14:14:49 zmathe Exp $
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.37 2008/07/04 18:30:02 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.38 2008/07/22 14:14:49 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -183,5 +183,55 @@ class BookkeepingClient:
   def removeReplica(self, File, Name, Locations, SE):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.removeReplica(File, Name, Locations, SE)
+  
+  #############################################################################
+  def addEventType(self, evid, desc, primary):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.addEventType(long(evid), desc, primary)
+  
+  
+  '''
+  Monitoring
+  '''
+  
+  #############################################################################
+  def getProductionInformations(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getProductionInformations(long(prodid))
+  
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getNbOfJobsBySites(long(prodid))
+    
+  #############################################################################
+  def getJobsNb(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getJobsNb(long(prodid))
+  
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getNumberOfEvents(long(prodid))
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getSizeOfFiles(long(prodid))
+  
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getNbOfFiles(long(prodid))
+  
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getProductionInformation(long(prodid))
+    
+  
+  '''
+  END Monitoring
+  '''
 
   #----------------------------------- END Event Types------------------------------------------------------------------

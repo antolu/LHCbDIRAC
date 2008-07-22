@@ -1,20 +1,22 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.3 2008/07/02 14:18:56 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.4 2008/07/22 14:14:49 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-from xml.dom.ext.reader                                             import Sax
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient      import FileSystemClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader              import JobReader
-from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader          import ReplicaReader
-from DIRAC.ConfigurationSystem.Client.Config                        import gConfig
-from DIRAC                                                          import gLogger, S_OK, S_ERROR
+from xml.dom.ext.reader                                                        import Sax
+from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                 import FileSystemClient
+from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                         import JobReader
+from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                     import ReplicaReader
+from DIRAC.ConfigurationSystem.Client.Config                                   import gConfig
+from DIRAC                                                                     import gLogger, S_OK, S_ERROR
+from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.3 2008/07/02 14:18:56 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.4 2008/07/22 14:14:49 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -29,6 +31,7 @@ class XMLFilesReaderManagerForTransfer:
     self.errorsTmp_ = self.baseDir_ + "ErrorsTmp/"
     self.jobs_ = []
     self.replicas_ = []
+    self.bkkClient_ = BookkeepingClient()
     
   
   #############################################################################
@@ -56,7 +59,7 @@ class XMLFilesReaderManagerForTransfer:
   
   #############################################################################
   def _listTodoDirectory(self):
-    return self.fileClient_.list(self.baseDir_+"Test")
+    return self.fileClient_.list(self.baseDir_+"ToDo")
   #############################################################################
   def fileaction(self, fn):
     """
@@ -148,13 +151,115 @@ class XMLFilesReaderManagerForTransfer:
           job = self.jobReader_.readJob(doc, fullpath)
           self.jobs_ += [job]
           
-          
   #############################################################################   
   def destroy(self):
     del self.jobs_[:]      
     del self.replicas_[:]
   
   #############################################################################   
+  
+  def directTransfer(self):
     
-        
+    gLogger.info("Bookkeeping direct file transfer!!!")
+    jobList = self._listTodoDirectory()
+    
+    for fileName in jobList:
+      type,doc,fullpath = self.readFile(fileName) 
+      if type == 'Replicas':
+        replica = self.replicaReader_.readReplica(doc, fullpath)
+        result = self.__translateReplicaAttributes(replica)
+        if result['OK']:
+          name = replica.getFileName().split("/")[5]
+          gLogger.info("Send"+str(name)+" to volhcb07!!")
+          self.bkkClient_.filetransfer(name, replica.writeToXML())
+      else: 
+        if type == 'Job':
+          job = self.jobReader_.readJob(doc, fullpath)
+          result = self.__translateJobAttributes(job)
+          if result['OK']:
+            name = job.getFileName().split("/")[5]
+            gLogger.info(job.writeToXML())
+            gLogger.info("Send "+str(name)+" to volhcb07!!")
+            self.bkkClient_.filetransfer(name, job.writeToXML())
+    
+          
+  #############################################################################
+  def __translateJobAttributes(self, job):
+
+    attrlist = { 'DIRAC_JOBID':'DiracJobId', \
+                 'DIRAC_VERSION':'DiracVersion', \
+                 'EXECTIME':'ExecTime', \
+                 'XMLDDDBVERSION':'GeometryVersion', \
+                 'EDG_WL_JOBID':'GridJobId', \
+                 'JOBDATE':'JobStart', \
+                 'LOCALJOBID':'LocalJobId', \
+                 'LOCATION':'Location', \
+                 'NAME':'Name', \
+                 'NUMBEROFEVENTS':'NumberOfEvents', \
+                 'PRODUCTION':'Production', \
+                 'PROGRAMNAME':'ProgramName', \
+                 'PROGRAMVERSION':'ProgramVersion', \
+                 'STATISTICSREQUESTED':'StatisticsRequested', \
+                 'CPU':'WNCPUPower', \
+                 'CPUTIME':'WNCPUTime', \
+                 'CACHE':'WNCache', \
+                 'MEMORY':'WNMemory', \
+                 'MODEL':'WNModel', \
+                 'HOST':'WorkerNode' }
+
+ 
+
+    fileattr = {'EVENTSTAT':'EventStat', 
+                'EVENTTYPE':'EventTypeId' , 
+                'LOGNAME':'FileName', 
+                'GOT_REPLICA':'GotReplica',
+                'GUID':'Guid',
+                'MD5SUM':'MD5Sum', 
+                'SIZE':'FileSize' }
+
+    
+    configs = job.getJobConfiguration()
+    if configs.getConfigName() == 'MC' and configs.getConfigVersion() == "DC06":
+      configs.setConfigName('MC')
+      configs.setConfigVersion('2008')
+            
+      removeParams = []
+      for param in  job.getJobParams():
+        name = param.getName()
+        if attrlist.has_key(name.upper()):
+          param.setName(attrlist[name.upper()])
+        else:
+          removeParams += [param]
+       
+      for param in removeParams:    
+         job.removeJobParam(param)
+      
+      
+      for file in job.getJobOutputFiles():
+        removeFileParams = []
+        params = file.getFileParams()
+        for param in params:
+          name = param.getParamName()
+          if fileattr.has_key(name.upper()):
+            param.setParamName(fileattr[name.upper()])
+          else:
+            removeFileParams += [param]
+        for param in removeFileParams:
+          file.removeFileParam(param)
+      
+      sim = SimulationConditions()
+      sim.addParam("BeamCond", "Collisions")
+      sim.addParam("BeamEnergy" ,"7 TeV")
+      sim.addParam("Generator", "Pythia 6.325.2")
+      sim.addParam("MagneticField", "-100%")
+      sim.addParam("DetectorCond", "Normal")
+      sim.addParam("Luminosity", "Fixed 2 10**32")
+      job.addSimulationCond(sim)  
+    else:
+      return S_ERROR()
+    return S_OK()
+  
+  #############################################################################
+  def __translateReplicaAttributes(self, replica):
+    return S_OK()
     

@@ -1,22 +1,20 @@
 ########################################################################
-# $Id: BookkeepingManagerOldHandler.py,v 1.1 2008/06/27 14:44:48 zmathe Exp $
+# $Id: BookkeepingManagerOldHandler.py,v 1.2 2008/07/22 14:14:51 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerOldHandler.py,v 1.1 2008/06/27 14:44:48 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerOldHandler.py,v 1.2 2008/07/22 14:14:51 zmathe Exp $"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Service.copyFiles                  import copyXMLfile
 from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
-from DIRAC.BookkeepingSystem.DB.OracleBookkeepingDB             import OracleBookkeepingDB
+
 import time,sys,os
 
-global dataMGMT_
-dataMGMT_ = OracleBookkeepingDB()
   
 def initializeBookkeepingManagerOldHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start

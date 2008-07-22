@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.4 2008/07/04 18:30:05 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.5 2008/07/22 14:14:50 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.4 2008/07/04 18:30:05 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.5 2008/07/22 14:14:50 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -213,5 +213,38 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     return self.getManager().insertSimConditions(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
-
   
+  #############################################################################
+  def insertEventTypes(self, evtid, desc, primary):
+    return self.getManager().insertEventTypes(evtid,desc,primary)
+  
+  #############################################################################
+  '''
+    MONITORING
+  '''
+  def getJobsNb(self, prodid):
+    return self.getManager().getJobsNb(prodid)
+  
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    return self.getManager().getNumberOfEvents(prodid)
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    return self.getManager().getSizeOfFiles(prodid)
+  
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    return self.getManager().getNbOfFiles(prodid)
+  
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    return self.getManager().getProductionInformation(prodid)
+  
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    return self.getManager().getNbOfJobsBySites(prodid)
+  
+  '''
+  END MONITORING
+  '''

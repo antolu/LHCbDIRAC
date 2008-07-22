@@ -1,19 +1,18 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.26 2008/07/04 14:05:07 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.27 2008/07/22 14:14:50 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.26 2008/07/04 14:05:07 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.27 2008/07/22 14:14:50 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
 from DIRAC.Core.Base.Agent                                                        import Agent
 from DIRAC                                                                        import S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
-from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                      import Replica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam                 import ReplicaParam
@@ -37,7 +36,6 @@ class BookkeepingManagerAgent(Agent):
     result = Agent.initialize(self)
     
     self.xmlMgmt_ = XMLFilesReaderManager()
-    self.errorMgmt_ = ErrorReporterMgmt()
     self.dataManager_ =  BookkeepingDatabaseClient()
     self.fileClient_ = FileSystemClient()
     self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
@@ -54,13 +52,13 @@ class BookkeepingManagerAgent(Agent):
     jobs = self.xmlMgmt_.getJobs()
     
     for job in jobs:
-      result = self.__processJob(job)
+      result = self.xmlMgmt_.processJob(job, True)
       if result['OK']:
         self.__moveFileToDoneDirectory(job.getFileName())
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
-      result = self.__processReplicas(replica) 
+      result = self.xmlMgmt_.processReplicas(replica, True) 
       if result['OK']:
         self.__moveFileToDoneDirectory(replica.getFileName())
     
@@ -68,182 +66,10 @@ class BookkeepingManagerAgent(Agent):
     
     return S_OK()
 
-  #############################################################################
-  def __processJob(self, job):
-    """
-    
-    """
-    deleteFileName = job.getFileName()
-    
-    self.log.info("Processing: " + deleteFileName)
-
-    ##checking
-    inputFiles = job.getJobInputFiles()
-    for file in inputFiles:
-      name = file.getFileName()
-      result = self.dataManager_.checkfile(name)
-      
-      if not result['OK']:
-        self.errorMgmt_.reportError (10, "The file " + str(file) + " is missing.", deleteFileName) 
-        return S_ERROR()
-      else:
-        fileID = int(result['Value'][0][0])
-        file.setFileID(fileID)
-
-    outputFiles = job.getJobOutputFiles()
-    for file in outputFiles:
-      name = file.getFileName()
-      result = self.dataManager_.checkfile(name)
-      if result['OK']:
-        self.errorMgmt_.reportError (11, "The file " + str(name) + " already exists.", deleteFileName)
-        return S_ERROR()
-      
-      typeName = file.getFileType()
-      typeVersion = file.getFileVersion()
-      result = self.dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
-      if not result['OK']:
-        self.errorMgmt_.reportError (12, "The type " + str(typeName) + ", version " + str(typeVersion) +"is missing.\n", deleteFileName)
-        return S_ERROR()
-      else:
-        typeID = int(result['Value'][0][0])
-        file.setTypeID(typeID)
-      
-      params = file.getFileParams()
-      for param in params:
-        paramName = param.getParamName()
-        if paramName == "EventStat":
-          eventNb = int(param.getParamValue())
-          if eventNb <= 0:
-            self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName)
-            return S_ERROR()
-        if paramName == "EventType":
-          value = int(param.getParamValue())
-          result = self.dataManager_.checkEventType(value)
-          if not result['OK']:
-            self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName)
-            return S_ERROR()
-      ################
-      
-    config = job.getJobConfiguration()
-    params = job.getJobParams()
-            
-    result = self.dataManager_.insertJob(job)    
-    if not result['OK']:
-      self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName)
-      return S_ERROR()
-    else:
-      jobID = int(result['Value'])
-      job.setJobId(jobID) 
-    inputFiles = job.getJobInputFiles()
-    for file in inputFiles:
-      result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
-      if not result['OK']:
-        self.dataManager_.deleteJob(job.getJobId())
-        self.errorMgmt_.reportError (16, "Unable to add " + str(file.getFileName()), deleteFileName )
-        return S_ERROR()
-      
-  
-    outputFiles = job.getJobOutputFiles()
-    for file in outputFiles:
-      result = self.dataManager_.insertOutputFile(job, file)
-      if not result['OK']:
-        self.dataManager_.deleteJob(job.getJobId())
-        self.errorMgmt_.reportError (17, "Unable to create file " + str(file.getFileName()) + "!", deleteFileName)
-        return S_ERROR()
-      else:
-        id = int(result['Value'])
-        file.setFileID(id)
-         
-      qualities = file.getQualities()
-      for quality in qualities:
-        group = quality.getGroup()
-        flag = quality.getFlag()
-        result = self.dataManager_.insertQuality(file.getFileID(), group, flag)           
-        if not result['OK']:
-          self.errorMgmt_.reportError(19, "Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n", deleteFileName)                                 
-          return S_ERROR()
-        else:
-          qualityID = int(result['Value'])
-          quality.setQualityID(qualityID)
-          
-        params = quality.getParams()
-        for param in params:
-           name = param.getName()
-           value = param.getValue()
-           result = self.dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
-           if not result['OK']:
-             self.errorMgmt_.reportError (20, "Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n", deleteFileName)
-             return S_ERROR()
-                   
-      replicas = file.getReplicas()
-      for replica in replicas:
-        params = replica.getaprams()
-        for param in params: # just one param exist in params list, because JobReader only one param add to Replica
-          name = param.getName()
-          location = param.getLocation()
-        result = self.dataManager_.updateReplicaRow(file.getFileID(),'Yes')  #, name, location)           
-        if not result['OK']:
-          self.errorMgmt_.reportError(21, "Unable to create Replica " + str(name) +".\n", deleteFileName)
-          return S_ERROR()
-    
-    self.log.info("End Processing: " + deleteFileName)
-    
-    return S_OK()
-  
-  #############################################################################
-  def __processReplicas(self, replica):
-    """
-    
-    """
-    file = replica.getFileName()
-    self.log.info("Processing replicas: " + str(file))
-    fileID = -1
-    
-    params = replica.getaprams()
-    delete = True
-    replicaFileName = ""
-    for param in params:
-      name = param.getName()
-      replicaFileName = param.getFile()
-      location = param.getLocation()
-      delete = param.getAction() == "Delete"
-       
-      result = self.dataManager_.checkfile(replicaFileName)
-      if not result['OK']:
-        message = "No replica can be ";
-        if (delete):
-           message += "removed" 
-        else:
-           message += "added"
-        message += " to file " + str(file) + " for " + str(location) + ".\n"
-        self.errorMgmt_.reportError(23, message, file)
-        return S_ERROR()
-      else:
-        fileID = int(result['Value'])
-          
-      if (delete):    
-        result = self.lcgFileCatalogClient_.getReplicas(replicaFileName)
-        list = result['Value']
-        replicaList = list['Successful']
-        if len(replicaList) == 0:
-          result = self.dataManager_.updateReplicaRow(fileID,"no")
-          if not result['OK']:
-            gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
-            self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
-            return S_ERROR()
-      else:
-        result = self.dataManager_.updateReplicaRow(fileID, "yes")
-        if not result['OK']:
-          self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file)
-          return S_ERROR()
-   
-  
-    self.log.info("End Processing replicas!")
-    
-    return S_OK()
   
   #############################################################################
   def __moveFileToDoneDirectory(self, fileName):
+    self.log.info("Moving file to Done directory: ",fileName)
     name = os.path.split(fileName)[1]
     self.fileClient_.rename(fileName, self.done_+name)
         

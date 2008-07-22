@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.12 2008/07/03 10:17:18 zmathe Exp $
+# $Id: BookkeepingXmlFileTransferAgent.py,v 1.13 2008/07/22 14:14:50 zmathe Exp $
 ########################################################################
 
 """ 
@@ -12,10 +12,10 @@ AGENT_NAME = 'Bookkeeping/BookkeepingXmlFileTransferAgent'
 from DIRAC.Core.Base.Agent                                                     import Agent
 from DIRAC                                                                     import S_OK, S_ERROR, gConfig
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
+#from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
+#from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.12 2008/07/03 10:17:18 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.13 2008/07/22 14:14:50 zmathe Exp $"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 
@@ -31,7 +31,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
     """
     result           = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime', 60)
-    self.bkkClient_ = BookkeepingClient()
+    #self.bkkClient_ = BookkeepingClient()
     self.xmlMgmt_ = XMLFilesReaderManagerForTransfer()
     return result
 
@@ -39,6 +39,7 @@ class BookkeepingXmlFileTransferAgent(Agent):
   def execute(self):
     self.log.info("Bookkeeping XML File transfer Agent running!!!")
     
+    '''
     self.xmlMgmt_.initialize()
     jobs = self.xmlMgmt_.getJobs()
     
@@ -59,88 +60,10 @@ class BookkeepingXmlFileTransferAgent(Agent):
         self.bkkClient_.filetransfer(name, replica.writeToXML())
     
     self.xmlMgmt_.destroy()
-    
-   
+    '''
+    self.xmlMgmt_.directTransfer()
     self.log.info("Bookkeeping XML File transfer Agent finished!!!")
         
     return S_OK()
   
-  #############################################################################
-  def __translateJobAttributes(self, job):
-
-    attrlist = { 'DIRAC_JOBID':'DiracJobId', \
-                 'DIRAC_VERSION':'DiracVersion', \
-                 'EXECTIME':'ExecTime', \
-                 'XMLDDDBVERSION':'GeometryVersion', \
-                 'EDG_WL_JOBID':'GridJobId', \
-                 'JOBDATE':'JobStart', \
-                 'LOCALJOBID':'LocalJobId', \
-                 'LOCATION':'Location', \
-                 'NAME':'Name', \
-                 'NUMBEROFEVENTS':'NumberOfEvents', \
-                 'PRODUCTION':'Production', \
-                 'PROGRAMNAME':'ProgramName', \
-                 'PROGRAMVERSION':'ProgramVersion', \
-                 'STATISTICSREQUESTED':'StatisticsRequested', \
-                 'CPU':'WNCPUPower', \
-                 'CPUTIME':'WNCPUTime', \
-                 'CACHE':'WNCache', \
-                 'MEMORY':'WNMemory', \
-                 'MODEL':'WNModel', \
-                 'HOST':'WorkerNode' }
-
- 
-
-    fileattr = {'EVENTSTAT':'EventStat', 
-                'EVENTTYPE':'EventTypeId' , 
-                'LOGNAME':'FileName', 
-                'GOT_REPLICA':'GotReplica',
-                'GUID':'Guid',
-                'MD5SUM':'MD5Sum', 
-                'SIZE':'FileSize' }
-
-    
-    configs = job.getJobConfiguration()
-    if configs.getConfigName() == 'DC06':
-      configs.setConfigName('MC')
-      configs.setConfigVersion('2008')
-      
-      removeParams = []
-      for param in  job.getJobParams():
-        name = param.getName()
-        if attrlist.has_key(name.upper()):
-          param.setName(attrlist[name.upper()])
-        else:
-          removeParams += [param]
-       
-      for param in removeParams:    
-         job.removeJobParam(param)
-      
-      
-      for file in job.getJobOutputFiles():
-        removeFileParams = []
-        params = file.getFileParams()
-        for param in params:
-          name = param.getParamName()
-          if fileattr.has_key(name.upper()):
-            param.setParamName(fileattr[name.upper()])
-          else:
-            removeFileParams += [param]
-        for param in removeFileParams:
-          file.removeFileParam(param)
-      
-      sim = SimulationConditions()
-      sim.addParam("BeamCond", "Collisions")
-      sim.addParam("BeamEnergy" ,"7 TeV")
-      sim.addParam("Generator", "Pythia 6.325.2")
-      sim.addParam("MagneticField", "-100%")
-      sim.addParam("DetectorCond", "Normal")
-      sim.addParam("Luminosity", "Fixed 2 10**32")
-      job.addSimulationCond(sim)  
-    else:
-      return S_ERROR()
-    return S_OK()
   
-  #############################################################################
-  def __translateReplicaAttributes(self, replica):
-    return S_OK()
