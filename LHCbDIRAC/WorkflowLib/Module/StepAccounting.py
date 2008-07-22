@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: StepAccounting.py,v 1.2 2008/05/10 19:42:32 atsareg Exp $
+# $Id: StepAccounting.py,v 1.3 2008/07/22 14:41:22 acasajus Exp $
 ########################################################################
 
 """ StepAccounting module performs several common operations at the end of
@@ -7,13 +7,13 @@
     data
 """
 
-__RCSID__ = "$Id: StepAccounting.py,v 1.2 2008/05/10 19:42:32 atsareg Exp $"
+__RCSID__ = "$Id: StepAccounting.py,v 1.3 2008/07/22 14:41:22 acasajus Exp $"
 
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
-from DIRAC.Core.Utilities.GridCredentials import *
+from DIRAC.Core.Security.Misc import getProxyInfo
 
 import os, time
 
@@ -39,12 +39,19 @@ class StepAccounting(object):
     parameters = []
     sname = 'Step_%d' % int(self.STEP_NUMBER)
     setup = gConfig.getValue('/DIRAC/Setup','')
-    userDN = getCurrentDN()
-    if userDN:
-      user = getNicknameForDN(userDN)
-    else:
-      user = ''
-    group = getDIRACGroup()
+    result = getProxyInfo()
+    if result['OK']:
+      proxyDict = result[ 'Value' ]
+      userDN = proxyDict[ 'identity' ]
+      if 'group' in proxyDict:
+        group = proxyDict[ 'group' ]
+      else:
+        group = 'unknown'
+      if 'username' in proxyDict:
+        user = proxyDict[ 'username' ]
+      else:
+        user = 'unknown'
+
     site = gConfig.getValue('/LocalSite/Site','localSite')
     status = 'Done'
     if self.step_commons.has_key('Status'):
