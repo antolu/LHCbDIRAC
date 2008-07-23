@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.2 2008/06/23 15:20:41 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.3 2008/07/23 16:52:41 paterson Exp $
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.2 2008/06/23 15:20:41 paterson Exp $"
+__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.3 2008/07/23 16:52:41 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
@@ -47,7 +47,7 @@ class SoftwareManagementAgent(Agent):
   def execute(self):
     """The SoftwareManagementAgent execution method.
     """
-    softwareModule = gConfig.getValue(self.section+'/ModulePath','LHCbSystem.Utilities.CombinedSoftwareInstallation')
+    softwareModule = gConfig.getValue(self.section+'/ModulePath','DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation')
     self.log.info('LHCb Software Distribution module: %s' %(softwareModule))
     try:
       exec 'from %s import InstallApplication,RemoveApplication' %softwareModule
