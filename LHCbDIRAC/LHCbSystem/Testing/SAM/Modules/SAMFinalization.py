@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.5 2008/07/22 11:30:16 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.6 2008/07/23 16:56:43 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.5 2008/07/22 11:30:16 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.6 2008/07/23 16:56:43 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -147,7 +147,7 @@ class SAMFinalization(ModuleBaseSAM):
     if os.path.exists('%s/%s' %(sharedArea,self.lockFile)):
       self.log.info('Found SAM lock on the shared area at %s' %sharedArea)
       cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
-      result = self.runCommand('Current lock file %s present for longer than %s seconds' %(self.lockFile,self.lockValidity),cmd)
+      result = self.runCommand('Current lock file will be removed',cmd)
       self.setJobParameter('SAMLock','Removed on %s' %(time.asctime()))
       if not result['OK']:
         self.log.warn(result['Message'])
