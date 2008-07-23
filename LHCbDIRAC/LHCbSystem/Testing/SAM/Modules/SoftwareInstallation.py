@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.1 2008/07/18 15:29:18 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.2 2008/07/23 17:54:02 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.1 2008/07/18 15:29:18 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.2 2008/07/23 17:54:02 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -123,18 +123,21 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     #Install the software now
     if self.enable:
-      agentName = self.softwareAgentName
-      localCfg = LocalConfiguration()
-      localCfg.addDefaultEntry('/LocalSite/SharedArea',sharedArea)
-      localCfg.setConfigurationForAgent(agentName)
-      resultDict = localCfg.loadUserData()
-      if not resultDict[ 'OK' ]:
-        return self.finalize("Errors when loading configuration", resultDict['Message'],'critical')
+      try:
+        agentName = self.softwareAgentName
+        localCfg = LocalConfiguration()
+        localCfg.addDefaultEntry('/LocalSite/SharedArea',sharedArea)
+        localCfg.setConfigurationForAgent(agentName)
+        resultDict = localCfg.loadUserData()
+        if not resultDict[ 'OK' ]:
+          return self.finalize("Errors when loading configuration", resultDict['Message'],'critical')
 
-      agent = createAgent(agentName)
-      result = agent.run_once()
-      if not result['OK']:
-        return self.finalize('Software not successfully installed',result['Message'],'critical')
+        agent = createAgent(agentName)
+        result = agent.run_once()
+        if not result['OK']:
+          return self.finalize('Software not successfully installed',result['Message'],'critical')
+      except Exception,x:
+        return self.finalize('Could not start %s with exception' %self.softwareAgentName,str(x),'critical')
     else:
       self.log.info('Software installation is disabled via enable flag')
 
