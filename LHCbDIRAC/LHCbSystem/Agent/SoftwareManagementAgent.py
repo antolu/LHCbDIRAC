@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.3 2008/07/23 16:52:41 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.4 2008/07/23 18:27:21 paterson Exp $
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.3 2008/07/23 16:52:41 paterson Exp $"
+__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.4 2008/07/23 18:27:21 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
@@ -55,21 +55,14 @@ class SoftwareManagementAgent(Agent):
       return self.__finish('Could not import InstallApplication,RemoveApplication from %s' %(softwareModule))
 
     activeSoftware = gConfig.getValue(self.section+'/ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
-    installList = gConfig.getValue(activeSoftware)
+    installList = gConfig.getValue(activeSoftware,[])
     if not installList:
       return self.__finish('The active list of software could not be retreived from %s or is null' %(activeSoftware))
 
-    if type(installList)==type(" "):
-      installList = [installList]
-
     deprecatedSoftware = gConfig.getValue(self.section+'/DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
-    removeList = gConfig.getValue(deprecatedSoftware)
-    if not removeList:
-      removeList=[]
-    if type(removeList)==type(" "):
-      removeList = [removeList]
+    removeList = gConfig.getValue(deprecatedSoftware,[])
 
-    localPlatforms = gConfig.getValue('/LocalSite/Architecture')
+    localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
     if not localPlatforms:
       return self.__finish('/LocalSite/Architecture is not defined in the local configuration')
 
@@ -93,12 +86,9 @@ class SoftwareManagementAgent(Agent):
       except Exception,x:
         return self.__finish('Could not create proposed shared area directory:\n%s' %(sharedArea))
 
-    if not type(localPlatforms)==type([]):
-      localPlatforms=[localPlatforms]
-
     for systemConfig in localPlatforms:
       self.log.info('The following software packages will be installed by %s:\n%s\nfor system configuration %s' %(AGENT_NAME,string.join(installList,'\n'),systemConfig))
-      packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig)).replace(' ','').split(',')
+      packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig),[])
 
       for installPackage in installList:
         appNameVersion = string.split(installPackage,'.')
@@ -133,10 +123,10 @@ class SoftwareManagementAgent(Agent):
         else:
           self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
 
-    return S_OK()
+    return self.__finish('Successful',False)
 
   #############################################################################
-  def __finish(self,message):
+  def __finish(self,message,failed=True):
     """Force the agent to complete gracefully.
     """
     self.log.info('%s will stop with message: \n%s' %(AGENT_NAME,message))
@@ -144,6 +134,8 @@ class SoftwareManagementAgent(Agent):
     fd.write('%s Stopped at %s [UTC]' % (AGENT_NAME,time.asctime(time.gmtime())))
     fd.close()
     self.log.info('%s Stopped at %s [UTC] using %s/stop_agent control flag.' %(AGENT_NAME,time.asctime(time.gmtime()),self.controlDir))
-    return S_OK(message)
+    result =  S_OK(message)
+    result['AgentResult']=failed
+    return result
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
