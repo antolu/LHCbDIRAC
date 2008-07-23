@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.2 2008/07/23 12:28:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.3 2008/07/23 16:51:29 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.2 2008/07/23 12:28:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.3 2008/07/23 16:51:29 acasajus Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import sys
 import os
@@ -42,25 +42,31 @@ from DIRAC.Core.Security.VOMS import VOMS
 
 def uploadProxyToMyProxy( params, DNAsUsername ):
   myProxy = MyProxy()
+  if DNAsUsername:
+    params.debugMsg( "Uploading pilot proxy with group %s to %s..." % ( params.getDIRACGroup(), myProxy.getMyProxyServer() ) )
+  else:
+    params.debugMsg(  "Uploading user proxy with group %s to %s..." % ( params.getDIRACGroup(), myProxy.getMyProxyServer() ) )
   retVal =  myProxy.getInfo( proxyInfo[ 'path' ], useDNAsUserName = DNAsUsername )
   if retVal[ 'OK' ]:
     remainingSecs = ( int( params.getProxyRemainingSecs() / 3600 ) * 3600 ) - 7200
     myProxyInfo = retVal[ 'Value' ]
     if 'timeLeft' in myProxyInfo and remainingSecs < myProxyInfo[ 'timeLeft' ]:
+      params.debugMsg(  " Already uploaded" )
       return True
   retVal = generateProxy( cliParams )
   if not retVal[ 'OK' ]:
-    print "There was a problem generating proxy to be uploaded to myproxy: %s" % retVal[ 'Message' ]
+    print " There was a problem generating proxy to be uploaded to myproxy: %s" % retVal[ 'Message' ]
     return False
   retVal = getProxyInfo( retVal[ 'Value' ] )
   if not retVal[ 'OK' ]:
-    print "There was a problem generating proxy to be uploaded to myproxy: %s" % retVal[ 'Message' ]
+    print " There was a problem generating proxy to be uploaded to myproxy: %s" % retVal[ 'Message' ]
     return False
   generatedProxyInfo = retVal[ 'Value' ]
   retVal = myProxy.uploadProxy( generatedProxyInfo[ 'path' ], useDNAsUserName = DNAsUsername )
   if not retVal[ 'OK' ]:
-    print "Can't upload to myproxy: %s" % retVal[ 'Message' ]
+    print " Can't upload to myproxy: %s" % retVal[ 'Message' ]
     return False
+  params.debugMsg( " Uploaded" )
   return True
 
 retVal = getProxyInfo( retVal[ 'Value' ] )
@@ -89,14 +95,12 @@ for group in availableGroups:
 if not pilotGroup:
   print "WARN: No pilot group defined for user %s" % proxyInfo[ 'username' ]
 else:
-  print "Uploading pilot proxy with group %s to myproxy" % pilotGroup
   cliParams.setDIRACGroup( pilotGroup )
   issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
   remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
   cliParams.setProxyRemainingSecs( remainingSecs - 300 )
   uploadProxyToMyProxy( cliParams, True )
 
-print "Uploading user proxy to my proxy"
 cliParams.setDIRACGroup( proxyInfo[ 'group' ] )
 uploadProxyToMyProxy( cliParams, False )
 
@@ -118,6 +122,7 @@ if vomsMapping:
   if not retVal[ 'OK' ]:
     print "Cannot write proxy to file %s" % proxyInfo[ 'path' ]
     sys.exit(1)
+cliParams.debugMsg(  "done" )
 sys.exit(0)
 
 
