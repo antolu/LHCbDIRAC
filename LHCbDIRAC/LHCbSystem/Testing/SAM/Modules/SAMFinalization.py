@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.8 2008/07/23 17:59:04 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.9 2008/07/23 18:12:53 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.8 2008/07/23 17:59:04 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.9 2008/07/23 18:12:53 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -314,6 +314,6 @@ EOT
     shutil.copy(self.samPublishClient,os.getcwd())
     #Untar not using tarfile so this is added to the sam logs
     #SAM -> LCG -> Linux
-    return self.runCommand('tar -zxvf %s' %(os.path.basename(self.samPublishClient)))
+    return self.runCommand('Obtaining SAM client','tar -zxvf %s' %(os.path.basename(self.samPublishClient)))
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
