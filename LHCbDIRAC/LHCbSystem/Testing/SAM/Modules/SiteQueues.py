@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.1 2008/07/16 21:09:35 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.2 2008/07/23 17:37:39 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-queues.
 """
 
-__RCSID__ = "$Id: SiteQueues.py,v 1.1 2008/07/16 21:09:35 paterson Exp $"
+__RCSID__ = "$Id: SiteQueues.py,v 1.2 2008/07/23 17:37:39 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -74,11 +74,10 @@ class SiteQueues(ModuleBaseSAM):
     self.setApplicationStatus('Starting %s Test' %self.testName)
 
     self.cwd  = os.getcwd()
-    cmd = 'edg-brokerinfo getCE || glite-brokerinfo getCE'
-    result = self.runCommand('Checking current CE',cmd)
+    result = gConfig.getValue('/LocalSite/GridCE')
     if not result['OK']:
       return self.finalize('Could not get current CE',result['Message'],'error')
-    ceOutput = result['Value'].split(':')[0]
+    ceOutput = result['Value']
     self.log.info('Current CE is %s' %ceOutput)
     samNode = ceOutput
 

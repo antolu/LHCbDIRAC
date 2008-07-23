@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.2 2008/07/18 15:22:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.3 2008/07/23 17:36:47 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.2 2008/07/18 15:22:15 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.3 2008/07/23 17:36:47 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -129,11 +129,10 @@ class SystemConfiguration(ModuleBaseSAM):
     if not compatible:
       return self.finalize('Site does not have an officially compatible platform',string.join(systemConfigs,', '),'critical')
 
-    cmd = 'edg-brokerinfo getCE || glite-brokerinfo getCE'
-    result = self.runCommand('Checking current CE',cmd)
+    result = gConfig.getValue('/LocalSite/GridCE')
     if not result['OK']:
       return self.finalize('Could not get current CE',result['Message'],'error')
-    ceOutput = result['Value'].split(':')[0]
+    ceOutput = result['Value']
     self.log.info('Current CE is %s' %ceOutput)
 
     libsToRemove = ['tls/libc.so.6','libgcc_s.so.1','tls/libm.so.6','tls/libpthread.so.0']
