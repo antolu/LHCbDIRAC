@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.1 2008/07/22 18:37:19 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.2 2008/07/23 12:28:12 rgracian Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.1 2008/07/22 18:37:19 acasajus Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.2 2008/07/23 12:28:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import sys
 import os
@@ -59,7 +59,7 @@ def uploadProxyToMyProxy( params, DNAsUsername ):
   generatedProxyInfo = retVal[ 'Value' ]
   retVal = myProxy.uploadProxy( generatedProxyInfo[ 'path' ], useDNAsUserName = DNAsUsername )
   if not retVal[ 'OK' ]:
-    print "Can't upload to myproxy: %s" % retVal[ 'Value' ]
+    print "Can't upload to myproxy: %s" % retVal[ 'Message' ]
     return False
   return True
 
