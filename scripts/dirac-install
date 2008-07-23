@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.83 2008/07/14 09:50:08 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.84 2008/07/23 10:42:55 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.83 2008/07/14 09:50:08 rgracian Exp $"
-__VERSION__ = "$Revision: 1.83 $"
+__RCSID__   = "$Id: dirac-install,v 1.84 2008/07/23 10:42:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.84 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -262,7 +262,13 @@ if not dirac.checkInterpreter( ):
   dirac.checkDirac( )
   # if we are not running with our onw python let's call ourself again
   dirac.logINFO( 'Will retry now with DIRAC python' )
-  args         = str.join(' ',sys.argv[1:]) + ' -v %s' % dirac.version
+  quotedArgs = []
+  for arg in sys.argv[1:]:
+    if arg.find(' ') > -1:
+      quotedArgs.append('"%s"' % arg.replace('"','\"'))
+    else:
+      quotedArgs.append(arg)
+  args         = str.join(' ',quotedArgs) + ' -v %s' % dirac.version
   myScript = os.path.join( dirac.root(),'scripts', myShortName )
   myCmd = '%s %s %s ' % ( dirac.localPython, myScript, args )
   dirac.logDEBUG( myCmd )
