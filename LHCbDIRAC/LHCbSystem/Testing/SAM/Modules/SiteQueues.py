@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.2 2008/07/23 17:37:39 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.3 2008/07/23 17:58:08 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-queues.
 """
 
-__RCSID__ = "$Id: SiteQueues.py,v 1.2 2008/07/23 17:37:39 paterson Exp $"
+__RCSID__ = "$Id: SiteQueues.py,v 1.3 2008/07/23 17:58:08 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -73,13 +73,10 @@ class SiteQueues(ModuleBaseSAM):
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
 
-    self.cwd  = os.getcwd()
-    result = gConfig.getValue('/LocalSite/GridCE')
-    if not result['OK']:
-      return self.finalize('Could not get current CE',result['Message'],'error')
-    ceOutput = result['Value']
-    self.log.info('Current CE is %s' %ceOutput)
-    samNode = ceOutput
+    samNode = gConfig.getValue('/LocalSite/GridCE')
+    if not samNode:
+      return self.finalize('Could not get current CE','Not defined in /LocalSite/GridCE','error')
+    self.log.info('Current CE is %s' %samNode)
 
     if os.environ.has_key('LCG_GFAL_INFOSYS'):
       self.log.info('LCG_GFAL_INFOSYS = %s' %(os.environ['LCG_GFAL_INFOSYS']))
