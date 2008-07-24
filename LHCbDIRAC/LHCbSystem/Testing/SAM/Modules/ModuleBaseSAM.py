@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.3 2008/07/24 08:19:06 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.4 2008/07/24 08:20:56 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.3 2008/07/24 08:19:06 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.4 2008/07/24 08:20:56 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -53,6 +53,8 @@ class ModuleBaseSAM(object):
     csCE = gConfig.getValue('/LocalSite/GridCE','')
     if not csCE:
       gLogger.warn('Could not get CE from local config file')
+    else:
+      return S_OK(csCE)
 
     cmd = 'edg-brokerinfo getCE || glite-brokerinfo getCE'
     result = self.runCommand('Trying to get local CE (SAM node name)',cmd)
