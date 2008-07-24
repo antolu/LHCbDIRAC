@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.4 2008/07/23 18:27:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.5 2008/07/24 11:30:17 paterson Exp $
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.4 2008/07/23 18:27:21 paterson Exp $"
+__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.5 2008/07/24 11:30:17 paterson Exp $"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
@@ -123,17 +123,18 @@ class SoftwareManagementAgent(Agent):
         else:
           self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
 
-    return self.__finish('Successful',False)
+    return self.__finish('Successful',failed=False)
 
   #############################################################################
   def __finish(self,message,failed=True):
     """Force the agent to complete gracefully.
     """
     self.log.info('%s will stop with message: \n%s' %(AGENT_NAME,message))
-    fd = open(self.controlDir+'/stop_agent','w')
-    fd.write('%s Stopped at %s [UTC]' % (AGENT_NAME,time.asctime(time.gmtime())))
-    fd.close()
-    self.log.info('%s Stopped at %s [UTC] using %s/stop_agent control flag.' %(AGENT_NAME,time.asctime(time.gmtime()),self.controlDir))
+ #   fd = open(self.controlDir+'/stop_agent','w')
+ #   fd.write('%s Stopped at %s [UTC]' % (AGENT_NAME,time.asctime(time.gmtime())))
+ #   fd.close()
+ #   self.log.info('%s Stopped at %s [UTC] using %s/stop_agent control flag.' %(AGENT_NAME,time.asctime(time.gmtime()),self.controlDir))
+    self.log.info('%s Stopped at %s [UTC] after one loop.' %(AGENT_NAME,time.asctime(time.gmtime())))
     result =  S_OK(message)
     result['AgentResult']=failed
     return result
