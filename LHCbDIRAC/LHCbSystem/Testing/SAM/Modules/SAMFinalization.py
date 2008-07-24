@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.9 2008/07/23 18:12:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.10 2008/07/24 08:32:07 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.9 2008/07/23 18:12:53 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.10 2008/07/24 08:32:07 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -111,10 +111,13 @@ class SAMFinalization(ModuleBaseSAM):
       self.setApplicationStatus('Could Not Remove Lock File')
       return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
 
-    samNode = gConfig.getValue('/LocalSite/GridCE')
-    if not samNode:
-      return self.finalize('Could not get current CE','Not defined in /LocalSite/GridCE','error')
-    self.log.info('Current CE is %s' %samNode)
+    result = self.getSAMNode()
+    if not result['OK']:
+      return self.finalize('Could not get current CE',result['Message'],'error')
+    else:
+      self.log.info('Current CE is %s' %result['Value'])
+
+    samNode = result['Value']
 
     self.log.verbose(self.workflow_commons)
     if not self.workflow_commons.has_key('SAMResults'):

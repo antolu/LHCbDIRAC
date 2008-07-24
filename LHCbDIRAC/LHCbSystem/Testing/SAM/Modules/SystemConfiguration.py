@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.4 2008/07/23 17:57:14 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.5 2008/07/24 08:28:25 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.4 2008/07/23 17:57:14 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.5 2008/07/24 08:28:25 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -129,10 +129,11 @@ class SystemConfiguration(ModuleBaseSAM):
     if not compatible:
       return self.finalize('Site does not have an officially compatible platform',string.join(systemConfigs,', '),'critical')
 
-    ceOutput = gConfig.getValue('/LocalSite/GridCE')
-    if not ceOutput:
-      return self.finalize('Could not get current CE','Not defined in /LocalSite/GridCE','error')
-    self.log.info('Current CE is %s' %ceOutput)
+    result = self.getSAMNode()
+    if not result['OK']:
+      return self.finalize('Could not get current CE',result['Message'],'error')
+    else:
+      self.log.info('Current CE is %s' %result['Value'])
 
     libsToRemove = ['tls/libc.so.6','libgcc_s.so.1','tls/libm.so.6','tls/libpthread.so.0']
     for arch in systemConfigs:
