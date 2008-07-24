@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.10 2008/07/24 08:32:07 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.11 2008/07/24 13:03:07 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.10 2008/07/24 08:32:07 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.11 2008/07/24 13:03:07 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -189,14 +189,14 @@ testTitle: LHCb SAM %s
 EOT
 """ %(testName,testName,testName)
 
-      envFile = """envName: CE-%s%s
+      envFile = """envName: CE-00%s%s
 name: LHCbSAMTest
 value: OK
 """ %(self.jobID,counter)
 
       resultFile = """nodename: %s
 testname: %s
-envName: CE-%s%s
+envName: CE-00%s%s
 voname: lhcb
 status: %s
 detaileddata: EOT
@@ -298,7 +298,7 @@ EOT
 
     lfnPath = self.__getLFNPathString(samNode)
     rm = ReplicaManager()
-    result = rm.putDirectory(lfnPath,logDir,self.logSE)
+    result = rm.putDirectory(lfnPath,os.path.realpath(logDir),self.logSE)
     self.log.verbose(result)
     if not result['OK']:
       return result
