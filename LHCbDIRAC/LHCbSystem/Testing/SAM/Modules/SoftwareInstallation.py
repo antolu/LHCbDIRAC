@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.4 2008/07/23 18:29:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.5 2008/07/24 11:38:42 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.4 2008/07/23 18:29:17 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.5 2008/07/24 11:38:42 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -134,8 +134,10 @@ class SoftwareInstallation(ModuleBaseSAM):
 
         agent = createAgent(agentName)
         result = agent.run_once()
-        if not result['AgentResult']: #Will always return another boolean for the status due to the S_ERROR Agent framework issue
-          return self.finalize('Software not successfully installed',result['Value'],'critical')
+        self.log.verbose(result)
+        if result.has_key('AgentResult'):
+          if not result['AgentResult']: #Will always return another boolean for the status due to the S_ERROR Agent framework issue
+            return self.finalize('Software not successfully installed',result['Value'],'critical')
       except Exception,x:
         return self.finalize('Could not start %s with exception' %self.softwareAgentName,str(x),'critical')
     else:
