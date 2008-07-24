@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.6 2008/07/24 09:25:52 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.7 2008/07/24 09:30:22 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.6 2008/07/24 09:25:52 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.7 2008/07/24 09:30:22 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -66,6 +66,12 @@ class ModuleBaseSAM(object):
     if not ce:
       gLogger.warn('Could not get CE from broker-info call:\n%s' %output)
       return S_ERROR('Could not get CE from local cfg option /Resources/Computing/InProcess/GridCE or broker-info call')
+
+    if self.workflow_commons.has_key('GridRequiredCEs'):
+      ce = self.workflow_commons['GridRequiredCEs']
+      gLogger.warn('As a last resort setting CE to %s from workflow parameters' %ce)
+    else:
+      return S_ERROR('Could not get CE from local cfg option /Resources/Computing/InProcess/GridCE or broker-info call or workflow parameters')
 
     return S_OK(ce)
 
