@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.5 2008/07/22 14:14:50 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.6 2008/07/25 19:15:49 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.5 2008/07/22 14:14:50 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.6 2008/07/25 19:15:49 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -123,8 +123,43 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().deleteFile(file)
   
   #############################################################################
+  def deleteInputFiles(self, jobid):
+    return self.getManager().deleteInputFiles(jobid)
+  
+  #############################################################################
   def getAvailableConfigurations(self):
     return self.getManager().getAvailableConfigurations()
+  
+  #############################################################################
+  def getSimulationConditions(self, configName, configVersion):
+    return self.getManager().getSimulationConditions(configName, configVersion)
+  
+  #############################################################################
+  def getProPassWithSimCond(self, configName, configVersion, simcondid):
+    return self.getManager().getProPassWithSimCond(configName, configVersion, simcondid)
+  
+  #############################################################################
+  def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
+    return self.getManager().getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
+  
+  #############################################################################
+  def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
+    return self.getManager().getProductionsWithSimcond(configName, configVersion, simcondid, procPass, evtId)
+  
+  #############################################################################
+  def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
+    return self.getManager().getFileTypesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod)
+  
+  #############################################################################  
+  def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
+    return self.getManager().getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
+  
+  #############################################################################  
+  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    return self.getManager().getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+  
+  
+  
   
   #############################################################################
   def getAvailableEventTypes(self):
@@ -209,6 +244,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getSimCondIDWhenFileName(self, fileName):
     return self.getManager().getSimCondIDWhenFileName(fileName)
+  
+  #############################################################################
+  def getLFNsByProduction(self, prodid):
+    return self.getManager().getLFNsByProduction(prodid)
   
   #############################################################################
   def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.7 2008/07/22 14:14:49 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.8 2008/07/25 19:15:48 zmathe Exp $
 ########################################################################
 
 """
@@ -13,11 +13,15 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                      
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+#from DIRAC.BookkeepingSystem.Client.BookkeepingClient                             import BookkeepingClient
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.7 2008/07/22 14:14:49 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.8 2008/07/25 19:15:48 zmathe Exp $"
+
+global dataManager_
+dataManager_ = BookkeepingDatabaseClient()
 
 class XMLFilesReaderManager:
   
@@ -32,7 +36,7 @@ class XMLFilesReaderManager:
     self.errorsTmp_ = self.baseDir_ + "ErrorsTmp/"
     self.jobs_ = []
     self.replicas_ = []
-    self.dataManager_ = BookkeepingDatabaseClient()
+    #self.dataManager_ = BookkeepingDatabaseClient()
     self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
     self.errorMgmt_ = ErrorReporterMgmt()
     
@@ -94,7 +98,7 @@ class XMLFilesReaderManager:
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
       name = file.getFileName()
-      result = self.dataManager_.checkfile(name) 
+      result = dataManager_.checkfile(name) 
       if result['OK']:
         fileID = long(result['Value'][0][0])
         file.setFileID(fileID)
@@ -105,14 +109,14 @@ class XMLFilesReaderManager:
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
       name = file.getFileName()
-      result = self.dataManager_.checkfile(name)
+      result = dataManager_.checkfile(name)
       if result['OK']:
         self.errorMgmt_.reportError (11, "The file " + str(name) + " already exists.", deleteFileName, errorReport)
         return S_ERROR("The file " + str(name) + " already exists.")
       
       typeName = file.getFileType()
       typeVersion = file.getFileVersion()
-      result = self.dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
+      result = dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
       if not result['OK']:
         self.errorMgmt_.reportError (12, "The type " + str(typeName) + ", version " + str(typeVersion) +"is missing.\n", deleteFileName, errorReport)
         return S_ERROR("The type " + str(typeName) + ", version " + str(typeVersion) +"is missing.\n")
@@ -130,7 +134,7 @@ class XMLFilesReaderManager:
             return S_ERROR("The event number not greater 0!")
         if paramName == "EventType":
           value = long(param.getParamValue())
-          result = self.dataManager_.checkEventType(value)
+          result = dataManager_.checkEventType(value)
           if not result['OK']:
             self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName, errorReport)
             return S_ERROR("The event type " + str(value) + " is missing.\n")
@@ -139,7 +143,7 @@ class XMLFilesReaderManager:
     config = job.getJobConfiguration()
     params = job.getJobParams()
             
-    result = self.dataManager_.insertJob(job)    
+    result = dataManager_.insertJob(job)    
     if not result['OK']:
       self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName, errorReport)
       return S_ERROR("Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n"+'Error: '+str(result['Message']))
@@ -148,18 +152,19 @@ class XMLFilesReaderManager:
       job.setJobId(jobID) 
     inputFiles = job.getJobInputFiles()
     for file in inputFiles:
-      result = self.dataManager_.insertInputFile(job.getJobId(), file.getFileID())
+      result = dataManager_.insertInputFile(job.getJobId(), file.getFileID())
       if not result['OK']:
-        self.dataManager_.deleteJob(job.getJobId())
+        dataManager_.deleteJob(job.getJobId())
         self.errorMgmt_.reportError (16, "Unable to add " + str(file.getFileName()), deleteFileName, errorReport)
         return S_ERROR("Unable to add " + str(file.getFileName()))
       
   
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
-      result = self.dataManager_.insertOutputFile(job, file)
+      result = dataManager_.insertOutputFile(job, file)
       if not result['OK']:
-        self.dataManager_.deleteJob(job.getJobId())
+        dataManager_.deleteJob(job.getJobId())
+        dataManager_.deleteInputFiles(job.getJobId())
         self.errorMgmt_.reportError (17, "Unable to create file " + str(file.getFileName()) + "!", deleteFileName, errorReport)
         return S_ERROR("Unable to create file " + str(file.getFileName()) + "!"+"ERROR: "+result["Message"])
       else:
@@ -170,7 +175,7 @@ class XMLFilesReaderManager:
       for quality in qualities:
         group = quality.getGroup()
         flag = quality.getFlag()
-        result = self.dataManager_.insertQuality(file.getFileID(), group, flag)           
+        result = dataManager_.insertQuality(file.getFileID(), group, flag)           
         if not result['OK']:
           self.errorMgmt_.reportError(19, "Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n", deleteFileName, errorReport)
           return S_ERROR("Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n")
@@ -182,7 +187,7 @@ class XMLFilesReaderManager:
         for param in params:
            name = param.getName()
            value = param.getValue()
-           result = self.dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
+           result = dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
            if not result['OK']:
              self.errorMgmt_.reportError (20, "Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n", deleteFileName, errorReport)
              return S_ERROR("Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n")
@@ -193,7 +198,7 @@ class XMLFilesReaderManager:
         for param in params: # just one param exist in params list, because JobReader only one param add to Replica
           name = param.getName()
           location = param.getLocation()
-        result = self.dataManager_.updateReplicaRow(file.getFileID(),'Yes')  #, name, location)           
+        result = dataManager_.updateReplicaRow(file.getFileID(), 'No')  #, name, location)           
         if not result['OK']:
           self.errorMgmt_.reportError(21, "Unable to create Replica " + str(name) +".\n", deleteFileName, errorReport)
           return S_ERROR("Unable to create Replica " + str(name) +".\n")
@@ -220,7 +225,7 @@ class XMLFilesReaderManager:
       location = param.getLocation()
       delete = param.getAction() == "Delete"
             
-      result = self.dataManager_.checkfile(replicaFileName)
+      result = dataManager_.checkfile(replicaFileName)
     
       if not result['OK']:
         message = "No replica can be ";
@@ -240,14 +245,14 @@ class XMLFilesReaderManager:
         list = result['Value']
         replicaList = list['Successful']
         if len(replicaList) == 0:
-          result = self.dataManager_.updateReplicaRow(fileID,"no")
+          result = dataManager_.updateReplicaRow(fileID,"no")
           if not result['OK']:
             gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
             self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file, errorReport)
             return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))
          
       else:
-        result = self.dataManager_.updateReplicaRow(fileID, "yes")
+        result = dataManager_.updateReplicaRow(fileID, "yes")
         if not result['OK']:
           self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file, errorReport)
           return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))

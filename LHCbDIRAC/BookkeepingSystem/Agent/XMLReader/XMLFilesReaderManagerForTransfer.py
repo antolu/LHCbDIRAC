@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.4 2008/07/22 14:14:49 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.5 2008/07/25 19:15:48 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.4 2008/07/22 14:14:49 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.5 2008/07/25 19:15:48 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -59,7 +59,12 @@ class XMLFilesReaderManagerForTransfer:
   
   #############################################################################
   def _listTodoDirectory(self):
-    return self.fileClient_.list(self.baseDir_+"ToDo")
+    files = self.fileClient_.list(self.baseDir_+"ToDo")
+    result = []
+    for file in files:
+      if ('00000038_' in file) or ('00000037_' in  file):
+        result +=[file]
+    return result 
   #############################################################################
   def fileaction(self, fn):
     """

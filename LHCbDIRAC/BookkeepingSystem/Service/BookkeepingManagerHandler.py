@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.58 2008/07/22 14:14:51 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.59 2008/07/25 19:15:50 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.58 2008/07/22 14:14:51 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.59 2008/07/25 19:15:50 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -14,6 +14,7 @@ from DIRAC.BookkeepingSystem.Service.copyFiles                                  
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 import time,sys,os
 
 global dataMGMT_
@@ -21,6 +22,7 @@ dataMGMT_ = BookkeepingDatabaseClient()
 
 global reader_
 reader_ = XMLFilesReaderManager()
+
   
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
@@ -85,9 +87,97 @@ class BookkeepingManagerHandler(RequestHandler):
  
 
   #############################################################################
+  #@@checking
+  #############################################################################
+  types_deleteJob = [LongType]
+  def export_deleteJob(self, job):
+    return dataMGMT_.deleteJob(job)  
+  
+  #############################################################################
+  types_checkfile = [StringType]
+  def export_checkfile(self, fileName):
+    return dataMGMT_.checkfile(fileName)
+  
+  #############################################################################
+  types_checkFileTypeAndVersion = [StringType, StringType]
+  def export_checkFileTypeAndVersion(self, type, version):
+    return dataMGMT_.checkFileTypeAndVersion(type, version)
+  
+  #############################################################################
+  types_checkEventType = [LongType]
+  def export_checkEventType(self, eventTypeId): 
+    return dataMGMT_.checkEventType(eventTypeId)
+  
+  #############################################################################
+  types_insertJob =[ObjectType]
+  def export_insertJob(self, job):
+    return dataMGMT_.insertJob(job)
+  
+  #############################################################################
+  types_insertInputFile = [LongType, LongType]
+  def export_insertInputFile(self, jobID, FileId):
+    return dataMGMT_.insertInputFile(jobID, FileId)
+  
+  #############################################################################
+  types_insertOutputFile = [ObjectType, ObjectType]
+  def export_insertOutputFile(self, job, file):
+    return dataMGMT_.insertOutputFile(job, file)  
+  
+  #############################################################################
+  types_deleteInputFiles = [LongType]
+  def export_deleteInputFiles(self, jobid):
+    return dataMGMT_.deleteInputFiles(jobid)
+  
+  #############################################################################
+  types_updateReplicaRow = [LongType, StringType]
+  def export_updateReplicaRow(self, fileID, replica):
+    return dataMGMT_updateReplicaRow(self, fileID, replica)
+  
+  
+  #############################################################################
+  #@@ENDchecking
+  #############################################################################
+  
   types_getAvailableConfigurations = []
   def export_getAvailableConfigurations(self):
     return dataMGMT_.getAvailableConfigurations()
+    
+  #############################################################################
+  types_getSimulationConditions = [StringType, StringType]
+  def export_getSimulationConditions(self, configName, configVersion):
+    return dataMGMT_.getSimulationConditions(configName, configVersion)
+  
+  #############################################################################
+  types_getProPassWithSimCond = [StringType, StringType, LongType]
+  def export_getProPassWithSimCond(self, configName, configVersion, simcondid):
+    return dataMGMT_.getProPassWithSimCond(configName, configVersion, simcondid)
+  
+  #############################################################################
+  types_getEventTypeWithSimcond = [StringType, StringType, LongType, StringType]
+  def export_getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
+    return dataMGMT_.getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
+  
+  #############################################################################
+  types_getProductionsWithSimcond = [StringType, StringType, LongType, StringType, LongType]
+  def export_getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
+    return dataMGMT_.getProductionsWithSimcond(configName, configVersion, simcondid, procPass, evtId)
+  
+  #############################################################################
+  types_getFileTypesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType]
+  def export_getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
+    return dataMGMT_.getFileTypesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod)
+  
+  #############################################################################  
+  types_getProgramNameWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType]
+  def export_getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
+    return dataMGMT_.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
+  
+  #############################################################################  
+  types_getFilesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType, StringType, StringType]
+  def export_getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    return dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+
+
   
   #############################################################################
   types_getEventTypes = [StringType, StringType]
@@ -203,6 +293,27 @@ class BookkeepingManagerHandler(RequestHandler):
   types_addEventType = [LongType, StringType, StringType]
   def export_addEventType(self,evid, desc, primary):
     return dataMGMT_.insertEventTypes(evid, desc, primary)
+  
+  #############################################################################
+  types_getLFNsByProduction = [LongType]
+  def export_getLFNsByProduction(self, prodid):
+    return dataMGMT_.getLFNsByProduction(prodid)
+  
+  #############################################################################
+  types_checkProduction = [LongType]
+  def export_checkProduction(self,prodid):  
+    rm = ReplicaManager()
+    res = dataMGMT_.getLFNsByProduction(prodid)
+    result = None
+    if res['OK']:
+      fileList = res['Value']
+      list =[]
+      for file in fileList:
+        list +=[file[0]]
+      result = rm.getReplicas(list)
+    else:
+      return S_ERROR(res['Message'])
+    return S_OK(result)
   
   '''
   Monitoring

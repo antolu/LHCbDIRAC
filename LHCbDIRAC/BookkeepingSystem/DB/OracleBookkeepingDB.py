@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.11 2008/07/22 14:14:50 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.12 2008/07/25 19:15:49 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.11 2008/07/22 14:14:50 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.12 2008/07/25 19:15:49 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -31,7 +31,41 @@ class OracleBookkeepingDB(IBookkeepingDB):
     """
     """
     return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
+
+  #############################################################################
+  def getSimulationConditions(self, configName, configVersion):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getSimulationConditions', [configName, configVersion])
   
+  #############################################################################
+  def getProPassWithSimCond(self, configName, configVersion, simcondid):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProPassWithSimCond', [configName, configVersion, simcondid])
+  
+  #############################################################################
+  def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypeWithSimcond', [configName, configVersion, simcondid, procPass])
+  
+  #############################################################################
+  def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProductionsWithSimcond', [configName, configVersion, simcondid, procPass, evtId])
+  
+  #############################################################################
+  def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod])
+  
+  #############################################################################  
+  def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProgramNameWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod, ftype])
+  
+  #############################################################################  
+  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getFilesWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion])
+    
+    
+    
+    
+    
+    
+    
   #############################################################################
   def getAvailableEventTypes(self):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableEventTypes', [])
@@ -123,6 +157,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getSimCondIDWhenFileName(self, fileName):
     return self.db_.executeStoredFunctions('BKK_ORACLE.getSimCondIDWhenFileName', LongType, [fileName])
+
+  #############################################################################  
+  def getLFNsByProduction(self, prodid):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getLFNsByProduction',[prodid])
   
   """
   data insertation into the database
@@ -296,7 +334,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def insertInputFile(self, jobID, FileId):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.insertInputFilesRow',[jobID, FileId])
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.insertInputFilesRow',[FileId, jobID], False)
     return result
   #############################################################################
   def insertOutputFile(self, job, file):
@@ -340,7 +378,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def deleteJob(self, jobID):
     result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteJob',[jobID], False)
     return result
- 
+  
+  #############################################################################
+  def deleteInputFiles(self, jobid):
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.deleteInputFiles',[jobid], False)
+    return result
+  
   #############################################################################
   def deleteFile(self, file):
     gLogger.warn("not implemented")

@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.27 2008/07/22 14:14:50 zmathe Exp $
+# $Id: BookkeepingManagerAgent.py,v 1.28 2008/07/25 19:15:48 zmathe Exp $
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.27 2008/07/22 14:14:50 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.28 2008/07/25 19:15:48 zmathe Exp $"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
@@ -36,7 +36,7 @@ class BookkeepingManagerAgent(Agent):
     result = Agent.initialize(self)
     
     self.xmlMgmt_ = XMLFilesReaderManager()
-    self.dataManager_ =  BookkeepingDatabaseClient()
+    #self.dataManager_ =  BookkeepingDatabaseClient()
     self.fileClient_ = FileSystemClient()
     self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
     baseDir = gConfig.getValue(self.section+"/XMLProcessing", "/opt/bookkeeping/XMLProcessing/")
@@ -55,12 +55,16 @@ class BookkeepingManagerAgent(Agent):
       result = self.xmlMgmt_.processJob(job, True)
       if result['OK']:
         self.__moveFileToDoneDirectory(job.getFileName())
+      else:
+        self.log.error(result['Message'])
     
     replicas = self.xmlMgmt_.getReplicas()
     for replica in replicas:
       result = self.xmlMgmt_.processReplicas(replica, True) 
       if result['OK']:
         self.__moveFileToDoneDirectory(replica.getFileName())
+      else:
+        self.log.error(result['Message'])
     
     self.xmlMgmt_.destroy()
     

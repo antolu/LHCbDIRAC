@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ErrorReporterMgmt.py,v 1.4 2008/07/22 14:14:51 zmathe Exp $
+# $Id: ErrorReporterMgmt.py,v 1.5 2008/07/25 19:15:49 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC                                                     import gLogger, S
 from DIRAC.ConfigurationSystem.Client.Config                   import gConfig
 import os
 
-__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.4 2008/07/22 14:14:51 zmathe Exp $"
+__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.5 2008/07/25 19:15:49 zmathe Exp $"
 
 
 
@@ -31,19 +31,23 @@ class ErrorReporterMgmt:
     if report:
       gLogger.info("Error Report!")
       try:
-        name = self.__getErrorFileName(file)
-        gLogger.info("File Name:" + str(name))
-        fullName = self.errorDir_ + name +".error"
-      
-        f = open(fullName, 'w')
-        msg = "  <Error id=\"" + str(id) + "\">" +"\n"
-        msg += "    " + message +"\n"
-        msg +="  </Error>";
-        f.write(msg)
-        f.close()
-      
-        self.fileClient_.rename(file, self.errorDir_ +name)
-        gLogger.info("Error Report End!")
+        if id==11:
+          gLogger.info('File Exxist and I remove it!')
+          self.fileClient_.rm(file)
+        else:
+          name = self.__getErrorFileName(file)
+          gLogger.info("File Name:" + str(name))
+          fullName = self.errorDir_ + name +".error"
+        
+          f = open(fullName, 'w')
+          msg = "  <Error id=\"" + str(id) + "\">" +"\n"
+          msg += "    " + message +"\n"
+          msg +="  </Error>";
+          f.write(msg)
+          f.close()
+        
+          self.fileClient_.rename(file, self.errorDir_ +name)
+          gLogger.info("Error Report End!")
       except OSError, (errno, strerror):
         gLogger.error("reportError:" + str(strerror))    
   
