@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.12 2008/07/24 15:01:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.13 2008/07/25 15:31:59 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.12 2008/07/24 15:01:09 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.13 2008/07/25 15:31:59 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -55,6 +55,8 @@ class SAMFinalization(ModuleBaseSAM):
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
 
+    self.softwareTestName='CE-lhcb-install'
+    self.softwareLogName='sam-install.log'
     #Workflow parameters for the test
     self.enable = True
     self.publishResultsFlag = False
@@ -158,6 +160,112 @@ class SAMFinalization(ModuleBaseSAM):
     return S_OK('Lock removed')
 
   #############################################################################
+  def __getSAMStatus(self,testStatus):
+    """ Returns SAM status string for test summary.
+    """
+    testStatus = str(testStatus)
+    statusString = ''
+    for status,id in self.samStatus.items():
+      if id==testStatus:
+        statusString=status
+    return statusString
+
+  #############################################################################
+  def __getSoftwareReport(self,lfnPath,testStatus):
+    """Returns the list of software installed at the site organized by platform.
+       If the test status is not successful, returns a link to the install test
+       log.  Creates an html table for the results.
+    """
+    installLogURL = '%s%s/%s' %(self.logURL,lfnPath,self.softwareLogName)
+    if int(testStatus) > int(self.samStatus['info']):
+      self.log.warn('%s test status was %s, writing message to check install test' %(self.softwareTestName,testStatus))
+      return '%s test status was %s = %s, please check <A HREF="%s">%s test log</A> for more details.' %(self.softwareTestName,self.__getSAMStatus(testStatus),testStatus,installLogURL,self.softwareTestName)
+
+    activeSw = gConfig.getValue('/Operations/SoftwareDistribution/Active',[])
+    self.log.debug('Active software is: %s' %(string.join(activeSw,', ')))
+    arch = gConfig.getValue('/LocalSite/Architecture')
+    self.log.verbose('Current node system configuration is: %s' %(arch))
+    architectures = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %arch,[])
+    self.log.verbose('Compatible system configurations are: %s' %(string.join(architectures,', ')))
+    softwareDict = {}
+    for architecture in architectures:
+      archSw = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(architecture),[])
+      for sw in activeSw:
+        if sw in archSw:
+          if softwareDict.has_key(sw):
+            current = softwareDict[sw]
+            current.append(architecture)
+            softwareDict[sw]=current
+          else:
+            softwareDict[sw]=[architecture]
+
+    self.log.verbose(softwareDict)
+    rows = """
+    <br><br><br>
+    Software summary from job running on node with system configuration %s:
+    <br><br><br>
+    """ %(arch)
+    sortedKeys = softwareDict.keys()
+    sortedKeys.sort()
+    for appNameVersion in sortedKeys:
+      archList = softwareDict[appNameVersion]
+      name = appNameVersion.split('.')[0]
+      version = appNameVersion.split('.')[1]
+      sysConfigs = string.join(archList,', ')
+      rows += """
+
+<tr>
+<td> %s </td>
+<td> %s </td>
+<td> %s </td>
+</tr>
+      """ %(name,version,sysConfigs)
+
+    self.log.debug(rows)
+
+    table = """<table border="1" bordercolor="#000000" width="50%" bgcolor="#BCCDFE">
+<tr>
+<td>Project Name</td>
+<td>Project Version</td>
+<td>System Configurations</td>
+</tr>"""+rows+"""
+</table>
+"""
+    self.log.debug(table)
+    return table
+
+  #############################################################################
+  def __getTestSummary(self,samResults):
+    """Returns a test summary as an html table.
+    """
+
+    self.log.debug(samResults)
+    rows = """
+"""
+    for testName,testStatus in samResults.items():
+      rows += """
+
+<tr>
+<td> %s </td>
+<td> %s </td>
+<td> %s </td>
+</tr>
+      """  %(testName,self.__getSAMStatus(testStatus),testStatus)
+
+    self.log.debug(str(rows))
+    table = """
+<table border="1" bordercolor="#000000" width="50%" bgcolor="#B8FDC2">
+<tr>
+<td>Test Name</td>
+<td>Test Status</td>
+<td>SAM Status</td>
+</tr>"""+rows+"""
+</table>
+"""
+    self.log.debug(table)
+    return table
+
+  #############################################################################
   def __publishSAMResults(self,samNode,samResults):
     """Prepares SAM publishing files and reports results to the SAM DB.
     """
@@ -176,9 +284,8 @@ class SAMFinalization(ModuleBaseSAM):
         return result
 
     lfnPath = self.__getLFNPathString(samNode)
-    testSummary = ''
-    for testName,testStatus in samResults.items():
-      testSummary += '<br> %s = %s' %(testName,testStatus)
+    testSummary = self.__getTestSummary(samResults)
+    softwareReport = self.__getSoftwareReport(lfnPath,samResults[self.softwareTestName])
     counter = 0
     publishFlag = True
     for testName,testStatus in samResults.items():
@@ -203,30 +310,23 @@ detaileddata: EOT
 <br>
 <IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
 <br><br><br><br><br><br><br>
-<br>DIRAC Site %s ( CE = %s )<br>
+<br>DIRAC Site Name %s ( CE = %s )<br>
 <br>Test Summary %s:<br>
-<br> %s <br>
+<br>
+%s
+<br>
 <br><br><br>
 Link to log files: <br>
 <UL><br>
 <LI><A HREF='%s%s'>Log SE output</A><br>
 <LI><A HREF='%s%s/test/sam/%s'>Previous tests for %s</A><br>
+<LI><A HREF='%s%s/test/sam'>LHCb SAM Logs CE Directory</A><br>
 </UL><br>
-
-A summary of the SAM status codes is:
-<UL><br>
-<LI>ok=10<br>
-<LI>info=20<br>
-<LI>notice=30<br>
-<LI>warning=40<br>
-<LI>error=50<br>
-<LI>critical=60<br>
-<LI>maintenance=100<br>
-</UL><br>
-The LHCb SAM log files CE directory is <A HREF='%s%s/test/sam'>here</A>.<br>
+<br>
+%s
 <br>
 EOT
-""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO)
+""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO,softwareReport)
 
       files = {}
       files[defFile]='.def'
