@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.86 2008/07/16 13:14:07 paterson Exp $
+# $Id: JobFinalization.py,v 1.87 2008/07/25 12:53:21 rgracian Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.86 2008/07/16 13:14:07 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.87 2008/07/25 12:53:21 rgracian Exp $"
 
 ############### TODO
 # Cleanup import of unnecessary modules
@@ -392,12 +392,6 @@ class JobFinalization(ModuleBase):
       self.log.error( "Saving log file %s failed: no such file" % logfile )
       return S_ERROR('No such file')
 
-    if gzip_flag:
-      status = gzip(logfile)
-      if status > 0 :
-        return
-      else:
-        logfile = logfile+'.gz'
 
     ##################################################
     #  Copy the log file
@@ -406,15 +400,17 @@ class JobFinalization(ModuleBase):
       shutil.copy(logfile,self.logdir)
       cwd = os.getcwd()
       os.chdir(self.logdir)
+      if gzip_flag:
+        status = gzip(logfile)
+        if status > 0 :
+          return
+        else:
+          logfile = logfile+'.gz'
       makeIndex()
       os.chdir(cwd)
     except IOError, x:
       return S_ERROR('File copy failed: '+str(x))
 
-    # Do not leave gzipped files in the working directory.
-    # They may be still used later
-    if gzip_flag:
-      gunzip(logfile)
     return S_OK()
 
 ##################################################################################
@@ -424,8 +420,8 @@ class JobFinalization(ModuleBase):
     """
 
     files = os.listdir('.')
-    files.append('../std.out')
-    files.append('../std.err')
+    files.append('std.out')
+    files.append('std.err')
 
     # Ugly !!!  - distinguish log files by their extensions
     logexts = ['.txt','.hbook','.log','.root','.out','.output','.xml','.sh', '.info', '.err']
