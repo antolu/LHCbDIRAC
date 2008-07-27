@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.13 2008/07/25 15:31:59 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.14 2008/07/27 15:50:30 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.13 2008/07/25 15:31:59 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.14 2008/07/27 15:50:30 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -399,7 +399,7 @@ EOT
     lfnPath = self.__getLFNPathString(samNode)
     rm = ReplicaManager()
     self.log.verbose('Arguments for rm.putDirectory are: %s\n%s\n%s' %(lfnPath,os.path.realpath(logDir),self.logSE))
-    result = rm.putDirectory(lfnPath,os.path.realpath(logDir),self.logSE)
+    result = rm.putDirectory(lfnPath.replace('/log',''),os.path.realpath(logDir),self.logSE)
     self.log.verbose(result)
     if not result['OK']:
       return result
