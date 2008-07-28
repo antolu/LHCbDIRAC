@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.14 2008/07/27 15:50:30 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.15 2008/07/28 18:19:29 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.14 2008/07/27 15:50:30 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.15 2008/07/28 18:19:29 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -96,6 +96,11 @@ class SAMFinalization(ModuleBaseSAM):
     self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
 
+    result = self.__removeLockFile(sharedArea)
+    if not result['OK']:
+      self.setApplicationStatus('Could Not Remove Lock File')
+      return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
+
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.warn('A critical error was detected in a previous step, exiting.')
       return self.finalize('Stopping execution of SAM Finalization','Workflow / Step Failure','critical')
@@ -107,11 +112,6 @@ class SAMFinalization(ModuleBaseSAM):
       return S_ERROR('Could not determine shared area for site')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
-
-    result = self.__removeLockFile(sharedArea)
-    if not result['OK']:
-      self.setApplicationStatus('Could Not Remove Lock File')
-      return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
 
     result = self.getSAMNode()
     if not result['OK']:
