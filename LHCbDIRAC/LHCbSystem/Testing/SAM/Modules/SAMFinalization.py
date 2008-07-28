@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.15 2008/07/28 18:19:29 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.16 2008/07/28 19:38:00 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.15 2008/07/28 18:19:29 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.16 2008/07/28 19:38:00 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -101,11 +101,15 @@ class SAMFinalization(ModuleBaseSAM):
       self.setApplicationStatus('Could Not Remove Lock File')
       return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
 
+    failed = False
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.warn('A critical error was detected in a previous step, exiting.')
-      return self.finalize('Stopping execution of SAM Finalization','Workflow / Step Failure','critical')
+      self.log.warn('A critical error was detected in a previous step, will publish SAM results.')
+      failed = True
+      #return self.finalize('Stopping execution of SAM Finalization','Workflow / Step Failure','critical')
 
-    self.setApplicationStatus('Starting %s Test' %self.testName)
+    if not failed:
+      self.setApplicationStatus('Starting %s Test' %self.testName)
+
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
       self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
@@ -123,6 +127,7 @@ class SAMFinalization(ModuleBaseSAM):
 
     self.log.verbose(self.workflow_commons)
     if not self.workflow_commons.has_key('SAMResults'):
+      self.setApplicationStatus('No SAM Results Found')
       return self.finalize('No SAM results found','Status ERROR (= 50)','error')
 
     samResults = self.workflow_commons['SAMResults']
@@ -137,7 +142,8 @@ class SAMFinalization(ModuleBaseSAM):
       return self.finalize('Failure while uploading SAM logs',result['Message'],'error')
 
     self.log.info('Test %s completed successfully' %self.testName)
-    self.setApplicationStatus('SAM Job Successful')
+    if not failed:
+      self.setApplicationStatus('SAM Job Successful')
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
 
   #############################################################################
