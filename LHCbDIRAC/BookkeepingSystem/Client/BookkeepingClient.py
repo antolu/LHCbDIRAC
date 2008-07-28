@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.39 2008/07/25 19:15:47 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.40 2008/07/28 14:29:36 zmathe Exp $
 ########################################################################
 
 """
@@ -9,10 +9,11 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Base import Script
+import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.39 2008/07/25 19:15:47 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.40 2008/07/28 14:29:36 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -148,6 +149,16 @@ class BookkeepingClient:
 
 
 
+  #############################################################################  
+  def getAncestors(self, lfns, depth=1):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAncestors([lfns], long(depth))
+    else:
+      result = server.getAncestors(lfns, long(depth))
+    return result
+  
   #############################################################################
   def getAvailableEventTypes(self):
     server = RPCClient('Bookkeeping/BookkeepingManager')

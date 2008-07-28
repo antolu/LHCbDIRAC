@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.12 2008/07/25 19:15:49 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.13 2008/07/28 14:29:36 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.12 2008/07/25 19:15:49 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.13 2008/07/28 14:29:36 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -162,6 +162,38 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getLFNsByProduction(self, prodid):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getLFNsByProduction',[prodid])
   
+  #############################################################################  
+  def getAncestors(self, lfn, depth):
+    
+    logicalFileNames=lfn
+    jobsId = []
+    id = -1
+    for fileName in lfn:
+      result = self.db_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
+      if not result["OK"]:
+        gLogger.error('Ancestor',result['Message'])
+      else:
+        id = int(result['Value'])
+      jobsId += [id]
+     
+    command=''
+    while (depth-1) and jobsId:
+         command = 'select files.fileName,files.jobid from inputfiles,files where '
+         for job_id in jobsId:
+             command +='inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)+' or '
+         command=command[:-3]
+         jobsId=[]
+         res = self.db_._query(command)
+         if not res['OK']:
+           gLogger.error('Ancestor',result["Message"])
+         else:
+           dbResult = res['Value']
+           for record in dbResult:
+             jobsId +=[record[1]]
+             logicalFileNames += [record[0]]
+         depth-=1     
+    return logicalFileNames
+   
   """
   data insertation into the database
   """
