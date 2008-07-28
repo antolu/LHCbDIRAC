@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.5 2008/07/24 11:38:42 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.6 2008/07/28 13:28:21 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,17 +11,16 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.5 2008/07/24 11:38:42 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.6 2008/07/28 13:28:21 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
-from DIRAC.Core.Base.Agent import createAgent
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication
   from DIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re
@@ -41,7 +40,6 @@ class SoftwareInstallation(ModuleBaseSAM):
     self.testName = SAM_TEST_NAME
     self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "SoftwareInstallation" )
-    self.softwareAgentName = gConfig.getValue('/Operations/SAM/SoftwareAgent','LHCb/SoftwareManagementAgent')
     self.result = S_ERROR()
 
     self.jobID = None
@@ -123,23 +121,70 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     #Install the software now
     if self.enable:
-      try:
-        agentName = self.softwareAgentName
-        localCfg = LocalConfiguration()
-        localCfg.addDefaultEntry('/LocalSite/SharedArea',sharedArea)
-        localCfg.setConfigurationForAgent(agentName)
-        resultDict = localCfg.loadUserData()
-        if not resultDict[ 'OK' ]:
-          return self.finalize("Errors when loading configuration", resultDict['Message'],'critical')
+      activeSoftware = gConfig.getValue(self.section+'/ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
+      installList = gConfig.getValue(activeSoftware,[])
+      if not installList:
+        return self.finalize('The active list of software could not be retreived from %s or is null' %(activeSoftware),'error')
 
-        agent = createAgent(agentName)
-        result = agent.run_once()
-        self.log.verbose(result)
-        if result.has_key('AgentResult'):
-          if not result['AgentResult']: #Will always return another boolean for the status due to the S_ERROR Agent framework issue
-            return self.finalize('Software not successfully installed',result['Value'],'critical')
-      except Exception,x:
-        return self.finalize('Could not start %s with exception' %self.softwareAgentName,str(x),'critical')
+      deprecatedSoftware = gConfig.getValue(self.section+'/DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
+      removeList = gConfig.getValue(deprecatedSoftware,[])
+
+      localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
+      if not localPlatforms:
+        return self.finalize('/LocalSite/Architecture is not defined in the local configuration')
+
+      if not os.path.exists(sharedArea):
+        try:
+          os.mkdir(sharedArea)
+        except Exception,x:
+          return self.finalize('Could not create proposed shared area directory:\n%s' %(sharedArea),'critical')
+
+      for systemConfig in localPlatforms:
+        self.log.info('The following software packages will be installed:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
+        packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig),[])
+
+        for installPackage in installList:
+          appNameVersion = string.split(installPackage,'.')
+          if not len(appNameVersion)==2:
+            return self.finalize('Could not determine name and version of package: %s' %installPackage,'error')
+          #Must check that package to install is supported by LHCb for requested system configuration
+
+          if installPackage in packageList:
+            self.log.info('Attempting to install %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+            orig = sys.stdout
+            catch = open(self.logFile,'a')
+            sys.stdout=catch
+            result = InstallApplication(appNameVersion, systemConfig, sharedArea )
+            sys.stdout=orig
+            catch.close()
+            #result = True
+            if not result: #or not result['OK']:
+              return self.finalize('Problem during execution, result is %s stopping.' %(result),'error')
+            else:
+              self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          else:
+            self.log.info('%s is not supported for system configuration %s, nothing to install.' %(installPackage,systemConfig))
+
+        for removePackage in removeList:
+          appNameVersion = string.split(removePackage,'.')
+          if not len(appNameVersion)==2:
+            return self.finalize('Could not determine name and version of package: %s' %installPackage,'error')
+
+          if removePackage in packageList:
+            self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+            orig = sys.stdout
+            catch = open(self.logFile,'a')
+            sys.stdout=catch
+            result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
+            sys.stdout=orig
+            catch.close()
+            result = True
+            if not result: # or not result['OK']:
+              return self.finalize('Problem during execution:\n %s\n stopping.' %(result),'error')
+            else:
+              self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          else:
+            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
     else:
       self.log.info('Software installation is disabled via enable flag')
 
