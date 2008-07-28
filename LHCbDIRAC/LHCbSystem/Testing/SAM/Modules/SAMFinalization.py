@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.16 2008/07/28 19:38:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.17 2008/07/28 19:58:49 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.16 2008/07/28 19:38:00 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.17 2008/07/28 19:58:49 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -96,6 +96,13 @@ class SAMFinalization(ModuleBaseSAM):
     self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
 
+    sharedArea = SharedArea()
+    if not sharedArea or not os.path.exists(sharedArea):
+      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
+      return S_ERROR('Could not determine shared area for site')
+    else:
+      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+
     result = self.__removeLockFile(sharedArea)
     if not result['OK']:
       self.setApplicationStatus('Could Not Remove Lock File')
@@ -109,13 +116,6 @@ class SAMFinalization(ModuleBaseSAM):
 
     if not failed:
       self.setApplicationStatus('Starting %s Test' %self.testName)
-
-    sharedArea = SharedArea()
-    if not sharedArea or not os.path.exists(sharedArea):
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
-      return S_ERROR('Could not determine shared area for site')
-    else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     result = self.getSAMNode()
     if not result['OK']:
