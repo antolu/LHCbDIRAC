@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.8 2008/07/28 18:17:05 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.9 2008/07/28 19:43:55 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.8 2008/07/28 18:17:05 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.9 2008/07/28 19:43:55 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -83,7 +83,7 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('An error was detected in a previous step, exiting.')
-      return self.finalize('Problem during execution','Failure detected in a previous step','error')
+      return self.finalize('Problem during execution','Failure detected in a previous step','notice')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()

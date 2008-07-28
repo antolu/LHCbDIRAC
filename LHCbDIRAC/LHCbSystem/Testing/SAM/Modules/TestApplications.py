@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.1 2008/07/20 16:59:04 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.2 2008/07/28 19:44:18 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.1 2008/07/20 16:59:04 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.2 2008/07/28 19:44:18 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -92,7 +92,7 @@ class TestApplications(ModuleBaseSAM):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('An error was detected in a previous step, exiting.')
-      return self.finalize('Problem during execution','Failure detected in a previous step','error')
+      return self.finalize('Problem during execution','Failure detected in a previous step','notice')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
 

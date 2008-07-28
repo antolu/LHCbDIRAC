@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.5 2008/07/24 08:28:25 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.6 2008/07/28 19:43:38 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.5 2008/07/24 08:28:25 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.6 2008/07/28 19:43:38 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -71,7 +71,7 @@ class SystemConfiguration(ModuleBaseSAM):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('An error was detected in a previous step, exiting.')
-      return self.finalize('Problem during execution','Failure detected in a previous step','error')
+      return self.finalize('Problem during execution','Failure detected in a previous step','notice')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
 
