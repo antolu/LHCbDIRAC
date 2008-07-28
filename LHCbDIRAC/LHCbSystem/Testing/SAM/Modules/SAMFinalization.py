@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.17 2008/07/28 19:58:49 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.18 2008/07/28 20:51:06 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.17 2008/07/28 19:58:49 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.18 2008/07/28 20:51:06 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -103,16 +103,19 @@ class SAMFinalization(ModuleBaseSAM):
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
-    result = self.__removeLockFile(sharedArea)
-    if not result['OK']:
-      self.setApplicationStatus('Could Not Remove Lock File')
-      return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
-
     failed = False
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.warn('A critical error was detected in a previous step, will publish SAM results.')
-      failed = True
       #return self.finalize('Stopping execution of SAM Finalization','Workflow / Step Failure','critical')
+      failed = True
+
+    if not failed: #i.e. if the lock test has failed, another job is running
+      result = self.__removeLockFile(sharedArea)
+      if not result['OK']:
+        self.setApplicationStatus('Could Not Remove Lock File')
+        return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
+    else:
+      self.log.info('Workflow / step failed, leaving SAM lock file in shared area')
 
     if not failed:
       self.setApplicationStatus('Starting %s Test' %self.testName)
