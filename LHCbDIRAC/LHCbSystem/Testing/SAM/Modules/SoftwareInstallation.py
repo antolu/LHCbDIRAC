@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.7 2008/07/28 17:13:25 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.8 2008/07/28 18:17:05 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.7 2008/07/28 17:13:25 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.8 2008/07/28 18:17:05 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -124,20 +124,20 @@ class SoftwareInstallation(ModuleBaseSAM):
       activeSoftware = '/Operations/SoftwareDistribution/Active'
       installList = gConfig.getValue(activeSoftware,[])
       if not installList:
-        return self.finalize('The active list of software could not be retreived from %s or is null' %(activeSoftware),'error')
+        return self.finalize('The active list of software could not be retreived from',activeSoftware,'error')
 
       deprecatedSoftware = '/Operations/SoftwareDistribution/Deprecated'
       removeList = gConfig.getValue(deprecatedSoftware,[])
 
       localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
       if not localPlatforms:
-        return self.finalize('/LocalSite/Architecture is not defined in the local configuration')
+        return self.finalize('/LocalSite/Architecture is not defined in the local configuration','Could not get /LocalSite/Architecture','error')
 
       if not os.path.exists(sharedArea):
         try:
           os.mkdir(sharedArea)
         except Exception,x:
-          return self.finalize('Could not create proposed shared area directory:\n%s' %(sharedArea),'critical')
+          return self.finalize('Could not create proposed shared area directory:',sharedArea,'critical')
 
       for systemConfig in localPlatforms:
         self.log.info('The following software packages will be installed:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
@@ -146,7 +146,7 @@ class SoftwareInstallation(ModuleBaseSAM):
         for installPackage in installList:
           appNameVersion = string.split(installPackage,'.')
           if not len(appNameVersion)==2:
-            return self.finalize('Could not determine name and version of package: %s' %installPackage,'error')
+            return self.finalize('Could not determine name and version of package:',installPackage,'error')
           #Must check that package to install is supported by LHCb for requested system configuration
 
           if installPackage in packageList:
@@ -159,7 +159,7 @@ class SoftwareInstallation(ModuleBaseSAM):
             catch.close()
             #result = True
             if not result: #or not result['OK']:
-              return self.finalize('Problem during execution, result is %s stopping.' %(result),'error')
+              return self.finalize('Problem during execution, result is stopping.',result,'error')
             else:
               self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
           else:
@@ -168,7 +168,7 @@ class SoftwareInstallation(ModuleBaseSAM):
         for removePackage in removeList:
           appNameVersion = string.split(removePackage,'.')
           if not len(appNameVersion)==2:
-            return self.finalize('Could not determine name and version of package: %s' %installPackage,'error')
+            return self.finalize('Could not determine name and version of package:',installPackage,'error')
 
           if removePackage in packageList:
             self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
@@ -180,7 +180,7 @@ class SoftwareInstallation(ModuleBaseSAM):
             catch.close()
             result = True
             if not result: # or not result['OK']:
-              return self.finalize('Problem during execution:\n %s\n stopping.' %(result),'error')
+              return self.finalize('Problem during execution, stopping.',result,'error')
             else:
               self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
           else:
