@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.6 2008/07/28 13:28:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.7 2008/07/28 17:13:25 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.6 2008/07/28 13:28:21 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.7 2008/07/28 17:13:25 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -121,12 +121,12 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     #Install the software now
     if self.enable:
-      activeSoftware = gConfig.getValue(self.section+'/ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
+      activeSoftware = '/Operations/SoftwareDistribution/Active'
       installList = gConfig.getValue(activeSoftware,[])
       if not installList:
         return self.finalize('The active list of software could not be retreived from %s or is null' %(activeSoftware),'error')
 
-      deprecatedSoftware = gConfig.getValue(self.section+'/DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
+      deprecatedSoftware = '/Operations/SoftwareDistribution/Deprecated'
       removeList = gConfig.getValue(deprecatedSoftware,[])
 
       localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
