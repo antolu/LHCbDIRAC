@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.59 2008/07/16 10:18:07 paterson Exp $
+# $Id: GaudiApplication.py,v 1.60 2008/07/29 17:24:02 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.59 2008/07/16 10:18:07 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.60 2008/07/29 17:24:02 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -28,7 +28,6 @@ class GaudiApplication(ModuleBase):
     self.optfile = ''
     self.run_number = 0
     self.firstEventNumber = 1
-    self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
@@ -46,7 +45,6 @@ class GaudiApplication(ModuleBase):
     self.optfile_extra = ''
     self.optionsLinePrev = ''
     self.optionsLine = ''
-    self.extraPackages = ''
 
   #############################################################################
   def resolveInputDataOpts(self,options):
@@ -245,16 +243,10 @@ class GaudiApplication(ModuleBase):
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
 
-    if self.step_commons.has_key('generatorName'):
-      self.generator_name = self.step_commons['generatorName']
-
-    if self.step_commons.has_key('extraPackages'):
-      self.extraPackages = self.step_commons['extraPackages']
 
   #############################################################################
   def execute(self):
-    self.setApplicationStatus('Initializing GaudiApplication ')
-    self.log.info('Initializing '+self.version)
+
     self.resolveInputVariables()
     optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
@@ -262,20 +254,26 @@ class GaudiApplication(ModuleBase):
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
-    self.result = S_OK()
-    if not self.applicationName or not self.applicationVersion:
-      self.result = S_ERROR( 'No Gaudi Application defined' )
+
+    self.setApplicationStatus( 'Initializing GaudiApplication' )
+
+    if not self.applicationName or not self.applicationName:
+      self.resul = S_ERROR( 'No Gaudi Application defined' )
     elif not self.systemConfig:
       self.result = S_ERROR( 'No LHCb platform selected' )
-    # FIXME: clarify if applicationLog or logfile is to be used
-    elif not self.applicationLog:
+    # FIXME: clarify if appLog or logfile is to be used
+    elif not self.logfile and not self.appLog:
       self.result = S_ERROR( 'No Log file provided' )
-
+    
     if not self.result['OK']:
       return self.result
-
+    
     if not self.optionsFile and not self.optionsLine:
       self.log.warn( 'No options File nor options Line provided' )
+    
+    self.log.info('Initializing '+self.version)
+
+    self.result = S_OK()
 
     cwd = os.getcwd()
     self.root = gConfig.getValue('/LocalSite/Root',cwd)
@@ -283,17 +281,23 @@ class GaudiApplication(ModuleBase):
     self.log.info( "Executing application %s %s" % ( self.applicationName, self.applicationVersion ) )
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
-    localDir = 'lib' #default
+
+    localArea  = LocalArea()
     sharedArea = SharedArea()
 
+    # 1. Check if Application is available in Shared Area
     appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    self.log.info(appCmd)
     if appCmd:
       mySiteRoot = sharedArea
     else:
-      self.log.info( 'Application not Found' )
-      self.setApplicationStatus( 'Application not Found' )
-      self.result = S_ERROR( 'Application not Found' )
+      # 2. If not, check if available in Local Area
+      appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
+      if appCmd:
+        mySiteRoot = localArea
+      else:
+        self.log.warn( 'Application not Found' )
+        self.setApplicationStatus( 'Appliaction not Found' )
+        self.result = S_ERROR( 'Application not Found' )
 
     if not self.result['OK']:
       return self.result
@@ -344,12 +348,12 @@ class GaudiApplication(ModuleBase):
       orig_ld_path = os.environ['LD_LIBRARY_PATH']
       self.log.info('original ld lib path is: '+orig_ld_path)
 
-    script.write('declare -x MYSITEROOT='+self.root+'/'+localDir+'\n')
+    script.write('declare -x MYSITEROOT='+mySiteRoot+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('declare -x JOBOPTPATH=gaudirun.opts\n')
     script.write('declare -x CSEC_TRACE=1\n')
     script.write('declare -x CSEC_TRACEFILE=csec.log\n')
-    script.write('. '+self.root+'/'+localDir+'/scripts/ExtCMT.sh\n')
+    script.write('. '+mySiteRoot+'/scripts/ExtCMT.sh\n')
 
     # DLL fix which creates fake CMT package
     cmtFlag = ' '
@@ -367,40 +371,15 @@ class GaudiApplication(ModuleBase):
       script.write('cp '+ld_base_path+'/lib/requirements '+cmtStr+'/cmttemp/v1/cmt\n')
       script.write('export CMTPATH='+cmtStr+'\n')
       cmtFlag = '--use="cmttemp v1" '
-
-    if not self.extraPackages == '':
-      cmtFlag = ''
-      if type(self.extraPackages) != type([]):
-        self.extraPackages = self.extraPackages.split(';')
-
-      self.log.info('Found extra package versions: %s' %(string.join(self.extraPackages,', ')))
-      for package in self.extraPackages:
-        cmtFlag += '--use="%s %s" ' %(package.split('.')[0],package.split('.')[1])
-
-    externals = ''
-    site = gConfig.getValue('/LocalSite/Site','')
-    if not site:
-      externals = 'gfal CASTOR dcache_client lfc oracle' #should never happen, site is always defined
-      self.log.info('/LocalSite/Site undefined so setting externals to: %s' %externals)
-    else:
-      if gConfig.getOption('/Operations/ExternalsPolicy/%s' %site)['OK']:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/%s' %site,[])
-        externals = string.join(externals,' ')
-        self.log.info('Found externals policy for %s = %s' %(site,externals))
-      else:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
-        externals = string.join(externals,' ')
-        self.log.info('Using default externals policy for %s = %s' %(site,externals))
-
     script.write('echo $LHCBPYTHON\n')
     if self.generator_name == '':
-      script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
+                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
-      script.write('. '+self.root+'/'+localDir+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
@@ -486,7 +465,7 @@ rm -f scrtmp.py
     script.write('env | sort >> localEnv.log\n')
     script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
-    comp_path = self.root+'/'+localDir+'/'+self.systemConfig
+    comp_path = mySiteRoot+'/'+self.systemConfig
     if os.path.exists(comp_path):
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
