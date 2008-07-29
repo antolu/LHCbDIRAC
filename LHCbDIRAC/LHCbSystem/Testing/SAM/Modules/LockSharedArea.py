@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.4 2008/07/29 19:54:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.5 2008/07/29 20:41:02 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.4 2008/07/29 19:54:17 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.5 2008/07/29 20:41:02 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -117,6 +117,7 @@ class LockSharedArea(ModuleBaseSAM):
         #unique to this test, prevent execution of software installation via 'notice' status
         self.log.info('Another SAM job has been running at this site for less than %s seconds disabling software installation test' %self.lockValidity)
         self.writeToLog('Another SAM job has been running at this site for less than %s seconds, disabling software installation test' %self.lockValidity)
+        self.setApplicationStatus('Shared Area Lock Exists')
         return self.finalize('%s test running at same time as another SAM job' %self.testName,'Status NOTICE (= 30)','notice')
 
     cmd = 'touch %s/%s' %(sharedArea,self.lockFile)
