@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.60 2008/07/28 14:29:36 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.61 2008/07/29 10:11:25 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.60 2008/07/28 14:29:36 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.61 2008/07/29 10:11:25 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -286,14 +286,14 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProductionsWithEventTypes(eventType, configName,  configVersion, processingPass)
   
   #############################################################################
-  types_addReplica = [StringType, StringType, StringType, StringType]
-  def export_addReplica(self, File, Name, Locations, SE):
-    return dataMGMT_.addReplica(File, Name, Locations, SE)
+  types_addReplica = [StringType]
+  def export_addReplica(self, fileName):
+    return dataMGMT_.addReplica(fileName)
   
   #############################################################################
-  types_removeReplica = [StringType, StringType, StringType, StringType]
-  def export_removeReplica(self, File, Name, Locations, SE):
-    return dataMGMT_.removeReplica(File, Name, Locations, SE)
+  types_removeReplica = [StringType]
+  def export_removeReplica(self, fileName):
+    return dataMGMT_.removeReplica(fileName)
   
   #############################################################################
   types_addEventType = [LongType, StringType, StringType]
@@ -316,10 +316,28 @@ class BookkeepingManagerHandler(RequestHandler):
       list =[]
       for file in fileList:
         list +=[file[0]]
-      result = rm.getReplicas(list)
+      result = rm.getReplicas(list[0])
     else:
       return S_ERROR(res['Message'])
     return S_OK(result)
+  
+  #############################################################################
+  types_addFiles = [ListType]
+  def export_addFiles(self, lfns):
+    for file in lfns:
+      res = dataMGMT_.addReplica(file)
+      if not res['OK']:
+        return S_ERROR('Message')
+    return S_OK('Replica(s) added successfully!')
+  
+  #############################################################################
+  types_removeFiles = [ListType]
+  def export_removeFiles(self, lfns):
+    for file in lfns:
+      res = dataMGMT_.removeReplica(file)
+      if not res['OK']:
+        return S_ERROR('Message')
+    return S_OK('Replica(s) removed successfully!')
   
   '''
   Monitoring

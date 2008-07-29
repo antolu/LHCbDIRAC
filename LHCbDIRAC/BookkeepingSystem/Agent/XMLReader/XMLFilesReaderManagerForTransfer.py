@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.5 2008/07/25 19:15:48 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.6 2008/07/29 10:11:26 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.5 2008/07/25 19:15:48 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.6 2008/07/29 10:11:26 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -59,12 +59,8 @@ class XMLFilesReaderManagerForTransfer:
   
   #############################################################################
   def _listTodoDirectory(self):
-    files = self.fileClient_.list(self.baseDir_+"ToDo")
-    result = []
-    for file in files:
-      if ('00000038_' in file) or ('00000037_' in  file):
-        result +=[file]
-    return result 
+    return self.fileClient_.list(self.baseDir_+"ToDo")
+    
   #############################################################################
   def fileaction(self, fn):
     """
@@ -183,7 +179,6 @@ class XMLFilesReaderManagerForTransfer:
           result = self.__translateJobAttributes(job)
           if result['OK']:
             name = job.getFileName().split("/")[5]
-            gLogger.info(job.writeToXML())
             gLogger.info("Send "+str(name)+" to volhcb07!!")
             self.bkkClient_.filetransfer(name, job.writeToXML())
     

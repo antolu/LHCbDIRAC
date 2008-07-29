@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.40 2008/07/28 14:29:36 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.41 2008/07/29 10:11:24 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.40 2008/07/28 14:29:36 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.41 2008/07/29 10:11:24 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -286,19 +286,29 @@ class BookkeepingClient:
     return server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
 
   #############################################################################
-  def addReplica(self, File, Name, Locations, SE):
+  def addReplica(self, fileName):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    return server.addReplica(File, Name, Locations, SE)
+    return server.addReplica(fileName)
   
   #############################################################################
-  def removeReplica(self, File, Name, Locations, SE):
+  def removeReplica(self, fileName):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    return server.removeReplica(File, Name, Locations, SE)
+    return server.removeReplica(fileName)
   
   #############################################################################
   def addEventType(self, evid, desc, primary):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.addEventType(long(evid), desc, primary)
+  
+  #############################################################################
+  def addFiles(self, lfns):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.addFiles(lfns)
+  
+  #############################################################################
+  def removeFiles(self, lfns):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.removeFiles(lfns)
   
   #############################################################################
   def getLFNsByProduction(self, prodid):

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.13 2008/07/28 14:29:36 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.14 2008/07/29 10:11:25 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.13 2008/07/28 14:29:36 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.14 2008/07/29 10:11:25 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -164,7 +164,36 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def getAncestors(self, lfn, depth):
-    
+    logicalFileNames={}
+    jobsId = []
+    job_id = -1
+    deptpTmp = depth
+    for fileName in lfn:
+      jobsId = []
+      result = self.db_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
+      if not result["OK"]:
+        gLogger.error('Ancestor',result['Message'])
+      else:
+        job_id = int(result['Value'])
+      jobsId = [job_id]
+      files = []
+      depthTmp = depth
+      while (depthTmp-1) and jobsId:
+         for job_id in jobsId:
+           command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+           jobsId=[]
+           res = self.db_._query(command)
+           if not res['OK']:
+             gLogger.error('Ancestor',result["Message"])
+           else:
+             dbResult = res['Value']
+             for record in dbResult:
+               jobsId +=[record[1]]
+               files += [record[0]]
+         depth-=1 
+      logicalFileNames[fileName]=files    
+    return logicalFileNames
+    '''
     logicalFileNames=lfn
     jobsId = []
     id = -1
@@ -193,7 +222,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
              logicalFileNames += [record[0]]
          depth-=1     
     return logicalFileNames
-   
+   '''
   """
   data insertation into the database
   """
@@ -441,8 +470,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
   
   #############################################################################
-  def removeReplica(self, File, Name, Locations, SE):
-    result = self.checkfile(File) 
+  def removeReplica(self, fileName):
+    result = self.checkfile(fileName) 
     if result['OK']:
       fileID = long(result['Value'][0][0])
       res = self.updateReplicaRow(fileID, 'No')
@@ -455,8 +484,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   
   #############################################################################
-  def addReplica(self, File, Name, Locations, SE):
-    result = self.checkfile(File) 
+  def addReplica(self, fileName):
+    result = self.checkfile(fileName) 
     if result['OK']:
       fileID = long(result['Value'][0][0])
       res = self.updateReplicaRow(fileID, 'Yes')
