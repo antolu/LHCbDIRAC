@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.10 2008/07/29 14:39:51 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.11 2008/07/29 20:18:11 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.10 2008/07/29 14:39:51 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.11 2008/07/29 20:18:11 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -201,9 +201,7 @@ class ModuleBaseSAM(object):
     """Write to the log file with a printed message.
     """
     fopen = open(self.logFile,'a')
-    fopen.write(self.getMessageString('%s\n%s' %(message,result)))
-    statusCode = self.samStatus[samResult]
-    fopen.write(self.getMessageString(message))
+    fopen.write(self.getMessageString('%s' %(message)))
     fopen.close()
     return S_OK()
 
