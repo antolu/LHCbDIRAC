@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.61 2008/07/29 18:13:38 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.62 2008/07/29 18:31:14 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.61 2008/07/29 18:13:38 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.62 2008/07/29 18:31:14 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -254,6 +254,8 @@ class GaudiApplication(ModuleBase):
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
+
+    self.result = S_OK()
 
     self.setApplicationStatus( 'Initializing GaudiApplication' )
 
