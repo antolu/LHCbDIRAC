@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.3 2008/07/29 14:39:28 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.4 2008/07/29 19:54:17 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.3 2008/07/29 14:39:28 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.4 2008/07/29 19:54:17 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -80,8 +80,8 @@ class LockSharedArea(ModuleBaseSAM):
       return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info('An error was detected in a previous step, exiting with status critical.')
-      return self.finalize('Problem during execution','Failure detected in a previous step','info')
+      self.log.info('An error was detected in a previous step, exiting with status error.')
+      return self.finalize('Problem during execution','Failure detected in a previous step','error')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()
