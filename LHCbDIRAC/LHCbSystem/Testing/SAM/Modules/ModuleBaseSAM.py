@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.9 2008/07/25 16:26:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.10 2008/07/29 14:39:51 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.9 2008/07/25 16:26:09 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.10 2008/07/29 14:39:51 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -178,6 +178,34 @@ class ModuleBaseSAM(object):
     else:
       message = '%s\n%s\n%s\n' %(border,message,border)
     return message
+
+  #############################################################################
+  def setSAMLogFile(self):
+    """Simple function to store the SAM log file name and test name in the
+       workflow parameters.
+    """
+    if not self.logFile:
+      return S_ERROR('No LogFile defined')
+
+    if not self.testName:
+      return S_ERROR('No SAM test name defined')
+
+    if not self.workflow_commons.has_key('SAMLogs'):
+      self.workflow_commons['SAMLogs'] = {}
+
+    self.workflow_commons['SAMLogs'][self.testName]=self.logFile
+    return S_OK()
+
+  #############################################################################
+  def writeToLog(self,message):
+    """Write to the log file with a printed message.
+    """
+    fopen = open(self.logFile,'a')
+    fopen.write(self.getMessageString('%s\n%s' %(message,result)))
+    statusCode = self.samStatus[samResult]
+    fopen.write(self.getMessageString(message))
+    fopen.close()
+    return S_OK()
 
   #############################################################################
   def finalize(self,message,result,samResult):
