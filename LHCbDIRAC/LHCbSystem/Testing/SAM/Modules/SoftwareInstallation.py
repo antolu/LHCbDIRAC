@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.9 2008/07/28 19:43:55 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.10 2008/07/29 20:06:42 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.9 2008/07/28 19:43:55 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.10 2008/07/29 20:06:42 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -76,14 +76,21 @@ class SoftwareInstallation(ModuleBaseSAM):
     """
     self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
-
+    self.setSAMLogFile()
     self.result = S_OK()
     if not self.result['OK']:
       return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info('An error was detected in a previous step, exiting.')
-      return self.finalize('Problem during execution','Failure detected in a previous step','notice')
+      self.log.info('An error was detected in a previous step, exiting with status error.')
+      return self.finalize('Problem during execution','Failure detected in a previous step','error')
+
+    if not self.workflow_commons.has_key('SAMResults'):
+      return self.finalize('Problem determining CE-lhcb-lock test result','No SAMResults key in workflow commons','error')
+
+    if int(self.workflow_commons['SAMResults']['CE-lhcb-lock']) > int(self.samStatus['ok']):
+      self.writeToLog('Another SAM job is running at this site, disabling software installation test for this CE job')
+      return self.finalize('%s test will be disabled' %self.testName,'Status INFO (= 20)','info')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()
