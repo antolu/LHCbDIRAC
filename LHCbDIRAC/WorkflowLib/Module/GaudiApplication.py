@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.62 2008/07/29 18:31:14 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.63 2008/07/29 18:51:44 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.62 2008/07/29 18:31:14 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.63 2008/07/29 18:51:44 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -306,13 +306,12 @@ class GaudiApplication(ModuleBase):
     self.setApplicationStatus( 'Application Found' )
     self.log.info( 'Application Found:' )
     app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
-    app_dir_path_install = self.root+'/lib/lhcb/'+string.upper(self.applicationName)+'/'+ \
+    app_dir_path_install = mySiteRoot+'/lib/lhcb/'+string.upper(self.applicationName)+'/'+ \
                    string.upper(self.applicationName)+'_'+self.applicationVersion+'/InstallArea'
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
-    mysiteroot = self.root
     if os.path.exists('%s/%s' %(cwd,self.optionsFile)):
       self.optfile = self.optionsFile
     # Otherwise take the one from the application options directory
