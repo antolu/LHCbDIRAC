@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.88 2008/07/29 18:15:55 paterson Exp $
+# $Id: JobFinalization.py,v 1.89 2008/07/29 18:23:20 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,11 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.88 2008/07/29 18:15:55 paterson Exp $"
-
-############### TODO
-# Cleanup import of unnecessary modules
-
+__RCSID__ = "$Id: JobFinalization.py,v 1.89 2008/07/29 18:23:20 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -392,12 +388,6 @@ class JobFinalization(ModuleBase):
       self.log.error( "Saving log file %s failed: no such file" % logfile )
       return S_ERROR('No such file')
 
-    if gzip_flag:
-      status = gzip(logfile)
-      if status > 0 :
-        return
-      else:
-        logfile = logfile+'.gz'
 
     ##################################################
     #  Copy the log file
@@ -406,15 +396,17 @@ class JobFinalization(ModuleBase):
       shutil.copy(logfile,self.logdir)
       cwd = os.getcwd()
       os.chdir(self.logdir)
+      if gzip_flag:
+        status = gzip(logfile)
+        if status > 0 :
+          return
+        else:
+          logfile = logfile+'.gz'
       makeIndex()
       os.chdir(cwd)
     except IOError, x:
       return S_ERROR('File copy failed: '+str(x))
 
-    # Do not leave gzipped files in the working directory.
-    # They may be still used later
-    if gzip_flag:
-      gunzip(logfile)
     return S_OK()
 
 ##################################################################################
@@ -424,8 +416,8 @@ class JobFinalization(ModuleBase):
     """
 
     files = os.listdir('.')
-    files.append('../std.out')
-    files.append('../std.err')
+    files.append('std.out')
+    files.append('std.err')
 
     # Ugly !!!  - distinguish log files by their extensions
     logexts = ['.txt','.hbook','.log','.root','.out','.output','.xml','.sh', '.info', '.err']
@@ -603,7 +595,7 @@ class JobFinalization(ModuleBase):
 
         result = self.__getDestinationSEList(se_group, outputmode)
         if not result['OK']:
-          self.log.error('No valid SEs defined as file destinations :'+se_group,result['Message'])
+          self.log.error('No valid SEs defined as file destinations :'+se_group)
           return result
         ses = result['Value']
         if outputmode == "Any":
@@ -646,10 +638,11 @@ class JobFinalization(ModuleBase):
       self.log.info('Found local SE %s' %outputSE)
       return S_OK([outputSE])
     # There is an alias defined for this Site
-    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),[])
+    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),'')
     if alias_se:
       self.log.info('Found associated SE for site %s' %(alias_se))
-      return S_OK(alias_se)
+      return S_OK([alias_se])
+
 
     localSEs = self.__getLocalSEList()
     self.log.info('Local SE list is: %s' %(localSEs))
