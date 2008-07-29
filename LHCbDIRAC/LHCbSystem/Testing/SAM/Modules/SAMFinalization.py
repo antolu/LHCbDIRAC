@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.18 2008/07/28 20:51:06 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.19 2008/07/29 19:51:51 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.18 2008/07/28 20:51:06 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.19 2008/07/29 19:51:51 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -55,8 +55,6 @@ class SAMFinalization(ModuleBaseSAM):
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
 
-    self.softwareTestName='CE-lhcb-install'
-    self.softwareLogName='sam-install.log'
     #Workflow parameters for the test
     self.enable = True
     self.publishResultsFlag = False
@@ -105,28 +103,8 @@ class SAMFinalization(ModuleBaseSAM):
 
     failed = False
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.warn('A critical error was detected in a previous step, will publish SAM results.')
-      #return self.finalize('Stopping execution of SAM Finalization','Workflow / Step Failure','critical')
+      self.log.warn('A critical error was detected in a previous step, will attempt to publish SAM results.')
       failed = True
-
-    if not failed: #i.e. if the lock test has failed, another job is running
-      result = self.__removeLockFile(sharedArea)
-      if not result['OK']:
-        self.setApplicationStatus('Could Not Remove Lock File')
-        return self.finalize('Failed to remove lock file','Status ERROR (= 50)','error')
-    else:
-      self.log.info('Workflow / step failed, leaving SAM lock file in shared area')
-
-    if not failed:
-      self.setApplicationStatus('Starting %s Test' %self.testName)
-
-    result = self.getSAMNode()
-    if not result['OK']:
-      return self.finalize('Could not get current CE',result['Message'],'error')
-    else:
-      self.log.info('Current CE is %s' %result['Value'])
-
-    samNode = result['Value']
 
     self.log.verbose(self.workflow_commons)
     if not self.workflow_commons.has_key('SAMResults'):
@@ -134,7 +112,37 @@ class SAMFinalization(ModuleBaseSAM):
       return self.finalize('No SAM results found','Status ERROR (= 50)','error')
 
     samResults = self.workflow_commons['SAMResults']
-    result = self.__publishSAMResults(samNode,samResults)
+    #If the lock test has failed or is not OK, another job is running and the lock should not be removed
+    if not int(samResults['CE-lhcb-lock']) > int(self.samStatus['info']):
+      result = self.__removeLockFile(sharedArea)
+      if not result['OK']:
+        self.setApplicationStatus('Could Not Remove Lock File')
+        self.writeToLog('Failed to remove lock file with result:\n%s' %result)
+        failed=True
+    else:
+      self.log.info('Another SAM job is running, leaving SAM lock file in shared area')
+      self.writeToLog('Another SAM job is running, leaving SAM lock file in shared area')
+
+    if not failed:
+      self.setApplicationStatus('Starting %s Test' %self.testName)
+
+    result = self.getSAMNode()
+    if not result['OK']:
+      self.setApplicationStatus('Could Not Obtain CE Name')
+      return self.finalize('Could not get current CE',result['Message'],'error')
+    else:
+      self.log.info('Current CE is %s' %result['Value'])
+      self.writeToLog('Current CE is %s' %result['Value'])
+
+    samNode = result['Value']
+    samLogs = {}
+    if not self.workflow_commons.has_key('SAMLogs'):
+      self.setApplicationStatus('No SAM Logs Found')
+      self.log.warn('No SAM logs found')
+    else:
+      samLogs = self.workflow_commons['SAMLogs']
+
+    result = self.__publishSAMResults(samNode,samResults,samLogs)
     if not result['OK']:
       self.setApplicationStatus('SAM Reporting Error')
       return self.finalize('Failure while publishing SAM results',result['Message'],'error')
@@ -180,15 +188,39 @@ class SAMFinalization(ModuleBaseSAM):
     return statusString
 
   #############################################################################
-  def __getSoftwareReport(self,lfnPath,testStatus):
+  def __getSoftwareReport(self,lfnPath,samResults,samLogs):
     """Returns the list of software installed at the site organized by platform.
        If the test status is not successful, returns a link to the install test
        log.  Creates an html table for the results.
     """
-    installLogURL = '%s%s/%s' %(self.logURL,lfnPath,self.softwareLogName)
-    if int(testStatus) > int(self.samStatus['info']):
-      self.log.warn('%s test status was %s, writing message to check install test' %(self.softwareTestName,testStatus))
-      return '%s test status was %s = %s, please check <A HREF="%s">%s test log</A> for more details.' %(self.softwareTestName,self.__getSAMStatus(testStatus),testStatus,installLogURL,self.softwareTestName)
+    logURL = '%s%s/' %(self.logURL,lfnPath)
+    failedMessages = []
+    for testName,testStatus in samResults.items():
+      if samLogs.has_key(testName):
+        logName = samLogs[testName]
+        if int(testStatus) > int(self.samStatus['warning']):
+          self.log.warn('%s test status was %s, writing message to check %s test' %(testName,testStatus,testName))
+          failedMessages.append('<LI>%s test status was %s = %s, please check <A HREF="%s%s">%s test log</A> for more details<br>' %(testName,self.__getSAMStatus(testStatus),testStatus,logURL,logName,testName))
+        else:
+          self.log.verbose('Test %s completed with status %s' %(testName,testStatus))
+      else:
+        self.log.info('%s Test completed with %s but no SAM log file available in workflow commons' %(testName,testStatus))
+
+    if failedMessages:
+      failedLogs = """<UL><br>
+"""
+      for msg in failedMessages:
+        failedLogs+=msg+"""
+"""
+      failedLogs+= """
+</UL><br>
+"""
+      return failedLogs
+
+    #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
+    if int(samResults['CE-lhcb-install']) > int(self.samStatus['ok']):
+      self.log.info('Software install test was not run by this job.')
+      return 'Software installation test was disabled for this job by the SAM lock file.'
 
     activeSw = gConfig.getValue('/Operations/SoftwareDistribution/Active',[])
     self.log.debug('Active software is: %s' %(string.join(activeSw,', ')))
@@ -275,7 +307,7 @@ class SAMFinalization(ModuleBaseSAM):
     return table
 
   #############################################################################
-  def __publishSAMResults(self,samNode,samResults):
+  def __publishSAMResults(self,samNode,samResults,samLogs):
     """Prepares SAM publishing files and reports results to the SAM DB.
     """
     self.log.info('Preparing SAM publishing files')
@@ -294,7 +326,7 @@ class SAMFinalization(ModuleBaseSAM):
 
     lfnPath = self.__getLFNPathString(samNode)
     testSummary = self.__getTestSummary(samResults)
-    softwareReport = self.__getSoftwareReport(lfnPath,samResults[self.softwareTestName])
+    softwareReport = self.__getSoftwareReport(lfnPath,samResults,samLogs)
     counter = 0
     publishFlag = True
     for testName,testStatus in samResults.items():
