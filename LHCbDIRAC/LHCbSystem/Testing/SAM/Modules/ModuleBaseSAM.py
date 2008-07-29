@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.11 2008/07/29 20:18:11 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.12 2008/07/29 20:43:24 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.11 2008/07/29 20:18:11 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.12 2008/07/29 20:43:24 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -216,6 +216,9 @@ class ModuleBaseSAM(object):
     if not self.samStatus.has_key(samResult):
       return S_ERROR('%s is not a valid SAM status' %(samResult))
 
+    if not self.testName:
+      return S_ERROR('No SAM test name defined')
+
     gLogger.info('%s\n%s' %(message,result))
     fopen = open(self.logFile,'a')
     fopen.write(self.getMessageString('%s\n%s' %(message,result)))
@@ -229,6 +232,7 @@ class ModuleBaseSAM(object):
     if int(statusCode)<50:
       return S_OK(message)
     else:
+      self.setApplicationStatus('%s Failed (%s)' %(self.testName,samResult))
       return S_ERROR(message)
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
