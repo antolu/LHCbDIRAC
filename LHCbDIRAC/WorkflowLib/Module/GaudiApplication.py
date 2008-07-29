@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.60 2008/07/29 17:24:02 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.61 2008/07/29 18:13:38 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.60 2008/07/29 17:24:02 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.61 2008/07/29 18:13:38 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -261,8 +261,7 @@ class GaudiApplication(ModuleBase):
       self.resul = S_ERROR( 'No Gaudi Application defined' )
     elif not self.systemConfig:
       self.result = S_ERROR( 'No LHCb platform selected' )
-    # FIXME: clarify if appLog or logfile is to be used
-    elif not self.logfile and not self.appLog:
+    elif not self.applicationLog:
       self.result = S_ERROR( 'No Log file provided' )
     
     if not self.result['OK']:
