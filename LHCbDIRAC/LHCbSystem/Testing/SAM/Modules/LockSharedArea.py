@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.2 2008/07/24 07:30:03 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.3 2008/07/29 14:39:28 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.2 2008/07/24 07:30:03 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.3 2008/07/29 14:39:28 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -74,19 +74,20 @@ class LockSharedArea(ModuleBaseSAM):
     """
     self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
+    self.setSAMLogFile()
     self.result = S_OK()
     if not self.result['OK']:
       return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('An error was detected in a previous step, exiting with status critical.')
-      return S_ERROR('Problem during execution of a previous step')
+      return self.finalize('Problem during execution','Failure detected in a previous step','info')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
       self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
-      return S_ERROR('Could not determine shared area for site')
+      return self.finalize('Could not determine sharedArea for site %s:' %(self.site),sharedArea,'error')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
@@ -97,7 +98,7 @@ class LockSharedArea(ModuleBaseSAM):
       self.setJobParameter('ExistingSAMLock','Deleted via SAM test flag on %s' %(time.asctime()))
       if not result['OK']:
         self.log.warn(result['Message'])
-        return S_ERROR('Could not remove %s' %self.lockFile)
+        return self.finalize('Could not remove existing lock file via flag',self.lockFile,'critical')
 
     self.log.info('Checking SAM lock file: %s' %self.lockFile)
     if os.path.exists('%s/%s' %(sharedArea,self.lockFile)):
@@ -111,19 +112,23 @@ class LockSharedArea(ModuleBaseSAM):
         self.setJobParameter('ExistingSAMLock','Removed on %s after exceeding maximum validity' %(time.asctime()))
         if not result['OK']:
           self.log.warn(result['Message'])
-          return S_ERROR('Could not remove %s' %self.lockFile)
+          return self.finalize('Could not remove existing lock file exceeding maximum validity',result['Message'],'critical')
       else:
-        self.log.info('Another SAM job has been running at this site for less than %s seconds' %self.lockValidity)
-        return S_ERROR('Another SAM job currently running')
+        #unique to this test, prevent execution of software installation via 'notice' status
+        self.log.info('Another SAM job has been running at this site for less than %s seconds disabling software installation test' %self.lockValidity)
+        self.writeToLog('Another SAM job has been running at this site for less than %s seconds, disabling software installation test' %self.lockValidity)
+        return self.finalize('%s test running at same time as another SAM job' %self.testName,'Status NOTICE (= 30)','notice')
 
     cmd = 'touch %s/%s' %(sharedArea,self.lockFile)
     result = self.runCommand('Creating SAM lock file',cmd)
     if not result['OK']:
       self.log.warn(result['Message'])
-      return S_ERROR('Could not remove %s' %self.lockFile)
+      return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
+
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
-    return S_OK('Shared area is locked') #This result not published to SAM DB.
+    return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+#    return S_OK('Shared area is locked') #This result not published to SAM DB.
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
