@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.89 2008/07/29 18:23:20 paterson Exp $
+# $Id: JobFinalization.py,v 1.90 2008/07/30 14:39:40 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.89 2008/07/29 18:23:20 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.90 2008/07/30 14:39:40 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -595,7 +595,8 @@ class JobFinalization(ModuleBase):
 
         result = self.__getDestinationSEList(se_group, outputmode)
         if not result['OK']:
-          self.log.error('No valid SEs defined as file destinations :'+se_group)
+          self.log.error('No valid SEs defined as file destinations',se_group)
+          self.log.error('Could not resolve local SE',result['Message'])
           return result
         ses = result['Value']
         if outputmode == "Any":
@@ -632,17 +633,14 @@ class JobFinalization(ModuleBase):
     country = self.site.split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
-    if not result['OK']:
-      return S_ERROR("CS not Accessible")
-    if result['Value']:
+    if result['OK']:
       self.log.info('Found local SE %s' %outputSE)
       return S_OK([outputSE])
     # There is an alias defined for this Site
-    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),'')
+    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),[])
     if alias_se:
       self.log.info('Found associated SE for site %s' %(alias_se))
-      return S_OK([alias_se])
-
+      return S_OK(alias_se)
 
     localSEs = self.__getLocalSEList()
     self.log.info('Local SE list is: %s' %(localSEs))
