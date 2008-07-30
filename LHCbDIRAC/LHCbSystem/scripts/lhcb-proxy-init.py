@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.5 2008/07/30 08:37:58 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.6 2008/07/30 15:03:54 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.5 2008/07/30 08:37:58 acasajus Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.6 2008/07/30 15:03:54 acasajus Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import sys
 import os
@@ -111,10 +111,12 @@ else:
   issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
   remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
   cliParams.setProxyRemainingSecs( remainingSecs - 300 )
+  #uploadProxyToMyProxy( cliParams, True )
   uploadProxyToDIRACProxyManager( cliParams )
 
 cliParams.setDIRACGroup( proxyInfo[ 'group' ] )
-uploadProxyToMyProxy( cliParams, False )
+#uploadProxyToMyProxy( cliParams, False )
+uploadProxyToDIRACProxyManager( cliParams )
 
 retVal = proxyInfo[ 'chain' ].dumpAllToFile( proxyInfo[ 'path' ] )
 if not retVal[ 'OK' ]:
