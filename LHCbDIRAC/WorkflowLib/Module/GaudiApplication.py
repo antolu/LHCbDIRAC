@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.64 2008/07/30 11:20:05 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.65 2008/07/30 14:21:08 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.64 2008/07/30 11:20:05 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.65 2008/07/30 14:21:08 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -421,6 +421,11 @@ done
     script.write('declare -x LD_LIBRARY_PATH='+self.root+'/DIRAC/lib'+':${LD_LIBRARY_PATH}\n')
     #Finally prepend directory for user libraries
     script.write('declare -x LD_LIBRARY_PATH='+ld_base_path+'/lib:${LD_LIBRARY_PATH}\n') #DLLs always in lib dir
+
+    compatLib = os.path.join( self.root, self.systemConfig, 'compat' )
+    if os.path.exists(compatLib):
+      script.write('declare -x LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:'+compatLib+'\n')
+
 
     script.write('echo LD_LIBRARY_PATH is\n')
     script.write('echo $LD_LIBRARY_PATH\n')

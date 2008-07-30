@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.19 2008/07/04 13:39:31 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.20 2008/07/30 14:25:06 rgracian Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.19 2008/07/04 13:39:31 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.20 2008/07/30 14:25:06 rgracian Exp $"
 
 import commands, os, time, smtplib
 
@@ -39,7 +39,6 @@ class AnalyseLogFile(ModuleBase):
       if os.environ.has_key('JOBID'):
         self.jobID = os.environ['JOBID']
       self.timeoffset = 0
-      self.jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
       self.poolXMLCatName = 'pool_xml_catalog.xml'
       self.applicationLog = ''
       self.applicationVersion = ''
@@ -221,7 +220,7 @@ class AnalyseLogFile(ModuleBase):
 
       #report job parameter with timestamp
       curTime = time.asctime(time.gmtime())
-      report = 'Events processed by %s on %s [UTC]' %(self.applicationName,curTime)
+      report = 'Events processed by %s' %(self.applicationName,curTime)
       self.setJobParameter(report,nprocessed)
 
 # find number of events written
