@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.20 2008/07/30 14:25:06 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.21 2008/07/30 16:00:56 rgracian Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.20 2008/07/30 14:25:06 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.21 2008/07/30 16:00:56 rgracian Exp $"
 
 import commands, os, time, smtplib
 
@@ -220,7 +220,7 @@ class AnalyseLogFile(ModuleBase):
 
       #report job parameter with timestamp
       curTime = time.asctime(time.gmtime())
-      report = 'Events processed by %s' %(self.applicationName,curTime)
+      report = 'Events processed by %s' %(self.applicationName)
       self.setJobParameter(report,nprocessed)
 
 # find number of events written
