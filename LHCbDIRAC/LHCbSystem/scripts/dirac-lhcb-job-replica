@@ -1,0 +1,212 @@
+#! /usr/bin/env python
+import os, sys, popen2
+# Determine python for current platform and check if it is the calling one
+dirac_platform = os.path.join("/afs/cern.ch/user/r/roma/Dirac/temp/scripts","platform.py")
+if not os.path.exists( dirac_platform ):
+  print >> sys.stderr, "Missing file %s" % dirac_platform
+  sys.exit(-1)
+p3 = popen2.Popen3( dirac_platform )
+localPlatform = p3.fromchild.read().strip()
+p3.wait()
+if not localPlatform or localPlatform == "ERROR":
+  print >> sys.stderr, "Can not determine local platform"
+diracPython = os.path.join( "/afs/cern.ch/user/r/roma/Dirac/temp", localPlatform, "bin", "python" )
+if os.path.realpath(sys.executable) != os.path.realpath(diracPython):
+  sys.exit( os.system( "%s '%s'" % ( diracPython, "' '".join( sys.argv ) ) ) / 256 )
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-job-replica,v 1.1 2008/07/30 14:56:29 roma Exp $
+# File :   dirac-production-job-delete
+# Author : Stuart Paterson
+########################################################################
+__RCSID__   = "$Id: dirac-lhcb-job-replica,v 1.1 2008/07/30 14:56:29 roma Exp $"
+__VERSION__ = "$Revision: 1.1 $"
+from DIRAC.Core.Base                                         import Script
+from DIRACEnvironment                                        import DIRAC
+
+Script.registerSwitch( "S:", "Status=", "Status [Stalled]" )
+Script.registerSwitch( "A:", "ApplicationStatus=", "ApplicationStatus [None (All)]" )
+Script.registerSwitch( "M:", "MinorStatus=", "MinorStatus [None (All)]" )
+Script.registerSwitch( "C:", "Site=", "Site [None (All)]" )
+Script.registerSwitch( "O:", "Owner=", "Owner [None (All)]" )
+Script.registerSwitch( "J:", "JobGroup=", "JobGroup [None (All)]" )
+Script.registerSwitch( "D:", "Date=", "Date [None (Today)]" )
+
+from DIRAC.Interfaces.API.Dirac                              import Dirac
+from DIRAC.Interfaces.API.Job                                import Job
+
+Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
+
+print Script.getUnprocessedSwitches()
+
+def usage():
+  print 'Usage: %s ' %(Script.scriptName)
+  DIRAC.exit(2)
+
+if len(args) > 0:
+  usage()
+
+def getLFNRoot(lfn,mcYear=0):
+  """
+  return the root path of a given lfn
+
+  eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
+  eg : /lhcb/MC/<year>/  = getLFNRoot(None)
+  """
+
+  dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+
+  if lfn:
+    for inputname in lfn.split(';'):
+      for datatype in dataTypes:
+        position = inputname.find(datatype)
+        if position >-1:
+          return inputname[:position-1]
+          
+  elif mcYear=='DC06': #This should be reviewed.
+    return '/lhcb/production/DC06'
+  else:
+    return '/lhcb/MC/'+str(mcYear)
+    
+def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys-v4-lumi2'):
+  """ Constructs the logical file name according to LHCb conventions.
+  Returns the lfn without 'lfn:' prepended
+  """
+  try:
+    jobindex = "%04d"%(int(JOB_ID)/10000)
+  except:
+    jobindex = '0000'
+
+  fname = filetuple[0]
+
+  if fname.count('lfn:'):
+    return fname.replace('lfn:','')
+  
+  if fname.count('LFN:'):
+    return fname.replace('LFN:','')
+
+  if LFN_ROOT.count('DC06',): #This should be reviewed, is a nasty fix.
+    return LFN_ROOT+'/'+prodConfig+'/'+prodstring+'/'+filetuple[1].upper()+'/'+jobindex+'/'+filetuple[0]
+
+  return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
+
+
+dirac=Dirac()
+
+status = 'Stalled'
+applicationstatus=None
+date = None
+jobgroup=None
+site = None
+
+for unprocSw in Script.getUnprocessedSwitches():
+  if unprocSw[0] in ( "S", "Status" ):
+        status = unprocSw[1]
+
+
+selectjobs = dirac.selectJobs(Status=status,
+                              Site = site,
+                              Date=date)
+if not selectjobs['OK']:
+  print selectjobs['Message']
+  DIRAC.exit(2)
+
+jobs = selectjobs['Value']
+print len(jobs),jobs
+
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+rm = ReplicaManager()
+
+jobs_badstatus = []
+jobs_badsandbox = []
+jobs_badxml = []
+jobs_badparameter = []
+jobs_badreplica = []
+jobs_withallreplica = []
+jobs_withreplica = []
+jobs_withoutreplica = []
+
+
+for job in jobs:
+  result = dirac.status(int(job))
+  if not result['OK']:
+    print job, result['Message']
+    jobs_badstatus.append(job)
+    continue
+    
+  dirac.getInputSandbox(int(job))
+  if not result['OK']:
+    print job, result['Message']
+    jobs_badsandbox.append(job)
+    continue
+
+  if not os.path.exists('InputSandbox%s/jobDescription.xml' %job):
+    print job,"Can't find XML file"
+    jobs_badxml.append(job)
+    continue
+  
+  try:
+    xml = open('InputSandbox%s/jobDescription.xml' %job).read()
+  except Exception,x:
+    print x
+    jobs_badxml.append(job)
+    continue
+  
+  j = Job(xml)
+  jobid =  None
+  prodid = None
+  jobname = None
+  output = None
+  
+  for p in j.workflow.parameters:
+    if p.getName() == "JOB_ID":
+      jobid = p.getValue()
+    if p.getName() == "PRODUCTION_ID":
+      prodid = p.getValue()
+    if p.getName() == "JobName":
+      jobname = p.getValue()
+    if p.getName() == "outputDataFileMask":
+      output = p.getValue()
+
+    
+  if not jobid or not prodid or not jobname or not output:
+    print "No jobid or prodid or jobname output",jobid,prodid,output
+    jobs_badparameter.append(job)
+    continue
+
+  code = j.createCode()
+  listoutput = []
+  for line in code.split("\n"):
+    if line.count("listoutput"):
+      listoutput += eval(line.split("#")[0].split("=")[-1]) 
+
+  lfns = []
+  for item in listoutput:
+    if item['outputDataType'] in output:
+      filename = item['outputDataName']
+      lfnroot = getLFNRoot(None,"DC06")
+      lfn = makeProductionLfn(jobid,lfnroot,(filename,output),'MODE',prodid)
+      lfns.append(lfn)      
+  
+  replicas = rm.getReplicas(lfns)  
+  if replicas['OK']:
+    value = replicas['Value']
+    if value['Successful']:
+      if len(value['Successful'])==len(lfns):
+        jobs_withallreplica.append(job)
+      else:
+        jobs_withreplica.append(job)
+    else:
+      jobs_withoutreplica.append(job)
+  else:
+    jobs_badreplica.append(job)  
+
+
+print 'jobs_badstatus',jobs_badstatus
+print 'jobs_badsandbox',jobs_badsandbox
+print 'jobs_badxml',jobs_badxml
+print 'jobs_badparameter',jobs_badparameter
+print 'jobs_badreplica',jobs_badreplica
+print 'jobs_withallreplica',jobs_withallreplica
+print 'jobs_withreplica',jobs_withreplica
+print 'jobs_withoutreplica',jobs_withoutreplica
