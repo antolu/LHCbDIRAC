@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.63 2008/07/29 18:51:44 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.64 2008/07/30 11:20:05 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.63 2008/07/29 18:51:44 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.64 2008/07/30 11:20:05 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -304,9 +304,9 @@ class GaudiApplication(ModuleBase):
       return self.result
 
     self.setApplicationStatus( 'Application Found' )
-    self.log.info( 'Application Found:' )
+    self.log.info( 'Application Found:', appCmd )
     app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
-    app_dir_path_install = mySiteRoot+'/lib/lhcb/'+string.upper(self.applicationName)+'/'+ \
+    app_dir_path_install = mySiteRoot+'/lhcb/'+string.upper(self.applicationName)+'/'+ \
                    string.upper(self.applicationName)+'_'+self.applicationVersion+'/InstallArea'
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
