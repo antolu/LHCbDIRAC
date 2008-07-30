@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.4 2008/07/29 14:01:04 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.5 2008/07/30 08:37:58 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.4 2008/07/29 14:01:04 acasajus Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.5 2008/07/30 08:37:58 acasajus Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 import sys
 import os
@@ -19,6 +19,9 @@ fd = file( "%s/DIRAC/FrameworkSystem/scripts/dirac-proxy-init.py" % DIRAC.rootPa
 mod = imp.load_module( "dirac-proxy-init", fd, "", ( "", 'r', imp.PY_SOURCE ) )
 CLIParams = getattr( mod, "CLIParams" )
 generateProxy = getattr( mod, "generateProxy" )
+fd = file( "%s/DIRAC/FrameworkSystem/scripts/dirac-proxy-upload.py" % DIRAC.rootPath, "r")
+mod = imp.load_module( "dirac-proxy-upload", fd, "", ( "", 'r', imp.PY_SOURCE ) )
+uploadProxy = getattr( mod, "uploadProxy" )
 
 cliParams = CLIParams()
 cliParams.registerCLISwitches()
@@ -39,7 +42,6 @@ from DIRAC.Core.Security import CS, Properties
 from DIRAC.Core.Security.Misc import getProxyInfo
 from DIRAC.Core.Security.MyProxy import MyProxy
 from DIRAC.Core.Security.VOMS import VOMS
-from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 def uploadProxyToMyProxy( params, DNAsUsername ):
   myProxy = MyProxy()
@@ -72,15 +74,11 @@ def uploadProxyToMyProxy( params, DNAsUsername ):
 
 def uploadProxyToDIRACProxyManager( params ):
   params.debugMsg(  "Uploading user pilot proxy with group %s..." % ( params.getDIRACGroup() ) )
-  retVal = generateProxy( params )
+  params.onTheFly = True
+  retVal = uploadProxy( params )
   if not retVal[ 'OK' ]:
     print " There was a problem generating proxy to be uploaded proxy manager: %s" % retVal[ 'Message' ]
     return False
-  retVal = gProxyManager.uploadProxy( retVal[ 'Value' ] )
-  if not retVal[ 'OK' ]:
-    print " There was a problem uploading proxy to proxy manager: %s" % retVal[ 'Message' ]
-    return False
-  params.debugMsg( " Uploaded" )
   return True
 
 retVal = getProxyInfo( retVal[ 'Value' ] )
