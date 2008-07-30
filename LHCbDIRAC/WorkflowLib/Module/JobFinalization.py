@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.90 2008/07/30 14:39:40 paterson Exp $
+# $Id: JobFinalization.py,v 1.91 2008/07/30 18:40:03 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.90 2008/07/30 14:39:40 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.91 2008/07/30 18:40:03 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -657,10 +657,9 @@ class JobFinalization(ModuleBase):
 
       #check if country is already one with associated SEs
       associatedSEs = gConfig.getValue('/Resources/Countries/%s/AssociatedSEs/%s' %(country,outputSE),[])
-      if associatedSEs['OK']:
-        if associatedSEs['Value']:
-          self.log.info('Found associated SE %s in /Resources/Countries/%s/AssociatedSEs/%s' %(associatedSEs['Value'],country,outputSE))
-          return associatedSEs
+      if associatedSEs:
+        self.log.info('Found associated SE %s in /Resources/Countries/%s/AssociatedSEs/%s' %(associatedSEs['Value'],country,outputSE))
+        return associatedSEs
 
       # Final check for country associated SE
       count = 0
