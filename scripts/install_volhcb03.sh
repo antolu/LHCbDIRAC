@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.7 2008/07/16 17:08:33 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.8 2008/07/31 10:57:53 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -124,7 +124,7 @@ Systems
       {
         gLitePilotDirector
         {
-          ResourceBrokers = wms101.cern.ch,wms106.cern.ch
+          ResourceBrokers = wms105.cern.ch,wms106.cern.ch
         }
       }
     }
@@ -201,7 +201,6 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProxyRenewalAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
@@ -212,7 +211,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
