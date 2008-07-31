@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.7 2008/06/06 15:53:52 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.8 2008/07/31 10:42:07 rgracian Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -56,7 +56,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.7 2008/06/06 15:53:52 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.8 2008/07/31 10:42:07 rgracian Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -225,6 +225,7 @@ class LHCbJob(Job):
     self._addParameter(module,'optionsFile','Parameter','string','Options File Name')
     self._addParameter(module,'optionsLine','String','string','Options Line')
     self._addParameter(module,'systemConfig','Parameter','string','CMTCONFIG Value')
+    # FIXME: why logfile is used here while appLog is used everywhere else?
     self._addParameter(module,'logfile','Parameter','string','Log File Name')
     self._addParameter(module,'result','Parameter','string','Execution Result',io='output')
     self._addParameter(module,'inputData','Parameter','','Input data')
