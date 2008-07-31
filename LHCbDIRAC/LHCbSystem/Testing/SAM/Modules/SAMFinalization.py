@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.19 2008/07/29 19:51:51 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.20 2008/07/31 08:43:35 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.19 2008/07/29 19:51:51 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.20 2008/07/31 08:43:35 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -41,6 +41,7 @@ class SAMFinalization(ModuleBaseSAM):
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
     self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
+    self.diracSetup = gConfig.getValue('/DIRAC/Setup','None')
     self.log = gLogger.getSubLogger( "SAMFinalization" )
     self.result = S_ERROR()
     self.diracLogo = gConfig.getValue('/Operations/SAM/LogoURL','https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png')
@@ -352,6 +353,7 @@ detaileddata: EOT
 <IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
 <br><br><br><br><br><br><br>
 <br>DIRAC Site Name %s ( CE = %s )<br>
+<br>Corresponding to JobID %s in DIRAC setup %s<br>
 <br>Test Summary %s:<br>
 <br>
 %s
@@ -367,7 +369,7 @@ Link to log files: <br>
 %s
 <br>
 EOT
-""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO,softwareReport)
+""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,self.jobID,self.diracSetup,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO,softwareReport)
 
       files = {}
       files[defFile]='.def'
