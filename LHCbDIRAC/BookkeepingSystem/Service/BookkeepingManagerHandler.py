@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.61 2008/07/29 10:11:25 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.62 2008/07/31 08:18:49 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.61 2008/07/29 10:11:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.62 2008/07/31 08:18:49 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -15,6 +15,7 @@ from DIRAC.ConfigurationSystem.Client.Config                                    
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
+from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
 import time,sys,os
 
 global dataMGMT_
@@ -23,7 +24,6 @@ dataMGMT_ = BookkeepingDatabaseClient()
 global reader_
 reader_ = XMLFilesReaderManager()
 
-  
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
@@ -308,6 +308,10 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################
   types_checkProduction = [LongType]
   def export_checkProduction(self,prodid):  
+    result = setupShifterProxyInEnv( "DataManager" )
+    if not result[ 'OK' ]:
+      gLogger.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
+      return result
     rm = ReplicaManager()
     res = dataMGMT_.getLFNsByProduction(prodid)
     result = None
@@ -316,10 +320,10 @@ class BookkeepingManagerHandler(RequestHandler):
       list =[]
       for file in fileList:
         list +=[file[0]]
-      result = rm.getReplicas(list[0])
+      result = rm.getReplicas(list)
     else:
       return S_ERROR(res['Message'])
-    return S_OK(result)
+    return result
   
   #############################################################################
   types_addFiles = [ListType]
@@ -338,6 +342,16 @@ class BookkeepingManagerHandler(RequestHandler):
       if not res['OK']:
         return S_ERROR('Message')
     return S_OK('Replica(s) removed successfully!')
+  
+  #############################################################################
+  types_getFileMetadata = [ListType]
+  def export_getFileMetadata(self, lfns):
+    return dataMGMT_.getFileMetadata(lfns)
+  
+  #############################################################################
+  types_exists = [ListType]
+  def export_exists(self, lfns):
+    return dataMGMT_.exists(lfns)
   
   '''
   Monitoring

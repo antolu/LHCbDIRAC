@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.8 2008/07/25 19:15:48 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.8 2008/07/25 19:15:48 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -55,7 +55,7 @@ class XMLFilesReaderManager:
       docType = doc.doctype #job or replica
       type = docType._get_name().encode('ascii')
     except Exception,ex:
-      gLogger.error("XML reading error",ex)
+      gLogger.error("XML reading error",filename)
       return S_ERROR(ex)
         
     return type,doc,filename
@@ -360,14 +360,15 @@ class XMLFilesReaderManager:
         self.replicas_ += [replica]
       else: 
         if type == 'Job':
-          job = self.jobReader_.readJob(doc, fullpath)
-          self.jobs_ += [job]
+          try:
+            job = self.jobReader_.readJob(doc, fullpath)
+            self.jobs_ += [job]
+          except Exception,ex:
+            gLogger.error("XML reading error2",ex)         
         else:
           name = os.path.split(fileName)[1]
           self.fileClient_.rename(fileName, self.errorsTmp_ + name)
           self.fileClient_.rm(fileName)
-          print fileName,self.errorsTmp_ + name
-          print 
           gLogger.error("unknown XML file!!!")
           
          
@@ -387,6 +388,8 @@ class XMLFilesReaderManager:
           self.fileClient_.rm(fileName)
           print fileName,self.errorsTmp_ + name
           gLogger.error("unknown XML file!!!")
+  
+    return S_ERROR(ex)
   
   #############################################################################   
   def destroy(self):

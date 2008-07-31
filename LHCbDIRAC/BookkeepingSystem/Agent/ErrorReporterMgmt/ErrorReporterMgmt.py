@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ErrorReporterMgmt.py,v 1.5 2008/07/25 19:15:49 zmathe Exp $
+# $Id: ErrorReporterMgmt.py,v 1.6 2008/07/31 08:18:49 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC                                                     import gLogger, S
 from DIRAC.ConfigurationSystem.Client.Config                   import gConfig
 import os
 
-__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.5 2008/07/25 19:15:49 zmathe Exp $"
+__RCSID__ = "$Id: ErrorReporterMgmt.py,v 1.6 2008/07/31 08:18:49 zmathe Exp $"
 
 
 
@@ -31,10 +31,6 @@ class ErrorReporterMgmt:
     if report:
       gLogger.info("Error Report!")
       try:
-        if id==11:
-          gLogger.info('File Exxist and I remove it!')
-          self.fileClient_.rm(file)
-        else:
           name = self.__getErrorFileName(file)
           gLogger.info("File Name:" + str(name))
           fullName = self.errorDir_ + name +".error"

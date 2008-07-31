@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.41 2008/07/29 10:11:24 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.42 2008/07/31 08:18:48 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.41 2008/07/29 10:11:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.42 2008/07/31 08:18:48 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -309,6 +309,16 @@ class BookkeepingClient:
   def removeFiles(self, lfns):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.removeFiles(lfns)
+  
+  #############################################################################
+  def getFileMetadata(self, lfns):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFileMetadata(lfns)
+  
+  #############################################################################
+  def exists(self, lfns):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.exists(lfns)
   
   #############################################################################
   def getLFNsByProduction(self, prodid):

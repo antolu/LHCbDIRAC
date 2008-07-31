@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.8 2008/07/29 10:11:25 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.8 2008/07/29 10:11:25 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -113,6 +113,13 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def addReplica(self, File):
     return self.getManager().addReplica(File)
+  
+  def getFileMetadata(self, lfns):
+    return self.getManager().getFileMetadata(lfns)
+  
+  #############################################################################
+  def exists(self, lfns):
+    return self.getManager().exists(lfns)
     
   #############################################################################
   def deleteJob(self, job):

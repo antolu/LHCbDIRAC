@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.14 2008/07/29 10:11:25 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.15 2008/07/31 08:18:49 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.14 2008/07/29 10:11:25 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.15 2008/07/31 08:18:49 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -481,8 +481,35 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return S_ERROR(res['Message'])      
     else:
       return S_ERROR('The file '+File+'not exist in the BKK database!!!')
-
   
+  #############################################################################
+  def getFileMetadata(self, lfns):
+    result = {}
+    for file in lfns:
+      res = self.db_.executeStoredProcedure('BKK_ORACLE.getFileMetaData',[file])
+      if  not res['OK']:
+        return S_ERROR(res['Message'])
+      records = res['Value']
+      for record in records:
+        row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9]}
+        result[file]= row
+    return S_OK(result)
+  
+  #############################################################################
+  def exists(self, lfns):
+    existsFiles = []
+    notexistsFiles = []
+    for file in lfns:
+      res = self.db_.executeStoredFunctions('BKK_ORACLE.fileExists', LongType, [file])
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      if res['Value'] ==0:
+        notexistsFiles += [file]
+      else:
+        existsFiles += [file]
+    result = {'ExistsFiles':existsFiles,'NotExistsFiles':notexistsFiles}
+    return S_OK(result)
+   
   #############################################################################
   def addReplica(self, fileName):
     result = self.checkfile(fileName) 
