@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.5 2008/07/29 20:41:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.6 2008/07/31 11:20:52 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.5 2008/07/29 20:41:02 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.6 2008/07/31 11:20:52 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -94,11 +94,13 @@ class LockSharedArea(ModuleBaseSAM):
     if self.forceLockRemoval:
       self.log.info('Deliberately removing SAM lock file')
       cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
-      result = self.runCommand('Flag enabled to forcefully remove current %s' %self.lockFile,cmd)
-      self.setJobParameter('ExistingSAMLock','Deleted via SAM test flag on %s' %(time.asctime()))
+      result = self.runCommand('Flag enabled to forcefully remove current %s' %self.lockFile,cmd,check=True)
       if not result['OK']:
+        self.setApplicationStatus('Could Not Remove Lock File')
         self.log.warn(result['Message'])
         return self.finalize('Could not remove existing lock file via flag',self.lockFile,'critical')
+
+      self.setJobParameter('ExistingSAMLock','Deleted via SAM test flag on %s' %(time.asctime()))
 
     self.log.info('Checking SAM lock file: %s' %self.lockFile)
     if os.path.exists('%s/%s' %(sharedArea,self.lockFile)):
@@ -108,11 +110,12 @@ class LockSharedArea(ModuleBaseSAM):
       if fileTime - curtime > self.lockValidity:
         self.log.info('SAM lock file present for > %s secs, deleting' %self.lockValidity)
         cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
-        result = self.runCommand('Current lock file %s present for longer than %s seconds' %(self.lockFile,self.lockValidity),cmd)
-        self.setJobParameter('ExistingSAMLock','Removed on %s after exceeding maximum validity' %(time.asctime()))
+        result = self.runCommand('Current lock file %s present for longer than %s seconds' %(self.lockFile,self.lockValidity),cmd,check=True)
+        self.setApplicationStatus('Could Not Remove Old Lock File')
         if not result['OK']:
           self.log.warn(result['Message'])
           return self.finalize('Could not remove existing lock file exceeding maximum validity',result['Message'],'critical')
+        self.setJobParameter('ExistingSAMLock','Removed on %s after exceeding maximum validity' %(time.asctime()))
       else:
         #unique to this test, prevent execution of software installation via 'notice' status
         self.log.info('Another SAM job has been running at this site for less than %s seconds disabling software installation test' %self.lockValidity)
@@ -121,9 +124,10 @@ class LockSharedArea(ModuleBaseSAM):
         return self.finalize('%s test running at same time as another SAM job' %self.testName,'Status NOTICE (= 30)','notice')
 
     cmd = 'touch %s/%s' %(sharedArea,self.lockFile)
-    result = self.runCommand('Creating SAM lock file',cmd)
+    result = self.runCommand('Creating SAM lock file',cmd,check=True)
     if not result['OK']:
       self.log.warn(result['Message'])
+      self.setApplicationStatus('Could Not Create Lock File')
       return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
 
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
