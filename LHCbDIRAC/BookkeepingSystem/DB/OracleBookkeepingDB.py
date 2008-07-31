@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.17 2008/07/31 13:06:01 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.18 2008/07/31 13:12:04 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.17 2008/07/31 13:06:01 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.18 2008/07/31 13:12:04 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -514,7 +514,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         return S_ERROR(res['Message'])      
     else:
-      return S_ERROR('The file '+File+'not exist in the BKK database!!!')
+      return S_ERROR('The file '+fileName+'not exist in the BKK database!!!')
   
   #############################################################################
   def getFileMetadata(self, lfns):
