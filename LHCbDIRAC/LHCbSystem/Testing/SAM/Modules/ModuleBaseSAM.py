@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.13 2008/07/31 10:49:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.14 2008/07/31 10:54:17 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.13 2008/07/31 10:49:15 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.14 2008/07/31 10:54:17 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -98,9 +98,10 @@ class ModuleBaseSAM(object):
     return jobParam
 
   #############################################################################
-  def runCommand(self,message,cmd):
+  def runCommand(self,message,cmd,check=False):
     """Wrapper around shellCall to return S_OK(stdout) or S_ERROR(message) and
-       produce the SAM log files with messages and outputs.
+       produce the SAM log files with messages and outputs. The check flag set to True
+       will return S_ERROR for critical calls that should not fail.
     """
     if not self.logFile:
       return S_ERROR('No LogFile defined')
@@ -149,6 +150,8 @@ class ModuleBaseSAM(object):
     fopen.close()
     if status:
       gLogger.info('Non-zero status %s while executing %s' %(status,cmd))
+      if check:
+        return S_ERROR(stderr)
       return S_OK(stdout)
     else:
       return S_OK(stdout)
