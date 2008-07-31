@@ -193,9 +193,16 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAge
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
+
+$DESTDIR/pro/scripts/install_service.sh Stager Stager
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 # RequestManagement
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
