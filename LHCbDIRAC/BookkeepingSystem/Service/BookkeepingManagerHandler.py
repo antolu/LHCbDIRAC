@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.62 2008/07/31 08:18:49 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.63 2008/07/31 12:56:58 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.62 2008/07/31 08:18:49 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.63 2008/07/31 12:56:58 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -328,20 +328,22 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################
   types_addFiles = [ListType]
   def export_addFiles(self, lfns):
+    result = {}
     for file in lfns:
       res = dataMGMT_.addReplica(file)
       if not res['OK']:
-        return S_ERROR('Message')
-    return S_OK('Replica(s) added successfully!')
+        result[file]= res['Message']
+    return S_OK(result)
   
   #############################################################################
   types_removeFiles = [ListType]
   def export_removeFiles(self, lfns):
+    result = {}
     for file in lfns:
       res = dataMGMT_.removeReplica(file)
       if not res['OK']:
-        return S_ERROR('Message')
-    return S_OK('Replica(s) removed successfully!')
+        result[file]= res['Message']
+    return S_OK(result)
   
   #############################################################################
   types_getFileMetadata = [ListType]
