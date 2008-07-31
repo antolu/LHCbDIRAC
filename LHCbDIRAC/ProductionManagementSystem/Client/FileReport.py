@@ -1,13 +1,12 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.5 2008/07/04 08:15:15 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.6 2008/07/31 10:46:30 rgracian Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.5 2008/07/04 08:15:15 rgracian Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.6 2008/07/31 10:46:30 rgracian Exp $"
 
-import datetime
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import S_OK, S_ERROR
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
