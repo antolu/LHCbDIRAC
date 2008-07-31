@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.10 2008/07/29 20:06:42 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.11 2008/07/31 10:57:31 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.10 2008/07/29 20:06:42 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.11 2008/07/31 10:57:31 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -101,7 +101,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     # Change the permissions on the shared area (if a pool account is used)
-    result = self.runCommand('Checking current user account mapping','id -nu')
+    result = self.runCommand('Checking current user account mapping','id -nu',check=True)
     if not result['OK']:
       return self.finalize('id -nu',result['Message'],'error')
 
@@ -120,7 +120,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       self.log.info('Flag to purge the site shared area at %s is enabled' %sharedArea)
       if self.enable:
         self.log.verbose('Enable flag is True, starting shared area deletion')
-        result = self.runCommand('Shared area deletion flag is enabled','rm -rf %s/*' %sharedArea)
+        result = self.runCommand('Shared area deletion flag is enabled','rm -rf %s/*' %sharedArea,check=True)
         if not result['OK']:
           return self.finalize('Could not delete software in shared area',result['Message'],'critical')
       else:
