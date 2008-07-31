@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.6 2008/07/30 15:03:54 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.7 2008/07/31 10:12:35 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.6 2008/07/30 15:03:54 acasajus Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.7 2008/07/31 10:12:35 acasajus Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 
 import sys
 import os
@@ -118,24 +118,23 @@ cliParams.setDIRACGroup( proxyInfo[ 'group' ] )
 #uploadProxyToMyProxy( cliParams, False )
 uploadProxyToDIRACProxyManager( cliParams )
 
-retVal = proxyInfo[ 'chain' ].dumpAllToFile( proxyInfo[ 'path' ] )
-if not retVal[ 'OK' ]:
-  print "Cannot write proxy to file %s" % proxyInfo[ 'path' ]
-  sys.exit(1)
+finalChain = proxyInfo[ 'chain' ]
 
 vomsMapping = CS.getVOMSAttributeForGroup( proxyInfo[ 'group' ] )
 if vomsMapping:
   voms = VOMS()
   attr = vomsMapping[0]
-  retVal = voms.setVOMSAttributes( proxyInfo[ 'path' ], attr )
+  retVal = voms.setVOMSAttributes( preVOMSChain, attr )
   if not retVal[ 'OK' ]:
-    print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
-    sys.exit(1)
-  finalChain = retVal[ 'Value' ]
-  retVal = finalChain.dumpAllToFile( proxyInfo[ 'path' ] )
-  if not retVal[ 'OK' ]:
-    print "Cannot write proxy to file %s" % proxyInfo[ 'path' ]
-    sys.exit(1)
+    #print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
+    print "Cannot add voms attribute %s to proxy" % ( attr )
+  else:
+    finalChain = retVal[ 'Value' ]
+
+retVal = finalChain.dumpAllToFile( proxyInfo[ 'path' ] )
+if not retVal[ 'OK' ]:
+  print "Cannot write proxy to file %s" % proxyInfo[ 'path' ]
+  sys.exit(1)
 cliParams.debugMsg(  "done" )
 sys.exit(0)
 
