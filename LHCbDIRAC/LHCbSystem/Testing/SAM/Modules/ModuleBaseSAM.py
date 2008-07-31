@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.12 2008/07/29 20:43:24 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.13 2008/07/31 10:49:15 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.12 2008/07/29 20:43:24 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.13 2008/07/31 10:49:15 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -218,6 +218,15 @@ class ModuleBaseSAM(object):
 
     if not self.testName:
       return S_ERROR('No SAM test name defined')
+
+    if not self.version:
+      return S_ERROR('CVS version tag is not defined')
+
+    if not os.path.exists('%s' %(self.logFile)):
+      fopen = open(self.logFile,'w')
+      header = self.getMessageString('DIRAC SAM Test: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s' %(self.logFile,self.testName,self.version,time.asctime()),True)
+      fopen.write(header)
+      fopen.close()
 
     gLogger.info('%s\n%s' %(message,result))
     fopen = open(self.logFile,'a')
