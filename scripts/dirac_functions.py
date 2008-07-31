@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.86 2008/07/14 09:49:29 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.87 2008/07/31 16:20:19 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.86 2008/07/14 09:49:29 rgracian Exp $"
-__VERSION__ = "$Revision: 1.86 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.87 2008/07/31 16:20:19 rgracian Exp $"
+__VERSION__ = "$Revision: 1.87 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -372,7 +372,7 @@ class functions:
                                 self.localPlatform, 
                                 'bin', 'python' )
     python = sys.executable
-    if python ==  self.localPython:
+    if os.path.realpath(python) ==  os.path.realpath(self.localPython):
       self.logDEBUG( 'Using python interpreter "%s"' % python )
       return True
     else:
