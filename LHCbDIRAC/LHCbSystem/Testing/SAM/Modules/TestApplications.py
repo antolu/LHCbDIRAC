@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.3 2008/07/29 19:58:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.4 2008/07/31 11:16:24 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.3 2008/07/29 19:58:13 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.4 2008/07/31 11:16:24 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -188,12 +188,22 @@ DstWriter.Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";
       dirac = Dirac()
       if self.enable:
         result = dirac.submit(j,mode='Local')
+      if os.path.exists('Step1_%s' %self.logFile):
+        shutil.move('Step1_%s' %self.logFile,self.logFile)
+      else:
+        if os.path.exists('std.out'):
+          shutil.move('std.out',self.logFile)
+        if os.path.exists('std.err'):
+          fopen = open('std.err','r')
+          lines = fopen.readlines()
+          fopen.close()
+          fopen = open(self.logFile,'a')
+          fopen.writelines(lines)
+          fopen.close()
     except Exception,x:
       self.log.warn('Problem during %s %s execution: %s' %(appName,appVersion,x))
       return S_ERROR(str(x))
     #Correct the log file names since they will have Step1_ prepended.
-    if os.path.exists('Step1_%s' %self.logFile):
-      shutil.move('Step1_%s' %self.logFile,self.logFile)
     return result
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
