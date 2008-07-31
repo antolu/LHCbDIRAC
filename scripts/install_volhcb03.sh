@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.8 2008/07/31 10:57:53 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.9 2008/07/31 17:43:23 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -24,6 +24,7 @@ DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
 
+export DIRACINSTANCE=Development
 export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
@@ -87,7 +88,7 @@ Systems
 {
   RequestManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       URLs
       {
@@ -105,33 +106,6 @@ Systems
   }
 }
 EOF
-# Special CS file for the pilotAgent
-cat > $DESTDIR/etc/WorkloadManagement_PilotAgent.cfg <<EOF
-Systems
-{
-  WorkloadManagement
-  {
-    Production
-    {
-      Agents
-      {
-        PilotAgent
-        {
-          Middleware = gLite
-        }
-      }
-      PilotAgent
-      {
-        gLitePilotDirector
-        {
-          ResourceBrokers = wms105.cern.ch,wms106.cern.ch
-        }
-      }
-    }
-  }
-}
-EOF
-#
 
 fi
 
@@ -237,7 +211,7 @@ $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
 # RequestManagement
 
-if [ ! -z DIRACCVS ] ; then
+if [ ! -z "$DIRACCVS" ] ; then
 
 
 	cd `dirname $DESTDIR`

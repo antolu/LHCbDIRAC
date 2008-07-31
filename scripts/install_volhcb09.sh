@@ -201,7 +201,7 @@ $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
 $DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
 
-if [ ! -z DIRACCVS ] ; then
+if [ ! -z "$DIRACCVS" ] ; then
 
 
 	cd `dirname $DESTDIR`

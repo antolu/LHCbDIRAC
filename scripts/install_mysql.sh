@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ -z "$DIRACINSTANCE" ] && DIRACINSTANCE=Development
+
 source /opt/dirac/bashrc
 
 for dir in /opt/dirac/mysql/db /opt/dirac/mysql/log ; do
@@ -43,7 +45,7 @@ Systems
 {
   $SYSTEM
   {
-    Production
+    $DIRACINSTANCE
     {
       Databases
       {

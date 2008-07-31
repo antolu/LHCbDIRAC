@@ -20,6 +20,7 @@ DIRACARCH=
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
 
+export DIRACINSTANCE=Development
 export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
@@ -153,7 +154,7 @@ $DESTDIR/pro/scripts/install_service.sh SystemName ServiceName
 #{
 #  SystemName
 #  {
-#    {Production|Developement}
+#    $DIRACINSTANCE
 #    {
 #      Services
 #      {
@@ -180,7 +181,7 @@ $DESTDIR/pro/scripts/install_agent.sh SystemName AgentName
 #{
 #  SystemName
 #  {
-#    {Production|Developement}
+#    $DIRACINSTANCE
 #    {
 #      Agents
 #      {
@@ -196,7 +197,7 @@ $DESTDIR/pro/scripts/install_agent.sh SystemName AgentName
 
 ######################################################################
 
-if [ ! -z $DIRACCVS ] ; then
+if [ ! -z "$DIRACCVS" ] ; then
 
 
         cd `dirname $DESTDIR`
