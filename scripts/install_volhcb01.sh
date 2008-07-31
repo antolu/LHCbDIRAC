@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.24 2008/07/14 12:03:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.25 2008/07/31 10:40:54 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,7 +21,7 @@ EXTVERSION=v0r3p0
 EXTVERSION=HEAD
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
-DIRACDIRS="startup runit data work requestDB"
+DIRACDIRS="startup runit data work control requestDB"
 
 export LOGLEVEL=INFO
 #
