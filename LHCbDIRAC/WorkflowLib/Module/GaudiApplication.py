@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.65 2008/07/30 14:21:08 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.66 2008/07/31 17:12:55 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.65 2008/07/30 14:21:08 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.66 2008/07/31 17:12:55 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -265,13 +265,13 @@ class GaudiApplication(ModuleBase):
       self.result = S_ERROR( 'No LHCb platform selected' )
     elif not self.applicationLog:
       self.result = S_ERROR( 'No Log file provided' )
-    
+
     if not self.result['OK']:
       return self.result
-    
+
     if not self.optionsFile and not self.optionsLine:
       self.log.warn( 'No options File nor options Line provided' )
-    
+
     self.log.info('Initializing '+self.version)
 
     self.result = S_OK()
@@ -297,7 +297,7 @@ class GaudiApplication(ModuleBase):
         mySiteRoot = localArea
       else:
         self.log.warn( 'Application not Found' )
-        self.setApplicationStatus( 'Appliaction not Found' )
+        self.setApplicationStatus( 'Application not Found' )
         self.result = S_ERROR( 'Application not Found' )
 
     if not self.result['OK']:
