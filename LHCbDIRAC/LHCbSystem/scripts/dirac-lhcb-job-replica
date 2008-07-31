@@ -1,25 +1,11 @@
 #! /usr/bin/env python
-import os, sys, popen2
-# Determine python for current platform and check if it is the calling one
-dirac_platform = os.path.join("/afs/cern.ch/user/r/roma/Dirac/temp/scripts","platform.py")
-if not os.path.exists( dirac_platform ):
-  print >> sys.stderr, "Missing file %s" % dirac_platform
-  sys.exit(-1)
-p3 = popen2.Popen3( dirac_platform )
-localPlatform = p3.fromchild.read().strip()
-p3.wait()
-if not localPlatform or localPlatform == "ERROR":
-  print >> sys.stderr, "Can not determine local platform"
-diracPython = os.path.join( "/afs/cern.ch/user/r/roma/Dirac/temp", localPlatform, "bin", "python" )
-if os.path.realpath(sys.executable) != os.path.realpath(diracPython):
-  sys.exit( os.system( "%s '%s'" % ( diracPython, "' '".join( sys.argv ) ) ) / 256 )
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-job-replica,v 1.1 2008/07/30 14:56:29 roma Exp $
-# File :   dirac-production-job-delete
-# Author : Stuart Paterson
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-job-replica,v 1.2 2008/07/31 08:18:49 roma Exp $
+# File :   dirac-lhcb-job-replica
+# Author : roma
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-replica,v 1.1 2008/07/30 14:56:29 roma Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-job-replica,v 1.2 2008/07/31 08:18:49 roma Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 from DIRAC.Core.Base                                         import Script
 from DIRACEnvironment                                        import DIRAC
 
@@ -36,8 +22,6 @@ from DIRAC.Interfaces.API.Job                                import Job
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
-
-print Script.getUnprocessedSwitches()
 
 def usage():
   print 'Usage: %s ' %(Script.scriptName)
@@ -94,25 +78,44 @@ def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys
 dirac=Dirac()
 
 status = 'Stalled'
+minorstatus = None
 applicationstatus=None
-date = None
-jobgroup=None
 site = None
+owner = None
+jobgroup=None
+date = None
 
 for unprocSw in Script.getUnprocessedSwitches():
   if unprocSw[0] in ( "S", "Status" ):
         status = unprocSw[1]
+  if unprocSw[0] in ( "M", "MinorStatus" ):
+        minirstatus = unprocSw[1]
+  if unprocSw[0] in ( "A", "ApplicationStatus" ):
+        applicationstatus = unprocSw[1]
+  if unprocSw[0] in ( "C", "Site" ):
+        site = unprocSw[1]
+  if unprocSw[0] in ( "O", "Owner" ):
+        owner = unprocSw[1]
+  if unprocSw[0] in ( "J", "JobGroup" ):
+        jobgroup = unprocSw[1]
+  if unprocSw[0] in ( "D", "Date" ):
+        date = unprocSw[1]
 
 
 selectjobs = dirac.selectJobs(Status=status,
+                              MinorStatus=minorstatus,
+                              ApplicationStatus=applicationstatus,
                               Site = site,
+                              Owner = owner,
+                              JobGroup=jobgroup,
                               Date=date)
 if not selectjobs['OK']:
   print selectjobs['Message']
   DIRAC.exit(2)
 
 jobs = selectjobs['Value']
-print len(jobs),jobs
+print len(jobs),"jobs were selected"
+print jobs
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 rm = ReplicaManager()
@@ -126,6 +129,7 @@ jobs_withallreplica = []
 jobs_withreplica = []
 jobs_withoutreplica = []
 
+import os
 
 for job in jobs:
   result = dirac.status(int(job))
