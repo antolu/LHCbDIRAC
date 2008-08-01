@@ -5,16 +5,17 @@ import getopt
 import sys
 import re
 
-__RCSID__ = "$Id: dirac-bookkeeping-eventMgt.py,v 1.1 2008/07/31 08:18:49 zmathe Exp $"
+__RCSID__ = "$Id: dirac-bookkeeping-eventMgt.py,v 1.2 2008/08/01 10:12:46 zmathe Exp $"
 
 Script.parseCommandLine( ignoreErrors = True )
-args = Script.getPositionalArgs()
+args=Script.getPositionalArgs()
+#args=sys.argv[1:]
 
 def usage():
-  print 'eventTypeMng [-u|-i  <file name>] | -h | --help\n'
+  print 'dirac-bookkeeping-eventMgmt [-u|-i  <file name>] | -h | --help\n'
   print 'This tool is used to update or insert new event type.'
   print 'The <file name> list the event on which operate. Each entry  has the following format and is per line.'
-  print 'EVTTYPE_ID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"'
+  print 'EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"'
   print 'Options:\n   -u: update event type\n   -i: insert event type'
   print '   -h|--help: print this help'
 
