@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.2 2008/08/01 15:12:26 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.3 2008/08/01 15:16:41 zmathe Exp $
 # File :   dirac-bookkeeping-eventtype-mgt
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.2 2008/08/01 15:12:26 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.3 2008/08/01 15:16:41 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -30,7 +30,7 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
   DIRAC.exit(2)
 
-if len(args) > 0:
+if len(args) < 1:
   usage()
 
 exitCode = 0
