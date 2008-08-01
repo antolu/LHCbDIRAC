@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.8 2008/07/31 10:56:22 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.9 2008/08/01 12:32:46 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.8 2008/07/31 10:56:22 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.9 2008/08/01 12:32:46 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -101,11 +101,14 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %self.site)
 
-    cmd = 'chmod -R 775 %s/lib/lcg/external/dcache_client' %sharedArea
-    result = self.runCommand('Changing dCache client permissions',cmd,check=True)
-    if not result['OK']:
-      self.setApplicationStatus('Shared Area Permissions Problem')
-      return self.finalize(cmd,result['Message'],'error')
+    if os.path.exists('%s/lib/lcg/external/dcache_client' %sharedArea):
+      cmd = 'chmod -R 775 %s/lib/lcg/external/dcache_client' %sharedArea
+      result = self.runCommand('Changing dCache client permissions',cmd,check=True)
+      if not result['OK']:
+        self.setApplicationStatus('Shared Area Permissions Problem')
+        return self.finalize(cmd,result['Message'],'error')
+    else:
+      self.log.info('%s/lib/lcg/external/dcache_client does not exist' %sharedArea)
 
     cmd = 'rpm -qa | grep lcg_util | cut -f 2 -d "-"'
     result = self.runCommand('Checking RPM for LCG Utilities',cmd)
