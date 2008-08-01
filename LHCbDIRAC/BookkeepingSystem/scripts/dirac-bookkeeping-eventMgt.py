@@ -5,20 +5,50 @@ import getopt
 import sys
 import re
 
-__RCSID__ = "$Id: dirac-bookkeeping-eventMgt.py,v 1.2 2008/08/01 10:12:46 zmathe Exp $"
-
-Script.parseCommandLine( ignoreErrors = True )
-args=Script.getPositionalArgs()
-#args=sys.argv[1:]
+__RCSID__ = "$Id: dirac-bookkeeping-eventMgt.py,v 1.3 2008/08/01 11:06:58 zmathe Exp $"
 
 def usage():
-  print 'dirac-bookkeeping-eventMgmt [-u|-i  <file name>] | -h | --help\n'
+  #print 'dirac-bookkeeping-eventMgmt [-u|-i  <file name>] | -h | --help\n'
   print 'This tool is used to update or insert new event type.'
   print 'The <file name> list the event on which operate. Each entry  has the following format and is per line.'
   print 'EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"'
   print 'Options:\n   -u: update event type\n   -i: insert event type'
   print '   -h|--help: print this help'
 
+class Params:
+
+  insert = False
+  update = False
+  
+  def setInsert( self, arg ):
+    self.insert = arg
+    return DIRAC.S_OK()
+  
+  def setUpdate( self, arg ):
+    self.insert = arg
+    return DIRAC.S_OK()
+
+  def showHelp( self, arg ):
+    usage()
+    sys.exit(0)
+    return DIRAC.S_OK()
+params = Params()
+
+
+params = Params()
+Script.registerSwitch( "u", "update", "Update event types!", params.setUpdate )
+Script.registerSwitch( "i", "insert", "insert new event types!", params.setInsert )
+Script.registerSwitch( "h", "help", "Help", params.showHelp )
+Script.disableCS()
+Script.parseCommandLine( ignoreErrors = True )
+#args=Script.getPositionalArgs()
+#args=sys.argv[1:]
+
+print params.update
+if not params.update or not params.insert:
+  usage()
+  sys.exit(1)
+  
 file=''
 option=''
 
