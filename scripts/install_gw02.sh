@@ -123,7 +123,7 @@ Resources
   {
     RAWIntegrity
     {
-      AccessType = Write
+      AccessType = Read-Write
       Status = Active
     }
   }
