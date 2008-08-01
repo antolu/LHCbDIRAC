@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.63 2008/07/31 12:56:58 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.64 2008/08/01 13:12:32 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.63 2008/07/31 12:56:58 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.64 2008/08/01 13:12:32 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -298,8 +298,30 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################
   types_addEventType = [LongType, StringType, StringType]
   def export_addEventType(self,evid, desc, primary):
-    return dataMGMT_.insertEventTypes(evid, desc, primary)
+    result = dataMGMT_.checkEventType(evid)
+    if not result['OK']:
+      value = dataMGMT_.insertEventTypes(evid, desc, primary)
+      if value['OK']:
+        res = S_OK(str(evid)+' event type added successfully!')
+      else:
+        res = S_ERROR(value['Message'])
+    else:
+      return S_OK(str(evid)+' event type exists')
+    return res
   
+  #############################################################################
+  types_updateEventType = [LongType, StringType, StringType]
+  def export_updateEventType(self, evid, desc, primary):
+    result = dataMGMT_.checkEventType(evid)
+    if not result['OK']:
+      return S_ERROR(str(evid) + ' event type is missing in the BKK database!')
+    else:
+      val = dataMGMT_.updateEventType(evid, desc, primary)
+      if val['OK']:
+        return S_OK(str(evid)+' event type updated successfully!')
+      else:
+        return S_ERROR(value['Message'])  
+    
   #############################################################################
   types_getLFNsByProduction = [LongType]
   def export_getLFNsByProduction(self, prodid):

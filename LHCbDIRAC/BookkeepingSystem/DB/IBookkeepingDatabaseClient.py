@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.10 2008/08/01 13:12:32 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.9 2008/07/31 08:18:49 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.10 2008/08/01 13:12:32 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -267,7 +267,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getAncestors(self, lfn, depth):
     return self.getManager().getAncestors(lfn, depth)
-    
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    return self.getManager().updateEventType(evid, desc, primary)
   
   #############################################################################
   '''

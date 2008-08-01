@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.42 2008/07/31 08:18:48 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.43 2008/08/01 13:12:31 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.42 2008/07/31 08:18:48 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.43 2008/08/01 13:12:31 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -299,6 +299,11 @@ class BookkeepingClient:
   def addEventType(self, evid, desc, primary):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.addEventType(long(evid), desc, primary)
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.updateEventType(long(evid), desc, primary)
   
   #############################################################################
   def addFiles(self, lfns):

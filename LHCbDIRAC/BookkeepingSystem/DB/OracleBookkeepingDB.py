@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.18 2008/07/31 13:12:04 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.19 2008/08/01 13:12:32 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.18 2008/07/31 13:12:04 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.19 2008/08/01 13:12:32 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -278,8 +278,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(result)!=0:
       return S_OK(result)
     else:
-      gLogger.error("File type not found! ",str(fileName))
-      return S_ERROR("File type not found!"+str(fileName))
+      gLogger.error("File type not found! ",str(type))
+      return S_ERROR("File type not found!"+str(type))
     
     return result
 
@@ -292,8 +292,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(result)!=0:
       return S_OK(result)
     else:
-      gLogger.error("Event type not found! ",str(fileName))
-      return S_ERROR("Event type not found!"+str(fileName))
+      gLogger.error("Event type not found! ",str(eventTypeId))
+      return S_ERROR("Event type not found!"+str(eventTypeId))
     
     return result
   
@@ -521,12 +521,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result = {}
     for file in lfns:
       res = self.db_.executeStoredProcedure('BKK_ORACLE.getFileMetaData',[file])
-      if  not res['OK']:
-        return S_ERROR(res['Message'])
-      records = res['Value']
-      for record in records:
-        row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9]}
-        result[file]= row
+      if not res['OK']:
+        result[file]= res['Message']
+      else:
+        records = res['Value']  
+        for record in records:
+          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9]}
+          result[file]= row
     return S_OK(result)
   
   #############################################################################
@@ -558,6 +559,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertEventTypes(self, evid, desc, primary):
     return self.db_.executeStoredProcedure('BKK_ORACLE.insertEventTypes',[desc, evid, primary], False)
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.updateEventTypes',[desc, evid, primary], False)
   
   #############################################################################
   #
