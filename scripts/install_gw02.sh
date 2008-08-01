@@ -112,7 +112,7 @@ Systems
     {
       URLs
       {
-        localURL = dip://gw02.lbdaq.cern.ch:9199/RequestManagement/RequestManager
+        localURL = dip://store02.lbdaq.cern.ch:9199/RequestManagement/RequestManager
       }
     }
   }
