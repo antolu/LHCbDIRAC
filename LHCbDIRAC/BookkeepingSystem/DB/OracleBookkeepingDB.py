@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.19 2008/08/01 13:12:32 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.20 2008/08/01 16:02:48 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.19 2008/08/01 13:12:32 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.20 2008/08/01 16:02:48 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -322,8 +322,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       inputfiles = job.getJobInputFiles()
       if len(inputfiles) == 0:
-        gLogger.error("The ProgramName is not Gauss and it not have input file!!!")
-        return S_ERROR("The ProgramName is not Gauss and it not have input file!!!")
+        gLogger.error("The ProgramName is not Gauss and it not have input file or missing the simulation conditions!!!")
+        return S_ERROR("The ProgramName is not Gauss and it not have input file or missing the simulation conditions!!!")
       else:
         for file in inputfiles:
           simcond = self.getSimCondIDWhenFileName(file.getFileName())
