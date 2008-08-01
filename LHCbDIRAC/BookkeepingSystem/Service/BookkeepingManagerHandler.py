@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.64 2008/08/01 13:12:32 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.65 2008/08/01 15:12:26 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.64 2008/08/01 13:12:32 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.65 2008/08/01 15:12:26 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -412,7 +412,7 @@ class BookkeepingManagerHandler(RequestHandler):
       prodinfo = value['Value']
   
     result = {"Production Info":prodinfo,"Number Of jobs":nbjobs,"Number Of files":nbOfFiles,"Number of Events":nbOfEvents}
-    return result
+    return S_OK(result)
   
   #############################################################################
   types_getJobsNb = [LongType]

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.1 2008/08/01 13:12:32 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.2 2008/08/01 15:12:26 zmathe Exp $
 # File :   dirac-bookkeeping-eventtype-mgt
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.1 2008/08/01 13:12:32 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.2 2008/08/01 15:12:26 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -110,3 +110,5 @@ elif update:
       print result['Value']
     else:
       print result['Message']
+
+DIRAC.exit(exitCode)
