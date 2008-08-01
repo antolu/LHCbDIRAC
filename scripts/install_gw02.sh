@@ -83,13 +83,13 @@ DIRAC
   {
     $DIRACSETUP
     {
-      Configuration = Production
-      WorkloadManagement = Production
-      ProductionManagement = Production
-      Logging = Production
-      DataManagement = Production
-      RequestManagement = Production
-      Monitoring = Production
+      Configuration = $DIRACINSTANCE
+      WorkloadManagement = $DIRACINSTANCE
+      ProductionManagement = $DIRACINSTANCE
+      Logging = $DIRACINSTANCE
+      DataManagement = $DIRACINSTANCE
+      RequestManagement = $DIRACINSTANCE
+      Monitoring = $DIRACINSTANCE
     }
   }
 }
@@ -97,7 +97,7 @@ Systems
 {
   DataManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       URLs
       {
@@ -108,7 +108,7 @@ Systems
   }
   RequestManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       URLs
       {
@@ -199,9 +199,9 @@ ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
 ## Compile all python files .py -> .pyc, .pyo
 ##
-#cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
-#$DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
-#$DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
+cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
+python -c "$cmd" 1> /dev/null || exit 1
+python -O -c "$cmd" 1> /dev/null  || exit 1
 
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
@@ -225,7 +225,7 @@ Systems
 {
   RequestManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       Services
       {
@@ -257,7 +257,7 @@ Systems
 {
   DataManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       Agents
       {
@@ -284,7 +284,7 @@ Systems
 {
   DataManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       Agents
       {
@@ -311,7 +311,7 @@ Systems
 {
   DataManagement
   {
-    Production
+    $DIRACINSTANCE
     {
       Agents
       {
