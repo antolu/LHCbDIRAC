@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.12 2008/07/31 10:40:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.13 2008/08/01 09:18:01 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -43,7 +43,7 @@ source $DESTDIR/bashrc
 #
 exec 2>&1
 #
-renice 20 -p $$
+renice 20 -p \$\$
 #
 exec dirac-agent $System/$Agent \$DIRAC/etc/${System}_${Agent}.cfg -o LogLevel=$LOGLEVEL
 EOF
