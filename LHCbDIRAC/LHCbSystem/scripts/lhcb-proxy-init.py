@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.8 2008/07/31 11:44:59 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.9 2008/08/03 11:33:09 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.8 2008/07/31 11:44:59 acasajus Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.9 2008/08/03 11:33:09 acasajus Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 
 import sys
 import os
@@ -80,6 +80,8 @@ def uploadProxyToDIRACProxyManager( params ):
     print " There was a problem generating proxy to be uploaded proxy manager: %s" % retVal[ 'Message' ]
     return False
   return True
+
+Script.enableCS()
 
 retVal = getProxyInfo( retVal[ 'Value' ] )
 if not retVal[ 'OK' ]:
