@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.11 2008/07/31 10:57:31 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.12 2008/08/03 17:32:00 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.11 2008/07/31 10:57:31 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.12 2008/08/03 17:32:00 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -136,9 +136,14 @@ class SoftwareInstallation(ModuleBaseSAM):
       deprecatedSoftware = '/Operations/SoftwareDistribution/Deprecated'
       removeList = gConfig.getValue(deprecatedSoftware,[])
 
-      localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
-      if not localPlatforms:
+      localArch = gConfig.getValue('/LocalSite/Architecture','')
+      if not localArch:
         return self.finalize('/LocalSite/Architecture is not defined in the local configuration','Could not get /LocalSite/Architecture','error')
+
+      #must get the list of compatible platforms for this architecture
+      localPlatforms = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %localArch,[])
+      if not localPlatforms:
+        return self.finalize('Could not obtain compatible platforms for %s' %localArch,'/Resources/Computing/OSCompatibility/%s' %localArch,'error')
 
       if not os.path.exists(sharedArea):
         try:
