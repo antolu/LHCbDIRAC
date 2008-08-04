@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/AdminEnv.sh,v 1.1 2008/07/31 10:30:47 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/AdminEnv.sh,v 1.2 2008/08/04 18:10:58 rgracian Exp $
 # File :   AdminEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: AdminEnv.sh,v 1.1 2008/07/31 10:30:47 rgracian Exp $"
-__VERSION__="$Revision: 1.1 $"
+__RCSID__="$Id: AdminEnv.sh,v 1.2 2008/08/04 18:10:58 rgracian Exp $"
+__VERSION__="$Revision: 1.2 $"
 
 export DIRACROOT=`dirname $0`
 export DIRACROOT=`cd $DIRACROOT ; pwd`
@@ -37,5 +37,5 @@ if ! echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin --valid 240:0 ; t
   exit 1
 fi
 
-export PS1="(\[\e[1;34m\]DIRAC3-User\[\e[0m\])[\u@\h \w]\$ "
+export PS1="(\[\e[1;34m\]DIRAC3-Admin\[\e[0m\])[\u@\h \w]\$ "
 bash -p

@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/ProductionEnv.sh,v 1.1 2008/07/31 10:30:47 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/ProductionEnv.sh,v 1.2 2008/08/04 18:13:21 rgracian Exp $
 # File :   ProductionEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: ProductionEnv.sh,v 1.1 2008/07/31 10:30:47 rgracian Exp $"
-__VERSION__="$Revision: 1.1 $"
+__RCSID__="$Id: ProductionEnv.sh,v 1.2 2008/08/04 18:13:21 rgracian Exp $"
+__VERSION__="$Revision: 1.2 $"
 
 export DIRACROOT=`dirname $0`
 export DIRACROOT=`cd $DIRACROOT ; pwd`
@@ -37,5 +37,5 @@ if ! echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin; then
   exit 1
 fi
 
-export PS1="(\[\e[1;31m\]DIRAC3-User\[\e[0m\])[\u@\h \w]\$ "
+export PS1="(\[\e[1;31m\]DIRAC3-Production\[\e[0m\])[\u@\h \w]\$ "
 bash -p
