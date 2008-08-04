@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.93 2008/08/04 15:11:31 rgracian Exp $
+# $Id: JobFinalization.py,v 1.94 2008/08/04 19:39:34 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.93 2008/08/04 15:11:31 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.94 2008/08/04 19:39:34 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -665,15 +665,18 @@ class JobFinalization(ModuleBase):
       count = 0
       assignedCountry = country
       while count<10:
+        self.log.verbose('Loop count = %s' %(count))
+        self.log.verbose("/Resources/Countries/%s/AssignedTo" %assignedCountry)
         opt = gConfig.getOption("/Resources/Countries/%s/AssignedTo" %assignedCountry)
         if opt['OK'] and opt['Value']:
           assignedCountry = opt['Value']
+          self.log.verbose('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
           assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
           count += 1
           if assocCheck['OK'] and assocCheck['Value']:
             break
-        else:
-          break
+#        else:
+#          break
 
       if not assignedCountry:
         self.log.info('Could not establish associated country for site')
@@ -684,7 +687,7 @@ class JobFinalization(ModuleBase):
         self.log.info('Found alias SE for site: %s' %alias_se)
         return S_OK(alias_se)
       else:
-        self.log.info('Could not establish alias SE')
+        self.log.info('Could not establish alias SE for country %s from section: /Resources/Countries/%s/AssociatedSEs/%s' %(country,assignedCountry,outputSE))
         return S_ERROR('Failed to resolve SE '+outputSE)
 
     # For collective Any and All modes return the whole group
