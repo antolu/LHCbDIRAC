@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.14 2008/07/31 10:54:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.15 2008/08/04 19:45:26 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.14 2008/07/31 10:54:17 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.15 2008/08/04 19:45:26 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -242,9 +242,9 @@ class ModuleBaseSAM(object):
 
     self.workflow_commons['SAMResults'][self.testName]=statusCode
     if int(statusCode)<50:
+      self.setApplicationStatus('%s Successful (%s)' %(self.testName,samResult))
       return S_OK(message)
     else:
-      self.setApplicationStatus('%s Failed (%s)' %(self.testName,samResult))
       return S_ERROR(message)
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
