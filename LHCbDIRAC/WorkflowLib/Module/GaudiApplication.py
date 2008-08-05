@@ -1,14 +1,17 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.67 2008/08/05 13:43:37 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.68 2008/08/05 13:56:47 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.67 2008/08/05 13:43:37 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.68 2008/08/05 13:56:47 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+try:
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+except Exception,x:
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig

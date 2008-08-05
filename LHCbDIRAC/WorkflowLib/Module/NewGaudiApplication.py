@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.22 2008/08/05 13:47:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.23 2008/08/05 13:57:09 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.22 2008/08/05 13:47:28 rgracian Exp $"
-__VERSION__ = "$Revision: 1.22 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.23 2008/08/05 13:57:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.23 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -15,7 +15,10 @@ from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
 
-from WorkflowLib.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+try:
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+except Exception,x:
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
 
 import shutil, re, string, os, sys
 
