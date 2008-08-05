@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.69 2008/08/05 15:34:38 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.70 2008/08/05 15:50:38 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.69 2008/08/05 15:34:38 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.70 2008/08/05 15:50:38 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -479,7 +479,7 @@ rm -f scrtmp.py
       if optionsType == 'py':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
-        exe_path = os.path.join( appRoot, 'InstallArea', self.systemConfig, 'bin', self.applicationName+'.exe' ) #default
+        exe_path = os.path.join( appRoot, self.systemConfig, self.applicationName+'.exe' ) #default
         if os.path.exists('lib/'+self.applicationName+'.exe'):
           exe_path = 'lib/'+self.applicationName+'.exe '
           print 'Found user shipped executable '+self.applicationName+'.exe...'
