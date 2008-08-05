@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.3 2008/06/20 16:17:59 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.4 2008/08/05 12:48:45 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.3 2008/06/20 16:17:59 paterson Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.4 2008/08/05 12:48:45 rgracian Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -177,6 +177,7 @@ def CheckApplication(app, config, area):
 
   # Run ExtCMT
   ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
+  print ret
   if not ret['OK']:
     DIRAC.gLogger.info( ret['Message'])
     if ret['stdout']:
