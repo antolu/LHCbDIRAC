@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.20 2008/07/31 08:43:35 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.21 2008/08/05 13:37:35 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.20 2008/07/31 08:43:35 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.21 2008/08/05 13:37:35 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -155,8 +155,11 @@ class SAMFinalization(ModuleBaseSAM):
 
     self.log.info('Test %s completed successfully' %self.testName)
     if not failed:
+      self.finalize('%s Test Successful' %self.testName,'Status Success (= 10)','ok')
       self.setApplicationStatus('SAM Job Successful')
-    return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+      return S_OK()
+    else:
+      return self.finalize('Failure During Execution','Status Error (= 50)','error')
 
   #############################################################################
   def __removeLockFile(self,sharedArea):
