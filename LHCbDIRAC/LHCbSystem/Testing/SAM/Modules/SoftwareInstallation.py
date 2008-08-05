@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.12 2008/08/03 17:32:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.13 2008/08/05 10:31:54 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.12 2008/08/03 17:32:00 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.13 2008/08/05 10:31:54 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -104,16 +104,6 @@ class SoftwareInstallation(ModuleBaseSAM):
     result = self.runCommand('Checking current user account mapping','id -nu',check=True)
     if not result['OK']:
       return self.finalize('id -nu',result['Message'],'error')
-
-    self.log.info('Current account: %s' %result['Value'])
-    if not re.search('\d',result['Value']):
-      self.log.info('%s uses static accounts' %self.site)
-    else:
-      self.log.info('%s uses pool accounts' %self.site)
-      cmd = 'chmod -R 775 %s/lib' %sharedArea
-      result = self.runCommand('Recursively changing shared area permissions',cmd)
-      if not result['OK']:
-        return self.finalize(cmd,result['Message'],'error')
 
     # Purge shared area if requested.
     if self.purgeSharedArea:
