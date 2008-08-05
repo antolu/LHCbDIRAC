@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.28 2008/08/05 15:54:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.29 2008/08/05 15:57:17 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -150,7 +150,6 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProxyRenewalAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
@@ -161,9 +160,9 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
-# $DESTDIR/pro/scripts/install_service.sh WorkloadManagement ProxyManager
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
@@ -171,16 +170,15 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAge
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement       TransferAgent
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement       RemovalAgent
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorWMS
-$DESTDIR/pro/scripts/install_agent.sh Stager StagerAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
-$DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
-$DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
+$DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
+$DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
 # RequestManagement
 
