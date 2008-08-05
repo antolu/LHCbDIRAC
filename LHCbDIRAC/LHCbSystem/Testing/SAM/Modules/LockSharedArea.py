@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.7 2008/08/05 10:31:25 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.8 2008/08/05 13:29:57 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.7 2008/08/05 10:31:25 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.8 2008/08/05 13:29:57 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -90,6 +90,18 @@ class LockSharedArea(ModuleBaseSAM):
       return self.finalize('Could not determine sharedArea for site %s:' %(self.site),sharedArea,'error')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+
+    self.log.verbose('Trying to resolve shared area link problem')
+    if os.path.exists('%s/lib' %sharedArea):
+      if os.path.islink('%s/lib' %sharedArea):
+        self.log.info('Removing link %s/lib' %sharedArea)
+        result = self.runCommand('Removing link in shared area','rm -fv %s/lib' %sharedArea,check=True)
+        if not result['OK']:
+          return self.finalize('Could not remove link in shared area',result['Message'],'error')
+      else:
+        self.log.info('%s/lib is not a link so will not be removed' %sharedArea)
+    else:
+      self.log.info('Link in shared area %s/lib does not exist' %sharedArea)
 
     # Change the permissions on the shared area (if a pool account is used)
     result = self.runCommand('Checking current user account mapping','id -nu',check=True)
