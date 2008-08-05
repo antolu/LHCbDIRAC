@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.10 2008/08/05 08:39:04 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.11 2008/08/05 10:28:33 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.10 2008/08/05 08:39:04 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.11 2008/08/05 10:28:33 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -107,6 +107,11 @@ class SystemConfiguration(ModuleBaseSAM):
     result = self.runCommand('Removing *_parameters.txt files from shared area','rm -fv *_parameters.txt')
     if not result['OK']:
       return self.finalize('Could not remove shared area parameters files',result['Message'],'error')
+
+    self.log.info('Checking shared area contents: %s' %(sharedArea))
+    result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
+    if not result['OK']:
+      return self.finalize('Could not list contents of shared area',result['Message'],'error')
 
     result = self.runCommand('Checking current proxy', 'voms-proxy-info -all')
     if not result['OK']:
