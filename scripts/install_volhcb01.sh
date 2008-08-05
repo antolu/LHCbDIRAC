@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.27 2008/08/05 15:52:33 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.28 2008/08/05 15:54:57 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -17,17 +17,17 @@ DESTDIR=/opt/dirac
 SiteName=VOLHCB01.CERN.CH
 DIRACSETUP=LHCb-Development
 DIRACVERSION=HEAD
-EXTVERSION=v0rp0
+EXTVERSION=v0r4p0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
 
-export DIRACINSTANCE=Production
-export LOGLEVEL=INFO
+export DIRACINSTANCE=Development
+export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
-# DIRACCVS=-C
+DIRACCVS=yes
 #
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
@@ -183,5 +183,33 @@ $DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
 $DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
 
 # RequestManagement
+
+if [ ! -z "$DIRACCVS" ] ; then
+
+
+	cd `dirname $DESTDIR`
+	mv DIRAC3/DIRAC DIRAC3/DIRAC.save
+
+echo
+echo
+echo   To get a CVS installation:
+echo
+echo   "   login with your own user"
+echo   "   start a bash shell"
+echo   "   execute"
+echo
+echo
+cat << EOF
+umask 0002
+# export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
+export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
+cd `dirname $DESTDIR`
+cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
+
+EOF
+
+fi
+
+
 
 exit
