@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.9 2008/08/05 14:48:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.10 2008/08/05 17:30:02 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.9 2008/08/05 14:48:09 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.10 2008/08/05 17:30:02 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -91,6 +91,11 @@ class LockSharedArea(ModuleBaseSAM):
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
+    self.log.info('Checking shared area contents: %s' %(sharedArea))
+    result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
+    if not result['OK']:
+      return self.finalize('Could not list contents of shared area',result['Message'],'error')
+
     self.log.verbose('Trying to resolve shared area link problem')
     if os.path.exists('%s/lib' %sharedArea):
       if os.path.islink('%s/lib' %sharedArea):
@@ -113,8 +118,11 @@ class LockSharedArea(ModuleBaseSAM):
       self.log.info('%s uses static accounts' %self.site)
     else:
       self.log.info('%s uses pool accounts' %self.site)
-      cmd = 'chmod -R 775 %s/' %sharedArea
-      result = self.runCommand('Recursively changing shared area permissions',cmd,check=True)
+
+
+      result = self.__changePermissions(sharedArea)
+      #cmd = 'chmod -R 775 %s/' %sharedArea
+      #result = self.runCommand('Recursively changing shared area permissions',cmd,check=True)
       if not result['OK']:
         return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
 
@@ -162,5 +170,26 @@ class LockSharedArea(ModuleBaseSAM):
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
 #    return S_OK('Shared area is locked') #This result not published to SAM DB.
+
+  #############################################################################
+  def __changePermissions(self,sharedArea):
+    """Change permissions for pool SGM account case in python.
+    """
+    self.log.verbose('Changing permissions to 0755 in shared area %s' %sharedArea)
+    self.writeToLog('Changing permissions to 0755 in shared area %s' %sharedArea)
+    try:
+      for dirName, subDirs, files in os.walk(sharedArea):
+        self.log.verbose('Changing file permissions in directory %s' %dirName)
+        self.writeToLog('Changing file permissions in directory %s' %dirName)
+        os.chmod('%s/%s' %(sharedArea,dirName),0755)
+        for toChange in files:
+          os.chmod('%s/%s/%s' %(sharedArea,dirName,toChange),0755)
+    except Exception,x:
+      self.log.error('Problem changing shared area permissions',str(x))
+      return S_ERROR(x)
+
+    self.log.info('Permissions in shared area %s updated successfully' %(sharedArea))
+    self.writeToLog('Permissions in shared area %s updated successfully' %(sharedArea))
+    return S_OK()
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
