@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.12 2008/08/05 17:25:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.13 2008/08/05 19:03:02 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.12 2008/08/05 17:25:21 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.13 2008/08/05 19:03:02 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -107,6 +107,10 @@ class SystemConfiguration(ModuleBaseSAM):
     result = self.runCommand('Removing *_parameters.txt files from shared area','rm -fv %s/*_parameters.txt' %(sharedArea))
     if not result['OK']:
       return self.finalize('Could not remove shared area parameters files',result['Message'],'error')
+
+    result = self.runCommand('Removing lcg-ManageVOTag.* files from shared area','rm -fv %s/lcg-ManageVOTag.*' %(sharedArea))
+    if not result['OK']:
+      return self.finalize('Could not remove shared area VO tag files',result['Message'],'error')
 
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
