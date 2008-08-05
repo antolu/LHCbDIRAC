@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.5 2008/08/05 13:24:57 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.6 2008/08/05 13:47:40 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.5 2008/08/05 13:24:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.6 2008/08/05 13:47:40 rgracian Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -207,12 +207,8 @@ def CheckApplication(app, config, area):
   if not gaudiEnv.has_key( appRoot ):
     DIRAC.gLogger.warn( 'Can not determine:', appRoot )
     return False
-  appRoot = gaudiEnv[ appRoot ]
-  gaudiExe = os.path.join( appRoot, config, appName+'.exe' )
-  if os.path.exists( gaudiExe ):
-    return gaudiExe
 
-  return True
+  return gaudiEnv[ appRoot ]
 
 def SharedArea():
   """

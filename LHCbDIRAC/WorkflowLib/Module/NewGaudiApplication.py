@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.21 2008/05/12 16:47:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.22 2008/08/05 13:47:28 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.21 2008/05/12 16:47:04 rgracian Exp $"
-__VERSION__ = "$Revision: 1.21 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.22 2008/08/05 13:47:28 rgracian Exp $"
+__VERSION__ = "$Revision: 1.22 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -222,13 +222,13 @@ class GaudiApplication(object):
     localArea  = LocalArea()
 
     # 1. Check if Application is available in Shared Area
-    appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, sharedArea )
-    if appCmd:
+    appRoot = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, sharedArea )
+    if appRoot:
       mySiteRoot = sharedArea
     else:
       # 2. If not, check if available in Local Area
-      appCmd = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, localArea )
-      if appCmd:
+      appRoot = CheckApplication( ( self.appName, self.appVersion ), self.systemConfig, localArea )
+      if appRoot:
         mySiteRoot = localArea
       else:
         self.log.warn( 'Application not Found' )
@@ -239,8 +239,7 @@ class GaudiApplication(object):
       return self.result
       
     self.__report( 'Application Found' )
-    self.log.info( 'Application Found:', appCmd )
-    appRoot = os.path.dirname(os.path.dirname( appCmd ))
+    self.log.info( 'Application Root Found:', appRoot )
 
     # 3. Check Named options file in options directory of the Application 
     self.optfile = os.path.join( appRoot, 'options', self.optionsFile )
@@ -384,7 +383,7 @@ class GaudiApplication(object):
       gaudiCmd.append(self.optfile_extra)
     else:
       # Default
-      gaudiCmd = [appCmd]
+      gaudiCmd = [self.appName+'.exe']
       if os.path.exists( os.path.join('lib',self.appName+'.exe')):
         gaudiCmd = [ os.path.join('lib',self.appName+'.exe' )]
         self.log.info( 'Found User shipped executable %s' % self.appName+'.exe' )

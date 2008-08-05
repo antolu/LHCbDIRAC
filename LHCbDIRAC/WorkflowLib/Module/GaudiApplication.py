@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.66 2008/07/31 17:12:55 paterson Exp $
+# $Id: GaudiApplication.py,v 1.67 2008/08/05 13:43:37 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.66 2008/07/31 17:12:55 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.67 2008/08/05 13:43:37 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -287,13 +287,13 @@ class GaudiApplication(ModuleBase):
     sharedArea = SharedArea()
 
     # 1. Check if Application is available in Shared Area
-    appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if appCmd:
+    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
+    if appRoot:
       mySiteRoot = sharedArea
     else:
       # 2. If not, check if available in Local Area
-      appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
-      if appCmd:
+      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
+      if appRoot:
         mySiteRoot = localArea
       else:
         self.log.warn( 'Application not Found' )
@@ -304,10 +304,9 @@ class GaudiApplication(ModuleBase):
       return self.result
 
     self.setApplicationStatus( 'Application Found' )
-    self.log.info( 'Application Found:', appCmd )
-    app_dir_path = os.path.dirname(os.path.dirname( appCmd ))
-    app_dir_path_install = mySiteRoot+'/lhcb/'+string.upper(self.applicationName)+'/'+ \
-                   string.upper(self.applicationName)+'_'+self.applicationVersion+'/InstallArea'
+    self.log.info( 'Application Root Found:', appRoot )
+    app_dir_path = appRoot
+    app_dir_path_install = os.path.join( appRoot,'InstallArea'  )
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
@@ -477,12 +476,10 @@ rm -f scrtmp.py
       if optionsType == 'py':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
-        exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.applicationName+'.exe ' #default
+        exe_path = self.applicationName+'.exe ' #default
         if os.path.exists('lib/'+self.applicationName+'.exe'):
           exe_path = 'lib/'+self.applicationName+'.exe '
           print 'Found user shipped executable '+self.applicationName+'.exe...'
-        else:
-          exe_path = app_dir_path_install+'/'+self.systemConfig+'/bin/'+self.applicationName+'.exe '
 
         #comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+
         comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'

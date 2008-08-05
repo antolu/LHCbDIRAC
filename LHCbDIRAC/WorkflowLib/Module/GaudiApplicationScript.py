@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.4 2008/07/09 18:27:01 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.5 2008/08/05 13:51:08 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.4 2008/07/09 18:27:01 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.5 2008/08/05 13:51:08 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -125,13 +125,13 @@ class GaudiApplicationScript(object):
     localArea  = LocalArea()
     mySiteRoot = None
     # 1. Check if Application is available in Shared Area
-    appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if appCmd:
+    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
+    if appRoot:
       mySiteRoot = sharedArea
     else:
       # 2. If not, check if available in Local Area
-      appCmd = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
-      if appCmd:
+      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
+      if appRoot:
         mySiteRoot = localArea
       else:
         self.log.warn( 'Application not Found' )
@@ -142,9 +142,7 @@ class GaudiApplicationScript(object):
       return self.result
 
     self.__report( 'Application Found' )
-    if not type(appCmd)==type(True):
-      self.log.info( 'Application Found:', appCmd )
-      appRoot = os.path.dirname(os.path.dirname( appCmd ))
+    self.log.info( 'Application Root Found:', appRoot )
 
     cmtEnv = dict(os.environ)
     gaudiEnv = {}
