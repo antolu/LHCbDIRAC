@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.7 2008/08/04 13:06:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.8 2008/08/06 11:20:00 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.7 2008/08/04 13:06:13 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.8 2008/08/06 11:20:00 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -278,6 +278,7 @@ class LHCbSAMJob(Job):
     self.workflow.addStep(step)
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
+    self._addJDLParameter('DeleteSharedArea',str(forceDeletion))
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
