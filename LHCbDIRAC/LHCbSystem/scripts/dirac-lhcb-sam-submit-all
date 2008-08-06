@@ -1,11 +1,11 @@
-  #!/usr/bin/env python
+#!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-all,v 1.1 2008/07/21 18:35:54 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-all,v 1.2 2008/08/06 11:05:55 paterson Exp $
 # File :   dirac-lhcb-sam-submit-all
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-all,v 1.1 2008/07/21 18:35:54 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-sam-submit-all,v 1.2 2008/08/06 11:05:55 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 import sys
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
