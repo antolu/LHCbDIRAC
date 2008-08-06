@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.14 2008/08/06 11:17:29 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.15 2008/08/06 11:22:33 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.14 2008/08/06 11:17:29 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.15 2008/08/06 11:22:33 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -140,16 +140,6 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
 
-    cmd = 'rpm -qa | grep lcg_util | cut -f 2 -d "-"'
-    result = self.runCommand('Checking RPM for LCG Utilities',cmd)
-    if not result['OK']:
-      return self.finalize('Could not get RPM version',result['Message'],'error')
-
-    rpmOutput = result['Value']
-    if rpmOutput.split('.')[0]=='1':
-      if int(rpmOutput.split('.')[1]) < 6:
-        return self.finalize('RPM version not correct',rpmOutput,'warning')
-
     systemConfigs = gConfig.getValue('/LocalSite/Architecture',[])
     self.log.info('Current system configurations are: %s ' %(string.join(systemConfigs,', ')))
     compatiblePlatforms = gConfig.getOptionsDict('/Resources/Computing/OSCompatibility')
@@ -186,6 +176,16 @@ class SystemConfiguration(ModuleBaseSAM):
       result = self.runCommand('Checking compatibility libraries for system configuration %s' %(arch),cmd)
       if not result['OK']:
         return self.finalize('Failed to check compatibility library directory %s' %libPath,result['Message'],'error')
+
+    cmd = 'rpm -qa | grep lcg_util | cut -f 2 -d "-"'
+    result = self.runCommand('Checking RPM for LCG Utilities',cmd)
+    if not result['OK']:
+      return self.finalize('Could not get RPM version',result['Message'],'error')
+
+    rpmOutput = result['Value']
+    if rpmOutput.split('.')[0]=='1':
+      if int(rpmOutput.split('.')[1]) < 6:
+        return self.finalize('RPM version not correct',rpmOutput,'warning')
 
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
