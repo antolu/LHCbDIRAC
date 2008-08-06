@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.16 2008/08/06 08:44:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.17 2008/08/06 11:28:13 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.16 2008/08/06 08:44:53 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.17 2008/08/06 11:28:13 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -122,7 +122,7 @@ class ModuleBaseSAM(object):
     gLogger.verbose(message)
     if not os.path.exists('%s' %(self.logFile)):
       fopen = open(self.logFile,'w')
-      header = self.getMessageString('DIRAC SAM Test: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s' %(self.logFile,self.testName,self.version,time.asctime()),True)
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
       fopen.write(header)
       fopen.close()
 
@@ -228,7 +228,7 @@ class ModuleBaseSAM(object):
 
     if not os.path.exists('%s' %(self.logFile)):
       fopen = open(self.logFile,'w')
-      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
       fopen.write(header)
       fopen.close()
 
