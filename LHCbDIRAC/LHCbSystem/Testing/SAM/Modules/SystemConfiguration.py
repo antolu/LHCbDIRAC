@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.15 2008/08/06 11:22:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.16 2008/08/06 13:38:58 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.15 2008/08/06 11:22:33 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.16 2008/08/06 13:38:58 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -19,7 +19,7 @@ except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
-import string, os, sys, re
+import string, os, sys, re, glob
 
 SAM_TEST_NAME='CE-lhcb-os'
 SAM_LOG_FILE='sam-os.log'
@@ -104,13 +104,19 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('Link in shared area %s/lib does not exist' %sharedArea)
 
-    result = self.runCommand('Removing *_parameters.txt files from shared area','rm -fv %s/*_parameters.txt' %(sharedArea))
+   # result = self.runCommand('Removing *_parameters.txt files from shared area','rm -fv %s/*_parameters.txt' %(sharedArea))
+    result = self.__deleteSharedAreaFiles(sharedArea,'*_parameters.txt')
     if not result['OK']:
       return self.finalize('Could not remove shared area parameters files',result['Message'],'error')
 
-    result = self.runCommand('Removing lcg-ManageVOTag.* files from shared area','rm -fv %s/lcg-ManageVOTag.*' %(sharedArea))
+ #   result = self.runCommand('Removing lcg-ManageVOTag.* files from shared area','rm -fv %s/lcg-ManageVOTag.*' %(sharedArea))
+    result = self.__deleteSharedAreaFiles(sharedArea,'lcg-ManageVOTag.*')
     if not result['OK']:
       return self.finalize('Could not remove shared area VO tag files',result['Message'],'error')
+
+    result = self.__deleteSharedAreaFiles(sharedArea,'lhcb.*')
+    if not result['OK']:
+      return self.finalize('Could not remove shared area lhcb.* files',result['Message'],'error')
 
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
@@ -190,5 +196,33 @@ class SystemConfiguration(ModuleBaseSAM):
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+
+  #############################################################################
+  def __deleteSharedAreaFiles(self,sharedArea,filePattern):
+    """Remove all files in shared area.
+    """
+    self.log.verbose('Removing all files with name %s in shared area %s' %sharedArea)
+    self.writeToLog('Removing all files with name %s shared area %s' %sharedArea)
+    count = 0
+    try:
+      globList = glob.glob('%s/%s' %(sharedArea,filePattern))
+      for check in globList:
+        if os.path.isfile(check):
+          os.remove(check)
+          count += 1
+    except Exception,x:
+      self.log.error('Problem deleting shared area ',str(x))
+      return S_ERROR(x)
+
+    if count:
+      self.log.info('Removed %s files with pattern %s from shared area' %(count,filePattern))
+    else:
+      self.log.info('No %s files to remove' %filePattern)
+      self.writeToLog('No %s files to remove' %filePattern)
+
+    self.log.info('Shared area %s successfully purged of %s files' %(filePattern))
+    self.writeToLog('Shared area %s successfully purged of %s files' %(filePattern))
+    return S_OK()
+
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
