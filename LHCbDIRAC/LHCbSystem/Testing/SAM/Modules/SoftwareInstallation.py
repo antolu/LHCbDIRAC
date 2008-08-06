@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.13 2008/08/05 10:31:54 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.14 2008/08/06 13:26:18 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.13 2008/08/05 10:31:54 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.14 2008/08/06 13:26:18 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -23,7 +23,7 @@ except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
-import string, os, sys, re
+import string, os, sys, re, shutil
 
 SAM_TEST_NAME='CE-lhcb-install'
 SAM_LOG_FILE='sam-install.log'
@@ -110,7 +110,8 @@ class SoftwareInstallation(ModuleBaseSAM):
       self.log.info('Flag to purge the site shared area at %s is enabled' %sharedArea)
       if self.enable:
         self.log.verbose('Enable flag is True, starting shared area deletion')
-        result = self.runCommand('Shared area deletion flag is enabled','rm -rf %s/*' %sharedArea,check=True)
+        result = self.__deleteSharedArea(sharedArea)
+#        result = self.runCommand('Shared area deletion flag is enabled','rm -rf %s/*' %sharedArea,check=True)
         if not result['OK']:
           return self.finalize('Could not delete software in shared area',result['Message'],'critical')
       else:
@@ -193,5 +194,27 @@ class SoftwareInstallation(ModuleBaseSAM):
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+
+  #############################################################################
+  def __deleteSharedArea(self,sharedArea):
+    """Remove all files in shared area.
+    """
+    self.log.verbose('Removing all files in shared area %s' %sharedArea)
+    self.writeToLog('Removing all files in shared area %s' %sharedArea)
+    try:
+      for fdir in os.listdir(sharedArea):
+        if os.path.isfile('%s/%s' %(sharedArea,fdir)):
+          os.remove('%s/%s' %(sharedArea,fdir))
+        elif os.path.isdir('%s/%s' %(sharedArea,fdir)):
+          self.log.verbose('Removing directory %s/%s' %(sharedArea,fdir))
+          self.writeToLog('Removing directory %s/%s' %(sharedArea,fdir))
+          shutil.rmtree('%s/%s' %(sharedArea,fdir))
+    except Exception,x:
+      self.log.error('Problem deleting shared area ',str(x))
+      return S_ERROR(x)
+
+    self.log.info('Shared area %s successfully purged' %(sharedArea))
+    self.writeToLog('Shared area %s successfully purged' %(sharedArea))
+    return S_OK()
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
