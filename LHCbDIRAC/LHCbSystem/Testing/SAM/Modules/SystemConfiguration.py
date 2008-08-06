@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.13 2008/08/05 19:03:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.14 2008/08/06 11:17:29 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.13 2008/08/05 19:03:02 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.14 2008/08/06 11:17:29 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -148,7 +148,7 @@ class SystemConfiguration(ModuleBaseSAM):
     rpmOutput = result['Value']
     if rpmOutput.split('.')[0]=='1':
       if int(rpmOutput.split('.')[1]) < 6:
-        return self.finalize('RPM version not correct',rpmOutput,'critical')
+        return self.finalize('RPM version not correct',rpmOutput,'warning')
 
     systemConfigs = gConfig.getValue('/LocalSite/Architecture',[])
     self.log.info('Current system configurations are: %s ' %(string.join(systemConfigs,', ')))
