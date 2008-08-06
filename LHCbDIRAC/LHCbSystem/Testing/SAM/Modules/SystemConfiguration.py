@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.16 2008/08/06 13:38:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.17 2008/08/06 15:17:48 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.16 2008/08/06 13:38:58 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.17 2008/08/06 15:17:48 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -201,8 +201,8 @@ class SystemConfiguration(ModuleBaseSAM):
   def __deleteSharedAreaFiles(self,sharedArea,filePattern):
     """Remove all files in shared area.
     """
-    self.log.verbose('Removing all files with name %s in shared area %s' %sharedArea)
-    self.writeToLog('Removing all files with name %s shared area %s' %sharedArea)
+    self.log.verbose('Removing all files with name %s in shared area %s' %(filePattern,sharedArea))
+    self.writeToLog('Removing all files with name %s shared area %s' %(filePattern,sharedArea))
     count = 0
     try:
       globList = glob.glob('%s/%s' %(sharedArea,filePattern))
@@ -216,13 +216,13 @@ class SystemConfiguration(ModuleBaseSAM):
 
     if count:
       self.log.info('Removed %s files with pattern %s from shared area' %(count,filePattern))
+      self.writeToLog('Removed %s files with pattern %s from shared area' %(count,filePattern))
     else:
       self.log.info('No %s files to remove' %filePattern)
       self.writeToLog('No %s files to remove' %filePattern)
 
-    self.log.info('Shared area %s successfully purged of %s files' %(filePattern))
-    self.writeToLog('Shared area %s successfully purged of %s files' %(filePattern))
+    self.log.info('Shared area %s successfully purged of %s files' %(sharedArea,filePattern))
+    self.writeToLog('Shared area %s successfully purged of %s files' %(sharedArea,filePattern))
     return S_OK()
-
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
