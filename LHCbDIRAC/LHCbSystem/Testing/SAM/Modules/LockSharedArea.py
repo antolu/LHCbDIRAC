@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.16 2008/08/08 18:09:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.17 2008/08/08 22:29:06 atsareg Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.16 2008/08/08 18:09:43 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.17 2008/08/08 22:29:06 atsareg Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -120,7 +120,10 @@ class LockSharedArea(ModuleBaseSAM):
       self.log.info('%s uses pool accounts' %self.site)
 
 
-      # result = self.__changePermissions(sharedArea)
+    result = self.__changePermissions(sharedArea)
+    if not result['OK']:
+      return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
+
       # #cmd = 'chmod -R 775 %s/' %sharedArea
       # #result = self.runCommand('Recursively changing shared area permissions',cmd,check=True)
       # if not result['OK']:
@@ -177,19 +180,21 @@ class LockSharedArea(ModuleBaseSAM):
     """
     self.log.verbose('Changing permissions to 0775 in shared area %s' %sharedArea)
     self.writeToLog('Changing permissions to 0775 in shared area %s' %sharedArea)
+
+    result = self.runCommand('Checking current user account mapping','id -u',check=True)
+    if not result['OK']:
+      return self.finalize('id -u',result['Message'],'error')
+    userID = result['Value']
+
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
         self.log.verbose('Changing file permissions in directory %s' %dirName)
         self.writeToLog('Changing file permissions in directory %s' %dirName)
-        try:
+        if os.stat('%s' %(dirName))[4] == userID:
           os.chmod('%s' %(dirName),0775)
-        except:
-          pass
         for toChange in files:
-          try:
+          if os.stat('%s/%s' %(dirName,toChange))[4] == userID:
             os.chmod('%s/%s' %(dirName,toChange),0775)
-          except:
-            pass
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
       return S_ERROR(x)
