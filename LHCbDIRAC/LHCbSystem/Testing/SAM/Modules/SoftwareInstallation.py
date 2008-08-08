@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.15 2008/08/08 09:24:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.16 2008/08/08 12:03:55 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.15 2008/08/08 09:24:57 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.16 2008/08/08 12:03:55 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -239,11 +239,16 @@ class SoftwareInstallation(ModuleBaseSAM):
       for dirName, subDirs, files in os.walk(sharedArea):
         self.log.verbose('Changing file permissions in directory %s' %dirName)
         self.writeToLog('Changing file permissions in directory %s' %dirName)
-        os.chmod('%s' %(dirName),0775)
+        try:
+          os.chmod('%s' %(dirName),0775)
+        except:
+          pass
         for toChange in files:
-          os.chmod('%s/%s' %(dirName,toChange),0775)
+          try:
+            os.chmod('%s/%s' %(dirName,toChange),0775)
+          except:
+            pass
     except Exception,x:
-      continue
       self.log.error('Problem changing shared area permissions',str(x))
       return S_ERROR(x)
 

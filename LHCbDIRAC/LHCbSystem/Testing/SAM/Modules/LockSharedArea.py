@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.13 2008/08/08 09:17:14 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.14 2008/08/08 12:03:43 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.13 2008/08/08 09:17:14 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.14 2008/08/08 12:03:43 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -181,9 +181,15 @@ class LockSharedArea(ModuleBaseSAM):
       for dirName, subDirs, files in os.walk(sharedArea):
         self.log.verbose('Changing file permissions in directory %s' %dirName)
         self.writeToLog('Changing file permissions in directory %s' %dirName)
-        os.chmod('%s' %(dirName),0775)
+        try:
+          os.chmod('%s' %(dirName),0775)
+        except:
+          pass
         for toChange in files:
-          os.chmod('%s/%s' %(dirName,toChange),0775)
+          try:
+            os.chmod('%s/%s' %(dirName,toChange),0775)
+          except:
+            pass
     except Exception,x:
       continue
       self.log.error('Problem changing shared area permissions',str(x))

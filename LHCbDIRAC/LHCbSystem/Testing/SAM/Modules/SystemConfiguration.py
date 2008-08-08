@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.17 2008/08/06 15:17:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.18 2008/08/08 12:07:01 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.17 2008/08/06 15:17:48 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.18 2008/08/08 12:07:01 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -137,14 +137,14 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %self.site)
 
-    if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
-      cmd = 'chmod -R 775 %s/lcg/external/dcache_client' %sharedArea
-      result = self.runCommand('Changing dCache client permissions',cmd,check=True)
-      if not result['OK']:
-        self.setApplicationStatus('Shared Area Permissions Problem')
-        return self.finalize(cmd,result['Message'],'error')
-    else:
-      self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
+#    if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
+#      cmd = 'chmod -R 775 %s/lcg/external/dcache_client' %sharedArea
+#      result = self.runCommand('Changing dCache client permissions',cmd,check=True)
+#      if not result['OK']:
+#        self.setApplicationStatus('Shared Area Permissions Problem')
+#        return self.finalize(cmd,result['Message'],'error')
+#    else:
+#      self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
 
     systemConfigs = gConfig.getValue('/LocalSite/Architecture',[])
     self.log.info('Current system configurations are: %s ' %(string.join(systemConfigs,', ')))
