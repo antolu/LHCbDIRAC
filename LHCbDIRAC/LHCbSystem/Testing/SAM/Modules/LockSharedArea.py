@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.15 2008/08/08 12:13:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.16 2008/08/08 18:09:43 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.15 2008/08/08 12:13:26 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.16 2008/08/08 18:09:43 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -191,7 +191,6 @@ class LockSharedArea(ModuleBaseSAM):
           except:
             pass
     except Exception,x:
-      continue
       self.log.error('Problem changing shared area permissions',str(x))
       return S_ERROR(x)
 
