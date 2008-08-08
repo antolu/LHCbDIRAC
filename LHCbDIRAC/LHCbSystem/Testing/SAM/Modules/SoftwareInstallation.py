@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.14 2008/08/06 13:26:18 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.15 2008/08/08 09:24:57 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.14 2008/08/06 13:26:18 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.15 2008/08/08 09:24:57 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -104,6 +104,12 @@ class SoftwareInstallation(ModuleBaseSAM):
     result = self.runCommand('Checking current user account mapping','id -nu',check=True)
     if not result['OK']:
       return self.finalize('id -nu',result['Message'],'error')
+    # Change the permissions on the shared area (if a pool account is used)
+
+    if not re.search('\d',result['Value']):
+      isPoolAccount = False
+    else:
+      isPoolAccount = True
 
     # Purge shared area if requested.
     if self.purgeSharedArea:
@@ -191,6 +197,12 @@ class SoftwareInstallation(ModuleBaseSAM):
     else:
       self.log.info('Software installation is disabled via enable flag')
 
+    if isPoolAccount:
+      result = self.__changePermissions(sharedArea)
+      if not result['OK']:
+        return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
+      
+
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
@@ -215,6 +227,28 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     self.log.info('Shared area %s successfully purged' %(sharedArea))
     self.writeToLog('Shared area %s successfully purged' %(sharedArea))
+    return S_OK()
+
+  #############################################################################
+  def __changePermissions(self,sharedArea):
+    """Change permissions for pool SGM account case in python.
+    """
+    self.log.verbose('Changing permissions to 0775 in shared area %s' %sharedArea)
+    self.writeToLog('Changing permissions to 0775 in shared area %s' %sharedArea)
+    try:
+      for dirName, subDirs, files in os.walk(sharedArea):
+        self.log.verbose('Changing file permissions in directory %s' %dirName)
+        self.writeToLog('Changing file permissions in directory %s' %dirName)
+        os.chmod('%s' %(dirName),0775)
+        for toChange in files:
+          os.chmod('%s/%s' %(dirName,toChange),0775)
+    except Exception,x:
+      continue
+      self.log.error('Problem changing shared area permissions',str(x))
+      return S_ERROR(x)
+
+    self.log.info('Permissions in shared area %s updated successfully' %(sharedArea))
+    self.writeToLog('Permissions in shared area %s updated successfully' %(sharedArea))
     return S_OK()
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
