@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.38 2008/08/11 06:45:31 atsareg Exp $
+# $Id: ProductionDB.py,v 1.39 2008/08/11 07:00:50 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.38 $"
+__RCSID__ = "$Revision: 1.39 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -807,7 +807,7 @@ INDEX(WmsStatus)
     """
 
     requestFields = ['RequestID','RequestName','Description','EventType','RequestType',
-                     'NumberOfEvents','CPUPerEvent','CreationTime']
+                     'NumberOfEvents','CPUPerEvent','CreationTime','ProductionID']
     fieldList = ','.join(requestFields)
     reqList = ','.join([ str(int(x)) for x in requestIDList])
     req = "SELECT %s FROM ProductionRequests WHERE RequestID IN (%s)" % (fieldList,reqList)
