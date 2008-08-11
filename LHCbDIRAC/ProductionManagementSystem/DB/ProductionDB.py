@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.37 2008/06/30 13:27:34 paterson Exp $
+# $Id: ProductionDB.py,v 1.38 2008/08/11 06:45:31 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.37 $"
+__RCSID__ = "$Revision: 1.38 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -755,3 +755,96 @@ INDEX(WmsStatus)
       error = "Failed to find job with JobID=%s in the Jobs_%s table with message: %s" % (jobID, productionID, result['Message'])
       gLogger.error( error )
       return S_ERROR( error )
+
+  def createProductionRequest(self, requestDict={}):
+    """ Create new Production Request
+    """
+
+    requestFields = ['RequestName','Description','EventType','RequestType','NumberOfEvents','CPUPerEvent']
+    mandatoryFields = ['RequestName','Description']
+    for field in mandatoryFields:
+      if field not in requestDict.keys():
+        return S_ERROR('Mandatory field %s not provided' % field)
+
+    rDict = {}
+    rDict['EventType'] = 'Unknown'
+    rDict['RequestType'] = 'Simulation'
+    rDict['NumberOfEvents'] = 0
+    rDict['CPUPerEvent'] = 0.0
+    rDict.update(requestDB)
+
+
+    self.lock.acquire()
+    req = "INSERT INTO ProductionRequests ("
+    req += ','.join(requestFields)+',CreationTime) VALUES '
+    req += "('%s','%s','%s','%s','%s','%s',UTC_TIMESTAMP())" % (rDict["RequestName"], \
+                                                                rDict["Description"], \
+                                                                rDict['EventType'], \
+                                                                rDict['RequestType'], \
+                                                                rDict['NumberOfEvents'], \
+                                                                rDict['CPUPerEvent'])
+
+    result = self._getConnection()
+    if result['OK']:
+      connection = result['Value']
+    else:
+      return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
+    res = self._update(req,connection)
+    if not res['OK']:
+      self.lock.release()
+      return res
+    req = "SELECT LAST_INSERT_ID();"
+    res = self._query(req,connection)
+    self.lock.release()
+    if not res['OK']:
+      return res
+    requestID = int(res['Value'][0][0])
+
+    return S_OK(requestID)
+
+  def getProductionRequest(self,requestIDList):
+    """ Get the Production Request details
+    """
+
+    requestFields = ['RequestID','RequestName','Description','EventType','RequestType',
+                     'NumberOfEvents','CPUPerEvent','CreationTime']
+    fieldList = ','.join(requestFields)
+    reqList = ','.join([ str(int(x)) for x in requestIDList])
+    req = "SELECT %s FROM ProductionRequests WHERE RequestID IN (%s)" % (fieldList,reqList)
+    result = self._query(req)
+    if not result['OK']:
+      return result
+
+    if not result['Value']:
+      return S_ERROR('No request found')
+
+    resultDict = {}
+    for row in result['Value']:
+      requestID = row[0]
+      requestDict = {}
+      for i in range(len(requestFields)-1):
+        if requestFields[i+1] == 'NumberOfEvents':
+          requestDict[requestFields[i+1]] = int(row[i+1])
+        elif requestFields[i+1] == 'CPUPerEvent':
+          requestDict[requestFields[i+1]] = float(row[i+1])
+        else:
+          requestDict[requestFields[i+1]] = row[i+1]
+      resultDict[requestID] = requestDict
+
+    return S_OK(resultDict)
+
+  def updateProductionRequest(self,requestID,requestDict):
+    """ Update existing production request
+    """
+
+    requestFields = ['RequestName','Description','EventType','RequestType',
+                     'NumberOfEvents','CPUPerEvent']
+    # Check request fields
+    for field in requestFields:
+      if field not in requestDict.keys():
+        return S_ERROR('Field %s not provided' % field)
+
+    setString = ','.join([x+"='"+requestDict[x]+"'" for x in requestFields])
+    req = 'UPDATE ProductionRequests SET %s WHERE RequestID=%d' % (setString,int(requestID))
+    result = self._update(req)
+    return result
