@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.13 2008/08/11 06:45:31 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.14 2008/08/11 07:44:08 atsareg Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -64,13 +64,14 @@ CREATE TABLE ProductionRequests (
     RequestID INTEGER NOT NULL AUTO_INCREMENT,
     RequestName VARCHAR(128) DEFAULT "Unknown",
     INDEX(RequestName),
-    RequestType VARCHAR(32) DEFAULT "Simulation"
+    RequestType VARCHAR(32) DEFAULT "Simulation",
     NumberOfEvents INTEGER DEFAULT 0,
     EventType VARCHAR(128) DEFAULT "Default",
     CPUPerEvent DOUBLE DEFAULT 0.0,
     CreationTime DATETIME,
     ProductionID INTEGER NOT NULL DEFAULT 0,
     Description BLOB,
+    Status VARCHAR(32) DEFAULT "New",
     PRIMARY KEY(RequestID)
 );
 
