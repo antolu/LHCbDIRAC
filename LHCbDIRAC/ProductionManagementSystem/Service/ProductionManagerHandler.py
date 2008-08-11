@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.37 2008/07/04 08:15:15 rgracian Exp $
+# $Id: ProductionManagerHandler.py,v 1.38 2008/08/11 06:58:52 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.37 $"
+__RCSID__ = "$Revision: 1.38 $"
 
 from types import *
 import threading
@@ -443,3 +443,23 @@ class ProductionManagerHandler( TransformationHandler ):
 
     return S_OK(resultDict)
 
+  types_createProductionRequest = [DictType]
+  def export_createProductionRequest(self,requestDict):
+    """ Create production request
+    """
+
+    return productionDB.createProductionRequest(requestDict)
+
+  types_getProductionRequest = [ListType]
+  def export_getProductionRequest(self,requestIDList):
+    """ Get production request(s) specified by the list of requestIDs
+    """
+
+    return productionDB.getProductionRequest(requestIDList)
+
+  types_updateProductionRequest = [[LongType,IntType],DictType]
+  def export_updateProductionRequest(self,requestID,requestDict):
+    """ Update production request specified by requestID
+    """
+
+    return productionDB.updateProductionRequest(requestID,requestDict)
