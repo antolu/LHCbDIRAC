@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.39 2008/08/11 07:00:50 atsareg Exp $
+# $Id: ProductionDB.py,v 1.40 2008/08/11 07:46:18 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.39 $"
+__RCSID__ = "$Revision: 1.40 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -771,7 +771,7 @@ INDEX(WmsStatus)
     rDict['RequestType'] = 'Simulation'
     rDict['NumberOfEvents'] = 0
     rDict['CPUPerEvent'] = 0.0
-    rDict.update(requestDB)
+    rDict.update(requestDict)
 
 
     self.lock.acquire()
@@ -809,8 +809,10 @@ INDEX(WmsStatus)
     requestFields = ['RequestID','RequestName','Description','EventType','RequestType',
                      'NumberOfEvents','CPUPerEvent','CreationTime','ProductionID']
     fieldList = ','.join(requestFields)
-    reqList = ','.join([ str(int(x)) for x in requestIDList])
-    req = "SELECT %s FROM ProductionRequests WHERE RequestID IN (%s)" % (fieldList,reqList)
+    req = "SELECT %s FROM ProductionRequests" % fieldList
+    if requestIDList:
+      reqList = ','.join([ str(int(x)) for x in requestIDList])
+      req += " WHERE RequestID IN (%s)" % reqList
     result = self._query(req)
     if not result['OK']:
       return result
@@ -828,7 +830,7 @@ INDEX(WmsStatus)
         elif requestFields[i+1] == 'CPUPerEvent':
           requestDict[requestFields[i+1]] = float(row[i+1])
         else:
-          requestDict[requestFields[i+1]] = row[i+1]
+          requestDict[requestFields[i+1]] = str(row[i+1])
       resultDict[requestID] = requestDict
 
     return S_OK(resultDict)
@@ -840,11 +842,12 @@ INDEX(WmsStatus)
     requestFields = ['RequestName','Description','EventType','RequestType',
                      'NumberOfEvents','CPUPerEvent']
     # Check request fields
-    for field in requestFields:
-      if field not in requestDict.keys():
-        return S_ERROR('Field %s not provided' % field)
+    for field in requestDict.keys():
+      if field not in requestFields:
+        return S_ERROR('Field %s not known' % field)
 
-    setString = ','.join([x+"='"+requestDict[x]+"'" for x in requestFields])
+    
+    setString = ','.join([x+"='"+requestDict[x]+"'" for x in requestDict.keys()])
     req = 'UPDATE ProductionRequests SET %s WHERE RequestID=%d' % (setString,int(requestID))
     result = self._update(req)
     return result
