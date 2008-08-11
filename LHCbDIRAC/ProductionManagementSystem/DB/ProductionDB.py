@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.40 2008/08/11 07:46:18 atsareg Exp $
+# $Id: ProductionDB.py,v 1.41 2008/08/11 13:33:53 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.40 $"
+__RCSID__ = "$Revision: 1.41 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -642,7 +642,7 @@ INDEX(WmsStatus)
         if not "Submitted" in stList:
           stList.append("Submitted")
       if status == "Waiting" or status == "Received" or status == "Checking" or \
-         status == "Matched" or status == "Submitted":
+         status == "Matched" or status == "Submitted" or status == "Staging":
         if not "Waiting" in stList:
           stList.append("Waiting")
       if status == "Running" or status == "Completed":
@@ -846,7 +846,7 @@ INDEX(WmsStatus)
       if field not in requestFields:
         return S_ERROR('Field %s not known' % field)
 
-    
+
     setString = ','.join([x+"='"+requestDict[x]+"'" for x in requestDict.keys()])
     req = 'UPDATE ProductionRequests SET %s WHERE RequestID=%d' % (setString,int(requestID))
     result = self._update(req)
