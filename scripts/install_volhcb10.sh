@@ -165,6 +165,7 @@ Systems
 }
 EOF
 
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement  DISETForwardingAgent
 # The standard data management agents
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement     RegistrationAgent
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement     RemovalAgent
