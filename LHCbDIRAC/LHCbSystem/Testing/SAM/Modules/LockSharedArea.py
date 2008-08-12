@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.17 2008/08/08 22:29:06 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.18 2008/08/12 13:46:10 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.17 2008/08/08 22:29:06 atsareg Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.18 2008/08/12 13:46:10 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -120,9 +120,9 @@ class LockSharedArea(ModuleBaseSAM):
       self.log.info('%s uses pool accounts' %self.site)
 
 
-    result = self.__changePermissions(sharedArea)
-    if not result['OK']:
-      return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
+    # result = self.__changePermissions(sharedArea)
+    # if not result['OK']:
+    #  return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
 
       # #cmd = 'chmod -R 775 %s/' %sharedArea
       # #result = self.runCommand('Recursively changing shared area permissions',cmd,check=True)
