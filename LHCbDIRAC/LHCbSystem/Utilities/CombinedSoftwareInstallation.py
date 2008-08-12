@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.7 2008/08/12 10:35:54 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.8 2008/08/12 11:36:00 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.7 2008/08/12 10:35:54 rgracian Exp $"
-__VERSION__ = "$Revision: 1.7 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.8 2008/08/12 11:36:00 rgracian Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -145,7 +145,7 @@ def InstallApplication(app, config, area ):
   cmdTuple += [ '-v', appVersion ]
   cmdTuple += [ '-b', '-m', 'do_config' ]
 
-  DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmtTuple) )
+  DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
 
   ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
