@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.17 2008/08/08 12:12:08 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.18 2008/08/12 13:04:52 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.17 2008/08/08 12:12:08 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.18 2008/08/12 13:04:52 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -248,7 +248,7 @@ class SoftwareInstallation(ModuleBaseSAM):
         if os.stat('%s' %(dirName))[4] == userID:
           os.chmod('%s' %(dirName),0775)
         for toChange in files:
-          if os.stat('%s/%s' %(dirName,toChange))[4] == userID:
+          if os.stat('%s/%s' %(dirName,toChange))[4] == userID and not os.path.islink(path):
             os.chmod('%s/%s' %(dirName,toChange),0775)
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
