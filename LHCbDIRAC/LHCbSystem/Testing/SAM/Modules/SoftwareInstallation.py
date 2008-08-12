@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.18 2008/08/12 13:04:52 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.19 2008/08/12 13:10:57 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.18 2008/08/12 13:04:52 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.19 2008/08/12 13:10:57 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -243,8 +243,7 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
-        self.log.verbose('Changing file permissions in directory %s' %dirName)
-        self.writeToLog('Changing file permissions in directory %s' %dirName)
+        self.log.debug('Changing file permissions in directory %s' %dirName)
         if os.stat('%s' %(dirName))[4] == userID:
           os.chmod('%s' %(dirName),0775)
         for toChange in files:
