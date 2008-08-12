@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.19 2008/08/12 13:10:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.20 2008/08/12 13:42:36 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.19 2008/08/12 13:10:57 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.20 2008/08/12 13:42:36 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -155,6 +155,8 @@ class SoftwareInstallation(ModuleBaseSAM):
         for installPackage in installList:
           appNameVersion = string.split(installPackage,'.')
           if not len(appNameVersion)==2:
+            if isPoolAccount:
+              self.__changePermissions(sharedArea)
             return self.finalize('Could not determine name and version of package:',installPackage,'error')
           #Must check that package to install is supported by LHCb for requested system configuration
 
@@ -168,6 +170,8 @@ class SoftwareInstallation(ModuleBaseSAM):
             catch.close()
             #result = True
             if not result: #or not result['OK']:
+              if isPoolAccount:
+                self.__changePermissions(sharedArea)
               return self.finalize('Problem during execution, result is stopping.',result,'error')
             else:
               self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
@@ -177,6 +181,8 @@ class SoftwareInstallation(ModuleBaseSAM):
         for removePackage in removeList:
           appNameVersion = string.split(removePackage,'.')
           if not len(appNameVersion)==2:
+            if isPoolAccount:
+              self.__changePermissions(sharedArea)
             return self.finalize('Could not determine name and version of package:',installPackage,'error')
 
           if removePackage in packageList:
@@ -189,6 +195,8 @@ class SoftwareInstallation(ModuleBaseSAM):
             catch.close()
             result = True
             if not result: # or not result['OK']:
+              if isPoolAccount:
+                self.__changePermissions(sharedArea)
               return self.finalize('Problem during execution, stopping.',result,'error')
             else:
               self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
