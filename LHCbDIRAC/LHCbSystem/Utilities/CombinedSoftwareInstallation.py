@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.8 2008/08/12 11:36:00 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.9 2008/08/12 11:51:54 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.8 2008/08/12 11:36:00 rgracian Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.9 2008/08/12 11:51:54 rgracian Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -122,10 +122,6 @@ def InstallApplication(app, config, area ):
   appVersion = app[1]
   # make a copy of the environment dictionary
   cmtEnv = dict(os.environ)
-  cmtEnv['MYSITEROOT'] = area
-  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % area )
-  cmtEnv['CMTCONFIG']  = config
-  DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
   installProject = os.path.join( area, InstallProject )
   if not os.path.exists( installProject ):
@@ -139,6 +135,12 @@ def InstallApplication(app, config, area ):
 
   # Move to requested are and run the installation
   os.chdir(area)
+
+  cmtEnv['MYSITEROOT'] = os.getcwd()
+  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % os.getcwd() )
+  cmtEnv['CMTCONFIG']  = config
+  DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
+
   cmdTuple =  [sys.executable]
   cmdTuple += [InstallProject]
   cmdTuple += [ '-p', appName ]
