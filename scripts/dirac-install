@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.85 2008/07/31 16:20:39 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.86 2008/08/12 14:33:11 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.85 2008/07/31 16:20:39 rgracian Exp $"
-__VERSION__ = "$Revision: 1.85 $"
+__RCSID__   = "$Id: dirac-install,v 1.86 2008/08/12 14:33:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.86 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -353,6 +353,8 @@ else:
 
     dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
+    dirac.logINFO( 'Setting /LocalSite/GridCE = %s' % ceName )
+    localCfg.addDefaultEntry( '/LocalSite/GridCE', ceName )
     
   if siteName:
     localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % siteName, 'None' )
