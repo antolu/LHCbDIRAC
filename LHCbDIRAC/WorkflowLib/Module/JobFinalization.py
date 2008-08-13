@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.96 2008/08/13 11:26:35 atsareg Exp $
+# $Id: JobFinalization.py,v 1.97 2008/08/13 12:00:39 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.96 2008/08/13 11:26:35 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.97 2008/08/13 12:00:39 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -850,7 +850,7 @@ class JobFinalization(ModuleBase):
     count = 0
     max_count = 3
     while (count < max_count):
-      count =+ 1
+      count += 1
       for se in failover_ses:
         result = self.uploadDataFileToSE(datafile,lfn,se,guid)
         if result['OK']:
