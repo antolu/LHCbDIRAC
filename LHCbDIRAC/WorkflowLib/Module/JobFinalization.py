@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.95 2008/08/05 17:29:36 rgracian Exp $
+# $Id: JobFinalization.py,v 1.96 2008/08/13 11:26:35 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.95 2008/08/05 17:29:36 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.96 2008/08/13 11:26:35 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -866,14 +866,18 @@ class JobFinalization(ModuleBase):
     """
 
     if removeOrigin:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister'}},'transfer')
+      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister',
+                                                         'TargetSE':se}},
+                                           'transfer')
     else:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister'}},'transfer')
+      result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister',
+                                                         'TargetSE':se}},
+                                           'transfer')
     if not result['OK']:
       return result
 
     index = result['Value']
-    fileDict = {'LFN':lfn,'TargetSE':se,'Status':'Waiting'}
+    fileDict = {'LFN':lfn,'Status':'Waiting'}
     result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
 
     return S_OK()
@@ -899,14 +903,18 @@ class JobFinalization(ModuleBase):
     """
 
     if removeOrigin:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister'}},'transfer')
+      result = self.request.addSubRequest({'Attributes':{'Operation':'moveAndRegister',
+                                                         'TargetSE':se}},
+                                           'transfer')
     else:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'copyAndRegister'}},'transfer')
+      result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegister',
+                                                         'TargetSE':se}},
+                                           'transfer')
     if not result['OK']:
       return result
 
     index = result['Value']
-    fileDict = {'LFN':lfn,'TargetSE':se,'Status':'Waiting'}
+    fileDict['Status'] = 'Waiting'
     result = self.request.setSubRequestFiles(index,'transfer',[fileDict])
 
     return S_OK()
