@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.38 2008/08/11 06:58:52 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.39 2008/08/13 13:57:34 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.38 $"
+__RCSID__ = "$Revision: 1.39 $"
 
 from types import *
 import threading
@@ -266,7 +266,7 @@ class ProductionManagerHandler( TransformationHandler ):
     resultlog = productionDB.updateTransformationLogging(id_,message,authorDN)
     return result
 
-  types_setFileStatusForTransformation = [ [IntType,LongType], ListType ]
+  types_setFileStatusForTransformation = [ [IntType,LongType]+list(StringTypes), ListType ]
   def export_setFileStatusForTransformation( self, prod_id, statusList):
     """ Set file status in the context of a given production
     """
@@ -276,14 +276,14 @@ class ProductionManagerHandler( TransformationHandler ):
         gLogger.error(result['Message'])
     return result
 
-  types_setFileSEForTransformation = [ LongType, StringType, ListType ]
+  types_setFileSEForTransformation = [ [IntType,LongType]+list(StringTypes), StringType, ListType ]
   def export_setFileSEForTransformation( self, id_,se,lfns ):
     result = productionDB.setFileSEForTransformation(id_,se,lfns)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
 
-  types_setFileTargetSEForTransformation = [ LongType, StringType, ListType ]
+  types_setFileTargetSEForTransformation = [ [IntType,LongType]+list(StringTypes), StringType, ListType ]
   def export_setFileTargetSEForTransformation( self, id_,se,lfns ):
     result = productionDB.setFileTargetSEForTransformation(id_,se,lfns)
     if not result['OK']:
