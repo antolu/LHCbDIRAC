@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.10 2008/08/13 10:20:51 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.11 2008/08/13 10:40:27 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.10 2008/08/13 10:20:51 rgracian Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.11 2008/08/13 10:40:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -78,7 +78,7 @@ class CombinedSoftwareInstallation:
     """
     if not self.apps:
       # There is nothing to do
-      return S_OK()
+      return DIRAC.S_OK()
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
       return DIRAC.S_ERROR()
