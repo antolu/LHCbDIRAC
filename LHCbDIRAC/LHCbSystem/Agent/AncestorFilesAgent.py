@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.7 2008/07/22 15:21:51 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.8 2008/08/13 15:53:19 rgracian Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.7 2008/07/22 15:21:51 acasajus Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.8 2008/08/13 15:53:19 rgracian Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -50,63 +50,58 @@ class AncestorFilesAgent(Optimizer):
     return result
 
   #############################################################################
-  def checkJob(self,job):
+  def checkJob( self, job, jdl = None, classad = None ):
     """ The main agent execution method
     """
-    prodDN = gConfig.getValue('Operations/Production/ShiftManager','')
-    if not prodDN:
-      self.log.warn('Production shift manager DN not defined (/Operations/Production/ShiftManager)')
-      return S_OK('Production shift manager DN is not defined')
+    self.log.verbose('Job %s will be processed' % (job))
 
+    result = self.getJDLandClassad( job, jdl, classad )
+    if not result['OK']:
+      return result
+
+    JDL = result['JDL']
+    classadJob = result['Classad']
+
+    # FIXME: why do we need the Shifter proxy in here?
     result = setupShifterProxyInEnv( "ProductionManager", self.proxyLocation )
     if not result[ 'OK' ]:
       self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
+      return S_ERROR( 'Can not get shifter proxy' )
+
+    result = self.__checkAncestorDepth(job,classadJob)
+    if not result['OK']:
       return result
 
-    self.log.verbose("Checking original JDL for job: %s" %(job))
+    return self.setNextOptimizer(job)
+
+  #############################################################################
+  def __checkAncestorDepth(self,job,classadJob):
+    """This method checks the input data with ancestors. The original job JDL
+       is always extracted to obtain the input data, therefore rescheduled jobs
+       will not recursively search for ancestors of ancestors etc.
+    """
+
+    #Now check whether the job has an input data requirement
     retVal = self.jobDB.getJobJDL(job,original=True)
     if not retVal['OK']:
       self.log.warn("Missing JDL for job %s, will be marked problematic" % (job))
       return S_ERROR('JDL not found in JobDB')
 
-    jdl = retVal['Value']
-    if not jdl:
-      self.log.warn("Null JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('Null JDL returned from JobDB')
-
-    result = self.__checkAncestorDepth(job,jdl)
-    if not result['OK']:
-      self.log.warn(result['Message'])
-      return result
-
-    result = self.setNextOptimizer(job)
-    if not result['OK']:
-      self.log.warn(result['Message'])
-    return result
-
-  #############################################################################
-  def __checkAncestorDepth(self,job,jdl):
-    """This method checks the input data with ancestors. The original job JDL
-       is always extracted to obtain the input data, therefore rescheduled jobs
-       will not recursively search for ancestors of ancestors etc.
-    """
-    classadJob = ClassAd(jdl)
-    if not classadJob.isOK():
+    JDL = retVal['Value']
+    classadJobOrg = ClassAd( '[%s]' % JDL )
+    if not classadJobOrg.isOK():
       self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('Illegal Job JDL')
+      return S_ERROR('Error in JDL syntax')
 
-    inputData = classadJob.get_expression('InputData').replace('{','').replace('}','').replace('"','').split()
+    inputData = []
+    if classAddJob.lookupAttribute('InputData'):
+      inputData = classAddJob.getListFromExpression('InputData')
 
     if not classadJob.lookupAttribute('AncestorDepth'):
       self.log.warn('No AncestorDepth requirement found for job %s' %(job))
       return S_ERROR('AncestorDepth Not Found')
 
-    ancestorDepth = classadJob.get_expression('AncestorDepth').replace('"','').replace('Unknown','')
-    if not type(ancestorDepth)==type(1):
-      try:
-        ancestorDepth = int(ancestorDepth)
-      except Exception,x:
-        return S_ERROR('Illegal AncestorDepth Requirement')
+    ancestorDepth = classadJob.intFromClassAd( 'AncestorDepth' )
 
     if ancestorDepth==0:
       return S_OK('Null AncestorDepth specified')
@@ -117,20 +112,9 @@ class AncestorFilesAgent(Optimizer):
       return result
 
     newInputData = result['Value']
-    self.log.verbose("Retrieving current JDL for job: %s" %(job))
-    retVal = self.jobDB.getJobJDL(job)
-    if not retVal['OK']:
-      self.log.warn("Missing JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('JDL not found in JobDB')
 
-    currentJDL = retVal['Value']
-    classadJobNew = ClassAd(currentJDL)
-    if not classadJobNew.isOK():
-      self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('Illegal Job JDL')
-
-    classadJobNew.insertAttributeVectorString('InputData',newInputData)
-    newJDL = classadJobNew.asJDL()
+    classadJob.insertAttributeVectorString('InputData',newInputData)
+    newJDL = classadJob.asJDL()
     result = self.__setJobInputData(job,newJDL,newInputData)
     return result
 
@@ -150,17 +134,14 @@ class AncestorFilesAgent(Optimizer):
     self.log.info('genCatalog.getAncestors lookup time %.2f s' %(time.time()-start))
     self.log.verbose(result)
     if not result:
-      self.log.warn('Null result from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus)
+      return S_ERROR('Null result from genCatalog utility')
     if not type(result)==type({}):
-      self.log.warn('Non-dict object returned from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus)
+      return S_ERROR('Non-dict object returned from genCatalog utility')
     if not result.has_key('PFNs'):
-      self.log.warn('----------BK-Result------------')
-      self.log.warn(result)
-      self.log.warn('--------End-BK-Result----------')
-      self.log.warn('Missing key PFNs from genCatalog utility')
-      return S_ERROR(self.failedMinorStatus)
+      self.log.error('----------BK-Result------------')
+      self.log.error(result)
+      self.log.error('--------End-BK-Result----------')
+      return S_ERROR('Missing key PFNs from genCatalog utility')
 
     newInputData = result['PFNs']
 
@@ -178,8 +159,7 @@ class AncestorFilesAgent(Optimizer):
       report = self.setJobParam(job,self.optimizerName,param)
       if not report['OK']:
         self.log.warn(report['Message'])
-      self.log.warn('genCatalog did not return all of original input data requirement')
-      return S_ERROR(self.failedMinorStatus)
+      return S_ERROR('genCatalog did not return all of original input data requirement')
     ancestorFiles = []
     for i in newInputData:
       if not i in inputData:
@@ -191,7 +171,6 @@ class AncestorFilesAgent(Optimizer):
       self.log.warn(report['Message'])
 
     if not ancestorFiles:
-      self.log.warn('Zero ancestor files returned from genCatalog')
       return S_ERROR('No Ancestor Files Found')
 
     return S_OK(newInputData)
@@ -208,7 +187,7 @@ class AncestorFilesAgent(Optimizer):
       self.log.warn(result['Message'])
       return S_ERROR('Setting New Input Data')
 
-    result = self.jobDB.setJobJDL(int(job),jdl)
+    result = self.jobDB.setJobJDL(job,jdl)
     if not result['OK']:
       self.log.warn(result['Message'])
       return S_ERROR('Setting New JDL')
