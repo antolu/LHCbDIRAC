@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.20 2008/08/12 13:42:36 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.21 2008/08/13 19:52:53 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.20 2008/08/12 13:42:36 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.21 2008/08/13 19:52:53 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -209,7 +209,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       result = self.__changePermissions(sharedArea)
       if not result['OK']:
         return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
-      
+
 
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
@@ -252,10 +252,10 @@ class SoftwareInstallation(ModuleBaseSAM):
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
         self.log.debug('Changing file permissions in directory %s' %dirName)
-        if os.stat('%s' %(dirName))[4] == userID:
+        if os.stat('%s' %(dirName))[4] == userID and not os.path.islink('%s' %(dirName)):
           os.chmod('%s' %(dirName),0775)
         for toChange in files:
-          if os.stat('%s/%s' %(dirName,toChange))[4] == userID and not os.path.islink(path):
+          if os.stat('%s/%s' %(dirName,toChange))[4] == userID and not os.path.islink('%s/%s' %(dirName,toChange)):
             os.chmod('%s/%s' %(dirName,toChange),0775)
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
