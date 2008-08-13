@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.18 2008/08/12 13:46:10 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.19 2008/08/13 08:34:38 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.18 2008/08/12 13:46:10 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.19 2008/08/13 08:34:38 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -85,11 +85,19 @@ class LockSharedArea(ModuleBaseSAM):
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()
-    if not sharedArea or not os.path.exists(sharedArea):
+    if not sharedArea:
       self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
       return self.finalize('Could not determine sharedArea for site %s:' %(self.site),sharedArea,'error')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+
+    if not os.path.exists(sharedArea):
+      try:
+        os.mkdir(sharedArea)
+        self.log.info('Path to %s did not exist, shared area lib directory created' %sharedArea)
+      except Exception,x:
+        self.log.error('Could not create directory in shared area',str(x))
+        return self.finalize('Could not create shared area lib directory',str(x),'critical')
 
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
