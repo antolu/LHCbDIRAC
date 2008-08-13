@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.11 2008/08/13 10:40:27 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.12 2008/08/13 10:58:56 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.11 2008/08/13 10:40:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.12 2008/08/13 10:58:56 paterson Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -82,6 +82,8 @@ class CombinedSoftwareInstallation:
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
       return DIRAC.S_ERROR()
+    if self.jobConfig.lower()=='any':
+      return S_OK()
     if not self.jobConfig in self.ceConfigs:
       DIRAC.gLogger.error( 'Requested arquitecture not supported by CE' )
       return DIRAC.S_ERROR()
@@ -235,8 +237,8 @@ def SharedArea():
 
   if sharedArea:
     # if defined, check that it really exists
-    if not os.path.isdir( sharedArea ):
-      DIRAC.gLogger.warn( 'Missing Shared Area Directory:', sharedArea )
+    if not os.path.isdir( os.environ['VO_LHCB_SW_DIR'] ): #/lib might not exist e.g. SAM jobs
+      DIRAC.gLogger.error( 'Missing Shared Area Directory:', os.environ['VO_LHCB_SW_DIR'] )
       sharedArea = ''
 
   return sharedArea
