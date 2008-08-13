@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.21 2008/07/30 16:00:56 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.22 2008/08/13 12:25:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.21 2008/07/30 16:00:56 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.22 2008/08/13 12:25:04 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -132,7 +132,7 @@ class AnalyseLogFile(ModuleBase):
              self.log.info(f+" status set as "+fileStatus)
            stat = fileStatus
          try:
-           result = self.setFileStatus(self.PRODUCTION_ID,f,stat)
+           result = self.setFileStatus(int(self.PRODUCTION_ID),f,stat)
          except:
            self.log.info('processing DB not accessible')
            result = S_ERROR('processing DB not accessible')
