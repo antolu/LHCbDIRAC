@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.97 2008/08/13 12:00:39 atsareg Exp $
+# $Id: JobFinalization.py,v 1.98 2008/08/13 12:25:44 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.97 2008/08/13 12:00:39 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.98 2008/08/13 12:25:44 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -171,10 +171,12 @@ class JobFinalization(ModuleBase):
       self.fileReport.commit()
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
-#    if self.sourceData:
-#      self.LFN_ROOT= getLFNRoot(self.sourceData)
-#    else:
-#      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+    result = self.fileReport.commit()
+    if not result['OK']:
+        self.log.error('Can not update the Status of files in the processingDB : %s' %(result))
+        error=1
+    else:
+        self.log.info('Status of files have been properly updated in the ProcessingDB')
 
     if self.InputData:
       self.LFN_ROOT= getLFNRoot(self.InputData)
