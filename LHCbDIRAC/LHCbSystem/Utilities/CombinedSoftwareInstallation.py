@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.9 2008/08/12 11:51:54 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.10 2008/08/13 10:20:51 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.9 2008/08/12 11:51:54 rgracian Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.10 2008/08/13 10:20:51 rgracian Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -76,11 +76,14 @@ class CombinedSoftwareInstallation:
     """
      Main method of the class executed by DIRAC jobAgent
     """
+    if not self.apps:
+      # There is nothing to do
+      return S_OK()
     if not self.jobConfig:
-      DIRAC.gLogger.warn( 'No architecture requested' )
+      DIRAC.gLogger.error( 'No architecture requested' )
       return DIRAC.S_ERROR()
     if not self.jobConfig in self.ceConfigs:
-      DIRAC.gLogger.warn( 'Requested arquitecture not supported by CE' )
+      DIRAC.gLogger.error( 'Requested arquitecture not supported by CE' )
       return DIRAC.S_ERROR()
 
     for app in self.apps:
