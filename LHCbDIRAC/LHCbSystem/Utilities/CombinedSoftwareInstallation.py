@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.12 2008/08/13 10:58:56 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.13 2008/08/13 11:35:09 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.12 2008/08/13 10:58:56 paterson Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.13 2008/08/13 11:35:09 paterson Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -81,12 +81,16 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_OK()
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
-      return DIRAC.S_ERROR()
+      return DIRAC.S_ERROR('No architecture requested')
     if self.jobConfig.lower()=='any':
       return S_OK()
     if not self.jobConfig in self.ceConfigs:
-      DIRAC.gLogger.error( 'Requested arquitecture not supported by CE' )
-      return DIRAC.S_ERROR()
+      if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
+        DIRAC.gLogger.info('Assume locally running job')
+        return DIRAC.S_OK()
+      else:
+        DIRAC.gLogger.error('Requested architecture not supported by CE')
+        return DIRAC.S_ERROR('Requested architecture not supported by CE')
 
     for app in self.apps:
       # 1.- check if application is available in shared area
