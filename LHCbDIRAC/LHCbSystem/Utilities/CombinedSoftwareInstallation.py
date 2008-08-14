@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.14 2008/08/14 06:49:08 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.15 2008/08/14 11:57:01 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.14 2008/08/14 06:49:08 rgracian Exp $"
-__VERSION__ = "$Revision: 1.14 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.15 2008/08/14 11:57:01 paterson Exp $"
+__VERSION__ = "$Revision: 1.15 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -150,6 +150,7 @@ def InstallApplication(app, config, area ):
 
   cmdTuple =  [sys.executable]
   cmdTuple += [InstallProject]
+  cmdTuple += ['-d']
   cmdTuple += [ '-p', appName ]
   cmdTuple += [ '-v', appVersion ]
   cmdTuple += [ '-b', '-m', 'do_config' ]
@@ -253,16 +254,16 @@ def CreateSharedArea():
   if not os.environ.has_key('VO_LHCB_SW_DIR'):
     DIRAC.gLogger.info( 'VO_LHCB_SW_DIR not defined.' )
     return False
-  
+
   sharedArea = os.environ['VO_LHCB_SW_DIR']
   if sharedArea == '.':
     DIRAC.gLogger.info( 'VO_LHCB_SW_DIR points to "."' )
     return False
-  
+
   if not os.path.isdir( sharedArea ):
     DIRAC.gLogger.error( 'VO_LHCB_SW_DIR="%s" is not a directory' % sharedArea )
     return False
-  
+
   sharedArea = os.path.join( sharedArea, 'lib' )
   try:
     if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
