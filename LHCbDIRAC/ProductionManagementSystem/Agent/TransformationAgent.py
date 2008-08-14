@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.14 2008/07/04 08:13:41 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.15 2008/08/14 09:40:52 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.14 2008/07/04 08:13:41 rgracian Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.15 2008/08/14 09:40:52 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -33,6 +33,7 @@ class TransformationAgent(Agent):
     self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','no')
     #self.checkLFC = 'yes'
     self.lfc = LcgFileCatalogCombinedClient()
+    self.shifterDN = gConfig.getValue('/Operations/Production/ShiftManager','')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
     return result
@@ -80,7 +81,7 @@ class TransformationAgent(Agent):
             if nJobs > 0:
               gLogger.info('%d job(s) generated' % nJobs)
           else:
-            gLogger.warn('Error while processing: '+result['Message'])    
+            gLogger.warn('Error while processing: '+result['Message'])
 
         # flush transformations
         elif transStatus == 'Flush':
@@ -110,7 +111,7 @@ class TransformationAgent(Agent):
     """ Process one Transformation defined by its dictionary. Jobs are generated
         using various plugin functions of the kind generateJob_<plugin_name>.
         The plugin name is defined in the Production parameters. If not defined,
-        'Standard' plugin is used. 
+        'Standard' plugin is used.
     """
 
     available_plugins = ['CCRC_RAW','Standard']
@@ -120,7 +121,7 @@ class TransformationAgent(Agent):
     group_size = int(transDict['GroupSize'])
     plugin = transDict['Plugin']
     if not plugin in available_plugins:
-      plugin = 'Standard' 
+      plugin = 'Standard'
     server = RPCClient('ProductionManagement/ProductionManager')
     result = server.getInputData(prodName,'')
     sflag = True #WARNING KGG this is possibly an error
@@ -131,7 +132,7 @@ class TransformationAgent(Agent):
       return S_ERROR("Failed to get data for transformation %d %s"%(prodID,result['Message']))
 
     if self.checkLFC == 'yes' and data:
-      result = self.checkDataWithLFC(data)     
+      result = self.checkDataWithLFC(data)
 
     gLogger.debug("Input data number of files %d" % len(data))
 
@@ -143,30 +144,30 @@ class TransformationAgent(Agent):
         data = eval('self.generateJob_'+plugin+'(data,prodID,sflag,group_size, flush)')
         #if plugin == 'CCRC_RAW':
         #  data = self.generateJob_CCRC_RAW(data,prodID,sflag,group_size, flush)
-        #else:  
+        #else:
         #  data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
         else:
-          nJobs += 1  
+          nJobs += 1
     else:
       while len(data) >= group_size:
         ldata = len(data)
         data = eval('self.generateJob_'+plugin+'(data,prodID,sflag,group_size, flush)')
         #if plugin == 'CCRC_RAW':
         #  data = self.generateJob_CCRC_RAW(data,prodID,sflag,group_size, flush)
-        #else:  
+        #else:
         #  data = self.generateJob(data,prodID,sflag,group_size, flush)
         if ldata == len(data):
           break
         else:
-          nJobs += 1  
+          nJobs += 1
 
     return S_OK(nJobs)
-  
-  #####################################################################################  
-  def generateJob_CCRC_RAW(self,data,production,sflag,group_size,flush=False):  
-    """ Generate a job according to the CCRC 2008 site shares 
+
+  #####################################################################################
+  def generateJob_CCRC_RAW(self,data,production,sflag,group_size,flush=False):
+    """ Generate a job according to the CCRC 2008 site shares
     """
     dataLog = RPCClient('DataManagement/DataLogging')
     server = RPCClient('ProductionManagement/ProductionManager')
@@ -176,10 +177,10 @@ class TransformationAgent(Agent):
       if not datadict.has_key(lfn):
         datadict[lfn] = []
       datadict[lfn].append(se)
-      
-    data_m = data  
-      
-    lse = ''  
+
+    data_m = data
+
+    lse = ''
     selectedLFN = ''
     for lfn,seList in datadict.items():
       if len(seList) == 1:
@@ -187,7 +188,7 @@ class TransformationAgent(Agent):
           gLogger.warn('Single replica of %s not at CERN: %s' % (lfn,seList[0]))
           print lfn,seList
         continue
-        
+
       if len(seList) > 1:
         # Check that CERN se is in the list
         okCERN = False
@@ -198,26 +199,26 @@ class TransformationAgent(Agent):
             seCERN = se
             okCERN = True
           else:
-            seOther = se  
-            
-        if okCERN:     
+            seOther = se
+
+        if okCERN:
           # Try to satisfy the CERN share
           if random.random() < self.CERNShare:
             lse = seCERN
           else:
             lse = seOther
-          selectedLFN = lfn  
+          selectedLFN = lfn
           break
         else:
           gLogger.warn('No replicas of %s at CERN' % lfn)
           continue
-      
+
     if not lse and flush:
       # Send job to where it can go
       for lfn,seList in datadict.items():
         selectedLFN = lfn
-        lse = seList[0]  
-      
+        lse = seList[0]
+
     if lse:
       lfns = [selectedLFN]
       result = self.addJobToProduction(production,lfns,lse)
@@ -236,7 +237,7 @@ class TransformationAgent(Agent):
           if not result['OK']:
             gLogger.error("Failed to set SE for production %d"%production)
           for lfn in lfns:
-            result = dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')  
+            result = dataLog.addFileRecord(lfn,'Job created','JobID: %s' % jobID,'','TransformationAgent')
 
         # Remove used files from the initial list
         data_m = []
@@ -246,9 +247,9 @@ class TransformationAgent(Agent):
       else:
         gLogger.warn("Failed to add a new job to repository: "+result['Message'])
     else:
-      gLogger.warn('No eligible LFNs for production %d'%production)  
-             
-    return data_m              
+      gLogger.warn('No eligible LFNs for production %d'%production)
+
+    return data_m
 
   #####################################################################################
   def generateJob_Standard(self,data,production,sflag,group_size,flush=False):
@@ -312,7 +313,7 @@ class TransformationAgent(Agent):
             if not result['OK']:
               gLogger.error("Failed to set SE for production %d"%production)
             for lfn in lfns:
-              result = dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')  
+              result = dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')
 
           # Remove used files from the initial list
           data_m = []
@@ -352,7 +353,7 @@ class TransformationAgent(Agent):
   def checkDataWithLFC(self,data):
     """ Check the lfns and replicas with the LFC catalog
     """
-    
+
     # Sort files by LFN
     datadict = {}
     for lfn,se in data:
@@ -360,9 +361,9 @@ class TransformationAgent(Agent):
       if not datadict.has_key(lfn):
         datadict[lfn] = []
       datadict[lfn].append(se)
-      
+
     lfns = datadict.keys()
-    result = self.lfc.getReplicas(lfns)
+    result = self.lfc.getReplicas(lfns,self.shifterDN)
     if result['OK']:
       print result
-      
+
