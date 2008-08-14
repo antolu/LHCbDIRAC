@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.6 2008/08/14 11:55:03 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.7 2008/08/14 12:09:40 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.6 2008/08/14 11:55:03 atsareg Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.7 2008/08/14 12:09:40 atsareg Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 
 import cmd
 import sys, os
@@ -588,10 +588,10 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not argss:
       return
     directory = argss[0]
-    force = 0
+    force = False
     if length > 1:
       if argss[1] == 'force':
-        force = 1
+        force = True
 
     # KGG checking if directory has / at the end, if yes we remove it
     directory=directory.rstrip('/')
@@ -614,7 +614,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
           for se,pfn in repdict.items():
             lfns.append((lfn,pfn,0,se,'IGNORED-GUID','IGNORED-CHECKSUM'))
 
-        result = self.server.addFile(lfns, False)
+        result = self.server.addFile(lfns, force)
 
         if not result['OK']:
           print "Failed to add files with local LFC interrogation"
@@ -677,14 +677,14 @@ class ProductionManagerCLI( TransformationDBCLI ):
     argss = string.split(args)
     lfn = argss[0]
     se = argss[1]
-    force = 0
+    force = False
     if len(argss) == 3:
       if argss[2] == 'force':
-        force = 1
+        force = True
 
     lfnTuple = (lfn,'',0,se,'IGNORED-GUID','IGNORED-CHECKSUM')
 
-    result = self.server.addFile([lfnTuple])
+    result = self.server.addFile([lfnTuple],force)
     if result['Status'] != "OK":
       print "Failed to add file",lfn
 
