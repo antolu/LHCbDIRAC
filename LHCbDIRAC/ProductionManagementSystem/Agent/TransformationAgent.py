@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.15 2008/08/14 09:40:52 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.16 2008/08/14 10:24:26 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.15 2008/08/14 09:40:52 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.16 2008/08/14 10:24:26 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -30,8 +30,7 @@ class TransformationAgent(Agent):
     """
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-    self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','no')
-    #self.checkLFC = 'yes'
+    self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','yes')
     self.lfc = LcgFileCatalogCombinedClient()
     self.shifterDN = gConfig.getValue('/Operations/Production/ShiftManager','')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
@@ -126,13 +125,15 @@ class TransformationAgent(Agent):
     result = server.getInputData(prodName,'')
     sflag = True #WARNING KGG this is possibly an error
     if result['OK']:
-      data = result['Value']
+      data = result['Value']      
     else:
       print "Failed to get data for transformation", prodID, result['Message']
       return S_ERROR("Failed to get data for transformation %d %s"%(prodID,result['Message']))
 
     if self.checkLFC == 'yes' and data:
-      result = self.checkDataWithLFC(data)
+      result = self.checkDataWithLFC(prodID,data)
+      if result['OK']:
+        data = result['Value']  
 
     gLogger.debug("Input data number of files %d" % len(data))
 
@@ -350,20 +351,42 @@ class TransformationAgent(Agent):
     return result
 
   ######################################################################################
-  def checkDataWithLFC(self,data):
+  def checkDataWithLFC(self,production,data):
     """ Check the lfns and replicas with the LFC catalog
     """
 
     # Sort files by LFN
     datadict = {}
     for lfn,se in data:
-      print "AT >>>>>>",lfn,se
       if not datadict.has_key(lfn):
         datadict[lfn] = []
       datadict[lfn].append(se)
 
     lfns = datadict.keys()
     result = self.lfc.getReplicas(lfns,self.shifterDN)
-    if result['OK']:
-      print result
+    lfc_datadict = {}
+    lfc_data = []
+    if not result['OK']:
+      return result
+      
+    replicas = result['Value']['Successful']
+    for lfn, replicaDict in replicas.items():
+      lfc_datadict[lfn] = []
+      for se,pfn in replicaDict.items():
+        lfc_datadict[lfn].append(se)
+        lfc_data.append((lfn,se))
+    lfc_lfns = lfc_datadict.keys()
+    # Check the input files if they are known by LFC
+    missing_lfns = []
+    for lfn in lfns:
+      if lfn not in lfc_lfns:
+        missing_lfns.append(lfn)
+        gLogger.warn('LFN: %s not found in the LFC' % lfn)
+    if missing_lfns:    
+      # Mark this file in the transformation
+      server = RPCClient('ProductionManagement/ProductionManager')
+      result = server.setFileStatusForTransformation(production,[('MissingLFC',missing_lfns)])    
+      if not result['OK']:
+        gLogger.warn(result['Message'])
 
+    return S_OK(lfc_data)
