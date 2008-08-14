@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.17 2008/08/06 11:28:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.18 2008/08/14 07:25:38 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.17 2008/08/06 11:28:13 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.18 2008/08/14 07:25:38 rgracian Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -54,9 +54,9 @@ class ModuleBaseSAM(object):
     """In case CE isn't defined in the local config file, try to get it through
        broker info calls.
     """
-    csCE = gConfig.getValue('/Resources/Computing/InProcess/GridCE','')
+    csCE = gConfig.getValue('/LocalSite/GridCE','')
     if not csCE:
-      gLogger.warn('Could not get CE from local config file in section /Resources/Computing/InProcess/GridCE')
+      gLogger.warn('Could not get CE from local config file in section /LocalSite/GridCE')
     else:
       return S_OK(csCE)
 
