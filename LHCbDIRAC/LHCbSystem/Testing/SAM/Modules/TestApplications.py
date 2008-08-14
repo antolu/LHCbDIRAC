@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.4 2008/07/31 11:16:24 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.5 2008/08/14 08:39:36 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.4 2008/07/31 11:16:24 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.5 2008/08/14 08:39:36 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -95,6 +95,21 @@ class TestApplications(ModuleBaseSAM):
       return self.finalize('Problem during execution','Failure detected in a previous step','error')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
+
+    self.log.info('Checking local system configuration is suitable to run the application test')
+    localArch = gConfig.getValue('/LocalSite/Architecture','')
+    if not localArch:
+      return self.finalize('/LocalSite/Architecture is not defined in the local configuration','Could not get /LocalSite/Architecture','error')
+
+    #must get the list of compatible platforms for this architecture
+    localPlatforms = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %localArch,[])
+    if not localPlatforms:
+      return self.finalize('Could not obtain compatible platforms for %s' %localArch,'/Resources/Computing/OSCompatibility/%s' %localArch,'error')
+
+    if not self.appSystemConfig in localPlatforms:
+      self.log.info('%s is not in list of supported system configurations at this site: %s' %(self.appSystemConfig,string.join(localPlatforms,',')))
+      self.writeToLog('%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' %(self.appSystemConfig,string.join(localPlatforms,',')))
+      return self.finalize('%s Test Disabled' %self.testName,'Status NOTICE (=30)','notice')
 
     options = self.__getOptions(self.appNameVersion.split('.')[0], self.appNameVersion.split('.')[1])
     if not options['OK']:
