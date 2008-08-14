@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.21 2008/08/13 19:52:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.22 2008/08/14 06:58:28 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,16 +11,16 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.21 2008/08/13 19:52:53 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.22 2008/08/14 06:58:28 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication, CreateSharedArea
   from DIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication, CreateSharedArea
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re, shutil
@@ -93,8 +93,12 @@ class SoftwareInstallation(ModuleBaseSAM):
       return self.finalize('%s test will be disabled' %self.testName,'Status INFO (= 20)','info')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
+    if not CreateSharedArea():
+      self.log.info( 'Can not get access to Shared Area for SW installation' )
+      return self.finalize('Could not determine shared area for site', 'Status ERROR (=50)','error' )
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
+      # After previous check this error should never occur
       self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
       return self.finalize('Could not determine shared area for site',sharedArea,'critical')
     else:
