@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.23 2008/08/14 07:24:23 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.24 2008/08/14 08:55:45 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.23 2008/08/14 07:24:23 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.24 2008/08/14 08:55:45 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -253,8 +253,17 @@ class SoftwareInstallation(ModuleBaseSAM):
         if os.stat('%s' %(dirName))[4] == userID and not os.path.islink('%s' %(dirName)):
           os.chmod('%s' %(dirName),0775)
         for toChange in files:
-          if os.stat('%s/%s' %(dirName,toChange))[4] == userID and not os.path.islink('%s/%s' %(dirName,toChange)):
-            os.chmod('%s/%s' %(dirName,toChange),0775)
+          file = os.path.join( dirName, toChange )
+          if os.stat(file)[4] == userID and not os.path.islink(file):
+            if os.path.isfile( file ):
+              try:
+                os.chmod(file,0775)
+              except Exception,x:
+                self.log.error( 'Can not change permission to file:', file )
+                self.log.error( 'Is file: ', os.path.isfile( file ) )
+                self.log.error( 'Is link: ', os.path.islink( file ) )
+                self.log.error( 'Is exits:', os.path.exists( file ) )
+                raise x         
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
       return S_ERROR(x)
