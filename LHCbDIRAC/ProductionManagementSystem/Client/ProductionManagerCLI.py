@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.8 2008/08/14 12:13:54 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.9 2008/08/14 12:21:00 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.8 2008/08/14 12:13:54 atsareg Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.9 2008/08/14 12:21:00 atsareg Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 
 import cmd
 import sys, os
@@ -655,7 +655,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
           print 'Exists in Catalog', file_exists
           print 'Added to Catalog', added_to_calalog-file_exists
           print 'Added to Transformations', added_to_transformation
-          print 'Replica Exixts', replica_exists
+          print 'Replica Exists', replica_exists
           return
       else:
         print "No such directory in LFC"
@@ -685,8 +685,14 @@ class ProductionManagerCLI( TransformationDBCLI ):
     lfnTuple = (lfn,'',0,se,'IGNORED-GUID','IGNORED-CHECKSUM')
 
     result = self.server.addFile([lfnTuple],force)
-    if result['OK']:
+    if not result['OK']:
       print "Failed to add file",lfn
+
+    lfnDict = result['Value']['Successful']
+    if lfnDict[lfn]['Retained']:
+      print "File added"
+    else:
+      print "File not retained"
 
   def do_testMode(self, args):
     """ Changes Production manager handler to the testing version
