@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.6 2008/07/29 19:55:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.7 2008/08/14 08:28:33 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-queues.
 """
 
-__RCSID__ = "$Id: SiteQueues.py,v 1.6 2008/07/29 19:55:13 paterson Exp $"
+__RCSID__ = "$Id: SiteQueues.py,v 1.7 2008/08/14 08:28:33 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -153,7 +153,7 @@ if ( i == tot ){ \
 
     output = result['Value']
     if not output.strip()=='0':
-      return self.finalize('LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI','Status WARNING (= 40)','warning')
+      return self.finalize('LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI','Status INFO (= 20)','info')
 
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
