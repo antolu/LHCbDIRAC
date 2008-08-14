@@ -1,12 +1,12 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.20 2008/07/15 13:12:03 paterson Exp $
-__RCSID__ = "$Id: Tools.py,v 1.20 2008/07/15 13:12:03 paterson Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.21 2008/08/14 20:23:49 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.21 2008/08/14 20:23:49 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 
 
-def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys-v4-lumi2'):
+def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
     """ Constructs the logical file name according to LHCb conventions.
     Returns the lfn without 'lfn:' prepended
     """
@@ -22,8 +22,6 @@ def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys
     else:
       if re.search('LFN:',fname):
         return fname.replace('LFN:','')
-      elif re.search('DC06',LFN_ROOT): #This should be reviewed, is a nasty fix.
-        return LFN_ROOT+'/'+prodConfig+'/'+prodstring+'/'+filetuple[1].upper()+'/'+jobindex+'/'+filetuple[0]
       else:
 #        path = makeProductionPath(self,mode,prodstring)
         return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
@@ -301,7 +299,7 @@ def getLFNRoot(lfn,mcYear=0):
               CONTINUE = 1
               j = 1
               while CONTINUE == 1:
-                if not lfnroot[j] in dataTypes:
+                if not lfnroot[j] in dataTypes and not lfnroot[j+1] in dataTypes:
                   LFN_ROOT = LFN_ROOT+'/'+lfnroot[j]
                 else:
                   CONTINUE = 0
@@ -310,8 +308,6 @@ def getLFNRoot(lfn,mcYear=0):
                 if j > len(lfnroot):
                   CONTINUE = 0
                   break
-    elif mcYear=='DC06': #This should be reviewed.
-        LFN_ROOT = '/lhcb/production/DC06'
     else:
         LFN_ROOT = '/lhcb/MC/'+str(mcYear)
     return LFN_ROOT
