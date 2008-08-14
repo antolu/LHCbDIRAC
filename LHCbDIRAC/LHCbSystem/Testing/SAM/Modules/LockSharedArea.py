@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.19 2008/08/13 08:34:38 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.20 2008/08/14 07:54:33 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.19 2008/08/13 08:34:38 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.20 2008/08/14 07:54:33 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -196,12 +196,11 @@ class LockSharedArea(ModuleBaseSAM):
 
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
-        self.log.verbose('Changing file permissions in directory %s' %dirName)
-        self.writeToLog('Changing file permissions in directory %s' %dirName)
-        if os.stat('%s' %(dirName))[4] == userID:
+        self.log.debug('Changing file permissions in directory %s' %dirName)
+        if os.stat('%s' %(dirName))[4] == userID and not os.path.islink('%s' %(dirName)):
           os.chmod('%s' %(dirName),0775)
         for toChange in files:
-          if os.stat('%s/%s' %(dirName,toChange))[4] == userID:
+          if os.stat('%s/%s' %(dirName,toChange))[4] == userID and not os.path.islink('%s/%s' %(dirName,toChange)):
             os.chmod('%s/%s' %(dirName,toChange),0775)
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
