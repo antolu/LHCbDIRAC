@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.5 2008/06/23 11:24:00 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.6 2008/08/14 11:55:03 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.5 2008/06/23 11:24:00 atsareg Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.6 2008/08/14 11:55:03 atsareg Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import cmd
 import sys, os
@@ -668,6 +668,25 @@ class ProductionManagerCLI( TransformationDBCLI ):
     #else:
     #  print result['Value']
 
+  def do_addFile(self,args):
+    """ Add new file to the Production Database
+
+    usage: addFile <lfn> <se> [force]
+    """
+
+    argss = string.split(args)
+    lfn = argss[0]
+    se = argss[1]
+    force = 0
+    if len(argss) == 3:
+      if argss[2] == 'force':
+        force = 1
+
+    lfnTuple = (lfn,'',0,se,'IGNORED-GUID','IGNORED-CHECKSUM')
+
+    result = self.server.addFile([lfnTuple])
+    if result['Status'] != "OK":
+      print "Failed to add file",lfn
 
   def do_testMode(self, args):
     """ Changes Production manager handler to the testing version
