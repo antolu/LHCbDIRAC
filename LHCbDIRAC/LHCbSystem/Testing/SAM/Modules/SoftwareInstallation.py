@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.24 2008/08/14 08:55:45 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.25 2008/08/14 11:04:57 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.24 2008/08/14 08:55:45 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.25 2008/08/14 11:04:57 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -250,8 +250,17 @@ class SoftwareInstallation(ModuleBaseSAM):
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
         self.log.debug('Changing file permissions in directory %s' %dirName)
-        if os.stat('%s' %(dirName))[4] == userID and not os.path.islink('%s' %(dirName)):
-          os.chmod('%s' %(dirName),0775)
+        if os.stat(dirName)[4] == userID and not os.path.islink(dirName):
+          if os.path.isdir( dirName ):
+            try:
+              os.chmod(dirName,0775)
+            except Exception,x:
+              self.log.error( 'Can not change permission to dir:', dirName )
+              self.log.error( 'Is dir:  ', os.path.isfile( dirName ) )
+              self.log.error( 'Is link: ', os.path.islink( dirName ) )
+              self.log.error( 'Is exits:', os.path.exists( dirName ) )
+              raise x         
+          
         for toChange in files:
           file = os.path.join( dirName, toChange )
           if os.stat(file)[4] == userID and not os.path.islink(file):
