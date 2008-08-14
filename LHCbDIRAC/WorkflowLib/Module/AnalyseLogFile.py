@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.22 2008/08/13 12:25:04 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.23 2008/08/14 11:33:44 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.22 2008/08/13 12:25:04 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.23 2008/08/14 11:33:44 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -338,67 +338,31 @@ class AnalyseLogFile(ModuleBase):
 
          return S_ERROR(mailto + ' error to connectDatabase')
 
-# trap CASTOR error
-      self.log.info('Check error database connection')
-      line,castor = self.grep(self.applicationLog,'Cannot connect to database')
-      if castor >= 1:
-         return S_ERROR(mailto + ' Could not connect to database')
+      dict_app_error = {'Cannot connect to database':'error database connection',\
+                        'Could not connect':'CASTOR error connection',\
+                        'SysError in <TDCacheFile::ReadBuffer>: error reading from file':'DCACHE connection error',\
+                        'Failed to resolve':'IODataManager error',\
+                        'Error: connectDataIO':'connectDataIO error',\
+                        'Error:connectDataIO':'connectDataIO error',\
+                        'Terminating event processing loop due to errors':'Event loop no terminated',\
+                        ' glibc ':'Problem with glibc'}
 
-      self.log.info('Check CASTOR error connection')
-      line,castor = self.grep(self.applicationLog,'Could not connect')
-      if castor >= 1:
-         return S_ERROR(mailto + ' Could not connect to a file')
-
-      self.log.info('Check DCACHE connection error')
-      line,tread = self.grep(self.applicationLog,'SysError in <TDCacheFile::ReadBuffer>: error reading from file')
-      if tread >= 1:
-         return S_ERROR(mailto + ' TDCacheFile error')
-
-      self.log.info('Check IODataManager error')
-      line,resolv = self.grep(self.applicationLog,'Failed to resolve')
-      if resolv >= 1:
-         self.log.debug(line)
-         return S_ERROR(mailto + ' IODataManager error')
-
-      self.log.info('Check connectionIO error')
-      line,cdio = self.grep(self.applicationLog,'Error: connectDataIO')
-      if cdio >= 1:
-         return S_ERROR(mailto + ' connectDataIO error')
-
-      self.log.info('Check connectionIO error')
-      line,cdio = self.grep(self.applicationLog,'Error:connectDataIO')
-      if cdio >= 1:
-         return S_ERROR(mailto + ' connectDataIO error')
-
-      self.log.info('Check loop errors')
-      linenextevt,n = self.grep(self.applicationLog,'Terminating event processing loop due to errors')
-      if n != 0:
-          return S_ERROR(mailto + 'Event loop no terminated')
-
-      self.log.info('GLIBC error')
-      linenextevt,n = self.grep(self.applicationLog,' glibc ')
-      if n != 0:
-          return S_ERROR(mailto + 'Problem with glibc ')
+      for type_error in dict_app_error.keys():
+          self.log.info('Check %s' %(dict_app_error[type_error]))
+          line,founderror = self.grep(self.applicationLog,type_error)
+          if founderror >= 1:
+              return S_ERROR(mailto +' '+type_error)
 
       writerr = 'Writer failed'
       if self.applicationName == 'Gauss':
          writerr = 'GaussTape failed'
 
-      line,n = self.grep(self.applicationLog,writerr)
-      if n == 1:
-         result = S_ERROR(mailto + ' POOL error')
-      else:
-         line,n = self.grep(self.applicationLog,'bus error')
+      writer_error_list = [writerr,'bus error','User defined signal 1','Not found DLL']
+      for writer_error in writer_error_list:
+         line,n = self.grep(self.applicationLog,writer_error)
          if n == 1:
-            result = S_ERROR(mailto + ' bus error')
-         else:
-            line,n = self.grep(self.applicationLog,'User defined signal 1')
-            if n == 1:
-               result = S_ERROR(mailto + ' User defined signal 1')
-            else:
-               line,n = self.grep(self.applicationLog,'Not found DLL')
-               if n == 1:
-                  result = S_ERROR(mailto + ' Not found DLL')
+            result = S_ERROR(mailto +' '+writer_error)
+            break
 
       return result
 
