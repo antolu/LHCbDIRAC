@@ -7,11 +7,12 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 # Variable which need to be set
 wkf_name = "CCRC_strip"
 eventTypeSignal = "30000000"
-nb_evt_step1 = -1
+nb_evt_step1 = 100
 nb_evt_step2 = -1
-Brunel_version = "v32r5"
-Brunel_optfile = "RealData-ETC.opts"
-DaVinci_version = "v19r12"
+Brunel_version = "v31r11"
+#Brunel_optfile = "RealData-ETC.opts"
+Brunel_optfile = "DC06-ETC.opts"
+DaVinci_version = "v19r7"
 DaVinci_optfile = "DVOfficialStrippingFile.opts"
 system_os = "slc4_ia32_gcc34"
 
@@ -36,8 +37,9 @@ opt_dav_prev = opt_dav_prev+";StdTightLambda1115_LL_Seq.Members = { \"CheckPV\" 
 opt_dav_prev = opt_dav_prev+";StdLoosePhotonsSeq.Members = { \"CheckPV\" };StdLooseCnvPhotonsSeq.Members = { \"CheckPV\" };StdLooseAllPhotonsSeq.Members = { \"CheckPV\" };StdNoPIDsPionsSeq.Members = { \"CheckPV\" };StdLoosePionsSeq.Members = { \"CheckPV\" };StdLooseVTTPionsSeq.Members = { \"CheckPV\" };StdNoPIDsVTTPionsSeq.Members = { \"CheckPV\" };StdLooseDownstreamPionsSeq.Members = { \"CheckPV\" };StdTightPionsSeq.Members = { \"CheckPV\" };StdNoPIDsProtonsSeq.Members = { \"CheckPV\" }"
 opt_dav_prev = opt_dav_prev+";StdLooseProtonsSeq.Members = { \"CheckPV\" };StdLooseVTTProtonsSeq.Members = { \"CheckPV\" };StdLooseDownstreamProtonsSeq.Members = { \"CheckPV\" };StdTightProtonsSeq.Members = { \"CheckPV\" };StdLooseResolvedPi0sSeq.Members = { \"CheckPV\" };StdLooseRho02PiPiSeq.Members = { \"CheckPV\" }"
 
-opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
-opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+#opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+#opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = ";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
 opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
@@ -45,7 +47,8 @@ opt_brunel = opt_brunel+";EventPersistencySvc.CnvServices += { \"LHCb::RawDataCn
 opt_brunel = opt_brunel+";HistogramPersistencySvc.OutputFile = \"\""
 opt_brunel = opt_brunel+";IODataManager.AgeLimit = 2"
 #indata = "LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_1.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_2.sim;LFN:/lhcb/production/DC06/phys-v2-lumi2/00001820/SIM/0000/00001820_00000001_3.sim"
-indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst"
+#indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00007084_1.rdst"
+indata = "LFN:/lhcb/production/DC06/phys-v4-lumi5/00001897/RDST/0000/00001897_00000001_1.rdst"
 #gridjkaindata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00000282_1.rdst"
 #IN2P3indata = "LFN:/lhcb/data/CCRC08/RDST/00000130/0000/00000130_00008670_1.rdst"
 #indata =  "LFN:/lhcb/data/CCRC08/RDST/00000130/0001/00000130_00010149_1.rdst;LFN:/lhcb/data/CCRC08/RAW/LHCb/CCRC/22848/022848_0000021562.raw"
@@ -67,6 +70,7 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
 module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
+module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 #define module 5
 module5 = ModuleDefinition('StepFinalization')
@@ -105,7 +109,7 @@ step1.addParameterLinked(module2.parameters)
 step1.addParameter(Parameter("eventType","","string","","",True, False, "Event Type"))
 step1.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 step1.addParameter(Parameter("outputData","","string","","",True,False,"etc name"))
-step1.addParameter(Parameter("etcf","SETC_@{STEP_ID}.root","string","","",True,False,"etc name"))
+step1.addParameter(Parameter("etcf","@{STEP_ID}.root","string","","",True,False,"etc name"))
 step1.addParameter(Parameter("applicationName","","string","","",True, False, "Application Name"))
 step1.addParameter(Parameter("applicationVersion","","string","","",True, False, "Application Name"))
 step1.addParameter(Parameter("applicationType","","string","","",True, False, "Application Type"))
@@ -141,12 +145,12 @@ stepInstance1.setValue("applicationName", "DaVinci")
 stepInstance1.setValue("applicationVersion", DaVinci_version)
 stepInstance1.setValue("applicationType", "root")
 stepInstance1.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
-stepInstance1.setValue("outputData","FETC_@{STEP_ID}.@{applicationType}")
+stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", DaVinci_optfile)
 stepInstance1.setValue("optionsLine",opt_dav)
 stepInstance1.setValue("optionsLinePrev",opt_dav_prev)
-stepInstance1.setLinnk("inputData","self","Inputdata") # KGG linked with InputData of the Workflow
-list1_out=[{"outputDataName":"FETC_@{STEP_ID}.@{applicationType}","outputDataType":"FETC","outputDataSE":"Tier1_M-DST"}]
+stepInstance1.setLink("inputData","self","InputData") # KGG linked with InputData of the Workflow
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"FETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
@@ -159,13 +163,13 @@ stepInstance2.setValue("applicationVersion", Brunel_version)
 stepInstance2.setValue("applicationType", "dst")
 stepInstance2.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 stepInstance2.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance2.setValue("etcf","SETC_@{STEP_ID}.root")
+stepInstance2.setValue("etcf","@{STEP_ID}.root")
 stepInstance2.setValue("optionsFile", Brunel_optfile)
 stepInstance2.setValue("optionsLine",opt_brunel)
 stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"SETC_@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
@@ -179,7 +183,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r12.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r18.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
