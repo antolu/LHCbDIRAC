@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.13 2008/08/13 11:35:09 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.14 2008/08/14 06:49:08 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.13 2008/08/13 11:35:09 paterson Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.14 2008/08/14 06:49:08 rgracian Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -81,16 +81,14 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_OK()
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
-      return DIRAC.S_ERROR('No architecture requested')
-    if self.jobConfig.lower()=='any':
-      return S_OK()
+      return DIRAC.S_ERROR( 'No architecture requested' )
     if not self.jobConfig in self.ceConfigs:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
-        DIRAC.gLogger.info('Assume locally running job')
+        DIRAC.gLogger.info( 'Assume locally running job' )
         return DIRAC.S_OK()
       else:
-        DIRAC.gLogger.error('Requested architecture not supported by CE')
-        return DIRAC.S_ERROR('Requested architecture not supported by CE')
+        DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
+        return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in self.apps:
       # 1.- check if application is available in shared area
@@ -241,11 +239,42 @@ def SharedArea():
 
   if sharedArea:
     # if defined, check that it really exists
-    if not os.path.isdir( os.environ['VO_LHCB_SW_DIR'] ): #/lib might not exist e.g. SAM jobs
-      DIRAC.gLogger.error( 'Missing Shared Area Directory:', os.environ['VO_LHCB_SW_DIR'] )
+    if not os.path.isdir( sharedArea ):
+      DIRAC.gLogger.error( 'Missing Shared Area Directory:', sharedArea )
       sharedArea = ''
 
   return sharedArea
+
+def CreateSharedArea():
+  """
+   Method to be used by SAM jobs to make sure the proper directory structure is created
+   if it does not exists
+  """
+  if not os.environ.has_key('VO_LHCB_SW_DIR'):
+    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR not defined.' )
+    return False
+  
+  sharedArea = os.environ['VO_LHCB_SW_DIR']
+  if sharedArea == '.':
+    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR points to "."' )
+    return False
+  
+  if not os.path.isdir( sharedArea ):
+    DIRAC.gLogger.error( 'VO_LHCB_SW_DIR="%s" is not a directory' % sharedArea )
+    return False
+  
+  sharedArea = os.path.join( sharedArea, 'lib' )
+  try:
+    if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
+      return True
+    if not os.path.exist( sharedArea ):
+      os.mkdir( sharedArea )
+      return True
+    os.remove( sharedArea )
+    os.mkdir( sharedArea )
+    return True
+  except:
+    return False
 
 def LocalArea():
   """
