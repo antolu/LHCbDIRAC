@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.18 2008/08/14 07:25:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.19 2008/08/14 08:36:26 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.18 2008/08/14 07:25:38 rgracian Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.19 2008/08/14 08:36:26 paterson Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -204,6 +204,12 @@ class ModuleBaseSAM(object):
   def writeToLog(self,message):
     """Write to the log file with a printed message.
     """
+    if not os.path.exists('%s' %(self.logFile)):
+      fopen = open(self.logFile,'w')
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
+      fopen.write(header)
+      fopen.close()
+
     fopen = open(self.logFile,'a')
     fopen.write(self.getMessageString('%s' %(message)))
     fopen.close()
