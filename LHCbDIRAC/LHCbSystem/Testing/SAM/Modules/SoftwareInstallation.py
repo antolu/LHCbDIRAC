@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.22 2008/08/14 06:58:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.23 2008/08/14 07:24:23 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.22 2008/08/14 06:58:28 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.23 2008/08/14 07:24:23 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -145,12 +145,6 @@ class SoftwareInstallation(ModuleBaseSAM):
       localPlatforms = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %localArch,[])
       if not localPlatforms:
         return self.finalize('Could not obtain compatible platforms for %s' %localArch,'/Resources/Computing/OSCompatibility/%s' %localArch,'error')
-
-      if not os.path.exists(sharedArea):
-        try:
-          os.mkdir(sharedArea)
-        except Exception,x:
-          return self.finalize('Could not create proposed shared area directory:',sharedArea,'critical')
 
       for systemConfig in localPlatforms:
         self.log.info('The following software packages will be installed:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
