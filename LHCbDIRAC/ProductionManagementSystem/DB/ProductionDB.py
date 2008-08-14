@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.41 2008/08/11 13:33:53 atsareg Exp $
+# $Id: ProductionDB.py,v 1.42 2008/08/14 09:02:51 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.41 $"
+__RCSID__ = "$Revision: 1.42 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -141,7 +141,7 @@ class ProductionDB(TransformationDB):
       gLogger.error( error )
       return S_ERROR( error )
 
-    result = TransformationDB.addTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
+    result = self.addTransformation(name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
 
     print result, 'This is the result of addTransformation'
 
@@ -155,7 +155,7 @@ class ProductionDB(TransformationDB):
     print result, 'This is the result of __insertProductionParameters'
     if not result['OK']:
       # if for some reason this failed we have to roll back
-      result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+      result_rollback1 = self.deleteTransformation(TransformationID)
       error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
@@ -165,7 +165,7 @@ class ProductionDB(TransformationDB):
     if not result['OK']:
       # if for some reason this failed we have to roll back
       result_rollback2 = self.__deleteProductionParameters(TransformationID)
-      result_rollback1 = TransformationDB.deleteTransformation(self, TransformationID)
+      result_rollback1 = self.deleteTransformation(TransformationID)
       error = 'Transformation "%s" ID=$d FAILED to add JobTable with message "%s"' % (name, TransformationID, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
@@ -173,7 +173,7 @@ class ProductionDB(TransformationDB):
 
     #elif update:
       # update
-      #result = TransformationDB.modifyTransformation(self, name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
+      #result = self.modifyTransformation(name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
       #if result['OK']:
         #result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
         #if result['OK']:
@@ -346,7 +346,7 @@ INDEX(WmsStatus)
     return result
 
   def getAllProductions(self):
-    result1 = TransformationDB.getAllTransformations(self)
+    result1 = self.getAllTransformations()
     if not result1['OK']:
         return result1
     for prod in result1['Value']:
@@ -368,7 +368,7 @@ INDEX(WmsStatus)
     transID = self.getTransformationID(transName)
     if transID == 0:
       return S_ERROR("No Transformation with the name '%s' in the TransformationDB" % transName)
-    result_step1 = TransformationDB.deleteTransformation(self, transID)
+    result_step1 = self.deleteTransformation(transID)
     if result_step1['OK']:
       # we have to execute all
       result_step2 = self.__deleteProductionParameters(transID)
