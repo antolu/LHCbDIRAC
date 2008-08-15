@@ -8,9 +8,9 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 # Variable which need to be set
 wkf_name = "MC_DC06_Final"
 #eventTypeSignal = "13144001"
-eventTypeSignal = "13144003"
-numberEventSignal = 500
-numberEventMB = 500
+eventTypeSignal = "12962600"
+numberEventSignal = 10
+numberEventMB = 10
 numberEvent = -1
 Gauss_version = "v26r0"
 Gauss_optfile = "v200601.opts"
@@ -219,7 +219,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r15.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r19.tar.gz","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("JobType","production","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
