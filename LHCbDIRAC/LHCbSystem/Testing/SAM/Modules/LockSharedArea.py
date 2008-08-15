@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.20 2008/08/14 07:54:33 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.21 2008/08/15 19:29:53 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.20 2008/08/14 07:54:33 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.21 2008/08/15 19:29:53 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -173,8 +173,17 @@ class LockSharedArea(ModuleBaseSAM):
     result = self.runCommand('Creating SAM lock file',cmd,check=True)
     if not result['OK']:
       self.log.warn(result['Message'])
-      self.setApplicationStatus('Could Not Create Lock File')
-      return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
+      self.log.info('Trying to change permissions: %s' %(sharedArea))
+      try:
+        os.chmod(sharedArea,0775)
+      except Exception,x:
+        self.setApplicationStatus('Could Not Create Lock File')
+        return self.finalize('Could not change permissions','%s' %(sharedArea),'critical')
+      cmd = 'touch %s/%s' %(sharedArea,self.lockFile)
+      result = self.runCommand('Creating SAM lock file',cmd,check=True)
+      if not result['OK']:
+        self.setApplicationStatus('Could Not Create Lock File')
+        return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
 
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
     self.log.info('Test %s completed successfully' %self.testName)
