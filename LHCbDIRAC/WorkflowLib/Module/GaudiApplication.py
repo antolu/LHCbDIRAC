@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.70 2008/08/05 15:50:38 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.71 2008/08/15 06:33:20 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.70 2008/08/05 15:50:38 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.71 2008/08/15 06:33:20 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -48,6 +48,7 @@ class GaudiApplication(ModuleBase):
     self.optfile_extra = ''
     self.optionsLinePrev = ''
     self.optionsLine = ''
+    self.extraPackages = ''
 
   #############################################################################
   def resolveInputDataOpts(self,options):
@@ -234,6 +235,9 @@ class GaudiApplication(ModuleBase):
     if self.step_commons.has_key('optionsLinePrev'):
        self.optionsLinePrev = self.step_commons['optionsLinePrev']
 
+    if self.step_commons.has_key('extraPackages'):
+       self.extraPackages = self.step_commons['extraPackages']
+
     if self.workflow_commons.has_key('poolXMLCatName'):
        self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
@@ -374,13 +378,18 @@ class GaudiApplication(ModuleBase):
       script.write('export CMTPATH='+cmtStr+'\n')
       cmtFlag = '--use="cmttemp v1" '
     script.write('echo $LHCBPYTHON\n')
+    extraPack = ' '
+    if self.extraPackages:
+        for i in self.extraPackages.split(';'):
+            extraPack += '"--use='+i.split('.')[0]+' '+i.split('.')[1]+'" '
+
     if self.generator_name == '':
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag +' '+extraPack\
                  +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' '+extraPack+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
