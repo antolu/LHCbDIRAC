@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.10 2008/08/14 12:51:10 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.11 2008/08/16 18:14:50 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.10 2008/08/14 12:51:10 atsareg Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.11 2008/08/16 18:14:50 atsareg Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 
 import cmd
 import sys, os
@@ -402,12 +402,19 @@ class ProductionManagerCLI( TransformationDBCLI ):
     prodID = self.check_id_or_name(argss[0])
     result = self.server.getProductionInfo(prodID)
     if result['OK']:
+
+      dict = result['Value']['Value']
+      del result['Value']['Value']
+      del result['OK']
+      del result['rpcStub']
+      dict.update(result['Value'])
+      del result['Value']
       print "\nGeneral information:"
-      printDict(result['Value']['Value'])
+      printDict(dict)
     result = self.server.getJobWmsStats(prodID)
     if result['OK']:
       print "\nJob statistics:"
-      printDict(result['Value'])
+      #printDict(result['Value'])
     result = self.server.getJobStats(prodID)
     if result['OK']:
       printDict(result['Value'])
@@ -436,6 +443,19 @@ class ProductionManagerCLI( TransformationDBCLI ):
     prodID = self.check_id_or_name(argss[0])
     status = argss[1].lower().capitalize()
     self.server.setTransformationStatus(prodID, status)
+
+  def do_setProductionParameter(self, args):
+    """ Set production parameter
+
+    Usage: setProductionStatus <ProductionNameOrID> <param_name> <param_value>
+    """
+    argss, length = self.check_params(args, 3)
+    if not argss:
+      return
+    prodID = self.check_id_or_name(argss[0])
+    pname = argss[1]
+    pvalue = argss[2]
+    result = self.server.addTransformationParameter(prodID,pname,pvalue)
 
   def do_getProductionLog(self, args):
     """ Get Log of the given ProductionID
