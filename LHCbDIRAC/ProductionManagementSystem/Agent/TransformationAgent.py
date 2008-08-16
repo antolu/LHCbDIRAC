@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.18 2008/08/16 14:31:47 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.19 2008/08/16 16:31:37 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.18 2008/08/16 14:31:47 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.19 2008/08/16 16:31:37 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -148,7 +148,7 @@ class TransformationAgent(Agent):
     else:
       while len(data) >= group_size:
         ldata = len(data)
-        data = eval('self.generateJob_'+plugin+'(data,prodID,transDictflush)')
+        data = eval('self.generateJob_'+plugin+'(data,prodID,transDict,flush)')
         if ldata == len(data):
           break
         else:
@@ -419,7 +419,7 @@ class TransformationAgent(Agent):
       return S_ERROR('No ancestors returned')
 
     # Determine common SEs now
-    result = self.lfc.getReplicas(lfns,self.shifterDN)
+    result = self.lfc.getReplicas(fileList,self.shifterDN)
     if not result['OK']:
       gLogger.warn(result['Message'])
       return S_ERROR('Failed to get results from LFC: %s' % result['Message'])
