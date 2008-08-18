@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.18 2008/08/08 12:07:01 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.19 2008/08/18 09:30:58 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.18 2008/08/08 12:07:01 rgracian Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.19 2008/08/18 09:30:58 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -86,6 +86,14 @@ class SystemConfiguration(ModuleBaseSAM):
       return self.finalize('Could not determine shared area for site',sharedArea,'critical')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+
+    #nasty fix but only way to resolve writeable volume at CERN
+    if self.site=='LCG.CERN.ch':
+      self.log.info('Changing shared area path to writeable volume at CERN')
+      if re.search('.cern.ch',sharedArea):
+        newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
+        self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
+        sharedArea = newSharedArea
 
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)

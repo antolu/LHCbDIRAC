@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.21 2008/08/05 13:37:35 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.22 2008/08/18 09:30:47 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.21 2008/08/05 13:37:35 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.22 2008/08/18 09:30:47 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -167,6 +167,15 @@ class SAMFinalization(ModuleBaseSAM):
        successful.
     """
     self.log.info('Checking SAM lock file: %s' %self.lockFile)
+
+    #nasty fix but only way to resolve writeable volume at CERN
+    if self.site=='LCG.CERN.ch':
+      self.log.info('Changing shared area path to writeable volume at CERN')
+      if re.search('.cern.ch',sharedArea):
+        newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
+        self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
+        sharedArea = newSharedArea
+
     if os.path.exists('%s/%s' %(sharedArea,self.lockFile)):
       self.log.info('Found SAM lock on the shared area at %s' %sharedArea)
       cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)

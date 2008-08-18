@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.21 2008/08/15 19:29:53 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.22 2008/08/18 09:31:40 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.21 2008/08/15 19:29:53 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.22 2008/08/18 09:31:40 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -90,6 +90,14 @@ class LockSharedArea(ModuleBaseSAM):
       return self.finalize('Could not determine sharedArea for site %s:' %(self.site),sharedArea,'error')
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+
+    #nasty fix but only way to resolve writeable volume at CERN
+    if self.site=='LCG.CERN.ch':
+      self.log.info('Changing shared area path to writeable volume at CERN')
+      if re.search('.cern.ch',sharedArea):
+        newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
+        self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
+        sharedArea = newSharedArea
 
     if not os.path.exists(sharedArea):
       try:
