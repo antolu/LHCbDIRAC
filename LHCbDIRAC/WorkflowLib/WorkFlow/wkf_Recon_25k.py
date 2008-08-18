@@ -40,7 +40,7 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 #define module 4
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
-module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
+module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
 module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 
@@ -132,7 +132,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r17.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("AncestorDepth","1","JDL","","",True,False, "Ancestor Depth"))
-workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("JobType","DataReconstruction","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))

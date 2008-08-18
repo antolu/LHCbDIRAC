@@ -219,7 +219,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r19.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r20.tar.gz","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("JobType","MCSimulation","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))

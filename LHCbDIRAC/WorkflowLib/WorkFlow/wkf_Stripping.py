@@ -69,7 +69,7 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 #define module 4
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
-module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
+module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
 module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 #define module 5
@@ -183,9 +183,9 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r18.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r20.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
-workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("JobType","DataStripping","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
