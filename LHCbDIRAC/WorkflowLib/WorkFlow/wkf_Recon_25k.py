@@ -13,6 +13,7 @@ Brunel_optfile = "RealDataRdst.opts"
 system_os = "slc4_ia32_gcc34"
 
 opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+opt_brunel = opt_brunel+";#include \"$SQLDDDBROOT/options/SQLDDDB-Oracle.opts\""
 opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
 opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
@@ -128,7 +129,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r12.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r17.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("AncestorDepth","1","JDL","","",True,False, "Ancestor Depth"))
 workflow1.addParameter(Parameter("JobType","test","JDL","","",True, False, "Job TYpe"))
@@ -154,7 +155,7 @@ workflow1.addParameter(Parameter("configName","LHCb","string","","",True, False,
 workflow1.addParameter(Parameter("configVersion","CCRC08","string","","",True, False, "Configuration Version"))
 workflow1.addParameter(Parameter("systemConfig",system_os,"string","","",True, False, "Application Name"))
 #workflow1.addParameter(Parameter("NUMBER_OF_EVENTS","5","string","","",True, False, "number of events requested"))
-if os.path.exists('wkf_MC.xml'):
+if os.path.exists('wkf_'+wkf_name+'.xml'):
   print 'Removed existing workflow'
   os.remove('wkf_'+wkf_name+'.xml')
 workflow1.toXMLFile('wkf_'+wkf_name+'.xml')
