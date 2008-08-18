@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.22 2008/07/01 13:32:24 joel Exp $
+# $Id: BookkeepingReport.py,v 1.23 2008/08/18 09:46:47 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.22 2008/07/01 13:32:24 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.23 2008/08/18 09:46:47 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -26,6 +26,7 @@ class BookkeepingReport(ModuleBase):
     self.eventType = ''
     self.poolXMLCatName = ''
     self.inputData = ''
+    self.InputData = ''
     self.JOB_ID = None # to check
     self.sourceData=''
     self.applicationName = ''
@@ -52,6 +53,12 @@ class BookkeepingReport(ModuleBase):
     if self.step_commons.has_key('inputDataType'):
        self.inputDataType = self.step_commons['inputDataType']
 
+    if self.workflow_commons.has_key('poolXMLCatName'):
+       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+
+    if self.workflow_commons.has_key('InputData'):
+       self.InputData = self.workflow_commons['InputData']
+
     if self.step_commons.has_key('inputData'):
        self.inputData = self.step_commons['inputData']
 
@@ -71,11 +78,17 @@ class BookkeepingReport(ModuleBase):
        self.log.info('Workflow status : %s' %(self.workflowStatus))
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
+
     self.resolveInputVariables()
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
     print >> bfile,self.makeBookkeepingXMLString()
+    bfile.close()
+
+    bfilename = 'newbookkeeping_'+self.STEP_ID+'.xml'
+    bfile = open(bfilename,'w')
+    print >> bfile,self.NewmakeBookkeepingXMLString()
     bfile.close()
 
     if self.workflow_commons.has_key('outputList'):
@@ -113,7 +126,13 @@ class BookkeepingReport(ModuleBase):
       configName = self.applicationName
       configVersion = self.applicationVersion
 
-    s = s+'<Job ConfigName="'+configName+ \
+    if self.workflow_commons.has_key('DCconfigName'):
+      s = s+'<Job ConfigName="'+self.workflow_commons['DCconfigName']+ \
+          '" ConfigVersion="'+self.workflow_commons['DCconfigVersion']+ \
+          '" Date="'+ldate+ \
+          '" Time="'+ltime+'">\n'
+    else:
+      s = s+'<Job ConfigName="'+configName+ \
           '" ConfigVersion="'+configVersion+ \
           '" Date="'+ldate+ \
           '" Time="'+ltime+'">\n'
@@ -143,11 +162,11 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string('DIRAC_Version',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
 
     # Run number, first event number if any, stats
-    if self.RUN_NUMBER != None:
-      s = s+self.__parameter_string('RunNumber',self.RUN_NUMBER,"Info")
+    if self.run_number != None:
+      s = s+self.__parameter_string('RunNumber',self.run_number,"Info")
 
-    if self.FIRST_EVENT_NUMBER != None:
-      s = s+self.__parameter_string('FirstEventNumber',self.FIRST_EVENT_NUMBER,"Info")
+    if self.firstEventNumber != None:
+      s = s+self.__parameter_string('FirstEventNumber',self.firstEventNumber,"Info")
     else:
       s = s+self.__parameter_string('FirstEventNumber',"1","Info")
 
@@ -159,10 +178,15 @@ class BookkeepingReport(ModuleBase):
     else:
       s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
-    if self.sourceData:
-      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    if self.sourceData:
+#      self.LFN_ROOT= getLFNRoot(self.sourceData)
+#    else:
+#      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
+    if self.InputData:
+      self.LFN_ROOT= getLFNRoot(self.InputData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
 
     if self.inputData:
       for inputname in self.inputData.split(';'):
@@ -196,7 +220,7 @@ class BookkeepingReport(ModuleBase):
     count = 0
     while (count < len(self.listoutput)):
       if self.listoutput[count].has_key('outputDataName'):
-        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputType'])))
+        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
       count=count+1
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
@@ -261,5 +285,182 @@ class BookkeepingReport(ModuleBase):
     s = s+'</Job>'
     return s
 
+  def NewmakeBookkeepingXMLString(self):
+
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+    site = gConfig.getValue('/LocalSite/Site','Site')
+    if self.workflow_commons.has_key('dataType'):
+      job_mode = self.workflow_commons['dataType'].lower()
+    else:
+      job_mode = 'test'
+    ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
+    ltime = time.strftime("%H:%M",time.localtime(time.time()))
+
+    s = ''
+    s = s+'<?xml version="1.0" encoding="ISO-8859-1"?>\n'
+    s = s+'<!DOCTYPE Job SYSTEM "book.dtd">\n'
+
+    # Get the Config name from the environment if any
+    if self.workflow_commons.has_key('configName'):
+      configName = self.workflow_commons['configName']
+      configVersion = self.workflow_commons['configVersion']
+    else:
+      configName = self.applicationName
+      configVersion = self.applicationVersion
+
+    s = s+'<Job ConfigName="'+configName+ \
+          '" ConfigVersion="'+configVersion+ \
+          '" Date="'+ldate+ \
+          '" Time="'+ltime+'">\n'
+
+    s = s+self.__parameter_string("Production",self.PRODUCTION_ID,'Info')
+    s = s+self.__parameter_string("DiracJobId",self.JOB_ID,'Info')
+    s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
+    s = s+self.__parameter_string("Location",site,'Info')
+
+    host = None
+    if os.environ.has_key("HOSTNAME"):
+      host = os.environ["HOSTNAME"]
+    elif os.environ.has_key("HOST"):
+      host = os.environ["HOST"]
+    if host is not None:
+      s = s+self.__parameter_string('WorkerNode',host,'Info')
+
+    if  os.environ.has_key('XMLDDDB_VERSION'):
+      s = s+self.__parameter_string("GeometryVersion",os.environ["XMLDDDB_VERSION"],'Info')
+
+    s = s+self.__parameter_string("ProgramName",self.applicationName,'Info')
+    s = s+self.__parameter_string("ProgramVersion",self.applicationVersion,'Info')
+
+    # DIRAC version
+    s = s+self.__parameter_string('DiracVersion',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
+
+    if self.firstEventNumber != None:
+      s = s+self.__parameter_string('FirstEventNumber',self.firstEventNumber,"Info")
+    else:
+      s = s+self.__parameter_string('FirstEventNumber',"1","Info")
+
+    if self.numberOfEvents != None:
+      s = s+self.__parameter_string('StatisticsRequested',self.numberOfEvents,"Info")
+
+    if self.numberOfEventsInput != None:
+      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEventsInput,"Info")
+    else:
+      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
+
+    if self.sourceData:
+      self.LFN_ROOT= getLFNRoot(self.sourceData)
+    else:
+      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+
+    if self.inputData:
+      for inputname in self.inputData.split(';'):
+        lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+        s = s+'  <InputFile    Name="'+lfn+'"/>\n'
+
+
+    ####################################################################
+    # Output files
+    # Define DATA TYPES - ugly! should find another way to do that
+
+
+    if self.eventType != None:
+      eventtype = self.eventType
+    else:
+      self.log.warn( 'BookkeepingReport: no eventType specified' )
+      eventtype = 'Unknown'
+    self.log.info( 'Event type = %s' % (str(self.eventType)))
+    self.log.info( 'stats = %s' %(self.numberOfEventsOutput))
+
+    if self.numberOfEventsOutput != None:
+      statistics = self.numberOfEventsOutput
+    elif self.numberOfEvents != None:
+      statistics = self.numberOfEvents
+    else:
+      self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
+      statistics = "0"
+
+
+    outputs = []
+    count = 0
+    while (count < len(self.listoutput)):
+      if self.listoutput[count].has_key('outputDataName'):
+        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
+      count=count+1
+    outputs_done = []
+    outputs.append(((self.applicationLog),('LogSE'),('LOG')))
+    self.log.info(outputs)
+    for output,outputse,outputtype in outputs:
+      typeName = outputtype.upper()
+      typeVersion = '1'
+
+      # Output file size
+      try:
+        outputsize = str(os.path.getsize(output))
+      except:
+        outputsize = '0'
+
+      comm = 'md5sum '+str(output)
+      resultTuple = shellCall(0,comm)
+      status = resultTuple['Value'][0]
+      out = resultTuple['Value'][1]
+
+      if status:
+        self.log.info( "Failed to get md5sum of %s" % str( output ) )
+        self.log.info( str( out ) )
+        md5sum = '000000000000000000000000000000000000'
+      else:
+        md5sum = out.split()[0]
+
+      guid = getGuidFromPoolXMLCatalog(self.poolXMLCatName,output)
+      if guid == '':
+        if md5sum != '000000000000000000000000000000000000':
+          guid = makeGuid(output)
+        else:
+          guid = makeGuid()
+
+      # build the lfn
+      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
+
+      s = s+'  <OutputFile   Name="'+lfn+'" TypeName="'+typeName+'" TypeVersion="'+typeVersion+'">\n'
+      if typeName in dataTypes:
+        s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
+        s = s+'    <Parameter  Name="EventStat"       Value="'+statistics+'"/>\n'
+        s = s+'    <Parameter  Name="FileSize"        Value="'+outputsize+'"/>\n'
+
+
+      ############################################################
+      # Log file replica information
+#      if typeName == "LOG":
+      if self.applicationLog != None:
+          logfile = self.applicationLog
+          if logfile == output:
+#            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
+            logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID,log=True)
+            logurl = 'http://lhcb-logs.cern.ch/storage'
+
+            url = logurl+logpath+'/'+self.JOB_ID+'/'
+            s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
+
+      s = s+'    <Parameter  Name="MD5Sum"        Value="'+md5sum+'"/>\n'
+      s = s+'    <Parameter  Name="Guid"        Value="'+guid+'"/>\n'
+      s = s+'  </OutputFile>\n'
+    if self.applicationName == "Gauss":
+        s = self.makeBeamConditions(s)
+
+    s = s+'</Job>'
+    return s
+
+  def makeBeamConditions(self,sbeam):
+      sbeam = sbeam+'<SimulationCondition>\n'
+      sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
+      sbeam = sbeam+'    <Parameter Name="BeamCond"         Value="Collisions"/>\n'
+      sbeam = sbeam+'    <Parameter Name="BeamEnergy"       Value="7 TeV"/>\n'
+      sbeam = sbeam+'    <Parameter Name="Generator"        Value="Pythia 6.325.2"/>\n'
+      sbeam = sbeam+'    <Parameter Name="MagneticField"    Value="-100%"/>\n'
+      sbeam = sbeam+'    <Parameter Name="DetectorCond"     Value="Normal"/>\n'
+      sbeam = sbeam+'    <Parameter Name="Luminosity"       Value="Fixed 2 10**32"/>\n'
+      sbeam = sbeam+'</SimulationCondition>\n'
+      return sbeam
 
 
