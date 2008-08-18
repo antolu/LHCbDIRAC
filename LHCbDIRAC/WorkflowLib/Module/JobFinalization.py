@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.99 2008/08/18 18:01:54 atsareg Exp $
+# $Id: JobFinalization.py,v 1.100 2008/08/18 21:51:33 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.99 2008/08/18 18:01:54 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.100 2008/08/18 21:51:33 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -954,7 +954,7 @@ class JobFinalization(ModuleBase):
     if accountingReport:
       result = accountingReport.commit()
       if not result['OK']:
-        self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'accounting')
+        self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'diset')
 
     if self.request.isEmpty()['Value']:
       return S_OK()
