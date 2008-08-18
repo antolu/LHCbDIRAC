@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.26 2008/08/14 13:10:42 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.27 2008/08/18 08:50:37 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.26 2008/08/14 13:10:42 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.27 2008/08/18 08:50:37 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -114,6 +114,14 @@ class SoftwareInstallation(ModuleBaseSAM):
       isPoolAccount = False
     else:
       isPoolAccount = True
+
+    #nasty fix but only way to resolve writeable volume at CERN
+    if self.site=='LCG.CERN.ch':
+      self.log.info('Changing shared area path to writeable volume at CERN')
+      if re.search('.cern.ch',sharedArea):
+        newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
+        self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
+        sharedArea = newSharedArea
 
     # Purge shared area if requested.
     if self.purgeSharedArea:
@@ -258,8 +266,8 @@ class SoftwareInstallation(ModuleBaseSAM):
             self.log.error( 'Is dir:  ', os.path.isfile( dirName ) )
             self.log.error( 'Is link: ', os.path.islink( dirName ) )
             self.log.error( 'Is exits:', os.path.exists( dirName ) )
-            raise x         
-          
+            raise x
+
         for toChange in files:
           file = os.path.join( dirName, toChange )
           if os.path.isfile( file ) and not os.path.islink(file) and os.stat(file)[4] == userID :
@@ -270,7 +278,7 @@ class SoftwareInstallation(ModuleBaseSAM):
               self.log.error( 'Is file: ', os.path.isfile( file ) )
               self.log.error( 'Is link: ', os.path.islink( file ) )
               self.log.error( 'Is exits:', os.path.exists( file ) )
-              raise x         
+              raise x
     except Exception,x:
       self.log.error('Problem changing shared area permissions',str(x))
       return S_ERROR(x)
