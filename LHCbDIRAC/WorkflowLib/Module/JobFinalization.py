@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.98 2008/08/13 12:25:44 joel Exp $
+# $Id: JobFinalization.py,v 1.99 2008/08/18 18:01:54 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.98 2008/08/13 12:25:44 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.99 2008/08/18 18:01:54 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -297,7 +297,7 @@ class JobFinalization(ModuleBase):
             time.sleep(self.bookkeepingTimeOut)
           if counter > 3:
             self.log.error( "Failed to send bookkeeping information for %s: %s" % (str(f),result['Message']) )
-            self.request.addSubRequest('newbookkeeping',DISETSubRequest(result['rpcStub']).getDictionary())
+            self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'diset')
             send_flag = False
             result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
         else:
@@ -333,7 +333,7 @@ class JobFinalization(ModuleBase):
             time.sleep(self.bookkeepingTimeOut)
           if counter > 3:
             self.log.error( "Failed to send bookkeeping information for %s: %s" % (str(f),result['Message']) )
-            self.request.addSubRequest('bookkeeping',DISETSubRequest(result['rpcStub']).getDictionary())
+            self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'diset')
             send_flag = False
             result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
         else:
