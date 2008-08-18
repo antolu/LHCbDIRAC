@@ -48,7 +48,7 @@ module3.setBody('from WorkflowLib.Module.LogChecker import *\n')
 #define module 4
 module4 = ModuleDefinition('BookkeepingReport')
 module4.setDescription('Bookkeeping Report module')
-module4.setBody('from WorkflowLib.Module.NewBookkeepingReport import * \n')
+module4.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
 module4.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False," step id "))
 
 #define module 5
@@ -220,7 +220,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # lets specify parameters on the level of workflow
 
 workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r19.tar.gz","JDL","","",True, False, "Job Type"))
-workflow1.addParameter(Parameter("JobType","production","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("JobType","MCSimulation","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
@@ -241,6 +241,8 @@ workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "ty
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("configVersion","DC06","string","","",True, False, "Configuration Version"))
+workflow1.addParameter(Parameter("DCconfigName","DC06","string","","",True, False, "Configuration Name"))
+workflow1.addParameter(Parameter("DCconfigVersion","phys-v4-lumi20","string","","",True, False, "Configuration Version"))
 workflow1.addParameter(Parameter("outputDataFileMask",outputDataFileMask,"string","","",True, False, "Only upload files with the extensions in this parameter"))
 if os.path.exists('wkf_MC.xml'):
   print 'Removed existing workflow'
