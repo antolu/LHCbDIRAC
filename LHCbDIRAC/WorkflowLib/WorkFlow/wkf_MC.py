@@ -128,7 +128,7 @@ stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setValue("extraPackages",extraPackages)
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step11_prefix="step11_"
@@ -148,7 +148,7 @@ stepInstance11.setValue("optionsFile", Gauss_optfile)
 stepInstance11.setValue("optionsLine",opt_gauss)
 stepInstance11.setValue("optionsLinePrev","None")
 stepInstance11.setValue("extraPackages",extraPackages)
-list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
+list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
 stepInstance11.setValue("listoutput",list11_out)
 
 step12_prefix="step12_"
@@ -168,7 +168,7 @@ stepInstance12.setValue("optionsFile", Gauss_optfile)
 stepInstance12.setValue("optionsLine",opt_gauss)
 stepInstance12.setValue("optionsLinePrev","None")
 stepInstance12.setValue("extraPackages",extraPackages)
-list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RAW"}]
+list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
 stepInstance12.setValue("listoutput",list12_out)
 
 step2_prefix="step2_"
@@ -191,7 +191,7 @@ stepInstance2.setValue("optionsFile", Boole_optfile)
 stepInstance2.setValue("optionsLine",opt_boole)
 stepInstance2.setValue("optionsLinePrev","None")
 stepInstance2.setValue("extraPackages",extraPackages)
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":"Tier1-RDST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 step3_prefix="step3_"
@@ -210,7 +210,7 @@ stepInstance3.setValue("optionsLinePrev","None")
 stepInstance3.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 stepInstance3.setLink("inputData",stepInstance2.getName(),"outputData")
 stepInstance3.setValue("extraPackages",extraPackages)
-list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1-disk"}]
+list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
 stepInstance3.setValue("listoutput",list3_out)
 
 workflow1.addStep(step3)

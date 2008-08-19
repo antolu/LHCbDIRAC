@@ -115,7 +115,7 @@ stepInstance1.setValue("optionsLine",opt_brunel)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setLink("inputData","self","InputData")
 #stepInstance1.setValue("outputDataSE","Tier1_M-DST")
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1-RDST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 workflow1.addStep(step3)

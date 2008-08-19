@@ -39,7 +39,7 @@ opt_dav_prev = opt_dav_prev+";StdLooseProtonsSeq.Members = { \"CheckPV\" };StdLo
 
 #opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 #opt_brunel = opt_brunel+";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_brunel = ";MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = "MessageSvc.Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc.timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr.OutputLevel = 3"
 opt_brunel = opt_brunel+";DstWriter.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_brunel = opt_brunel+";EvtTupleSvc.Output = {\"EVTTAGS2 DATAFILE=\'PFN:@{etcf}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"}"
@@ -150,7 +150,7 @@ stepInstance1.setValue("optionsFile", DaVinci_optfile)
 stepInstance1.setValue("optionsLine",opt_dav)
 stepInstance1.setValue("optionsLinePrev",opt_dav_prev)
 stepInstance1.setLink("inputData","self","InputData") # KGG linked with InputData of the Workflow
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"FETC","outputDataSE":"Tier1_M-DST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"FETC","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 step2_prefix="step2_"
@@ -169,7 +169,7 @@ stepInstance2.setValue("optionsLine",opt_brunel)
 stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"},{"outputDataName":"@{STEP_ID}.root","outputType":"SETC","outputDataSE":"Tier1_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"},{"outputDataName":"@{STEP_ID}.root","outputType":"SETC","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
@@ -183,7 +183,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r20.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r21.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","DataStripping","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
