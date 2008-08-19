@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.19 2008/08/16 16:31:37 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.20 2008/08/19 14:04:02 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.19 2008/08/16 16:31:37 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.20 2008/08/19 14:04:02 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -136,6 +136,26 @@ class TransformationAgent(Agent):
       if result['OK']:
         data = result['Value']
 
+    ancestorDepth = 0
+    if transDict.has_key('Additional'):
+      if transDict['Additional'].has_key('AncestorDepth'):
+        ancestorDepth = int(transDict['Additional']['AncestorDepth'])
+
+    if ancestorDepth > 0:
+      data_m = []
+      ancestorSEDict = {}
+      for lfn,se in data:
+        # Find SEs allowed by the ancestor presence
+        if not ancestorSEDict.has_key(lfn):
+          result = self.checkAncestors(lfn,ancestorDepth)
+          if result['OK']:
+            ancestorSEs = result['Value']
+          else:
+            ancestorSEs = []
+        if se in ancestorSEs:
+          data_m.append((lfn,se))
+      data = data_m
+
     nJobs = 0
     if flush:
       while len(data) >0:
@@ -253,34 +273,16 @@ class TransformationAgent(Agent):
     """
 
     group_size = int(transDict['GroupSize'])
-    ancestorDepth = 0
-    if transDict.has_key('Additional'):
-      if transDict['Additional'].has_key('AncestorDepth'):
-        ancestorDepth = int(transDict['Additional']['AncestorDepth'])
     dataLog = RPCClient('DataManagement/DataLogging')
     server = RPCClient('ProductionManagement/ProductionManager')
     # Sort files by SE
     datadict = {}
-    ancestorSEDict = {}
     for lfn,se in data:
       #if se in self.seBlackList:
       #  continue
-
       if not datadict.has_key(se):
         datadict[se] = []
-
-      if ancestorDepth > 0:
-        # Find SEs allowed by the ancestor presence
-        if not ancestorSEDict.has_key(lfn):
-          result = self.checkAncestors(lfn,ancestorDepth)
-          if result['OK']:
-            ancestorSEs = result['Value']
-          else:
-            ancestorSEs = []
-        if se in ancestorSEs:
-          datadict[se].append(lfn)
-      else:
-        datadict[se].append(lfn)
+      datadict[se].append(lfn)
 
     data_m = data
 
