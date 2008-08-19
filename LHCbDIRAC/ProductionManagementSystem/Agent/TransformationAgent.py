@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.22 2008/08/19 16:07:26 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.23 2008/08/19 20:12:57 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.22 2008/08/19 16:07:26 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.23 2008/08/19 20:12:57 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -150,10 +150,14 @@ class TransformationAgent(Agent):
         if not ancestorSEDict.has_key(lfn):
           result = self.checkAncestors(lfn,ancestorDepth)
           if result['OK']:
-            ancestorSites = [ self.getSiteForSE(x) for x in result['Value'] ]
+            ancestorSites = result['Value']
           else:
             ancestorSites = []
-        if self.getSiteForSE(se) in ancestorSites:
+        result = self.getSiteForSE(se)
+        if not result['OK']:
+          continue
+        fileSite = result['Value']        
+        if fileSite in ancestorSites:
           data_m.append((lfn,se))
       data = data_m
 
@@ -420,6 +424,7 @@ class TransformationAgent(Agent):
     fileList = result['Value']
     if not fileList:
       return S_ERROR('No ancestors returned')
+    numAncestors = len(fileList)
 
     # Determine common SEs now
     result = self.lfc.getReplicas(fileList,self.shifterDN)
@@ -428,22 +433,27 @@ class TransformationAgent(Agent):
       return S_ERROR('Failed to get results from LFC: %s' % result['Message'])
 
     replicas = result['Value']['Successful']
-    ancestorSEs = []
+    if numAncestors != len(replicas):
+      return S_ERROR('Can not find all replica info: ancestors %d, replicas %d' % (numAncestors,len(replicas)))
+
+    ancestorSites = []
     for lfn, replicaDict in replicas.items():
       ancestorSEs = replicaDict.keys()
+      ancestorSites = self.getSitesForSEs(ancestorSEs)
       break
 
     for lfn, replicaDict in replicas.items():
       SEs = replicaDict.keys()
-      tmp_SEs = []
-      for se in SEs:
-        if se in ancestorSEs:
-          tmp_SEs.append(se)
-      ancestorSEs = tmp_SEs
-      if not ancestorSEs:
+      sites = self.getSitesForSEs(SEs)
+      tmp_sites = []
+      for site in sites:
+        if site in ancestorSites:
+          tmp_sites.append(site)
+      ancestorSites = tmp_sites
+      if not ancestorSites:
         break
 
-    return S_OK(ancestorSEs)
+    return S_OK(ancestorSites)
 
   def getSiteForSE(self,se):
     """ Get site name for the given SE
@@ -456,3 +466,15 @@ class TransformationAgent(Agent):
       return S_OK(result['Value'][0])
 
     return S_OK('')
+
+  def getSitesForSEs(self, seList):
+    """ Get all the sites for the given SE list 
+    """
+
+    sites = []
+    for se in seList:
+      result = getSitesForSE(se)
+      if result['OK']:
+        sites += result['Value']
+
+    return sites
