@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.11 2008/08/16 18:14:50 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.12 2008/08/19 06:17:49 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.11 2008/08/16 18:14:50 atsareg Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.12 2008/08/19 06:17:49 atsareg Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 
 import cmd
 import sys, os
@@ -471,7 +471,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
       print "Error during command execution: %s" % result['Message']
       return
     for mess in result['Value']:
-      print mess['Message'], mess['MessageDate'], mess['AuthorDN']
+      print mess['MessageDate'],": ", mess['Message'], " by ", mess['AuthorDN']
 
   def do_setSubmissionType(self, args):
     """ Set status of the production
