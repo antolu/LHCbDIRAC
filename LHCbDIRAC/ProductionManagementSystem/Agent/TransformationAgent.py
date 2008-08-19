@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.20 2008/08/19 14:04:02 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.21 2008/08/19 15:28:30 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.20 2008/08/19 14:04:02 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.21 2008/08/19 15:28:30 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -149,10 +149,10 @@ class TransformationAgent(Agent):
         if not ancestorSEDict.has_key(lfn):
           result = self.checkAncestors(lfn,ancestorDepth)
           if result['OK']:
-            ancestorSEs = result['Value']
+            ancestorSites = [ self.getSiteForSE(x) for x in result['Value'] ]
           else:
-            ancestorSEs = []
-        if se in ancestorSEs:
+            ancestorSites = []
+        if self.getSiteForSE(se) in ancestorSites:
           data_m.append((lfn,se))
       data = data_m
 
@@ -443,3 +443,23 @@ class TransformationAgent(Agent):
         break
 
     return S_OK(ancestorSEs)
+
+  def getSiteForSE(self,se):
+    """ Get site name for the given SE
+    """
+
+    result = gConfig.getSections('/Resources/Sites')
+    if not result['OK']:
+      return result
+    gridTypes = result['Value']
+    for gridType in gridTypes:
+      result = gConfig.getSections('/Resources/Sites/'+gridType)
+      if not result['OK']:
+        continue
+      siteList = result['Value']
+      for site in siteList:
+        ses = gConfig.getValue('/Resources/Sites/%s/%s/SE' % (gridType,site),[])
+        if se in ses:
+          return S_OK(site)
+
+    return S_OK('')
