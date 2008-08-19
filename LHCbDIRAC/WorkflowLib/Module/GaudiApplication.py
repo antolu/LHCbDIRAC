@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.72 2008/08/15 08:20:18 joel Exp $
+# $Id: GaudiApplication.py,v 1.73 2008/08/19 15:45:23 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.72 2008/08/15 08:20:18 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.73 2008/08/19 15:45:23 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -406,12 +406,12 @@ class GaudiApplication(ModuleBase):
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
     if self.generator_name == '':
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag \
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 #                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
 #                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')

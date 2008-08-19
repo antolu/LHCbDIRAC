@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.15 2008/08/14 11:57:01 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.16 2008/08/19 15:47:07 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.15 2008/08/14 11:57:01 paterson Exp $"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.16 2008/08/19 15:47:07 paterson Exp $"
+__VERSION__ = "$Revision: 1.16 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -202,6 +202,7 @@ def CheckApplication(app, config, area):
   setupProjectEnv = ret['outputEnv']
 
   setupProject = [setupProject]
+  setupProject.append( '--debug' )
   setupProject.append( '--ignore-missing' )
   setupProject.append( appName )
   setupProject.append( appVersion )
