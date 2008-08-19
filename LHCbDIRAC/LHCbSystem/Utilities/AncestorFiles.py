@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/AncestorFiles.py,v 1.1 2008/08/15 10:54:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/AncestorFiles.py,v 1.2 2008/08/19 14:47:52 atsareg Exp $
 # File :   AncestorFiles.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
       interface this will eventually be updated to use the DIRAC3 BK Client.
 """
 
-__RCSID__ = "$Id: AncestorFiles.py,v 1.1 2008/08/15 10:54:53 paterson Exp $"
+__RCSID__ = "$Id: AncestorFiles.py,v 1.2 2008/08/19 14:47:52 atsareg Exp $"
 
 from DIRAC.BookkeepingSystem.Client.genCatalogOld          import getAncestors
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
@@ -39,7 +39,7 @@ def getAncestorFiles(inputData,ancestorDepth):
     return S_ERROR('getAncestors failed with exception:\n%s' %x)
 
   gLogger.info('genCatalog.getAncestors lookup time %.2f s' %(time.time()-start))
-  gLogger.verbose(result)
+  gLogger.debug(result)
   if not result:
     gLogger.warn('Null result from genCatalog utility')
     return S_ERROR(result)
