@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.100 2008/08/18 21:51:33 atsareg Exp $
+# $Id: JobFinalization.py,v 1.101 2008/08/19 12:06:57 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.100 2008/08/18 21:51:33 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.101 2008/08/19 12:06:57 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -219,7 +219,15 @@ class JobFinalization(ModuleBase):
       ########################################################
       # Upload the output data
 
+      # Add explicitly BookkeepingDB catalog for the output data operations
+      result = self.rm.fileCatalogue.addCatalog('BookkeepingDB')
+      if not result['OK']:
+        self.log.warn('Failed to add BookkeepingDB to the list of fail catalogs')
+
       resultUpload = self.uploadOutput()
+
+      # We do not need this catalog any more
+      self.rm.fileCatalogue.removeCatalog('BookkeepingDB')
 
       #################################################################
       # Send bookkeeping only if the data was uploaded successfully
