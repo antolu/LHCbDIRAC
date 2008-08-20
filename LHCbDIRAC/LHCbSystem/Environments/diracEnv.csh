@@ -1,15 +1,15 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.2 2008/08/20 14:33:48 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.3 2008/08/20 15:34:59 joel Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.2 2008/08/20 14:33:48 joel Exp $'
-set __VERSION__='$Revision: 1.2 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.3 2008/08/20 15:34:59 joel Exp $'
+set __VERSION__='$Revision: 1.3 $'
 
 if ($#argv != 1) then
-  echo "usage : source dirac-role-env <role>"
+  echo "usage : source diracEnv.csh <role>"
   echo "   "
   echo " role is : production, admin, user, sgm, sam, GenericPilot"
   exit 0
@@ -42,6 +42,7 @@ switch ( $role )
   default:
            echo "This role does not exist " $role
            echo "set the default role as user"
+           set role = user
            set group=lhcb_user
            breaksw
 
