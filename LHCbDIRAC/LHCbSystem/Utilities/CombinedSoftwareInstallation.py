@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.16 2008/08/19 15:47:07 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.17 2008/08/20 16:35:15 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.16 2008/08/19 15:47:07 paterson Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.17 2008/08/20 16:35:15 paterson Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -158,7 +158,8 @@ def InstallApplication(app, config, area ):
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
 
-  ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
+  #Temporarily increasing timeout to 3hrs to debug installation failures for SAM suite
+  ret = DIRAC.systemCall( 10800, cmdTuple, env=cmtEnv, callbackFunction=log )
   if not ret['OK']:
     DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app) )
     DIRAC.gLogger.warn( ret['Message'] )
