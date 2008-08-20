@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.1 2008/08/20 14:31:44 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.2 2008/08/20 14:33:48 joel Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.1 2008/08/20 14:31:44 joel Exp $'
-set __VERSION__='$Revision: 1.1 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.2 2008/08/20 14:33:48 joel Exp $'
+set __VERSION__='$Revision: 1.2 $'
 
 if ($#argv != 1) then
   echo "usage : source dirac-role-env <role>"
@@ -41,7 +41,8 @@ switch ( $role )
                     breaksw
   default:
            echo "This role does not exist " $role
-           exit 0
+           echo "set the default role as user"
+           set group=lhcb_user
            breaksw
 
 endsw
