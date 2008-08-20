@@ -1,14 +1,14 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.1 2008/08/20 15:33:25 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.2 2008/08/20 15:35:21 joel Exp $
 # File :   diracEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: diracEnv.sh,v 1.1 2008/08/20 15:33:25 joel Exp $"
-__VERSION__="$Revision: 1.1 $"
+__RCSID__="$Id: diracEnv.sh,v 1.2 2008/08/20 15:35:21 joel Exp $"
+__VERSION__="$Revision: 1.2 $"
 
 if ! [ $# = 1 ] ;then
-  echo "usage : source dirac-role-env <role>"
+  echo "usage : . diracEnv <role>"
   echo "   "
   echo " role is : production, admin, user, sgm, sam, GenericPilot"
   exit 0
@@ -24,7 +24,7 @@ echo Running DIRAC diracEnv.sh version $__VERSION__ with DIRACROOT=$DIRACROOT
 echo
 
 
-case $role in 
+case $role in
     production)
            group=lhcb_prod
            ;;
