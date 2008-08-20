@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.19 2008/08/18 09:30:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.20 2008/08/20 15:36:22 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.19 2008/08/18 09:30:58 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.20 2008/08/20 15:36:22 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -145,14 +145,14 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %self.site)
 
-#    if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
-#      cmd = 'chmod -R 775 %s/lcg/external/dcache_client' %sharedArea
-#      result = self.runCommand('Changing dCache client permissions',cmd,check=True)
-#      if not result['OK']:
-#        self.setApplicationStatus('Shared Area Permissions Problem')
-#        return self.finalize(cmd,result['Message'],'error')
-#    else:
-#      self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
+    if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
+      cmd = 'chmod -R 775 %s/lcg/external/dcache_client' %sharedArea
+      result = self.runCommand('Changing dCache client permissions',cmd)
+      if not result['OK']:
+        self.setApplicationStatus('Shared Area Permissions Problem')
+        return self.finalize(cmd,result['Message'],'error')
+    else:
+      self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
 
     systemConfigs = gConfig.getValue('/LocalSite/Architecture',[])
     self.log.info('Current system configurations are: %s ' %(string.join(systemConfigs,', ')))
