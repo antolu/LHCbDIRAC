@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.26 2008/08/21 09:34:04 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.27 2008/08/21 10:57:56 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.26 2008/08/21 09:34:04 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.27 2008/08/21 10:57:56 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -143,10 +143,10 @@ class LockSharedArea(ModuleBaseSAM):
 
     self.log.info('Current umask: %s' %result['Value'])
     if isPoolAccount:
-      if not result['Value']=='0002':
+      if not result['Value'].count('0002'):
         return self.finalize('Wrong umask','For pool account umask: %s'%result['Value'],'critical')
     else:
-      if not result['Value']=='0022':
+      if not result['Value'].count('0022'):
         return self.finalize('Wrong umask','For static account umask: %s'%result['Value'],'critical')
 
     if self.forceLockRemoval:
