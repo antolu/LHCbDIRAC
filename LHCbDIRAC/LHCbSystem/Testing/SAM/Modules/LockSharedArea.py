@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.27 2008/08/21 10:57:56 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.28 2008/08/21 12:59:34 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.27 2008/08/21 10:57:56 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.28 2008/08/21 12:59:34 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -124,8 +124,13 @@ class LockSharedArea(ModuleBaseSAM):
     else:
       self.log.info('Link in shared area %s/lib does not exist' %sharedArea)
 
+
     # Change the permissions on the shared area (if a pool account is used)
     result = self.runCommand('Checking current user account mapping','id')
+    if not result['OK']:
+      return self.finalize('id returned non-zero status',result['Message'],'error')
+
+    result = self.runCommand('Checking current user account mapping','id -nu')
     if not result['OK']:
       return self.finalize('id returned non-zero status',result['Message'],'error')
 
