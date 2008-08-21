@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.25 2008/08/21 09:01:19 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.26 2008/08/21 09:34:04 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.25 2008/08/21 09:01:19 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.26 2008/08/21 09:34:04 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -148,7 +148,7 @@ class LockSharedArea(ModuleBaseSAM):
     else:
       if not result['Value']=='0022':
         return self.finalize('Wrong umask','For static account umask: %s'%result['Value'],'critical')
-        
+
     if self.forceLockRemoval:
       self.log.info('Deliberately removing SAM lock file')
       cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
@@ -197,14 +197,14 @@ class LockSharedArea(ModuleBaseSAM):
         self.setApplicationStatus('Could Not Create Lock File')
         return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
 
-    self.log.info('Removing install_project.py from SharedArea')
-    cmd = 'rm -fv install_project.py'
-    result = self.runCommand('Removing install_project.py from SharedArea',cmd,check=True)
-    if not result['OK']:
-      self.setApplicationStatus('Could Not Remove File')
-      self.log.warn(result['Message'])
-      return self.finalize('Could not remove install_project.py from SharedArea ',result['Message'],'critical')
-
+    if os.path.exists('%s/install_project.py' %(sharedArea)):
+      self.log.info('Removing install_project.py from SharedArea')
+      cmd = 'rm -fv %s/install_project.py' %(sharedArea)
+      result = self.runCommand('Removing install_project.py from SharedArea',cmd,check=True)
+      if not result['OK']:
+        self.setApplicationStatus('Could Not Remove File')
+        self.log.warn(result['Message'])
+        return self.finalize('Could not remove install_project.py from SharedArea ',result['Message'],'critical')
 
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
     self.log.info('Test %s completed successfully' %self.testName)
