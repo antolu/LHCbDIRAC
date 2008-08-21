@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.24 2008/08/18 13:55:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.25 2008/08/21 09:01:19 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.24 2008/08/18 13:55:34 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.25 2008/08/21 09:01:19 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -132,19 +132,23 @@ class LockSharedArea(ModuleBaseSAM):
     self.log.info('Current account: %s' %result['Value'])
     if not re.search('\d',result['Value']):
       self.log.info('%s uses static accounts' %self.site)
+      isPoolAccount = False
     else:
       self.log.info('%s uses pool accounts' %self.site)
+      isPoolAccount = True
 
+    result = self.runCommand('Checking current umask','umask')
+    if not result['OK']:
+      return self.finalize('umask returned non-zero status',result['Message'],'error')
 
-    # result = self.__changePermissions(sharedArea)
-    # if not result['OK']:
-    #  return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
-
-      # #cmd = 'chmod -R 775 %s/' %sharedArea
-      # #result = self.runCommand('Recursively changing shared area permissions',cmd,check=True)
-      # if not result['OK']:
-      #  return self.finalize('Failed To Change Shared Area Permissions',result['Message'],'error')
-
+    self.log.info('Current umask: %s' %result['Value'])
+    if isPoolAccount:
+      if not result['Value']=='0002':
+        return self.finalize('Wrong umask','For pool account umask: %s'%result['Value'],'critical')
+    else:
+      if not result['Value']=='0022':
+        return self.finalize('Wrong umask','For static account umask: %s'%result['Value'],'critical')
+        
     if self.forceLockRemoval:
       self.log.info('Deliberately removing SAM lock file')
       cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
@@ -192,6 +196,15 @@ class LockSharedArea(ModuleBaseSAM):
       if not result['OK']:
         self.setApplicationStatus('Could Not Create Lock File')
         return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
+
+    self.log.info('Removing install_project.py from SharedArea')
+    cmd = 'rm -fv install_project.py'
+    result = self.runCommand('Removing install_project.py from SharedArea',cmd,check=True)
+    if not result['OK']:
+      self.setApplicationStatus('Could Not Remove File')
+      self.log.warn(result['Message'])
+      return self.finalize('Could not remove install_project.py from SharedArea ',result['Message'],'critical')
+
 
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
     self.log.info('Test %s completed successfully' %self.testName)
