@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.10 2008/08/01 13:12:32 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.10 2008/08/01 13:12:32 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -51,8 +51,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insertOutputFile(jobID, name, value)
   
   #############################################################################
-  def insertOutputFile(self, job, file):
-    return self.getManager().insertOutputFile(job, file)
+  def insertOutputFile(self, file):
+    return self.getManager().insertOutputFile(file)
   
   #############################################################################
   def insertFileParam(self, fileID, name, value):
@@ -97,11 +97,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def insertInputFile(self, jobID, FileId):
     return self.getManager().insertInputFile(jobID, FileId)
-    
-  #############################################################################
-  def insertOutputFile(self, job, file):
-    return self.getManager().insertOutputFile(job, file)
-      
+          
   #############################################################################
   def updateReplicaRow(self, fileID, replica): #, name, location):
     return self.getManager().updateReplicaRow(fileID, replica)
@@ -249,6 +245,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
   
   #############################################################################
+  def getSimulationCondIdByDesc(self, desc):
+    return self.getManager().getSimulationCondIdByDesc(desc)
+  
+  #############################################################################
   def getSimCondIDWhenFileName(self, fileName):
     return self.getManager().getSimCondIDWhenFileName(fileName)
   
@@ -272,6 +272,14 @@ class IBookkeepingDatabaseClient(object):
   def updateEventType(self, evid, desc, primary):
     return self.getManager().updateEventType(evid, desc, primary)
   
+  #############################################################################
+  def insertDataTakingCond(self, conditions): 
+    return self.getManager().insertDataTakingCond(conditions)
+  
+  #############################################################################
+  def getDataTakingCondId(self, condition):
+    return self.getManager().getDataTakingCondId(condition)
+    
   #############################################################################
   '''
     MONITORING

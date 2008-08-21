@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.20 2008/08/01 16:02:48 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.21 2008/08/21 14:18:25 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.20 2008/08/01 16:02:48 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.21 2008/08/21 14:18:25 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -301,47 +301,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def insertJob(self, job):
     
     gLogger.info("Insert job into database!")
-    config = job.getJobConfiguration()
-    
-    jobsimcondtitions = job.getSimulationCond()
-    simulations = {}
-    if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
-      simcondtitions=jobsimcondtitions.getParams()
-      simcond = self.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions['MagneticField'], simcondtitions['DetectorCond'], simcondtitions['Luminosity'])
-      if not simcond['OK']:
-          gLogger.error("Simulation conditions problem", simcond["Message"])
-          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-      elif simcond['Value'] != 0: # the simulation conditions exist in the database
-        simulations[simcond['Value']]=None
-      else:
-        simcond = self.insertSimConditions(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
-        if not simcond['OK']:
-          gLogger.error("Simulation conditions problem", simcond["Message"])
-          return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-        simulations[simcond['Value']]=None
-    else:
-      inputfiles = job.getJobInputFiles()
-      if len(inputfiles) == 0:
-        gLogger.error("The ProgramName is not Gauss and it not have input file or missing the simulation conditions!!!")
-        return S_ERROR("The ProgramName is not Gauss and it not have input file or missing the simulation conditions!!!")
-      else:
-        for file in inputfiles:
-          simcond = self.getSimCondIDWhenFileName(file.getFileName())
-          if not simcond['OK']:
-            gLogger.error("Simulation conditions problem", simcond["Message"])
-            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-          if len(simulations) == 0:
-            value = simcond['Value']
-            simulations[value]=None
-          else:
-              value = simcond['Value']
-              if not simulations.__contains__(value):
-                gLogger.error("Different simmulation conditions!!!")
-                return S_ERROR("Different simmulation conditions!!!")
-
-    attrList = {'ConfigName':config.getConfigName(), \
-                 'ConfigVersion':config.getConfigVersion(), \
-                 'DAQPeriodId':simulations.items()[0][0], \
+    attrList = {'ConfigName':None, \
+                 'ConfigVersion':None, \
+                 'DAQPeriodId':None, \
                  'DiracJobId':None, \
                  'DiracVersion':None, \
                  'EventInputStat':None, \
@@ -370,18 +332,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'WorkerNode':None}
     
     
-    for param in job.getJobParams():
-      if not attrList.__contains__(param.getName()):
-        gLogger.error("insert job error: "," the job table not contains "+param.getName()+" this attributte!!")
-        return S_ERROR(" The job table not contains "+param.getName()+" this attributte!!")
-      
-      attrList[str(param.getName())] = param.getValue()
-      
-    if attrList['JobStart']==None:
-      date = config.getDate().split('-')
-      time = config.getTime().split(':')
-      dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
-      attrList['JobStart']=dateAndTime
+    for param in job:
+      if not attrList.__contains__(param):
+        gLogger.error("insert job error: "," the job table not contains "+param+" this attributte!!")
+        return S_ERROR(" The job table not contains "+param+" this attributte!!")
+      attrList[param] = job[param]
+    
       
     result = self.db_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',LongType,[ attrList['ConfigName'], attrList['ConfigVersion'], \
                   attrList['DAQPeriodId'], \
@@ -414,42 +370,29 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
   
   #############################################################################
-  def __checkProgramNameIsGaussTMP(self, job):
-    '''
-    temporary method I will remove it
-    '''
-    gLogger.info('__checkProgramNameIsGaussTMP','Job is Gauss Job?')
-    for param in job.getJobParams():
-      if param.getName()=='ProgramName':
-        value=param.getValue()
-        if value.upper()=='GAUSS':
-          return True
-        else:
-          return False
-  
-  #############################################################################
   def insertInputFile(self, jobID, FileId):
     result = self.db_.executeStoredProcedure('BKK_ORACLE.insertInputFilesRow',[FileId, jobID], False)
     return result
   #############################################################################
-  def insertOutputFile(self, job, file):
+  def insertOutputFile(self, file):
   
       attrList = {  'Adler32':None, \
                     'CreationDate':None, \
                     'EventStat':None, \
                     'EventTypeId':None, \
-                    'FileName':file.getFileName(),  \
-                    'FileTypeId':file.getTypeID(), \
+                    'FileName':None,  \
+                    'FileTypeId':None, \
                     'GotReplica':None, \
                     'Guid':None,  \
-                    'JobId':job.getJobId(), \
+                    'JobId':None, \
                     'MD5Sum':None, \
                     'FileSize':None }
       
-      
-      fileParams = file.getFileParams()
-      for param in fileParams:
-        attrList[str(param.getParamName())] = param.getParamValue()
+      for param in file:
+        if not attrList.__contains__(param):
+          gLogger.error("insert file error: "," the files table not contains "+param+" this attributte!!")
+          return S_ERROR(" The files table not contains "+param+" this attributte!!")
+        attrList[param] = file[param]
       
       result = self.db_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',LongType, [  attrList['Adler32'], \
                     attrList['CreationDate'], \
@@ -502,6 +445,51 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
+  
+  #############################################################################
+  def getSimulationCondIdByDesc(self, desc):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.getSimulationCondIdByDesc', LongType, [desc])
+
+  #############################################################################
+  def getDataTakingCondId(self, condition):
+    command = 'select count(*) from data_taking_conditions where ' 
+    for param in condition:
+      command +=  str(param)+'=\''+condition[param]+'\' and '
+    command = command[:-4]
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def insertDataTakingCond(self, conditions): 
+    datataking = {  'BeamCond':None, \
+                    'BeamEnergy':None, \
+                    'MagneticField':None, \
+                    'VELO':None, \
+                    'IT':None,  \
+                    'TT':None, \
+                    'OT':None, \
+                    'RICH1':None,  \
+                    'RICH2':None, \
+                    'SPD_PRS':None,\
+                    'ECAL':None, \
+                    'HCAL':None, \
+                    'MUON':None, \
+                    'L0':None, \
+                    'HLT':None}
+        
+    for param in conditions:
+      if not datataking.__contains__(param):
+        gLogger.error("insert datataking error: "," the files table not contains "+param+" this attributte!!")
+        return S_ERROR(" The datatakingconditions table not contains "+param+" this attributte!!")
+      datataking[param] = conditions[param]
+        
+    res = self.db_.executeStoredFunctions('BKK_ORACLE.insertDataTakingCond', LongType, [datataking['BeamCond'], datataking['BeamEnergy'], \
+                                                                                  datataking['MagneticField'], datataking['VELO'], \
+                                                                                  datataking['IT'], datataking['TT'], datataking['OT'], \
+                                                                                  datataking['RICH1'], datataking['RICH2'], \
+                                                                                  datataking['SPD_PRS'], datataking['ECAL'], \
+                                                                                  datataking['HCAL'], datataking['MUON'], datataking['L0'], datataking['HLT'] ])
+    return res
   
   #############################################################################
   def removeReplica(self, fileName):

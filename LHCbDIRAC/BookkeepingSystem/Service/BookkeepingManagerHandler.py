@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.65 2008/08/01 15:12:26 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.66 2008/08/21 14:18:25 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.65 2008/08/01 15:12:26 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.66 2008/08/21 14:18:25 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -109,7 +109,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.checkEventType(eventTypeId)
   
   #############################################################################
-  types_insertJob =[ObjectType]
+  types_insertJob =[DictType]
   def export_insertJob(self, job):
     return dataMGMT_.insertJob(job)
   
@@ -119,19 +119,34 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.insertInputFile(jobID, FileId)
   
   #############################################################################
-  types_insertOutputFile = [ObjectType, ObjectType]
-  def export_insertOutputFile(self, job, file):
-    return dataMGMT_.insertOutputFile(job, file)  
+  types_insertOutputFile = [DictType]
+  def export_insertOutputFile(self, file):
+    return dataMGMT_.insertOutputFile(file)  
   
   #############################################################################
   types_deleteInputFiles = [LongType]
   def export_deleteInputFiles(self, jobid):
-    return dataMGMT_.deleteInputFiles(jobid)
+    return dataMGMT_.deleteInputFiles(long(jobid))
+   
+  #############################################################################
+  types_getSimulationCondID = [StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_getSimulationCondID(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return dataMGMT_.getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
   
+  #############################################################################
+  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return dataMGMT_.insertSimConditions(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+  
+  #############################################################################
+  types_getSimCondIDWhenFileName = [StringType]
+  def export_getSimCondIDWhenFileName(self, fileName):
+    return dataMGMT_.getSimCondIDWhenFileName(fileName)
+
   #############################################################################
   types_updateReplicaRow = [LongType, StringType]
   def export_updateReplicaRow(self, fileID, replica):
-    return dataMGMT_updateReplicaRow(self, fileID, replica)
+    return dataMGMT_.updateReplicaRow(self, fileID, replica)
   
   
   #############################################################################
@@ -175,7 +190,22 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType, StringType, StringType]
   def export_getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-    return dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    result = setupShifterProxyInEnv( "ProductionManager" )
+    if not result[ 'OK' ]:
+      gLogger.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
+      return result
+    
+    files = dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+        
+    rm = ReplicaManager()
+    list =[]
+    for file in files:
+      result = rm.getReplicas(file['FileName'])
+      value = result['Value']
+      if len(value['Successful']) > 0:
+        list += [file]
+    return S_OK(list)
+  
 
 
   

@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.7 2008/07/07 08:10:45 rgracian Exp $
+# $Id: Job.py,v 1.8 2008/08/21 14:18:25 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.7 2008/07/07 08:10:45 rgracian Exp $"
+__RCSID__ = "$Id: Job.py,v 1.8 2008/08/21 14:18:25 zmathe Exp $"
 
 
 class Job:
@@ -20,6 +20,7 @@ class Job:
     self.jobInputFiles_ = []
     self.jobOutputfiles_ = []
     self.simulationCond_ = None
+    self.dataTaking_ = None
     self.jobId_ = -1
     self.name_ = ""
     self.file_name_ = ""
@@ -71,6 +72,14 @@ class Job:
     self.simulationCond_ = cond
   
   #############################################################################  
+  def addDataTakingCond(self, cond):
+    self.dataTaking_ = cond
+  
+  #############################################################################  
+  def getDataTakingCond(self):
+    return self.dataTaking_ 
+  #############################################################################  
+  
   def getSimulationCond(self):
     return self.simulationCond_
 
@@ -116,6 +125,7 @@ class Job:
     result += '\n'
     return result
   
+  #############################################################################  
   def writeToXML(self):
     s = ''
     s += '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
@@ -135,6 +145,10 @@ class Job:
     if sim != None:
       s += sim.writeToXML()
     
+    daq = self.getDataTakingCond()
+    if daq != None:
+      s += daq.writeToXML()
+      
     s += '</Job>'
     
     return s

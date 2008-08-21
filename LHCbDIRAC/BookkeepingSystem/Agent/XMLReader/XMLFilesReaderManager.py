@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.10 2008/07/31 12:56:57 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $
 ########################################################################
 
 """
@@ -16,12 +16,13 @@ from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                       
 #from DIRAC.BookkeepingSystem.Client.BookkeepingClient                             import BookkeepingClient
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
-import os,sys
+import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.10 2008/07/31 12:56:57 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
+#dataManager_ = BookkeepingClient()
 
 class XMLFilesReaderManager:
   
@@ -143,7 +144,8 @@ class XMLFilesReaderManager:
     config = job.getJobConfiguration()
     params = job.getJobParams()
             
-    result = dataManager_.insertJob(job)    
+    result = self.__insertJob(job)  
+      
     if not result['OK']:
       self.errorMgmt_.reportError (13, "Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n", deleteFileName, errorReport)
       return S_ERROR("Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n"+'Error: '+str(result['Message']))
@@ -161,7 +163,7 @@ class XMLFilesReaderManager:
   
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
-      result = dataManager_.insertOutputFile(job, file)
+      result = self.__insertOutputFiles(job, file)
       if not result['OK']:
         dataManager_.deleteJob(job.getJobId())
         dataManager_.deleteInputFiles(job.getJobId())
@@ -207,6 +209,120 @@ class XMLFilesReaderManager:
     
     return S_OK()
   
+  def __insertJob(self, job):
+    
+    config = job.getJobConfiguration()
+    
+    jobsimcondtitions = job.getSimulationCond()
+    simulations = {}
+    if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
+      simcondtitions=jobsimcondtitions.getParams()
+      if len(simcondtitions.keys())==1:
+        simcond = dataManager_.getSimulationCondIdByDesc(simcondtitions['SimDescription'])
+        if not simcond['OK']:
+            gLogger.error("Simulation conditions problem", simcond["Message"])
+            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+        elif simcond['Value'] != 0: # the simulation conditions exist in the database
+          simulations[simcond['Value']]=None
+        else:
+          gLogger.error("Simulation conditions problem")
+          return S_ERROR("Simulation description is not exist in bk Database!")
+      else:
+        simcond = dataManager_.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions['MagneticField'], simcondtitions['DetectorCond'], simcondtitions['Luminosity'])
+        if not simcond['OK']:
+            gLogger.error("Simulation conditions problem", simcond["Message"])
+            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+        elif simcond['Value'] != 0: # the simulation conditions exist in the database
+          simulations[simcond['Value']]=None
+        else:
+          simcond = dataManager_.insertSimConditions(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
+          if not simcond['OK']:
+            gLogger.error("Simulation conditions problem", simcond["Message"])
+            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+          simulations[simcond['Value']]=None
+    else: #not a gauss job!!!! 
+      condParams = job.getDataTakingCond()
+      if condParams != None:
+        datataking = condParams.getParams()
+        res = dataManager_.getDataTakingCondId(datataking)
+        if res['OK']:
+          daqid = res['Value'][0][0]
+          if daqid!=0: #exist in the database datataking
+            simulations[daqid]=None
+          else:
+            res = dataManager_.insertDataTakingCond(datataking)
+            if not res['OK']:
+              return S_ERROR("DATA TAKING Problem"+str(res['Message']))
+            else:
+              simulations[res['Value']]=None
+        else:
+          return S_ERROR("DATA TAKING Problem"+str(res['Message']))
+      else:
+        inputfiles = job.getJobInputFiles()
+        if len(inputfiles) == 0:
+          gLogger.error("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
+          return S_ERROR("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
+        else:
+          for file in inputfiles:
+            simcond = dataManager_.getSimCondIDWhenFileName(file.getFileName())
+            if not simcond['OK']:
+              gLogger.error("Simulation conditions problem", simcond["Message"])
+              return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+            if len(simulations) == 0:
+              value = simcond['Value']
+              simulations[value]=None
+            else:
+                value = simcond['Value']
+                if not simulations.__contains__(value):
+                  gLogger.error("Different simmulation conditions!!!")
+                  return S_ERROR("Different simmulation conditions!!!")
+
+    attrList = {'ConfigName':config.getConfigName(), \
+                 'ConfigVersion':config.getConfigVersion(), \
+                 'DAQPeriodId':simulations.items()[0][0], \
+                 'JobStart':None}
+    
+    for param in job.getJobParams():
+      attrList[str(param.getName())] = param.getValue()
+      
+    if attrList['JobStart']==None:
+      date = config.getDate().split('-')
+      time = config.getTime().split(':')
+      dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+      attrList['JobStart']=dateAndTime
+    
+    res = dataManager_.insertJob(attrList)
+    return res
+  
+  #############################################################################
+  def __insertOutputFiles(self, job, file):
+    
+    attrList = {  'FileName':file.getFileName(),  \
+                  'FileTypeId':file.getTypeID(), \
+                  'JobId':job.getJobId()}
+      
+      
+    fileParams = file.getFileParams()
+    for param in fileParams:
+      attrList[str(param.getParamName())] = param.getParamValue()
+    res = dataManager_.insertOutputFile(attrList)
+    return res
+  
+  #############################################################################
+  def __checkProgramNameIsGaussTMP(self, job):
+    '''
+    temporary method I will remove it
+    '''
+    gLogger.info('__checkProgramNameIsGaussTMP','Job is Gauss Job?')
+    for param in job.getJobParams():
+      if param.getName()=='ProgramName':
+        value=param.getValue()
+        if value.upper()=='GAUSS':
+          return True
+        else:
+          return False
+  
+  #############################################################################
   def processReplicas(self, replica, errorReport=False):
     """
     
