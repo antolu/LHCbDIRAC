@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.73 2008/08/19 15:45:23 paterson Exp $
+# $Id: GaudiApplication.py,v 1.74 2008/08/22 05:43:14 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.73 2008/08/19 15:45:23 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.74 2008/08/22 05:43:14 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -59,14 +59,14 @@ class GaudiApplication(ModuleBase):
 
         Could be overloaded for python / standard options in the future.
     """
-    if self.InputData:
-      self.log.info('Input data defined taken from JDL parameter')
-      if type(self.inputData) != type([]):
-        self.inputData = self.InputData.split(';')
-    elif self.inputData:
+    if self.inputData:
       self.log.info('Input data defined in workflow for this Gaudi Application step')
       if type(self.inputData) != type([]):
         self.inputData = self.inputData.split(';')
+    elif self.InputData:
+      self.log.info('Input data defined taken from JDL parameter')
+      if type(self.inputData) != type([]):
+        self.inputData = self.InputData.split(';')
     else:
       self.log.info('Job has no input data requirement')
 
@@ -98,14 +98,14 @@ class GaudiApplication(ModuleBase):
 
         Could be overloaded for python / standard options in the future.
     """
-    if self.InputData:
-      self.log.info('Input data defined taken from JDL parameter')
-      if type(self.inputData) != type([]):
-        self.inputData = self.InputData.split(';')
-    elif self.inputData:
+    if self.inputData:
       self.log.info('Input data defined in workflow for this Gaudi Application step')
       if type(self.inputData) != type([]):
         self.inputData = self.inputData.split(';')
+    elif self.InputData:
+      self.log.info('Input data defined taken from JDL parameter')
+      if type(self.inputData) != type([]):
+        self.inputData = self.InputData.split(';')
     elif os.path.exists(self.poolXMLCatName):
       inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
       inputDataList = inputDataCatalog.getLfnsList()
