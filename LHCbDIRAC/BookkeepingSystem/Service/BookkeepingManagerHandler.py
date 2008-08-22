@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.66 2008/08/21 14:18:25 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.67 2008/08/22 14:40:59 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.66 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.67 2008/08/22 14:40:59 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -77,7 +77,7 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_filetransfer(self, name, data):
     try:
       gLogger.info("File Transfer: ", name)
-      f = open(ToDoPath+'/'+name,'w')
+      f = open('/opt/bookkeeping/XMLProcessing/ToDo1/'+name,'w')
       f.write(data)
       f.close()
       return S_OK("File Transfer fhinished successfully!")
@@ -190,17 +190,22 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType, StringType, StringType]
   def export_getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-    result = setupShifterProxyInEnv( "ProductionManager" )
-    if not result[ 'OK' ]:
-      gLogger.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-      return result
+    res = setupShifterProxyInEnv( "ProductionManager" )
+    if not res[ 'OK' ]:
+      gLogger.error( "Can't get shifter's proxy: %s" % res[ 'Message' ] )
+      return res
     
-    files = dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
-        
+    gLogger.debug('ggggggg')
+    result = dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    gLogger.debug('ggggggg1')
+    if not result['OK']:
+      return S_ERROR(result['Message'])
+    
+    files = result['Value'] 
     rm = ReplicaManager()
     list =[]
     for file in files:
-      result = rm.getReplicas(file['FileName'])
+      result = rm.getReplicas(file[0])
       value = result['Value']
       if len(value['Successful']) > 0:
         list += [file]

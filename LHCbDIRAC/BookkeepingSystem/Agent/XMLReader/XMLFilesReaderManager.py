@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.12 2008/08/22 14:40:58 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.12 2008/08/22 14:40:58 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -286,10 +286,10 @@ class XMLFilesReaderManager:
       attrList[str(param.getName())] = param.getValue()
       
     if attrList['JobStart']==None:
-      date = config.getDate().split('-')
-      time = config.getTime().split(':')
-      dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
-      attrList['JobStart']=dateAndTime
+      #date = config.getDate().split('-')
+      #time = config.getTime().split(':')
+      #dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+      attrList['JobStart']=config.getDate()+' '+config.getTime()
     
     res = dataManager_.insertJob(attrList)
     return res

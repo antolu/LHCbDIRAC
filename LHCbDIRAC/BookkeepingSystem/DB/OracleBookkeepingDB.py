@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.21 2008/08/21 14:18:25 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.22 2008/08/22 14:40:58 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.21 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.22 2008/08/22 14:40:58 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -336,8 +336,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if not attrList.__contains__(param):
         gLogger.error("insert job error: "," the job table not contains "+param+" this attributte!!")
         return S_ERROR(" The job table not contains "+param+" this attributte!!")
-      attrList[param] = job[param]
-    
+  
+      if param=='JobStart' or param=='JobEnd': # We have to convert data format
+        dateAndTime = job[param].split(' ')
+        date = dateAndTime[0].split('-')
+        time = dateAndTime[1].split(':')
+        timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+        attrList[param]=timestamp
+      else:
+        attrList[param] = job[param]
+        
+      
       
     result = self.db_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',LongType,[ attrList['ConfigName'], attrList['ConfigVersion'], \
                   attrList['DAQPeriodId'], \

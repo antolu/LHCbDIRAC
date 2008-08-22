@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.7 2008/07/31 12:56:57 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.8 2008/08/22 14:40:58 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.7 2008/07/31 12:56:57 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.8 2008/08/22 14:40:58 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -173,6 +173,7 @@ class XMLFilesReaderManagerForTransfer:
           name = replica.getFileName().split("/")[5]
           gLogger.info("Send"+str(name)+" to volhcb07!!")
           self.bkkClient_.filetransfer(name, replica.writeToXML())
+          self.bkkClient_.sendBookkeeping('In Memory', replica.writeToXML())
       else: 
         if type == 'Job':
           job = self.jobReader_.readJob(doc, fullpath)
@@ -181,6 +182,7 @@ class XMLFilesReaderManagerForTransfer:
             name = job.getFileName().split("/")[5]
             gLogger.info("Send "+str(name)+" to volhcb07!!")
             self.bkkClient_.filetransfer(name, job.writeToXML())
+            self.bkkClient_.sendBookkeeping('In Memory', job.writeToXML())
     
           
   #############################################################################
