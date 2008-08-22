@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.23 2008/08/18 09:46:47 joel Exp $
+# $Id: BookkeepingReport.py,v 1.24 2008/08/22 07:30:34 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.23 2008/08/18 09:46:47 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.24 2008/08/22 07:30:34 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -295,6 +295,9 @@ class BookkeepingReport(ModuleBase):
       job_mode = 'test'
     ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
     ltime = time.strftime("%H:%M",time.localtime(time.time()))
+    if self.step_commons.has_key('StartTime'):
+      ldatestart = time.strftime("%Y-%m-%d",time.localtime(self.step_commons['StartTime']))
+      ltimestart = time.strftime("%H:%M",time.localtime(self.step_commons['StartTime']))
 
     s = ''
     s = s+'<?xml version="1.0" encoding="ISO-8859-1"?>\n'
@@ -316,6 +319,8 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("Production",self.PRODUCTION_ID,'Info')
     s = s+self.__parameter_string("DiracJobId",self.JOB_ID,'Info')
     s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
+    s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
+    s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
     s = s+self.__parameter_string("Location",site,'Info')
 
     host = None
@@ -454,12 +459,6 @@ class BookkeepingReport(ModuleBase):
   def makeBeamConditions(self,sbeam):
       sbeam = sbeam+'<SimulationCondition>\n'
       sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
-      sbeam = sbeam+'    <Parameter Name="BeamCond"         Value="Collisions"/>\n'
-      sbeam = sbeam+'    <Parameter Name="BeamEnergy"       Value="7 TeV"/>\n'
-      sbeam = sbeam+'    <Parameter Name="Generator"        Value="Pythia 6.325.2"/>\n'
-      sbeam = sbeam+'    <Parameter Name="MagneticField"    Value="-100%"/>\n'
-      sbeam = sbeam+'    <Parameter Name="DetectorCond"     Value="Normal"/>\n'
-      sbeam = sbeam+'    <Parameter Name="Luminosity"       Value="Fixed 2 10**32"/>\n'
       sbeam = sbeam+'</SimulationCondition>\n'
       return sbeam
 
