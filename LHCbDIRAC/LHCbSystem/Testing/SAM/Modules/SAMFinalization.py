@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.22 2008/08/18 09:30:47 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.23 2008/08/24 15:23:09 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.22 2008/08/18 09:30:47 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.23 2008/08/24 15:23:09 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -289,10 +289,10 @@ class SAMFinalization(ModuleBaseSAM):
     return table
 
   #############################################################################
-  def __getTestSummary(self,samResults):
+  def __getTestSummary(self,lfnPath,samResults,samLogs):
     """Returns a test summary as an html table.
     """
-
+    logURL = '%s%s/' %(self.logURL,lfnPath)
     self.log.debug(samResults)
     rows = """
 """
@@ -304,7 +304,7 @@ class SAMFinalization(ModuleBaseSAM):
 <td> %s </td>
 <td> %s </td>
 </tr>
-      """  %(testName,self.__getSAMStatus(testStatus),testStatus)
+      """  %('<A HREF="%s%s">%s</A>' %(logURL,samLogs[testName],testName),self.__getSAMStatus(testStatus),testStatus)
 
     self.log.debug(str(rows))
     table = """
@@ -338,7 +338,7 @@ class SAMFinalization(ModuleBaseSAM):
         return result
 
     lfnPath = self.__getLFNPathString(samNode)
-    testSummary = self.__getTestSummary(samResults)
+    testSummary = self.__getTestSummary(lfnPath,samResults,samLogs)
     softwareReport = self.__getSoftwareReport(lfnPath,samResults,samLogs)
     counter = 0
     publishFlag = True
