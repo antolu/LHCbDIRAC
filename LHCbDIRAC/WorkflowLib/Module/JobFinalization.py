@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.110 2008/08/25 14:51:48 atsareg Exp $
+# $Id: JobFinalization.py,v 1.111 2008/08/25 15:22:47 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.110 2008/08/25 14:51:48 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.111 2008/08/25 15:22:47 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -1167,6 +1167,7 @@ class JobFinalization(ModuleBase):
       return result
 
     index = result['Value']
+    fileDict['Status'] = "Waiting"
     result = self.request.setSubRequestFiles(index,'register',[fileDict])
 
     return S_OK()
