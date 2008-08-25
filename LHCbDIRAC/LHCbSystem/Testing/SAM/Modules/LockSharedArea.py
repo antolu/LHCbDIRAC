@@ -1,20 +1,20 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.30 2008/08/22 11:46:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.31 2008/08/25 08:44:37 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.30 2008/08/22 11:46:48 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.31 2008/08/25 08:44:37 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,CreateSharedArea
   from DIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,CreateSharedArea
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re, time
@@ -86,8 +86,11 @@ class LockSharedArea(ModuleBaseSAM):
     self.setApplicationStatus('Starting %s Test' %self.testName)
     sharedArea = SharedArea()
     if not sharedArea:
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
-      return self.finalize('Could not determine sharedArea for site %s:' %(self.site),sharedArea,'error')
+      self.log.info('Could not determine sharedArea for site %s:\n%s\n trying to create it' %(self.site,sharedArea))
+      createSharedArea = CreateSharedArea()
+      if not createSharedArea:
+        return self.finalize('Could not create sharedArea for site %s:' %(self.site),sharedArea,'error')
+      sharedArea = SharedArea()
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
@@ -98,14 +101,6 @@ class LockSharedArea(ModuleBaseSAM):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
         self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
         sharedArea = newSharedArea
-
-    if not os.path.exists(sharedArea):
-      try:
-        os.mkdir(sharedArea)
-        self.log.info('Path to %s did not exist, shared area lib directory created' %sharedArea)
-      except Exception,x:
-        self.log.error('Could not create directory in shared area',str(x))
-        return self.finalize('Could not create shared area lib directory',str(x),'critical')
 
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
