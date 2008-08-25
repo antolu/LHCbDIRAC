@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.107 2008/08/25 10:44:55 atsareg Exp $
+# $Id: JobFinalization.py,v 1.108 2008/08/25 13:56:51 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.107 2008/08/25 10:44:55 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.108 2008/08/25 13:56:51 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -378,14 +378,33 @@ class JobFinalization(ModuleBase):
     fileDict['Addler'] = ''
     fileDict['GUID'] = ''
 
+    fileList_OK = []
+    fileList_KO = []
     for lfn in lfns:
-      fileDict['LFN'] = lfn
       if not lfn in failover_lfns and bk_flag:
-        resultBKReplica = self.bkDB.addFile((lfn,'',999,'SE','',''))
-        if not resultBKReplica['OK']:
-          self.request.setDISETRequest(resultBKReplica['rpcStub'],executionOrder=3)
+        fileList_OK.append((lfn,'',999,'SE','',''))
       else:
-        resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDB',fileDict,executionOrder=3)
+        fileList_KO.append(lfn)
+
+    if fileList_OK:
+      self.log.info('Sending Bookkeeping replica flag for the following files:\n')
+      for lfn,i1,i2,i3,i4,i5 in fileList_OK:
+        self.log.info(lfn)
+      resultBKReplica = self.bkDB.addFile(fileList_OK)
+      if not resultBKReplica['OK']:
+        self.log.error('Sending Bookkeeping replica info failed, setting DISET request')
+        self.request.setDISETRequest(resultBKReplica['rpcStub'])
+      else:
+        # Check if all the files are added successfully
+        for lfn in resultBKReplica['Value']['Failed'].keys():
+          self.log.warn('Sending Bookkeeping replica flag for %s failed' % lfn)
+          self.log.warn('Setting Registration request for BookkeepingDB catalog')
+          fileDict['LFN'] = lfn
+          resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDB',fileDict)
+
+    for lfn in fileList_KO:
+      fileDict['LFN'] = lfn
+      resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDB',fileDict,executionOrder=3)
 
     return S_OK()
 
@@ -677,8 +696,8 @@ class JobFinalization(ModuleBase):
     size = getfilesize(output)
     checkSum = fileAdler(output)
     # AT >>>> debug
-    lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
-    #lfn = "/lhcb/test/test.file"
+    #lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
+    lfn = "/lhcb/test/test.file"
     # AT >>>> debug
 
     fileDict = {}
