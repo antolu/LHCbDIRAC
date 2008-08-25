@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.22 2008/08/22 14:40:58 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.23 2008/08/25 13:45:34 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.22 2008/08/22 14:40:58 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.23 2008/08/25 13:45:34 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -263,13 +263,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def checkfile(self, fileName): #file
 
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])['Value']
-    if len(result)!=0:
-      return S_OK(result)
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkfile',[fileName])
+    if result['OK']: 
+      res = result['Value']
+      if len(res)!=0:
+        return S_OK(result)
+      else:
+        gLogger.error("File not found! ",str(fileName))
+        return S_ERROR("File not found!"+str(fileName))
     else:
-      gLogger.error("File not found! ",str(fileName))
-      return S_ERROR("File not found!"+str(fileName))
-    
+      return S_ERROR(result['Message'])
     return result
   
   #############################################################################
