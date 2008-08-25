@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.23 2008/08/25 13:45:34 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.24 2008/08/25 15:51:40 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.23 2008/08/25 13:45:34 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.24 2008/08/25 15:51:40 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -267,7 +267,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if result['OK']: 
       res = result['Value']
       if len(res)!=0:
-        return S_OK(result)
+        return S_OK(res)
       else:
         gLogger.error("File not found! ",str(fileName))
         return S_ERROR("File not found!"+str(fileName))
@@ -277,12 +277,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])['Value']
-    if len(result)!=0:
-      return S_OK(result)
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkFileTypeAndVersion',[type, version])
+    if result['OK']:
+      res = result['Value']
+      if len(res)!=0:
+        return S_OK(res)
+      else:
+        gLogger.error("File type not found! ",str(type))
+        return S_ERROR("File type not found!"+str(type))
     else:
-      gLogger.error("File type not found! ",str(type))
-      return S_ERROR("File type not found!"+str(type))
+      return S_ERROR(result['Message'])
     
     return result
 
@@ -291,13 +295,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
     
-    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])['Value']
-    if len(result)!=0:
-      return S_OK(result)
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.checkEventType',[eventTypeId])
+    if result['OK']:
+      res = result['Value']
+      if len(res)!=0:
+        return S_OK(res)
+      else:
+        gLogger.error("Event type not found! ",str(eventTypeId))
+        return S_ERROR("Event type not found!"+str(eventTypeId))
     else:
-      gLogger.error("Event type not found! ",str(eventTypeId))
-      return S_ERROR("Event type not found!"+str(eventTypeId))
-    
+      return S_ERROR(result['Message'])
     return result
   
   #############################################################################
