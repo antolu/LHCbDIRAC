@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.109 2008/08/25 14:29:43 atsareg Exp $
+# $Id: JobFinalization.py,v 1.110 2008/08/25 14:51:48 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.109 2008/08/25 14:29:43 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.110 2008/08/25 14:51:48 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -255,7 +255,6 @@ class JobFinalization(ModuleBase):
 #          bk_done = False
         resultBKOld = self.reportBookkeepingOld()
         if not resultBKOld['OK']:
-          self.log.error(resultBKOld['Message'])
           bkold_done = False
         resultBKReplica = self.setBKReplica(lfnList,failoverLfnList,bkold_done)
       else:
@@ -321,7 +320,8 @@ class JobFinalization(ModuleBase):
           if result['Message'].find('Connection timed out') != -1:
             time.sleep(self.bookkeepingTimeOut)
           if counter > 3:
-            self.log.error( "Failed to send bookkeeping information for %s: %s" % (str(f),result['Message']) )
+            self.log.error( "Failed to send bookkeeping information for %s: \n%s" % (str(f),result['Message']) )
+            self.log.info('Setting DISET request for bookkeeping upload')
             self.request.setDISETRequest(result['rpcStub'],executionOrder=2)
             send_flag = False
             result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
@@ -357,7 +357,8 @@ class JobFinalization(ModuleBase):
           if result['Message'].find('Connection timed out') != -1:
             time.sleep(self.bookkeepingTimeOut)
           if counter > 3:
-            self.log.error( "Failed to send bookkeeping information for %s: %s" % (str(f),result['Message']) )
+            self.log.error( "Failed to send bookkeeping information for %s: \n%s" % (str(f),result['Message']) )
+            self.log.info('Setting DISET request for bookkeeping upload')
             self.request.setDISETRequest(result['rpcStub'],executionOrder=2)
             send_flag = False
             result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
@@ -642,9 +643,9 @@ class JobFinalization(ModuleBase):
           resUpload = self.uploadOutputData(outputName,outputType.upper(),outputSE)
           if resUpload['OK']:
             outputs_done.append(outputName)
-            lfns_done.append(result['Value'])
+            lfns_done.append(resUpload['Value'])
             if resUpload['Failover']:
-              failover_lfns_done.append(result['Value'])
+              failover_lfns_done.append(resUpload['Value'])
           else:
             all_done = False
 
