@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.18 2008/08/25 09:41:02 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.19 2008/08/25 10:05:59 roma Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.18 2008/08/25 09:41:02 paterson Exp $"
-__VERSION__ = "$Revision: 1.18 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.19 2008/08/25 10:05:59 roma Exp $"
+__VERSION__ = "$Revision: 1.19 $"
 
 import os, shutil, sys, urllib
 import DIRAC
@@ -270,7 +270,7 @@ def CreateSharedArea():
   try:
     if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
       return True
-    if not os.path.exist( sharedArea ):
+    if not os.path.exists( sharedArea ):
       os.mkdir( sharedArea )
       return True
     os.remove( sharedArea )
