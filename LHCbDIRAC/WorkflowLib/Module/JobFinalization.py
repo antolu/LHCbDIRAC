@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.112 2008/08/25 20:10:27 atsareg Exp $
+# $Id: JobFinalization.py,v 1.113 2008/08/25 20:39:25 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.112 2008/08/25 20:10:27 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.113 2008/08/25 20:39:25 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -928,11 +928,9 @@ class JobFinalization(ModuleBase):
           assignedCountry = opt['Value']
           self.log.verbose('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
           assocCheck = gConfig.getOption('/Resources/Countries/%s/AssociatedSEs' %assignedCountry)
-          count += 1
           if assocCheck['OK'] and assocCheck['Value']:
             break
-#        else:
-#          break
+        count += 1
 
       if not assignedCountry:
         self.log.info('Could not establish associated country for site')
