@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.105 2008/08/25 10:22:35 atsareg Exp $
+# $Id: JobFinalization.py,v 1.106 2008/08/25 10:28:24 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.105 2008/08/25 10:22:35 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.106 2008/08/25 10:28:24 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -677,8 +677,8 @@ class JobFinalization(ModuleBase):
     size = getfilesize(output)
     checkSum = fileAdler(output)
     # AT >>>> debug
-    #lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
-    lfn = "/lhcb/test/test.file"
+    lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,otype),self.mode,self.PRODUCTION_ID)
+    #lfn = "/lhcb/test/test.file"
     # AT >>>> debug
 
     fileDict = {}
