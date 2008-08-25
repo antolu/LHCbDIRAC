@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.103 2008/08/25 09:47:37 atsareg Exp $
+# $Id: JobFinalization.py,v 1.104 2008/08/25 10:05:59 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.103 2008/08/25 09:47:37 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.104 2008/08/25 10:05:59 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -638,6 +638,11 @@ class JobFinalization(ModuleBase):
     if all_done:
       # We are lucky today !
       result = S_OK()
+      result['Value'] = {}
+      result['Value']['LFNs'] = lfns_done
+      result['Value']['Successful'] = outputs_done
+      result['Value']['FailoverLFNs'] = failover_lfns_done
+      result['Value']['Failed'] = outputs_failed
     else:
       # No chance today ;(
       if lfns_done:
