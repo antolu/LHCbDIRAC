@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.111 2008/08/25 15:22:47 atsareg Exp $
+# $Id: JobFinalization.py,v 1.112 2008/08/25 20:10:27 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.111 2008/08/25 15:22:47 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.112 2008/08/25 20:10:27 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -1259,7 +1259,7 @@ class JobFinalization(ModuleBase):
     if accountingReport:
       result = accountingReport.commit()
       if not result['OK']:
-        self.request.addSubRequest(DISETSubRequest(result['rpcStub']).getDictionary(),'diset')
+        self.request.setDISETRequest(result['rpcStub'])
 
     if self.request.isEmpty()['Value']:
       return S_OK()
@@ -1271,5 +1271,10 @@ class JobFinalization(ModuleBase):
     xmlfile = open(fname,'w')
     xmlfile.write(request_string)
     xmlfile.close()
+    self.log.info('Creating failover request for deferred operations:')
+    result = self.request.getDigest()
+    if result['OK']:
+      digest = result['Value']
+      self.log.info(digest)
     return S_OK()
 
