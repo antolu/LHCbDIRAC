@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.31 2008/08/25 08:44:37 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.32 2008/08/27 15:58:13 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.31 2008/08/25 08:44:37 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.32 2008/08/27 15:58:13 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -144,15 +144,25 @@ class LockSharedArea(ModuleBaseSAM):
     self.log.info('Current umask: %s' %result['Value'])
     if isPoolAccount:
       if not result['Value'].count('0002'):
-        result = self.runCommand('Changing current umask to 0002','umask 0002',check=True)
-        if not result['OK']:
-          return self.finalize('umask returned non-zero status',result['Message'],'error')
+        self.log.info('Changing current umask to 0002')
+        try:
+          os.umask(0002)
+        except Exception,x:
+          return self.finalize('excepton during umask',x,'error')
+#        result = self.runCommand('Changing current umask to 0002','umask 0002',check=True)
+#        if not result['OK']:
+#          return self.finalize('umask returned non-zero status',result['Message'],'error')
 #        return self.finalize('Wrong umask','For pool account umask: %s'%result['Value'],'critical')
     else:
       if not result['Value'].count('0022'):
-        result = self.runCommand('Changing current umask to 0022','umask 0022',check=True)
-        if not result['OK']:
-          return self.finalize('umask returned non-zero status',result['Message'],'error')
+        self.log.info('Changing current umask to 0022')
+        try:
+          os.umask(0022)
+        except Exception,x:
+          return self.finalize('excepton during umask',x,'error')
+#        result = self.runCommand('Changing current umask to 0022','umask 0022',check=True)
+#        if not result['OK']:
+#          return self.finalize('umask returned non-zero status',result['Message'],'error')
 #        return self.finalize('Wrong umask','For static account umask: %s'%result['Value'],'critical')
 
     if self.forceLockRemoval:
