@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.12 2008/08/22 14:40:58 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.13 2008/08/27 13:23:56 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.12 2008/08/22 14:40:58 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.13 2008/08/27 13:23:56 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -40,8 +40,7 @@ class XMLFilesReaderManager:
     #self.dataManager_ = BookkeepingDatabaseClient()
     self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
     self.errorMgmt_ = ErrorReporterMgmt()
-    
-  
+   
   #############################################################################
   def readFile(self, filename):
     """
@@ -62,7 +61,7 @@ class XMLFilesReaderManager:
     return type,doc,filename
   
   #############################################################################  
-  def readXMLfromString(self, xmlString):
+  def readXMLfromString(self, name, xmlString):
     
     try:
       doc = self.reader_.fromString(xmlString)
@@ -217,7 +216,7 @@ class XMLFilesReaderManager:
     simulations = {}
     if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
       simcondtitions=jobsimcondtitions.getParams()
-      if len(simcondtitions.keys())==1:
+      if len(simcondtitions.keys())==1: # we send just description !!!!!!!!  We have to remove the else block!
         simcond = dataManager_.getSimulationCondIdByDesc(simcondtitions['SimDescription'])
         if not simcond['OK']:
             gLogger.error("Simulation conditions problem", simcond["Message"])
@@ -235,7 +234,7 @@ class XMLFilesReaderManager:
         elif simcond['Value'] != 0: # the simulation conditions exist in the database
           simulations[simcond['Value']]=None
         else:
-          simcond = dataManager_.insertSimConditions(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
+          simcond = dataManager_.insertSimConditions(None,simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
           if not simcond['OK']:
             gLogger.error("Simulation conditions problem", simcond["Message"])
             return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))

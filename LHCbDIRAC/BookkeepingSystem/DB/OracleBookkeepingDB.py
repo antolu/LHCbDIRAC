@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.24 2008/08/25 15:51:40 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.25 2008/08/27 13:23:56 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.24 2008/08/25 15:51:40 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.25 2008/08/27 13:23:56 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -462,8 +462,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR()
   
   #############################################################################
-  def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
+  def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.insertSimConditions', LongType, [simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity])
   
   #############################################################################
   def getSimulationCondIdByDesc(self, desc):
@@ -477,6 +477,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     command = command[:-4]
     res = self.db_._query(command)
     return res
+  
+  #############################################################################
+  def getSimConditions(self):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getSimConditions',[])
   
   #############################################################################
   def insertDataTakingCond(self, conditions): 

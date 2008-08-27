@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.67 2008/08/22 14:40:59 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.68 2008/08/27 13:23:56 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.67 2008/08/22 14:40:59 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.68 2008/08/27 13:23:56 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -50,8 +50,7 @@ class BookkeepingManagerHandler(RequestHandler):
       This method send XML file to the ToDo directory
       """
       try:
-          
-          result  = reader_.readXMLfromString(data)
+          result  = reader_.readXMLfromString(name, data)
           if not result['OK']:
             return S_ERROR(result['Message'])
           """
@@ -134,9 +133,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
   
   #############################################################################
-  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType]
-  def export_insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    return dataMGMT_.insertSimConditions(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insertSimConditions(self, simdesc,BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return dataMGMT_.insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
   
   #############################################################################
   types_getSimCondIDWhenFileName = [StringType]
@@ -147,6 +146,11 @@ class BookkeepingManagerHandler(RequestHandler):
   types_updateReplicaRow = [LongType, StringType]
   def export_updateReplicaRow(self, fileID, replica):
     return dataMGMT_.updateReplicaRow(self, fileID, replica)
+  
+  #############################################################################
+  types_getSimConditions = []
+  def export_getSimConditions(self):
+    return dataMGMT_.getSimConditions()
   
   
   #############################################################################
@@ -195,9 +199,9 @@ class BookkeepingManagerHandler(RequestHandler):
       gLogger.error( "Can't get shifter's proxy: %s" % res[ 'Message' ] )
       return res
     
-    gLogger.debug('ggggggg')
     result = dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
-    gLogger.debug('ggggggg1')
+    return result
+    '''
     if not result['OK']:
       return S_ERROR(result['Message'])
     
@@ -210,7 +214,7 @@ class BookkeepingManagerHandler(RequestHandler):
       if len(value['Successful']) > 0:
         list += [file]
     return S_OK(list)
-  
+    '''  
 
 
   

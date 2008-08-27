@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.12 2008/08/27 13:23:56 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.11 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.12 2008/08/27 13:23:56 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -161,7 +161,9 @@ class IBookkeepingDatabaseClient(object):
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     return self.getManager().getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
   
-  
+  #############################################################################  
+  def getSimConditions(self):
+    return self.getManager().getSimConditions()
   
   
   #############################################################################
@@ -257,8 +259,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getLFNsByProduction(prodid)
   
   #############################################################################
-  def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    return self.getManager().insertSimConditions(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+  def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return self.getManager().insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
   
   #############################################################################
   def insertEventTypes(self, evtid, desc, primary):

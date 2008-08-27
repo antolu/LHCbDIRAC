@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.44 2008/08/21 14:18:25 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.45 2008/08/27 13:23:55 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.44 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.45 2008/08/27 13:23:55 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -97,16 +97,19 @@ class BookkeepingClient:
   def getSimulationCondID(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+    return result
   
   #############################################################################
-  def insertSimConditions(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+  def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.insertSimConditions(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+    result = server.insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+    return result
   
   #############################################################################
   def getSimCondIDWhenFileName(self, fileName):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getSimCondIDWhenFileName(fileName)
+    return result
     
   #############################################################################
   def updateReplicaRow(self, fileID, replica):
@@ -161,7 +164,12 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getFilesWithSimcond(configName, configVersion, long(simcondid), procPass, long(evtId), long(prod), ftype, progName, progVersion)
     return result
-
+ 
+  def getSimConditions(self):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getSimConditions()
+    return result
+  
 
 
 
