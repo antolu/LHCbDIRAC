@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.68 2008/08/27 13:23:56 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.69 2008/08/27 14:25:16 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.68 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.69 2008/08/27 14:25:16 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -53,6 +53,10 @@ class BookkeepingManagerHandler(RequestHandler):
           result  = reader_.readXMLfromString(name, data)
           if not result['OK']:
             return S_ERROR(result['Message'])
+          if result['Value']=='':
+            return S_OK("The send bookkeeping finished successfully!")
+          else:
+            return result
           """
           stamp = time.strftime('%Y.%m.%d-%H.%M.%S',time.gmtime())
           
@@ -65,7 +69,7 @@ class BookkeepingManagerHandler(RequestHandler):
           update_file.close()
           #copyXML(filePath)
           """
-          return S_OK("The send bookkeeping finished successfully!")
+          return #S_OK("The send bookkeeping finished successfully!")
       except Exception, x:
           print str(x)
           return S_ERROR('Error during processing '+name)

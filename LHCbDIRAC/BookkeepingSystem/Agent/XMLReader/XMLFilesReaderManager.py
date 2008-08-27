@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.13 2008/08/27 13:23:56 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.14 2008/08/27 14:25:16 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.13 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.14 2008/08/27 14:25:16 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -112,7 +112,7 @@ class XMLFilesReaderManager:
       result = dataManager_.checkfile(name)
       if result['OK']:
         self.errorMgmt_.reportError (11, "The file " + str(name) + " already exists.", deleteFileName, errorReport)
-        return S_ERROR("The file " + str(name) + " already exists.")
+        return S_OK("The file " + str(name) + " already exists.")
       
       typeName = file.getFileType()
       typeVersion = file.getFileVersion()
