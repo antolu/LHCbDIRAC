@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.114 2008/08/26 21:10:00 atsareg Exp $
+# $Id: JobFinalization.py,v 1.115 2008/08/27 15:55:33 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.114 2008/08/26 21:10:00 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.115 2008/08/27 15:55:33 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClientOld import BookkeepingDBClientOld
@@ -599,7 +599,7 @@ class JobFinalization(ModuleBase):
       result = shellCall(0,comm)
       if result['OK']:
         lfn = target_path+'/'+ltarname
-        result = self.uploadFileFailover(ltarname,lfn)
+        result = self.uploadDataFileFailover(ltarname,lfn)
         if result['OK']:
           if result.has_key('Register'):
             self.setPfnReplicationRequest(lfn,'LogSE',result,removeOrigin=True)
