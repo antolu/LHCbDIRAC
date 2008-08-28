@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.20 2008/08/28 06:42:36 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.21 2008/08/28 09:10:26 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.20 2008/08/28 06:42:36 joel Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.21 2008/08/28 09:10:26 joel Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -79,7 +79,13 @@ class ModuleBaseSAM(object):
     if not result['OK']:
       return self.finalize('id',result['Message'],'error')
     else:
-      runInfo['idendity'] = result['Value']
+      runInfo['identity'] = result['Value']
+
+    result = self.runCommand('Checking current user account mapping','id -nu')
+    if not result['OK']:
+      return self.finalize('id -nu',result['Message'],'error')
+    else:
+      runInfo['identityShort'] = result['Value']
 
     return runInfo
 
