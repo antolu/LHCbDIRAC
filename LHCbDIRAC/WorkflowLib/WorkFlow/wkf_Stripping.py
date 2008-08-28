@@ -169,7 +169,7 @@ stepInstance2.setValue("optionsLine",opt_brunel)
 stepInstance2.setValue("optionsLinePrev","None")
 #stepInstance2.setValue("outputDataSE","Tier1_M-DST")
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"},{"outputDataName":"@{STEP_ID}.root","outputType":"SETC","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"},{"outputDataName":"@{STEP_ID}.root","outputDataType":"SETC","outputDataSE":"CERN-RDST,Tier1_MC_M-DST,Any:Tier1_MC-DST"}]
 stepInstance2.setValue("listoutput",list2_out)
 
 workflow1.addStep(step3)
