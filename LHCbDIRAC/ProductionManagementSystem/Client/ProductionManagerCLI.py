@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.12 2008/08/19 06:17:49 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.13 2008/08/28 10:22:02 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.12 2008/08/19 06:17:49 atsareg Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.13 2008/08/28 10:22:02 atsareg Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 
 import cmd
 import sys, os
@@ -401,7 +401,13 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     result = self.server.getProductionInfo(prodID)
+
     if result['OK']:
+
+      if result['Value'].has_key('Message'):
+        if result['Value']['Message'].find('not found') != -1:
+          print "Transformation %s not found" % prodID
+          return
 
       dict = result['Value']['Value']
       del result['Value']['Value']
@@ -456,6 +462,8 @@ class ProductionManagerCLI( TransformationDBCLI ):
     pname = argss[1]
     pvalue = argss[2]
     result = self.server.addTransformationParameter(prodID,pname,pvalue)
+    if not result['OK']:
+      print "Command failed with message:",result['Message']
 
   def do_getProductionLog(self, args):
     """ Get Log of the given ProductionID
