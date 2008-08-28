@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.23 2008/08/24 15:23:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.24 2008/08/28 10:54:10 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.23 2008/08/24 15:23:09 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.24 2008/08/28 10:54:10 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -37,6 +37,7 @@ class SAMFinalization(ModuleBaseSAM):
     """
     ModuleBaseSAM.__init__(self)
     self.version = __RCSID__
+    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
@@ -94,7 +95,7 @@ class SAMFinalization(ModuleBaseSAM):
     """
     self.log.info('Initializing '+self.version)
     self.resolveInputVariables()
-
+    self.runinfo = self.getRunInfo()
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
       self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
@@ -127,15 +128,8 @@ class SAMFinalization(ModuleBaseSAM):
     if not failed:
       self.setApplicationStatus('Starting %s Test' %self.testName)
 
-    result = self.getSAMNode()
-    if not result['OK']:
-      self.setApplicationStatus('Could Not Obtain CE Name')
-      return self.finalize('Could not get current CE',result['Message'],'error')
-    else:
-      self.log.info('Current CE is %s' %result['Value'])
-      self.writeToLog('Current CE is %s' %result['Value'])
 
-    samNode = result['Value']
+    samNode = self.runinfo['CE']
     samLogs = {}
     if not self.workflow_commons.has_key('SAMLogs'):
       self.setApplicationStatus('No SAM Logs Found')
