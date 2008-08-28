@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.115 2008/08/27 15:55:33 atsareg Exp $
+# $Id: JobFinalization.py,v 1.116 2008/08/28 09:36:07 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,10 +22,10 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.115 2008/08/27 15:55:33 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.116 2008/08/28 09:36:07 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
-from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClientOld import BookkeepingDBClientOld
+from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClientOld import BookkeepingDBOldClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
@@ -86,7 +86,7 @@ class JobFinalization(ModuleBase):
     self.bk = BookkeepingClient()
     self.bkold = BookkeepingClientOld()
     self.bkDB = BookkeepingDBClient()
-    self.bkDBOld = BookkeepingDBClientOld()
+    self.bkDBOld = BookkeepingDBOldClient()
     self.jobReport  = None
     self.fileReport = None
     self.request = None
