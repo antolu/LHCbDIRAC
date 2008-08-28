@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.32 2008/08/27 15:58:13 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.33 2008/08/28 09:15:49 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.32 2008/08/27 15:58:13 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.33 2008/08/28 09:15:49 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -31,6 +31,7 @@ class LockSharedArea(ModuleBaseSAM):
     """
     ModuleBaseSAM.__init__(self)
     self.version = __RCSID__
+    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
@@ -84,6 +85,7 @@ class LockSharedArea(ModuleBaseSAM):
       return self.finalize('Problem during execution','Failure detected in a previous step','error')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
+    self.runinfo = self.getRunInfo()
     sharedArea = SharedArea()
     if not sharedArea:
       self.log.info('Could not determine sharedArea for site %s:\n%s\n trying to create it' %(self.site,sharedArea))
@@ -125,12 +127,8 @@ class LockSharedArea(ModuleBaseSAM):
     if not result['OK']:
       return self.finalize('id returned non-zero status',result['Message'],'error')
 
-    result = self.runCommand('Checking current user account mapping','id -nu')
-    if not result['OK']:
-      return self.finalize('id returned non-zero status',result['Message'],'error')
-
-    self.log.info('Current account: %s' %result['Value'])
-    if not re.search('\d',result['Value']):
+    self.log.info('Current account: %s' %self.runinfo['identity'])
+    if not re.search('\d',self.runinfo['identityShort']):
       self.log.info('%s uses static accounts' %self.site)
       isPoolAccount = False
     else:
