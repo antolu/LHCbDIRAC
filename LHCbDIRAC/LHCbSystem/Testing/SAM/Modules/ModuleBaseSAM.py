@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.21 2008/08/28 09:10:26 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.22 2008/08/28 10:43:35 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.21 2008/08/28 09:10:26 joel Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.22 2008/08/28 10:43:35 joel Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -63,7 +63,6 @@ class ModuleBaseSAM(object):
       runInfo['CE'] = result['Value']
 
     result = self.runCommand('find worker node name','hostname')
-    self.log.info(result)
     if not result['OK']:
         return self.finalise('Current worker node does not exist',result['Message'],'error')
     else:
