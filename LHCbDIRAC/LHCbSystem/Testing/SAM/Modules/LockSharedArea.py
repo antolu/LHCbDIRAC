@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.33 2008/08/28 09:15:49 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.34 2008/08/28 09:22:43 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.33 2008/08/28 09:15:49 joel Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.34 2008/08/28 09:22:43 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -123,10 +123,6 @@ class LockSharedArea(ModuleBaseSAM):
 
 
     # Change the permissions on the shared area (if a pool account is used)
-    result = self.runCommand('Checking current user account mapping','id')
-    if not result['OK']:
-      return self.finalize('id returned non-zero status',result['Message'],'error')
-
     self.log.info('Current account: %s' %self.runinfo['identity'])
     if not re.search('\d',self.runinfo['identityShort']):
       self.log.info('%s uses static accounts' %self.site)
@@ -233,10 +229,7 @@ class LockSharedArea(ModuleBaseSAM):
     self.log.verbose('Changing permissions to 0775 in shared area %s' %sharedArea)
     self.writeToLog('Changing permissions to 0775 in shared area %s' %sharedArea)
 
-    result = self.runCommand('Checking current user account mapping','id -u',check=True)
-    if not result['OK']:
-      return self.finalize('id -u',result['Message'],'error')
-    userID = result['Value']
+    userID = self.runinfo['identityShort']
 
     try:
       for dirName, subDirs, files in os.walk(sharedArea):
