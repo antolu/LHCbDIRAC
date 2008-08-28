@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.7 2008/08/14 08:28:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.8 2008/08/28 07:07:33 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-queues.
 """
 
-__RCSID__ = "$Id: SiteQueues.py,v 1.7 2008/08/14 08:28:33 paterson Exp $"
+__RCSID__ = "$Id: SiteQueues.py,v 1.8 2008/08/28 07:07:33 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -73,13 +73,11 @@ class SiteQueues(ModuleBaseSAM):
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
 
-    result = self.getSAMNode()
-    if not result['OK']:
-      return self.finalize('Could not get current CE',result['Message'],'error')
+    result = self.getRunInfo()
+    if result.has_key('CE'):
+      samNode = result['CE']
     else:
-      self.log.info('Current CE is %s' %result['Value'])
-
-    samNode = result['Value']
+      return self.finalize('Could not get current CE','no CE','error')
 
     if os.environ.has_key('LCG_GFAL_INFOSYS'):
       self.log.info('LCG_GFAL_INFOSYS = %s' %(os.environ['LCG_GFAL_INFOSYS']))
