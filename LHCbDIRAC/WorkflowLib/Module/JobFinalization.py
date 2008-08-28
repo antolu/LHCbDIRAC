@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.117 2008/08/28 11:51:47 atsareg Exp $
+# $Id: JobFinalization.py,v 1.118 2008/08/28 21:01:13 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,10 +22,10 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.117 2008/08/28 11:51:47 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.118 2008/08/28 21:01:13 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
-from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClientOld import BookkeepingDBOldClient
+from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
@@ -603,9 +603,13 @@ class JobFinalization(ModuleBase):
         result = self.uploadDataFileFailover(ltarname,lfn)
         if result['OK']:
           if result.has_key('Register'):
-            self.setPfnReplicationRequest(lfn,'LogSE',result,removeOrigin=True)
+            self.setPfnReplicationRequest(lfn,'LogSE',result)
+            pfn = result['PFN']
+            se = result['FailoverSE']
+            result = self.setRemovalRequest(lfn,se,pfn)
           else:
             self.setReplicationRequest(lfn,'LogSE')
+            result = self.setRemovalRequest(lfn)
           return S_OK()
         else:
           self.log.error('Failed to store log files to LogSE and failover SEs')
@@ -712,7 +716,7 @@ class JobFinalization(ModuleBase):
     else:
       # No chance today ;(
       if lfns_done:
-        resRemoval = self.setRemovalRequest(lfns_done)
+        resRemoval = self.cleanUpRequest(lfns_done)
       result = S_ERROR('Failed to upload output data')
       result['Value'] = {}
       result['Value']['Failed'] = outputs_failed
@@ -839,7 +843,7 @@ class JobFinalization(ModuleBase):
           # Set replication requests now
           result = S_ERROR('Nothing to replicate')
           if failover_done:
-            result = self.replicateFile(lfn,fDict,out_ses,outputmode,[],True)
+            result = self.replicateFile(lfn,fDict,out_ses,outputmode,[])
           elif  succeeded_ses.has_key(se_index):
             done_group_ses = succeeded_ses[se_index]
             result = self.replicateFile(lfn,fDict,out_ses,outputmode,done_group_ses)
@@ -870,8 +874,12 @@ class JobFinalization(ModuleBase):
               succeeded_ses[999].append(done_se)
               if not result.has_key('PFN'):
                 full_upload = True
+                # Remove the failover replica eventually
+                result = self.setRemovalRequest(lfn,done_se)
               else:
                 pfn_upload = result['PFN']
+                # Remove the failover replica eventually
+                result = self.setRemovalRequest(lfn,done_se,pfn_upload)
               failover_done = True
             else:
               all_failed = True
@@ -1023,7 +1031,7 @@ class JobFinalization(ModuleBase):
     return result['Value']
 
 #############################################################################
-  def replicateFile(self,lfn,fileDict,out_ses,outputmode,succeeded_ses,failoverFlag=False):
+  def replicateFile(self,lfn,fileDict,out_ses,outputmode,succeeded_ses):
     """ Set replication requests for the given LFN according to the given
         output mode
     """
@@ -1037,25 +1045,25 @@ class JobFinalization(ModuleBase):
         return S_OK()
       else:
         if fileDict:
-          result = self.setPfnReplicationRequest(lfn,out_ses[0],fileDict,removeOrigin=failoverFlag)
+          result = self.setPfnReplicationRequest(lfn,out_ses[0],fileDict)
         else:
-          result = self.setReplicationRequest(lfn,out_ses[0],removeOrigin=failoverFlag)
+          result = self.setReplicationRequest(lfn,out_ses[0])
         if result['OK']:
           done_ses.append(out_ses[0])
     elif outputmode == "All":
       for se in out_ses:
         if se not in succeeded_ses:
           if fileDict:
-            result = self.setPfnReplicationRequest(lfn,se,fileDict,removeOrigin=failoverFlag)
+            result = self.setPfnReplicationRequest(lfn,se,fileDict)
           else:
-            result = self.setReplicationRequest(lfn,se,removeOrigin=failoverFlag)
+            result = self.setReplicationRequest(lfn,se)
           if result['OK']:
             done_ses.append(se)
 
     return S_OK(done_ses)
 
 ###################################################################################################
-  def uploadDataFile(self,datafile,lfn,destinationSEList,outputmode,guid,fileDict,failover=False):
+  def uploadDataFile(self,datafile,lfn,destinationSEList,outputmode,guid,fileDict):
     """ Upload a datafile to the grid and set necessary replication requests
     """
 
@@ -1174,19 +1182,14 @@ class JobFinalization(ModuleBase):
     return S_ERROR('Failed to store %s file to any failover SE' % fname)
 
 #############################################################################################
-  def setReplicationRequest(self,lfn,se,removeOrigin=False):
+  def setReplicationRequest(self,lfn,se):
     """ Set replication request for lfn with se Storage Element destination
     """
 
     self.log.info('Setting replication request for %s to %s' % (lfn,se))
-    if removeOrigin:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegisterAndRemove',
-                                                         'TargetSE':se,'ExecutionOrder':1}},
-                                           'transfer')
-    else:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister',
-                                                         'TargetSE':se,'ExecutionOrder':1}},
-                                           'transfer')
+    result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister',
+                                                       'TargetSE':se,'ExecutionOrder':1}},
+                                         'transfer')
     if not result['OK']:
       return result
 
@@ -1217,19 +1220,14 @@ class JobFinalization(ModuleBase):
     return S_OK()
 
 #############################################################################################
-  def setPfnReplicationRequest(self,lfn,se,fileDict,removeOrigin=False):
+  def setPfnReplicationRequest(self,lfn,se,fileDict):
     """ Set replication request for lfn with se Storage Element destination
     """
 
     self.log.info('Setting PFN replication request for %s to %s' % (lfn,se))
-    if removeOrigin:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegisterAndRemove',
-                                                         'TargetSE':se,'ExecutionOrder':1}},
-                                           'transfer')
-    else:
-      result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegister',
-                                                         'TargetSE':se,'ExecutionOrder':1}},
-                                           'transfer')
+    result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegister',
+                                                       'TargetSE':se,'ExecutionOrder':1}},
+                                         'transfer')
     if not result['OK']:
       return result
 
@@ -1240,7 +1238,39 @@ class JobFinalization(ModuleBase):
     return S_OK()
 
 #############################################################################################
-  def setRemovalRequest(self,lfnList):
+  def setRemovalRequest(self,lfn,se='',pfn=''):
+    """ Set file removal request
+    """
+
+    if se:
+      # Removing replica
+      if pfn:
+        result = self.request.addSubRequest({'Attributes':{'Operation':'physicalRemoval',
+                                                           'TargetSE':se,'ExecutionOrder':4}},
+                                             'removal')
+        index = result['Value']
+        fileDict = {'LFN':lfn,'PFN':pfn,'Status':'Waiting'}
+        result = self.request.setSubRequestFiles(index,'removal',[fileDict])
+      else:
+        result = self.request.addSubRequest({'Attributes':{'Operation':'replicaRemoval',
+                                                           'TargetSE':se,'ExecutionOrder':4}},
+                                             'removal')
+        index = result['Value']
+        fileDict = {'LFN':lfn,'Status':'Waiting'}
+        result = self.request.setSubRequestFiles(index,'removal',[fileDict])
+    else:
+      # Complete file removal
+      result = self.request.addSubRequest({'Attributes':{'Operation':'removeFile',
+                                                         'ExecutionOrder':4}},
+                                           'removal')
+      index = result['Value']
+      fileDict = {'LFN':lfn,'Status':'Waiting'}
+      result = self.request.setSubRequestFiles(index,'removal',[fileDict])
+
+    return S_OK()
+
+#############################################################################################
+  def cleanUpRequest(self,lfnList):
     """ Clean up uploaded data for the LFNs in the list
     """
 
@@ -1264,10 +1294,7 @@ class JobFinalization(ModuleBase):
 
       # Set removal requests just in case
       for lfn in lfnList:
-        result = self.request.addSubRequest({'Attributes':{'Operation':'removeFile'}},'removal')
-        index = result['Value']
-        fileDict = {'LFN':lfn,'Status':'Waiting'}
-        result = self.request.setSubRequestFiles(index,'removal',[fileDict])
+        result = self.setRemovalRequest(lfn)
 
     return S_OK()
 
