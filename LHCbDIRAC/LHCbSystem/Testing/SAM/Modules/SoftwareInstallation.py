@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.27 2008/08/18 08:50:37 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.28 2008/08/28 10:47:53 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.27 2008/08/18 08:50:37 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.28 2008/08/28 10:47:53 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -36,6 +36,7 @@ class SoftwareInstallation(ModuleBaseSAM):
     """
     ModuleBaseSAM.__init__(self)
     self.version = __RCSID__
+    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
@@ -92,6 +93,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       self.writeToLog('Another SAM job is running at this site, disabling software installation test for this CE job')
       return self.finalize('%s test will be disabled' %self.testName,'Status INFO (= 20)','info')
 
+    self.runinfo = self.getRunInfo()
     self.setApplicationStatus('Starting %s Test' %self.testName)
     if not CreateSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
@@ -105,12 +107,8 @@ class SoftwareInstallation(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     # Change the permissions on the shared area (if a pool account is used)
-    result = self.runCommand('Checking current user account mapping','id -nu',check=True)
-    if not result['OK']:
-      return self.finalize('id -nu',result['Message'],'error')
-    # Change the permissions on the shared area (if a pool account is used)
 
-    if not re.search('\d',result['Value']):
+    if not re.search('\d',self.runinfo['identityShort']):
       isPoolAccount = False
     else:
       isPoolAccount = True
@@ -250,10 +248,7 @@ class SoftwareInstallation(ModuleBaseSAM):
     self.log.verbose('Changing permissions to 0775 in shared area %s' %sharedArea)
     self.writeToLog('Changing permissions to 0775 in shared area %s' %sharedArea)
 
-    result = self.runCommand('Checking current user account mapping','id -u',check=True)
-    if not result['OK']:
-      return self.finalize('id -u',result['Message'],'error')
-    userID = result['Value']
+    userID = self.runinfo['identityShort']
 
     try:
       for dirName, subDirs, files in os.walk(sharedArea):

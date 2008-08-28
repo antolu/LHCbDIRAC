@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.20 2008/08/20 15:36:22 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.21 2008/08/28 10:45:13 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.20 2008/08/20 15:36:22 paterson Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.21 2008/08/28 10:45:13 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -32,6 +32,7 @@ class SystemConfiguration(ModuleBaseSAM):
     """
     ModuleBaseSAM.__init__(self)
     self.version = __RCSID__
+    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
@@ -73,6 +74,7 @@ class SystemConfiguration(ModuleBaseSAM):
       self.log.info('An error was detected in a previous step, exiting with status error.')
       return self.finalize('Problem during execution','Failure detected in a previous step','error')
 
+    self.runinfo = self.getRunInfo()
     self.setApplicationStatus('Starting %s Test' %self.testName)
 
     self.cwd  = os.getcwd()
@@ -135,12 +137,8 @@ class SystemConfiguration(ModuleBaseSAM):
     if not result['OK']:
       return self.finalize('voms-proxy-info -all',result,'error')
 
-    result = self.runCommand('Checking current user account mapping','id -nu',check=True)
-    if not result['OK']:
-      return self.finalize('id -nu',result['Message'],'error')
-
-    self.log.info('Current account: %s' %result['Value'])
-    if not re.search('\d',result['Value']):
+    self.log.info('Current account: %s' %self.runinfo['identity'])
+    if not re.search('\d',self.runinfo['identityShort']):
       self.log.info('%s uses static accounts' %self.site)
     else:
       self.log.info('%s uses pool accounts' %self.site)
@@ -166,12 +164,6 @@ class SystemConfiguration(ModuleBaseSAM):
         compatible = True
     if not compatible:
       return self.finalize('Site does not have an officially compatible platform',string.join(systemConfigs,', '),'critical')
-
-    result = self.getSAMNode()
-    if not result['OK']:
-      return self.finalize('Could not get current CE',result['Message'],'error')
-    else:
-      self.log.info('Current CE is %s' %result['Value'])
 
     libsToRemove = ['tls/libc.so.6','libgcc_s.so.1','tls/libm.so.6','tls/libpthread.so.0']
     for arch in systemConfigs:
