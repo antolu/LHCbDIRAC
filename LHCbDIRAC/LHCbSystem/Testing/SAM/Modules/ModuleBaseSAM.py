@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.19 2008/08/14 08:36:26 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.20 2008/08/28 06:42:36 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.19 2008/08/14 08:36:26 paterson Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.20 2008/08/28 06:42:36 joel Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -48,6 +48,41 @@ class ModuleBaseSAM(object):
       gLogger.warn(jobStatus['Message'])
 
     return jobStatus
+
+  #############################################################################
+  def getRunInfo(self):
+    """ print the basic information about CE, Host, DN, proxy, mapping
+        return a dictionnary with the RUN INFO to be used later if needed
+    """
+    runInfo = {}
+    result = self.getSAMNode()
+    if not result['OK']:
+      return self.finalize('Could not get current CE',result['Message'],'error')
+    else:
+      self.log.info('Current CE is %s' %result['Value'])
+      runInfo['CE'] = result['Value']
+
+    result = self.runCommand('find worker node name','hostname')
+    self.log.info(result)
+    if not result['OK']:
+        return self.finalise('Current worker node does not exist',result['Message'],'error')
+    else:
+        runInfo['WN'] = result['Value']
+
+    result = self.runCommand('Checking current proxy', 'voms-proxy-info -all')
+    if not result['OK']:
+      return self.finalize('voms-proxy-info -all',result,'error')
+    else:
+      runInfo['Proxy'] = result['Value']
+
+    result = self.runCommand('Checking current user account mapping','id')
+    if not result['OK']:
+      return self.finalize('id',result['Message'],'error')
+    else:
+      runInfo['idendity'] = result['Value']
+
+    return runInfo
+
 
   #############################################################################
   def getSAMNode(self):
