@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.116 2008/08/28 09:36:07 atsareg Exp $
+# $Id: JobFinalization.py,v 1.117 2008/08/28 11:51:47 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.116 2008/08/28 09:36:07 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.117 2008/08/28 11:51:47 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClientOld import BookkeepingDBOldClient
@@ -293,7 +293,8 @@ class JobFinalization(ModuleBase):
       self.setApplicationStatus('Failed to save output data')
       result = S_ERROR('Failed to save output data')
 
-    if logs_done and data_done and bk_done and bkold_done and not error:
+    if data_done and not error:
+      # All the other operations will be accomplished through the failover mechanism
       self.setApplicationStatus('Job Finished Successfully')
 
     if not logs_done:
