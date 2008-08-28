@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.23 2008/08/14 11:33:44 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.24 2008/08/28 14:18:21 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.23 2008/08/14 11:33:44 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.24 2008/08/28 14:18:21 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -125,6 +125,8 @@ class AnalyseLogFile(ModuleBase):
            self.log.info(f+' was not processed - reset as unused')
          elif stat == 'AncestorProblem':
            self.log.info(f+' should not be reprocessed - set to '+stat)
+         elif stat == 'ApplicationCrash':
+           self.log.info(f+' crashed the application - set to '+stat)
          else:
            if fileStatus == "Processed":
              self.log.info(f+" status set as "+fileStatus)
@@ -198,13 +200,29 @@ class AnalyseLogFile(ModuleBase):
       else:
          lastev = string.split(line)[5]
 
+      # find out which was the latest open file
+      # For most recent Gaudi
+      line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector.DataStream', '-cl')
+      if n == 0:
+         # For old Gaudi (ex Brunel v30)
+         line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector_1', '-cl')
+      if n:
+         lastfile = line.split("'")[1].replace("LFN:","")
+      else:
+         lastfile = ""
+
       result = S_OK()
 
       line,nomore = self.grep(self.applicationLog,'No more events')
       lprocessed,n =self.grep(self.applicationLog,'events processed')
       if n == 0:
           if self.applicationName == 'Gauss' or nomore == 0:
-            result = S_ERROR(mailto + ' crash in event ' + lastev)
+            errmsg = mailto + ' crash in event %d' % lastev
+            if lastfile != "":
+                errmsg += " - File " + lastfile
+                if self.inputFiles.has_key(lastfile):
+                   self.inputFiles[lastfile] = "ApplicationCrash"
+            result = S_ERROR(errmsg)
             self.log.info('nbEvent - result = ',result['Message'])
             return result
           else:
@@ -282,6 +300,9 @@ class AnalyseLogFile(ModuleBase):
       catalog = PoolXMLCatalog(catalogfile)
       self.log.info('Check POOL connection error')
       line,poolroot = self.grep(self.applicationLog,'Error: connectDatabase>','-c')
+      line1,poolroot1 = self.grep(self.applicationLog,'Error: connectDataIO>','-c')
+      line += line1
+      poolroot += poolroot1
       if poolroot >= 1:
          for file in line.split('\n'):
             if poolroot > 0:
