@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.24 2008/08/22 07:30:34 joel Exp $
+# $Id: BookkeepingReport.py,v 1.25 2008/08/28 06:33:01 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.24 2008/08/22 07:30:34 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.25 2008/08/28 06:33:01 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -23,6 +23,7 @@ class BookkeepingReport(ModuleBase):
     self.numberOfEvents = 0
     self.numberOfEventsInput = 0
     self.numberOfEventsOutput = 0
+    self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
     self.inputData = ''
@@ -40,6 +41,9 @@ class BookkeepingReport(ModuleBase):
 
     if self.step_commons.has_key('eventType'):
         self.eventType = self.step_commons['eventType']
+
+    if self.workflow_commons.has_key('simDescription'):
+        self.simDescription = self.workflow_commons['simDescription']
 
     if self.step_commons.has_key('numberOfEvents'):
        self.numberOfEvents = self.step_commons['numberOfEvents']
@@ -458,7 +462,7 @@ class BookkeepingReport(ModuleBase):
 
   def makeBeamConditions(self,sbeam):
       sbeam = sbeam+'<SimulationCondition>\n'
-      sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="DC06 simulation 2 10**32"/>\n'
+      sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="'+self.simDescription+'"/>\n'
       sbeam = sbeam+'</SimulationCondition>\n'
       return sbeam
 
