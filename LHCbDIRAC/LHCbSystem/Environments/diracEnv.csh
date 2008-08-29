@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.3 2008/08/20 15:34:59 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.4 2008/08/29 11:50:16 joel Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.3 2008/08/20 15:34:59 joel Exp $'
-set __VERSION__='$Revision: 1.3 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.4 2008/08/29 11:50:16 joel Exp $'
+set __VERSION__='$Revision: 1.4 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -61,7 +61,7 @@ endif
 if ! ( -e ~/.lcgpasswd ) then
   echo -n "Certificate password: "
   stty -echo
-  read userPasswd
+  set userPasswd=$<
   stty echo
 else
   set userPasswd=`cat ~/.lcgpasswd`
