@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-informations.py,v 1.1 2008/08/01 15:12:26 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-informations.py,v 1.2 2008/08/29 15:51:33 zmathe Exp $
 # File :   dirac-bookkeeping-production-informations
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-production-informations.py,v 1.1 2008/08/01 15:12:26 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-production-informations.py,v 1.2 2008/08/29 15:51:33 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -36,12 +36,15 @@ if res['OK']:
         print info
     print "Number Of jobs  ",val["Number Of jobs"][0][0]
     files = val["Number Of files"]
-    print "Total number Of files:",files[0][2]
+    if len(files) != 0:
+      print "Total number Of files:",files[0][2]
+    else:
+      print "Total number Of files: 0"
     for file in files:
       print "         " + str(file[1])+":"+str(file[0])
     nbevent = val["Number of Events"]
     if len(nbevent) != 0:
-      print "Number of Events",nbevent[1]
+      print "Number of Events",nbevent
     else:
       print "Number of Events",0
 else:
