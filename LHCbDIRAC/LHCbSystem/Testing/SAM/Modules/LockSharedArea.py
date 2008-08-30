@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.34 2008/08/28 09:22:43 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.35 2008/08/30 13:33:02 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.34 2008/08/28 09:22:43 joel Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.35 2008/08/30 13:33:02 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -86,6 +86,36 @@ class LockSharedArea(ModuleBaseSAM):
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     self.runinfo = self.getRunInfo()
+
+    # Change the permissions on the shared area
+    self.log.info('Current account: %s' %self.runinfo['identity'])
+    if not re.search('\d',self.runinfo['identityShort']):
+      self.log.info('%s uses static accounts' %self.site)
+      isPoolAccount = False
+    else:
+      self.log.info('%s uses pool accounts' %self.site)
+      isPoolAccount = True
+
+    result = self.runCommand('Checking current umask','umask')
+    if not result['OK']:
+      return self.finalize('umask returned non-zero status',result['Message'],'error')
+
+    self.log.info('Current umask: %s' %result['Value'])
+    if isPoolAccount:
+      if not result['Value'].count('0002'):
+        self.log.info('Changing current umask to 0002')
+        try:
+          os.umask(0002)
+        except Exception,x:
+          return self.finalize('excepton during umask',x,'error')
+    else:
+      if not result['Value'].count('0022'):
+        self.log.info('Changing current umask to 0022')
+        try:
+          os.umask(0022)
+        except Exception,x:
+          return self.finalize('excepton during umask',x,'error')
+
     sharedArea = SharedArea()
     if not sharedArea:
       self.log.info('Could not determine sharedArea for site %s:\n%s\n trying to create it' %(self.site,sharedArea))
@@ -120,44 +150,6 @@ class LockSharedArea(ModuleBaseSAM):
         self.log.info('%s/lib is not a link so will not be removed' %sharedArea)
     else:
       self.log.info('Link in shared area %s/lib does not exist' %sharedArea)
-
-
-    # Change the permissions on the shared area (if a pool account is used)
-    self.log.info('Current account: %s' %self.runinfo['identity'])
-    if not re.search('\d',self.runinfo['identityShort']):
-      self.log.info('%s uses static accounts' %self.site)
-      isPoolAccount = False
-    else:
-      self.log.info('%s uses pool accounts' %self.site)
-      isPoolAccount = True
-
-    result = self.runCommand('Checking current umask','umask')
-    if not result['OK']:
-      return self.finalize('umask returned non-zero status',result['Message'],'error')
-
-    self.log.info('Current umask: %s' %result['Value'])
-    if isPoolAccount:
-      if not result['Value'].count('0002'):
-        self.log.info('Changing current umask to 0002')
-        try:
-          os.umask(0002)
-        except Exception,x:
-          return self.finalize('excepton during umask',x,'error')
-#        result = self.runCommand('Changing current umask to 0002','umask 0002',check=True)
-#        if not result['OK']:
-#          return self.finalize('umask returned non-zero status',result['Message'],'error')
-#        return self.finalize('Wrong umask','For pool account umask: %s'%result['Value'],'critical')
-    else:
-      if not result['Value'].count('0022'):
-        self.log.info('Changing current umask to 0022')
-        try:
-          os.umask(0022)
-        except Exception,x:
-          return self.finalize('excepton during umask',x,'error')
-#        result = self.runCommand('Changing current umask to 0022','umask 0022',check=True)
-#        if not result['OK']:
-#          return self.finalize('umask returned non-zero status',result['Message'],'error')
-#        return self.finalize('Wrong umask','For static account umask: %s'%result['Value'],'critical')
 
     if self.forceLockRemoval:
       self.log.info('Deliberately removing SAM lock file')
