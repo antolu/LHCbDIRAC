@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/Attic/JobOutputLFN.py,v 1.1 2008/08/20 18:09:26 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/Attic/JobOutputLFN.py,v 1.2 2008/08/31 17:43:44 roma Exp $
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################
@@ -7,30 +7,12 @@
 from DIRAC.Interfaces.API.Dirac                              import Dirac
 from DIRAC.Interfaces.API.Job                                import Job
 
-import shutil
-
-
-def getLFNRoot(lfn,mcYear=0):
-
-  
-  if lfn:
-    return '/lhcb/data/'
-          
-  elif mcYear=='DC06': #This should be reviewed.
-    return '/lhcb/production/DC06'
-  else:
-    return '/lhcb/MC/'+str(mcYear)
+import shutil,os
     
-def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys-v4-lumi2'):
+def makeProductionLFN(jobid,prodid,config,fname,ftype):
   """ Constructs the logical file name according to LHCb conventions.
   Returns the lfn without 'lfn:' prepended
   """
-  try:
-    jobindex = "%04d"%(int(JOB_ID)/10000)
-  except:
-    jobindex = '0000'
-
-  fname = filetuple[0]
 
   if fname.count('lfn:'):
     return fname.replace('lfn:','')
@@ -38,10 +20,17 @@ def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring,prodConfig='phys
   if fname.count('LFN:'):
     return fname.replace('LFN:','')
 
-  if LFN_ROOT.count('DC06',): #This should be reviewed, is a nasty fix.
-    return LFN_ROOT+'/'+prodConfig+'/'+prodstring+'/'+filetuple[1].upper()+'/'+jobindex+'/'+filetuple[0]
+  if config.count('DC06'):
+    lfnroot = '/lhcb/MC/DC06'
+  else:
+    lfnroot = '/lhcb/data/'
+    
+  try:
+    jobindex = "%04d"%(int(jobid)/10000)
+  except:
+    jobindex = '0000'
 
-  return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
+  return os.path.join(lfnroot,str(ftype).upper(),prodid,jobindex,fname)
 
 
 def getJobOutputLFN(job):
@@ -90,7 +79,7 @@ For JobID return list of output LFN'''
   if not jobid or not prodid or not jobname or not configversion:
     message = 'Wrong job parameters: %s'%str({'JOB_ID':jobid, 'PRODUCTION_ID':prodid, 'JobName':jobname,'configVersion':configversion})
     return {'OK':False, 'Message':message}
-      
+         
   code = j.createCode()
   listoutput = []
   for line in code.split("\n"):
@@ -101,8 +90,8 @@ For JobID return list of output LFN'''
   for item in listoutput:
     if (not output) or item['outputDataType'] in output:
       filename = item['outputDataName']
-      lfnroot = getLFNRoot(inputdata,configversion)
-      lfn = makeProductionLfn(jobid,lfnroot,(filename,item['outputDataType']),'MODE',prodid)
+      filetype = item['outputDataType']
+      lfn = makeProductionLFN(jobid,prodid,configversion,filename,filetype)
       lfns.append(lfn)
-          
+        
   return {'OK':True, 'Value':lfns}
