@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.118 2008/08/28 21:01:13 atsareg Exp $
+# $Id: JobFinalization.py,v 1.119 2008/09/01 09:46:17 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.118 2008/08/28 21:01:13 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.119 2008/09/01 09:46:17 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -176,7 +176,7 @@ class JobFinalization(ModuleBase):
     error = 0
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       error = 1
-      self.fileReport.setCommonStatus('unused')
+      self.fileReport.setCommonStatus('Unused')
       self.fileReport.commit()
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
