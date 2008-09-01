@@ -12,6 +12,7 @@ eventTypeSignal = "12962600"
 numberEventSignal = 10
 numberEventMB = 10
 numberEvent = -1
+simDescription = "DC06-BcVegPy-lumi2"
 Gauss_version = "v26r0"
 Gauss_optfile = "v200601.opts"
 Boole_version = "v12r10"
@@ -219,7 +220,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r20.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v2r0.tar.gz","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("JobType","MCSimulation","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
@@ -241,6 +242,7 @@ workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "ty
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("configVersion","DC06","string","","",True, False, "Configuration Version"))
+workflow1.addParameter(Parameter("simDescription",simDescription,"string","","",True, False, "Simulation description"))
 workflow1.addParameter(Parameter("DCconfigName","DC06","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("DCconfigVersion","phys-v4-lumi20","string","","",True, False, "Configuration Version"))
 workflow1.addParameter(Parameter("outputDataFileMask",outputDataFileMask,"string","","",True, False, "Only upload files with the extensions in this parameter"))
