@@ -5,7 +5,7 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 # Variable which need to be set
-wkf_name = "CCRC_strip"
+wkf_name = "CCRC_strip4"
 eventTypeSignal = "30000000"
 nb_evt_step1 = 400
 nb_evt_step2 = -1
@@ -183,7 +183,7 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v1r22.tar.gz","JDL","","",True, False, "Job TYpe"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v2r0.tar.gz","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("JobType","DataStripping","JDL","","",True, False, "Job TYpe"))
 workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
