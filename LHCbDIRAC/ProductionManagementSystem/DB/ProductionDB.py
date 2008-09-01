@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.43 2008/08/28 10:37:05 atsareg Exp $
+# $Id: ProductionDB.py,v 1.44 2008/09/01 20:35:40 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.43 $"
+__RCSID__ = "$Revision: 1.44 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -127,11 +127,11 @@ class ProductionDB(TransformationDB):
   def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update=False, inheritedFrom=0L):
 
     if fileMask == '' or fileMask == None: # if mask is empty it is simulation
-      type_ = "SIMULATION"
+      type_ = "Simulation"
     else:
-      type_ = "PROCESSING"
-    plugin = "NONE"
-    agentType = "MANUAL"
+      type_ = "Processing"
+    plugin = "None"
+    agentType = "Manual"
 
     #status = "NEW" # alwais NEW when created
     # WE HAVE TO CHECK IS WORKFLOW EXISTS
