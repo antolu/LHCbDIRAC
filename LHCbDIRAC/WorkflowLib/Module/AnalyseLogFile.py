@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.24 2008/08/28 14:18:21 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.25 2008/09/01 09:45:46 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.24 2008/08/28 14:18:21 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.25 2008/09/01 09:45:46 joel Exp $"
 
 import commands, os, time, smtplib
 
@@ -75,7 +75,7 @@ class AnalyseLogFile(ModuleBase):
       result = self.getLogFile()
       if not result['OK'] :
          self.log.info(result['Message'])
-         self.update_status( inputs, "unused")
+         self.update_status( inputs, "Unused")
          return S_ERROR(result['Message'])
 
 # check if this is a good job
@@ -95,7 +95,7 @@ class AnalyseLogFile(ModuleBase):
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
            self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-           resultstatus = self.update_status( inputs, "unused")
+           resultstatus = self.update_status( inputs, "Unused")
            if resultstatus['OK']:
              return resultnb
            else:
@@ -103,7 +103,7 @@ class AnalyseLogFile(ModuleBase):
       else:
          self.sendErrorMail(result['Message'])
          self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-         resultstatus = self.update_status( inputs, "unused")
+         resultstatus = self.update_status( inputs, "Unused")
          if not resultstatus['OK']:
             result = resultstatus
 
@@ -114,15 +114,15 @@ class AnalyseLogFile(ModuleBase):
       for f in inputs.keys():
          stat = inputs[f]
          if stat == 'Problematic':
-           stat = 'unused'
-           self.log.info(f+' is problematic at '+self.site+' - reset as unused')
+           stat = 'Unused'
+           self.log.info(f+' is problematic at '+self.site+' - reset as Unused')
            try:
              result = self.setReplicaProblematic(f,self.site,'Problematic')
            except:
              self.log.info('LFC not accessible')
              result = S_ERROR('LFC not accessible')
-         elif stat == 'unused':
-           self.log.info(f+' was not processed - reset as unused')
+         elif stat == 'Unused':
+           self.log.info(f+' was not processed - reset as Unused')
          elif stat == 'AncestorProblem':
            self.log.info(f+' should not be reprocessed - set to '+stat)
          elif stat == 'ApplicationCrash':
@@ -322,7 +322,7 @@ class AnalyseLogFile(ModuleBase):
                         # The problematic file is not an input but a derived file
                         ##### Should put here something for setting replica as problematic in the LFC
                         self.log.warn(lfn+" is problematic, but not a job input file - status not changed")
-                        # This means the input files cannot be reset yo unused due to ancestor problems
+                        # This means the input files cannot be reset yo Unused due to ancestor problems
                         # Get the status of input files for this job
                         prod = self.projectname
                         job = prod + "_" + self.job_id
@@ -348,14 +348,14 @@ class AnalyseLogFile(ModuleBase):
                            if status == 'Processed':
                               inputs[lfn] = 'AncestorProblem'
                            else:
-                              inputs[lfn] = 'unused'
+                              inputs[lfn] = 'Unused'
 #                     self.update_status('Bad',cat_lfn['Logical'])
 
                poolroot = poolroot-1
          for lfn in inputs.keys():
            pfn = catalog.getPfnsByLfn(lfn)
            if not pfn['Status'] == 'OK' and inputs[lfn] == 'OK':
-             inputs[lfn] = 'unused'
+             inputs[lfn] = 'Unused'
 
          return S_ERROR(mailto + ' error to connectDatabase')
 
