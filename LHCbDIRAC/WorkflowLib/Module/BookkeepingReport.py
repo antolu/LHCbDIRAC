@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.25 2008/08/28 06:33:01 joel Exp $
+# $Id: BookkeepingReport.py,v 1.26 2008/09/02 07:52:51 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.25 2008/08/28 06:33:01 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.26 2008/09/02 07:52:51 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -357,10 +357,10 @@ class BookkeepingReport(ModuleBase):
     else:
       s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
-    if self.sourceData:
-      self.LFN_ROOT= getLFNRoot(self.sourceData)
+    if self.InputData:
+      self.LFN_ROOT= getLFNRoot(self.InputData)
     else:
-      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
 
     if self.inputData:
       for inputname in self.inputData.split(';'):
