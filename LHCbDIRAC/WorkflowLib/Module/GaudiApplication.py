@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.74 2008/08/22 05:43:14 joel Exp $
+# $Id: GaudiApplication.py,v 1.75 2008/09/03 15:23:12 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.74 2008/08/22 05:43:14 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.75 2008/09/03 15:23:12 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -86,8 +86,6 @@ class GaudiApplication(ModuleBase):
 
     poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
-#    poolOpt = """\nFileCatalog.Catalogs= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
-#    options.write(poolOpt)
 
   #############################################################################
   def resolveInputDataPy(self,options):
@@ -106,10 +104,6 @@ class GaudiApplication(ModuleBase):
       self.log.info('Input data defined taken from JDL parameter')
       if type(self.inputData) != type([]):
         self.inputData = self.InputData.split(';')
-    elif os.path.exists(self.poolXMLCatName):
-      inputDataCatalog = PoolXMLCatalog(self.poolXMLCatName)
-      inputDataList = inputDataCatalog.getLfnsList()
-      self.inputData = inputDataList
     else:
       self.log.verbose('Job has no input data requirement')
 
@@ -126,14 +120,8 @@ class GaudiApplication(ModuleBase):
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.write(evtSelOpt)
-#    if self.outputData != None:
-#      for opt in self.outputData.split(';'):
-#        options.write("""OutputStream("DstWriter").Output = "DATAFILE='PFN:'+opt+' TYP='POOL_ROOTTREE' OPT='RECREATE'""")
-
-    poolOpt = """\nPoolDbCacheSvc().Catalog= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
+    poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
-#    poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
-#    options.write(poolOpt)
 
   #############################################################################
   def manageOpts(self):
@@ -200,16 +188,16 @@ class GaudiApplication(ModuleBase):
 
     try:
         self.log.info("Adding extra options : %s" % (self.optionsLine))
-        options = open(self.optfile_extra,'a')
+        options = open(self.optfile_extra,'w')
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
         options.write('from Gaudi.Configuration import *\n')
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
               options.write(opt+'\n')
-              self.resolveInputDataPy(options)
-              if self.numberOfEvents != 0:
-                 options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
+        self.resolveInputDataPy(options)
+        if self.numberOfEvents != 0:
+            options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
         options.close()
     except Exception, x:
         print "No additional options"
