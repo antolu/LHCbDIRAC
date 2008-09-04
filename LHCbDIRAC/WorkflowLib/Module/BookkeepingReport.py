@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.26 2008/09/02 07:52:51 joel Exp $
+# $Id: BookkeepingReport.py,v 1.27 2008/09/04 09:46:21 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.26 2008/09/02 07:52:51 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.27 2008/09/04 09:46:21 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -461,9 +461,9 @@ class BookkeepingReport(ModuleBase):
     return s
 
   def makeBeamConditions(self,sbeam):
-      sbeam = sbeam+'<SimulationCondition>\n'
+      sbeam = sbeam+'  <SimulationCondition>\n'
       sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="'+self.simDescription+'"/>\n'
-      sbeam = sbeam+'</SimulationCondition>\n'
+      sbeam = sbeam+'  </SimulationCondition>\n'
       return sbeam
 
 
