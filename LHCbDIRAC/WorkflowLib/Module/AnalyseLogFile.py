@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.25 2008/09/01 09:45:46 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.26 2008/09/04 09:48:20 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.25 2008/09/01 09:45:46 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.26 2008/09/04 09:48:20 joel Exp $"
 
-import commands, os, time, smtplib
+import commands, os, time, smtplib, re
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
@@ -38,7 +38,6 @@ class AnalyseLogFile(ModuleBase):
       self.jobID = ''
       if os.environ.has_key('JOBID'):
         self.jobID = os.environ['JOBID']
-      self.timeoffset = 0
       self.poolXMLCatName = 'pool_xml_catalog.xml'
       self.applicationLog = ''
       self.applicationVersion = ''
@@ -170,14 +169,10 @@ class AnalyseLogFile(ModuleBase):
 #-----------------------------------------------------------------------
 #
   def nbEvent(self):
-      self.timeoffset = 0
       lastev = 0
       mailto = self.applicationName.upper()+'_EMAIL'
-      line,appinit = self.grep(self.applicationLog,'ApplicationMgr    SUCCESS')
-      if line.split(' ')[2] == 'UTC':
-          self.timeoffset = 3
 
-      lEvtMax,n = self.grep(self.applicationLog,'.EvtMax','-cl')
+      lEvtMax,n = self.grep(self.applicationLog,'Requested to process','-cl')
       if n == 0:
           if self.applicationName != 'Gauss':
               EvtMax = -1
@@ -185,7 +180,13 @@ class AnalyseLogFile(ModuleBase):
               result = S_ERROR(mailto + ' missing job options')
               return result
       else:
-         EvtMax = int(string.split(string.replace(lEvtMax,';',' '))[2])
+#         EvtMax = int(string.split(string.replace(lEvtMax,';',' '))[2])
+         exp = re.compile(r"Requested to process ([0-9]+|all)")
+         findline = re.search(exp,lEvtMax)
+         if findline.group(1) == 'all':
+             EvtMax = -1
+         else:
+             EvtMax = int(findline.group(1))
 
       self.log.info('EvtMax = %s' % (str(EvtMax)))
 
@@ -228,12 +229,11 @@ class AnalyseLogFile(ModuleBase):
           else:
             nprocessed = lastev
       else:
-         if len(string.split(lprocessed))-self.timeoffset == 3:
-            nprocessed = int(string.split(lprocessed)[0+self.timeoffset])
-         else:
-            nprocessed = int(string.split(lprocessed)[2+self.timeoffset])
+         exp = re.compile(r"([0-9]+) events processed")
+         findline = re.search(exp,lprocessed)
+         nprocessed = int(findline.group(1))
 
-      self.log.info(" %s events processed " % nprocessed)
+      self.log.info(" %s events processed " % str(nprocessed))
       self.numberOfEventsInput = str(nprocessed)
 
       #report job parameter with timestamp
@@ -247,7 +247,9 @@ class AnalyseLogFile(ModuleBase):
          if self.applicationName == 'Gauss ' or self.applicationName == 'Brunel':
             result = S_ERROR('no events written')
       else:
-         noutput = int(string.split(loutput)[4+self.timeoffset])
+         exp = re.compile(r"Events output: ([0-9]+)")
+         findline = re.search(exp,loutput)
+         noutput = int(findline.group(1))
          self.log.info(" %s events written " % str(noutput))
          self.numberOfEventsOutput = str(noutput)
 
