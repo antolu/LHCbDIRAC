@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.39 2008/08/13 13:57:34 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.40 2008/09/04 09:19:00 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.39 $"
+__RCSID__ = "$Revision: 1.40 $"
 
 from types import *
 import threading
@@ -439,6 +439,11 @@ class ProductionManagerHandler( TransformationHandler ):
         continue
       statDict = result['Value']
       prod['JobStats'] = statDict
+      result = productionDB.getFilesForTransformation(prodID)
+      if result['OK']:
+        prod['NumberOfFiles'] = len(result['Value'])
+      else:
+        prod['NumberOfFiles'] = -1
       resultDict[prodID] = prod
 
     return S_OK(resultDict)
