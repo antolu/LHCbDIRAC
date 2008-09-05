@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.2 2008/09/05 14:38:42 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.3 2008/09/05 14:55:15 paterson Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.2 2008/09/05 14:38:42 paterson Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.3 2008/09/05 14:55:15 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -85,7 +85,7 @@ class DiracSAM(Dirac):
   def _promptUser(self,message):
     """Internal function to prompt user before submitting all SAM test jobs.
     """
-    self.log.info('%s %s' %(message,'[yes/no] : '))
+    self.log.verbose('%s %s' %(message,'[yes/no] : '))
     response = raw_input('%s %s' %(message,'[yes/no] : '))
     responses = ['yes','y','n','no']
     if not response.strip() or response=='\n':
