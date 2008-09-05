@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.75 2008/09/03 15:23:12 joel Exp $
+# $Id: GaudiApplication.py,v 1.76 2008/09/05 11:58:41 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.75 2008/09/03 15:23:12 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.76 2008/09/05 11:58:41 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -513,11 +513,6 @@ rm -f scrtmp.py
     script.write('exit $appstatus\n')
     script.close()
 
-#    if self.applicationLog:
-#      self.applicationLog = self.logfile
-#    else:
-#      self.applicationLog = self.applicationName+'_'+self.applicationVersion+'.log'
-
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
     os.chmod(self.applicationName+'Run.sh',0755)
@@ -532,20 +527,10 @@ rm -f scrtmp.py
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
-    logfile = open(self.applicationLog,'w')
-    logfile.write(stdOutput)
-
-    if len(stdError) > 0:
-      logfile.write('\n\n\nError log:\n=============\n')
-      logfile.write(stdError)
-    logfile.close()
-
     failed = False
     if status != 0:
       self.log.error( "%s execution completed with errors:" % self.applicationName )
       failed = True
-    elif len(stdError) > 0:
-      self.log.error( "%s execution completed with application Warning:" % self.applicationName )
     else:
       self.log.info( "%s execution completed succesfully:" % self.applicationName )
 
