@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-ce,v 1.3 2008/08/06 11:05:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-ce,v 1.4 2008/09/05 14:55:30 paterson Exp $
 # File :   dirac-lhcb-sam-submit-ce
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce,v 1.3 2008/08/06 11:05:34 paterson Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce,v 1.4 2008/09/05 14:55:30 paterson Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 import sys,string
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -13,7 +13,8 @@ from DIRAC.Core.Base import Script
 Script.registerSwitch( "", "ce=", "Computing Element to submit to (must be in DIRAC CS)" )
 Script.registerSwitch( "", "removeLock=", "Force lock removal at site (True/False)" )
 Script.registerSwitch( "", "deleteSharedArea=", "Force deletion of the shared area at site (True/False)" )
-Script.registerSwitch( "", "enable=", "Enable flag, set to False for debuggging (True/False)" )
+Script.registerSwitch( "", "enable=", "Global enable flag, set to False for debuggging (True/False)" )
+Script.registerSwitch( "", "softwareEnable=", "Software enable flag, set to False for 'safe' mode submission of SAM jobs, disables software module including removal of software (True/False)" )
 Script.registerSwitch( "", "logUpload=", "Log file upload flag (True/False)" )
 Script.registerSwitch( "", "publishResults=", "Publish results to SAM DB flag (True/False)" )
 Script.registerSwitch( "", "mode=", "Job submission mode (set to local for debugging)" )
@@ -28,6 +29,7 @@ ce = ''
 removeLock=False
 deleteSharedArea=False
 enable=True
+softwareEnable=True
 logUpload=True
 publishResults=True
 mode=None
@@ -65,9 +67,11 @@ for switch in Script.getUnprocessedSwitches():
     publishResults=getBoolean(switch[1])
   elif switch[0]=="mode":
     mode=switch[1]
+  elif switch[0]=="softwareEnable":
+    softwareEnable=getBoolean(switch[1])
 
 diracSAM = DiracSAM()
-result = diracSAM.submitSAMJob(ce,removeLock,deleteSharedArea,enable,logUpload,publishResults,mode)
+result = diracSAM.submitSAMJob(ce,removeLock,deleteSharedArea,logUpload,publishResults,mode,enable,softwareEnable)
 if not result['OK']:
   print 'ERROR %s' %result['Message']
   exitCode = 2

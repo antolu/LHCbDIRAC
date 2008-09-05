@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.24 2008/08/28 10:54:10 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.25 2008/09/05 14:54:50 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.24 2008/08/28 10:54:10 joel Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.25 2008/09/05 14:54:50 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -205,7 +205,7 @@ class SAMFinalization(ModuleBaseSAM):
     for testName,testStatus in samResults.items():
       if samLogs.has_key(testName):
         logName = samLogs[testName]
-        if int(testStatus) > int(self.samStatus['warning']):
+        if int(testStatus) > int(self.samStatus['notice']):
           self.log.warn('%s test status was %s, writing message to check %s test' %(testName,testStatus,testName))
           failedMessages.append('<LI>%s test status was %s = %s, please check <A HREF="%s%s">%s test log</A> for more details<br>' %(testName,self.__getSAMStatus(testStatus),testStatus,logURL,logName,testName))
         else:
@@ -317,6 +317,7 @@ class SAMFinalization(ModuleBaseSAM):
   def __publishSAMResults(self,samNode,samResults,samLogs):
     """Prepares SAM publishing files and reports results to the SAM DB.
     """
+
     self.log.info('Preparing SAM publishing files')
     if not self.jobID:
       self.log.verbose('No jobID defined, setting to 12345 and samNode to test.node for test purposes')
