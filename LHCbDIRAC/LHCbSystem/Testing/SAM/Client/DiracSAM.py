@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.1 2008/07/21 18:34:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.2 2008/09/05 14:38:42 paterson Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.1 2008/07/21 18:34:34 paterson Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.2 2008/09/05 14:38:42 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -32,7 +32,7 @@ class DiracSAM(Dirac):
     self.log = gLogger.getSubLogger( "DiracSAM" )
 
   #############################################################################
-  def submitAllSAMJobs(self):
+  def submitAllSAMJobs(self,softwareEnableFlag=True):
     """Submit SAM tests to all possible CEs as defined in the CS.
     """
     result = getCESiteMapping(self.gridType)
@@ -46,14 +46,14 @@ class DiracSAM(Dirac):
 
     self.log.info('Preparing jobs for %s CEs' %(len(ceSiteMapping.keys())))
     for ce in ceSiteMapping.keys():
-      result = self.submitSAMJob(ce)
+      result = self.submitSAMJob(ce,softwareEnable=softwareEnableFlag)
       if not result['OK']:
         self.log.info('Submission of SAM job to CE %s failed with message:\n%s' %(ce,result['Message']))
 
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,enable=True,logFlag=True,publishFlag=True,mode=None):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -65,7 +65,10 @@ class DiracSAM(Dirac):
       job.checkSystemConfiguration(enableFlag=enable)
       job.checkSiteQueues(enableFlag=enable)
       self.log.verbose('Flag to force deletion of shared area is %s' %(deleteSharedArea))
-      job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=enable)
+      if not enable and softwareEnable:
+        self.log.verbose('Software distribution flag cannot be True if enableFlag is disabled')
+        return S_ERROR('Enable flag is disabled but software flag is enabled')
+      job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable)
       job.testApplications(enableFlag=enable)
       job.finalizeAndPublish(logUpload=logFlag,publishResults=publishFlag,enableFlag=enable)
     except Exception,x:
