@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.29 2008/09/05 14:42:31 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.30 2008/09/06 16:48:12 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.29 2008/09/05 14:42:31 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.30 2008/09/06 16:48:12 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -95,7 +95,7 @@ class SoftwareInstallation(ModuleBaseSAM):
 
     self.runinfo = self.getRunInfo()
     if not self.enable:
-      return self.finalize('%s test is disabled via control flag' %self.testName,'warning')
+      return self.finalize('%s test is disabled via control flag' %self.testName,'Status WARNING (= 40)','warning')
 
     self.setApplicationStatus('Starting %s Test' %self.testName)
     if not CreateSharedArea():
