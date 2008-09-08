@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.26 2008/09/04 09:48:20 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.27 2008/09/08 15:39:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.26 2008/09/04 09:48:20 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.27 2008/09/08 15:39:04 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -62,19 +62,19 @@ class AnalyseLogFile(ModuleBase):
       else:
          self.max_app = 'None'
 
-      inputs = {}
+      self.inputs = {}
 #      if self.sourceData:
 #        for f in self.sourceData.split(';'):
 #          inputs[f.replace("LFN:","")] = 'OK'
       if self.InputData:
         for f in self.InputData.split(';'):
-          inputs[f.replace("LFN:","")] = 'OK'
+          self.inputs[f.replace("LFN:","")] = 'OK'
 
 # check the is the logfile exist
       result = self.getLogFile()
       if not result['OK'] :
          self.log.info(result['Message'])
-         self.update_status( inputs, "Unused")
+         self.update_status( self.inputs, "Unused")
          return S_ERROR(result['Message'])
 
 # check if this is a good job
@@ -85,7 +85,7 @@ class AnalyseLogFile(ModuleBase):
          if resultnb['OK']:
            self.log.info(' AnalyseLogFile - %s is OK ' % (self.applicationLog))
            self.setApplicationStatus('%s Step OK' % (self.applicationName))
-           resultstatus = self.update_status( inputs, "Processed")
+           resultstatus = self.update_status( self.inputs, "Processed")
            if resultstatus['OK']:
              return resultnb
            else:
@@ -94,7 +94,7 @@ class AnalyseLogFile(ModuleBase):
            self.sendErrorMail(resultnb['Message'])
            self.log.info('Checking number of events returned result:\n%s' %(resultnb))
            self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-           resultstatus = self.update_status( inputs, "Unused")
+           resultstatus = self.update_status( self.inputs, "Unused")
            if resultstatus['OK']:
              return resultnb
            else:
@@ -102,7 +102,7 @@ class AnalyseLogFile(ModuleBase):
       else:
          self.sendErrorMail(result['Message'])
          self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-         resultstatus = self.update_status( inputs, "Unused")
+         resultstatus = self.update_status( self.inputs, "Unused")
          if not resultstatus['OK']:
             result = resultstatus
 
@@ -139,6 +139,24 @@ class AnalyseLogFile(ModuleBase):
            result = S_ERROR('processing DB not accessible')
 
       return result
+
+
+#
+#-----------------------------------------------------------------------
+#
+  def find_lastfile(self):
+      # find out which was the latest open file
+      # For most recent Gaudi
+      line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector.DataStream', '-cl')
+      if n == 0:
+         # For old Gaudi (ex Brunel v30)
+         line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector_1', '-cl')
+      if n:
+         lastfile = line.split("'")[1].replace("LFN:","")
+      else:
+         lastfile = ""
+
+      return lastfile
 
 #
 #-----------------------------------------------------------------------
@@ -201,17 +219,7 @@ class AnalyseLogFile(ModuleBase):
       else:
          lastev = string.split(line)[5]
 
-      # find out which was the latest open file
-      # For most recent Gaudi
-      line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector.DataStream', '-cl')
-      if n == 0:
-         # For old Gaudi (ex Brunel v30)
-         line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector_1', '-cl')
-      if n:
-         lastfile = line.split("'")[1].replace("LFN:","")
-      else:
-         lastfile = ""
-
+      lastfile = self.find_lastfile()
       result = S_OK()
 
       line,nomore = self.grep(self.applicationLog,'No more events')
@@ -318,8 +326,8 @@ class AnalyseLogFile(ModuleBase):
                      cat_lfn = catalog.getLfnsByGuid(cat_guid)
                      lfn = cat_lfn['Logical'].replace("LFN:","")
                      # Set the the file as problematic in the input list
-                     if inputs.has_key(lfn):
-                        inputs[lfn] = 'Problematic'
+                     if self.inputs.has_key(lfn):
+                        self.inputs[lfn] = 'Problematic'
                      else:
                         # The problematic file is not an input but a derived file
                         ##### Should put here something for setting replica as problematic in the LFC
@@ -339,8 +347,8 @@ class AnalyseLogFile(ModuleBase):
                            self.log.info("    Input files found:"+str(lfns))
                         else:
                            files = []
-                           self.log.warn("    Coundn't get input files from procDB")
-                        for lfn in inputs.keys():
+                           self.log.warn("    Couldn't get input files from procDB")
+                        for lfn in self.inputs.keys():
                            status = 'Processed'
                            for f in files:
                               if f['LFN'] == lfn:
@@ -348,18 +356,33 @@ class AnalyseLogFile(ModuleBase):
                                  status = f['Status']
                                  break
                            if status == 'Processed':
-                              inputs[lfn] = 'AncestorProblem'
+                              self.inputs[lfn] = 'AncestorProblem'
                            else:
-                              inputs[lfn] = 'Unused'
+                              self.inputs[lfn] = 'Unused'
 #                     self.update_status('Bad',cat_lfn['Logical'])
 
                poolroot = poolroot-1
-         for lfn in inputs.keys():
+         for lfn in self.inputs.keys():
            pfn = catalog.getPfnsByLfn(lfn)
-           if not pfn['Status'] == 'OK' and inputs[lfn] == 'OK':
-             inputs[lfn] = 'Unused'
+           if not pfn['Status'] == 'OK' and self.inputs[lfn] == 'OK':
+             self.inputs[lfn] = 'Unused'
 
          return S_ERROR(mailto + ' error to connectDatabase')
+
+#  error where you need to find the last open file to mark it as crash...
+      dict_app_error = {'Terminating event processing loop due to errors':'Event loop no terminated'}
+
+      for type_error in dict_app_error.keys():
+          self.log.info('Check %s' %(dict_app_error[type_error]))
+          line,founderror = self.grep(self.applicationLog,type_error)
+          if founderror >= 1:
+              lastfile = self.find_lastfile()
+              if lastfile != "":
+#                 errmsg += " - File " + lastfile
+                 if self.inputs.has_key(lastfile):
+                    self.inputs[lastfile] = "ApplicationCrash"
+
+              return S_ERROR(mailto +' '+type_error)
 
       dict_app_error = {'Cannot connect to database':'error database connection',\
                         'Could not connect':'CASTOR error connection',\
@@ -367,7 +390,6 @@ class AnalyseLogFile(ModuleBase):
                         'Failed to resolve':'IODataManager error',\
                         'Error: connectDataIO':'connectDataIO error',\
                         'Error:connectDataIO':'connectDataIO error',\
-                        'Terminating event processing loop due to errors':'Event loop no terminated',\
                         ' glibc ':'Problem with glibc'}
 
       for type_error in dict_app_error.keys():
