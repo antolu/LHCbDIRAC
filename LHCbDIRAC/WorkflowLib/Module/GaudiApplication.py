@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.76 2008/09/05 11:58:41 joel Exp $
+# $Id: GaudiApplication.py,v 1.77 2008/09/08 12:19:22 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.76 2008/09/05 11:58:41 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.77 2008/09/08 12:19:22 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -406,7 +406,7 @@ class GaudiApplication(ModuleBase):
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
-    script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
+#    script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
 
    #To fix Shr variable problem with component libraries
     if os.path.exists(ld_base_path+'/lib'):
@@ -448,8 +448,9 @@ done
       script.write('declare -x LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:'+compatLib+'\n')
 
 
+    script.write('echo =============================\n')
     script.write('echo LD_LIBRARY_PATH is\n')
-    script.write('echo $LD_LIBRARY_PATH\n')
+    script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
     scripttmp = open('scrtmp.py','w')
     scripttmp.write("""
 #!/usr/bin/env python
@@ -474,7 +475,6 @@ print gaudi_version_major,gaudi_version_minor
 declare -x gaudi_ver=`python ./scrtmp.py $GAUDIALGROOT`
 declare -x major=`echo $gaudi_ver | awk '{print $1}'`
 declare -x minor=`echo $gaudi_ver | awk '{print $2}'`
-echo $gaudi_ver
 if [[ $major -eq 19 ]] && [[ $minor -gt 6 ]] ; then
 mv  $JOBOPTPATH ${JOBOPTPATH}.tmp
 sed -e 's/PoolDbCacheSvc.Catalog/FileCatalog.Catalogs/g' ${JOBOPTPATH}.tmp > $JOBOPTPATH\n
@@ -486,8 +486,9 @@ fi
 rm -f scrtmp.py
     """)
 
+    script.write('echo =============================\n')
     script.write('echo PATH is\n')
-    script.write('echo $PATH\n')
+    script.write('echo $PATH | tr ":" "\n"\n')
     script.write('env | sort >> localEnv.log\n')
     script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
