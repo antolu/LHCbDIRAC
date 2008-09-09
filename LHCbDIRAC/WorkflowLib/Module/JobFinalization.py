@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.119 2008/09/01 09:46:17 joel Exp $
+# $Id: JobFinalization.py,v 1.120 2008/09/09 14:53:45 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.119 2008/09/01 09:46:17 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.120 2008/09/09 14:53:45 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -60,6 +60,7 @@ class JobFinalization(ModuleBase):
     # A list of dictionaries specifying the output data
     self.listoutput = []
     self.outputDataFileMask = ''
+    self.outputDataPolicy = ''
     self.poolXMLCatName = ''
     self.sourceData = ''
     self.workflow_commons = None
@@ -103,6 +104,12 @@ class JobFinalization(ModuleBase):
         self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
         if not type(self.outputDataFileMask)==type([]):
           self.outputDataFileMask = self.outputDataFileMask.split(';')
+
+    if self.workflow_commons.has_key('outputDataPolicy'):
+        self.outputDataPolicy = self.workflow_commons['outputDataPolicy']
+
+    self.setup = gConfig.getValue('/DIRAC/Setup')
+    self.outputDataFileMask = gConfig.getValue('/Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/Mask')
 
     if self.step_commons.has_key('applicationName'):
        self.applicationName = self.step_commons['applicationName']
@@ -176,7 +183,10 @@ class JobFinalization(ModuleBase):
     error = 0
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       error = 1
-      self.fileReport.setCommonStatus('Unused')
+      inputs = self.fileReport.getFiles()
+      for fileinput in inputs:
+          if inputs[fileinput] != 'ApplicationCrash':
+              self.fileReport.setFileStatus(int(self.PRODUCTION_ID),fileinput,'Unused')
       self.fileReport.commit()
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
@@ -225,6 +235,7 @@ class JobFinalization(ModuleBase):
        error = 1
 
     if not error:
+#      resultUpload = self.uploadOutput()
       ########################################################
       # Upload the output data
 
@@ -619,6 +630,7 @@ class JobFinalization(ModuleBase):
 
     return S_ERROR('Failed to store log files to LogSE and failover SEs')
 
+
 ################################################################################
   def uploadOutput(self):
     """ Perform all the necessary operations for the output data upload
@@ -667,6 +679,8 @@ class JobFinalization(ModuleBase):
 
       if self.outputDataFileMask:
         if outputType in self.outputDataFileMask:
+#          outputSE = gConfig.getValue('Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/'+outputType+'/OutputSE')
+#          outputRetentionNumber = gConfig.getValue('Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/'+outputType+'/OutputRetentionNumber','-1')
           self.log.info('File name: %s will be uploaded to outputSE %s' %(outputName,outputSE))
           outputs.append((outputName,outputSE,outputType))
         else:
