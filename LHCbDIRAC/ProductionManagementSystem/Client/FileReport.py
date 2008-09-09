@@ -1,12 +1,13 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.6 2008/07/31 10:46:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.7 2008/09/09 13:31:26 atsareg Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.6 2008/07/31 10:46:30 rgracian Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.7 2008/09/09 13:31:26 atsareg Exp $"
 
+import copy
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import S_OK, S_ERROR
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -50,6 +51,12 @@ class FileReport:
       self.statusDict[lfn] = status
 
     return S_OK()
+
+  def getFiles(self):
+    """ Get the statuses of the files already accumulated in the FileReport object
+    """
+
+    return copy.deepcopy(self.statusDict)
 
   def commit(self):
     """ Commit pending file status update records
