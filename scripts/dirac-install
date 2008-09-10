@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.86 2008/08/12 14:33:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.87 2008/09/10 16:10:44 atsareg Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.86 2008/08/12 14:33:11 rgracian Exp $"
-__VERSION__ = "$Revision: 1.86 $"
+__RCSID__   = "$Id: dirac-install,v 1.87 2008/09/10 16:10:44 atsareg Exp $"
+__VERSION__ = "$Revision: 1.87 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -309,7 +309,7 @@ else:
   localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Production' )
   localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
                             'dips://lhcbprod.pic.es:9135/Configuration/Server, '
-                            'dips://volhcb01.cern.ch:9135/Configuration/Server' )
+                            'dips://volhcb09.cern.ch:9135/Configuration/Server' )
   if dirac.architecture == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
     if DIRAC.platformTuple[1] == 'i686':
       arch = 'ia32'
@@ -355,11 +355,11 @@ else:
     localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
     dirac.logINFO( 'Setting /LocalSite/GridCE = %s' % ceName )
     localCfg.addDefaultEntry( '/LocalSite/GridCE', ceName )
-    
+
   if siteName:
     localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % siteName, 'None' )
     localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
-    dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )    
+    dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
 
   Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
