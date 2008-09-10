@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.120 2008/09/09 14:53:45 joel Exp $
+# $Id: JobFinalization.py,v 1.121 2008/09/10 08:53:06 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.120 2008/09/09 14:53:45 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.121 2008/09/10 08:53:06 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -511,7 +511,7 @@ class JobFinalization(ModuleBase):
   def saveLogFile(self,logfile,gzip_flag=0):
 
     if not os.path.exists(logfile):
-      self.log.error( "Saving log file %s failed: no such file" % logfile )
+      self.log.info( "Saving log file %s failed: no such file" % logfile )
       return S_ERROR('No such file')
 
 
