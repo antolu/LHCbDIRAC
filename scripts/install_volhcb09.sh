@@ -208,11 +208,17 @@ $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
 $DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
 
+# System Logging
+$DESTDIR/pro/scripts/install_service.sh Logging   SystemLogging
+$DESTDIR/pro/scripts/install_service.sh Logging   SystemLoggingReport
+$DESTDIR/pro/scripts/install_agent.sh   Logging   SystemLoggingDBCleaner
+$DESTDIR/pro/scripts/install_agent.sh   Logging   ErrorMessagesMonitor
+
 if [ ! -z "$DIRACCVS" ] ; then
 
 
-	cd `dirname $DESTDIR`
-	mv DIRAC3/DIRAC DIRAC3/DIRAC.save
+  cd `dirname $DESTDIR`
+  mv DIRAC3/DIRAC DIRAC3/DIRAC.save
 
 echo
 echo
