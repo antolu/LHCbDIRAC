@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.30 2008/09/10 10:42:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.31 2008/09/11 12:44:32 mseco Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -182,6 +182,11 @@ $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
+
+$DESTDIR/pro/scripts/install_service.sh Logging SystemLogging
+$DESTDIR/pro/scripts/install_service.sh Logging SystemLoggingReport
+$DESTDIR/pro/scripts/install_agent.sh Logging SystemLoggingDBCleaner
+$DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessagesMonitor
 
 # RequestManagement
 
