@@ -212,7 +212,7 @@ $DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
 $DESTDIR/pro/scripts/install_service.sh Logging   SystemLogging
 $DESTDIR/pro/scripts/install_service.sh Logging   SystemLoggingReport
 $DESTDIR/pro/scripts/install_agent.sh   Logging   SystemLoggingDBCleaner
-$DESTDIR/pro/scripts/install_agent.sh   Logging   ErrorMessagesMonitor
+$DESTDIR/pro/scripts/install_agent.sh   Logging   ErrorMessageMonitor
 
 if [ ! -z "$DIRACCVS" ] ; then
 
