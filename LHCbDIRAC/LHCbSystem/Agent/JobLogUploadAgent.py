@@ -1,0 +1,184 @@
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.1 2008/09/12 20:44:14 atsareg Exp $
+
+"""  JobLogUploadAgent uploads log and other auxilliary files of the given job
+     to the long term lo storage
+"""
+
+__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.1 2008/09/12 20:44:14 atsareg Exp $"
+
+from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
+from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
+from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from WorkloadManagementSystem.Client.SandboxClient import SandboxClient
+from DIRAC.RequestManagementSystem.Agent.RequestAgentMixIn import RequestAgentMixIn
+
+import time,os,re, pprint
+from types import *
+
+AGENT_NAME = 'LHCb/JobLogUploadAgent'
+
+class JobLogUploadAgent(Agent,RequestAgentMixIn):
+
+  def __init__(self):
+    """ Standard constructor
+    """
+    Agent.__init__(self,AGENT_NAME)
+
+  def initialize(self):
+    result = Agent.initialize(self)
+    self.RequestDBClient = RequestClient()
+    self.rm = ReplicaManager()
+
+    gMonitor.registerActivity("Iteration",          "Agent Loops",                  "JobLogUploadAgent",      "Loops/min",      gMonitor.OP_SUM)
+    gMonitor.registerActivity("Attempted",          "Request Processed",            "JobLogUploadAgent",      "Requests/min",   gMonitor.OP_SUM)
+    gMonitor.registerActivity("Successful",         "Request Forward Successful",   "JobLogUploadAgent",      "Requests/min",   gMonitor.OP_SUM)
+    gMonitor.registerActivity("Failed",             "Request Forward Failed",       "JobLogUploadAgent",      "Requests/min",   gMonitor.OP_SUM)
+
+    self.local = PathFinder.getServiceURL("RequestManagement/localURL")
+    if not self.local:
+      errStr = 'The RequestManagement/localURL option must be defined.'
+      gLogger.fatal(errStr)
+      return S_ERROR(errStr)
+    return result
+
+  def execute(self):
+    """ Takes the DISET requests and forwards to destination service
+    """
+    gMonitor.addMark("Iteration",1)
+    res = self.RequestDBClient.getRequest('logupload',url=self.local)
+    if not res['OK']:
+      gLogger.error("JobLogUploadAgent.execute: Failed to get request from database.",self.local)
+      return S_OK()
+    elif not res['Value']:
+      gLogger.info("JobLogUploadAgent.execute: No requests to be executed found.")
+      return S_OK()
+
+    gMonitor.addMark("Attempted",1)
+    requestString = res['Value']['RequestString']
+    requestName = res['Value']['RequestName']
+    jobID = res['Value']['JobID']
+    try:
+      jobID = int(res['Value']['JobID'])
+    except:
+      jobID = 0
+    gLogger.info("JobLogUploadAgent.execute: Obtained request %s" % requestName)
+
+    result = self.RequestDBClient.getCurrentExecutionOrder(requestName,self.local)
+    if result['OK']:
+      currentOrder = result['Value']
+    else:
+      return S_OK('Can not get the request execution order')
+
+    oRequest = RequestContainer(request=requestString)
+    requestAttributes = oRequest.getRequestAttributes()['Value']
+
+    ################################################
+    # Find the number of sub-requests from the request
+    res = oRequest.getNumSubRequests('diset')
+    if not res['OK']:
+      errStr = "JobLogUploadAgent.execute: Failed to obtain number of diset subrequests."
+      gLogger.error(errStr,res['Message'])
+      return S_OK()
+
+    gLogger.info("JobLogUploadAgent.execute: Found %s sub requests for job %s" % (res['Value'],jobID))
+    ################################################
+    # For all the sub-requests in the request
+    modified = False
+    for ind in range(res['Value']):
+      subRequestAttributes = oRequest.getSubRequestAttributes(ind,'diset')['Value']
+      subExecutionOrder = int(subRequestAttributes['ExecutionOrder'])
+      subStatus = subRequestAttributes['Status']
+      targetSE = subRequestAttributes['TargetSE']
+      subRequestFiles = oRequest.getSubRequestFiles(ind,'logupload')['Value']
+      path = subRequestFiles[0]['LFN']
+      gLogger.info("JobLogUploadAgent.execute: Processing sub-request %s with execution order %d" % (ind,subExecutionOrder))
+      if subStatus == 'Waiting' and subExecutionOrder <= currentOrder:
+        res = self.uploadLogsForJob(jobID,targetSE,path)
+        if res['OK']:
+          gLogger.info("JobLogUploadAgent.execute: Successfully uploaded.")
+          oRequest.setSubRequestStatus(ind,'logupload','Done')
+          gMonitor.addMark("Successful",1)
+          modified = True
+        else:
+          oRequest.setSubRequestError(ind,'diset',res['Message'])
+          gLogger.error("JobLogUploadAgent.execute: Failed to forward request.",res['Message'])
+      else:
+        gLogger.info("JobLogUploadAgent.execute: Sub-request %s is status '%s' and  not to be executed." % (ind,subRequestAttributes['Status']))
+
+    ################################################
+    #  Generate the new request string after operation
+    requestString = oRequest.toXML()['Value']
+    res = self.RequestDBClient.updateRequest(requestName,requestString,self.local)
+    if res['OK']:
+      gLogger.info("JobLogUploadAgent.execute: Successfully updated request.")
+    else:
+      gLogger.error("JobLogUploadAgent.execute: Failed to update request to", self.central)
+
+    if modified and jobID:
+      result = self.finalizeRequest(requestName,jobID,self.local)
+
+    return S_OK()
+
+  def uploadLogsForJob(self,jobID,targetSE,path):
+    """ Upload log files for a given job
+    """
+
+    workDir = self.workDir+'/'+str(jobID)
+    if os.path.exists(workDir):
+      shutil.rmtree(workDir)
+    os.path.makedirs(workDir)
+
+    # 1. Output sandbox
+    sandboxClient = SandboxClient(sandbox_type='Output')
+    result = sandboxClient.getSandbox(jobID,workDir)
+    if not result['OK']:
+      shutil.rmtree(workDir)
+      return result
+
+    # 2. Job Logging history
+    loggingClient = RPCClient('WorkloadManagement/JobMonitoring')
+    result = loggingClient.getJobLoggingInfo(jobID)
+    if not result['OK']:
+      shutil.rmtree(workDir)
+      return result
+
+    logfile = open(workDir+'/jobLoggingInfo','w')
+    loggingTupleList = result['Value']
+    headers = ('Status','MinorStatus','ApplicationStatus','DateTime')
+
+    line = ''.join([ x.ljust(30) for x in headers])
+    logfile.write(line+'\n')
+
+    for i in loggingTupleList:
+      line = ''.join([ x.ljust(30) for x in list(i)])
+      logfile.write(line+'\n')
+
+    logfile.close()
+
+    # 3. Job Parameters
+    monitoringClient = RPCClient('WorkloadManagement/JobMonitoring')
+    result = monitoringClient.getJobParameters(jobID)
+    if not result['OK']:
+      shutil.rmtree(workDir)
+      return result
+
+    parDict = result['Value']
+    parfile = open(workDir+'/jobParameters','w')
+    for name,value in parDict.items():
+      parfile.write(name.ljust(25)+': '+value+'\n')
+    parfile.close()
+
+    # 4. Upload files
+    files = os.listdir(workDir)
+    cwd = os.getcwd()
+    os.chdir(workDir)
+    for f in files:
+      result = self.rm.putFile(f,targetSE,path)
+      if not result['OK']:
+        shutil.rmtree(workDir)
+        return result
+
+    return S_OK()
