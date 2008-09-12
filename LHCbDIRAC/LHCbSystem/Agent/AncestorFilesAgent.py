@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.9 2008/09/12 17:03:24 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.10 2008/09/12 17:39:21 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.9 2008/09/12 17:03:24 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.10 2008/09/12 17:39:21 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -101,7 +101,7 @@ class AncestorFilesAgent(Optimizer):
       self.log.warn('No AncestorDepth requirement found for job %s' %(job))
       return S_ERROR('AncestorDepth Not Found')
 
-    ancestorDepth = classadJob.intFromClassAd( 'AncestorDepth' )
+    ancestorDepth = classadJob.getAttributeInt( 'AncestorDepth' )
 
     if ancestorDepth==0:
       return S_OK('Null AncestorDepth specified')
