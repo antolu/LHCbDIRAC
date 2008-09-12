@@ -204,6 +204,9 @@ $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
+$DESTDIR/pro/scripts/install_service.sh Monitoring SiteMapping
+$DESTDIR/pro/scripts/install_agent.sh   Monitoring SiteMappingAgent
+
 # RequestManagement
 $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
 $DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
