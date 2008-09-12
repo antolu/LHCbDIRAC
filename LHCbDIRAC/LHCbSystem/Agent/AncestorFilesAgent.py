@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.8 2008/08/13 15:53:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.9 2008/09/12 17:03:24 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.8 2008/08/13 15:53:19 rgracian Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.9 2008/09/12 17:03:24 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -94,8 +94,8 @@ class AncestorFilesAgent(Optimizer):
       return S_ERROR('Error in JDL syntax')
 
     inputData = []
-    if classAddJob.lookupAttribute('InputData'):
-      inputData = classAddJob.getListFromExpression('InputData')
+    if classadJob.lookupAttribute('InputData'):
+      inputData = classadJob.getListFromExpression('InputData')
 
     if not classadJob.lookupAttribute('AncestorDepth'):
       self.log.warn('No AncestorDepth requirement found for job %s' %(job))
