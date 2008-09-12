@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.69 2008/08/27 14:25:16 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.70 2008/09/12 16:18:11 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.69 2008/08/27 14:25:16 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.70 2008/09/12 16:18:11 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -130,6 +130,12 @@ class BookkeepingManagerHandler(RequestHandler):
   types_deleteInputFiles = [LongType]
   def export_deleteInputFiles(self, jobid):
     return dataMGMT_.deleteInputFiles(long(jobid))
+  
+  #############################################################################
+  types_deleteFiles = [ListType]
+  def export_deleteFiles(self, lfns):
+    return dataMGMT_.deleteFiles(lfns)
+  
    
   #############################################################################
   types_getSimulationCondID = [StringType, StringType, StringType, StringType, StringType, StringType]
@@ -221,6 +227,16 @@ class BookkeepingManagerHandler(RequestHandler):
     '''  
 
 
+  
+  #############################################################################
+  types_getSimCondWithEventType = [StringType, StringType, LongType]
+  def export_getSimCondWithEventType(self, configName, configVersion, eventType):
+    return dataMGMT_.getSimCondWithEventType(configName, configVersion, eventType)
+  
+  #############################################################################
+  types_getProPassWithEventType = [StringType, StringType, LongType, LongType]
+  def export_getProPassWithEventType(self, configName, configVersion, eventType, simcond):
+    return dataMGMT_.getProPassWithEventType(configName, configVersion, eventType, simcond)
   
   
   #############################################################################

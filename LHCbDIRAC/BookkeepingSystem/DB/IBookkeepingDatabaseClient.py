@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.12 2008/08/27 13:23:56 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.13 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.12 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.13 2008/09/12 16:18:10 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -67,8 +67,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().deleteJob(job)
   
   #############################################################################
-  def deleteFile(self, file):
-    return self.getManager().deleteFile(file)
+  def deleteFiles(self, lfns):
+    return self.getManager().deleteFiles(lfns)
   
   #############################################################################
   def insertQuality(self, fileID, group, flag ):
@@ -170,9 +170,20 @@ class IBookkeepingDatabaseClient(object):
   def getAvailableEventTypes(self):
     return self.getManager().getAvailableEventTypes()
   
+  
   #############################################################################
   def getEventTypes(self, configName, configVersion):
     return self.getManager().getEventTypes(configName, configVersion)
+  
+  #############################################################################
+  def getSimCondWithEventType(self, configName, configVersion, eventType):
+    return self.getManager().getSimCondWithEventType(configName, configVersion, eventType)
+  
+  #############################################################################
+  def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
+    return self.getManager().getProPassWithEventType(configName, configVersion, eventType, simcond)
+  
+  
   
   #############################################################################
   def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-simulationconditions.py,v 1.1 2008/08/27 13:23:56 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-simulationconditions.py,v 1.2 2008/09/12 16:18:11 zmathe Exp $
 # File :   dirac-bookkeeping-simulationconditions
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-simulationconditions.py,v 1.1 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-simulationconditions.py,v 1.2 2008/09/12 16:18:11 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -34,7 +34,7 @@ if 'list' in args:
   if res['OK']:
     dbresult = res['Value']
     for record in dbresult:
-      print 'SimId:'+str(record[0])+'| SimDescription:'+str(record[1])+'| BeamCond:'+str(record[2])+'| BeamEnergy:'+str(record[3])+'| Generator:'+str(record[4])+'| MagneticField:'+str(record[5])+'| DetectorCond'+str(record[6])+'| Luminosity:'+str(record[7])    
+      print 'SimId:'+str(record[0]).ljust(5)+'| SimDescription:'+str(record[1])+'| BeamCond:'+str(record[2])+'| BeamEnergy:'+str(record[3])+'| Generator:'+str(record[4])+'| MagneticField:'+str(record[5])+'| DetectorCond'+str(record[6])+'| Luminosity:'+str(record[7])
 elif 'insert' in args:
   desc = raw_input("SimDescription:" )
   beamcond = raw_input("BeamCond:")

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.45 2008/08/27 13:23:55 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.46 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.45 2008/08/27 13:23:55 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.46 2008/09/12 16:18:10 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -46,6 +46,12 @@ class BookkeepingClient:
   def deleteJob(self, job):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.deleteJob(long(job))  
+    return result
+  
+  #############################################################################
+  def deleteFiles(self, lfns):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.deleteFiles(lfns)  
     return result
   
   #############################################################################
@@ -169,7 +175,21 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getSimConditions()
     return result
+
   
+  #############################################################################
+  def getSimCondWithEventType(self, configName, configVersion, eventType):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getSimCondWithEventType(configName, configVersion, long(eventType))
+    return result
+    
+  #############################################################################
+  def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getProPassWithEventType(configName, configVersion, long(eventType), long(simcond))
+    return result
+        
+
 
 
 

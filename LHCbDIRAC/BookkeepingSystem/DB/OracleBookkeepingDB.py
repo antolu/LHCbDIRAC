@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.25 2008/08/27 13:23:56 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.26 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.25 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.26 2008/09/12 16:18:10 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -73,6 +73,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getEventTypes(self, configName, configVersion):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypes', [configName, configVersion])
+  
+  #############################################################################
+  def getSimCondWithEventType(self, configName, configVersion, eventType):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getSimCondWithEventType', [configName, configVersion, eventType])
+  
+  #############################################################################
+  def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getProPassWithEventType', [configName, configVersion, eventType, simcond])
+  
+  #############################################################################
+  
+  
+    
   
   #############################################################################
   def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
@@ -442,9 +455,33 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
   
   #############################################################################
-  def deleteFile(self, file):
-    gLogger.warn("not implemented")
-    return S_ERROR()
+  def deleteFile(self, fileid):
+    result = self.db_.executeStoredProcedure('BKK_ORACLE.deletefile',[fileid], False)
+    return result
+  
+  #############################################################################
+  def deleteFiles(self, lfns):
+    return S_ERROR('Not Implemented !!')
+    '''
+    result = {}
+    for file in lfns:
+      res = self.checkfile(file)
+      if res['OK']:
+        fileID = long(res['Value'][0][0])
+        jobID =  long(res['Value'][0][1])
+        res = self.deleteFile(fileID)
+        if res['OK']:
+          res = self.deleteInputFiles(jobID)
+          res = self.deleteJob(jobID)
+          if res['OK']:        
+            result['Succesfull']=file
+          else:
+            result['Failed']=file
+      else:
+        result['Failed']=file
+      
+    return S_OK(result)    
+  '''
   
   #############################################################################
   def insertQuality(self, fileID, group, flag ):
@@ -471,7 +508,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getDataTakingCondId(self, condition):
-    command = 'select count(*) from data_taking_conditions where ' 
+    command = 'select DaqPeriodId from data_taking_conditions where ' 
     for param in condition:
       command +=  str(param)+'=\''+condition[param]+'\' and '
     command = command[:-4]

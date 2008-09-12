@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.51 2008/07/25 19:15:47 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.52 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.51 2008/07/25 19:15:47 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.52 2008/09/12 16:18:10 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -50,12 +50,14 @@ class LHCB_BKKDBManager(BaseESManager):
                                    ''
                                   ]
   
-  LHCB_BKDB_PREFIXES_EVENTTYPE = ['EVT',
-                                  'CFG',
+  LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFG',
+                                  'EVT',
+                                  'SCON',
                                   'PAS',
                                   'PROD',
                                   'FTY',
-                                   ''
+                                  'PRO',
+                                   '',
                                   ]
   LHCB_BKDB_PREFIXES=[]
 
@@ -73,7 +75,7 @@ class LHCB_BKKDBManager(BaseESManager):
     
     self.helper_ = Help()
     
-    self.entityCache_ = {'/':(Entity({'name':'/', 'fullpath':'/'}), 0)} 
+    self.__entityCache = {'/':(Entity({'name':'/', 'fullpath':'/','expandable':True}), 0)} 
     self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
     self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
     self.files_ = []
@@ -134,7 +136,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return res
   
   ############################################################################# 
-  def list(self, path=""):
+  def list(self, path="/"):
     
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
       return self._listConfigs(path) 
@@ -171,8 +173,8 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         for record in dbResult:
           configs = record[0]+' '+record[1]
-          entityList += [self._getEntityFromPath(path, configs, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getEntityFromPath(path, configs, levels,'Simulation Conditions')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
     
@@ -196,9 +198,10 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         for record in dbResult:
           simid = str(record[0])
-          value = {'SimulationCondition':simid, 'BeamCond':record[1],'BeamEnergy':record[2],'Generator':record[3],'MagneticFileld':record[4],'DetectorCond':record[5],'Luminosity':record[6]}
-          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels)]
-          self._cacheIt(entityList)
+          description = record[1]
+          value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Processing Pass')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
     
@@ -224,8 +227,9 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         for record in dbResult:
           prod = str(record[0])
-          entityList += [self._getEntityFromPath(path, prod, levels)]
-          self._cacheIt(entityList)
+          value = {'Total ProcessingPass':prod, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
+          entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None, 'Event types')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
           
@@ -255,8 +259,8 @@ class LHCB_BKKDBManager(BaseESManager):
         for record in dbResult:
           evtType = str(record[0])
           value = {'Event Type':evtType,'Description':record[1]}
-          entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels,None,'Production(s)')]
+        self._cacheIt(entityList)
       else:
           gLogger.error(result['Message'])
       
@@ -286,10 +290,10 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         for record in dbResult:
           prod = str(record[0])
-          entityList += [self._getEntityFromPath(path, prod, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getEntityFromPath(path, prod, levels,'File types')]
+        self._cacheIt(entityList)
         
-        entityList += [self._getEntityFromPath(path, "ALL", levels)]
+        entityList += [self._getEntityFromPath(path, "ALL", levels, 'File types')]
         self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
@@ -322,8 +326,8 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         for record in dbResult:
           ftype = str(record[0])
-          entityList += [self._getEntityFromPath(path, ftype, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getEntityFromPath(path, ftype, levels,'Program name and version')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
 
@@ -362,8 +366,8 @@ class LHCB_BKKDBManager(BaseESManager):
           nb = record[2]
           program = programName+' '+programVersion
           value = { 'Program Name':programName,'Program Version':programVersion,'Number Of Events':nb }
-          entityList += [self._getSpecificEntityFromPath(path, value, program, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'List of files')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
 
@@ -406,7 +410,7 @@ class LHCB_BKKDBManager(BaseESManager):
           value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':ftype, 'EvtTypeId':int(evtType)}
           self.files_ += [record[0]]
           entityList += [self._getEntityFromPath(path, value, levels)]
-          self._cacheIt(entityList)    
+        self._cacheIt(entityList)    
       else:
         gLogger.error(result['Message'])
 
@@ -426,178 +430,255 @@ class LHCB_BKKDBManager(BaseESManager):
   
     if levels == 0:    
       print "-----------------------------------------------------------"
-      print "Available Event types:                                     "              
+      print "Configurations name and version:\n"
       print "-----------------------------------------------------------"
 
-      gLogger.debug("listing event types")
-      result = self.db_.getAvailableEventTypes()
+      # list root
+      gLogger.debug("listing configurations")
+      result = self.db_.getAvailableConfigurations()
+      
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          configs = record[0]+' '+record[1]
+          entityList += [self._getEntityFromPath(path, configs, levels,'Event types')]
+        self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
+           
+    if levels == 1:
+      config = processedPath[0][1]
+      configName = config.split(' ')[0]
+      configVersion = config.split(' ')[1]
+      
+      print "-----------------------------------------------------------"
+      print "Selected parameters:"
+      print "-----------------------------------------------------------"
+      print "Configuration Name      | "+configName
+      print "Configuration Version   | "+configVersion
+      print "-----------------------------------------------------------"
+
+      print "Available Event types:\n"
+      
+      result = self.db_.getEventTypes(configName, configVersion)
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
           event = str(record[0])
           value = {'Event Type':record[0],'Description':record[1]}
-          entityList += [self._getSpecificEntityFromPath(path, value, event, levels)]
-          self._cacheIt(entityList)                  
-      else:
-        gLogger.error(result['Message'])
-   
-    if levels == 1:
-      eventType = processedPath[0][1]
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Event type              | "+str(eventType)
-      print "-----------------------------------------------------------"
-      
-      print "Available configuration name and version:" 
-      
-      result = self.db_.getConfigNameAndVersion(int(eventType))
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          configs = record[0]+' '+record[1]
-          entityList += [self._getEntityFromPath(path, configs, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Simulation Conditions')]
+        self._cacheIt(entityList)      
       else:
         gLogger.error(result['Message'])
     
     if levels == 2:
-      gLogger.debug("listing processing pass")
-      eventType = processedPath[0][1]
-      config = processedPath[1][1]
+      gLogger.debug("listing simulation conditions")
+      config = processedPath[0][1]
       configName = config.split(' ')[0]
       configVersion = config.split(' ')[1]
-
+      
+      eventType = int(processedPath[1][1])
+      
       print "-----------------------------------------------------------"
       print "Selected parameters:"
       print "-----------------------------------------------------------"
-      print "Event Type              | "+ str(eventType)
       print "Configuration Name      | "+configName
       print "Configuration Version   | "+configVersion
+      print "Event Type              | "+ str(eventType)
       print "-----------------------------------------------------------"
       
-      print "Available processing pass:"
-      result = self.db_.getAvailableProcessingPass(configName, configVersion, int(eventType))
+      print "Available simulation conditions:"
+      result = self.db_.getSimCondWithEventType(configName, configVersion, int(eventType))
       if result['OK']:
         dbResult = result['Value']
-
         for record in dbResult:
-          processing = record[0]
-          value = {'Total processing pass':record[0]}
-          entityList += [self._getSpecificEntityFromPath(path, value, processing, levels)]
-          self._cacheIt(entityList)  
+          simid = str(record[0])
+          description = record[1]
+          value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Processing Pass')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
       
     if levels == 3:
-      gLogger.debug("listing production!")
-      eventType = processedPath[0][1]
-      config = processedPath[1][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-      processingPass = processedPath[2][1]
+      gLogger.debug("listing processing pass")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      eventtype = int(processedPath[1][1])
+      simcond = int(processedPath[2][1])
+ 
+      print "-----------------------------------------------------------"
+      print "Selected parameters: "
+      print "-----------------------------------------------------------"
 
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Event Type              | "+ str(eventType)
       print "Configuration Name      | "+configName
       print "Configuration Version   | "+configVersion
-      print "Processing pass         | "+processingPass
+      print "Event type              | "+str(eventtype)
+      print "Simulation Condition    | "+str(simcond)
       print "-----------------------------------------------------------"
+
+      print "Available processing pass types types:"
+      result = self.db_.getProPassWithEventType(configName, configVersion, eventtype, simcond)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          proc = str(record[0])
+          value = {'Total ProcessingPass':proc, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
+          entityList += [self._getSpecificEntityFromPath(path, value, proc, levels, None, 'Production(s)')]
+        self._cacheIt(entityList)
+      else:
+          gLogger.error(result['Message'])
       
-      print "Aviable productions:"
-      result = self.db_.getProductionsWithEventTypes(int(eventType), configName,  configVersion, processingPass)
+
+    if levels == 4:
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      evtType = int(processedPath[1][1])
+      simid = processedPath[2][1]
+      processing = processedPath[3][1]
+      
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Simulation Condition   | "+str(simid)
+      print "Processing Pass        | "+str(processing)
+      print "Event type             | "+str(evtType)
+      print "-----------------------------------------------------------"
+      print "Available Production(s):"
+      
+      result = self.db_.getProductionsWithSimcond(configName, configVersion, simid, processing, evtType)
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
           prod = str(record[0])
-          entityList += [self._getEntityFromPath(path, prod, levels)]
-          self._cacheIt(entityList)
+          entityList += [self._getEntityFromPath(path, prod, levels,'File types')]
+        self._cacheIt(entityList)
         
-        entityList += [self._getEntityFromPath(path, "ALL", levels)]
+        entityList += [self._getEntityFromPath(path, "ALL", levels, 'File types')]
         self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
+    
+    if levels ==5:
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      evtType = int(processedPath[1][1])
+      simid = processedPath[2][1]
+      processing = processedPath[3][1] 
+      prod = processedPath[4][1]
+      if prod=='ALL':
+        prod=0
+        
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Simulation Condition   | "+str(simid)
+      print "Processing Pass        | "+str(processing)
+      print "Event type             | "+str(evtType)
+      print "Production             | "+str(processedPath[4][1])
+      print "-----------------------------------------------------------"
+      print "Available file types:"
       
-    if levels == 4:
-      gLogger.debug("listing production!")
-      eventType = processedPath[0][1]
-      config = processedPath[1][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-      processingPass = processedPath[2][1]
-      production = processedPath[3][1]
-
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Event Type              | "+ str(eventType)
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "Processing pass         | "+processingPass
-      print "Production              | "+production
-      print "-----------------------------------------------------------"
-      
-      print "Available file type:"
-      dbResult = None
-      if production != 'ALL':
-        result = self.db_.getFileTypesWithEventType(configName, configVersion, int(eventType), int(production))
-        if result['OK']:
-          dbResult = result['Value']
-        else:
-          gLogger.error(result['Message'])
-      else:
-        result = self.db_.getFileTypesWithEventTypeALL(configName, configVersion, int(eventType))
-        if result['OK']:
-          dbResult = result['Value']
-        else:
-          gLogger.error(result['Message'])
-
-      for record in dbResult:
-        fileType = str(record[0])
-        entityList += [self._getEntityFromPath(path, fileType, levels)]
+      result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          ftype = str(record[0])
+          entityList += [self._getEntityFromPath(path, ftype, levels,'Program name and version')]
         self._cacheIt(entityList)
-
-    if levels == 5:
-      gLogger.debug("listing files!")
-      eventType = processedPath[0][1]
-      config = processedPath[1][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-      processingPass = processedPath[2][1]
-      production = processedPath[3][1]
-      fileType = processedPath[4][1]
-  
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Event Type              | "+ str(eventType)
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "Production              | "+processingPass
-      print "File type               | "+fileType
-      print "-----------------------------------------------------------"
-      
-      print "File list:"
-      if production != 'ALL':    
-        result = self.db_.getFilesByEventType(configName, configVersion, fileType, int(eventType), int(production))     
-        if result['OK']:
-          dbResult = result['Value']
-        else:
-          gLogger.error(result['Message'])
       else:
-        result = self.db_.getFilesByEventTypeALL(configName, configVersion, fileType, int(eventType))
-        if result['OK']:
-          dbResult = result['Value']
-        else:
-          gLogger.error(result['Message'])
-          
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],    'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8]}
-        self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels)]
+        gLogger.error(result['Message'])
+
+        
+    if levels ==6:       
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      evtType = int(processedPath[1][1])
+      simid = processedPath[2][1]
+      processing = processedPath[3][1] 
+      prod = processedPath[4][1]
+      if prod=='ALL':
+        prod=0
+      ftype = processedPath[5][1]  
+      
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Simulation Condition   | "+str(simid)
+      print "Processing Pass        | "+str(processing)
+      print "Event type             | "+str(evtType)
+      print "Production             | "+str(processedPath[4][1])
+      print "File Type              | "+str(ftype)
+      print "-----------------------------------------------------------"
+      print "Available program name and version:"
+      
+      result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          programName = record[0]
+          programVersion = record[1]
+          nb = record[2]
+          program = programName+' '+programVersion
+          value = { 'Program Name':programName,'Program Version':programVersion,'Number Of Events':nb }
+          entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'List of files')]
         self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
+
+    
+    if levels == 7:
+      self.files_ = []
+      gLogger.debug("listing files")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      evtType = int(processedPath[1][1])
+      simid = processedPath[2][1]
+      processing = processedPath[3][1] 
+      prod = processedPath[4][1]
+      if prod=='ALL':
+        prod=0
+      ftype = processedPath[5][1]
+      pname = processedPath[6][1].split(' ')[0]
+      pversion = processedPath[6][1].split(' ')[1]
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Simulation Condition   | "+str(simid)
+      print "Processing Pass        | "+str(processing)
+      print "Event type             | "+str(evtType)
+      print "Production             | "+str(processedPath[4][1])
+      print "File Type              | "+str(ftype)
+      print "Program name           | "+pname
+      print "Program version        | "+pversion
+      print "-----------------------------------------------------------"
+      print "File list:\n"
+      
+      result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':ftype, 'EvtTypeId':int(evtType)}
+          self.files_ += [record[0]]
+          entityList += [self._getEntityFromPath(path, value, levels)]
+        self._cacheIt(entityList)    
+      else:
+        gLogger.error(result['Message'])
+
     return entityList
   
   ############################################################################# 
@@ -734,7 +815,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
  
   ############################################################################# 
-  def _getEntityFromPath(self, presentPath, newPathElement, level):
+  def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None):
      
     if isinstance(newPathElement, types.DictType):
       # this must be a file
@@ -742,10 +823,12 @@ class LHCB_BKKDBManager(BaseESManager):
       newPathElement = str(entity['name']).rsplit("/", 1)[1]
       entity.update({'FileName':entity['name']})
       expandable = False
+      entity.update({'expandable':expandable})
       type = self.LHCB_BKDB_FILE_TYPE                            
     else:
       # this must be a folder
       entity = Entity()
+      name = newPathElement
       newPathElement = self.LHCB_BKDB_PREFIXES[level]+ \
       self.LHCB_BKDB_PREFIX_SEPARATOR + \
       newPathElement
@@ -755,23 +838,34 @@ class LHCB_BKKDBManager(BaseESManager):
       fullPath  = presentPath.rstrip(INTERNAL_PATH_SEPARATOR)
       fullPath += INTERNAL_PATH_SEPARATOR + \
       newPathElement
-      entity.update({'name':newPathElement, 'fullpath':fullPath})
+
+      entity.update({'name':name, 'fullpath':fullPath,'expandable':expandable})
+      
+      if leveldescription <> None:
+        entity.update({'level':leveldescription})  
     
     return entity
   
-  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level):
+  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level, description=None, leveldescription=None):
     if isinstance(value, types.DictType):
       entity = Entity(value)
-      expandable = False
       type = self.LHCB_BKDB_FILE_TYPE
+      name = newPathElement
       newPathElement = self.LHCB_BKDB_PREFIXES[level]+ \
       self.LHCB_BKDB_PREFIX_SEPARATOR + \
       newPathElement
-
+      
+      expandable = True
+      
       fullPath  = presentPath.rstrip(INTERNAL_PATH_SEPARATOR)
       fullPath += INTERNAL_PATH_SEPARATOR + \
       newPathElement
-      entity.update({'name':newPathElement, 'fullpath':fullPath})  
+      if description<>None:
+        entity.update({'name':description, 'fullpath':fullPath, 'expandable':expandable})  
+      else:
+        entity.update({'name':name, 'fullpath':fullPath, 'expandable':expandable})  
+      if leveldescription <> None:
+        entity.update({'level':leveldescription})  
     return entity
     
 
@@ -828,7 +922,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self.__entityCache.update({entity['fullpath']: (entity, 0)})
       except:
         gLogger.warn("couldn't cache entity(?) " + str(entity))
-      return 
+        return S_ERROR('couldnt cache entity!')
         
   #############################################################################       
   def getAbsolutePath(self, path):
@@ -846,12 +940,12 @@ class LHCB_BKKDBManager(BaseESManager):
     return S_OK(path)
   
   #############################################################################       
-  def get(self, path = ""):
+  def get(self, path = "/"):
     path = self.getAbsolutePath(path)['Value']
     entity = self._getEntity(path)
     if entity.__class__ == types.NoneType:
       gLogger.error(path + " doesn't exist!");
-      raise ValueError, "Invalid path %s" % path
+      #raise ValueError, "Invalid path %s" % path
     return S_OK(entity)
     
   #############################################################################       
@@ -869,18 +963,17 @@ class LHCB_BKKDBManager(BaseESManager):
     except:
       # not cached so far
       gLogger.debug(str(path) + " not in cache. Fetching...")
-      entityList = self.list(self.mergePaths(path, ".."))
-      self._cacheIt(entityList)
-            
+      entityList = self.list(self.mergePaths(path, "..")['Value'])
 
     # Second try
+    
     try:
       gLogger.debug("getting " + str(path) + " eventually from the cache")
       entity = self.__entityCache[path][0]
       return entity
     except:
       # still not in the cache... wrong path
-      gLogger.warning(str(path) + " seems to be a wrong path");
+      gLogger.warn(str(path) + " seems to be a wrong path");
       return None
         
     return entity
@@ -899,7 +992,8 @@ class LHCB_BKKDBManager(BaseESManager):
     evtTypes = {}
     nbEvts = 0
     fileType = None
-    for file in files:
+    for i in files:
+        file = files[i]
         type = int(file['EvtTypeId'])
         stat = int(file['EventStat'])
         if not evtTypes.has_key(type):
@@ -937,14 +1031,17 @@ class LHCB_BKKDBManager(BaseESManager):
     poolTypes = ["DST", "RDST", "DIGI", "SIM"]
     mdfTypes = ["RAW"]
     etcTypes = ["SETC", "FETC", "ETC"]
-    lfns = [file['FileName'] for file in files]
-    lfns.sort()
+    #lfns = [file['FileName'] for file in files]
+    #lfns.sort()
+    keys = files.keys()
+    keys.sort()
     first = True
-    for lfn in lfns:
+    for lfn in keys:
+        file = files[lfn]
         if not first:
             fd.write(",\n")
         first = False
-        if fileType in poolTypes:
+        if fileType in poolTypes:    
             fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"")
         elif fileType in mdfTypes:
             fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"")

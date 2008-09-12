@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.14 2008/08/27 14:25:16 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.15 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.14 2008/08/27 14:25:16 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.15 2008/09/12 16:18:10 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -245,9 +245,10 @@ class XMLFilesReaderManager:
         datataking = condParams.getParams()
         res = dataManager_.getDataTakingCondId(datataking)
         if res['OK']:
-          daqid = res['Value'][0][0]
-          if daqid!=0: #exist in the database datataking
-            simulations[daqid]=None
+          daqid = res['Value']
+          if len(daqid)!=0: #exist in the database datataking
+            did = res['Value'][0][0]
+            simulations[did]=None
           else:
             res = dataManager_.insertDataTakingCond(datataking)
             if not res['OK']:
@@ -367,7 +368,7 @@ class XMLFilesReaderManager:
             return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))
          
       else:
-        result = dataManager_.updateReplicaRow(fileID, "yes")
+        result = dataManager_.updateReplicaRow(fileID, "Yes")
         if not result['OK']:
           self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file, errorReport)
           return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESManager.py,v 1.3 2008/06/09 10:44:45 zmathe Exp $
+# $Id: BaseESManager.py,v 1.4 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 
@@ -10,7 +10,7 @@ Base Entity System Manager
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Client.IEntitySystemManager                 import IEntitySystemManager 
 import os
-__RCSID__ = "$Id: BaseESManager.py,v 1.3 2008/06/09 10:44:45 zmathe Exp $"
+__RCSID__ = "$Id: BaseESManager.py,v 1.4 2008/09/12 16:18:10 zmathe Exp $"
 
 ############################################################################# 
 class BaseESManager(IEntitySystemManager):
@@ -42,7 +42,8 @@ class BaseESManager(IEntitySystemManager):
   #############################################################################
   def mergePaths(self, path1, path2):
     gLogger.debug("mergePaths(path1, path2) with input " + str(path1) + ", " + str(path2))        
-    return self.getAbsolutePath(os.path.join(path1, path2)) 
+    path = self.getAbsolutePath(os.path.join(path1, path2)) 
+    return path
 
   #############################################################################
   def get(self, path = ""):

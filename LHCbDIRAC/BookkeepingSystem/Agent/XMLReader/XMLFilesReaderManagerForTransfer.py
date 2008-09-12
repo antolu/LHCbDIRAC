@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.9 2008/08/27 13:23:56 zmathe Exp $
+# $Id: XMLFilesReaderManagerForTransfer.py,v 1.10 2008/09/12 16:18:10 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.9 2008/08/27 13:23:56 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.10 2008/09/12 16:18:10 zmathe Exp $"
 
 class XMLFilesReaderManagerForTransfer:
   
@@ -223,7 +223,7 @@ class XMLFilesReaderManagerForTransfer:
     configs = job.getJobConfiguration()
     if configs.getConfigName() == 'MC' and configs.getConfigVersion() == "DC06" or configs.getConfigName() == 'DC06':
       configs.setConfigName('MC')
-      configs.setConfigVersion('2008')
+      configs.setConfigVersion('DC06')
             
       removeParams = []
       for param in  job.getJobParams():
