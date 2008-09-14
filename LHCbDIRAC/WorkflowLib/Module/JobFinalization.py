@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.123 2008/09/14 22:38:04 atsareg Exp $
+# $Id: JobFinalization.py,v 1.124 2008/09/14 22:46:15 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.123 2008/09/14 22:38:04 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.124 2008/09/14 22:46:15 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -187,12 +187,14 @@ class JobFinalization(ModuleBase):
       for fileinput in inputs:
           if inputs[fileinput] != 'ApplicationCrash':
               self.fileReport.setFileStatus(int(self.PRODUCTION_ID),fileinput,'Unused')
-      self.fileReport.commit()
+      result = self.fileReport.commit()
+      if not result['OK']:
+        self.log.error('Failed to report file status to ProductionDB',result['Message'])
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
     result = self.fileReport.commit()
     if not result['OK']:
-        self.log.error('Can not update the Status of files in the processingDB : %s' %(result))
+        self.log.error('Failed to report file status to ProductionDB',result['Message'])
         error=1
     else:
         self.log.info('Status of files have been properly updated in the ProcessingDB')
