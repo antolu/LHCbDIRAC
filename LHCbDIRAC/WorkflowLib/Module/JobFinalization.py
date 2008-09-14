@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.121 2008/09/10 08:53:06 paterson Exp $
+# $Id: JobFinalization.py,v 1.122 2008/09/14 19:47:03 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.121 2008/09/10 08:53:06 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.122 2008/09/14 19:47:03 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -593,6 +593,12 @@ class JobFinalization(ModuleBase):
     self.log.info(logref)
     self.setJobParameter('Log URL',logref)
 
+    # set the asynchronous log upload request
+    self.log.info('Setting asynchronous sandbox log upload request')
+    result = self.setJobLogUploadRequest(self.logSE,target_path+'/'+self.JOB_ID)
+    if not result['OK']:
+      self.log.error('Failed to set log upload request',result['Message'])
+
     if not result['OK']:
       self.log.error("Transferring log files to the main LogSE failed")
       self.log.error( result['Message'] )
@@ -630,6 +636,25 @@ class JobFinalization(ModuleBase):
 
     return S_ERROR('Failed to store log files to LogSE and failover SEs')
 
+################################################################################
+  def setJobLogUploadRequest(self,targetSE,targetPath):
+    """ Set a request to upload job log files from the output sandbox
+    """
+
+    result = self.request.addSubRequest({'Attributes':{'Operation':'uploadLogFiles',
+                                                       'TargetSE':targetSE,
+                                                      'ExecutionOrder':0}},
+                                         'logupload')
+    if not result['OK']:
+      return result
+
+    index = result['Value']
+    fileDict = {}
+    fileDict['Status'] = 'Waiting'
+    fileDict['LFN'] = targetPath
+    result = self.request.setSubRequestFiles(index,'logupload',[fileDict])
+
+    return S_OK()
 
 ################################################################################
   def uploadOutput(self):
