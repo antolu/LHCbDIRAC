@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.122 2008/09/14 19:47:03 atsareg Exp $
+# $Id: JobFinalization.py,v 1.123 2008/09/14 22:38:04 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.122 2008/09/14 19:47:03 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.123 2008/09/14 22:38:04 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -1353,15 +1353,15 @@ class JobFinalization(ModuleBase):
     if reportRequest:
       self.request.update(reportRequest)
 
-
+    fileReportRequest = None
     if self.fileReport and fileReportFlag:
       result = self.fileReport.generateRequest()
       if not result['OK']:
         self.log.warn('Could not generate request for file report with result:\n%s' %(result))
       else:
-        reportRequest = result['Value']
-    if reportRequest:
-      result = self.request.update(reportRequest)
+        fileReportRequest = result['Value']
+    if fileReportRequest:
+      result = self.request.update(fileReportRequest)
 
     accountingReport = None
     if self.workflow_commons.has_key('AccountingReport'):
