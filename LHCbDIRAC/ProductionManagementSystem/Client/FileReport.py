@@ -1,11 +1,11 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.7 2008/09/09 13:31:26 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.8 2008/09/14 22:33:49 atsareg Exp $
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.7 2008/09/09 13:31:26 atsareg Exp $"
+__RCSID__ = "$Id: FileReport.py,v 1.8 2008/09/14 22:33:49 atsareg Exp $"
 
 import copy
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -96,8 +96,7 @@ class FileReport:
     if not result['OK']:
       # Generate Request
       request = RequestContainer()
-      if result.has_key('rpcStubs'):
-        for rpcStub in result['rpcStubs']:
-          request.addSubRequest(DISETSubRequest(rpcStub).getDictionary(),'filestatus_procdb')
+      if result.has_key('rpcStub'):
+        request.setDISETRequest(result['rpcStub'])
 
     return S_OK(request)
