@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.21 2008/08/14 20:23:49 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.21 2008/08/14 20:23:49 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.22 2008/09/14 19:48:26 atsareg Exp $
+__RCSID__ = "$Id: Tools.py,v 1.22 2008/09/14 19:48:26 atsareg Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -119,17 +119,23 @@ def makeIndex():
     os.remove("index.html")
 
   flist = os.listdir(".")
+
+  flist.append('jobLoggingInfo')
+  flist.append('jobParameters')
+  flist.append('job.std.out')
+  flist.append('job.std.err')
+
   index = open("index.html","w")
   index.write( """
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>\n""")
-  index.write("<title>Logs for Run %s</title>\n" % jobname)
+  index.write("<title>Logs for Job %s</title>\n" % jobname)
   index.write( """</head>
 <body text="#000000" bgcolor="#33ffff" link="#000099" vlink="#990099"
  alink="#000099"> \n
 """)
-  index.write("<h3>Log files for Run %s</h3> \n" % jobname)
+  index.write("<h3>Log files for Job %s</h3> \n" % jobname)
 
   for f in flist:
     if f != "index.html":
