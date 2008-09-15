@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/JobInfoFromXML.py,v 1.1 2008/09/05 11:30:10 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/JobInfoFromXML.py,v 1.2 2008/09/15 16:53:35 roma Exp $
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################
@@ -83,7 +83,7 @@ class JobInfoFromXML:
         self.configversion = p.getValue()
 
     if not self.jobid or not self.prodid or not self.jobname or not self.configversion:
-      self.message = 'Wrong job parameters: %s'%str({'JOB_ID':jobid, 'PRODUCTION_ID':prodid, 'JobName':jobname,'configVersion':configversion})
+      self.message = 'Wrong job parameters: %s'%str({'JOB_ID':self.jobid, 'PRODUCTION_ID':self.prodid, 'JobName':self.jobname,'configVersion':self.configversion})
       return
       
   def valid(self):
