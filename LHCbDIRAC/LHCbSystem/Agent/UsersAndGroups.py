@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.13 2008/07/14 18:31:43 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.14 2008/09/16 15:28:29 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.13 2008/07/14 18:31:43 rgracian Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.14 2008/09/16 15:28:29 acasajus Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -45,8 +45,9 @@ class UsersAndGroups(Agent):
       return ret
 
     vomsMapping = ret['Value']
+    proxyFile = "%s/proxy" % self.controlDir
 
-    ret = systemCall( 0, 'voms-proxy-init')
+    ret = systemCall( 0, ( 'voms-proxy-init', '-out', proxyFile ) )
     if not ret['OK']:
       self.log.fatal('Could not create Proxy',ret['Message'])
       return ret
@@ -65,7 +66,9 @@ class UsersAndGroups(Agent):
 
     currentUsers = ret['Value']
 
-    ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-roles'],)
+    vomsAdminTuple = ('voms-admin','--vo','lhcb','--host',self.vomsServer,'--usercert', proxyFile)
+
+    ret = systemCall(0, vomsAdminTuple + ('list-roles',) )
     if not ret['OK']:
       self.log.fatal('Can not get Role List', ret['Message'])
       return ret
@@ -78,7 +81,7 @@ class UsersAndGroups(Agent):
         if role == vomsMapping[group]:
           roles[role] = {'Group':group,'Users':[]}
 
-    ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-users'],)
+    ret = systemCall(0, vomsAdminTuple + ('list-users',) )
     if not ret['OK']:
       self.log.fatal('Can not get User List', ret['Message'])
       return ret
@@ -91,7 +94,7 @@ class UsersAndGroups(Agent):
     multiDNUsers   = []
     for item in List.fromChar(ret['Value'][1],'\n'):
       dn,ca = List.fromChar(item,',')
-      ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-user-attributes',dn,ca])
+      ret = systemCall(0,vomsAdminTuple + ('list-user-attributes',dn,ca))
       if not ret['OK']:
         self.log.error('Can not not get User Alias',dn)
         continue
@@ -117,7 +120,7 @@ class UsersAndGroups(Agent):
       else:
         oldUsers.append(user)
 
-      ret = systemCall(0,['voms-admin','--vo','lhcb','--host',self.vomsServer,'list-user-roles', dn, ca] )
+      ret = systemCall(0,vomsAdminTuple + ('list-user-roles', dn, ca) )
       if not ret['OK']:
         self.log.error('Can not not get User Roles', user)
         continue
@@ -163,7 +166,7 @@ class UsersAndGroups(Agent):
 
     ret = csapi.deleteUsers( obsoleteUsers )
 
-    ret = systemCall( 0, 'voms-proxy-destroy' )
+    ret = systemCall( 0, ( 'voms-proxy-destroy', '-file', proxyFile ) )
 
     # return S_OK()
     return csapi.commitChanges()
