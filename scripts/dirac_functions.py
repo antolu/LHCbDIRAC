@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.87 2008/07/31 16:20:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.88 2008/09/16 08:25:47 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.87 2008/07/31 16:20:19 rgracian Exp $"
-__VERSION__ = "$Revision: 1.87 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.88 2008/09/16 08:25:47 rgracian Exp $"
+__VERSION__ = "$Revision: 1.88 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -30,6 +30,8 @@ availablePlatforms =  [ # 'Linux_x86_64_glibc-2.5',      # slc5 64 bits
                         #'Linux_i686_glibc-2.6',        # ubuntu 7.1 32 bits
                          ]
 
+platformDict = { 'slc4_ia32_gcc34' : 'Linux_i686_glibc-2.3.4',
+                 'slc4_amd64_gcc34': 'Linux_x86_64_glibc-2.3.4' }
 
 diracTimeout       = 120
 externalTimeout    = 300
@@ -267,7 +269,10 @@ class functions:
       self.localPlatform = child_stdout.read().strip()
       child_stdout.close()
     else:
-      self.localPlatform = platform
+      if platform in platformDict:
+        self.localPlatform = platformDict[platform]
+      else:
+        self.localPlatform = platform
 
     if self.localPlatform == 'ERROR' or self.localPlatform == "":
       self.logERROR( 'Can not determine local platform' )
