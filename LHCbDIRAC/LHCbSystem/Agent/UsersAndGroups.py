@@ -1,13 +1,14 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.14 2008/09/16 15:28:29 acasajus Exp $
+# $Id: UsersAndGroups.py,v 1.15 2008/09/16 16:02:01 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.14 2008/09/16 15:28:29 acasajus Exp $"
-__VERSION__ = "$Revision: 1.14 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.15 2008/09/16 16:02:01 acasajus Exp $"
+__VERSION__ = "$Revision: 1.15 $"
 """
   Update Users and Groups from VOMS on CS
 """
+import os
 from DIRAC.Core.Base.Agent                    import Agent
 from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
 from DIRAC                                    import S_OK, S_ERROR, gConfig
@@ -52,6 +53,8 @@ class UsersAndGroups(Agent):
       self.log.fatal('Could not create Proxy',ret['Message'])
       return ret
 
+    os.environ[ 'X509_USER_PROXY' ] = proxyFile
+
     csapi = CSAPI()
     ret = csapi.listUsers()
     if not ret['OK']:
@@ -66,7 +69,7 @@ class UsersAndGroups(Agent):
 
     currentUsers = ret['Value']
 
-    vomsAdminTuple = ('voms-admin','--vo','lhcb','--host',self.vomsServer,'--usercert', proxyFile)
+    vomsAdminTuple = ('voms-admin','--vo','lhcb','--host',self.vomsServer)
 
     ret = systemCall(0, vomsAdminTuple + ('list-roles',) )
     if not ret['OK']:
@@ -80,6 +83,7 @@ class UsersAndGroups(Agent):
       for group in vomsMapping:
         if role == vomsMapping[group]:
           roles[role] = {'Group':group,'Users':[]}
+    self.log.info( "Valid roles are:\n\t", "\n\t ".join( roles.keys() )  )
 
     ret = systemCall(0, vomsAdminTuple + ('list-users',) )
     if not ret['OK']:
@@ -133,6 +137,7 @@ class UsersAndGroups(Agent):
           continue
         roles[role]['Users'].append(user)
         users[user]['Groups'].append( roles[role]['Group'] )
+      self.log.verbose( "Groups for user %s are %s" % ( user, ", ".join( users[user]['Groups'] ) ) )
 
     ret = csapi.downloadCSData()
     if not ret['OK']:
@@ -170,3 +175,4 @@ class UsersAndGroups(Agent):
 
     # return S_OK()
     return csapi.commitChanges()
+
