@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.70 2008/09/12 16:18:11 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.71 2008/09/16 13:48:32 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.70 2008/09/12 16:18:11 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.71 2008/09/16 13:48:32 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -255,9 +255,19 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, eventTypeId, production)
   
   #############################################################################  
-  types_getProcessingPass = []
-  def export_getProcessingPass(self):
-    return dataMGMT_.getProcessingPass()
+  types_getPass_index = []
+  def export_getPass_index(self):
+    return dataMGMT_.getPass_index()
+  
+  #############################################################################  
+  types_insert_pass_index = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    return dataMGMT_.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
+  
+  #############################################################################  
+  types_insertProcessing = [LongType, LongType, LongType]
+  def export_insertProcessing(self, production, passid, inputprod):
+    return dataMGMT_.insertProcessing(production, passid, inputprod)
   
   #############################################################################  
   types_getProductionsWithPocessingPass = [StringType]

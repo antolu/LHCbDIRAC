@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.26 2008/09/12 16:18:10 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.27 2008/09/16 13:48:31 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.26 2008/09/12 16:18:10 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.27 2008/09/16 13:48:31 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -92,8 +92,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getSpecificFiles', [configName, configVersion, programName, programVersion, fileType, eventTypeId, production])
   
   #############################################################################
-  def getProcessingPass(self):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getProcessingPass', [])
+  def getPass_index(self):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.getPass_index', [])
+  
+  #############################################################################  
+  def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.insert_pass_index', LongType, [groupdesc, step0, step1, step2, step3, step4, step5, step6])
+  
+  #############################################################################  
+  def insertProcessing(self, production, passid, inputprod):
+    return self.db_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, inputprod], False)
   
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.46 2008/09/12 16:18:10 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.47 2008/09/16 13:48:31 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.46 2008/09/12 16:18:10 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.47 2008/09/16 13:48:31 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -228,11 +228,23 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getProcessingPass(self):
+  def getPass_index(self):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getProcessingPass()
+    result = server.getPass_index()
     return result
-
+  
+  #############################################################################
+  def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
+    return result
+  
+  #############################################################################
+  def insertProcessing(self, production, passid, inputprod):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.insertProcessing(long(production), long(passid), long(inputprod))
+    return result
+  
   #############################################################################
   def getProductionsWithPocessingPass(self, processingPass):
     server = RPCClient('Bookkeeping/BookkeepingManager')
