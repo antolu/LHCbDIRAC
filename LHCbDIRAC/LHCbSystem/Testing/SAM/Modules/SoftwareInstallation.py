@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.32 2008/09/17 16:23:44 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.33 2008/09/17 20:47:32 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.32 2008/09/17 16:23:44 roma Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.33 2008/09/17 20:47:32 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -131,7 +131,8 @@ class SoftwareInstallation(ModuleBaseSAM):
       else:
         self.writeToLog('install_project downloaded from %s to local area' %(self.installProjectURL))
       self.writeToLog('Copying downloaded install_project to sharedArea %s' %sharedArea)
-      shutil.copy('%s/%s' %(os.getcwd(),installProjectFile),'%s/%s' %(os.getcwd(),installProjectName))
+      if not installProjectFile==installProjectName:
+        shutil.copy('%s/%s' %(os.getcwd(),installProjectFile),'%s/%s' %(os.getcwd(),installProjectName))
       shutil.copy('%s/%s' %(os.getcwd(),installProjectName),'%s/%s' %(sharedArea,installProjectName))
 
     # Change the permissions on the shared area (if a pool account is used)
