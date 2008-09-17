@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.88 2008/09/16 08:25:47 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.89 2008/09/17 10:31:46 rgracian Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.88 2008/09/16 08:25:47 rgracian Exp $"
-__VERSION__ = "$Revision: 1.88 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.89 2008/09/17 10:31:46 rgracian Exp $"
+__VERSION__ = "$Revision: 1.89 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -297,8 +297,8 @@ class functions:
     """
     self.version  = ver
     extVer = ver
-    if re.compile( '^v[0-9]+r[0-9]+p[0-9]+$' ).match( ver ):
-      extVer = ver[0:re.compile('p[0-9]+$').search( ver ).start()]+'p0'
+    if re.compile( '^v[0-9]+r[0-9]+p[0-9]+$' ).match( ver ) or re.compile( '^v[0-9]+r[0-9]+$' ).match( ver ):
+      extVer = ver[0:re.compile('r[0-9]+').search( ver ).start()]+'r0'
     self.external = extVer
 
   def setExternal( self, ver ):
