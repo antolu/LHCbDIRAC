@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-ce,v 1.4 2008/09/05 14:55:30 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/Attic/dirac-lhcb-sam-submit-ce,v 1.5 2008/09/17 09:13:03 paterson Exp $
 # File :   dirac-lhcb-sam-submit-ce
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce,v 1.4 2008/09/05 14:55:30 paterson Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce,v 1.5 2008/09/17 09:13:03 paterson Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 import sys,string
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -18,6 +18,7 @@ Script.registerSwitch( "", "softwareEnable=", "Software enable flag, set to Fals
 Script.registerSwitch( "", "logUpload=", "Log file upload flag (True/False)" )
 Script.registerSwitch( "", "publishResults=", "Publish results to SAM DB flag (True/False)" )
 Script.registerSwitch( "", "mode=", "Job submission mode (set to local for debugging)" )
+Script.registerSwitch( "", "install_project=", "Optional install_project URL [Experts only]" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
@@ -33,6 +34,7 @@ softwareEnable=True
 logUpload=True
 publishResults=True
 mode=None
+install_project=None
 
 def usage():
   print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
@@ -69,9 +71,11 @@ for switch in Script.getUnprocessedSwitches():
     mode=switch[1]
   elif switch[0]=="softwareEnable":
     softwareEnable=getBoolean(switch[1])
+  elif switch[0]=="install_project":
+    install_project=switch[1]
 
 diracSAM = DiracSAM()
-result = diracSAM.submitSAMJob(ce,removeLock,deleteSharedArea,logUpload,publishResults,mode,enable,softwareEnable)
+result = diracSAM.submitSAMJob(ce,removeLock,deleteSharedArea,logUpload,publishResults,mode,enable,softwareEnable,install_project)
 if not result['OK']:
   print 'ERROR %s' %result['Message']
   exitCode = 2

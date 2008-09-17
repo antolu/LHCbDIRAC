@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.8 2008/08/06 11:20:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.9 2008/09/17 09:12:41 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.8 2008/08/06 11:20:00 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.9 2008/09/17 09:12:41 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -249,7 +249,7 @@ class LHCbSAMJob(Job):
     return step
 
   #############################################################################
-  def installSoftware(self,forceDeletion=False,enableFlag=True):
+  def installSoftware(self,forceDeletion=False,enableFlag=True,installProjectURL=None):
     """Helper function.
 
        Add the SoftwareInstallation test.
@@ -266,6 +266,10 @@ class LHCbSAMJob(Job):
     """
     if not enableFlag in [True,False] or not forceDeletion in [True,False]:
       raise TypeError,'Expected boolean value for SAM lock test flags'
+
+    if installProjectURL:
+      if not type(installProjectURL)==type(" "):
+        raise TypeError,'Expected string for install_project URL'
 
     self.gaudiStepCount +=1
     stepNumber = self.gaudiStepCount
@@ -285,6 +289,9 @@ class LHCbSAMJob(Job):
     stepInstance.setValue("enable",enableFlag)
     stepInstance.setValue("purgeSharedAreaFlag",forceDeletion)
 
+    if installProjectURL:
+      self._addJDLParameter('installProjectURL',str(installProjectURL))
+      stepInstance.setValue("installProjectURL",installProjectURL)
 
   #############################################################################
   def __getSoftwareInstallationStep(self,name='SoftwareInstallation'):
@@ -305,6 +312,7 @@ class LHCbSAMJob(Job):
     # Define step parameters
     step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
     step.addParameter(Parameter("purgeSharedAreaFlag","","bool","","",False, False, "Remove all software in shared area"))
+    step.addParameter(Parameter("installProjectURL","","string","","",False, False, "Optional install_project URL"))
     return step
 
   #############################################################################

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.3 2008/09/05 14:55:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.4 2008/09/17 09:12:51 paterson Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.3 2008/09/05 14:55:15 paterson Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.4 2008/09/17 09:12:51 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -53,7 +53,7 @@ class DiracSAM(Dirac):
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True,install_project=None):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -68,7 +68,9 @@ class DiracSAM(Dirac):
       if not enable and softwareEnable:
         self.log.verbose('Software distribution flag cannot be True if enableFlag is disabled')
         return S_ERROR('Enable flag is disabled but software flag is enabled')
-      job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable)
+      if install_project:
+        self.log.verbose('Optional install_project URL is set to %s' %(install_project))
+      job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable,installProjectURL=install_project)
       job.testApplications(enableFlag=enable)
       job.finalizeAndPublish(logUpload=logFlag,publishResults=publishFlag,enableFlag=enable)
     except Exception,x:

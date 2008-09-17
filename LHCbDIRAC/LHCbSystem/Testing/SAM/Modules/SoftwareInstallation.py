@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.30 2008/09/06 16:48:12 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.31 2008/09/17 09:12:27 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.30 2008/09/06 16:48:12 roma Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.31 2008/09/17 09:12:27 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -50,6 +50,7 @@ class SoftwareInstallation(ModuleBaseSAM):
     #Workflow parameters for the test
     self.enable = True
     self.purgeSharedArea = False
+    self.installProjectURL = None
 
   #############################################################################
   def resolveInputVariables(self):
@@ -67,8 +68,15 @@ class SoftwareInstallation(ModuleBaseSAM):
         self.log.warn('Purge shared area flag set to non-boolean value %s, setting to False' %self.purgeSharedArea)
         self.enable=False
 
+    if self.step_commons.has_key('installProjectURL'):
+      self.installProjectURL=self.step_commons['installProjectURL']
+      if not type(self.installProjectURL)==type(" ") or not self.installProjectURL:
+        self.log.warn('Install project URL not set to non-zero string parameter, setting to None')
+        self.installProjectURL = None
+
     self.log.verbose('Enable flag is set to %s' %self.enable)
     self.log.verbose('Purge shared area flag set to %s' %self.purgeSharedArea)
+    self.log.verbose('Install project URL set to %s' %(self.installProjectURL))
     return S_OK()
 
   #############################################################################
@@ -109,8 +117,24 @@ class SoftwareInstallation(ModuleBaseSAM):
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
-    # Change the permissions on the shared area (if a pool account is used)
+    #Check for optional install project URL
+    if self.installProjectURL:
+      self.writeToLog('Found specified install_project URL %s' %(self.installProjectURL))
+      installProjectName = 'install_project.py'
+      if os.path.exists('%s/%s' %(os.getcwd(),installProjectName)):
+        self.writeToLog('Removing previous install project script from local area')
+        os.remove('%s/%s' %(os.getcwd(),installProjectName))
+      installProjectFile = os.path.basename(self.installProjectURL)
+      localname,headers = urllib.urlretrieve(self.installProjectURL,installProjectFile)
+      if not os.path.exists('%s/%s' %(os.getcwd(),installProjectFile)):
+        return self.finalize('%s could not be downloaded to local area' %(self.installProjectURL))
+      else:
+        self.writeToLog('install_project downloaded from %s to local area' %(self.installProjectURL))
+      self.writeToLog('Copying downloaded install_project to sharedArea %s' %sharedArea)
+      shutil.copy('%s/%s' %(os.getcwd(),installProjectFile),'%s/%s' %(os.getcwd(),installProjectName))
+      shutil.copy('%s/%s' %(os.getcwd(),installProjectName),'%s/%s' %(sharedArea,installProjectName))
 
+    # Change the permissions on the shared area (if a pool account is used)
     if not re.search('\d',self.runinfo['identityShort']):
       isPoolAccount = False
     else:
