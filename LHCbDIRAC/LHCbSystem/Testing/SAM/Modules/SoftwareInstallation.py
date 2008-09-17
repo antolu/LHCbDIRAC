@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.31 2008/09/17 09:12:27 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.32 2008/09/17 16:23:44 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.31 2008/09/17 09:12:27 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.32 2008/09/17 16:23:44 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -23,7 +23,7 @@ except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication, CreateSharedArea
   from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
-import string, os, sys, re, shutil
+import string, os, sys, re, shutil, urllib
 
 SAM_TEST_NAME='CE-lhcb-install'
 SAM_LOG_FILE='sam-install.log'
