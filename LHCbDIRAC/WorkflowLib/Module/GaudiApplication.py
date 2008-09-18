@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.77 2008/09/08 12:19:22 joel Exp $
+# $Id: GaudiApplication.py,v 1.78 2008/09/18 07:08:58 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.77 2008/09/08 12:19:22 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.78 2008/09/18 07:08:58 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -158,18 +158,19 @@ class GaudiApplication(ModuleBase):
     if self.optionsLine:
       for opt in self.optionsLine.split(';'):
         if not re.search('tring',opt):
-          if re.search('#include',opt):
-            options.write(opt+'\n')
-          else:
-            options.write(opt+';\n')
+          if len(opt) > 0:
+              if re.search('#include',opt):
+                options.write(opt+'\n')
+              else:
+                options.write(opt+';\n')
         else:
           self.log.warn('Options line not in correct format ignoring string')
 
     self.resolveInputDataOpts(options)
-    if self.run_number != 0:
+    if self.run_number != 0 and self.applicationName == 'Gauss':
         options.write("""GaussGen.RunNumber = """+str(self.run_number)+""";\n""")
 
-    if self.step_commons.has_key('firstEventNumber'):
+    if self.step_commons.has_key('firstEventNumber') and self.applicationName == 'Gauss':
         self.firstEventNumber = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
         options.write("""GaussGen.FirstEventNumber = """+str(self.firstEventNumber)+""";\n""")
 
@@ -191,13 +192,25 @@ class GaudiApplication(ModuleBase):
         options = open(self.optfile_extra,'w')
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
-        options.write('from Gaudi.Configuration import *\n')
+        if self.applicationName == 'Gauss':
+          options.write('from Gauss.Configuration import *\n')
+        else:
+          options.write('from Gaudi.Configuration import *\n')
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
-              options.write(opt+'\n')
+              if len(opt) > 0:
+                 options.write(opt+'\n')
         self.resolveInputDataPy(options)
+        if self.run_number != 0 and self.applicationName == 'Gauss':
+          options.write("""GaussGen = GenInit(\"GaussGen")\n""")
+          options.write("""GaussGen.RunNumber = """+str(self.run_number)+"""\n""")
+
+        if self.step_commons.has_key('firstEventNumber') and self.applicationName == 'Gauss':
+          self.firstEventNumber = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
+          options.write("""GaussGen.FirstEventNumber = """+str(self.firstEventNumber)+"""\n""")
+
         if self.numberOfEvents != 0:
-            options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" ;\n""")
+            options.write("""ApplicationMgr().EvtMax ="""+self.numberOfEvents+""" \n""")
         options.close()
     except Exception, x:
         print "No additional options"
@@ -309,21 +322,23 @@ class GaudiApplication(ModuleBase):
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
-    if os.path.exists('%s/%s' %(cwd,self.optionsFile)):
-      self.optfile = self.optionsFile
-    # Otherwise take the one from the application options directory
-    else:
-      optpath = app_dir_path+'/options'
-      if os.path.exists(optpath+'/'+self.optionsFile):
-        self.optfile = optpath+'/'+self.optionsFile
-      else:
-        self.optfile = self.optionsFile
+    if self.optionsFile:
+      for fileopt in self.optionsFile.split(';'):
+        if os.path.exists('%s/%s' %(cwd,fileopt)):
+          self.optfile += ' '+fileopt
+        # Otherwise take the one from the application options directory
+        else:
+          optpath = app_dir_path+'/options'
+          if os.path.exists(optpath+'/'+fileopt):
+            self.optfile += ' '+optpath+'/'+fileopt
+          else:
+            self.optfile += ' '+fileopt
 
-    if self.optionsFile.find('.opts') > 0:
+    if self.optionsFile.split(';')[0].find('.opts') > 0:
       self.optfile_extra = 'gaudi_extra_options.opts'
       optionsType = 'opts'
       self.manageOpts()
-    elif self.optionsFile.find('.py') > 0:
+    else:
       optionsType = 'py'
       self.optfile_extra = 'gaudi_extra_options.py'
       self.managePy()
@@ -499,13 +514,14 @@ rm -f scrtmp.py
       if optionsType == 'py':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
-        exe_path = os.path.join( appRoot, self.systemConfig, self.applicationName+'.exe' ) #default
-        if os.path.exists('lib/'+self.applicationName+'.exe'):
-          exe_path = 'lib/'+self.applicationName+'.exe '
-          print 'Found user shipped executable '+self.applicationName+'.exe...'
+        comm = self.applicationName+'.exe'+'\n'
+#        exe_path = os.path.join( appRoot, self.systemConfig, self.applicationName+'.exe' ) #default
+#        if os.path.exists('lib/'+self.applicationName+'.exe'):
+#          exe_path = 'lib/'+self.applicationName+'.exe '
+#          print 'Found user shipped executable '+self.applicationName+'.exe...'
 
         #comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+
-        comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'
+#        comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'
 
       print 'Command = ',comm
       script.write(comm)
