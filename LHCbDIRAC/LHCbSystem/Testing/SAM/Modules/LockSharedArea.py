@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.35 2008/08/30 13:33:02 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.36 2008/09/18 20:40:44 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.35 2008/08/30 13:33:02 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.36 2008/09/18 20:40:44 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -167,7 +167,7 @@ class LockSharedArea(ModuleBaseSAM):
       self.log.info('Another SAM job has established a lock on the shared area at %s' %sharedArea)
       curtime = time.time()
       fileTime = os.stat('%s/%s' %(sharedArea,self.lockFile))[8]
-      if fileTime - curtime > self.lockValidity:
+      if curtime - fileTime > self.lockValidity:
         self.log.info('SAM lock file present for > %s secs, deleting' %self.lockValidity)
         cmd = 'rm -fv %s/%s' %(sharedArea,self.lockFile)
         result = self.runCommand('Current lock file %s present for longer than %s seconds' %(self.lockFile,self.lockValidity),cmd,check=True)
