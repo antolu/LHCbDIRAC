@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/JobInfoFromXML.py,v 1.2 2008/09/15 16:53:35 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/JobInfoFromXML.py,v 1.3 2008/09/18 12:15:03 roma Exp $
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################
@@ -50,7 +50,7 @@ class JobInfoFromXML:
 
     result = dirac.getInputSandbox(job)
     if not result['OK']:
-      self.message=resul['Message']
+      self.message=result['Message']
       return
 
     try:
