@@ -1,15 +1,15 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.89 2008/09/17 10:31:46 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.90 2008/09/19 09:41:21 acasajus Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.89 2008/09/17 10:31:46 rgracian Exp $"
-__VERSION__ = "$Revision: 1.89 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.90 2008/09/19 09:41:21 acasajus Exp $"
+__VERSION__ = "$Revision: 1.90 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
 try:
-  import getopt, sys, os, signal, shutil 
+  import getopt, sys, os, signal, shutil
   import urllib, popen2, tempfile, fileinput, re, time
 except Exception, x:
   import sys
@@ -67,12 +67,13 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                             'external/rrdtool',
                             'contrib/pyPlotTools',
                             'contrib/ClassAdCondor',
-                            'external/Pylons'],
+                            'external/Pylons',
+                            'external/ldap'],
                'directories': ['contrib',
                                'external']
              },
            ]
-           
+
 workflowLib_tars = [ { 'name': 'WorkflowLib',
                        'packages': ['WorkflowLib'],
                        'directories': ['WorkflowLib']
@@ -107,11 +108,11 @@ binNo = len(bin_tars)
 class functions:
   def __init__( self, fullName  ):
     """
-     Initialize the functions class using the given script path to set the 
+     Initialize the functions class using the given script path to set the
      rootPath of the DIRAC intallation.
     """
     self.setRoot( fullName )
-    
+
     self.debugFlag   = False
     self.buildFlag  = False
     self.CVS         = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
@@ -119,10 +120,10 @@ class functions:
     self.setVersion( 'HEAD' )
     self.setPython( '24' )
     self.architecture()
-    
+
     self.cvsFlag()
     self.requireClient()
-    
+
     self.localPlatform = None
     # self.platform( )
 
@@ -137,7 +138,7 @@ class functions:
       try:
         shutil.rmtree( dir )
       except Exception, x:
-        self.logERROR( 'Can not removed existing directory %s' 
+        self.logERROR( 'Can not removed existing directory %s'
                   % os.path.join( self.__rootPath, dir ) )
         self.logEXCEP( x )
 
@@ -155,16 +156,16 @@ class functions:
   def logEXCEP( self, msg ):
     self.__log( 'EXCEPT', str(msg) )
     sys.exit( -1 )
-  
+
   def logERROR( self, msg ):
     self.__log( 'ERROR ', msg )
-  
+
   def logINFO( self, msg ):
     self.__log( 'INFO  ', msg )
-  
+
   def logDEBUG( self, msg ):
     self.__log( 'DEBUG ', msg )
-  
+
   def logHelp( self, help ):
     print
     print 'Usage: %s [options]' % self.shortName
@@ -309,7 +310,7 @@ class functions:
 
   def createSrcTars(self):
     """
-     Create distribution tars for source code 
+     Create distribution tars for source code
     """
     tars = 0
     n = srcNo
@@ -367,14 +368,14 @@ class functions:
       self._createTar( tarName, tarDirs )
       tars += 1
     return tars
-  
+
   def checkInterpreter( self ):
     """
-     Check if DIRAC version of python interpreter is installed and make sure 
+     Check if DIRAC version of python interpreter is installed and make sure
      all scripts will make use of it
     """
-    self.localPython = os.path.join( self.__rootPath, 
-                                self.localPlatform, 
+    self.localPython = os.path.join( self.__rootPath,
+                                self.localPlatform,
                                 'bin', 'python' )
     python = sys.executable
     if os.path.realpath(python) ==  os.path.realpath(self.localPython):
@@ -395,7 +396,7 @@ class functions:
       self.buildExternal( )
     else:
       if not self.localPlatform in availablePlatforms:
-        self.logERROR( 'Platform "%s" not available, use --build flag' % 
+        self.logERROR( 'Platform "%s" not available, use --build flag' %
                   self.localPlatform )
         sys.exit(1)
       if self.serverFlag:
@@ -489,7 +490,7 @@ class functions:
       self._diracMake( 'DIRAC' )
       self._diracMagic( )
       dirac_version = os.path.join( self.scriptsPath, 'dirac-version' )
-      ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % ( 
+      ( ch_out, ch_in, ch_err) = popen2.popen3( '%s %s' % (
         self.localPython, dirac_version ) )
       self.version = ch_out.readline().strip()
       if self.version.find('ERROR') != -1:
@@ -505,7 +506,7 @@ class functions:
       self.logDEBUG( 'DIRAC version "%s" installed' % self.version )
       ch_out.close()
       ch_err.close()
-      
+
     return self.version
 
   def _diracMake( self, dir ):
@@ -532,22 +533,22 @@ class functions:
      Check access to CVS repository (retrieve scripts)
     """
     cvsPackages = []
-    
+
     for destDir in packages:
       # remove existing directories, if any
       cvsDir = 'DIRAC3/%s' % destDir
       cvsPackages.append(cvsDir)
-            
+
       self.__rmDir( cvsDir )
       self.__rmDir( destDir )
-      
+
     self.logINFO( 'Retrieving %s' % ', '.join(cvsPackages) )
     cvsCmd = 'cvs -Q -d %s export -f -r %s %s' \
              % ( self.CVS, version, ' '.join(cvsPackages) )
     if self.debugFlag:
       cvsCmd = 'cvs -q -d %s export -f -r %s %s' \
                % ( self.CVS, version, ' '.join(cvsPackages) )
-    self.logDEBUG( cvsCmd )  
+    self.logDEBUG( cvsCmd )
     ret = os.system( cvsCmd )
     if ret != 0:
       self.logEXCEP( 'Check your cvs installation' )
@@ -558,14 +559,14 @@ class functions:
         os.renames( cvsDir, destDir )
       except Exception, x:
         self.logERROR( 'Failed to rename "%s" to "%s"' % (cvsDir, destDir ) )
-        self.logEXCEP(x)        
+        self.logEXCEP(x)
 
   def _getTar( self, name, timeout, dir=None ):
-  
+
     try:
       ( file, localName ) = tempfile.mkstemp()
     except:
-      localName = tempfile.mktemp()    
+      localName = tempfile.mktemp()
     tarFileName = os.path.join( '%s.tar.gz' % name )
     remoteName = '%s/%s' % ( self.URL, tarFileName )
     error = 'Retrieving file "%s"' % remoteName
@@ -583,18 +584,18 @@ class functions:
         for member in tar.getmembers():
           tar.extract( member )
         os.remove( localName )
-  
+
     except Exception, x:
       try:
         error = 'Extracting file "%s"' % localName
         ret = os.system( 'tar -tzf %s > /dev/null' % localName )
         if ret != 0:
-          raise Exception( 'Fail to extract tarfile'  )        
+          raise Exception( 'Fail to extract tarfile'  )
         if dir:
           self.__rmDir( dir )
         ret = os.system( 'tar xzf %s' % localName )
         if ret != 0:
-          raise Exception( 'Fail to extract tarfile'  )        
+          raise Exception( 'Fail to extract tarfile'  )
         os.remove( localName )
         return
       except Exception, x:
@@ -629,7 +630,7 @@ class functions:
     # NOTE: Not thread-safe, since all threads will catch same alarm.
     #       This is OK for dirac-install, since there are no threads.
     self.logDEBUG( 'Retrieving remote file "%s"' % fname )
-  
+
     signal.signal(signal.SIGALRM, alarmHandler)
     # set timeout alarm
     signal.alarm(timeout)
@@ -640,7 +641,7 @@ class functions:
         self.logERROR( 'Timeout after %s seconds on transfer request for "%s"' % \
         (str(timeout), fname) )
       raise x
-  
+
     # clear timeout alarm
     signal.alarm(0)
 
@@ -668,7 +669,7 @@ class functions:
         if name.find('external') != -1 :
           version = self.external
           self._getCVS( version, tar['packages']  )
-  
+
     n = binNo
     if not self.serverFlag:
       n -= 1
@@ -695,7 +696,7 @@ class functions:
     except:
         self.logERROR( 'No working version of DIRAC installed' )
         pass
-  
+
     return localVersion
 
   def checkDiracCfg(self):
@@ -710,7 +711,7 @@ class functions:
       except Exception, x :
         self.logERROR( 'Can not create "%s", check permissions' % etcPath )
         self.logEXCEP( x )
-    
+
     if not os.path.exists( cfgPath ):
       try:
         file = open( cfgPath, 'w' )
@@ -734,7 +735,7 @@ def alarmHandler(*args):
 
 def cleanDir( dir ):
   """
-   Walk the given directory and remove all .pyc and .pyo files 
+   Walk the given directory and remove all .pyc and .pyo files
   """
   for d in os.walk( dir ):
     subDir = d[0]
@@ -743,4 +744,4 @@ def cleanDir( dir ):
         os.remove( os.path.join(subDir,f) )
       elif f.endswith('.pyo'):
         os.remove( os.path.join(subDir,f) )
-      
+
