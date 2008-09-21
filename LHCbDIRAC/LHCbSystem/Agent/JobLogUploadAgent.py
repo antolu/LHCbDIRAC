@@ -1,10 +1,10 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.2 2008/09/14 19:03:10 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.3 2008/09/21 19:04:57 atsareg Exp $
 
 """  JobLogUploadAgent uploads log and other auxilliary files of the given job
      to the long term lo storage
 """
 
-__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.2 2008/09/14 19:03:10 atsareg Exp $"
+__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.3 2008/09/21 19:04:57 atsareg Exp $"
 
 from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.Agent import Agent
@@ -185,10 +185,8 @@ class JobLogUploadAgent(Agent,RequestAgentMixIn):
 
     # 4. Upload files
     files = os.listdir(workDir)
-    cwd = os.getcwd()
-    os.chdir(workDir)
     for f in files:
-      result = self.rm.put(path+'/'+f,f,targetSE)
+      result = self.rm.put(path+'/'+f,workDir+'/'+f,targetSE)
       if not result['OK']:
         shutil.rmtree(workDir)
         return result
