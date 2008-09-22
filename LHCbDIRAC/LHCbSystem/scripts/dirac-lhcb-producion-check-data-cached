@@ -2,8 +2,8 @@
 
 __author__ = 'Greig A Cowan'
 __date__ = 'Sept 2008'
-__RCSID__ = '$Id: dirac-lhcb-producion-check-data-cached,v 1.2 2008/09/22 15:52:52 gcowan Exp $'
-__VERSION__ = '$Revision: 1.2 $'
+__RCSID__ = '$Id: dirac-lhcb-producion-check-data-cached,v 1.3 2008/09/22 17:42:39 gcowan Exp $'
+__VERSION__ = '$Revision: 1.3 $'
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -14,7 +14,7 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information] job [job2 [job3 [...]]]' %(Script.scriptName)
   DIRAC.exit(2)
 
-Script.initAsScript()
+#Script.initAsScript()
 Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
@@ -39,23 +39,24 @@ for arg in args:
     continue
 
   result = jobinfo.getInputLFN()
+
   if result['OK']:
     lfns = result['Value']
   else:
     print result['Message']
     DIRAC.exit(2)
 
-  jobToLfns[ job] = lfns
+  jobToLfns[ job] = lfns[0].split(';')
 
 dirac = Dirac()
 exitCode = 0
-errorList = []
+errorList = {}
 
 for job, lfns in jobToLfns.iteritems():
   # Find the replica information for each LFN
   result = dirac.getReplicas( lfns, printOutput=False)
   if not result['OK']:
-    errorList.append( (lfn, result['Message']) )
+    errorList[ lfn] = result['Message']
     exitCode = 2
   else:
     replicas = result['Value']
@@ -68,21 +69,28 @@ for job, lfns in jobToLfns.iteritems():
 
   for lfn, surls in reps.iteritems():
     for se, surl in surls.iteritems():
-      # Check that you can get a TURL for each LFN
-      pfn = dirac.getAccessURL( lfn, se, printOutput=False)
-      if not pfn['OK']:
-        errorList.append( (lfn, pfn['Message']) )
-        exitCode = 2
       # Check the metadata for each file - should be cached
       meta = dirac.getPhysicalFileMetadata( surl, se, printOutput=False)
       if not meta['OK']:
-        errorList.append( (lfn, meta['Message']) )
+        errorList[ lfn] = meta['Message']
+        exitCode = 2
+      elif meta['OK'] and meta['Value']['Successful'] == {}:
+        errorList[ lfn] = meta['Value']['Failed'][ lfn]
+        exitCode = 2
+
+      # Check that you can get a TURL for each LFN
+      pfn = dirac.getAccessURL( lfn, se, printOutput=False)
+      if not pfn['OK']:
+        errorList[ lfn] = pfn['Message']
+        exitCode = 2
+      elif pfn['OK'] and pfn['Value']['Successful'] == {}:
+        errorList[ lfn] = pfn['Value']['Failed'][ lfn]
         exitCode = 2
       else:
-        print job, lfn, meta['Value']['Successful'][ surl]['Cached'], \
+        print lfn, meta['Value']['Successful'][ surl]['Cached'], \
               pfn['Value']['Successful'][ lfn].values()[0]
 
-for error in errorList:
-  print 'ERROR %s: %s' % error
+for lfn, error in errorList.iteritems():
+  print 'ERROR %s: %s' % (lfn, error)
 
 DIRAC.exit( exitCode)
