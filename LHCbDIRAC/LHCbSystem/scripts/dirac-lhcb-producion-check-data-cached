@@ -2,8 +2,8 @@
 
 __author__ = 'Greig A Cowan'
 __date__ = 'Sept 2008'
-__RCSID__ = '$Id: dirac-lhcb-producion-check-data-cached,v 1.1 2008/09/22 14:44:10 gcowan Exp $'
-__VERSION__ = '$Revision: 1.1 $'
+__RCSID__ = '$Id: dirac-lhcb-producion-check-data-cached,v 1.2 2008/09/22 15:52:52 gcowan Exp $'
+__VERSION__ = '$Revision: 1.2 $'
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -14,6 +14,7 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information] job [job2 [job3 [...]]]' %(Script.scriptName)
   DIRAC.exit(2)
 
+Script.initAsScript()
 Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
