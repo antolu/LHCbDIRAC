@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.23 2008/08/19 20:12:57 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.24 2008/09/22 10:16:03 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.23 2008/08/19 20:12:57 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.24 2008/09/22 10:16:03 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -152,6 +152,7 @@ class TransformationAgent(Agent):
           if result['OK']:
             ancestorSites = result['Value']
           else:
+            result = server.setFileStatusForTransformation(prodID,[('AncestorProblem',[lfn])])
             ancestorSites = []
         result = self.getSiteForSE(se)
         if not result['OK']:
@@ -431,7 +432,6 @@ class TransformationAgent(Agent):
     if not result['OK']:
       gLogger.warn(result['Message'])
       return S_ERROR('Failed to get results from LFC: %s' % result['Message'])
-
     replicas = result['Value']['Successful']
     if numAncestors != len(replicas):
       return S_ERROR('Can not find all replica info: ancestors %d, replicas %d' % (numAncestors,len(replicas)))
@@ -452,7 +452,6 @@ class TransformationAgent(Agent):
       ancestorSites = tmp_sites
       if not ancestorSites:
         break
-
     return S_OK(ancestorSites)
 
   def getSiteForSE(self,se):
