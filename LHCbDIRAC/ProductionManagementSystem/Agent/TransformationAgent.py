@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.24 2008/09/22 10:16:03 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.25 2008/09/23 10:38:44 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.24 2008/09/22 10:16:03 atsareg Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.25 2008/09/23 10:38:44 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -157,7 +157,7 @@ class TransformationAgent(Agent):
         result = self.getSiteForSE(se)
         if not result['OK']:
           continue
-        fileSite = result['Value']        
+        fileSite = result['Value']
         if fileSite in ancestorSites:
           data_m.append((lfn,se))
       data = data_m
@@ -390,17 +390,22 @@ class TransformationAgent(Agent):
     if not result['OK']:
       return result
 
+    failover_lfns = []
     replicas = result['Value']['Successful']
     for lfn, replicaDict in replicas.items():
       lfc_datadict[lfn] = []
       for se,pfn in replicaDict.items():
-        lfc_datadict[lfn].append(se)
-        lfc_data.append((lfn,se))
+        # Do not consider replicas in FAILOVER type storage
+        if se.lower().find('failover') == -1:
+          lfc_datadict[lfn].append(se)
+          lfc_data.append((lfn,se))
+        else:
+          failover_lfns.append(lfn)
     lfc_lfns = lfc_datadict.keys()
     # Check the input files if they are known by LFC
     missing_lfns = []
     for lfn in lfns:
-      if lfn not in lfc_lfns:
+      if lfn not in lfc_lfns and lfn not in failover_lfns:
         missing_lfns.append(lfn)
         gLogger.warn('LFN: %s not found in the LFC' % lfn)
     if missing_lfns:
@@ -467,7 +472,7 @@ class TransformationAgent(Agent):
     return S_OK('')
 
   def getSitesForSEs(self, seList):
-    """ Get all the sites for the given SE list 
+    """ Get all the sites for the given SE list
     """
 
     sites = []
