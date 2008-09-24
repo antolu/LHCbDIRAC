@@ -1,0 +1,35 @@
+#============================================================================
+# Created    : 2008-09-23
+# Maintainer : Joel Closier
+#============================================================================
+package           DiracSys
+version           v3r1
+
+#============================================================================
+# Structure, i.e. directories to process.
+#============================================================================
+branches          cmt doc src
+#============================================================================
+# Used packages. Specify the version, * at the end specifies 'any revision'
+#    Put as many lines as needed, with all packages, without the '#'
+#============================================================================
+# use   Package      v1r*    Hat
+
+include_path      none
+#============================================================================
+# Component library building rule
+#============================================================================
+#library          DiracSys    ../src/*.cpp
+#============================================================================
+# define component library link options
+#============================================================================
+#apply_pattern    component_library library=DiracSys
+
+set DIRACROOT "$(DiracSys_cmtpath)"
+macro dplatscript "/usr/bin/python $(DIRACROOT)/scripts/platform.py"
+macro dplat `$(dplatscript)`
+path_remove PATH "$(DIRACROOT)/"
+path_prepend PATH "$(DIRACROOT)/scripts"
+path_prepend PATH "$(DIRACROOT)/$(dplat)/bin"
+path_prepend LD_LIBRARY_PATH "$(DIRACROOT)/$(dplat)/lib"
+path_prepend PYTHONPATH $(DIRACROOT)
