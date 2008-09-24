@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.31 2008/09/11 12:44:32 mseco Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.32 2008/09/24 11:42:50 mseco Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -186,7 +186,7 @@ $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 $DESTDIR/pro/scripts/install_service.sh Logging SystemLogging
 $DESTDIR/pro/scripts/install_service.sh Logging SystemLoggingReport
 $DESTDIR/pro/scripts/install_agent.sh Logging SystemLoggingDBCleaner
-$DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessagesMonitor
+$DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
 
 # RequestManagement
 
