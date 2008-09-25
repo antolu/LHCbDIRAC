@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.8 2008/08/21 14:18:25 zmathe Exp $
+# $Id: JobReader.py,v 1.9 2008/09/25 15:50:32 zmathe Exp $
 ########################################################################
 
 """
@@ -22,7 +22,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.8 2008/08/21 14:18:25 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.9 2008/09/25 15:50:32 zmathe Exp $"
 
 
 class JobReader:
@@ -260,7 +260,7 @@ class JobReader:
     gLogger.info("Read Simulation Conditions")
     simcond = doc.getElementsByTagName('SimulationCondition')
     if len(simcond) != 1:
-      gLogger.error("To many Simulation conditions!!")
+      gLogger.warn("To many Simulation conditions!!")
     else:
       simParam = SimulationConditions()
       node = simcond[0]
@@ -279,7 +279,7 @@ class JobReader:
     gLogger.info("Read Simulation Conditions")
     simcond = doc.getElementsByTagName('SimulationCondition')
     if len(simcond) != 1:
-      gLogger.error("To many Simulation conditions!!")
+      gLogger.warn("To many Simulation conditions!!")
     else:
       simParam = SimulationConditions()
       node = simcond[0]

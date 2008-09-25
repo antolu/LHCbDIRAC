@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.14 2008/09/16 13:48:31 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.15 2008/09/25 15:50:33 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.14 2008/09/16 13:48:31 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.15 2008/09/25 15:50:33 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -134,8 +134,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getAvailableConfigurations()
   
   #############################################################################
-  def getSimulationConditions(self, configName, configVersion):
-    return self.getManager().getSimulationConditions(configName, configVersion)
+  def getSimulationConditions(self, configName, configVersion, realdata):
+    return self.getManager().getSimulationConditions(configName, configVersion, realdata)
   
   #############################################################################
   def getProPassWithSimCond(self, configName, configVersion, simcondid):
@@ -176,8 +176,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getEventTypes(configName, configVersion)
   
   #############################################################################
-  def getSimCondWithEventType(self, configName, configVersion, eventType):
-    return self.getManager().getSimCondWithEventType(configName, configVersion, eventType)
+  def getSimCondWithEventType(self, configName, configVersion, eventType, realdata):
+    return self.getManager().getSimCondWithEventType(configName, configVersion, eventType, realdata)
   
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
@@ -300,7 +300,11 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getDataTakingCondId(self, condition):
     return self.getManager().getDataTakingCondId(condition)
-    
+  
+  #############################################################################
+  def getJobInfo(self, lfn):
+    return self.getManager().getJobInfo(lfn)
+  
   #############################################################################
   '''
     MONITORING

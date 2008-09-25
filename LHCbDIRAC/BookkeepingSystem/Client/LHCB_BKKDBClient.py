@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.8 2008/06/19 14:35:39 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.9 2008/09/25 15:50:34 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.8 2008/06/19 14:35:39 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.9 2008/09/25 15:50:34 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -47,6 +47,10 @@ class LHCB_BKKDBClient(BaseESClient):
   def getNumberOfEvents(self, files):
     return self.getManager().getNumberOfEvents(files)
   
+  #############################################################################
   def writeJobOptions(self, files, optionsFile = "jobOptions.opts"):
     return self.getManager().writeJobOptions(files, optionsFile)
-      
+  
+  #############################################################################
+  def getJobInfo(self, lfn):
+    return self.getManager().getJobInfo(lfn)

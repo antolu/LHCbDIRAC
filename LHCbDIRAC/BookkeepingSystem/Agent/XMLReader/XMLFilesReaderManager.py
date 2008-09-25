@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.15 2008/09/12 16:18:10 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.16 2008/09/25 15:50:32 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.15 2008/09/12 16:18:10 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.16 2008/09/25 15:50:32 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -72,11 +72,13 @@ class XMLFilesReaderManager:
       if type == 'Replicas':
         replica = self.replicaReader_.readReplica(doc, "IN Memory")
         result = self.processReplicas(replica)
+        del replica
         return result        
       else: 
         if type == 'Job':
           job = self.jobReader_.readJob(doc, "IN Memory")
           result = self.processJob(job)
+          del job
           return result
         else:
           gLogger.error("unknown XML file!!!")
@@ -361,7 +363,7 @@ class XMLFilesReaderManager:
         list = result['Value']
         replicaList = list['Successful']
         if len(replicaList) == 0:
-          result = dataManager_.updateReplicaRow(fileID,"no")
+          result = dataManager_.updateReplicaRow(fileID,"No")
           if not result['OK']:
             gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
             self.errorMgmt_.reportError(26, "Unable to set the Got_Replica flag for " + str(replicaFileName), file, errorReport)

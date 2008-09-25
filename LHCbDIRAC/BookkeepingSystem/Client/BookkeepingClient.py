@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.47 2008/09/16 13:48:31 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.48 2008/09/25 15:50:34 zmathe Exp $
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ import types
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.47 2008/09/16 13:48:31 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.48 2008/09/25 15:50:34 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -130,45 +130,45 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getSimulationConditions(self, configName, configVersion):
+  def getSimulationConditions(self, configName, configVersion, realdata = 0):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getSimulationConditions(configName, configVersion)
+    result = server.getSimulationConditions(configName, configVersion, realdata)
     return result
   
   #############################################################################
   def getProPassWithSimCond(self, configName, configVersion, simcondid):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getProPassWithSimCond(configName, configVersion, long(simcondid))
+    result = server.getProPassWithSimCond(configName, configVersion, simcondid)
     return result
   
   #############################################################################
   def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getEventTypeWithSimcond(configName, configVersion, long(simcondid), procPass)
+    result = server.getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
     return result
   
   #############################################################################
   def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getProductionsWithSimcond(configName, configVersion, long(simcondid), procPass, long(evtId))
+    result = server.getProductionsWithSimcond(configName, configVersion, simcondid, procPass, evtId)
     return result
   
   #############################################################################
   def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getFileTypesWithSimcond(configName, configVersion, long(simcondid), procPass, long(evtId), long(prod))
+    result = server.getFileTypesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod)
     return result
   
   #############################################################################  
   def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getProgramNameWithSimcond(configName, configVersion, long(simcondid), procPass, long(evtId), long(prod), ftype)
+    result = server.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
     return result
   
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getFilesWithSimcond(configName, configVersion, long(simcondid), procPass, long(evtId), long(prod), ftype, progName, progVersion)
+    result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     return result
  
   def getSimConditions(self):
@@ -178,18 +178,25 @@ class BookkeepingClient:
 
   
   #############################################################################
-  def getSimCondWithEventType(self, configName, configVersion, eventType):
+  def getSimCondWithEventType(self, configName, configVersion, eventType, realdata=0):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getSimCondWithEventType(configName, configVersion, long(eventType))
+    result = server.getSimCondWithEventType(configName, configVersion, eventType, realdata)
     return result
     
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    result = server.getProPassWithEventType(configName, configVersion, long(eventType), long(simcond))
+    result = server.getProPassWithEventType(configName, configVersion, eventType, simcond)
     return result
         
-
+  #############################################################################
+  def getJobInfo(self, lfn):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    result = server.getJobInfo(lfn)
+    return result
+  
+  
+  
 
 
 

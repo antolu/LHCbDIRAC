@@ -1,0 +1,77 @@
+<ui version="4.0" >
+ <class>TreeWidget</class>
+ <widget class="QWidget" name="TreeWidget" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>433</width>
+    <height>780</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <widget class="QGroupBox" name="selection" >
+   <property name="geometry" >
+    <rect>
+     <x>10</x>
+     <y>650</y>
+     <width>421</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="title" >
+    <string>Queries</string>
+   </property>
+   <widget class="QRadioButton" name="radioButton_2" >
+    <property name="geometry" >
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>421</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text" >
+     <string>Event type/SimCond/ProcessingPass/Production/FileType/Program/Files</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="configNameRadioButton" >
+    <property name="geometry" >
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>411</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text" >
+     <string>SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QTreeWidget" name="tree" >
+   <property name="geometry" >
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>411</width>
+     <height>621</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text" >
+     <string>Path</string>
+    </property>
+   </column>
+  </widget>
+  <action name="configNameRadioButton" >
+   <property name="text" >
+    <string>config_click</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

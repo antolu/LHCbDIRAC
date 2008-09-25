@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.27 2008/09/16 13:48:31 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.28 2008/09/25 15:50:33 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.27 2008/09/16 13:48:31 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.28 2008/09/25 15:50:33 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -33,39 +33,26 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
 
   #############################################################################
-  def getSimulationConditions(self, configName, configVersion):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getSimulationConditions', [configName, configVersion])
-  
-  #############################################################################
-  def getProPassWithSimCond(self, configName, configVersion, simcondid):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getProPassWithSimCond', [configName, configVersion, simcondid])
-  
-  #############################################################################
-  def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypeWithSimcond', [configName, configVersion, simcondid, procPass])
-  
-  #############################################################################
-  def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getProductionsWithSimcond', [configName, configVersion, simcondid, procPass, evtId])
-  
-  #############################################################################
-  def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getFileTypesWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod])
-  
-  #############################################################################  
-  def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getProgramNameWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod, ftype])
-  
-  #############################################################################  
-  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getFilesWithSimcond', [configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion])
-    
-    
-    
-    
-    
-    
-    
+  def getSimulationConditions(self, configName, configVersion, realdata):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                bookkeepingview.configversion=\''+configVersion+'\''
+    if realdata==0:
+      command = 'select distinct SIMID, SIMDESCRIPTION,BEAMCOND,BEAMENERGY,GENERATOR,MAGNETICFIELD,DETECTORCOND,LUMINOSITY \
+                    from simulationConditions,bookkeepingView where            \
+                    bookkeepingview.DAQPeriodId=simulationConditions.simid' + condition
+      res = self.db_._query(command)
+      return res
+    else:
+      command = 'select data_taking_conditions.DAQPERIODID,data_taking_conditions.DESCRIPTION,data_taking_conditions.BEAMCOND, \
+                data_taking_conditions.BEAMENERGY,data_taking_conditions.MAGNETICFIELD,data_taking_conditions.VELO,data_taking_conditions.IT, \
+               data_taking_conditions.TT,data_taking_conditions.OT,data_taking_conditions.RICH1,data_taking_conditions.RICH2,data_taking_conditions.SPD_PRS, \
+             data_taking_conditions.ECAL \
+          from data_taking_conditions,bookkeepingView where \
+               bookkeepingview.DAQPeriodId=data_taking_conditions.DAQPERIODID'+ condition
+      res = self.db_._query(command)
+      return res
+    return S_ERROR("Data not found!")
+               
   #############################################################################
   def getAvailableEventTypes(self):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getAvailableEventTypes', [])
@@ -74,18 +61,284 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getEventTypes(self, configName, configVersion):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getEventTypes', [configName, configVersion])
   
+   #nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnneeeeeeeeeeeeeeeeeeewwwwwwwwwwwwwwwwwwwwwww
   #############################################################################
-  def getSimCondWithEventType(self, configName, configVersion, eventType):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getSimCondWithEventType', [configName, configVersion, eventType])
+  def getProPassWithSimCond(self, configName, configVersion, simcondid):
+    
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if simcondid !='ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+                
+    command = 'select distinct processing_pass.TOTALPROCPASS,  \
+               pass_index.step0, pass_index.step1, pass_index.step2, \
+               pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6  from bookkeepingview,processing_pass,pass_index where \
+               bookkeepingview.production=processing_pass.production and \
+               processing_pass.passid=pass_index.passid'+condition
+    res = self.db_._query(command)
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[0].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[0]=description[:-3] 
+      retvalue += [tuple(tmp)]
+    print retvalue
+    return S_OK(retvalue)
+  
+  #############################################################################
+  def getDescription(self, id):
+    command = 'select groupdescription from pass_group where groupid='+str(id)
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getGroupId(self, description):
+    command = 'select groupid from pass_group where groupdescription=\''+str(description)+'\''
+    res = self.db_._query(command)
+    return res
+    
+  #############################################################################
+  def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    if simcondid != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc)['Value'][0][0]
+        totalproc = str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+    
+    command ='select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,bookkeepingview,processing_pass where \
+         bookkeepingview.production=processing_pass.production and \
+         eventTypes.EventTypeId=bookkeepingview.eventtypeid'+condition
+  
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if simcondid != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc)['Value'][0][0]
+        totalproc = str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+    
+    if evtId != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    
+    command = 'select distinct bookkeepingview.production from bookkeepingview,processing_pass where \
+         bookkeepingview.production=processing_pass.production'+condition
+  
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if simcondid != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc)['Value'][0][0]
+        totalproc = str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+          
+    if evtId != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    
+    if prod != 'ALL':
+      condition += ' and bookkeepingview.production='+str(prod)
+    
+    command = 'select distinct filetypes.name from filetypes,bookkeepingview,processing_pass where \
+               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=processing_pass.production'+condition
+               
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
+    condition = ' and configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+    
+    if simcondid != 'ALL':
+      condition += ' and jobs.DAQPeriodId='+str(simcondid)
+    
+    if procPass != 'ALL':
+      pass #condition += ' and processing_pass.TOTALPROCPASS=\''+procPass+'\''
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if prod != 'ALL':
+      condition += ' and jobs.Production='+str(prod)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.db_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    '''
+    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations where \
+          files.JobId=jobs.JobId and \
+          files.GotReplica=\'Yes\' and \
+          jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
+    '''
+    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, 0 from jobs,files,configurations where \
+          files.JobId=jobs.JobId and \
+          files.GotReplica=\'Yes\' and \
+          jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
+    print command
+    res = self.db_._query(command)
+    print res
+    return res
+  
+  #############################################################################
+  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    condition = ' and configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+    
+    if simcondid != 'ALL':
+      condition += ' and jobs.DAQPeriodId='+str(simcondid)
+    
+    if procPass != 'ALL':
+      pass #condition += ' and processing_pass.TOTALPROCPASS=\''+procPass+'\''
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if prod != 'ALL':
+      condition += ' and jobs.Production='+str(prod)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.db_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    
+    if progName != 'ALL' and progVersion != 'ALL':
+      condition += ' and jobs.ProgramName=\''+progName+'\''
+      condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+         
+    if ftype == 'ALL':
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from \
+         jobs,files,configurations,filetypes \
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid and \
+         files.filetypeid=filetypes.filetypeid' + condition
+    else:
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from \
+         jobs,files,configurations\
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid' + condition 
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getSimCondWithEventType(self, configName, configVersion, eventType, realdata = 0):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if eventType != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(eventType)
+    
+    if realdata != 0:
+      command = 'select data_taking_conditions.DAQPERIODID,data_taking_conditions.DESCRIPTION,data_taking_conditions.BEAMCOND, \
+                data_taking_conditions.BEAMENERGY,data_taking_conditions.MAGNETICFIELD,data_taking_conditions.VELO,data_taking_conditions.IT, \
+               data_taking_conditions.TT,data_taking_conditions.OT,data_taking_conditions.RICH1,data_taking_conditions.RICH2,data_taking_conditions.SPD_PRS, \
+             data_taking_conditions.ECAL \
+          from data_taking_conditions,bookkeepingView where \
+               bookkeepingview.DAQPeriodId=data_taking_conditions.DAQPERIODID'+ condition
+    else:
+      command = 'select distinct SIMID, SIMDESCRIPTION,BEAMCOND,BEAMENERGY,GENERATOR,MAGNETICFIELD,DETECTORCOND,LUMINOSITY \
+               from simulationConditions,bookkeepingView where bookkeepingview.DAQPeriodId=simulationConditions.simid' + condition
+    
+    res = self.db_._query(command)
+    return res
   
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.getProPassWithEventType', [configName, configVersion, eventType, simcond])
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if eventType != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(eventType)
+    
+    if  simcond != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcond)
+  
+    command = 'select distinct processing_pass.TOTALPROCPASS, pass_index.step0, pass_index.step1, pass_index.step2, pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6 \
+       from bookkeepingview,processing_pass,pass_index where \
+            bookkeepingview.production=processing_pass.production and \
+            processing_pass.passid=pass_index.passid'+ condition
+    res = self.db_._query(command)
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[0].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[0]=description[:-3] 
+      retvalue += [tuple(tmp)]
+    print retvalue
+    return S_OK(retvalue)
   
   #############################################################################
+  def getJobInfo(self, lfn):
+    command = 'select jobid from files where filename=\''+lfn+'\''
+    res = self.db_._query(command)
+    if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+    else:
+      jobid = res['Value'][0][0]
+      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER, GENERATOR, \
+                 GEOMETRYVERSION, GRIDJOBID, LOCALJOBID, LOCATION,  NAME, NUMBEROFEVENTS, \
+                 STATISTICSREQUESTED, WNCPUPOWER, WNCPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE  from jobs where jobid='+str(jobid)
+      res = self.db_._query(command)
+      return res
+    return S_ERROR("Job is not found!")
+
+
   
   
-    
   
   #############################################################################
   def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
@@ -290,7 +543,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if len(res)!=0:
         return S_OK(res)
       else:
-        gLogger.error("File not found! ",str(fileName))
+        gLogger.warn("File not found! ",str(fileName))
         return S_ERROR("File not found!"+str(fileName))
     else:
       return S_ERROR(result['Message'])

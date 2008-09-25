@@ -1,0 +1,59 @@
+########################################################################
+# $Id: MainWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+########################################################################
+
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui  import *
+
+from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget_ui                 import Ui_MainWidget
+from DIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import ControlerMain
+from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Item
+from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
+from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
+
+__RCSID__ = "$Id: MainWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+
+#############################################################################  
+class MainWidget(QMainWindow, Ui_MainWidget):
+  
+  #############################################################################  
+  def __init__(self, parent = None):
+    super(MainWidget, self).__init__()
+    """
+    Constructor
+    
+    @param parent parent widget (QWidget)
+    
+    """
+    #self.__bkClient = LHCB_BKKDBClient()
+    self.__controler = ControlerMain(None, None)
+    QMainWindow.__init__(self, parent)
+    self.setupUi(self)
+
+    self.__controler.addChild('TreeWidget', self.tree.getControler())
+    self.connect(self.actionExit, SIGNAL("triggered()"),
+                     self, SLOT("close()"))
+    #self.__controler.addChild('TableWidget', self.tableWidget.getControler())
+        
+  #############################################################################  
+  def getControler(self):
+    return self.__controler
+  
+  #############################################################################  
+  def start(self):
+    self.__controler.start()
+    '''
+    item = self.__bkClient.get()
+    items=Item(item,None)
+    path = item['Value']['fullpath']
+    for entity in self.__bkClient.list(path):
+      childItem = Item(entity,items)
+      items.addItem(childItem)
+    message = Message({'action':'list','items':items})
+    self.getControler().messageFromParent(message)
+    '''
+  #############################################################################  
+              
+  
+  

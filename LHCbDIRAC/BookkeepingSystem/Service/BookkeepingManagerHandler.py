@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.71 2008/09/16 13:48:32 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.72 2008/09/25 15:50:35 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.71 2008/09/16 13:48:32 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.72 2008/09/25 15:50:35 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -172,37 +172,37 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getAvailableConfigurations()
     
   #############################################################################
-  types_getSimulationConditions = [StringType, StringType]
-  def export_getSimulationConditions(self, configName, configVersion):
-    return dataMGMT_.getSimulationConditions(configName, configVersion)
+  types_getSimulationConditions = [StringType, StringType, IntType ]
+  def export_getSimulationConditions(self, configName, configVersion, realdata):
+    return dataMGMT_.getSimulationConditions(configName, configVersion, realdata)
   
   #############################################################################
-  types_getProPassWithSimCond = [StringType, StringType, LongType]
+  types_getProPassWithSimCond = [StringType, StringType, StringType]
   def export_getProPassWithSimCond(self, configName, configVersion, simcondid):
     return dataMGMT_.getProPassWithSimCond(configName, configVersion, simcondid)
   
   #############################################################################
-  types_getEventTypeWithSimcond = [StringType, StringType, LongType, StringType]
+  types_getEventTypeWithSimcond = [StringType, StringType, StringType, StringType]
   def export_getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
     return dataMGMT_.getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
   
   #############################################################################
-  types_getProductionsWithSimcond = [StringType, StringType, LongType, StringType, LongType]
+  types_getProductionsWithSimcond = [StringType, StringType, StringType, StringType, StringType]
   def export_getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
     return dataMGMT_.getProductionsWithSimcond(configName, configVersion, simcondid, procPass, evtId)
   
   #############################################################################
-  types_getFileTypesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType]
+  types_getFileTypesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
     return dataMGMT_.getFileTypesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod)
   
   #############################################################################  
-  types_getProgramNameWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType]
+  types_getProgramNameWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
     return dataMGMT_.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
   
   #############################################################################  
-  types_getFilesWithSimcond = [StringType, StringType, LongType, StringType, LongType, LongType, StringType, StringType, StringType]
+  types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     res = setupShifterProxyInEnv( "ProductionManager" )
     if not res[ 'OK' ]:
@@ -229,12 +229,12 @@ class BookkeepingManagerHandler(RequestHandler):
 
   
   #############################################################################
-  types_getSimCondWithEventType = [StringType, StringType, LongType]
-  def export_getSimCondWithEventType(self, configName, configVersion, eventType):
-    return dataMGMT_.getSimCondWithEventType(configName, configVersion, eventType)
+  types_getSimCondWithEventType = [StringType, StringType, StringType, IntType]
+  def export_getSimCondWithEventType(self, configName, configVersion, eventType, realdata):
+    return dataMGMT_.getSimCondWithEventType(configName, configVersion, eventType, realdata)
   
   #############################################################################
-  types_getProPassWithEventType = [StringType, StringType, LongType, LongType]
+  types_getProPassWithEventType = [StringType, StringType, StringType, StringType]
   def export_getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     return dataMGMT_.getProPassWithEventType(configName, configVersion, eventType, simcond)
   
@@ -314,7 +314,12 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
     return dataMGMT_.getProgramNameAndVersion(configName, configVersion, eventType, prod, fileType)
   
-  #-----------------------------------Event Types------------------------------------------------------------------
+  #############################################################################
+  types_getJobInfo = [StringType]
+  def export_getJobInfo(self, lfn):
+    return dataMGMT_.getJobInfo(lfn)
+  
+  # ----------------------------------Event Types------------------------------------------------------------------
   #############################################################################  
   types_getAvailableEventTypes = []
   def export_getAvailableEventTypes(self):
