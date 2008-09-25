@@ -1,4 +1,4 @@
-# $Id: SrmSpaceTokenAgent.py,v 1.2 2008/09/25 16:33:29 acasajus Exp $
+# $Id: SrmSpaceTokenAgent.py,v 1.3 2008/09/25 16:36:32 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -81,6 +81,7 @@ class SrmSpaceTokenAgent(Agent):
                 acRecord.setValueByKey( "Site", name )
                 acRecord.setValueByKey( "Hostname", host )
                 acRecord.setValueByKey( "SpaceTokenDesc", token[0][1]['GlueVOInfoTag'][0] )
+                saDict = sa[0][1]
                 for acKey, glueKey in ( ( 'AvailableSpace', 'GlueSAStateAvailableSpace' ),
                                         ( 'UsedSpace', 'GlueSAStateUsedSpace' ),
                                         ( 'TotalOnline', 'GlueSATotalOnlineSize' ),
@@ -92,14 +93,18 @@ class SrmSpaceTokenAgent(Agent):
                                         ( 'FreeNearline', 'GlueSAFreeNearlineSize' ),
                                         ( 'ReservedNearline', 'GlueSAReservedNearlineSize' )
                                       ):
-                  acRecord.setValueByKey( acKey, int( sa[0][1][ glueKey ][0] ) )
+                  if glueKey in saDict:
+                    acRecord.setValueByKey( acKey, int( saDict[ glueKey ][0] ) )
+                  else:
+                    #HACK: Some entries seem to have some glue keys missing
+                    acRecord.setValueByKey( acKey, 0 )
                 acRecord.setStartTime( now )
                 acRecord.setEndTime( now )
                 result = gDataStoreClient.addRegister( acRecord )
                 if not result[ 'OK' ]:
                   return result
 
-    return repClient.commit()
+    return gDataStoreClient.commit()
 
   def get_sites( self, l, site):
     base = 'o=grid'
