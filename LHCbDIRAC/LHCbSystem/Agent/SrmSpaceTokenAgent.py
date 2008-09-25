@@ -1,4 +1,4 @@
-# $Id: SrmSpaceTokenAgent.py,v 1.1 2008/09/22 15:35:10 gcowan Exp $
+# $Id: SrmSpaceTokenAgent.py,v 1.2 2008/09/25 16:33:29 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -8,18 +8,20 @@ __version__ = 0.1
 Queries BDII to pick out information about SRM2.2 space token descriptions.
 '''
 
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.Agent import Agent
-from DIRAC.Core.Accounting.Types.SRMSpaceTokenDeployment import SRMSpaceTokenDeployment
-from DIRAC.Core.Accounting.Client.DataStoreClient import gDataStoreClient
+from DIRAC.AccountingSystem.Client.Types.SRMSpaceTokenDeployment import SRMSpaceTokenDeployment
+from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
+from DIRAC.Core.Utilities import Time
 
 import sys, os
 import re
 import ldap
 
-AGENT_NAME = "SrmSpaceTokenAgent"
+AGENT_NAME = "LHCb/SrmSpaceTokenAgent"
 
 class SrmSpaceTokenAgent(Agent):
+
   def __init__( self ):
     Agent.__init__( self, AGENT_NAME )
 
@@ -27,63 +29,72 @@ class SrmSpaceTokenAgent(Agent):
     result = Agent.initialize( self )
     if not result[ 'OK' ]:
       return result
-    #HERE COMES YOUR SERIOUS INITIALIZATION THINGS
-    result = self.initWorld()
-    if not result[ 'OK' ]:
-      return result
-    worldName = result[ 'Value' ]
-    self.registerWorld( worldName )
+    bdiiServerLocation = gConfig.getValue( "%s/BDIIServer" % self.section, 'lcg-bdii.cern.ch:2170' )
+    self.bdiiServerPort = 2170
+    bdiiSplit = bdiiServerLocation.split( ":" )
+    self.bdiiServerHostname = bdiiSplit[0]
+    if len( bdiiSplit ) > 1:
+      try:
+        self.bdiiServerPort = int( bdiiSplit[1] )
+      except:
+        pass
     return S_OK()
 
   #This method is the one being executed to do the real task
   def execute( self ):
-    server = 'lcg-bdii.cern.ch:2170'
     who = ''
     cred = ''
-
+    gLogger.info( "Connecting to BDII server at %s:%s" % ( self.bdiiServerHostname,
+                                                           self.bdiiServerPort ) )
     try:
-        l = ldap.open( server)
-        l.simple_bind_s( who, cred)
-        print 'Successfully bound to server.'
-        print 'Searching..\n'
+      l = ldap.open( self.bdiiServerHostname, self.bdiiServerPort )
+      l.simple_bind_s( who, cred)
+      gLogger.info( 'Successfully bound to server\nSearching...' )
     except ldap.LDAPError, error_message:
-        print 'Could not connect. %s ' % error_message
+      gLogger.error( 'Could not connect', ' to %s:%s : %s' % ( self.bdiiServerHostname,
+                                                               self.bdiiServerPort,
+                                                               str( error_message ) ) )
+      return S_ERROR
 
     #sites = get_sites( l, site)
     # For this LHCb application, I'll hardcode the sites of interest
     sites = ['RAL-LCG2', 'FZK-LCG2', 'SARA-MATRIX',
              'CERN-PROD', 'UKI-SCOTGRID-ECDF', 'IN2P3-CC',
              'GRIF-LAL', 'csTCDie', 'INFN-T1', 'pic']
+    sites = gConfig.getValue( "%s/Sites" % self.section, sites )
+    now = Time.dateTime()
     for site in sites:
       #name = site[0][1]['GlueSiteUniqueID'][0]
       name = site
-      ses = get_SEs( l, name)
+      ses = self.get_SEs( l, name)
       for se in ses:
         host = se[0][1]['GlueSEUniqueID'][0]
-        print host
-        sas = get_SAs( l, host)
-        tokens = get_VOInfo( l, host)
+        gLogger.verbose( " Host: %s" % host )
+        sas = self.get_SAs( l, host)
+        tokens = self.get_VOInfo( l, host)
         for sa in sas:
           localID = sa[0][1]['GlueSALocalID'][0]
           for token in tokens:
             for i in token[0][1]['GlueChunkKey']:
               if i == 'GlueSALocalID='+localID and token[0][1]['GlueVOInfoName'][0].split(':')[0] == 'lhcb':
                 acRecord = SRMSpaceTokenDeployment()
-                acRecord.setValue( "site", name )
-                acRecord.setValue( "uniqueid", host )
-                acRecord.setValue( "vo", token[0][1]['GlueVOInfoName'][0].split(':')[0] )
-                acRecord.setValue( "voinfotag", token[0][1]['GlueVOInfoTag'][0] )
-                acRecord.setValue( "availablespace", sa[0][1]['GlueSAStateAvailableSpace'][0] )
-                acRecord.setValue( "usedspace", sa[0][1]['GlueSAStateUsedSpace'][0] )
-                acRecord.setValue( "totalonline", sa[0][1]['GlueSATotalOnlineSize'][0] )
-                acRecord.setValue( "usedonline", sa[0][1]['GlueSAUsedOnlineSize'][0] )
-                acRecord.setValue( "freeonline", sa[0][1]['GlueSAFreeOnlineSize'][0] )
-                acRecord.setValue( "reservedonline", sa[0][1]['GlueSAReservedOnlineSize'][0] )
-                acRecord.setValue( "totalnearline", sa[0][1]['GlueSATotalNearlineSize'][0] )
-                acRecord.setValue( "usednearline", sa[0][1]['GlueSAUsedNearlineSize'][0] )
-                acRecord.setValue( "freenearline", sa[0][1]['GlueSAFreeNearlineSize'][0])
-                acRecord.setValue( "reservednearline", sa[0][1]['GlueSAReservedNearlineSize'][0] )
-
+                acRecord.setValueByKey( "Site", name )
+                acRecord.setValueByKey( "Hostname", host )
+                acRecord.setValueByKey( "SpaceTokenDesc", token[0][1]['GlueVOInfoTag'][0] )
+                for acKey, glueKey in ( ( 'AvailableSpace', 'GlueSAStateAvailableSpace' ),
+                                        ( 'UsedSpace', 'GlueSAStateUsedSpace' ),
+                                        ( 'TotalOnline', 'GlueSATotalOnlineSize' ),
+                                        ( 'UsedOnline', 'GlueSAUsedOnlineSize' ),
+                                        ( 'FreeOnline', 'GlueSAFreeOnlineSize' ),
+                                        ( 'ReservedOnline', 'GlueSAReservedOnlineSize' ),
+                                        ( 'TotalNearline', 'GlueSATotalNearlineSize' ),
+                                        ( 'UsedNearline', 'GlueSAUsedNearlineSize' ),
+                                        ( 'FreeNearline', 'GlueSAFreeNearlineSize' ),
+                                        ( 'ReservedNearline', 'GlueSAReservedNearlineSize' )
+                                      ):
+                  acRecord.setValueByKey( acKey, int( sa[0][1][ glueKey ][0] ) )
+                acRecord.setStartTime( now )
+                acRecord.setEndTime( now )
                 result = gDataStoreClient.addRegister( acRecord )
                 if not result[ 'OK' ]:
                   return result
@@ -95,7 +106,7 @@ class SrmSpaceTokenAgent(Agent):
     scope = ldap.SCOPE_SUBTREE
     filter = 'GlueSiteUniqueID=%s' % site
     retrieve_attributes = ['GlueSiteUniqueID']
-    return search( l, base, scope, filter, retrieve_attributes)
+    return self.search( l, base, scope, filter, retrieve_attributes)
 
   def get_SEs( self, l, site):
     base = 'o=grid'
@@ -114,7 +125,7 @@ class SrmSpaceTokenAgent(Agent):
                            'GlueSchemaVersionMajor',
                            'GlueSchemaVersionMinor']
 
-    return search( l, base, scope, filter, retrieve_attributes)
+    return self.search( l, base, scope, filter, retrieve_attributes)
 
   def get_SAs( self, l, se):
     base = 'o=grid'
@@ -137,7 +148,7 @@ class SrmSpaceTokenAgent(Agent):
                            'GlueSAReservedNearlineSize',
                            'GlueChunkKey']
 
-    return search( l, base, scope, filter, retrieve_attributes)
+    return self.search( l, base, scope, filter, retrieve_attributes)
 
   def get_VOInfo( self, l, se):
     base = 'o=grid'
@@ -151,7 +162,7 @@ class SrmSpaceTokenAgent(Agent):
                            'GlueVOInfoTag',
                            'GlueChunkKey']
 
-    return search( l, base, scope, filter, retrieve_attributes)
+    return self.search( l, base, scope, filter, retrieve_attributes)
 
   def search( self, l, base, scope, filter, retrieve_attributes):
     result_set = []
@@ -166,6 +177,6 @@ class SrmSpaceTokenAgent(Agent):
                 if result_type == ldap.RES_SEARCH_ENTRY:
                     result_set.append(result_data)
     except ldap.LDAPError, error_message:
-        print error_message
+        gLogger.warn( "Can't search for", "%s %s %s %s" % ( base, scope, filter, str( error_message ) ) )
     return result_set
 
