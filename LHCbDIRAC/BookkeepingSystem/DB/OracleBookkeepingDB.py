@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.28 2008/09/25 15:50:33 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.29 2008/09/25 16:10:24 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.28 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.29 2008/09/25 16:10:24 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -89,7 +89,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
         description += result +' + '
       tmp[0]=description[:-3] 
       retvalue += [tuple(tmp)]
-    print retvalue
     return S_OK(retvalue)
   
   #############################################################################
@@ -217,9 +216,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           files.JobId=jobs.JobId and \
           files.GotReplica=\'Yes\' and \
           jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
-    print command
     res = self.db_._query(command)
-    print res
     return res
   
   #############################################################################
@@ -318,7 +315,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
         description += result +' + '
       tmp[0]=description[:-3] 
       retvalue += [tuple(tmp)]
-    print retvalue
     return S_OK(retvalue)
   
   #############################################################################
