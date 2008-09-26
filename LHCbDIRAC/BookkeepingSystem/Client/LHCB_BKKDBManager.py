@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.54 2008/09/26 11:09:20 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.55 2008/09/26 11:29:44 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.54 2008/09/26 11:09:20 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.55 2008/09/26 11:29:44 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -426,7 +426,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':int(evtType)}
+          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':evtType}
           self.files_ += [record[0]]
           entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)    
@@ -708,7 +708,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':ftype, 'EvtTypeId':int(evtType)}
+          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':ftype, 'EvtTypeId':evtType}
           self.files_ += [record[0]]
           entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)    
