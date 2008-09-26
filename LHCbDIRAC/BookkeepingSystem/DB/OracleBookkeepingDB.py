@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.29 2008/09/25 16:10:24 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.30 2008/09/26 11:09:20 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.29 2008/09/25 16:10:24 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.30 2008/09/26 11:09:20 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -114,8 +114,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc)['Value'][0][0]
-        totalproc = str(result)+"<"
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
     
@@ -138,8 +138,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc)['Value'][0][0]
-        totalproc = str(result)+"<"
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
     
@@ -164,8 +164,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc)['Value'][0][0]
-        totalproc = str(result)+"<"
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
           
@@ -190,8 +190,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.DAQPeriodId='+str(simcondid)
     
     if procPass != 'ALL':
-      pass #condition += ' and processing_pass.TOTALPROCPASS=\''+procPass+'\''
-    
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and processing_pass.PRODUCTION=jobs.production'
+
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
     
@@ -212,7 +219,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           files.GotReplica=\'Yes\' and \
           jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
     '''
-    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, 0 from jobs,files,configurations where \
+    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations,processing_pass where \
           files.JobId=jobs.JobId and \
           files.GotReplica=\'Yes\' and \
           jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
@@ -228,7 +235,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.DAQPeriodId='+str(simcondid)
     
     if procPass != 'ALL':
-      pass #condition += ' and processing_pass.TOTALPROCPASS=\''+procPass+'\''
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and processing_pass.PRODUCTION=jobs.production'
+      
     
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
@@ -252,14 +267,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from \
-         jobs,files,configurations,filetypes \
+         jobs,files,configurations,filetypes,processing_pass \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from \
-         jobs,files,configurations\
+         jobs,files,configurations, processing_pass\
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition 
     res = self.db_._query(command)

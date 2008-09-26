@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.53 2008/09/25 15:50:34 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.54 2008/09/26 11:09:20 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.53 2008/09/25 15:50:34 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.54 2008/09/26 11:09:20 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -382,7 +382,7 @@ class LHCB_BKKDBManager(BaseESManager):
           programVersion = record[1]
           nb = record[2]
           program = programName+' '+programVersion
-          value = { 'Program Name':programName,'Program Version':programVersion}
+          value = { 'Program Name':programName,'Program Version':programVersion,'Number of events':nb}
           entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'List of files')]
         self._cacheIt(entityList)
       else:
@@ -668,7 +668,7 @@ class LHCB_BKKDBManager(BaseESManager):
           programVersion = record[1]
           nb = record[2]
           program = programName+' '+programVersion
-          value = { 'Program Name':programName,'Program Version':programVersion}
+          value = { 'Program Name':programName,'Program Version':programVersion,'Number of events':nb}
           entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'List of files')]
         self._cacheIt(entityList)
       else:
