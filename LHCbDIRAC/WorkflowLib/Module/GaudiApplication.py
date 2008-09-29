@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.80 2008/09/29 13:58:14 joel Exp $
+# $Id: GaudiApplication.py,v 1.81 2008/09/29 15:17:33 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.80 2008/09/29 13:58:14 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.81 2008/09/29 15:17:33 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -294,7 +294,8 @@ class GaudiApplication(ModuleBase):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
-    cmd = "python $VO_LHCB_SW_DIR/lib/scripts/python/SetupProject.py --shell=sh --silent "
+    cmd = "python "+os.environ['VO_LHCB_SW_DIR']+"/lib/scripts/python/SetupProject.py --shell=sh --silent "
+    self.log.info(cmd)
     for l in os.popen(cmd + self.applicationName +" "+self.applicationVersion):
       if l.startswith("export PATH="):
          path = l.split('"')[1].split(os.pathsep)
