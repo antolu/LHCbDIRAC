@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.8 2008/09/29 13:13:34 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.9 2008/09/29 14:22:51 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.8 2008/09/29 13:13:34 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.9 2008/09/29 14:22:51 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -214,7 +214,7 @@ class GaudiApplicationScript(object):
     compatLib = os.path.join( self.root, self.systemConfig, 'compat' )
     if os.path.exists(compatLib):
       gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % compatLib
-    gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
+    # gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
