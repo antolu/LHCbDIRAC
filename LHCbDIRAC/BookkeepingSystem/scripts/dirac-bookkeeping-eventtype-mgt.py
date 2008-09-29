@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.5 2008/09/29 09:12:26 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.6 2008/09/29 09:46:26 zmathe Exp $
 # File :   dirac-bookkeeping-eventtype-mgt
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.5 2008/09/29 09:12:26 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.6 2008/09/29 09:46:26 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -20,20 +20,9 @@ Script.parseCommandLine( ignoreErrors = True )
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
-args = Script.getPositionalArgs()
-
 fileName = ''
 insert = False
 update = False
-
-def usage():
-  print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
-  DIRAC.exit(2)
-
-if len(args) < 1:
-  usage()
-
-exitCode = 0
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == "insert":
@@ -45,6 +34,16 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0] == "help":
     command()
       
+def usage():
+  print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
+  DIRAC.exit(2)
+
+args = Script.getPositionalArgs()
+
+if len(args) < 1:
+  usage()
+
+exitCode = 0
 
 def command():
   #print 'dirac-bookkeeping-eventMgmt [-u|-i  <file name>] | -h | --help\n'
