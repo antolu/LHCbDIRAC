@@ -1,0 +1,22 @@
+#============================================================================
+# Created    : 2008-09-24
+# Maintainer : Philippe Charpentier
+#============================================================================
+package           DiracConfig
+version           v1r0
+
+macro py_vers_cmd "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py"
+macro py_vers_cmd2 "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py -2"
+macro Python_config_version_twodigit   `$(py_vers_cmd2)`
+macro Python_config_version   `$(py_vers_cmd)`
+
+macro       lcgutils_native_version             "1.6.15"
+macro       gfal_native_version                 "1.10.17"
+
+macro       lfc_dpm_version                     "1.6.11"
+macro       lfc_native_version                  $(lfc_dpm_version)
+macro       dpm_native_version                  $(lfc_dpm_version)
+macro       lcgdmcommon_native_version          $(lfc_dpm_version)
+
+macro       pyqt_config_version            "4.2"
+macro       Qt_config_version              "4.3.0"
