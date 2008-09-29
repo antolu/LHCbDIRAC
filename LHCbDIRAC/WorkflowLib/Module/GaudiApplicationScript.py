@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.5 2008/08/05 13:51:08 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.6 2008/09/29 08:51:52 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.5 2008/08/05 13:51:08 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.6 2008/09/29 08:51:52 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -57,6 +57,7 @@ class GaudiApplicationScript(object):
   def resolveInputVariables(self):
     """ By convention the workflow parameters are resolved here.
     """
+    print self.step_commons
     if self.workflow_commons.has_key('SystemConfig'):
       self.systemConfig = self.workflow_commons['SystemConfig']
     else:
