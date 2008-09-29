@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.23 2008/08/05 13:57:09 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.24 2008/09/29 09:30:30 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.23 2008/08/05 13:57:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.23 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.24 2008/09/29 09:30:30 rgracian Exp $"
+__VERSION__ = "$Revision: 1.24 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -377,7 +377,7 @@ class GaudiApplication(object):
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
       v = gaudiEnv[k]
-      f.write( '%s=%s\n' % ( k,v ) )
+      f.write( '%s="%s"\n' % ( k,v ) )
     f.close()
 
     if optionsType == 'py':
