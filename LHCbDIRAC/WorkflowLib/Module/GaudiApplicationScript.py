@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.7 2008/09/29 09:30:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.8 2008/09/29 13:13:34 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.7 2008/09/29 09:30:30 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.8 2008/09/29 13:13:34 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -146,6 +146,10 @@ class GaudiApplicationScript(object):
     self.log.info( 'Application Root Found:', appRoot )
 
     cmtEnv = dict(os.environ)
+    if 'CMTPROJECTPATH' in cmtEnv:
+      print 'CMTPROJECTPATH',cmtEnv['CMTPROJECTPATH']
+      del cmtEnv['CMTPROJECTPATH']
+
     gaudiEnv = {}
 
     cmtEnv['MYSITEROOT'] = mySiteRoot
@@ -237,6 +241,7 @@ class GaudiApplicationScript(object):
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
     self.__report('%s %s' %(self.applicationName,self.applicationVersion))
     self.writeGaudiRun(gaudiCmd, gaudiEnv)
+    ret = shellCall(0,'which python',env=gaudiEnv,callbackFunction=self.redirectLogOutput)
     self.log.info( 'Running:', ' '.join(gaudiCmd)  )
     ret = shellCall(0,' '.join(gaudiCmd),env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
