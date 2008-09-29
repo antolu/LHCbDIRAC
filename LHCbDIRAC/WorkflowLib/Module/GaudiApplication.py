@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.78 2008/09/18 07:08:58 joel Exp $
+# $Id: GaudiApplication.py,v 1.79 2008/09/29 09:34:02 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.78 2008/09/18 07:08:58 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.79 2008/09/29 09:34:02 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -294,30 +294,52 @@ class GaudiApplication(ModuleBase):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
-    localArea  = LocalArea()
-    sharedArea = SharedArea()
-
-    # 1. Check if Application is available in Shared Area
-    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if appRoot:
-      mySiteRoot = sharedArea
-    else:
-      # 2. If not, check if available in Local Area
-      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
-      if appRoot:
-        mySiteRoot = localArea
-      else:
-        self.log.warn( 'Application not Found' )
+    cmd = "python $LHCBPYTHON/SetupProject.py --shell=sh --silent "
+    for l in os.popen(cmd + self.applicationName +" "+self.applicationVersion):
+      if l.startswith("export PATH="):
+         path = l.split('"')[1].split(os.pathsep)
+      if l.startswith("export "+self.applicationName.upper()+"ROOT="):
+         app_dir_path = str(l.split('"')[1].split(os.pathsep)[0])
+    for p in path:
+      if os.path.exists(os.path.join(p,"gaudirun.py")):
+        self.log.info("gaudirun.py found in %s" %( p ))
+        optionsType = 'py'
+        break
+      if os.path.exists(os.path.join(p,self.applicationName+".exe")):
+        self.log.info("%s.exe found in %s" %( self.applicationName, p ))
+        optionsType = 'opts'
+        break
+    self.log.info(" variable is %s " %(app_dir_path))
+    if not optionsType:
+        self.log.error( 'Application not Found' )
         self.setApplicationStatus( 'Application not Found' )
         self.result = S_ERROR( 'Application not Found' )
+
+
+#    localArea  = LocalArea()
+    sharedArea = SharedArea()
+    mySiteRoot = sharedArea
+    # 1. Check if Application is available in Shared Area
+#    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
+#    if appRoot:
+#      mySiteRoot = sharedArea
+#    else:
+      # 2. If not, check if available in Local Area
+#      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
+#      if appRoot:
+#        mySiteRoot = localArea
+#      else:
+#        self.log.warn( 'Application not Found' )
+#        self.setApplicationStatus( 'Application not Found' )
+#        self.result = S_ERROR( 'Application not Found' )
 
     if not self.result['OK']:
       return self.result
 
-    self.setApplicationStatus( 'Application Found' )
-    self.log.info( 'Application Root Found:', appRoot )
-    app_dir_path = appRoot
-    app_dir_path_install = os.path.join( appRoot,'InstallArea'  )
+#    self.setApplicationStatus( 'Application Found' )
+#    self.log.info( 'Application Root Found:', appRoot )
+#    app_dir_path = appRoot
+#    app_dir_path_install = os.path.join( appRoot,'InstallArea'  )
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
