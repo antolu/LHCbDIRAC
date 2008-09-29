@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.72 2008/09/25 15:50:35 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.73 2008/09/29 16:20:55 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.72 2008/09/25 15:50:35 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.73 2008/09/29 16:20:55 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -17,6 +17,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager              
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
 import time,sys,os
+import pickle
 
 global dataMGMT_
 dataMGMT_ = BookkeepingDatabaseClient()
@@ -520,4 +521,17 @@ class BookkeepingManagerHandler(RequestHandler):
   '''
   End Monitoring
   '''
+  #############################################################################
+  def transfer_toClient( self, parametes, token, fileHelper ):
+    select = parametes.split('>')
+    result = dataMGMT_.getFilesWithSimcond(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8])
+    if not result['OK']:
+      return S_ERROR(result['Message'])
+    fileString = pickle.dumps(result['Value'])
+    result = fileHelper.stringToNetwork(fileString)  
+    if result['OK']:
+      gLogger.info('Sent file %s of size %d' % (parametes,len(fileString)))
+    else:
+      return result
+    return S_OK()
     #-----------------------------------END Event Types------------------------------------------------------------------

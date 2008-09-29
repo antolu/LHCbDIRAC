@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.48 2008/09/25 15:50:34 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.49 2008/09/29 16:20:55 zmathe Exp $
 ########################################################################
 
 """
@@ -9,11 +9,12 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Base import Script
-import types
+from DIRAC.Core.DISET.TransferClient import TransferClient
+import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.48 2008/09/25 15:50:34 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.49 2008/09/29 16:20:55 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -167,9 +168,19 @@ class BookkeepingClient:
   
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    '''
     server = RPCClient('Bookkeeping/BookkeepingManager')
     result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
-    return result
+    '''
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
+    s = ''+configName+'>'+configVersion+'>'+str(simcondid)+'>'+str(procPass)+'>'+str(evtId)+'>'+str(prod)+'>'+str(ftype)+'>'+str(progName)+'>'+str(progVersion)
+    result = bkk.receiveFile('tmp.txt', s)
+    if not result['OK']:
+      return result
+    else:
+      value = pickle.load(open('tmp.txt'))
+      return S_OK(value)
+    return S_ERROR()
  
   def getSimConditions(self):
     server = RPCClient('Bookkeeping/BookkeepingManager')
@@ -437,7 +448,18 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getProductionInformation(long(prodid))
     
-  
+  def getconfig(self,jobID,output_dir=''):
+    """  Get the job complete sandbox
+    """
+
+    # Get the list of files in the sandbox
+    sandbox = TransferClient('Bookkeeping/BookkeepingManager')
+    result = sandbox.receiveFile('tmp.txt','sname')
+    print 'sasasa',result
+    if not result['OK']:
+      print 'hiba'
+    else:
+      return result
   '''
   END Monitoring
   '''
