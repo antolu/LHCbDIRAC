@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.85 2008/09/30 09:38:51 joel Exp $
+# $Id: GaudiApplication.py,v 1.86 2008/09/30 14:33:53 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.85 2008/09/30 09:38:51 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.86 2008/09/30 14:33:53 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -38,6 +38,7 @@ class GaudiApplication(ModuleBase):
     self.systemConfig = ''
     self.applicationLog = ''
     self.applicationName = ''
+    self.optionsType = 'py'
     self.inputDataType = 'MDF'
     self.numberOfEvents = 0
     self.inputData = '' # to be resolved
@@ -224,6 +225,9 @@ class GaudiApplication(ModuleBase):
        self.applicationVersion = self.step_commons['applicationVersion']
        self.applicationLog = self.step_commons['applicationLog']
 
+    if self.step_commons.has_key('optionsType'):
+       self.optionsType = self.step_commons['optionsType']
+
     if self.step_commons.has_key('numberOfEvents'):
        self.numberOfEvents = self.step_commons['numberOfEvents']
 
@@ -259,7 +263,6 @@ class GaudiApplication(ModuleBase):
   def execute(self):
 
     self.resolveInputVariables()
-    optionsType = ''
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
@@ -296,58 +299,11 @@ class GaudiApplication(ModuleBase):
 
     sharedArea = SharedArea()
     mySiteRoot = sharedArea
-    cmd = "python "+mySiteRoot+"/scripts/python/SetupProject.py --shell=sh --silent "
-    self.log.info(cmd)
-    os.system("ls -al "+mySiteRoot+"/scripts/python/SetupProject.py")
-#    os.system(cmd + self.applicationName+" "+self.applicationVersion)
-    for l in os.popen(cmd + self.applicationName+" "+self.applicationVersion):
-      self.log.info(l)
-      if l.startswith("export PATH="):
-         path = l.split('"')[1].split(os.pathsep)
-      if l.startswith("export "+self.applicationName.upper()+"ROOT="):
-         app_dir_path = str(l.split('"')[1].split(os.pathsep)[0])
-    for p in path:
-      if os.path.exists(os.path.join(p,"gaudirun.py")):
-        self.log.info("gaudirun.py found in %s" %( p ))
-        optionsType = 'py'
-        break
-      if os.path.exists(os.path.join(p,self.applicationName+".exe")):
-        self.log.info("%s.exe found in %s" %( self.applicationName, p ))
-        optionsType = 'opts'
-        break
-    self.log.info(" variable is %s " %(app_dir_path))
-    if not optionsType:
-        self.log.error( 'Application not Found' )
-        self.setApplicationStatus( 'Application not Found' )
-        self.result = S_ERROR( 'Application not Found' )
-
-
-#    localArea  = LocalArea()
-    # 1. Check if Application is available in Shared Area
-#    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-#    if appRoot:
-#      mySiteRoot = sharedArea
-#    else:
-      # 2. If not, check if available in Local Area
-#      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
-#      if appRoot:
-#        mySiteRoot = localArea
-#      else:
-#        self.log.warn( 'Application not Found' )
-#        self.setApplicationStatus( 'Application not Found' )
-#        self.result = S_ERROR( 'Application not Found' )
-
-    if not self.result['OK']:
-      return self.result
-
-#    self.setApplicationStatus( 'Application Found' )
-#    self.log.info( 'Application Root Found:', appRoot )
-#    app_dir_path = appRoot
-#    app_dir_path_install = os.path.join( appRoot,'InstallArea'  )
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
+    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     if self.optionsFile:
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,fileopt)):
@@ -360,14 +316,12 @@ class GaudiApplication(ModuleBase):
           else:
             self.optfile += ' '+fileopt
 
-    if self.optionsFile.split(';')[0].find('.opts') > 0:
-      self.optfile_extra = 'gaudi_extra_options.opts'
-      optionsType = 'opts'
-      self.manageOpts()
-    else:
-      optionsType = 'py'
+    if self.optionsType.lower() == "py":
       self.optfile_extra = 'gaudi_extra_options.py'
       self.managePy()
+    else:
+      self.optfile_extra = 'gaudi_extra_options.opts'
+      self.manageOpts()
 
 
     if os.path.exists(self.applicationName+'Run.sh'): os.remove(self.applicationName+'Run.sh')
@@ -537,7 +491,7 @@ rm -f scrtmp.py
     if os.path.exists(comp_path):
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
-      if optionsType == 'py':
+      if self.optionsType.lower() == 'py':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
         comm = self.applicationName+'.exe'+'\n'
