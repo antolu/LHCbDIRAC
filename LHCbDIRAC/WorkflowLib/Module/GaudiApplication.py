@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.82 2008/09/30 08:30:02 joel Exp $
+# $Id: GaudiApplication.py,v 1.83 2008/09/30 09:03:58 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.82 2008/09/30 08:30:02 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.83 2008/09/30 09:03:58 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -298,7 +298,8 @@ class GaudiApplication(ModuleBase):
     mySiteRoot = sharedArea
     cmd = "python "+mySiteRoot+"/scripts/python/SetupProject.py --shell=sh --silent "
     self.log.info(cmd)
-    for l in os.popen(cmd + self.applicationName +" "+self.applicationVersion):
+    self.log.info(os.system(cmd + self.applicationName+" "+self.applicationVersion))
+    for l in os.popen(cmd + self.applicationName+" "+self.applicationVersion):
       self.log.info(l)
       if l.startswith("export PATH="):
          path = l.split('"')[1].split(os.pathsep)
