@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.81 2008/09/29 15:17:33 joel Exp $
+# $Id: GaudiApplication.py,v 1.82 2008/09/30 08:30:02 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.81 2008/09/29 15:17:33 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.82 2008/09/30 08:30:02 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -294,9 +294,12 @@ class GaudiApplication(ModuleBase):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
-    cmd = "python "+os.environ['VO_LHCB_SW_DIR']+"/lib/scripts/python/SetupProject.py --shell=sh --silent "
+    sharedArea = SharedArea()
+    mySiteRoot = sharedArea
+    cmd = "python "+mySiteRoot+"/scripts/python/SetupProject.py --shell=sh --silent "
     self.log.info(cmd)
     for l in os.popen(cmd + self.applicationName +" "+self.applicationVersion):
+      self.log.info(l)
       if l.startswith("export PATH="):
          path = l.split('"')[1].split(os.pathsep)
       if l.startswith("export "+self.applicationName.upper()+"ROOT="):
@@ -318,8 +321,6 @@ class GaudiApplication(ModuleBase):
 
 
 #    localArea  = LocalArea()
-    sharedArea = SharedArea()
-    mySiteRoot = sharedArea
     # 1. Check if Application is available in Shared Area
 #    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
 #    if appRoot:
