@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.86 2008/09/30 14:33:53 joel Exp $
+# $Id: GaudiApplication.py,v 1.87 2008/10/01 14:20:29 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.86 2008/09/30 14:33:53 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.87 2008/10/01 14:20:29 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -304,7 +304,7 @@ class GaudiApplication(ModuleBase):
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
     app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if self.optionsFile:
+    if self.optionsFile and not self.optionsFile == "None":
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,fileopt)):
           self.optfile += ' '+fileopt
