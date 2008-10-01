@@ -5,6 +5,28 @@
 package           DiracConfig
 version           v1r0
 
+use LCG_Settings *
+use DiracHome *
+
+set DIRACROOT "$(DiracHome_cmtpath)"
+# Determine which DIRAC platform we are on
+
+macro dplat "" \
+     "slc4-ia32" "Linux_i686_glibc-2.3.4" \
+     "slc4-amd64" "Linux_x86_64_glibc-2.3.4"
+
+macro DiracSys_home "$(DIRACROOT)/$(dplat)"
+apply_pattern set_lib_path
+apply_pattern set_bin_path
+path_prepend PATH "$(DIRACROOT)/scripts"
+path_prepend PYTHONPATH $(DIRACROOT)
+path_prepend PYTHONPATH $(DIRACROOT)/$(dplat)/lib/python$(Python_config_version_twodigit)/site-packages
+set DIRAC_VOMSES "$(DIRACROOT)/etc/vomses"
+
+use lcgutils v* LCG_Interfaces
+use pyqt     v* LCG_Interfaces
+use proxy    v* LCG_Interfaces
+
 macro py_vers_cmd "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py"
 macro py_vers_cmd2 "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py -2"
 macro Python_config_version_twodigit   `$(py_vers_cmd2)`
