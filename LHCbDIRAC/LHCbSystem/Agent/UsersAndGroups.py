@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.15 2008/09/16 16:02:01 acasajus Exp $
+# $Id: UsersAndGroups.py,v 1.16 2008/10/01 12:59:09 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.15 2008/09/16 16:02:01 acasajus Exp $"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.16 2008/10/01 12:59:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.16 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -98,7 +98,7 @@ class UsersAndGroups(Agent):
     multiDNUsers   = []
     for item in List.fromChar(ret['Value'][1],'\n'):
       dn,ca = List.fromChar(item,',')
-      ret = systemCall(0,vomsAdminTuple + ('list-user-attributes',dn,ca))
+      ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-attributes', dn, ca))
       if not ret['OK']:
         self.log.error('Can not not get User Alias',dn)
         continue
@@ -124,7 +124,7 @@ class UsersAndGroups(Agent):
       else:
         oldUsers.append(user)
 
-      ret = systemCall(0,vomsAdminTuple + ('list-user-roles', dn, ca) )
+      ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-roles', dn, ca) )
       if not ret['OK']:
         self.log.error('Can not not get User Roles', user)
         continue
