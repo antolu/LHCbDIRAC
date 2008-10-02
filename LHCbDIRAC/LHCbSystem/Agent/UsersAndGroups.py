@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.16 2008/10/01 12:59:09 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.17 2008/10/02 09:05:10 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.16 2008/10/01 12:59:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.17 2008/10/02 09:05:10 rgracian Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -47,6 +47,8 @@ class UsersAndGroups(Agent):
 
     vomsMapping = ret['Value']
     proxyFile = "%s/proxy" % self.controlDir
+
+    systemCall(0, ( 'voms-proxy-destroy' ) )
 
     ret = systemCall( 0, ( 'voms-proxy-init', '-out', proxyFile ) )
     if not ret['OK']:
