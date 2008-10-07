@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.87 2008/10/01 14:20:29 joel Exp $
+# $Id: GaudiApplication.py,v 1.88 2008/10/07 09:12:58 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.87 2008/10/01 14:20:29 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.88 2008/10/07 09:12:58 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -492,7 +492,10 @@ rm -f scrtmp.py
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
       if self.optionsType.lower() == 'py':
-        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
+        if self.generator_name == '':
+          comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
+        else:
+          comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
       else:
         comm = self.applicationName+'.exe'+'\n'
 #        exe_path = os.path.join( appRoot, self.systemConfig, self.applicationName+'.exe' ) #default
