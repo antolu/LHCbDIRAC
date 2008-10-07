@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.124 2008/09/14 22:46:15 atsareg Exp $
+# $Id: JobFinalization.py,v 1.125 2008/10/07 11:45:51 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.124 2008/09/14 22:46:15 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.125 2008/10/07 11:45:51 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -108,8 +108,8 @@ class JobFinalization(ModuleBase):
     if self.workflow_commons.has_key('outputDataPolicy'):
         self.outputDataPolicy = self.workflow_commons['outputDataPolicy']
 
-    self.setup = gConfig.getValue('/DIRAC/Setup')
-    self.outputDataFileMask = gConfig.getValue('/Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/Mask')
+#    self.setup = gConfig.getValue('/DIRAC/Setup')
+#    self.outputDataFileMask = gConfig.getValue('/Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/Mask')
 
     if self.step_commons.has_key('applicationName'):
        self.applicationName = self.step_commons['applicationName']
