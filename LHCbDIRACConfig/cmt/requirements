@@ -23,22 +23,21 @@ path_prepend PYTHONPATH $(DIRACROOT)
 path_prepend PYTHONPATH $(DIRACROOT)/$(dplat)/lib/python$(Python_config_version_twodigit)/site-packages
 set DIRAC_VOMSES "$(DIRACROOT)/etc/vomses"
 
-use lcgutils v* LCG_Interfaces
 use pyqt     v* LCG_Interfaces
-use proxy    v* LCG_Interfaces
 
 macro py_vers_cmd "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py"
 macro py_vers_cmd2 "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py -2"
 macro Python_config_version_twodigit   `$(py_vers_cmd2)`
 macro Python_config_version   `$(py_vers_cmd)`
 
-macro       lcgutils_native_version             "1.6.15"
-macro       gfal_native_version                 "1.10.17"
+# define specific version which are not in LHCBGRID package if needed
+#macro       lcgutils_native_version             "1.6.15"
+#macro       gfal_native_version                 "1.10.17"
 
-macro       lfc_dpm_version                     "1.6.11"
-macro       lfc_native_version                  $(lfc_dpm_version)
-macro       dpm_native_version                  $(lfc_dpm_version)
-macro       lcgdmcommon_native_version          $(lfc_dpm_version)
+#macro       lfc_dpm_version                     "1.6.11"
+#macro       lfc_native_version                  $(lfc_dpm_version)
+#macro       dpm_native_version                  $(lfc_dpm_version)
+#macro       lcgdmcommon_native_version          $(lfc_dpm_version)
 
 macro       pyqt_config_version            "4.2"
 macro       Qt_config_version              "4.3.0"
