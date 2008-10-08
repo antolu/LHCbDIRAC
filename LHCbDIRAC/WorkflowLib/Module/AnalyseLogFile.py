@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.27 2008/09/08 15:39:04 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.28 2008/10/08 14:54:04 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.27 2008/09/08 15:39:04 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.28 2008/10/08 14:54:04 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -470,9 +470,9 @@ class AnalyseLogFile(ModuleBase):
 #      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
 
     if self.InputData:
-      self.LFN_ROOT= getLFNRoot(self.InputData)
+      self.LFN_ROOT= getLFNRoot(self.InputData,configName)
     else:
-      self.LFN_ROOT=getLFNRoot(self.InputData,configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,configName,configVersion)
     logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
 
     if self.applicationLog:

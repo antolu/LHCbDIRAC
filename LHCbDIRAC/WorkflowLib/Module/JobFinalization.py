@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.125 2008/10/07 11:45:51 joel Exp $
+# $Id: JobFinalization.py,v 1.126 2008/10/08 14:54:54 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.125 2008/10/07 11:45:51 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.126 2008/10/08 14:54:54 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -117,8 +117,10 @@ class JobFinalization(ModuleBase):
        self.applicationLog = self.step_commons['applicationLog']
 
     if self.workflow_commons.has_key('configName'):
+      self.configName = self.workflow_commons['configName']
       self.configVersion = self.workflow_commons['configVersion']
     else:
+      self.configName = self.workflow_commons['configName']
       self.configVersion = self.applicationVersion
 
     if self.workflow_commons.has_key('Request'):
@@ -200,9 +202,9 @@ class JobFinalization(ModuleBase):
         self.log.info('Status of files have been properly updated in the ProcessingDB')
 
     if self.InputData:
-      self.LFN_ROOT= getLFNRoot(self.InputData)
+      self.LFN_ROOT= getLFNRoot(self.InputData,self.configName)
     else:
-      self.LFN_ROOT=getLFNRoot(self.InputData,self.configVersion)
+      self.LFN_ROOT=getLFNRoot(self.InputData,self.configName,self.configVersion)
 
     result = self.finalize(error)
 
