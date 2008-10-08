@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.1 2008/09/16 13:48:32 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $
 # File :   dirac-bookkeeping-pass-index-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.1 2008/09/16 13:48:32 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -16,7 +16,16 @@ Script.parseCommandLine( ignoreErrors = True )
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
+res = bk.getProcessingPassGroups()
+if res['OK']:
+  width = 20
+  print str('GroupId').ljust(15)+str('Group description').ljust(30)
+  for record in res['Value']:
+    print str(record[0]).ljust(15)+str(record[1]).ljust(30)
+else:
+  print 'error listing processing descriptions'
 
+print 'Please write a description (existing or not)'
 groupdesc = raw_input("Group description:")  
 step0 = raw_input("Step 0:")  
 step1 = raw_input("Step 1:")  

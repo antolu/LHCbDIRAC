@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: MainWidget.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $
 ########################################################################
 
 
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 
-__RCSID__ = "$Id: MainWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: MainWidget.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $"
 
 #############################################################################  
 class MainWidget(QMainWindow, Ui_MainWidget):
@@ -27,7 +27,7 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     
     """
     #self.__bkClient = LHCB_BKKDBClient()
-    self.__controler = ControlerMain(None, None)
+    self.__controler = ControlerMain(self, None)
     QMainWindow.__init__(self, parent)
     self.setupUi(self)
 
@@ -35,6 +35,7 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.connect(self.actionExit, SIGNAL("triggered()"),
                      self, SLOT("close()"))
     #self.__controler.addChild('TableWidget', self.tableWidget.getControler())
+    
         
   #############################################################################  
   def getControler(self):
@@ -53,7 +54,5 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     message = Message({'action':'list','items':items})
     self.getControler().messageFromParent(message)
     '''
-  #############################################################################  
-              
   
   

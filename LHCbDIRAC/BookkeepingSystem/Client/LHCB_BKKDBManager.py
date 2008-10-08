@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.55 2008/09/26 11:29:44 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.56 2008/10/08 13:39:00 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.55 2008/09/26 11:29:44 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.56 2008/10/08 13:39:00 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -432,7 +432,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self._cacheIt(entityList)    
       else:
         gLogger.error(result['Message'])
-
+      
     return entityList
     
   ############################################################################# 

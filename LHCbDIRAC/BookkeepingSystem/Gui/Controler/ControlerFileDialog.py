@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from PyQt4.QtGui                                     import *
+from PyQt4.QtGui                                                     import *
+from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 
 #############################################################################  
 class ControlerFileDialog(ControlerAbstract):
@@ -16,10 +17,16 @@ class ControlerFileDialog(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerFileDialog, self).__init__(widget, parent)
     self.__selectedFiles = []
+    self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
   
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
+      if self.__progressBar.isRunning():
+          gLogger.info('2')
+          self.__progressBar.stop()
+          self.__progressBar.wait()
+      self.__progressBar.start()  
       items = message['items'].getChildren()
       self.getWidget().setModel(items) # I have to save files.
       self.__selectedFiles = []
@@ -34,6 +41,9 @@ class ControlerFileDialog(ControlerAbstract):
         
         filesize = self.getSizeOfFiles(items)
         self.getWidget().showFilesSize(filesize)
+        
+        self.__progressBar.stop()
+        self.__progressBar.wait()
         
         self.getWidget().show()
   

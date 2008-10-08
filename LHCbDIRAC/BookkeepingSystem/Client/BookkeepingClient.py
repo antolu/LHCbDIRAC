@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.51 2008/10/08 13:34:19 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.52 2008/10/08 13:39:00 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.51 2008/10/08 13:34:19 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.52 2008/10/08 13:39:00 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -170,9 +170,7 @@ class BookkeepingClient:
     return result
   
   #############################################################################  
-  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-       
-    '''
+  def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):   
     server = self.__getServer()
     result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     return result
@@ -265,9 +263,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def insertProcessing(self, production, passid, inputprod):
+  def insertProcessing(self, production, passdessc, inputprod, simcondsesc):
     server = self.__getServer()
-    result = server.insertProcessing(long(production), long(passid), long(inputprod))
+    result = server.insertProcessing(long(production), passdessc, inputprod, simcondsesc)
     return result
   
   #############################################################################

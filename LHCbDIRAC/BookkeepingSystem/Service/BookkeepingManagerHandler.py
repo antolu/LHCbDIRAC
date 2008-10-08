@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.73 2008/09/29 16:20:55 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.74 2008/10/08 13:39:00 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.73 2008/09/29 16:20:55 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.74 2008/10/08 13:39:00 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -205,11 +205,12 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    '''
     res = setupShifterProxyInEnv( "ProductionManager" )
     if not res[ 'OK' ]:
       gLogger.error( "Can't get shifter's proxy: %s" % res[ 'Message' ] )
       return res
-    
+    '''
     result = dataMGMT_.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     return result
     '''
@@ -266,9 +267,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
   
   #############################################################################  
-  types_insertProcessing = [LongType, LongType, LongType]
-  def export_insertProcessing(self, production, passid, inputprod):
-    return dataMGMT_.insertProcessing(production, passid, inputprod)
+  types_insertProcessing = [LongType, StringType, StringType, StringType]
+  def export_insertProcessing(self, production, passdessc, inputprod, simcondsesc):
+    return dataMGMT_.insertProcessing(production, passdessc, inputprod, simcondsesc)
   
   #############################################################################  
   types_getProductionsWithPocessingPass = [StringType]
@@ -517,6 +518,18 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getNbOfJobsBySites = [LongType]
   def export_getNbOfJobsBySites(self, prodid):
     return dataMGMT_.getNbOfJobsBySites(prodid)
+
+  #############################################################################
+  types_getProcessingPassGroups = []
+  def export_getProcessingPassGroups(self):
+     return dataMGMT_.getProcessingPassGroups()
+  
+  #############################################################################
+  types_insert_pass_group = [StringType]
+  def export_insert_pass_group(self, gropupdesc):
+    return dataMGMT_.insert_pass_group(gropupdesc)
+    
+  
   
   '''
   End Monitoring

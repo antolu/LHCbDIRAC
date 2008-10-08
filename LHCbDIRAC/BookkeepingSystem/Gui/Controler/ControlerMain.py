@@ -1,13 +1,15 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $
+# $Id: ControlerMain.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
+from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
+from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerMain.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -16,7 +18,8 @@ class ControlerMain(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerMain, self).__init__(widget, parent)
     self.__bkClient = LHCB_BKKDBClient()
-  
+    self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
+
   #############################################################################  
   def messageFromParent(self, message):
     controlers = self.getChildren()
@@ -28,12 +31,23 @@ class ControlerMain(ControlerAbstract):
   def messageFromChild(self, sender, message):
     if sender.__class__.__name__=='ControlerTree':
       if message['action']=='expande':
+        gLogger.info('1')
+        if self.__progressBar.isRunning():
+          gLogger.info('2')
+          self.__progressBar.stop()
+          self.__progressBar.wait()
+        gLogger.info('3')
+        self.__progressBar.start()
+        gLogger.info('4')
         path = message['node']
         items=Item({'fullpath':path},None)
         for entity in self.__bkClient.list(str(path)):
           childItem = Item(entity,items)
           items.addItem(childItem)
+        self.__progressBar.stop()
+        self.__progressBar.wait()
         message = Message({'action':'showNode','items':items})
+        gLogger.info('5')
         return message
       
       elif message['action']=='configbuttonChanged':

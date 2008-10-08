@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $
+# File :   dirac-bookkeeping-gui.py
+# Author : Zoltan Mathe
+########################################################################
+__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $"
+__VERSION__ = "$ $"
 
 from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget import MainWidget
 from PyQt4.QtGui import *

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.15 2008/09/25 15:50:33 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.16 2008/10/08 13:38:59 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.15 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.16 2008/10/08 13:38:59 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -198,8 +198,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insert_pass_index( groupdesc, step0, step1, step2, step3, step4, step5, step6)
   
   #############################################################################  
-  def insertProcessing(self, production, passid, inputprod):
-    return self.getManager().insertProcessing(production, passid, inputprod)
+  def insertProcessing(self, production, passdesc, inputprod, simdesc):
+    return self.getManager().insertProcessing(production, passdesc, inputprod, simdesc)
   
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):
@@ -304,6 +304,22 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getJobInfo(self, lfn):
     return self.getManager().getJobInfo(lfn)
+  
+  #############################################################################
+  def getPassIndexID(self, programName, programVersion):
+    return self.getManager().getPassIndexID(programName, programVersion)
+  
+  #############################################################################
+  def insertProcessing_pass(self, passid, simcond):
+    return self.getManager().insertProcessing_pass(passid, simcond)
+  
+  #############################################################################
+  def getProcessingPassGroups(self):
+     return self.getManager().getProcessingPassGroups()
+  
+  #############################################################################
+  def insert_pass_group(self, gropupdesc):
+    return self.getManager().insert_pass_group(gropupdesc)
   
   #############################################################################
   '''

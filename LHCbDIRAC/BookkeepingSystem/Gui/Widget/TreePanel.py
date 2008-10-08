@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: TreePanel.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore import *
@@ -7,7 +7,7 @@ from PyQt4.QtGui import *
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 
-__RCSID__ = "$Id: TreePanel.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: TreePanel.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $"
 
 #############################################################################  
 class TreePanel(QTreeWidget):
@@ -30,6 +30,7 @@ class TreePanel(QTreeWidget):
     self.folderIcon.addPixmap(self.style().standardPixmap(QStyle.SP_DirOpenIcon),
                               QIcon.Normal, QIcon.On)
     self.bookmarkIcon.addPixmap(self.style().standardPixmap(QStyle.SP_FileIcon))
+    
     '''
     self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem *)'),
             self._on_item_expanded)
@@ -91,7 +92,7 @@ class TreePanel(QTreeWidget):
   
     #self.connect(self, QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
     #             self.updateDomElement)
-    
+
     return True
   
   #############################################################################  

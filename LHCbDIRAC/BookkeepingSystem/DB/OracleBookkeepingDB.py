@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.30 2008/09/26 11:09:20 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.31 2008/10/08 13:38:59 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.30 2008/09/26 11:09:20 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.31 2008/10/08 13:38:59 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -364,8 +364,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.db_.executeStoredFunctions('BKK_ORACLE.insert_pass_index', LongType, [groupdesc, step0, step1, step2, step3, step4, step5, step6])
   
   #############################################################################  
-  def insertProcessing(self, production, passid, inputprod):
-    return self.db_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, inputprod], False)
+  def insertProcessing(self, production, passid, inputprod, simdesc):
+    totalproc = ''
+    if inputprod <> '':
+      descriptions = inputprod.split('+')
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
+      totalproc = totalproc[:-1]
+    res = self.getSimulationCondIdByDesc(simdesc)
+    if not res['OK']:
+      gLogger.error("Simulation conditions problem", res["Message"])
+      return S_ERROR("Simulation conditions problem" + str(res["Message"]))
+    elif res['Value'] != 0: 
+      simid = res['Value']
+    return self.db_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, totalproc, simid], False)
   
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):
@@ -876,6 +889,38 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR('The file '+fileName+'not exist in the BKK database!!!')
 
+  #############################################################################
+  def getPassIndexID(self, programName, programVersion):
+    condition = programName+'-'+programVersion
+    command = 'select passid from pass_index where step0=\''+condition+'\''
+    res = self.db_._query(command)
+    returnValue = None
+    if not res['OK']:
+      returnValue = S_ERROR('Message')
+    else:
+      if len(res['Value']) == 0:
+        retVal = self.insert_pass_index('UNKNOWN', condition, None, None, None, None, None, None)
+        if not retVal['OK']:
+          returnValue = S_ERROR(retVal['Message'])
+        else:
+          returnValue = S_OK(retVal['Value'])
+      else:
+        returnValue = S_OK(res['Value'][0][0])
+      
+    return returnValue
+  
+  #############################################################################
+  def insertProcessing_pass(self, passid, simcond):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.insertProcessing_PASS', LongType, [passid, simcond])
+  
+  #############################################################################
+  def getProcessingPassGroups(self):
+     return self.db_.executeStoredProcedure('BKK_ORACLE.getProcessingPassGroups',[])
+  
+  #############################################################################
+  def insert_pass_group(self, gropupdesc):
+    return self.db_.executeStoredFunctions('BKK_ORACLE.insert_pass_group', LongType, [gropupdesc])
+  
   #############################################################################
   def insertEventTypes(self, evid, desc, primary):
     return self.db_.executeStoredProcedure('BKK_ORACLE.insertEventTypes',[desc, evid, primary], False)
