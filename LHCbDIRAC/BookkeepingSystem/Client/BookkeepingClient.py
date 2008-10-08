@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.50 2008/10/08 12:33:21 rgracian Exp $
+# $Id: BookkeepingClient.py,v 1.51 2008/10/08 13:34:19 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.50 2008/10/08 12:33:21 rgracian Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.51 2008/10/08 13:34:19 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -171,9 +171,11 @@ class BookkeepingClient:
   
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+       
     '''
     server = self.__getServer()
     result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    return result
     '''
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     s = ''+configName+'>'+configVersion+'>'+str(simcondid)+'>'+str(procPass)+'>'+str(evtId)+'>'+str(prod)+'>'+str(ftype)+'>'+str(progName)+'>'+str(progVersion)
@@ -181,10 +183,12 @@ class BookkeepingClient:
     if not result['OK']:
       return result
     else:
+      print 'megvan'
       value = pickle.load(open('tmp.txt'))
+      print 'vissza'
       return S_OK(value)
     return S_ERROR()
- 
+    '''
   def getSimConditions(self):
     server = self.__getServer()
     result = server.getSimConditions()
@@ -412,6 +416,17 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.checkProduction(long(prodid))
   
+  #############################################################################
+  def getProcessingPassGroups(self):
+     server = RPCClient('Bookkeeping/BookkeepingManager')
+     return server.getProcessingPassGroups()
+  
+  #############################################################################
+  def insert_pass_group(self, gropupdesc):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.insert_pass_group(gropupdesc)
+    
+  
   '''
   Monitoring
   '''
@@ -451,20 +466,4 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionInformation(long(prodid))
     
-  def getconfig(self,jobID,output_dir=''):
-    """  Get the job complete sandbox
-    """
-
-    # Get the list of files in the sandbox
-    sandbox = TransferClient('Bookkeeping/BookkeepingManager')
-    result = sandbox.receiveFile('tmp.txt','sname')
-    print 'sasasa',result
-    if not result['OK']:
-      print 'hiba'
-    else:
-      return result
-  '''
-  END Monitoring
-  '''
-
-  #----------------------------------- END Event Types------------------------------------------------------------------
+   #----------------------------------- END Event Types------------------------------------------------------------------
