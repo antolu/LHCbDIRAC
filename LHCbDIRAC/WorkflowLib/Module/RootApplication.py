@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.4 2008/07/09 17:37:37 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.4 2008/07/09 17:37:37 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -228,7 +228,7 @@ class RootApplication(object):
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'RootApplication'))
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
+    jobReport = RPCClient('WorkloadManagement/JobStateUpdate',timeout=120)
     jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'RootApplication')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])

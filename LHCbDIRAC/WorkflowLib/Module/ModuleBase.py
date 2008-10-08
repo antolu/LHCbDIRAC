@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.4 2008/06/16 16:33:44 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,7 +7,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.4 2008/06/16 16:33:44 atsareg Exp $"
+__RCSID__ = "$Id: ModuleBase.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -87,7 +87,7 @@ class ModuleBase(object):
     result = rm.setReplicaProblematic((lfn,pfn,se,reason),source)
     if not result['OK'] or result['Value']['Failed']:
       # We have failed the report, let's attempt the Integrity DB faiover
-      integrityDB = RPCClient('DataManagement/DataIntegrity')
+      integrityDB = RPCClient('DataManagement/DataIntegrity',timeout=120)
       fileMetadata = {'Prognosis':reason,'LFN':lfn,'PFN':pfn,'StorageElement':se}
       result = integrityDB.insertProblematic(source,fileMetadata)
       if not result['OK']:

@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.24 2008/09/29 09:30:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.25 2008/10/08 12:33:22 rgracian Exp $
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.24 2008/09/29 09:30:30 rgracian Exp $"
-__VERSION__ = "$Revision: 1.24 $"
+__RCSID__   = "$Id: NewGaudiApplication.py,v 1.25 2008/10/08 12:33:22 rgracian Exp $"
+__VERSION__ = "$Revision: 1.25 $"
 """ Gaudi Application Class """
 
 from DIRAC.Core.Utilities                                import systemCall
@@ -494,7 +494,7 @@ exit $?
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
+    jobReport = RPCClient('WorkloadManagement/JobStateUpdate',timeout=120)
     jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])

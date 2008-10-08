@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.9 2008/09/29 14:22:51 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.10 2008/10/08 12:33:22 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.9 2008/09/29 14:22:51 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.10 2008/10/08 12:33:22 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -341,7 +341,7 @@ exit $?
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate')
+    jobReport = RPCClient('WorkloadManagement/JobStateUpdate',timeout=120)
     jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])

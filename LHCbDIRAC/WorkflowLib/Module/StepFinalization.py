@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.8 2008/07/31 10:43:15 rgracian Exp $
+# $Id: StepFinalization.py,v 1.9 2008/10/08 12:33:22 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.8 2008/07/31 10:43:15 rgracian Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.9 2008/10/08 12:33:22 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -467,7 +467,7 @@ class StepFinalization(object):
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
     self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'StepFinalization'))
-    jobReport  = RPCClient('WorkloadManagement/JobStateUpdate')
+    jobReport  = RPCClient('WorkloadManagement/JobStateUpdate',timeout=120)
     jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'StepFinalization')
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])

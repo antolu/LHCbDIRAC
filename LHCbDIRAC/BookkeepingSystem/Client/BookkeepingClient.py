@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.49 2008/09/29 16:20:55 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.50 2008/10/08 12:33:21 rgracian Exp $
 ########################################################################
 
 """
@@ -14,16 +14,19 @@ import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.49 2008/09/29 16:20:55 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.50 2008/10/08 12:33:21 rgracian Exp $"
 
 class BookkeepingClient:
 
   def __init__(self):
     pass
+  
+  def __getServer(self,timeout=120):
+    return RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
 
   #############################################################################
   def echo(self,string):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     res = server.echo(string)
     print res
 
@@ -34,142 +37,142 @@ class BookkeepingClient:
       name- XML file name
       data - XML file
       """
-      server = RPCClient('Bookkeeping/BookkeepingManager')
+      server = self.__getServer()
       result = server.sendBookkeeping(name, data)
       return result
 
   #############################################################################
   def filetransfer(self, name, data):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.filetransfer(name, data)
 
   #############################################################################
   def deleteJob(self, job):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.deleteJob(long(job))  
     return result
   
   #############################################################################
   def deleteFiles(self, lfns):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.deleteFiles(lfns)  
     return result
   
   #############################################################################
   def checkfile(self, fileName):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.checkfile(fileName)  
      return result
   
   
   #############################################################################
   def checkFileTypeAndVersion(self, type, version):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.checkFileTypeAndVersion(type, version)
      return result
   
   
   #############################################################################
   def checkEventType(self, eventTypeId): 
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.checkEventType(lonhg(eventTypeId)) 
      return result
    
   
   #############################################################################
   def insertJob(self, job):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.insertJob(job)  
      return result
     
   #############################################################################
   def insertInputFile(self, jobID, FileId):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.insertInputFile(long(jobID), long(FileId))
      return result
   
   #############################################################################
   def insertOutputFile(self, file):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.insertOutputFile(self, file)
      return result
   
   #############################################################################
   def deleteInputFiles(self, jobid):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.deleteInputFiles(long(jobid))  
      return result
   
   #############################################################################
   def getSimulationCondID(self, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
     return result
   
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
     return result
   
   #############################################################################
   def getSimCondIDWhenFileName(self, fileName):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSimCondIDWhenFileName(fileName)
     return result
     
   #############################################################################
   def updateReplicaRow(self, fileID, replica):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      result = server.updateReplicaRow(long(fileID), replica)
      return result
     
   #############################################################################
   def getAvailableConfigurations(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getAvailableConfigurations()
     return result
 
   #############################################################################
   def getSimulationConditions(self, configName, configVersion, realdata = 0):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSimulationConditions(configName, configVersion, realdata)
     return result
   
   #############################################################################
   def getProPassWithSimCond(self, configName, configVersion, simcondid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProPassWithSimCond(configName, configVersion, simcondid)
     return result
   
   #############################################################################
   def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
     return result
   
   #############################################################################
   def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProductionsWithSimcond(configName, configVersion, simcondid, procPass, evtId)
     return result
   
   #############################################################################
   def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFileTypesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod)
     return result
   
   #############################################################################  
   def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
     return result
   
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     '''
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     '''
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
@@ -183,26 +186,26 @@ class BookkeepingClient:
     return S_ERROR()
  
   def getSimConditions(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSimConditions()
     return result
 
   
   #############################################################################
   def getSimCondWithEventType(self, configName, configVersion, eventType, realdata=0):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSimCondWithEventType(configName, configVersion, eventType, realdata)
     return result
     
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProPassWithEventType(configName, configVersion, eventType, simcond)
     return result
         
   #############################################################################
   def getJobInfo(self, lfn):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getJobInfo(lfn)
     return result
   
@@ -213,7 +216,7 @@ class BookkeepingClient:
 
   #############################################################################  
   def getAncestors(self, lfns, depth=1):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
       result = server.getAncestors([lfns], long(depth))
@@ -223,97 +226,97 @@ class BookkeepingClient:
   
   #############################################################################
   def getAvailableEventTypes(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getAvailableEventTypes()
     return result
 
   #############################################################################
   def getEventTypes(self, configName, configVersion):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getEventTypes(configName, configVersion)
     return result
 
   #############################################################################
   def getFullEventTypesAndNumbers(self, configName, configVersion, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFullEventTypesAndNumbers(configName, configVersion, long(eventTypeId))
     return result
 
   #############################################################################
   def getSpecificFiles(self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSpecificFiles(configName, configVersion, programName, programVersion, fileType, long(eventTypeId), long(production))
     return result
 
   #############################################################################
   def getPass_index(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getPass_index()
     return result
   
   #############################################################################
   def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
     return result
   
   #############################################################################
   def insertProcessing(self, production, passid, inputprod):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.insertProcessing(long(production), long(passid), long(inputprod))
     return result
   
   #############################################################################
   def getProductionsWithPocessingPass(self, processingPass):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProductionsWithPocessingPass(processingPass)
     return result
 
   #############################################################################
   def getFilesByProduction(self, production, eventtype, filetype):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFilesByProduction(long(production), long(eventtype), filetype)
     return result
 
   #############################################################################
   def getProductions(self, configName, configversion, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProductions(configName, configversion, long(eventTypeId))
     return result
 
   #############################################################################
   def getNumberOfEvents(self, configName, configversion, eventTypeId, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getNumberOfEvents(configName, configversion, long(eventTypeId), long(production))
     return result
 
    #############################################################################
   def getEventTyesWithProduction(self, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getEventTyesWithProduction(long(production))
     return result
 
   #############################################################################
   def getFileTypesWithProduction(self, production, eventtype):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFileTypesWithProduction(long(production), long(eventtype))
     return result
 
   #############################################################################
   def getSpecificFilesWithoutProd(self, configName, configVersion, pname, pversion, filetype, eventType):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getSpecificFilesWithoutProd(configName, configVersion, pname, pversion, filetype, long(eventType))
     return result
 
   #############################################################################
   def getFileTypes(self, configName, configVersion, eventType, prod):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getFileTypes(configName, configVersion, long(eventType), long(prod))
     return result
 
   #############################################################################
   def getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     result = server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
     return result
 
@@ -321,92 +324,92 @@ class BookkeepingClient:
 
   #############################################################################
   def getAvailableEventTypes(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getAvailableEventTypes()
 
   #############################################################################
   def getConfigNameAndVersion(self, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getConfigNameAndVersion(long(eventTypeId))
 
   #############################################################################
   def getAvailableProcessingPass(self, configName, configVersion, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getAvailableProcessingPass(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFileTypesWithEventType(self, configName, configVersion, eventTypeId, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFileTypesWithEventType(configName, configVersion, long(eventTypeId), long(production))
 
   #############################################################################
   def getFileTypesWithEventTypeALL(self, configName, configVersion, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFileTypesWithEventTypeALL(configName, configVersion, long(eventTypeId))
 
   #############################################################################
   def getFilesByEventType(self, configName, configVersion, fileType, eventTypeId, production):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFilesByEventType(configName, configVersion, fileType, long(eventTypeId), long(production))
 
   #############################################################################
   def getFilesByEventTypeALL(self, configName, configVersion, fileType, eventTypeId):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFilesByEventTypeALL(configName, configVersion, fileType, long(eventTypeId))
 
   #############################################################################
   def getProductionsWithEventTypes(self, eventType, configName,  configVersion, processingPass):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
 
   #############################################################################
   def addReplica(self, fileName):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.addReplica(fileName)
   
   #############################################################################
   def removeReplica(self, fileName):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.removeReplica(fileName)
   
   #############################################################################
   def addEventType(self, evid, desc, primary):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.addEventType(long(evid), desc, primary)
   
   #############################################################################
   def updateEventType(self, evid, desc, primary):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.updateEventType(long(evid), desc, primary)
   
   #############################################################################
   def addFiles(self, lfns):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.addFiles(lfns)
   
   #############################################################################
   def removeFiles(self, lfns):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.removeFiles(lfns)
   
   #############################################################################
   def getFileMetadata(self, lfns):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFileMetadata(lfns)
   
   #############################################################################
   def exists(self, lfns):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.exists(lfns)
   
   #############################################################################
   def getLFNsByProduction(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getLFNsByProduction(long(prodid))
   
   #############################################################################
   def checkProduction(self,prodid):  
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.checkProduction(long(prodid))
   
   '''
@@ -415,37 +418,37 @@ class BookkeepingClient:
   
   #############################################################################
   def getProductionInformations(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getProductionInformations(long(prodid))
   
   #############################################################################
   def getNbOfJobsBySites(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getNbOfJobsBySites(long(prodid))
     
   #############################################################################
   def getJobsNb(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getJobsNb(long(prodid))
   
   #############################################################################
   def getNumberOfEvents(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getNumberOfEvents(long(prodid))
   
   #############################################################################
   def getSizeOfFiles(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getSizeOfFiles(long(prodid))
   
   #############################################################################
   def getNbOfFiles(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getNbOfFiles(long(prodid))
   
   #############################################################################
   def getProductionInformation(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getProductionInformation(long(prodid))
     
   def getconfig(self,jobID,output_dir=''):
