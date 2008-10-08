@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.22 2008/09/14 19:48:26 atsareg Exp $
-__RCSID__ = "$Id: Tools.py,v 1.22 2008/09/14 19:48:26 atsareg Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.23 2008/10/08 14:52:57 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.23 2008/10/08 14:52:57 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -289,7 +289,7 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
       self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
       return ''
 
-def getLFNRoot(lfn,mcYear=0):
+def getLFNRoot(lfn,namespace='',mcYear=0):
     """
     return the root path of a given lfn
 
@@ -316,6 +316,11 @@ def getLFNRoot(lfn,mcYear=0):
                   break
     else:
         LFN_ROOT = '/lhcb/MC/'+str(mcYear)
+    if namespace.lower() == 'test':
+        tmpLfnRoot = LFN_ROOT.split(os.path.sep)
+        tmpLfnRoot[2] = namespace
+        LFN_ROOT = string.join(tmpLfnRoot,os.path.sep)
+
     return LFN_ROOT
 
 def copyClassAttributes(from_, to_, except_=[]):
