@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.9 2008/09/25 15:50:32 zmathe Exp $
+# $Id: JobReader.py,v 1.10 2008/10/08 13:44:53 zmathe Exp $
 ########################################################################
 
 """
@@ -22,7 +22,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.9 2008/09/25 15:50:32 zmathe Exp $"
+__RCSID__ = "$Id: JobReader.py,v 1.10 2008/10/08 13:44:53 zmathe Exp $"
 
 
 class JobReader:
@@ -298,7 +298,7 @@ class JobReader:
     gLogger.info("Read DataTaking Conditions")
     DAQcond = doc.getElementsByTagName('DataTakingConditions')
     if len(DAQcond) != 1:
-      gLogger.error("To many DataTaking conditions!!")
+      gLogger.warn("To many DataTaking conditions!!")
     else:
       DAQParam = DataTakingConditions()
       node = DAQcond[0]
