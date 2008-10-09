@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.52 2008/10/08 13:39:00 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.53 2008/10/09 17:05:43 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.52 2008/10/08 13:39:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.53 2008/10/09 17:05:43 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -169,6 +169,12 @@ class BookkeepingClient:
     result = server.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
     return result
   
+  #############################################################################  
+  def getProductionDSTs(self, prod):
+    server = self.__getServer()
+    result = server.getProductionDSTs(long(prod))
+    return result
+    
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):   
     server = self.__getServer()
