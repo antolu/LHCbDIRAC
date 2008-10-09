@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.16 2008/10/08 13:38:59 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.17 2008/10/09 17:37:10 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.16 2008/10/08 13:38:59 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.17 2008/10/09 17:37:10 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -105,6 +105,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def removeReplica(self, File):
     return self.getManager().removeReplica(File)
+  
+  #############################################################################
+  def getProductionDSTs(self, prod):
+    return self.getManager().getProductionDSTs(prod)
   
   #############################################################################
   def addReplica(self, File):

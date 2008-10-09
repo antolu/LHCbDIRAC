@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.31 2008/10/08 13:38:59 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.32 2008/10/09 17:37:10 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.31 2008/10/08 13:38:59 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.32 2008/10/09 17:37:10 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -347,8 +347,22 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return res
     return S_ERROR("Job is not found!")
 
-
   
+  def getProductionDSTs(self, prod):
+    command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid=16 and jobs.production='+str(prod)
+    res = self.db_._query(command)
+    value = {}
+    if res['OK']:
+      dbResult = res['Value']
+      for record in dbResult:
+        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3]} 
+    else:
+      return S_ERROR(res['Message'])
+    
+    return S_OK(value)
+  
+        
+
   
   
   #############################################################################

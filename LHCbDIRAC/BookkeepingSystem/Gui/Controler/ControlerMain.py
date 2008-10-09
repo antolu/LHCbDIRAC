@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $
+# $Id: ControlerMain.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerMain.py,v 1.2 2008/10/08 13:38:59 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -39,6 +39,7 @@ class ControlerMain(ControlerAbstract):
         gLogger.info('3')
         self.__progressBar.start()
         gLogger.info('4')
+
         path = message['node']
         items=Item({'fullpath':path},None)
         for entity in self.__bkClient.list(str(path)):

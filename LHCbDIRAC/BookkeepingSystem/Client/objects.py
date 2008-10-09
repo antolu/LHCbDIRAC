@@ -1,18 +1,18 @@
 ########################################################################
-# $Id: objects.py,v 1.8 2008/06/13 12:25:36 zmathe Exp $
+# $Id: objects.py,v 1.9 2008/10/09 17:37:10 zmathe Exp $
 ########################################################################
 
 """
 """
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Client                                  import IndentMarker
+from DIRAC.BookkeepingSystem.Client                                  import IndentMaker
 from UserDict                                                        import UserDict
 
 import types
 
 
 
-__RCSID__ = "$Id: objects.py,v 1.8 2008/06/13 12:25:36 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.9 2008/10/09 17:37:10 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   

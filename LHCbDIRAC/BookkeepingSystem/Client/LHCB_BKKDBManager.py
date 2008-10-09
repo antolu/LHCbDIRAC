@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.57 2008/10/09 13:50:44 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.58 2008/10/09 17:37:10 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.57 2008/10/09 13:50:44 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.58 2008/10/09 17:37:10 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -420,10 +420,20 @@ class LHCB_BKKDBManager(BaseESManager):
       print "File list:\n"
       
       result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+      selection = {"Configuration Name":configName, \
+                   "Configuration Version":configVersion, \
+                   "Simulation Condition":str(simid), \
+                   "Processing Pass":str(processing), \
+                   "Event type":str(evtType), \
+                   "Production":str(processedPath[4][1]), \
+                   "File Type":str(ftype), \
+                   "Program name":pname, \
+                   "Program version":pversion}
+      
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':evtType}
+          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':evtType,'Selection':selection}
           self.files_ += [record[0]]
           entityList += [self._getEntityFromPath(path, value, levels)]
         self._cacheIt(entityList)    

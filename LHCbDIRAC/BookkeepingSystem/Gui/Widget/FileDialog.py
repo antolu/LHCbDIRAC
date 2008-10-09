@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $
+# $Id: FileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -76,9 +76,9 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################  
   def showData(self, data):
-    noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode']
+    noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId']
     tabledata =[]
-    header = ['FileName','EventStat', 'FileSize', 'FileType','CreationDate','Generator','JobStart', 'JobEnd', 'EvtTypeId']
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','Generator','JobStart', 'JobEnd' ]
     keys = data.keys()
     keys.sort()
     for item in keys:
@@ -180,4 +180,15 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def popUpMenu(self):
     self.__popUp.popup(QCursor.pos())
-
+  
+  #############################################################################  
+  def showSelection(self, dict):
+    self.configname.setText(dict["Configuration Name"])
+    self.configversion.setText(dict["Configuration Version"])
+    self.simulation.setText(dict["Simulation Condition"])
+    self.processing.setText(dict["Processing Pass"])
+    self.eventtype.setText(dict["Event type"])
+    self.filetype.setText(dict["File Type"])
+    self.production.setText(dict["Production"])
+    self.progrnameandversion.setText(dict["Program name"] + ' - '+dict["Program version"])
+    

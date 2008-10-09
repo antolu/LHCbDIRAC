@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.53 2008/10/09 17:05:43 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.54 2008/10/09 17:37:10 zmathe Exp $
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import types,pickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.53 2008/10/09 17:05:43 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.54 2008/10/09 17:37:10 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -177,9 +177,11 @@ class BookkeepingClient:
     
   #############################################################################  
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):   
+    '''
     server = self.__getServer()
     result = server.getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     return result
+   
     '''
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     s = ''+configName+'>'+configVersion+'>'+str(simcondid)+'>'+str(procPass)+'>'+str(evtId)+'>'+str(prod)+'>'+str(ftype)+'>'+str(progName)+'>'+str(progVersion)
@@ -187,12 +189,10 @@ class BookkeepingClient:
     if not result['OK']:
       return result
     else:
-      print 'megvan'
       value = pickle.load(open('tmp.txt'))
-      print 'vissza'
       return S_OK(value)
     return S_ERROR()
-    '''
+    
   def getSimConditions(self):
     server = self.__getServer()
     result = server.getSimConditions()
