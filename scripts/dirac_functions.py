@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.91 2008/09/19 10:48:58 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/Attic/dirac_functions.py,v 1.92 2008/10/09 12:01:12 joel Exp $
 # File :   dirac-functions.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac_functions.py,v 1.91 2008/09/19 10:48:58 rgracian Exp $"
-__VERSION__ = "$Revision: 1.91 $"
+__RCSID__   = "$Id: dirac_functions.py,v 1.92 2008/10/09 12:01:12 joel Exp $"
+__VERSION__ = "$Revision: 1.92 $"
 """
     Some common functions used in dirac-distribution, dirac-update
 """
@@ -42,10 +42,18 @@ src_tars = [ { 'name': 'DIRAC-scripts',
              },
              { 'name': 'DIRAC',
                'packages': ['DIRAC',
+                            'cmt',
+                            'DiracSys',
+                            'DiracConfig',
+                            'DiracHome',
                             'WorkflowLib',
                             'LHCbSystem'],
                'directories': ['scripts',
                                'DIRAC',
+                               'cmt',
+                               'DiracSys',
+                               'DiracConfig',
+                               'DiracHome',
                                'WorkflowLib',
                                'LHCbSystem']
              },
