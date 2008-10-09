@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InfoDialog.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: InfoDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 
-__RCSID__ = "$Id: InfoDialog.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: InfoDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $"
 
 #############################################################################  
 class InfoDialog(QDialog, Ui_Dialog):
@@ -56,8 +56,8 @@ class InfoDialog(QDialog, Ui_Dialog):
     self.tableView.setShowGrid(False)
   
     # set the font
-    font = QFont("Courier New", 8)
-    self.tableView.setFont(font)
+    #font = QFont("Courier New", 8)
+    #self.tableView.setFont(font)
     
     self.tableView.setSortingEnabled(True)
   

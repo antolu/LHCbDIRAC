@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: FileDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -123,8 +123,8 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.tableView.setShowGrid(True)
   
     # set the font
-    font = QFont("Courier New", 8)
-    self.tableView.setFont(font)
+    #font = QFont("Courier New", 12)
+    #self.tableView.setFont(font)
   
     # hide vertical header
     vh = self.tableView.verticalHeader()

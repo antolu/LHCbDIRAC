@@ -1,7 +1,13 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui  import *
-import time
+########################################################################
+# $Id: ProgressThread.py,v 1.2 2008/10/09 13:50:43 zmathe Exp $
+########################################################################
+
+from PyQt4.QtCore                                                                 import *
+from PyQt4.QtGui                                                                  import *
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
+import time
+
+__RCSID__ = "$Id: ProgressThread.py,v 1.2 2008/10/09 13:50:43 zmathe Exp $"
 
 class ProgressThread(QThread):
   def __init__(self, stop, message='', parent=None):

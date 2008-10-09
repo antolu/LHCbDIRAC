@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.56 2008/10/08 13:39:00 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.57 2008/10/09 13:50:44 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.56 2008/10/08 13:39:00 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.57 2008/10/09 13:50:44 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -272,8 +272,6 @@ class LHCB_BKKDBManager(BaseESManager):
       result = self.db_.getEventTypeWithSimcond(configName, configVersion, simid, processing)
       if result['OK']:
         dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Production(s)')]        
         for record in dbResult:
           evtType = str(record[0])
           value = {'Event Type':evtType,'Description':record[1]}
@@ -339,8 +337,6 @@ class LHCB_BKKDBManager(BaseESManager):
       result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
       if result['OK']:
         dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Program name and version')]        
         for record in dbResult:
           ftype = str(record[0])
           entityList += [self._getEntityFromPath(path, ftype, levels,'Program name and version')]
@@ -377,6 +373,7 @@ class LHCB_BKKDBManager(BaseESManager):
         dbResult = result['Value']
         if len(dbResult) > 1:
           entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
+        
         for record in dbResult:
           programName = record[0]
           programVersion = record[1]
@@ -625,8 +622,6 @@ class LHCB_BKKDBManager(BaseESManager):
       result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
       if result['OK']:
         dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
         for record in dbResult:
           ftype = str(record[0])
           entityList += [self._getEntityFromPath(path, ftype, levels,'Program name and version')]
