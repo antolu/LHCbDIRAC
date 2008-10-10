@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.55 2008/10/10 14:24:24 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.56 2008/10/10 14:33:27 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.55 2008/10/10 14:24:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.56 2008/10/10 14:33:27 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -173,7 +173,7 @@ class BookkeepingClient:
   #############################################################################  
   def getProductionDSTs(self, prod):
     server = self.__getServer()
-    result = server.getProductionDSTs(long(prod))
+    result = server.getProductionDSTs(int(prod))
     return result
     
   #############################################################################  

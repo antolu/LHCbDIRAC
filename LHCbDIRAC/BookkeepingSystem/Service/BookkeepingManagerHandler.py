@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.76 2008/10/10 14:24:25 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.77 2008/10/10 14:33:27 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.76 2008/10/10 14:24:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.77 2008/10/10 14:33:27 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -205,9 +205,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
   
   #############################################################################  
-  types_getProductionDSTs = [LongType]
+  types_getProductionDSTs = [IntType]
   def export_getProductionDSTs(self, prod):
-    return dataMGMT_.getProductionDSTs(long(prod))
+    return dataMGMT_.getProductionDSTs(int(prod))
   
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
