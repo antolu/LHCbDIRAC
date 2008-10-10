@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.18 2008/10/10 08:09:58 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.19 2008/10/10 09:52:39 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.18 2008/10/10 08:09:58 rgracian Exp $"
-__VERSION__ = "$Revision: 1.18 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.19 2008/10/10 09:52:39 rgracian Exp $"
+__VERSION__ = "$Revision: 1.19 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -79,13 +79,15 @@ class UsersAndGroups(Agent):
       return ret
 
     roles = {}
+    vomsRoles = []
 
     for item in List.fromChar(ret['Value'][1],'\n'):
       role = '/%s/%s' % ( VO_NAME, item )
+      vomsRoles.append(role)
       for group in vomsMapping:
         if role == vomsMapping[group]:
           roles[role] = {'Group':group,'Users':[]}
-    self.log.info( "Valid roles are:\n\t", "\n\t ".join( roles.keys() )  )
+    self.log.info( "DIRAC valid roles are:\n\t", "\n\t ".join( roles.keys() )  )
 
     ret = systemCall(0, vomsAdminTuple + ('list-users',) )
     if not ret['OK']:
@@ -134,8 +136,9 @@ class UsersAndGroups(Agent):
       users[user]['Groups'] = ['lhcb', 'private_pilot', 'user']
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = newItem
-        if not role in roles:
+        if role not in vomsRoles:
           self.log.error( 'User Role not valid:','%s = %s' % ( user, newItem ) )
+        if not role in roles:
           continue
         roles[role]['Users'].append(user)
         users[user]['Groups'].append( roles[role]['Group'] )
