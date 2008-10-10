@@ -1,13 +1,13 @@
 ########################################################################
-# $Id: TableModel.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: TableModel.py,v 1.2 2008/10/10 15:18:29 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                 import *
 from PyQt4.QtCore                import *
 
-import operator  
+import operator, datetime  
 
-__RCSID__ = "$Id: TableModel.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: TableModel.py,v 1.2 2008/10/10 15:18:29 zmathe Exp $"
 
 #############################################################################  
 class TableModel(QAbstractTableModel): 
@@ -32,7 +32,12 @@ class TableModel(QAbstractTableModel):
         return QVariant() 
     elif role != Qt.DisplayRole: 
         return QVariant() 
-    return QVariant(self.arraydata[index.row()][index.column()]) 
+    
+    data = self.arraydata[index.row()][index.column()]
+    if type(data)== datetime.datetime:
+      return QVariant(str(data)) 
+    
+    return QVariant(data) 
   
   #############################################################################  
   def headerData(self, col, orientation, role):
