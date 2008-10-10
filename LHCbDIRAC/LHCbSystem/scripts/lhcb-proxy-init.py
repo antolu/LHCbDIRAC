@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.10 2008/09/30 09:58:28 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.11 2008/10/10 11:32:00 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.10 2008/09/30 09:58:28 acasajus Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.11 2008/10/10 11:32:00 acasajus Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 
 import sys
 import os
@@ -124,11 +124,10 @@ finalChain = proxyInfo[ 'chain' ]
 vomsMapping = CS.getVOMSAttributeForGroup( proxyInfo[ 'group' ] )
 if vomsMapping:
   voms = VOMS()
-  attr = vomsMapping[0]
-  retVal = voms.setVOMSAttributes( finalChain, attr )
+  retVal = voms.setVOMSAttributes( finalChain, vomsMapping )
   if not retVal[ 'OK' ]:
     #print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
-    print "Cannot add voms attribute %s to proxy" % ( attr )
+    print "Cannot add voms attribute %s to proxy" % ( vomsMapping )
   else:
     finalChain = retVal[ 'Value' ]
 
