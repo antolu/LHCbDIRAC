@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.75 2008/10/09 17:37:11 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.76 2008/10/10 14:24:25 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.75 2008/10/09 17:37:11 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.76 2008/10/10 14:24:25 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -16,8 +16,10 @@ from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                       
 from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
+from DIRAC.Core.Utilities                                                         import DEncode
 import time,sys,os
-import pickle
+import cPickle
+
 
 global dataMGMT_
 dataMGMT_ = BookkeepingDatabaseClient()
@@ -545,7 +547,8 @@ class BookkeepingManagerHandler(RequestHandler):
     result = dataMGMT_.getFilesWithSimcond(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8])
     if not result['OK']:
       return S_ERROR(result['Message'])
-    fileString = pickle.dumps(result['Value'])
+    fileString = cPickle.dumps(result['Value'], protocol=2)
+    #fileString = DEncode.encode(result['Value'])
     result = fileHelper.stringToNetwork(fileString)  
     if result['OK']:
       gLogger.info('Sent file %s of size %d' % (parametes,len(fileString)))

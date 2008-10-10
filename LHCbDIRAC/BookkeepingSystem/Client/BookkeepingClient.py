@@ -1,20 +1,21 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.54 2008/10/09 17:37:10 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.55 2008/10/10 14:24:24 zmathe Exp $
 ########################################################################
 
 """
 
 """
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Base import Script
+from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.DISET.RPCClient      import RPCClient
+from DIRAC.Core.Base                 import Script
 from DIRAC.Core.DISET.TransferClient import TransferClient
-import types,pickle
+from DIRAC.Core.Utilities            import DEncode
+import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.54 2008/10/09 17:37:10 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.55 2008/10/10 14:24:24 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -189,7 +190,7 @@ class BookkeepingClient:
     if not result['OK']:
       return result
     else:
-      value = pickle.load(open('tmp.txt'))
+      value = cPickle.load(open('tmp.txt'))
       return S_OK(value)
     return S_ERROR()
     
