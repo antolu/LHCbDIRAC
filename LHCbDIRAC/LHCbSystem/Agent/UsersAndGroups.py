@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.17 2008/10/02 09:05:10 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.18 2008/10/10 08:09:58 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.17 2008/10/02 09:05:10 rgracian Exp $"
-__VERSION__ = "$Revision: 1.17 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.18 2008/10/10 08:09:58 rgracian Exp $"
+__VERSION__ = "$Revision: 1.18 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -110,7 +110,7 @@ class UsersAndGroups(Agent):
         return S_ERROR( 'Error executing voms-admin command' )
       user = List.fromChar(ret['Value'][1],'=')[1]
       if user == 'None':
-        self.log.error('Wrong nickname for:', dn )
+        self.log.error('Wrong nickname for:', '(%s) "%s"' % (user, dn) )
         continue
       if user in users:
         if dn != users[user]['DN']:
@@ -147,8 +147,10 @@ class UsersAndGroups(Agent):
       return ret
 
     for user in oldUsers:
-      if 'diracAdmin' in currentUsers[user]['Groups']:
-        users[user]['Groups'].append('diracAdmin')
+      for group in currentUsers[user]['Groups']:
+        if group not in vomsMapping and group not in users[user]['Groups']:
+          users[user]['Groups'].append(group)
+          self.log.info( 'Keeping user %s in group %s' % (user, group ) )
       users[user]['Groups'].sort()
       currentUsers[user]['Groups'].sort()
       ret = csapi.modifyUser( user, users[user] )
