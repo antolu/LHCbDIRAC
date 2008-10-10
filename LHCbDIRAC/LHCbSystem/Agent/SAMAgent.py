@@ -51,7 +51,7 @@ class SAMAgent(Agent):
     diracSAM = DiracSAM()
 
     result = diracSAM.submitAllSAMJobs()
-     if not result['OK']:
+    if not result['OK']:
       gLogger.error(result['Message'])
    
     return result
