@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.91 2008/10/10 15:48:49 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.92 2008/10/13 14:27:26 joel Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.91 2008/10/10 15:48:49 atsareg Exp $"
-__VERSION__ = "$Revision: 1.91 $"
+__RCSID__   = "$Id: dirac-install,v 1.92 2008/10/13 14:27:26 joel Exp $"
+__VERSION__ = "$Revision: 1.92 $"
 """
     Script to prepare/update a DIRAC installation
 """
@@ -14,7 +14,7 @@ siteName = None
 ceName   = None
 uploadFlag = False
 
-functionVersion = "1.92"
+functionVersion = "1.93"
 
 try:
   import dirac_functions
