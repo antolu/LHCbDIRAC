@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.28 2008/10/08 14:54:04 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.29 2008/10/13 13:26:23 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.28 2008/10/08 14:54:04 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.29 2008/10/13 13:26:23 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -44,6 +44,19 @@ class AnalyseLogFile(ModuleBase):
 
   def execute(self):
       self.log.info('Initializing '+self.version)
+      if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+        if self.stepStatus.has_key('Message'):
+          if not self.stepStatus['Message'] == 'Application not found':
+            self.log.info('Skip this module, failure detected in a previous step :')
+            self.log.info('Workflow status : %s' %(self.workflowStatus))
+            self.log.info('Step Status %s' %(self.stepStatus))
+            return S_OK()
+        if self.workflowStatus.has_key('Message'):
+          if not self.workflowStatus['Message'] == 'Application not found':
+            self.log.info('Skip this module, failure detected in a previous step :')
+            self.log.info('Workflow status : %s' %(self.workflowStatus))
+            self.log.info('Step Status %s' %(self.stepStatus))
+            return S_OK()
       self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
       self.site = gConfig.getValue('/LocalSite/Site','Site')
       self.notify = NotificationClient()
