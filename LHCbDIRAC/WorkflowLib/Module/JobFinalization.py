@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.126 2008/10/08 14:54:54 joel Exp $
+# $Id: JobFinalization.py,v 1.127 2008/10/13 07:49:49 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.126 2008/10/08 14:54:54 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.127 2008/10/13 07:49:49 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -343,6 +343,9 @@ class JobFinalization(ModuleBase):
       if re.search('^newbookkeeping',f):
         books.append(f)
 
+    bk_OK = True
+    failed = []
+
     for f in books:
       counter = 0
       send_flag = True
@@ -361,10 +364,16 @@ class JobFinalization(ModuleBase):
             self.log.info('Setting DISET request for bookkeeping upload')
             self.request.setDISETRequest(result['rpcStub'],executionOrder=2)
             send_flag = False
-            result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
+            bk_OK = False
+            failed.append(str(f))
         else:
           self.log.info( "Bookkeeping %s sent successfully" % f )
           send_flag = False
+
+    if not bk_OK:
+      failed_string = ','.join(failed)
+      result = S_ERROR('Failed to send bookkeeping information for %s' % failed_string)
+      result['Failed'] = failed
 
     return result
 
@@ -379,6 +388,9 @@ class JobFinalization(ModuleBase):
     for f in files:
       if re.search('^bookkeeping',f):
         books.append(f)
+
+    bk_OK = True
+    failed = []
 
     for f in books:
       counter = 0
@@ -398,11 +410,16 @@ class JobFinalization(ModuleBase):
             self.log.info('Setting DISET request for bookkeeping upload')
             self.request.setDISETRequest(result['rpcStub'],executionOrder=2)
             send_flag = False
-            result = S_ERROR('Failed to send bookkeeping information for %s' % str(f))
+            bk_OK = False
+            failed.append(str(f))
         else:
           self.log.info( "Bookkeeping %s sent successfully" % f )
           send_flag = False
 
+    if not bk_OK:
+      failed_string = ','.join(failed)
+      result = S_ERROR('Failed to send bookkeeping information for %s' % failed_string)
+      result['Failed'] = failed
     return result
 
 ################################################################################
