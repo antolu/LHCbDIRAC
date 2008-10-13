@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.6 2008/10/13 12:16:03 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.5 2008/10/08 12:33:22 rgracian Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.6 2008/10/13 12:16:03 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -135,9 +135,11 @@ class RootApplication(object):
       rootCmd = [rootCmd]
       rootCmd.append('-b')
       rootCmd.append('-f')
-      rootCmd.append(self.rootScript)
       if self.arguments:
-        rootCmd.append(self.arguments)
+        macroArgs = '%s\(%s\)' %(self.rootScript,self.arguments)
+        rootCmd.append(macroArgs)
+      else:
+        rootCmd.append(self.rootScript)
 
     elif self.rootType.lower() == 'py':
 
