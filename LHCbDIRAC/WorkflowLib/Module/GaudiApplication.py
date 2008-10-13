@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.89 2008/10/13 07:23:26 joel Exp $
+# $Id: GaudiApplication.py,v 1.90 2008/10/13 11:16:43 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.89 2008/10/13 07:23:26 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.90 2008/10/13 11:16:43 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -298,10 +298,11 @@ class GaudiApplication(ModuleBase):
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
     sharedArea = SharedArea()
-    if sharedArea:
+    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
+    if app_dir_path:
       mySiteRoot = sharedArea
     else:
-      self.log.warn( 'Application not Found' )
+      self.log.error( 'Application not Found' )
       self.setApplicationStatus( 'Application not Found' )
       self.result = S_ERROR( 'Application not Found' )
 
@@ -311,7 +312,6 @@ class GaudiApplication(ModuleBase):
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
-    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     if self.optionsFile and not self.optionsFile == "None":
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,fileopt)):
