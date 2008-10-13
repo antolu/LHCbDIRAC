@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.4 2008/09/17 09:12:51 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.5 2008/10/13 09:03:02 paterson Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.4 2008/09/17 09:12:51 paterson Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.5 2008/10/13 09:03:02 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -102,12 +102,5 @@ class DiracSAM(Dirac):
       return S_OK(response)
     else:
       return S_ERROR(response)
-
-  #############################################################################
-  def __checkCurrentProxy(self):
-    """Check that the current proxy has the correct DIRAC role.
-    """
-    #Under development
-    return S_OK()
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
