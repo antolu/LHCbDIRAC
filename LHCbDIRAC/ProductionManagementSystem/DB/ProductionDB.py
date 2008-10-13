@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.44 2008/09/01 20:35:40 atsareg Exp $
+# $Id: ProductionDB.py,v 1.45 2008/10/13 14:36:40 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.44 $"
+__RCSID__ = "$Revision: 1.45 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -204,23 +204,25 @@ class ProductionDB(TransformationDB):
     newProdID = result['Value']
 
     # Mark the previously processed files
-    ids = []
-    req = "SELECT FileID from T_%s WHERE Status<>'Unused';" % (originalProdID)
+    ids = {}
+    req = "SELECT FileID,Status,JobID from T_%s WHERE Status<>'Unused';" % (originalProdID)
     result = self._query(req)
     if result['OK']:
       if result['Value']:
-        ids = [ str(x[0]) for x in result['Value'] ]
-    if ids:
-      idstring = ','.join(ids)
-      req = "UPDATE T_%s SET Status='Inherited' WHERE FileID IN (%s)" % (newProdID,idstring)
-      result = self._update(req)
-      if not result['OK']:
-        # rollback the operation
-        print "KGG We need to add code to restore original production status"
-        result = self.deleteProduction(newProdID)
-        if not result['OK']:
-          gLogger.warn('Failed to rollback the production creation')
-        return S_ERROR('Failed to create derived production: error while marking already processed files')
+        for fileID,status,jobID in result['Value']:
+          if jobID:
+            jobName = str(int(originalProdID)).zfill(8)+'_'+str(int(jobID)).zfill(8)
+            req = "UPDATE T_%s SET Status='%sInherited', JobID='%s' WHERE FileID=%s" % (newProdID,status,jobName,fileID)
+          else:
+            req = "UPDATE T_%s SET Status='%s' WHERE FileID=%s" % (newProdID,status,fileID)
+          result = self._update(req)
+          if not result['OK']:
+            # rollback the operation
+            print "KGG We need to add code to restore original production status"
+            result = self.deleteProduction(newProdID)
+            if not result['OK']:
+              gLogger.warn('Failed to rollback the production creation')
+            return S_ERROR('Failed to create derived production: error while marking already processed files')
 
     return S_OK(newProdID)
 
