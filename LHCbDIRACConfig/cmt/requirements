@@ -24,6 +24,7 @@ path_prepend PYTHONPATH $(DIRACROOT)/$(dplat)/lib/python$(Python_config_version_
 set DIRAC_VOMSES "$(DIRACROOT)/etc/vomses"
 
 use pyqt     v* LCG_Interfaces
+use sqlite   v* LCG_Interfaces
 
 macro py_vers_cmd "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py"
 macro py_vers_cmd2 "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py -2"
