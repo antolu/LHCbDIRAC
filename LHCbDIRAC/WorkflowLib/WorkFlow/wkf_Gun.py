@@ -9,22 +9,23 @@ simDescription = 'ParticuleGun'
 eventTypeSignal = "55230100"
 wkf_name = "ParticuleGun_"+eventTypeSignal
 #eventTypeSignal = "30000000"
-numberEventSignal = 40000
+numberEventSignal = 1000
 Gauss_version = "v35r0" #v35r0
-Gauss_optfile = "Gauss-2008.py"
-extraPackages = 'SQLDDDB.v4r8' #semicolon separated list if necessary
+Gauss_optfile = "Gauss-2008.py;$DECFILESROOT/options/@{eventType}.opts"
+Gauss_optionsType = "py"
+extraPackages = 'SQLDDDB.v4r8;DecFiles.v15r2' #semicolon separated list if necessary
 system_os = "slc4_ia32_gcc34"
 outputDataFileMask = "sim" #semicolon separated list if necessary
 
-opt_gauss = "importOptions(\"$DECFILESROOT/options/@{eventType}.opts\")"
-opt_gauss = opt_gauss + ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+#opt_gauss = "importOptions(\"$DECFILESROOT/options/@{eventType}.opts\")"
+opt_gauss = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 
 
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
 module2.setDescription('Gaudi Application module')
-module2.setBody('from WorkflowLib.Module.GaudiApplication import GaudiApplication\n')
+module2.setBody('from WorkflowLib.Module.GaudiApplicationPY import GaudiApplication\n')
 
 #define module 3
 module3 = ModuleDefinition('LogChecker')#during constraction class creates duplicating copies of the params
@@ -76,6 +77,7 @@ step1.addParameter(Parameter("outputData","","string","","",True,True,"etc name"
 step1.addParameter(Parameter("applicationName","","string","","",True, False, "Application Name"))
 step1.addParameter(Parameter("applicationVersion","","string","","",True, False, "Application Name"))
 step1.addParameter(Parameter("applicationType","","string","","",True, False, "Application Type"))
+step1.addParameter(Parameter("optionsType","","string","","",True, False, "options Type for this application"))
 step1.addParameter(Parameter("applicationLog","","string","","",True,False,"name of the output file of the application"))
 step1.addParameter(Parameter("optionsFile","","string","","",True,False,"Options File"))
 step1.addParameter(Parameter("optionsLine","","string","","",True,False,"option to be added last","option"))
@@ -108,13 +110,14 @@ stepInstance1.setValue("inputDataType","None")
 stepInstance1.setValue("applicationName", "Gauss")
 stepInstance1.setValue("applicationVersion", Gauss_version)
 stepInstance1.setValue("applicationType", "sim")
+stepInstance1.setValue("optionsType", Gauss_optionsType)
 stepInstance1.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
 stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setValue("extraPackages",extraPackages)
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"CERN-RDST"}]
 stepInstance1.setValue("listoutput",list1_out)
 
 
@@ -124,7 +127,7 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v3r0.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v4r0.tar.gz","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("JobType","MCSimulation","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
@@ -140,7 +143,7 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00006044","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000104","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("emailAddress","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
+workflow1.addParameter(Parameter("emailAddress","lhcb-datacrash@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
