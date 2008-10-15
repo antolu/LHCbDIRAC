@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.90 2008/10/13 11:16:43 joel Exp $
+# $Id: GaudiApplication.py,v 1.91 2008/10/15 11:18:11 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.90 2008/10/13 11:16:43 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.91 2008/10/15 11:18:11 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -38,7 +38,6 @@ class GaudiApplication(ModuleBase):
     self.systemConfig = ''
     self.applicationLog = ''
     self.applicationName = ''
-    self.optionsType = 'py'
     self.inputDataType = 'MDF'
     self.numberOfEvents = 0
     self.inputData = '' # to be resolved
@@ -51,42 +50,6 @@ class GaudiApplication(ModuleBase):
     self.optionsLine = ''
     self.extraPackages = ''
 
-  #############################################################################
-  def resolveInputDataOpts(self,options):
-    """ Input data resolution has two cases. Either there is explicitly defined
-        input data for the application step (a subset of total workflow input data reqt)
-        *or* this is defined at the job level and the job wrapper has created a
-        pool_xml_catalog.xml slice for all requested files.
-
-        Could be overloaded for python / standard options in the future.
-    """
-    if self.inputData:
-      self.log.info('Input data defined in workflow for this Gaudi Application step')
-      if type(self.inputData) != type([]):
-        self.inputData = self.inputData.split(';')
-    elif self.InputData:
-      self.log.info('Input data defined taken from JDL parameter')
-      if type(self.inputData) != type([]):
-        self.inputData = self.InputData.split(';')
-    else:
-      self.log.info('Job has no input data requirement')
-
-    if self.inputData:
-      #write opts
-      inputDataFiles = []
-      for lfn in self.inputData:
-        if self.inputDataType == "MDF":
-          inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
-        elif self.inputDataType in ("ETC","SETC","FETC"):
-          inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
-        else:
-          inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
-      inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
-      evtSelOpt = """EventSelector.Input={%s};\n""" %(inputDataOpt)
-      options.write(evtSelOpt)
-
-    poolOpt = """\nPoolDbCacheSvc.Catalog= {"xmlcatalog_file:%s"};\n""" %(self.poolXMLCatName)
-    options.write(poolOpt)
 
   #############################################################################
   def resolveInputDataPy(self,options):
@@ -123,66 +86,6 @@ class GaudiApplication(ModuleBase):
       options.write(evtSelOpt)
     poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.write(poolOpt)
-
-  #############################################################################
-  def manageOpts(self):
-    print "manage options OPTS",self.optfile
-    options = open('gaudi.opts','w')
-    options.write('\n\n//////////////////////////////////////////////////////\n')
-    options.write('// Dynamically generated options in a production or analysis job\n\n')
-    if os.path.exists('gaudirun.opts'): os.remove('gaudirun.opts')
-    if os.path.exists('gaudiruntmp.opts'): os.remove('gaudiruntmp.opts')
-    commtmp = open('gaudiruntmp.opts','w')
-    if self.optionsLinePrev:
-      for opt in self.optionsLinePrev.split(';'):
-        if not re.search('tring',opt):
-          if re.search('#include',opt):
-            commtmp.write(opt+'\n')
-          else:
-            if opt != "None":
-              commtmp.write(opt+';\n')
-        else:
-          self.log.warn('Options line not in correct format ignoring string')
-    commtmp.close()
-
-    if re.search('\$',self.optfile) is None:
-      comm = 'cat '+self.optfile+' >> gaudiruntmp.opts'
-      output = shellCall(0,comm)
-    else:
-      comm = 'echo "#include '+self.optfile+'" > gaudiruntmp.opts'
-      commtmp = open('gaudiruntmp.opts','a')
-      newline = '#include "'+self.optfile+'"'
-      commtmp.write(newline)
-      commtmp.close()
-
-    self.optfile = 'gaudiruntmp.opts'
-    if self.optionsLine:
-      for opt in self.optionsLine.split(';'):
-        if not re.search('tring',opt):
-          if len(opt) > 0:
-              if re.search('#include',opt):
-                options.write(opt+'\n')
-              else:
-                options.write(opt+';\n')
-        else:
-          self.log.warn('Options line not in correct format ignoring string')
-
-    self.resolveInputDataOpts(options)
-    if self.run_number != 0 and self.applicationName == 'Gauss':
-        options.write("""GaussGen.RunNumber = """+str(self.run_number)+""";\n""")
-
-    if self.step_commons.has_key('firstEventNumber') and self.applicationName == 'Gauss':
-        self.firstEventNumber = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
-        options.write("""GaussGen.FirstEventNumber = """+str(self.firstEventNumber)+""";\n""")
-
-    if self.numberOfEvents != 0:
-        options.write("""ApplicationMgr.EvtMax ="""+self.numberOfEvents+""" ;\n""")
-    options.write('\n//EOF\n')
-    options.close()
-
-    comm = 'cat '+self.optfile+' gaudi.opts > gaudirun.opts'
-    output = shellCall(0,comm)
-    os.environ['JOBOPTPATH'] = 'gaudirun.opts'
 
   #############################################################################
   def managePy(self):
@@ -224,9 +127,6 @@ class GaudiApplication(ModuleBase):
        self.applicationName = self.step_commons['applicationName']
        self.applicationVersion = self.step_commons['applicationVersion']
        self.applicationLog = self.step_commons['applicationLog']
-
-    if self.step_commons.has_key('optionsType'):
-       self.optionsType = self.step_commons['optionsType']
 
     if self.step_commons.has_key('numberOfEvents'):
        self.numberOfEvents = self.step_commons['numberOfEvents']
@@ -324,19 +224,13 @@ class GaudiApplication(ModuleBase):
           else:
             self.optfile += ' '+fileopt
 
-    if self.optionsType.lower() == "py":
-      self.optfile_extra = 'gaudi_extra_options.py'
-      self.managePy()
-    else:
-      self.optfile_extra = 'gaudi_extra_options.opts'
-      self.manageOpts()
+    self.optfile_extra = 'gaudi_extra_options.py'
+    self.managePy()
 
 
     if os.path.exists(self.applicationName+'Run.sh'): os.remove(self.applicationName+'Run.sh')
     script = open(self.applicationName+'Run.sh','w')
-#    script.write('#!/bin/sh \n')
     script.write('#!/bin/sh \n')
-#    script.write('exit 23\n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
     script.write('#####################################################################\n')
@@ -399,17 +293,12 @@ class GaudiApplication(ModuleBase):
     if self.generator_name == '':
       script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-#                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 +self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
     else:
       script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-#                 +self.applicationName+' '+self.applicationVersion+' gfal CASTOR dcache_client lfc oracle\n')
-#                 self.applicationName+' '+self.applicationVersion+' --runtime-project LHCbGrid --use LHCbGridSys oracle\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
-#    script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
 
    #To fix Shr variable problem with component libraries
     if os.path.exists(ld_base_path+'/lib'):
@@ -499,20 +388,10 @@ rm -f scrtmp.py
     if os.path.exists(comp_path):
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
-      if self.optionsType.lower() == 'py':
-        if self.generator_name == '':
-          comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
-        else:
-          comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
+      if self.generator_name == '':
+        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
       else:
-        comm = self.applicationName+'.exe'+'\n'
-#        exe_path = os.path.join( appRoot, self.systemConfig, self.applicationName+'.exe' ) #default
-#        if os.path.exists('lib/'+self.applicationName+'.exe'):
-#          exe_path = 'lib/'+self.applicationName+'.exe '
-#          print 'Found user shipped executable '+self.applicationName+'.exe...'
-
-        #comm = comp_path+'/ld-linux.so.2 --library-path '+comp_path+':${LD_LIBRARY_PATH} '+
-#        comm = exe_path+' '+os.environ['JOBOPTPATH']+'\n'
+        comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
 
       print 'Command = ',comm
       script.write(comm)
@@ -555,7 +434,6 @@ rm -f scrtmp.py
 
   #############################################################################
   def redirectLogOutput(self, fd, message):
-    print message
     sys.stdout.flush()
     if message:
       if self.applicationLog:
