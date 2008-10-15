@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.25 2008/09/05 14:54:50 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.26 2008/10/15 14:16:33 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.25 2008/09/05 14:54:50 paterson Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.26 2008/10/15 14:16:33 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -115,15 +115,16 @@ class SAMFinalization(ModuleBaseSAM):
 
     samResults = self.workflow_commons['SAMResults']
     #If the lock test has failed or is not OK, another job is running and the lock should not be removed
-    if not int(samResults['CE-lhcb-lock']) > int(self.samStatus['info']):
-      result = self.__removeLockFile(sharedArea)
-      if not result['OK']:
-        self.setApplicationStatus('Could Not Remove Lock File')
-        self.writeToLog('Failed to remove lock file with result:\n%s' %result)
-        failed=True
-    else:
-      self.log.info('Another SAM job is running, leaving SAM lock file in shared area')
-      self.writeToLog('Another SAM job is running, leaving SAM lock file in shared area')
+    if samResults.has_key('CE-lhcb-lock'):
+        if not int(samResults['CE-lhcb-lock']) > int(self.samStatus['info']):
+          result = self.__removeLockFile(sharedArea)
+          if not result['OK']:
+            self.setApplicationStatus('Could Not Remove Lock File')
+            self.writeToLog('Failed to remove lock file with result:\n%s' %result)
+            failed=True
+        else:
+          self.log.info('Another SAM job is running, leaving SAM lock file in shared area')
+          self.writeToLog('Another SAM job is running, leaving SAM lock file in shared area')
 
     if not failed:
       self.setApplicationStatus('Starting %s Test' %self.testName)
