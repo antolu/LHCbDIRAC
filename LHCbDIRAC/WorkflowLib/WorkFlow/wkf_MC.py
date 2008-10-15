@@ -229,7 +229,6 @@ workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, 
 workflow1.addParameter(Parameter("OUTPUT_MAX","20","string","","",True,False,"nb max of output to keep"))
 
 workflow1.addParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
-workflow1.addParameter(Parameter("Platform","gLite","JDLReqt","","",True, False, "platform"))
 workflow1.addParameter(Parameter("SystemConfig",system_os,"JDLReqt","","",True, False, "Application Name"))
 
 # and finally we can unlink them because we inherit them linked
