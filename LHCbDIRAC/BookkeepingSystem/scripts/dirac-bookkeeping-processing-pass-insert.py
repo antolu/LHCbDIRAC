@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-processing-pass-insert.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-processing-pass-insert.py,v 1.3 2008/10/15 11:52:44 joel Exp $
 # File :   dirac-bookkeeping-processing-pass-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-processing-pass-insert.py,v 1.2 2008/10/08 13:39:00 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-processing-pass-insert.py,v 1.3 2008/10/15 11:52:44 joel Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -17,13 +17,13 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 
-production = raw_input("Production:")  
-passid = raw_input("Pass description:")  
-inputprod = raw_input("Total processing pass for input production:")  
-simcond = raw_input('Simulation description:')
+production = raw_input("Production: ")
+passid = raw_input("Pass description: ")
+inputprod = raw_input("Total processing pass for input production: ")
+simcond = raw_input('Simulation description: ')
 
 print 'Do you want to add this new pass_index conditions? (yes or no)'
-value = raw_input('Choice:')
+value = raw_input('Choice: ')
 choice=value.lower()
 if choice in ['yes','y']:
   res = bk.insertProcessing(production, passid, inputprod, simcond)
