@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.36 2008/09/18 20:40:44 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.37 2008/10/16 08:07:47 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.36 2008/09/18 20:40:44 roma Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.37 2008/10/16 08:07:47 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -49,6 +49,9 @@ class LockSharedArea(ModuleBaseSAM):
     self.enable = True
     self.forceLockRemoval = False
 
+    #Global parameter affecting behaviour
+    self.safeMode = False
+
   #############################################################################
   def resolveInputVariables(self):
     """ By convention the workflow parameters are resolved here.
@@ -64,6 +67,11 @@ class LockSharedArea(ModuleBaseSAM):
       if not type(self.forceLockRemoval)==type(True):
         self.log.warn('Force lock flag set to non-boolean value %s, setting to False' %self.forceLockRemoval)
         self.enable=False
+
+    if self.workflow_commons.has_key('SoftwareInstallationTest'):
+       safeFlag = self.workflow_commons['SoftwareInstallationTest']
+       if safeFlag=='False':
+         self.safeMode==True
 
     self.log.verbose('Enable flag is set to %s' %self.enable)
     self.log.verbose('Force lock flag is set to %s' %self.forceLockRemoval)
@@ -95,6 +103,12 @@ class LockSharedArea(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %self.site)
       isPoolAccount = True
+
+    #If running in safe mode stop here and return S_OK()
+    if self.safeMode:
+      self.log.info('We are running in SAM safe mode so no lock file will be created')
+      self.setApplicationStatus('%s Successful (Safe Mode)' %self.testName)
+      return self.finalize('%s Test Successful (Safe Mode)' %self.testName,'Status OK (= 10)','ok')
 
     result = self.runCommand('Checking current umask','umask')
     if not result['OK']:
