@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.10 2008/10/13 09:00:19 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.11 2008/10/16 07:57:59 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.10 2008/10/13 09:00:19 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.11 2008/10/16 07:57:59 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -444,6 +444,71 @@ class LHCbSAMJob(Job):
     step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
     step.addParameter(Parameter("publishResultsFlag","","bool","","",False, False, "Flag to trigger publishing of results to SAM DB"))
     step.addParameter(Parameter("uploadLogsFlag","","bool","","",False, False, "Flag to trigger upload of SAM logs to LogSE"))
+    return step
+
+  #############################################################################
+  def runTestScript(self,scriptName='',enableFlag=True):
+    """Helper function.
+
+       Add the optional SAM Run Test Script module step to run an arbitrary
+       python script as part of the SAM test job.
+
+       Example usage:
+
+       >>> job = LHCbSAMJob()
+       >>> job.runTestScript('myPythonScript.py',enableFlag='True')
+
+       @param enableFlag: Flag to enable / disable calls for testing purposes
+       @type enableFlag: boolean
+       @param scriptName: Path to python script to execute
+       @type scriptName: string
+    """
+    if not enableFlag in [True,False]:
+      raise TypeError,'Expected boolean value for enableFlag'
+    if not type(scriptName)==type(" ") or not scriptName:
+      raise TypeError,'Expected string type for script name'
+    if not os.path.exists(scriptName):
+      raise TypeError,'Path to script %s must exist' %(scriptName)
+
+    self.addToInputSandbox.append(scriptName)
+
+    self.gaudiStepCount +=1
+    stepNumber = self.gaudiStepCount
+    stepDefn = '%sStep%s' %('SAM',stepNumber)
+    step =  self.__getRunTestScriptStep(stepDefn)
+
+    self._addJDLParameter('RunTestScriptTest',str(enableFlag))
+    stepName = 'Run%sStep%s' %('SAM',stepNumber)
+    self.addToOutputSandbox.append('*.log')
+
+    self.workflow.addStep(step)
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
+
+    # Define Step and its variables
+    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance.setValue("enable",enableFlag)
+    stepInstance.setValue("scriptName",os.path.basename(scriptName))
+
+  #############################################################################
+  def __getRunTestScriptStep(self,name='RunTestScript'):
+    """Internal function.
+
+        This method controls the definition for a RunTestScript step.
+    """
+    # Create the RunTestScript module first
+    moduleName = 'RunTestScript'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
+    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
+    module.setBody(body)
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    moduleInstance = step.createModuleInstance('RunTestScript',name)
+    # Define step parameters
+    step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
+    step.addParameter(Parameter("scriptName","","string","","",False, False, "script name to execute"))
     return step
 
   #############################################################################

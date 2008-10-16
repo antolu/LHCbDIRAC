@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.5 2008/10/13 09:03:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.6 2008/10/16 07:57:46 paterson Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.5 2008/10/13 09:03:02 paterson Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.6 2008/10/16 07:57:46 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -32,7 +32,7 @@ class DiracSAM(Dirac):
     self.log = gLogger.getSubLogger( "DiracSAM" )
 
   #############################################################################
-  def submitAllSAMJobs(self,softwareEnableFlag=True):
+  def submitAllSAMJobs(self,softwareEnableFlag=True,scriptName=''):
     """Submit SAM tests to all possible CEs as defined in the CS.
     """
     result = getCESiteMapping(self.gridType)
@@ -46,14 +46,14 @@ class DiracSAM(Dirac):
 
     self.log.info('Preparing jobs for %s CEs' %(len(ceSiteMapping.keys())))
     for ce in ceSiteMapping.keys():
-      result = self.submitSAMJob(ce,softwareEnable=softwareEnableFlag)
+      result = self.submitSAMJob(ce,softwareEnable=softwareEnableFlag,script=scriptName)
       if not result['OK']:
         self.log.info('Submission of SAM job to CE %s failed with message:\n%s' %(ce,result['Message']))
 
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True,install_project=None):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True,install_project=None,script=''):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -72,6 +72,8 @@ class DiracSAM(Dirac):
         self.log.verbose('Optional install_project URL is set to %s' %(install_project))
       job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable,installProjectURL=install_project)
       job.testApplications(enableFlag=enable)
+      if script:
+        job.runTestScript(scriptName=script,enableFlag=enable)
       job.finalizeAndPublish(logUpload=logFlag,publishResults=publishFlag,enableFlag=enable)
     except Exception,x:
       self.log.warn('Creating SAM job failed with exception: %s' %x)
