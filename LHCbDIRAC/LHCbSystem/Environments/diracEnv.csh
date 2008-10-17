@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.4 2008/08/29 11:50:16 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.5 2008/10/17 12:58:12 rgracian Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.4 2008/08/29 11:50:16 joel Exp $'
-set __VERSION__='$Revision: 1.4 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.5 2008/10/17 12:58:12 rgracian Exp $'
+set __VERSION__='$Revision: 1.5 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -68,10 +68,8 @@ else
 endif
 
 
-setenv DPLAT `$DIRACROOT/scripts/platform.py`
-setenv PATH $DIRACROOT/$DPLAT/bin:$DIRACROOT/scripts:$PATH
-setenv LD_LIBRARY_PATH $DIRACROOT/$DPLAT/lib:$LD_LIBRARY_PATH
-setenv PYTHONPATH $DIRACROOT
+setenv DIRACPLAT `$DIRACROOT/scripts/platform.py`
+setenv PATH $DIRACROOT/scripts:$PATH
 
 echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin
 if $status == 1 then
