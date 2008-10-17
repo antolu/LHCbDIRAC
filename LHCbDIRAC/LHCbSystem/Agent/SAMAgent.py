@@ -50,7 +50,7 @@ class SAMAgent(Agent):
 
     diracSAM = DiracSAM()
 
-    result = diracSAM.submitAllSAMJobs()
+    result = diracSAM.submitAllSAMJobs(False) # Temporally forbidden software installation
     if not result['OK']:
       gLogger.error(result['Message'])
    
