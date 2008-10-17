@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-import os, sys, popen2
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-production-check-files.py,v 1.1 2008/10/16 09:51:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-production-check-files.py,v 1.2 2008/10/17 13:18:15 rgracian Exp $
 # File :   dirac-lhcb-production-check-files
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-production-check-files.py,v 1.1 2008/10/16 09:51:48 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-production-check-files.py,v 1.2 2008/10/17 13:18:15 rgracian Exp $"
+__VERSION__ = "$Revision: 1.2 $"
+import os, sys, popen2
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
