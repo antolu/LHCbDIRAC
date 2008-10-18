@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.17 2008/10/08 13:38:59 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.17 2008/10/08 13:38:59 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -217,6 +217,7 @@ class XMLFilesReaderManager:
     jobsimcondtitions = job.getSimulationCond()
     simulations = {}
     production = None
+    '''
     if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
       simcondtitions=jobsimcondtitions.getParams()
       if len(simcondtitions.keys())==1: # we send just description !!!!!!!!  We have to remove the else block!
@@ -243,91 +244,92 @@ class XMLFilesReaderManager:
             return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
           simulations[simcond['Value']]=None
     else: #not a gauss job!!!! 
-      condParams = job.getDataTakingCond()
-      if condParams != None:
-        datataking = condParams.getParams()
-        res = dataManager_.getDataTakingCondId(datataking)
-        dataTackingPeriodID = None
-        if res['OK']:
-          daqid = res['Value']
-          if len(daqid)!=0: #exist in the database datataking
-            dataTackingPeriodID = res['Value'][0][0]
-            gLogger.debug('Data taking condition id', dataTackingPeriodID)
+    '''
+    condParams = job.getDataTakingCond()
+    if condParams != None:
+      datataking = condParams.getParams()
+      res = dataManager_.getDataTakingCondId(datataking)
+      dataTackingPeriodID = None
+      if res['OK']:
+        daqid = res['Value']
+        if len(daqid)!=0: #exist in the database datataking
+          dataTackingPeriodID = res['Value'][0][0]
+          gLogger.debug('Data taking condition id', dataTackingPeriodID)
+        else:
+          res = dataManager_.insertDataTakingCond(datataking)
+          if not res['OK']:
+            return S_ERROR("DATA TAKING Problem"+str(res['Message']))
           else:
-            res = dataManager_.insertDataTakingCond(datataking)
-            if not res['OK']:
-              return S_ERROR("DATA TAKING Problem"+str(res['Message']))
-            else:
-              dataTackingPeriodID = res['Value']
-        else:
-          return S_ERROR("DATA TAKING Problem"+str(res['Message']))
-        #insert processing pass
-        programName = None
-        programVersion = None
-        for param in job.getJobParams():
-          if param.getName() =='ProgramName':
-            programName = param.getValue()
-          elif param.getName() =='ProgramVersion':
-            programVersion = param.getValue()
-        retVal = dataManager_.getPassIndexID(programName, programVersion)
-        if not retVal['OK']:
-          return S_ERROR(retVal['Message'])
-        passIndex = retVal['Value']
-        gLogger.debug('Pass_indexid', passIndex)
-        res = dataManager_.insertProcessing_pass(passIndex, dataTackingPeriodID)
-        if res['OK']:
-          production = res['Value']
-          gLogger.info("New processing pass has been created!")
-          gLogger.info("New production is:",production)
-        else:
-          gLogger.error('Unable to create processing pass!',res['Message'])
-          return S_ERROR('Unable to create processing pass!')
-        
+            dataTackingPeriodID = res['Value']
       else:
-        inputfiles = job.getJobInputFiles()
-        if len(inputfiles) == 0:
-          gLogger.error("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
-          return S_ERROR("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
-        else:
-          for file in inputfiles:
-            simcond = dataManager_.getSimCondIDWhenFileName(file.getFileName())
-            if not simcond['OK']:
-              gLogger.error("Simulation conditions problem", simcond["Message"])
-              return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-            if len(simulations) == 0:
-              value = simcond['Value']
-              simulations[value]=None
-            else:
-                value = simcond['Value']
-                if not simulations.__contains__(value):
-                  gLogger.error("Different simmulation conditions!!!")
-                  return S_ERROR("Different simmulation conditions!!!")
-    '''
-    attrList = {'ConfigName':config.getConfigName(), \
-                 'ConfigVersion':config.getConfigVersion(), \
-                 'DAQPeriodId':simulations.items()[0][0], \
-                 'JobStart':None}
-    '''
-    attrList = {'ConfigName':config.getConfigName(), \
-                 'ConfigVersion':config.getConfigVersion(), \
-                 'DAQPeriodId':None, \
-                 'JobStart':None}
-    
-    for param in job.getJobParams():
-      attrList[str(param.getName())] = param.getValue()
+        return S_ERROR("DATA TAKING Problem"+str(res['Message']))
+      #insert processing pass
+      programName = None
+      programVersion = None
+      for param in job.getJobParams():
+        if param.getName() =='ProgramName':
+          programName = param.getValue()
+        elif param.getName() =='ProgramVersion':
+          programVersion = param.getValue()
+      retVal = dataManager_.getPassIndexID(programName, programVersion)
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+      passIndex = retVal['Value']
+      gLogger.debug('Pass_indexid', passIndex)
+      res = dataManager_.insertProcessing_pass(passIndex, dataTackingPeriodID)
+      if res['OK']:
+        production = res['Value']
+        gLogger.info("New processing pass has been created!")
+        gLogger.info("New production is:",production)
+      else:
+        gLogger.error('Unable to create processing pass!',res['Message'])
+        return S_ERROR('Unable to create processing pass!')
       
-    if attrList['JobStart']==None:
-      #date = config.getDate().split('-')
-      #time = config.getTime().split(':')
-      #dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
-      attrList['JobStart']=config.getDate()+' '+config.getTime()
-    
-    if production != None: # for the online registration
-      attrList['Production'] = production
-    
-    res = dataManager_.insertJob(attrList)
-    return res
+    else:
+      inputfiles = job.getJobInputFiles()
+      if len(inputfiles) == 0:
+        gLogger.error("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
+        return S_ERROR("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
+      else:
+        for file in inputfiles:
+          simcond = dataManager_.getSimCondIDWhenFileName(file.getFileName())
+          if not simcond['OK']:
+            gLogger.error("Simulation conditions problem", simcond["Message"])
+            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
+          if len(simulations) == 0:
+            value = simcond['Value']
+            simulations[value]=None
+          else:
+              value = simcond['Value']
+              if not simulations.__contains__(value):
+                gLogger.error("Different simmulation conditions!!!")
+                return S_ERROR("Different simmulation conditions!!!")
+  '''
+  attrList = {'ConfigName':config.getConfigName(), \
+               'ConfigVersion':config.getConfigVersion(), \
+               'DAQPeriodId':simulations.items()[0][0], \
+               'JobStart':None}
+  '''
+  attrList = {'ConfigName':config.getConfigName(), \
+               'ConfigVersion':config.getConfigVersion(), \
+               'DAQPeriodId':None, \
+               'JobStart':None}
   
+  for param in job.getJobParams():
+    attrList[str(param.getName())] = param.getValue()
+    
+  if attrList['JobStart']==None:
+    #date = config.getDate().split('-')
+    #time = config.getTime().split(':')
+    #dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+    attrList['JobStart']=config.getDate()+' '+config.getTime()
+  
+  if production != None: # for the online registration
+    attrList['Production'] = production
+  
+  res = dataManager_.insertJob(attrList)
+  return res
+
   #############################################################################
   def __insertOutputFiles(self, job, file):
     

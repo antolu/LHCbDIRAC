@@ -1,20 +1,15 @@
-########################################################################
-# $Id: TreeWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
-########################################################################
-
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'workspace/BookkeepingSystem/Bookkeeping/Widget/TreeWidget.ui'
+# Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Wed Sep 17 15:42:57 2008
+# Created: Fri Oct 10 17:54:58 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
-__RCSID__ = "$Id: TreeWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
 class Ui_TreeWidget(object):
     def setupUi(self, TreeWidget):
@@ -35,6 +30,8 @@ class Ui_TreeWidget(object):
 
         self.tree = TreePanel(TreeWidget)
         self.tree.setGeometry(QtCore.QRect(10,10,411,621))
+        self.tree.setProperty("cursor",QtCore.QVariant(QtCore.Qt.ArrowCursor))
+        self.tree.setAnimated(True)
         self.tree.setObjectName("tree")
 
         self.configNameRadioButton1 = QtGui.QAction(TreeWidget)

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $
+# $Id: ControlerMain.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerMain.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -18,7 +18,7 @@ class ControlerMain(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerMain, self).__init__(widget, parent)
     self.__bkClient = LHCB_BKKDBClient()
-    self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
+    #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
 
   #############################################################################  
   def messageFromParent(self, message):
@@ -32,6 +32,7 @@ class ControlerMain(ControlerAbstract):
     if sender.__class__.__name__=='ControlerTree':
       if message['action']=='expande':
         gLogger.info('1')
+        '''
         if self.__progressBar.isRunning():
           gLogger.info('2')
           self.__progressBar.stop()
@@ -39,14 +40,14 @@ class ControlerMain(ControlerAbstract):
         gLogger.info('3')
         self.__progressBar.start()
         gLogger.info('4')
-
+        '''
         path = message['node']
         items=Item({'fullpath':path},None)
         for entity in self.__bkClient.list(str(path)):
           childItem = Item(entity,items)
           items.addItem(childItem)
-        self.__progressBar.stop()
-        self.__progressBar.wait()
+        #self.__progressBar.stop()
+        #self.__progressBar.wait()
         message = Message({'action':'showNode','items':items})
         gLogger.info('5')
         return message

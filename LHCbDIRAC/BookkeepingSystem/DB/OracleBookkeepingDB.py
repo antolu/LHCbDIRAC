@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.32 2008/10/09 17:37:10 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.33 2008/10/18 18:36:51 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.32 2008/10/09 17:37:10 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.33 2008/10/18 18:36:51 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -339,10 +339,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if not res['OK']:
         gLogger.error('File Type not found:',res['Message'])
     else:
+      if len( res['Value'] ) == 0:
+        return S_ERROR('File not found!')
       jobid = res['Value'][0][0]
       command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER, GENERATOR, \
                  GEOMETRYVERSION, GRIDJOBID, LOCALJOBID, LOCATION,  NAME, NUMBEROFEVENTS, \
-                 STATISTICSREQUESTED, WNCPUPOWER, WNCPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE  from jobs where jobid='+str(jobid)
+                 STATISTICSREQUESTED, WNCPUPOWER, WNCPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE, jobid from jobs where jobid='+str(jobid)
       res = self.db_._query(command)
       return res
     return S_ERROR("Job is not found!")
@@ -361,8 +363,77 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     return S_OK(value)
   
-        
+  #############################################################################
+  def updateFileMetaData(self, filename, filesAttr):
+    command = 'update files Set '
+    for attribute in filesAttr.keys():
+      command += str(attribute)+'='+str(filesAttr[attribute])+' ,'
+    
+    command = command[:-1]
+    command += ' where fileName=\''+filename+'\''
+    res = self.db_._query(command)
+    return res
+    
 
+  #############################################################################
+  def renameFile(self, oldLFN, newLFN):
+    command = ' update files Set  fileName = \''+newLFN+'\' where filename=\''+oldLFN+'\''
+    res = self.db_._query(command)
+    return res
+  
+  #############################################################################
+  def getInputAndJobFiles(self, jobids):
+    list = {}
+    for jobid in jobids:
+      tmp = {}
+      res = self.getInputFiles(jobid)
+
+      if not res['OK']:
+        return S_ERORR(res['Message'])
+      input = res['Value']
+      inputs = []
+      for lfn in input:
+        inputs += [lfn]
+        
+      res = self.getOutputFiles(jobid)
+      if not res['OK']:
+        return S_ERORR(res['Message'])
+      output = res['Value'] 
+      outputs = []
+      for lfn in output:
+        if lfn not in inputs:
+          outputs += [lfn]
+      tmp = {'InputFiles':inputs,'OutputFiles':outputs}
+      list[jobid]=tmp
+    return S_OK(list)  
+      
+  #############################################################################
+  def getInputFiles(self, jobid):
+    command = ' select files.filename from files, inputfiles where files.jobid=inputfiles.jobid and inputfiles.jobid='+str(jobid)
+    res = self.db_._query(command)
+    return res
+      
+  #############################################################################
+  def getOutputFiles(self, jobid):  
+    command = ' select files.filename from files where files.jobid ='+str(jobid) 
+    res = self.db_._query(command)
+    return res
+  #############################################################################
+  def getJobsIds(self, filelist):
+    list = {}
+    for file in filelist:
+      res = self.getJobInfo(file)
+      if not res['OK']:
+        return S_ERROR(res['Message'])  
+      dbResult = res['Value']
+      for record in dbResult:
+        jobid = str(record[19])
+        value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], 'Generator':record[5], \
+                 'GeometryVersion':record[6], 'GridJobID':record[7], 'LocalJobID':record[8], 'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
+                  'StatistivsRequested':record[12], 'WNCPUPOWER':record[13], 'WNCPUTIME':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18]}  
+      list[jobid]=value
+    return S_OK(list)
+  
   
   
   #############################################################################

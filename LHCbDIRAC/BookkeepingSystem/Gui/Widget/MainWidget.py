@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $
+# $Id: MainWidget.py,v 1.3 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 
@@ -12,7 +12,9 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 
-__RCSID__ = "$Id: MainWidget.py,v 1.2 2008/10/08 13:39:01 zmathe Exp $"
+__RCSID__ = "$Id: MainWidget.py,v 1.3 2008/10/18 18:36:52 zmathe Exp $"
+
+#from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
 #############################################################################  
 class MainWidget(QMainWindow, Ui_MainWidget):

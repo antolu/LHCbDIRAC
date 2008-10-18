@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.77 2008/10/10 14:33:27 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.78 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.77 2008/10/10 14:33:27 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.78 2008/10/18 18:36:52 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -460,6 +460,11 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_exists(self, lfns):
     return dataMGMT_.exists(lfns)
   
+  #############################################################################
+  types_updateFileMetaData = [StringType, DictType]
+  def export_updateFileMetaData(self, filename, filesAttr):
+    return dataMGMT_.updateFileMetaData(filename, filesAttr)
+  
   '''
   Monitoring
   '''
@@ -536,7 +541,22 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_insert_pass_group(self, gropupdesc):
     return dataMGMT_.insert_pass_group(gropupdesc)
     
+  #############################################################################
+  types_renameFile = [StringType, StringType]
+  def export_renameFile(self, oldLFN, newLFN):
+    return dataMGMT_.renameFile(oldLFN, newLFN)
   
+  #############################################################################
+  types_getJobsIds = [ListType]
+  def export_getJobsIds(self, filelist):
+    return dataMGMT_.getJobsIds(filelist)
+  
+  #############################################################################
+  types_getInputAndJobFiles = [ListType]
+  def export_getInputAndJobFiles(self, jobids):
+    return dataMGMT_.getInputAndJobFiles(jobids)
+    
+    
   
   '''
   End Monitoring

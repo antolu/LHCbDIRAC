@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id: TreeWidget.py,v 1.2 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,9 @@ from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog       import FileDialog
 
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.2 2008/10/18 18:36:52 zmathe Exp $"
+
+#from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
 #############################################################################  
 class TreeWidget(QWidget, Ui_TreeWidget):

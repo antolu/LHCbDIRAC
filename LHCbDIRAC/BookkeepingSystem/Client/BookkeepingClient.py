@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.56 2008/10/10 14:33:27 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.57 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.56 2008/10/10 14:33:27 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.57 2008/10/18 18:36:52 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -218,6 +218,11 @@ class BookkeepingClient:
     result = server.getJobInfo(lfn)
     return result
   
+  #############################################################################
+  def updateFileMetaData(self, filename, filesAttr):
+    server = self.__getServer()
+    result = server.updateFileMetaData(filename, filesAttr)
+    return result
   
   
 
@@ -430,7 +435,22 @@ class BookkeepingClient:
   def insert_pass_group(self, gropupdesc):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.insert_pass_group(gropupdesc)
-    
+  
+  #############################################################################
+  def renameFile(self, oldLFN, newLFN):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.renameFile(oldLFN, newLFN)
+  
+  #############################################################################
+  def getJobsIds(self, filelist):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getJobsIds(filelist)
+  
+  #############################################################################
+  def getInputAndJobFiles(self, jobids):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getInputAndJobFiles(jobids)
+  
   
   '''
   Monitoring

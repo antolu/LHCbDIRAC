@@ -1,30 +1,27 @@
-########################################################################
-# $Id: MainWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
-########################################################################
-
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'workspace/BookkeepingSystem/Bookkeeping/Widget/MainWidget.ui'
+# Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Tue Sep 23 16:34:51 2008
+# Created: Fri Oct 10 17:38:19 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
-__RCSID__ = "$Id: MainWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
 class Ui_MainWidget(object):
     def setupUi(self, MainWidget):
         MainWidget.setObjectName("MainWidget")
+        MainWidget.setWindowModality(QtCore.Qt.ApplicationModal)
         MainWidget.resize(QtCore.QSize(QtCore.QRect(0,0,444,841).size()).expandedTo(MainWidget.minimumSizeHint()))
+
         self.centralwidget = QtGui.QWidget(MainWidget)
         self.centralwidget.setObjectName("centralwidget")
 
         self.tree = TreeWidget(self.centralwidget)
-        #self.tree.setGeometry(QtCore.QRect(20,20,401,631))
+        #self.tree.setGeometry(QtCore.QRect(20,20,256,192))
         self.tree.setObjectName("tree")
         MainWidget.setCentralWidget(self.centralwidget)
 
@@ -49,7 +46,7 @@ class Ui_MainWidget(object):
         QtCore.QMetaObject.connectSlotsByName(MainWidget)
 
     def retranslateUi(self, MainWidget):
-        MainWidget.setWindowTitle(QtGui.QApplication.translate("MainWidget", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
+        MainWidget.setWindowTitle(QtGui.QApplication.translate("MainWidget", "Bookkeeping ", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(0,QtGui.QApplication.translate("MainWidget", "Path", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWidget", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setText(QtGui.QApplication.translate("MainWidget", "Exit", None, QtGui.QApplication.UnicodeUTF8))

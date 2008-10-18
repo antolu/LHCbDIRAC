@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -17,17 +17,18 @@ class ControlerFileDialog(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerFileDialog, self).__init__(widget, parent)
     self.__selectedFiles = []
-    self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
+    #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
   
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
+      '''
       if self.__progressBar.isRunning():
           gLogger.info('2')
           self.__progressBar.stop()
           self.__progressBar.wait()
       self.__progressBar.start()  
-      
+      '''
       items = message['items'].getChildren()
       self.getWidget().setModel(items) # I have to save files.
       self.__selectedFiles = []
@@ -47,8 +48,8 @@ class ControlerFileDialog(ControlerAbstract):
         filesize = self.getSizeOfFiles(items)
         self.getWidget().showFilesSize(filesize)
         
-        self.__progressBar.stop()
-        self.__progressBar.wait()
+        #self.__progressBar.stop()
+        #self.__progressBar.wait()
         
         self.getWidget().show()
   
