@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.99 2008/10/20 07:23:47 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.100 2008/10/20 07:59:48 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.99 2008/10/20 07:23:47 rgracian Exp $"
-__VERSION__ = "$Revision: 1.99 $"
+__RCSID__   = "$Id: dirac-install,v 1.100 2008/10/20 07:59:48 rgracian Exp $"
+__VERSION__ = "$Revision: 1.100 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -178,6 +178,7 @@ def parse_options_install():
     dirac.logHelp( help )
 
   ext = None
+  plat = None
 
   for o,v in optionVals:
     if o == '-b' or o == '--build':
@@ -191,7 +192,7 @@ def parse_options_install():
     elif o == '-n' or o == '--name':
       siteName = v
     elif o == '-p' or o == '--platform':
-      dirac.platform(v)
+      plat = v
     elif o == '-r' or o == '--repository':
       dirac.setCVS(v)
     elif o == '-u' or o == '--url':
@@ -210,7 +211,11 @@ def parse_options_install():
     elif o == '-U' or o == '--Upload':
       uploadFlag = True
 
+    dirac.createScripts()
+
     if ext: dirac.setExternal(ext)
+    if plat: dirac.platform(plat)
+
 
 def parse_options_distro():
   """
@@ -314,7 +319,7 @@ class Dirac:
 
     os.chdir( self.__rootPath )
     self.scriptsPath = os.path.join( self.__rootPath, 'scripts' )
-    self.cleanScripts()
+    self.createScripts()
     return self.__rootPath
 
   def __log( self, level, msg ):
@@ -376,6 +381,17 @@ class Dirac:
     except Exception, x:
       self.logERROR( 'Can not chdir to requested installation Root "%s"' % self.__rootPath )
       self.logEXCEP( x )
+
+  def createScripts(self):
+    """
+    Create scripts directory under Current root
+    """
+    if not os.path.isdir( self.scriptsPath ):
+      try:
+        os.mkdir( self.scriptsPath )
+      except Exception, x:
+        self.logERROR( 'Can not mkdir scripts directory at "%s"' % self.scriptsPath )
+        self.logEXCEP( x )
 
   def root(self):
     return self.__rootPath
@@ -854,11 +870,7 @@ class Dirac:
      Remove any entries in the scripts directory
     """
     self.__rmDir( self.scriptsPath )
-    try:
-      os.mkdir( self.scriptsPath )
-    except Exception, x :
-      self.logERROR( 'Can not create "%s", check permissions' % self.scriptsPath )
-      self.logEXCEP( x )
+
   def createPlatform(self):
     """
      Create platform.py in scripts directory
