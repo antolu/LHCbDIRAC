@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.98 2008/10/17 13:31:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.99 2008/10/20 07:23:47 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.98 2008/10/17 13:31:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.98 $"
+__RCSID__   = "$Id: dirac-install,v 1.99 2008/10/20 07:23:47 rgracian Exp $"
+__VERSION__ = "$Revision: 1.99 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -472,6 +472,12 @@ class Dirac:
     self.installedPython = os.path.join( self.__rootPath,
                            self.localPlatform,
                            'bin', 'python' )
+
+  def setExternal( self, ver ):
+    """
+     Set external version, different from DIRAC version
+    """
+    self.external = ver
 
   def createSrcTars(self):
     """
