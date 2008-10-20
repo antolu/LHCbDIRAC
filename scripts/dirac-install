@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.100 2008/10/20 07:59:48 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.101 2008/10/20 08:25:43 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.100 2008/10/20 07:59:48 rgracian Exp $"
-__VERSION__ = "$Revision: 1.100 $"
+__RCSID__   = "$Id: dirac-install,v 1.101 2008/10/20 08:25:43 rgracian Exp $"
+__VERSION__ = "$Revision: 1.101 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -2215,11 +2215,9 @@ dirac.logINFO( 'Running "%s" version "%s"' % ( myShortName, __VERSION__) )
 
 if myShortName in [ 'dirac-install', 'dirac-update']:
 
-  if myShortName == 'dirac-install':
-    dirac.cleanScripts()
-
   parse_options_install()
   dirac.logINFO( 'Checking DIRAC installation at "%s"' %  dirac.root() )
+
 
   if not dirac.localPlatform:
     dirac.platform()  
