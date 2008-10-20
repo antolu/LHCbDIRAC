@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.32 2008/09/24 11:42:50 mseco Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.33 2008/10/20 09:03:31 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -157,6 +157,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaning
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
@@ -187,6 +188,12 @@ $DESTDIR/pro/scripts/install_service.sh Logging SystemLogging
 $DESTDIR/pro/scripts/install_service.sh Logging SystemLoggingReport
 $DESTDIR/pro/scripts/install_agent.sh Logging SystemLoggingDBCleaner
 $DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
+
+$DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
+$DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
+$DESTDIR/pro/scripts/install_agent.sh LHCb SAM
+
+
 
 # RequestManagement
 
