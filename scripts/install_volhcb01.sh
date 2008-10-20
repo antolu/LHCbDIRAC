@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.33 2008/10/20 09:03:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.34 2008/10/20 12:37:17 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -157,7 +157,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaning
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
@@ -178,7 +178,7 @@ $DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMSAgent
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
@@ -191,7 +191,7 @@ $DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
 
 $DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
 $DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
-$DESTDIR/pro/scripts/install_agent.sh LHCb SAM
+$DESTDIR/pro/scripts/install_agent.sh LHCb SAMAgent
 
 
 
