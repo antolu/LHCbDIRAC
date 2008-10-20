@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.14 2008/09/11 20:49:35 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.15 2008/10/20 08:16:39 rgracian Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -45,7 +45,7 @@ exec 2>&1
 #
 renice 20 -p \$\$
 #
-exec dirac-agent $System/$Agent \$DIRAC/etc/${System}_${Agent}.cfg -o LogLevel=$LOGLEVEL
+exec python \$DIRAC/DIRAC/Core/scripts/dirac-agent.py $System/$Agent \$DIRAC/etc/${System}_${Agent}.cfg -o LogLevel=$LOGLEVEL
 EOF
 chmod +x $AgentDir/log/run $AgentDir/run
 
