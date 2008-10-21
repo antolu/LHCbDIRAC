@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.101 2008/10/20 08:25:43 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.102 2008/10/21 13:43:32 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.101 2008/10/20 08:25:43 rgracian Exp $"
-__VERSION__ = "$Revision: 1.101 $"
+__RCSID__   = "$Id: dirac-install,v 1.102 2008/10/21 13:43:32 rgracian Exp $"
+__VERSION__ = "$Revision: 1.102 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -211,10 +211,10 @@ def parse_options_install():
     elif o == '-U' or o == '--Upload':
       uploadFlag = True
 
-    dirac.createScripts()
+  dirac.createScripts()
 
-    if ext: dirac.setExternal(ext)
-    if plat: dirac.platform(plat)
+  if ext: dirac.setExternal(ext)
+  if plat: dirac.platform(plat)
 
 
 def parse_options_distro():
@@ -279,8 +279,8 @@ def parse_options_distro():
     elif o == '-W' or o == '--WorkflowLib':
       workflowLibVersion = v
 
-    if ext: function.External(ext)
-    if workflowLibVersion: dirac.workflowLib(workflowLibVersion)
+  if ext: dirac.External(ext)
+  if workflowLibVersion: dirac.workflowLib(workflowLibVersion)
 
 
 diracTimeout       = 120
@@ -532,6 +532,7 @@ class Dirac:
     """
      Create distribution tars with compiled components
     """
+    self.createPlatform()
     tars = 0
     if not self.buildFlag:
       return tars
