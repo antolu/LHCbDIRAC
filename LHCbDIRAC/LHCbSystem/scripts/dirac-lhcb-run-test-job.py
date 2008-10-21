@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.1 2008/10/16 09:51:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.2 2008/10/21 13:54:26 paterson Exp $
 # File :   dirac-lhcb-run-test-job
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.1 2008/10/16 09:51:48 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.2 2008/10/21 13:54:26 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import sys,string,os,shutil
 
@@ -68,17 +68,20 @@ def getOptionsFile(projectName,projectVersion,sharedArea,lhcbConvention,events):
   """Simple function to retrieve project python options file from specified sharedArea
      if not specified by the user.
   """
+  optionsFiles = ['lhcb-2008.py','%s-2008.py' %projectName,'%s.py' %projectName]
   projectUpper = projectName.upper()
-  optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/%s/options' %(sharedArea,projectUpper,projectUpper,projectVersion,lhcbConvention[projectName],projectName,projectVersion)
+  optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/options' %(sharedArea,projectUpper,projectUpper,projectVersion,lhcbConvention[projectName],projectName)
+  if not os.path.isdir(optionsPath):
+    gLogger.verbose('Assume %s %s uses old package structure' %(projectName,projectVersion))
+    optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/%s/options' %(sharedArea,projectUpper,projectUpper,projectVersion,lhcbConvention[projectName],projectName,projectVersion)
   gLogger.info('Searching for %s %s options in path:\n%s' %(projectName,projectVersion,optionsPath))
   newPath = '%s/Opts%s%s.py' %(os.getcwd(),projectName,projectVersion)
-  optionsFile = '%s/lhcb-2008.py' %optionsPath
-  gLogger.info('Searching for %s %s options file:\n%s' %(projectName,projectVersion,optionsFile))
-  if not os.path.exists(optionsFile):
-    optionsFile = '%s/%s.py' %(optionsPath,projectName)
-    gLogger.info('Searching for %s %s options file:\n%s' %(projectName,projectVersion,optionsFile))
-
-  if os.path.exists(optionsFile):
+  for opts in optionsFiles:
+    optionsFile = '%s/%s' %(optionsPath,opts)
+    gLogger.verbose('Searching for %s %s options file:\n%s' %(projectName,projectVersion,optionsFile))
+    if not os.path.exists(optionsFile):
+      continue
+    gLogger.info('Found options file %s' %optionsFile)
     shutil.copy(optionsFile,newPath)
     fopen = open(newPath,'a')
     fopen.write('ApplicationMgr( EvtMax = %s )\n' %events)
@@ -128,7 +131,7 @@ if args:
   usage()
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower()=="project":
+  if switch[0].lower() in "project":
     projectName=switch[1]
   elif switch[0].lower()=="version":
     projectVersion=switch[1]
@@ -141,7 +144,7 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower()=="jobloglevel":
     logLevel=switch[1]
   elif switch[0].lower()=="mode":
-    submissionMode=switch[1]
+    submissionMode=switch[1].lower()
   elif switch[0].lower()=="jobname":
     jobName=switch[1]
   elif switch[0].lower()=="events":
