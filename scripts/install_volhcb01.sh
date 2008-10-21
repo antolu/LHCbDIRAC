@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.34 2008/10/20 12:37:17 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.35 2008/10/21 13:53:26 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -17,7 +17,7 @@ DESTDIR=/opt/dirac
 SiteName=VOLHCB01.CERN.CH
 DIRACSETUP=LHCb-Development
 DIRACVERSION=HEAD
-EXTVERSION=v0r4p0
+EXTVERSION=HEAD
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
@@ -218,6 +218,8 @@ umask 0002
 export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
 cd `dirname $DESTDIR`
 cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
+cd DIRAC3/DIRAC
+ln -s ../LHCbSystem .
 
 EOF
 
