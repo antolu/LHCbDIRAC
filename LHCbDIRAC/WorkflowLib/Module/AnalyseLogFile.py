@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.29 2008/10/13 13:26:23 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.30 2008/10/22 11:49:12 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.29 2008/10/13 13:26:23 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.30 2008/10/22 11:49:12 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -449,12 +449,26 @@ class AnalyseLogFile(ModuleBase):
   def sendErrorMail(self,message):
     genmail = message.split()[0]
     subj = message.replace(genmail,'')
+    rm = ReplicaManager()
     try:
         if self.workflow_commons.has_key('emailAddress'):
             mailadress = self.workflow_commons['emailAddress']
     except:
         self.log.error('No EMAIL adress supplied')
         return
+
+    self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
+    if self.workflow_commons.has_key('configName'):
+       configName = self.workflow_commons['configName']
+       configVersion = self.workflow_commons['configVersion']
+    else:
+       configName = self.applicationName
+       configVersion = self.applicationVersion
+
+    if self.workflow_commons.has_key('dataType'):
+      job_mode = self.workflow_commons['dataType'].lower()
+    else:
+      job_mode = 'test'
 
     self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
     subject = '['+self.site+']['+self.applicationName+'] '+ self.applicationVersion + \
@@ -468,19 +482,12 @@ class AnalyseLogFile(ModuleBase):
       msg = msg + '\n\nInput Data:\n'
       for inputname in self.inputData.split(';'):
         msg = msg +inputname+'\n'
+        if not self.InputData:
+          lfninputroot = getLFNRoot('','debug',configVersion)
+          lfninput = makeProductionLfn(self.JOB_ID,lfninputroot,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+          guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
+          result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput)
 
-    self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
-    if self.workflow_commons.has_key('configName'):
-       configName = self.workflow_commons['configName']
-       configVersion = self.workflow_commons['configVersion']
-    else:
-       configName = self.applicationName
-       configVersion = self.applicationVersion
-
-#    if self.sourceData:
-#      self.LFN_ROOT= getLFNRoot(self.sourceData)
-#    else:
-#      self.LFN_ROOT=getLFNRoot(self.sourceData,configVersion)
 
     if self.InputData:
       self.LFN_ROOT= getLFNRoot(self.InputData,configName)
