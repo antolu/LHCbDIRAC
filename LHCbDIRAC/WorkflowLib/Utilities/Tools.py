@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.24 2008/10/22 06:59:33 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.24 2008/10/22 06:59:33 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.25 2008/10/22 15:28:19 atsareg Exp $
+__RCSID__ = "$Id: Tools.py,v 1.25 2008/10/22 15:28:19 atsareg Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -122,8 +122,8 @@ def makeIndex():
 
   flist.append('jobLoggingInfo')
   flist.append('jobParameters')
-  flist.append('job.std.out')
-  flist.append('job.std.err')
+  flist.append('jobstd.out')
+  flist.append('jobstd.err')
 
   index = open("index.html","w")
   index.write( """
