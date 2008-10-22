@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.127 2008/10/13 07:49:49 atsareg Exp $
+# $Id: JobFinalization.py,v 1.128 2008/10/22 15:24:55 atsareg Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.127 2008/10/13 07:49:49 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.128 2008/10/22 15:24:55 atsareg Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -616,8 +616,8 @@ class JobFinalization(ModuleBase):
 
     # set the asynchronous log upload request
     self.log.info('Setting asynchronous sandbox log upload request')
-    result = self.setJobLogUploadRequest(self.logSE,target_path+'/'+self.JOB_ID)
-    if not result['OK']:
+    resultUpload = self.setJobLogUploadRequest(self.logSE,target_path+'/'+self.JOB_ID)
+    if not resultUpload['OK']:
       self.log.error('Failed to set log upload request',result['Message'])
 
     if not result['OK']:
