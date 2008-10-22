@@ -1,6 +1,11 @@
-$Id: release.notes,v 1.1 2008/10/15 11:24:19 joel Exp $
+$Id: release.notes,v 1.2 2008/10/22 11:52:51 joel Exp $
+
+=========
+wkf-v6r1 : JC : 22 Oct 2008
+Save input data when a Monte Carlo job crash
 
 =========
 wkf-v6r0 : JC : 14 Oct 2008
 
 Split GaudiApplication in two part ; GaudiApplication.py for usage of gaudirun.py and GaudiApplicationOPTS for the usage of the Gaudi binaries
+
