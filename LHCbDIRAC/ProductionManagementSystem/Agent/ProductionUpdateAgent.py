@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.7 2008/07/04 08:13:41 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.8 2008/10/22 07:53:32 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.7 2008/07/04 08:13:41 rgracian Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.8 2008/10/22 07:53:32 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -16,8 +16,8 @@ import os, time
 
 
 AGENT_NAME = 'ProductionManagement/ProductionUpdateAgent'
-#UPDATE_STATUS = ['Created','Submitted','Received','Checking','Staging','Waiting','Matched','Running','Stalled','Completed']
-UPDATE_STATUS = []
+UPDATE_STATUS = ['Created','Submitted','Received','Checking','Staging','Waiting','Matched','Running','Stalled','Completed']
+#UPDATE_STATUS = []
 WAITING_STATUS = ['Submitted','Received','Checking','Staging','Waiting']
 RUNNING_STATUS = ['Running','Completed']
 FINAL_STATUS = ['Done','Failed']
@@ -62,7 +62,6 @@ class ProductionUpdateAgent(Agent):
       if not jobDict:
         continue
       jobIDs = jobDict.keys()
-
       # Get the job statuses from WMS
       jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
       result = jobSvc.getJobsStatus(jobIDs)
@@ -74,7 +73,10 @@ class ProductionUpdateAgent(Agent):
       for jobWMS in jobIDs:
         jobID = jobDict[jobWMS][0]
         old_status = jobDict[jobWMS][1]
-        status = statusDict[jobWMS]['Status']        
+        if jobWMS in statusDict.keys():
+          status = statusDict[jobWMS]['Status']    
+        else:
+          status = "Removed"    
         if old_status != status:
           gLogger.verbose('Setting job status for Production/Job %d/%d to %s' % (transID,jobID,status))
           result = self.prodDB.setJobStatus(transID,jobID,status)
