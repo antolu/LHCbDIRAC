@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.2 2008/10/21 13:54:26 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.3 2008/10/22 13:29:37 paterson Exp $
 # File :   dirac-lhcb-run-test-job
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.2 2008/10/21 13:54:26 paterson Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.3 2008/10/22 13:29:37 paterson Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import sys,string,os,shutil
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 
-Script.registerSwitch( "", "Project=", "Project Name e.g. Gauss, Boole, Brunel or DaVinci" )
-Script.registerSwitch( "", "Version=", "Project Version e.g. vXrY" )
-Script.registerSwitch( "", "OptionsFile=", "Optional: path to python options file (otherwise options are obtained from site shared area)" )
-Script.registerSwitch( "", "Events=", "Optional: number of events to process (default is 2)" )
-Script.registerSwitch( "", "SystemConfig=", "Optional: job system configuration (default is slc4_ia32_gcc34)" )
-Script.registerSwitch( "", "CPUTime=", "Optional: CPU time requirement (default is 3600)" )
-Script.registerSwitch( "", "JobLogLevel=", "Optional: job log level (default is info)" )
-Script.registerSwitch( "", "Mode=", "Optional: submission mode is either: 'wms', 'local' or 'agent' (set to local by default)" )
-Script.registerSwitch( "", "JobName=", "Optional: job name (default is 'TestJob')" )
-Script.registerSwitch( "", "InputData=", "Optional: only for jobs requiring input data, colon seperated list e.g. <LFN>;<LFN>" )
-Script.registerSwitch( "", "TestDir=", "Optional: path to a directory to execute the test (default is '<CWD>/<Project>_<Version>_<Mode>')" )
-Script.registerSwitch( "", "Generate=", "Optional: specify this switch to a non-null value to only generate the API script and retrieve the project options file (disabled by default)" )
+Script.registerSwitch( "p:", "Project=", "Project Name e.g. Gauss, Boole, Brunel or DaVinci" )
+Script.registerSwitch( "v:", "Version=", "Project Version e.g. vXrY" )
+Script.registerSwitch( "f:", "OptionsFile=", "Optional: path to python options file (otherwise options are obtained from site shared area)" )
+Script.registerSwitch( "e:", "Events=", "Optional: number of events to process (default is 2)" )
+Script.registerSwitch( "y:", "SystemConfig=", "Optional: job system configuration (default is slc4_ia32_gcc34)" )
+Script.registerSwitch( "t:", "CPUTime=", "Optional: CPU time requirement (default is 3600)" )
+Script.registerSwitch( "l:", "JobLogLevel=", "Optional: job log level (default is info)" )
+Script.registerSwitch( "m:", "Mode=", "Optional: submission mode is either: 'wms', 'local' or 'agent' (set to local by default)" )
+Script.registerSwitch( "n:", "JobName=", "Optional: job name (default is 'TestJob')" )
+Script.registerSwitch( "i:", "InputData=", "Optional: only for jobs requiring input data, colon seperated list e.g. <LFN>;<LFN>" )
+Script.registerSwitch( "d:", "TestDir=", "Optional: path to a directory to execute the test (default is '<CWD>/<Project>_<Version>_<Mode>')" )
+Script.registerSwitch( "g", "Generate", "Optional: specify this switch to only generate the API script and retrieve the project options file (disabled by default)" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
@@ -126,34 +126,33 @@ def runJob(projectName,projectVersion,optionsFile,systemConfig,submissionMode,cp
     return S_OK()
 
 #Start the script and perform checks
-
-if args:
+if args or not Script.getUnprocessedSwitches():
   usage()
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower() in "project":
+  if switch[0].lower() in ('p','project'):
     projectName=switch[1]
-  elif switch[0].lower()=="version":
+  elif switch[0].lower() in ('v','version'):
     projectVersion=switch[1]
-  elif switch[0].lower()=="optionsfile":
+  elif switch[0].lower() in ('f','optionsfile'):
     optionsFile=switch[1]
-  elif switch[0].lower()=="systemconfig":
+  elif switch[0].lower() in ('y','systemconfig'):
     systemConfig=switch[1]
-  elif switch[0].lower()=="cputime":
+  elif switch[0].lower() in ('t','cputime'):
     cpuTime=int(switch[1])
-  elif switch[0].lower()=="jobloglevel":
+  elif switch[0].lower() in ('l','jobloglevel'):
     logLevel=switch[1]
-  elif switch[0].lower()=="mode":
+  elif switch[0].lower() in ('m','mode'):
     submissionMode=switch[1].lower()
-  elif switch[0].lower()=="jobname":
+  elif switch[0].lower() in ('n','jobname'):
     jobName=switch[1]
-  elif switch[0].lower()=="events":
+  elif switch[0].lower() in ('e','events'):
     events=int(switch[1])
-  elif switch[0].lower()=="testdir":
+  elif switch[0].lower() in ('d','testdir'):
     testDir=switch[1]
-  elif switch[0].lower()=="generate":
-    generate=switch[1]
-  elif switch[0].lower()=="inputdata":
+  elif switch[0].lower() in ('g','generate'):
+    generate=True
+  elif switch[0].lower() in ('i','inputdata'):
     id=str(switch[1]).split(';')
     for i in id:
       if i: inputDatasets.append(i)
