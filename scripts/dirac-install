@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.102 2008/10/21 13:43:32 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.103 2008/10/22 13:54:25 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.102 2008/10/21 13:43:32 rgracian Exp $"
-__VERSION__ = "$Revision: 1.102 $"
+__RCSID__   = "$Id: dirac-install,v 1.103 2008/10/22 13:54:25 rgracian Exp $"
+__VERSION__ = "$Revision: 1.103 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -41,7 +41,7 @@ availablePlatforms =  [ # 'Linux_x86_64_glibc-2.5',      # slc5 64 bits
 # version of LCG tarball (with LCG python bindings)
 lcgVer = '3.1.14-0'
 
-# conversion between COMTCONFIG (lhcb platforms) and DIRAC platforms
+# conversion between COMTCONFIG (lhcb platforms) and DIRAC platforms (also in dirac-pilot)
 platformDict = { 'slc4_ia32_gcc34' : 'Linux_i686_glibc-2.3.4',
                  'slc4_amd64_gcc34': 'Linux_x86_64_glibc-2.3.4' }
 
@@ -2319,7 +2319,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           siteName = site
           break
       if not siteName:
-        dirac.logEXCEP('Could not determine DIRAC site name for CE:', siteName)
+        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % siteName)
   
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
