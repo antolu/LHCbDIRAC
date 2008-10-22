@@ -225,7 +225,9 @@ umask 0002
 export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
 cd `dirname $DESTDIR`
 cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
-
+cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
+cd DIRAC3/DIRAC
+ln -s ../LHCbSystem .
 EOF
 fi
 

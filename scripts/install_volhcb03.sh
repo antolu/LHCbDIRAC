@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.10 2008/08/05 15:54:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.11 2008/10/22 08:32:16 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -232,7 +232,9 @@ umask 0002
 export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
 cd `dirname $DESTDIR`
 cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
-
+cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
+cd DIRAC3/DIRAC
+ln -s ../LHCbSystem .
 EOF
 
 fi
