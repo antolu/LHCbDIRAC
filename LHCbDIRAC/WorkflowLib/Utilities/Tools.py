@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.23 2008/10/08 14:52:57 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.23 2008/10/08 14:52:57 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.24 2008/10/22 06:59:33 joel Exp $
+__RCSID__ = "$Id: Tools.py,v 1.24 2008/10/22 06:59:33 joel Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -316,7 +316,7 @@ def getLFNRoot(lfn,namespace='',mcYear=0):
                   break
     else:
         LFN_ROOT = '/lhcb/MC/'+str(mcYear)
-    if namespace.lower() == 'test':
+    if namespace.lower() in ('test','debug'):
         tmpLfnRoot = LFN_ROOT.split(os.path.sep)
         tmpLfnRoot[2] = namespace
         LFN_ROOT = string.join(tmpLfnRoot,os.path.sep)
