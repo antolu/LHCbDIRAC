@@ -1,10 +1,10 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.3 2008/09/21 19:04:57 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.4 2008/10/22 15:31:49 atsareg Exp $
 
 """  JobLogUploadAgent uploads log and other auxilliary files of the given job
      to the long term lo storage
 """
 
-__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.3 2008/09/21 19:04:57 atsareg Exp $"
+__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.4 2008/10/22 15:31:49 atsareg Exp $"
 
 from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.Agent import Agent
@@ -146,9 +146,9 @@ class JobLogUploadAgent(Agent,RequestAgentMixIn):
       shutil.rmtree(workDir)
       return result
     if os.path.exists(workDir+'/std.out'):
-      os.rename(workDir+'/std.out',workDir+'/job.std.out')
+      os.rename(workDir+'/std.out',workDir+'/jobstd.out')
     if os.path.exists(workDir+'/std.err'):
-      os.rename(workDir+'/std.err',workDir+'/job.std.err')
+      os.rename(workDir+'/std.err',workDir+'/jobstd.err')
 
     # 2. Job Logging history
     loggingClient = RPCClient('WorkloadManagement/JobMonitoring')
