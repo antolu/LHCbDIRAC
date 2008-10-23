@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.103 2008/10/22 13:54:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.104 2008/10/23 08:14:44 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.103 2008/10/22 13:54:25 rgracian Exp $"
-__VERSION__ = "$Revision: 1.103 $"
+__RCSID__   = "$Id: dirac-install,v 1.104 2008/10/23 08:14:44 rgracian Exp $"
+__VERSION__ = "$Revision: 1.104 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -679,10 +679,10 @@ class Dirac:
       self.__rmDir( destDir )
 
     self.logINFO( 'Retrieving %s' % ', '.join(cvsPackages) )
-    cvsCmd = 'cvs -Q -d %s export -f -r %s %s' \
+    cvsCmd = 'cvs -Q -d %s export -r %s %s' \
              % ( self.CVS, version, ' '.join(cvsPackages) )
     if self.debugFlag:
-      cvsCmd = 'cvs -q -d %s export -f -r %s %s' \
+      cvsCmd = 'cvs -q -d %s export -r %s %s' \
                % ( self.CVS, version, ' '.join(cvsPackages) )
     self.logDEBUG( cvsCmd )
     ret = os.system( cvsCmd )
