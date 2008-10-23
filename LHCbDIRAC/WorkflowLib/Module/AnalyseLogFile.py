@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.30 2008/10/22 11:49:12 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.31 2008/10/23 14:57:03 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.30 2008/10/22 11:49:12 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.31 2008/10/23 14:57:03 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -481,12 +481,17 @@ class AnalyseLogFile(ModuleBase):
     if self.inputData:
       msg = msg + '\n\nInput Data:\n'
       for inputname in self.inputData.split(';'):
-        msg = msg +inputname+'\n'
         if not self.InputData:
           lfninputroot = getLFNRoot('','debug',configVersion)
           lfninput = makeProductionLfn(self.JOB_ID,lfninputroot,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
           guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
           result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput)
+          if not result['OK']:
+              self.log.error('could not save the INPUT data file')
+          else:
+              msg = msg +lfninput+'\n'
+        else:
+          msg = msg +inputname+'\n'
 
 
     if self.InputData:
