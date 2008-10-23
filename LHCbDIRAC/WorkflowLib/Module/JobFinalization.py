@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.128 2008/10/22 15:24:55 atsareg Exp $
+# $Id: JobFinalization.py,v 1.129 2008/10/23 09:46:34 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.128 2008/10/22 15:24:55 atsareg Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.129 2008/10/23 09:46:34 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
@@ -104,6 +104,10 @@ class JobFinalization(ModuleBase):
         self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
         if not type(self.outputDataFileMask)==type([]):
           self.outputDataFileMask = self.outputDataFileMask.split(';')
+          newOutputDataFileMask = []
+          for i in self.outputDataFileMask:
+            newOutputDataFileMask.append(i.lower())
+          self.outputDataFileMask = newOutputDataFileMask
 
     if self.workflow_commons.has_key('outputDataPolicy'):
         self.outputDataPolicy = self.workflow_commons['outputDataPolicy']
@@ -724,7 +728,7 @@ class JobFinalization(ModuleBase):
         outputType = item['outputDataType']
 
       if self.outputDataFileMask:
-        if outputType in self.outputDataFileMask:
+        if outputType.lower() in self.outputDataFileMask:
 #          outputSE = gConfig.getValue('Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/'+outputType+'/OutputSE')
 #          outputRetentionNumber = gConfig.getValue('Operations/OutputDataPolicy/'+self.setup+'/'+self.outputDataPolicy+'/'+outputType+'/OutputRetentionNumber','-1')
           self.log.info('File name: %s will be uploaded to outputSE %s' %(outputName,outputSE))
