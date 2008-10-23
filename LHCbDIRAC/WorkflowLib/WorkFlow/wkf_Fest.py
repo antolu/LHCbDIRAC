@@ -12,7 +12,7 @@ numberEventSignal = 1000
 numberEvent = -1
 emailList = 'lhcb-datacrash@cern.ch'
 generatorName = "Pythia"
-WorkflowLib_version = 'wkf-v6r1'
+WorkflowLib_version = 'wkf-v6r2'
 Gauss_version = "v35r1" #v35r0
 #Gauss_optfile = "Gauss-2008.py;Beam450GeV-VeloOpen-BfieldZero.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
 Gauss_optfile = "Gauss-2008.py;Beam5TeV-VeloClosed-BfieldNeg.py;$DECFILESROOT/options/@{eventType}.opts;"
@@ -22,6 +22,8 @@ extraPackages = '' #semicolon separated list if necessary
 system_os = "slc4_ia32_gcc34"
 outputDataFileMask = "mdf" #semicolon separated list if necessary
 soft_package = "Boole."+Boole_version+";Gauss."+Gauss_version
+Gauss_SE = "CERN-Failover"
+Boole_SE = "CERN-Failover"
 
 opt_gauss = ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
@@ -29,6 +31,7 @@ opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:
 opt_boole = ";OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\""
 opt_boole = opt_boole + ";OutputStream(\"RawWriter\").OutputLevel = INFO"
 opt_boole = opt_boole +";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+#opt_boole = opt_boole +";Boole().noWarnings = True"
 
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
@@ -126,7 +129,7 @@ stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setValue("extraPackages",extraPackages)
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"SIM","outputDataSE":"CERN_MC_M-DST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"SIM","outputDataSE":Gauss_SE}]
 stepInstance1.setValue("listoutput",list1_out)
 
 
@@ -146,7 +149,7 @@ stepInstance2.setValue("optionsFile", Boole_optfile)
 stepInstance2.setValue("optionsLine",opt_boole)
 stepInstance2.setValue("optionsLinePrev","None")
 stepInstance2.setValue("extraPackages",extraPackages)
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"MDF","outputDataSE":"CERN_MC_M-DST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"MDF","outputDataSE":Boole_SE}]
 stepInstance2.setValue("listoutput",list2_out)
 
 
