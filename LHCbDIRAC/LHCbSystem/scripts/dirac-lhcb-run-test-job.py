@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.3 2008/10/22 13:29:37 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.4 2008/10/23 10:00:10 paterson Exp $
 # File :   dirac-lhcb-run-test-job
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.3 2008/10/22 13:29:37 paterson Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.4 2008/10/23 10:00:10 paterson Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 import sys,string,os,shutil
 
@@ -163,7 +163,7 @@ if not projectName in lhcbConvention.keys():
 
 if not submissionMode.lower() in ['local','agent','wms']:
   exitCode=2
-  print 'ERROR: Submission mode must be "default", "local" or "agent" not %s' %submissionMode
+  print 'ERROR: Submission mode must be "local", "agent" or "wms" not %s' %submissionMode
   DIRAC.exit(exitCode)
 
 if not sharedArea or not os.path.exists(sharedArea):
@@ -193,8 +193,13 @@ if not exitCode:
   os.chdir(testDir)
   if optionsFile:
     if not os.path.exists(optionsFile):
-      exitCode=2
-      print 'ERROR: Options file must exist locally, %s was not found' %optionsFile
+      if os.path.exists('%s/%s' %(start,optionsFile)):
+        shutil.copy('%s/%s' %(start,optionsFile),'%s/%s' %(os.getcwd(),optionsFile))
+        optionsFile = '%s/%s' %(os.getcwd(),optionsFile)
+        gLogger.verbose('Options file found in original directory %s' %(optionsFile))
+      else:
+        exitCode=2
+        print 'ERROR: Options file must exist locally, %s was not found' %optionsFile
   else:
     optionsFile = getOptionsFile(projectName,projectVersion,sharedArea,lhcbConvention,events)
     if not optionsFile:
@@ -206,6 +211,7 @@ if exitCode:
   gLogger.info('Cleaning up test directory %s' %testDir)
   os.rmdir(testDir)
   DIRAC.exit(exitCode)
+
 
 result = runJob(projectName,projectVersion,optionsFile,systemConfig,submissionMode,cpuTime,logLevel,jobName,inputDatasets,generate)
 gLogger.verbose(result)
