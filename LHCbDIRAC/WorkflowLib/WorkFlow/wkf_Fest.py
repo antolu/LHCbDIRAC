@@ -8,11 +8,11 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 wkf_name = "minbias-Beam5TeV-VeloClosed-BfieldNeg"
 simDescription = 'Beam5TeV-VeloClosed-BfieldNeg'
 eventTypeSignal = "30000000"
-numberEventSignal = 1000
+numberEventSignal = 4000
 numberEvent = -1
 emailList = 'lhcb-datacrash@cern.ch'
 generatorName = "Pythia"
-WorkflowLib_version = 'wkf-v6r2'
+WorkflowLib_version = 'wkf-v6r3'
 Gauss_version = "v35r1" #v35r0
 #Gauss_optfile = "Gauss-2008.py;Beam450GeV-VeloOpen-BfieldZero.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
 Gauss_optfile = "Gauss-2008.py;Beam5TeV-VeloClosed-BfieldNeg.py;$DECFILESROOT/options/@{eventType}.opts;"
@@ -30,8 +30,7 @@ opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:
 
 opt_boole = ";OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\""
 opt_boole = opt_boole + ";OutputStream(\"RawWriter\").OutputLevel = INFO"
-opt_boole = opt_boole +";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-#opt_boole = opt_boole +";Boole().noWarnings = True"
+opt_boole = opt_boole +";Boole().noWarnings = True"
 
 #define Module 2
 module2 = ModuleDefinition('GaudiApplication')#during constraction class creates duplicating copies of the params
