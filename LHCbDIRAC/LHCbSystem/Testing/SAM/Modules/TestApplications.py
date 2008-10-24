@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.6 2008/10/24 10:38:18 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.7 2008/10/24 11:04:17 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.6 2008/10/24 10:38:18 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.7 2008/10/24 11:04:17 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -136,9 +136,9 @@ class TestApplications(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     #Could override these settings using the CS.
-    appOpts = {'Gauss':'Gauss-v2008.py','Boole':'Boole-v2008.py','Brunel':'Brunel-v2008.py','DaVinci':'DaVinci.py'}
+    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-2008.py','Boole':'$BOOLEOPTS/Boole-2008.py','Brunel':'$BRUNELOPTS/Brunel-2008.py','DaVinci':'$DAVINCIOPTS/DaVinci.py'}
 
-    if not appName in appPaths.keys():
+    if not appName in appOpts.keys():
       return S_ERROR('Application options not found')
 
     localOpts = appOpts[appName]
