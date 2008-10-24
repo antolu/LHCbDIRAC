@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.92 2008/10/24 07:26:18 joel Exp $
+# $Id: GaudiApplication.py,v 1.93 2008/10/24 13:11:59 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.92 2008/10/24 07:26:18 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.93 2008/10/24 13:11:59 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -241,7 +241,6 @@ class GaudiApplication(ModuleBase):
 
     script.write('declare -x MYSITEROOT='+mySiteRoot+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
-    script.write('declare -x JOBOPTPATH=gaudirun.opts\n')
     script.write('declare -x CSEC_TRACE=1\n')
     script.write('declare -x CSEC_TRACEFILE=csec.log\n')
     script.write('. '+mySiteRoot+'/scripts/ExtCMT.sh\n')
