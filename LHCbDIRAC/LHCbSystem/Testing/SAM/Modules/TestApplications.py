@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.9 2008/10/24 12:59:30 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.10 2008/10/24 13:57:13 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.9 2008/10/24 12:59:30 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.10 2008/10/24 13:57:13 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -153,7 +153,7 @@ OutputStream("GaussTape").Output = "DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OP
       if self.enable:
         if not os.path.exists('%s.sim' %self.appSystemConfig):
           return S_ERROR('No input file %s.sim found for Boole' %(self.appSystemConfig))
-      extraOpts = """GaudiSequencer("InitDataSeq").Members.remove("MergeEventAlg/SpilloverAlg");
+      extraOpts = """Boole().useSpillover=False;
 EventSelector().Input = ["DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];
 OutputStream("DigiWriter").Output = "DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
 """ %(self.appSystemConfig,self.appSystemConfig)
