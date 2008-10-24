@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.5 2008/08/14 08:39:36 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.6 2008/10/24 10:38:18 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.5 2008/08/14 08:39:36 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.6 2008/10/24 10:38:18 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -136,56 +136,48 @@ class TestApplications(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     #Could override these settings using the CS.
-    appPaths = {'Gauss':'Sim','Boole':'Digi','Brunel':'Rec','DaVinci':'Phys'}
-    appOpts = {'Gauss':'v200601.opts','Boole':'v200601.opts','Brunel':'v200601.opts','DaVinci':'DVOfficialStrippingFile.opts'}
+    appOpts = {'Gauss':'Gauss-v2008.py','Boole':'Boole-v2008.py','Brunel':'Brunel-v2008.py','DaVinci':'DaVinci.py'}
 
     if not appName in appPaths.keys():
       return S_ERROR('Application options not found')
 
-    optsPath = '%s/lhcb/%s/%s_%s/%s/%s/%s/options/%s' %(sharedArea,appName.upper(),appName.upper(),appVersion,appPaths[appName],appName,appVersion,appOpts[appName])
-    self.log.verbose('Looking for %s %s options in path: %s' %(appName,appVersion,optsPath))
-    if not os.path.exists(optsPath):
-      return S_ERROR('Could not find options file %s' %optsPath)
-
-    localOpts = '%s/%s_%s_%s.opts' %(os.getcwd(),appName,appVersion,self.appSystemConfig)
-    shutil.copy(optsPath,localOpts)
-    if not os.path.exists(localOpts):
-      return S_ERROR('Could not get options file %s' %(localOpts))
+    localOpts = appOpts[appName]
 
     #Nasty but works:
     extraOpts = ''
     if appName=='Gauss':
-      extraOpts = """ApplicationMgr.EvtMax = 2;
-GaussTape.Output = "DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='RECREATE'";
+      extraOpts = """ApplicationMgr().EvtMax = 2;
+OutputStream("GaussTape").Output = "DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='RECREATE'";
 """ %(self.appSystemConfig)
     elif appName=='Boole':
       if self.enable:
         if not os.path.exists('%s.sim' %self.appSystemConfig):
           return S_ERROR('No input file %s.sim found for Boole' %(self.appSystemConfig))
-      extraOpts = """InitDataSeq.Members -= { "MergeEventAlg/SpilloverAlg" };
-EventSelector.Input = {"DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"};
-DigiWriter.Output = "DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
+      extraOpts = """GaudiSequencer("InitDataSeq").Members.remove("MergeEventAlg/SpilloverAlg";
+EventSelector().Input = ["DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];
+OutputStream("DigiWriter").Output = "DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
 """ %(self.appSystemConfig,self.appSystemConfig)
     elif appName=='Brunel':
       if self.enable:
         if not os.path.exists('%s.digi' %self.appSystemConfig):
           return S_ERROR('No input file %s.digi found for Brunel' %(self.appSystemConfig))
-      extraOpts = """EventSelector.Input = {"DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='READ'"};
-DstWriter.Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";
+      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='READ'"];
+OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";
 """  %(self.appSystemConfig,self.appSystemConfig)
     elif appName=='DaVinci':
       if self.enable:
         if not os.path.exists('%s.dst' %self.appSystemConfig):
           return S_ERROR('No input file %s.dst found for DaVinci' %(self.appSystemConfig))
-      extraOpts = """EventSelector.Input = {"DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='READ'"};
+      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='READ'"];
 """ %(self.appSystemConfig)
 
+    newOpts = '%s-Extra.py' %(appName)
     self.log.verbose('Adding extra options for %s %s:\n%s' %(appName,appVersion,extraOpts))
-    fopen = open(localOpts,'a')
+    fopen = open(newOpts,'a')
     fopen.write('//\n// Options added by TestApplications for DIRAC SAM test %s\n//\n' %(self.testName))
     fopen.write(extraOpts)
     fopen.close()
-    return S_OK(localOpts)
+    return S_OK([localOpts,newOpts])
 
   #############################################################################
   def __runApplication(self,appName,appVersion,options):
