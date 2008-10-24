@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.91 2008/10/15 11:18:11 joel Exp $
+# $Id: GaudiApplication.py,v 1.92 2008/10/24 07:26:18 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.91 2008/10/15 11:18:11 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.92 2008/10/24 07:26:18 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -96,10 +96,7 @@ class GaudiApplication(ModuleBase):
         options = open(self.optfile_extra,'w')
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
-        if self.applicationName == 'Gauss':
-          options.write('from Gauss.Configuration import *\n')
-        else:
-          options.write('from Gaudi.Configuration import *\n')
+        options.write('from '+self.applicationName+'.Configuration import *\n')
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
               if len(opt) > 0:
