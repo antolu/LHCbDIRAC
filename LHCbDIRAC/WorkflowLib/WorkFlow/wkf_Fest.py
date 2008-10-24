@@ -22,8 +22,8 @@ extraPackages = '' #semicolon separated list if necessary
 system_os = "slc4_ia32_gcc34"
 outputDataFileMask = "mdf" #semicolon separated list if necessary
 soft_package = "Boole."+Boole_version+";Gauss."+Gauss_version
-Gauss_SE = "CERN-Failover"
-Boole_SE = "CERN-Failover"
+Gauss_SE = "CERN-FAILOVER"
+Boole_SE = "CERN-FAILOVER"
 
 opt_gauss = ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
