@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.10 2008/10/24 13:57:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.11 2008/10/24 14:49:00 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.10 2008/10/24 13:57:13 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.11 2008/10/24 14:49:00 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -136,7 +136,10 @@ class TestApplications(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     #Could override these settings using the CS.
-    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-2008.py','Boole':'$BOOLEOPTS/Boole-2008.py','Brunel':'$BRUNELOPTS/Brunel-2008.py','DaVinci':'$DAVINCIOPTS/DaVinci.py'}
+    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-2008.py','Boole':'$BOOLEOPTS/Boole-2008.py','Brunel':'$BRUNELOPTS/Brunel-2008.py','DaVinci':'$DAVINCIROOT/options/DaVinci.py'}
+
+    #Can update to the below after DaVinci v20r3
+    #appOpts = '$%sOPTS/%s-2008.py' %(appName.upper(),appName)
 
     if not appName in appOpts.keys():
       return S_ERROR('Application options not found')
@@ -174,7 +177,10 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OP
     newOpts = '%s-Extra.py' %(appName)
     self.log.verbose('Adding extra options for %s %s:\n%s' %(appName,appVersion,extraOpts))
     fopen = open(newOpts,'w')
-    fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,appName))
+    if not appName.lower()=='davinci':
+      fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,appName))
+    else:
+      fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,'Gaudi'))
     fopen.write(extraOpts)
     fopen.close()
     return S_OK([localOpts,newOpts])
