@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.6 2008/07/08 13:30:45 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.7 2008/10/24 10:49:59 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.6 2008/07/08 13:30:45 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.7 2008/10/24 10:49:59 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -180,6 +180,8 @@ class LHCbJob(Job):
       if os.path.exists(optsFile):
         self.log.verbose('Found specified options file: %s' %optsFile)
         self.addToInputSandbox.append(optsFile)
+      elif re.search('\$',optsFile):
+        self.log.verbose('Assuming %s is using an environment variable to be resolved during execution' %optsFile)
       else:
         raise TypeError,'Specified options file %s does not exist' %(optsFile)
 
@@ -652,10 +654,10 @@ class LHCbJob(Job):
        >>> job = LHCbJob()
        >>> job.addPackage('DaVinci','v19r12')
 
-       @param pname: Package name
-       @type pname: string
-       @param pversion: Package version
-       @type pversion: Package version string
+       @param appName: Package name
+       @type appName: string
+       @param appVersion: Package version
+       @type appVersion: Package version string
 
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
