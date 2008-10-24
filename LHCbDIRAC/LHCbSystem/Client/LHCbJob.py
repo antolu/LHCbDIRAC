@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.7 2008/10/24 10:49:59 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.8 2008/10/24 12:27:52 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.7 2008/10/24 10:49:59 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.8 2008/10/24 12:27:52 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -180,6 +180,7 @@ class LHCbJob(Job):
       if os.path.exists(optsFile):
         self.log.verbose('Found specified options file: %s' %optsFile)
         self.addToInputSandbox.append(optsFile)
+        optionsFile +=';%s' %optsFile
       elif re.search('\$',optsFile):
         self.log.verbose('Assuming %s is using an environment variable to be resolved during execution' %optsFile)
       else:
