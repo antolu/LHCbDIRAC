@@ -70,14 +70,13 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-wms-dirac.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
   {
     CertFile = $DESTDIR/etc/grid-security/hostcert.pem
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
-    UseServerCertificate = false
   }
 }
 EOF
@@ -102,7 +101,8 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+     $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
 #
 # Create pro and old links
