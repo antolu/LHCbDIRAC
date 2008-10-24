@@ -5,25 +5,31 @@ from DIRAC.Core.Workflow.Step import *
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
-wkf_name = "minbias-450GeV-MagnetOff"
-simDescription = 'Beam450GeV-VeloOpen-BfieldZero'
-#eventTypeSignal = "60001001"
-eventTypeSignal = "30000000"
-numberEventSignal = 5
-numberEventMB = 5
+wkf_name = "LSS-Beam7TeV-BfieldNeg"
+#simDescription = 'Beam450GeV-VeloOpen-BfieldZero'
+#simDescription = 'beamgas-H-5TeV-MagnetOn'
+simDescription = 'Beam7TeV-BfieldNeg'
+eventTypeSignal = "60040000"
+#eventTypeSignal = "30000000"
+numberEventSignal = 500
 numberEvent = -1
-AppType = "py"
-generatorName = ""
+emailList = 'lhcb-datacrash@cern.ch'
+generatorName = "Pythia"
+WorkflowLib_version = "wkf-v6r3"
 Gauss_version = "v35r1" #v35r0
 #Gauss_optfile = "Gauss-2008.py;Beam450GeV-VeloOpen-BfieldZero.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
-Gauss_optfile = "Gauss-2008.py;Beam5TeV-VeloOpen-BfieldNeg.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
+Gauss_optfile = "Gauss-2008.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
 Boole_version = "v16r3"
 Boole_optfile = "Boole-2008.py"
-Brunel_version = "v33r3"
-Brunel_optfile = "None"
-extraPackages = 'SQLDDDB.v4r8' #semicolon separated list if necessary
+Brunel_version = "v33r3p1"
+Brunel_optfile = ""
+extraPackages = '' #semicolon separated list if necessary
+soft_package = 'Gauss.'+Gauss_version+';Boole.'+Boole_version+';Brunel.'+Brunel_version
 system_os = "slc4_ia32_gcc34"
 outputDataFileMask = "dst;digi;sim" #semicolon separated list if necessary
+Gauss_SE = "CERN_MC_M-DST"
+Boole_SE = "CERN_MC_M-DST"
+Brunel_SE = "CERN_MC_M-DST"
 
 opt_gauss = "importOptions(\"$DECFILESROOT/options/@{eventType}.opts\")"
 opt_gauss = opt_gauss + ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
@@ -34,8 +40,8 @@ opt_boole = opt_boole + ";simCondVelo = allConfigurables[\"SIMCOND\"].clone(\"VE
 opt_boole = opt_boole + ";simCondVelo.DefaultTAG = \"velo-open\""
 opt_boole = opt_boole + ";addCondDBLayer(simCondVelo)"
 opt_boole = opt_boole + ";OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
-opt_boole = opt_boole +";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_boole = opt_boole + ";EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\",\"DATAFILE=\'@{pileupData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]"
+#opt_boole = opt_boole +";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_boole = opt_boole +";Boole().noWarnings = True"
 
 #opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
 opt_brunel = "from Brunel.Configuration import *"
@@ -44,19 +50,16 @@ opt_brunel = opt_brunel + ";Brunel().withMC       = True"
 opt_brunel = opt_brunel + ";Brunel().veloOpen = True"
 #opt_brunel = opt_brunel + ";Brunel().fieldOff = True"
 opt_brunel = opt_brunel + ";Brunel().applyConf()"
+opt_brunel = opt_brunel + ";Brunel().noWarnings = True"
 opt_brunel = opt_brunel + ";from DetCond.Configuration import addCondDBLayer"
 opt_brunel = opt_brunel + ";simCondVelo = allConfigurables[\"SIMCOND\"].clone(\"VELOCOND\")"
 opt_brunel = opt_brunel + ";simCondVelo.DefaultTAG = \"velo-open\""
 opt_brunel = opt_brunel + ";addCondDBLayer(simCondVelo)"
-opt_brunel = opt_brunel + ";GaudiSequencer(\"CheckPatSeq\").Members.remove(\"TrackAssociator/AssocVeloRZ\")"
-opt_brunel = opt_brunel + ";GaudiSequencer(\"CheckPatSeq\").Members.remove(\"TrackAssociator/AssocDownstream\")"
-opt_brunel = opt_brunel + ";GaudiSequencer(\"CheckPatSeq\").Members.remove(\"TrackEffChecker/VeloRZ\")"
-opt_brunel = opt_brunel + ";GaudiSequencer(\"CheckPatSeq\").Members.remove(\"TrackEffChecker/Downstream\")"
 opt_brunel = opt_brunel + ";importOptions(\"$MUONTRACKALIGNROOT/options/MuonTrackAlign.opts\")"
 opt_brunel = opt_brunel + ";GaudiSequencer(\"OutputDSTSeq\").Members.append(\"TrackToDST/MuonTrackToDST\")"
 opt_brunel = opt_brunel + ";from Configurables import TrackToDST"
 opt_brunel = opt_brunel + ";TrackToDST(\"MuonTrackToDST\").TracksInContainer = \"Rec/Muon/MuonsTrackForAlignment\""
-opt_brunel = opt_brunel + ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+#opt_brunel = opt_brunel + ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel + ";EventLoopMgr().OutputLevel = 3"
 opt_brunel = opt_brunel + ";OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_brunel = opt_brunel + ";HistogramPersistencySvc().OutputFile = \"\""
@@ -154,66 +157,18 @@ stepInstance1.setValue("applicationVersion", Gauss_version)
 stepInstance1.setValue("applicationType", "sim")
 stepInstance1.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 stepInstance1.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance1.setValue("optionsType", AppType)
 stepInstance1.setValue("optionsFile", Gauss_optfile)
 stepInstance1.setValue("optionsLine",opt_gauss)
 stepInstance1.setValue("optionsLinePrev","None")
 stepInstance1.setValue("extraPackages",extraPackages)
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
+list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":Gauss_SE}]
 stepInstance1.setValue("listoutput",list1_out)
 
-step11_prefix="step11_"
-stepInstance11 = workflow1.createStepInstance('Gaudi_App_Step', 'gausspileup')
-stepInstance11.addParameter(Parameter("firstEventNumber",1,"int","","",True,False,"first event number"))
-stepInstance11.setValue("eventType", "30000000")
-stepInstance11.setValue("numberOfEvents", numberEventMB)
-stepInstance11.setValue("numberOfEventsInput", 0)
-stepInstance11.setValue("numberOfEventsOutput", 0)
-stepInstance11.setValue("inputDataType","None")
-stepInstance11.setValue("generatorName", generatorName)
-stepInstance11.setValue("applicationName", "Gauss")
-stepInstance11.setValue("applicationVersion", Gauss_version)
-stepInstance11.setValue("applicationType", "sim")
-stepInstance11.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
-stepInstance11.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance11.setValue("optionsType", AppType)
-stepInstance11.setValue("optionsFile", Gauss_optfile)
-stepInstance11.setValue("optionsLine",opt_gauss)
-stepInstance11.setValue("optionsLinePrev","None")
-stepInstance11.setValue("extraPackages",extraPackages)
-list11_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
-stepInstance11.setValue("listoutput",list11_out)
-
-step12_prefix="step12_"
-stepInstance12 = workflow1.createStepInstance('Gaudi_App_Step', 'gaussspillover')
-stepInstance12.addParameter(Parameter("firstEventNumber",1,"int","","",True,False,"first event number"))
-stepInstance12.setValue("eventType", "30000000")
-stepInstance12.setValue("numberOfEvents", numberEventMB)
-stepInstance12.setValue("numberOfEventsInput", 0)
-stepInstance12.setValue("numberOfEventsOutput", 0)
-stepInstance12.setValue("inputDataType","None")
-stepInstance12.setValue("generatorName", generatorName)
-stepInstance12.setValue("applicationName", "Gauss")
-stepInstance12.setValue("applicationVersion", Gauss_version)
-stepInstance12.setValue("applicationType", "sim")
-stepInstance12.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
-stepInstance12.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance12.setValue("optionsType", AppType)
-stepInstance12.setValue("optionsFile", Gauss_optfile)
-stepInstance12.setValue("optionsLine",opt_gauss)
-stepInstance12.setValue("optionsLinePrev","None")
-stepInstance12.setValue("extraPackages",extraPackages)
-list12_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"sim","outputDataSE":"Tier1-RDST"}]
-stepInstance12.setValue("listoutput",list12_out)
 
 step2_prefix="step2_"
 stepInstance2 = workflow1.createStepInstance('Gaudi_App_Step', 'boole')
 stepInstance2.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
-stepInstance2.addParameter(Parameter("pileupData","","string","","",True,False,"InputData"))
-stepInstance2.addParameter(Parameter("spilloverData","","string","","",True,False,"InputData"))
 stepInstance2.setLink("inputData",stepInstance1.getName(),"outputData")
-stepInstance2.setLink("pileupData",stepInstance11.getName(),"outputData")
-stepInstance2.setLink("spilloverData",stepInstance12.getName(),"outputData")
 stepInstance2.setValue("eventType", eventTypeSignal)
 stepInstance2.setValue("numberOfEvents", numberEvent)
 stepInstance2.setValue("inputDataType","SIM")
@@ -222,12 +177,11 @@ stepInstance2.setValue("applicationVersion", Boole_version)
 stepInstance2.setValue("applicationType", "digi")
 stepInstance2.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 stepInstance2.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance2.setValue("optionsType", AppType)
 stepInstance2.setValue("optionsFile", Boole_optfile)
 stepInstance2.setValue("optionsLine",opt_boole)
 stepInstance2.setValue("optionsLinePrev","None")
 stepInstance2.setValue("extraPackages",extraPackages)
-list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":"Tier1-RDST"}]
+list2_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"digi","outputDataSE":Boole_SE}]
 stepInstance2.setValue("listoutput",list2_out)
 
 step3_prefix="step3_"
@@ -240,14 +194,13 @@ stepInstance3.setValue("applicationVersion", Brunel_version)
 stepInstance3.setValue("applicationType", "dst")
 stepInstance3.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 stepInstance3.setValue("outputData","@{STEP_ID}.@{applicationType}")
-stepInstance3.setValue("optionsType", AppType)
 stepInstance3.setValue("optionsFile", Brunel_optfile)
 stepInstance3.setValue("optionsLine",opt_brunel)
 stepInstance3.setValue("optionsLinePrev","None")
 stepInstance3.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
 stepInstance3.setLink("inputData",stepInstance2.getName(),"outputData")
 stepInstance3.setValue("extraPackages",extraPackages)
-list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":"Tier1_M-DST"}]
+list3_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"dst","outputDataSE":Brunel_SE}]
 stepInstance3.setValue("listoutput",list3_out)
 
 workflow1.addStep(step3)
@@ -256,13 +209,14 @@ stepInstance4 = workflow1.createStepInstance('Job_Finalization', 'Step4')
 # Now lets define parameters on the top
 # lets specify parameters on the level of workflow
 
-workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-wkf-v4r0.tar.gz","JDL","","",True, False, "Job Type"))
+workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-"+WorkflowLib_version+".tar.gz","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("JobType","MCSimulation","JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("OUTPUT_MAX","20","string","","",True,False,"nb max of output to keep"))
+workflow1.addParameter(Parameter("SoftwarePackages",soft_package,"JDL","","",True,False,"soft to be used"))
 
 workflow1.addParameter(Parameter("MaxCPUTime",300000,"JDLReqt","","",True, False, "Application Name"))
 workflow1.addParameter(Parameter("SystemConfig",system_os,"JDLReqt","","",True, False, "Application Name"))
@@ -272,17 +226,17 @@ workflow1.unlink(workflow1.parameters)
 
 workflow1.addParameter(Parameter("PRODUCTION_ID","00004044","string","","",True, False, "Temporary fix"))
 workflow1.addParameter(Parameter("JOB_ID","00000104","string","","",True, False, "Temporary fix"))
-workflow1.addParameter(Parameter("emailAddress","joel.closier@cern.ch","string","","",True, False, "Email to send a report from the LogCheck module"))
+workflow1.addParameter(Parameter("emailAddress",emailList,"string","","",True, False, "Email to send a report from the LogCheck module"))
 workflow1.addParameter(Parameter("dataType","MC","string","","",True, False, "type of Datatype"))
 workflow1.addParameter(Parameter("poolXMLCatName","pool_xml_catalog.xml","string","","",True, False, "Application Name"))
-workflow1.addParameter(Parameter("configName","test","string","","",True, False, "Configuration Name"))
+workflow1.addParameter(Parameter("configName","MC","string","","",True, False, "Configuration Name"))
 workflow1.addParameter(Parameter("configVersion","2008","string","","",True, False, "Configuration Version"))
 workflow1.addParameter(Parameter("simDescription",simDescription,"string","","",True, False, "Simulation description"))
 workflow1.addParameter(Parameter("outputDataFileMask",outputDataFileMask,"string","","",True, False, "Only upload files with the extensions in this parameter"))
-if os.path.exists('wkf_MC.xml'):
+if os.path.exists('wkf_'+wkf_name+'.xml'):
   print 'Removed existing workflow'
-  os.remove('wkf_MC.xml')
-workflow1.toXMLFile('wkf_MC.xml')
+  os.remove('wkf_'+wkf_name+'.xml')
+workflow1.toXMLFile('wkf_'+wkf_name+'.xml')
 #w4 = fromXMLFile("/afs/cern.ch/user/g/gkuznets/test1.xml")
 #print 'Creating code for the workflow'
 #print workflow1.showCode()
