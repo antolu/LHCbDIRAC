@@ -1,9 +1,16 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.10 2008/07/01 17:46:06 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.11 2008/10/24 08:18:09 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
+#
+# Preliminary commets:
+# - volhcb02 has 180 GB of free space under /home.
+# - link from /opt/dirac -> /home/dirac/opt/dirac created to hold the installation
+#
+#
+#
 #
 # User that is allow to execute the script
 DIRACUSER=dirac
@@ -15,18 +22,19 @@ DIRACHOST=volhcb02.cern.ch
 DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB02.CERN.CH
-DIRACSETUP=LHCb-Production
-DIRACVERSION=v0r3p2
-EXTVERSION=v0r3p0
-DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACSETUP=LHCb-Development
+DIRACVERSION=HEAD
+EXTVERSION=v4r0
+DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
-DIRACDIRS="startup runit data work requestDB"
+DIRACDIRS="startup runit data work control requestDB"
 
-export LOGLEVEL=INFO
+export DIRACINSTANCE=Development
+export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
-# DIRACCVS=-C
+DIRACCVS=yes
 #
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
@@ -71,7 +79,7 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://volhcb03.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-wms-dirac.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -79,82 +87,10 @@ DIRAC
     CertFile = $DESTDIR/etc/grid-security/hostcert.pem
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
+}
+EOF
 
-}
-Systems
-{
-  WorkloadManagement
-  {
-    Production
-    {
-      Databases
-      {
-        JobDB
-        {
-          LogLevel = INFO
-          User = Dirac
-          Host = volhcb01.cern.ch
-          Password = lhcbMySQL
-          DBName = JobDB
-        }
-        JobLoggingDB
-        {
-          LogLevel = INFO
-          User = Dirac
-          Host = volhcb01.cern.ch
-          Password = lhcbMySQL
-          DBName = JobLoggingDB
-        }
-        ProxyRepositoryDB
-        {
-          LogLevel = INFO
-          User = Dirac
-          Host = volhcb01.cern.ch
-          Password = lhcbMySQL
-          DBName = ProxyRepositoryDB
-        }
-        PilotAgentsDB
-        {
-          LogLevel = INFO
-          User = Dirac
-          Host = volhcb01.cern.ch
-          Password = lhcbMySQL
-          DBName = PilotAgentsDB
-        }
-    }
-    }
-  }
-}
-EOF
 fi
-#
-# Special CS file for the pilotAgent
-cat > $DESTDIR/etc/WorkloadManagement_PilotAgent.cfg <<EOF
-Systems
-{
-  WorkloadManagement
-  {
-    Production
-    {
-      Agents
-      {
-        PilotAgent
-        {
-          Middleware = gLite
-        }
-      }
-      PilotAgent
-      {
-        gLitePilotDirector
-        {
-          ResourceBrokers = wms101.cern.ch,wms106.cern.ch
-        }
-      }
-    }
-  }
-}
-EOF
-#
 
 for dir in $DIRACDIRS ; do
   if [ ! -d $DESTDIR/$dir ]; then
@@ -175,13 +111,14 @@ dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
 echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+     $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
 #
 # Create pro and old links
 old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
+
 #
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
@@ -209,30 +146,89 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 # Configure MySQL if not yet done
 #
 
-#$CURDIR/install_mysql.sh $DIRACHOST
-#/opt/dirac/pro/mysql/share/mysql/mysql.server start
+$CURDIR/install_mysql.sh $DIRACHOST
+/opt/dirac/pro/mysql/share/mysql/mysql.server start
 
-$DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+$DESTDIR/pro/scripts/install_service.sh Configuration Server
 
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobManager
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobMonitoring
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
+# Missing in CS
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
-$DESTDIR/pro/scripts/install_service.sh DataManagement     TransferDBMonitoring
-$DESTDIR/pro/scripts/install_service.sh DataManagement     StorageUsage
-$DESTDIR/pro/scripts/install_service.sh DataManagement     ReplicationPlacement
-$DESTDIR/pro/scripts/install_service.sh DataManagement     RAWIntegrity
-$DESTDIR/pro/scripts/install_service.sh DataManagement     DataIntegrity
-$DESTDIR/pro/scripts/install_service.sh DataManagement     DataLogging
+$DESTDIR/pro/scripts/install_service.sh Monitoring SiteMapping 
+$DESTDIR/pro/scripts/install_agent.sh   Monitoring SiteMappingAgent
 
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSMonitor
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSRegister
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     FTSSubmit
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     RAWIntegrityAgent
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     RemovalAgent
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     ReplicationPlacementAgent
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     ReplicationScheduler
-$DESTDIR/pro/scripts/install_agent.sh   DataManagement     StorageUsage
+$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 
+$DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
+$DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
+
+$DESTDIR/pro/scripts/install_service.sh Stager Stager
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMSAgent
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
+
+$DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
+$DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
+
+$DESTDIR/pro/scripts/install_service.sh Logging SystemLogging
+$DESTDIR/pro/scripts/install_service.sh Logging SystemLoggingReport
+$DESTDIR/pro/scripts/install_agent.sh Logging SystemLoggingDBCleaner
+$DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
+
+$DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
+$DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
+$DESTDIR/pro/scripts/install_agent.sh LHCb SAMAgent
+
+if [ ! -z "$DIRACCVS" ] ; then
+
+
+	cd `dirname $DESTDIR`
+	mv DIRAC3/DIRAC DIRAC3/DIRAC.save
+
+echo
+echo
+echo   To get a CVS installation:
+echo
+echo   "   login with your own user"
+echo   "   start a bash shell"
+echo   "   execute"
+echo
+echo
+cat << EOF
+umask 0002
+# export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
+export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
+cd `dirname $DESTDIR`
+cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
+cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
+cd DIRAC3/DIRAC
+ln -s ../LHCbSystem .
+
+EOF
+
+fi
 
 exit
