@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.11 2008/10/24 08:18:09 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.12 2008/10/27 10:01:40 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -200,7 +200,6 @@ $DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
 
 $DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
 $DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
-$DESTDIR/pro/scripts/install_agent.sh LHCb SAMAgent
 
 if [ ! -z "$DIRACCVS" ] ; then
 
