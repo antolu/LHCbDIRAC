@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.19 2008/08/25 10:05:59 roma Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.20 2008/10/28 18:04:57 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,10 +21,10 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.19 2008/08/25 10:05:59 roma Exp $"
-__VERSION__ = "$Revision: 1.19 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.20 2008/10/28 18:04:57 paterson Exp $"
+__VERSION__ = "$Revision: 1.20 $"
 
-import os, shutil, sys, urllib
+import os, shutil, sys, urllib, re, string
 import DIRAC
 
 InstallProject = 'install_project.py'
@@ -70,6 +70,7 @@ class CombinedSoftwareInstallation:
 
     self.sharedArea = SharedArea()
     self.localArea  = LocalArea()
+    self.mySiteRoot = '%s:%s' %(self.localArea,self.sharedArea)
 
 
   def execute(self):
@@ -91,26 +92,93 @@ class CombinedSoftwareInstallation:
         return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in self.apps:
-      # 1.- check if application is available in shared area
-      if CheckApplication( app, self.jobConfig, self.sharedArea ):
-        DIRAC.gLogger.info( 'Application %s %s found in Shared Area.' % app )
-        continue
-      if CheckApplication( app, self.jobConfig, self.localArea ):
-        DIRAC.gLogger.info( 'Application %s %s found in Local Area.' % app )
-        continue
-      if InstallApplication( app, self.jobConfig, self.localArea ):
-        DIRAC.gLogger.info( 'Application %s %s installed in Local Area.' % app )
-        if CheckApplication( app, self.jobConfig, self.localArea ):
-          DIRAC.gLogger.info( 'Application %s %s found in Local Area.' % app )
-          continue
-        else:
-          DIRAC.gLogger.warn( 'Could not find %s %s in Local Area after installation' % app )
-      return DIRAC.S_ERROR( 'Failed to install %s_%s' % app )
+      DIRAC.gLogger.info('Attempting to install %s_%s for %s with site root %s' %(app[0],app[1],self.jobConfig,self.mySiteRoot))
+      result = CheckInstallSoftware(app,self.jobConfig,self.mySiteRoot)
+      if not result:
+        DIRAC.gLogger.error('Failed to install software','%s_%s' %(app))
+        return DIRAC.S_ERROR()
+      else:
+        DIRAC.gLogger.info('%s was successfully installed for %s' %(app,self.jobConfig))
 
     return DIRAC.S_OK()
 
 def log( n, line ):
   DIRAC.gLogger.info( line )
+
+def MySiteRoot():
+  """Returns the MySiteRoot for the current local and / or shared areas.
+  """
+  mySiteRoot = ''
+  localArea=LocalArea()
+  if not localArea:
+    return mySiteRoot
+  sharedArea=SharedArea()
+  if not sharedArea:
+    return mySiteRoot
+  mySiteRoot = '%s:%s' %(localArea,sharedArea)
+  return mySiteRoot
+
+def CheckInstallSoftware(app,config,area):
+  """Will perform a local + shared area installation using install project
+     to check where components should be installed.  In this case the 'area'
+     is localArea:sharedArea.
+  """
+  #NOTE: must cd to LOCAL area directory (install_project requirement)
+  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+    #localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/',InstallProject),InstallProject)
+    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      return False
+
+  if not area:
+    return False
+
+  localArea = area
+  if re.search(':',area):
+    localArea = string.split(area,':')[0]
+
+  appName    = app[0]
+  appVersion = app[1]
+
+  installProject = os.path.join( area, InstallProject )
+  if not os.path.exists( installProject ):
+    try:
+      shutil.copy( InstallProject, localArea )
+    except:
+      DIRAC.gLogger.warn( 'Failed to create:', installProject )
+      return False
+
+  # Now run the installation
+  curDir = os.getcwd()
+  #NOTE: must cd to LOCAL area directory (install_project requirement)
+  os.chdir(localArea)
+
+  cmtEnv = dict(os.environ)
+  cmtEnv['MYSITEROOT'] = area
+  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % area )
+  cmtEnv['CMTCONFIG']  = config
+  DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
+
+  cmdTuple =  [sys.executable]
+  cmdTuple += [InstallProject]
+  cmdTuple += ['-d']
+  cmdTuple += [ '-p', appName ]
+  cmdTuple += [ '-v', appVersion ]
+  cmdTuple += [ '-b', '-m', 'do_config' ] #apparently no longer need -m do_config
+
+  DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
+
+  ret = DIRAC.systemCall( 1800, cmdTuple, env=cmtEnv, callbackFunction=log )
+  os.chdir(curDir)
+  if not ret['OK']:
+    DIRAC.gLogger.error('Software installation failed', '%s %s' %(appName,appVersion))
+    return False
+  if ret['Value'][0]: # != 0
+    DIRAC.gLogger.error('Software installation failed with non-zero status', '%s %s' %(appName,appVersion))
+    return False
+
+  return True
 
 def InstallApplication(app, config, area ):
   """
@@ -119,9 +187,11 @@ def InstallApplication(app, config, area ):
    only missing parts
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    #localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/install_project.py',InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-      return DIRAC.S_ERROR('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      return False
 
   if not area:
     return False
@@ -160,17 +230,14 @@ def InstallApplication(app, config, area ):
 
   #Temporarily increasing timeout to 3hrs to debug installation failures for SAM suite
   ret = DIRAC.systemCall( 10800, cmdTuple, env=cmtEnv, callbackFunction=log )
+  os.chdir(curDir)
   if not ret['OK']:
-    DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app) )
+    DIRAC.gLogger.warn( 'Failed to install software:', '_'.join(app) )
     DIRAC.gLogger.warn( ret['Message'] )
-    os.chdir(curDir)
     return False
   if ret['Value'][0]: # != 0
-    DIRAC.gLogger.warn( 'Fail software Installation:', '_'.join(app)  )
-    os.chdir(curDir)
+    DIRAC.gLogger.warn( 'Failed to install software:', '_'.join(app)  )
     return False
-
-  os.chdir(curDir)
 
   return True
 
@@ -178,27 +245,71 @@ def CheckApplication(app, config, area):
   """
    check if given application is available in the given area
   """
+  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
+      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      return False
+
   if not area:
     return False
+
+  localArea = area
+  if re.search(':',area):
+    localArea = string.split(area,':')[0]
+
   appName    = app[0]
   appVersion = app[1]
-  timeout = 300
-  # make a copy of the environment dictionary
+
+  installProject = os.path.join( localArea, InstallProject )
+  if not os.path.exists( installProject ):
+    try:
+      shutil.copy( InstallProject, localArea )
+    except:
+      DIRAC.gLogger.error( 'Failed to get:', installProject )
+      return False
+
+  # Now run the installation
+  curDir = os.getcwd()
+  #NOTE: must cd to LOCAL area directory (install_project requirement)
+  os.chdir(localArea)
+
   cmtEnv = dict(os.environ)
   cmtEnv['MYSITEROOT'] = area
+  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % area )
   cmtEnv['CMTCONFIG']  = config
+  DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
-  extCMT       = os.path.join( area, 'scripts', 'ExtCMT' )
-  setupProject = os.path.join( area, 'scripts', 'SetupProject' )
+  cmdTuple =  [sys.executable]
+  cmdTuple += [InstallProject]
+  cmdTuple += ['-d']
+  cmdTuple += [ '-p', appName ]
+  cmdTuple += [ '-v', appVersion ]
+  cmdTuple += [ '--check' ] #apparently no longer need -m do_config
+
+  DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
+  timeout = 300
+  ret = DIRAC.systemCall( timeout, cmdTuple, env=cmtEnv, callbackFunction=log )
+  os.chdir(curDir)
+  if not ret['OK']:
+    DIRAC.gLogger.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return False
+  if ret['Value'][0]: # != 0
+    DIRAC.gLogger.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return False
+
+  # Run SetupProject
+  extCMT       = os.path.join( localArea, 'LbLogin' )
+  setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
 
   # Run ExtCMT
   ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
   if not ret['OK']:
-    DIRAC.gLogger.info( ret['Message'])
+    DIRAC.gLogger.error('Problem during SetupProject call',ret['Message'])
     if ret['stdout']:
       DIRAC.gLogger.info( ret['stdout'] )
     if ret['stderr']:
-      DIRAC.gLogger.warn( ret['stderr'] )
+      DIRAC.gLogger.error( ret['stderr'] )
     return False
   setupProjectEnv = ret['outputEnv']
 
@@ -208,7 +319,6 @@ def CheckApplication(app, config, area):
   setupProject.append( appName )
   setupProject.append( appVersion )
 
-  # Run SetupProject
   ret = DIRAC.Source( timeout, setupProject, setupProjectEnv )
   if not ret['OK']:
     DIRAC.gLogger.info( ret['Message'])
@@ -226,6 +336,7 @@ def CheckApplication(app, config, area):
     return False
 
   return gaudiEnv[ appRoot ]
+
 
 def SharedArea():
   """
@@ -317,7 +428,8 @@ def RemoveApplication(app, config, area ):
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
     localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-      return DIRAC.S_ERROR('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      return False
 
   if not area:
     return False
@@ -348,16 +460,13 @@ def RemoveApplication(app, config, area ):
   cmdTuple += [ '-r', '-d' ]
 
   ret = DIRAC.systemCall( 3600, cmdTuple, env=cmtEnv, callbackFunction=log )
+  os.chdir(curDir)
   if not ret['OK']:
     DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join(app) )
     DIRAC.gLogger.warn( ret['Message'] )
-    os.chdir(curDir)
     return False
   if ret['Value'][0]: # != 0
     DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join(app)  )
-    os.chdir(curDir)
     return False
-
-  os.chdir(curDir)
 
   return True
