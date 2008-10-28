@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.37 2008/10/27 10:31:07 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb01.sh,v 1.38 2008/10/28 13:42:25 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -82,6 +82,7 @@ DIRAC
   }
 }
 EOF
+fi
 cat > $DESTDIR/etc/DataManagement_StorageElement.cfg <<EOF
 Systems
 {
@@ -101,8 +102,6 @@ Systems
   }
 }
 EOF
-fi
-
 for dir in $DIRACDIRS ; do
   if [ ! -d $DESTDIR/$dir ]; then
     mkdir -p $DESTDIR/$dir || exit 1
