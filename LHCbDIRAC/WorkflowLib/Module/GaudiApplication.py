@@ -1,17 +1,17 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.93 2008/10/24 13:11:59 joel Exp $
+# $Id: GaudiApplication.py,v 1.94 2008/10/28 18:08:58 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.93 2008/10/24 13:11:59 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.94 2008/10/28 18:08:58 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -96,7 +96,12 @@ class GaudiApplication(ModuleBase):
         options = open(self.optfile_extra,'w')
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
-        options.write('from '+self.applicationName+'.Configuration import *\n')
+        #TEMPORARY HACK because DaVinci doesn't yet have a configuration package.
+        if self.applicationName.lower()=='davinci':
+          options.write('from Gaudi.Configuration import *\n')
+        else:
+          options.write('from '+self.applicationName+'.Configuration import *\n')
+
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
               if len(opt) > 0:
@@ -194,7 +199,7 @@ class GaudiApplication(ModuleBase):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
-    sharedArea = SharedArea()
+    sharedArea = MySiteRoot()
     app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     if app_dir_path:
       mySiteRoot = sharedArea
@@ -203,6 +208,11 @@ class GaudiApplication(ModuleBase):
       self.setApplicationStatus( 'Application not Found' )
       self.result = S_ERROR( 'Application not Found' )
 
+    localArea = sharedArea
+    if re.search(':',sharedArea):
+      localArea = string.split(sharedArea,':')[0]
+    self.log.info('Setting local software area to %s' %localArea)
+
     if not self.result['OK']:
       return self.result
 
@@ -210,6 +220,8 @@ class GaudiApplication(ModuleBase):
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
 
     if self.optionsFile and not self.optionsFile == "None":
+      print self.optionsFile
+      print self.optionsFile.split(';')
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,fileopt)):
           self.optfile += ' '+fileopt
@@ -221,6 +233,7 @@ class GaudiApplication(ModuleBase):
           else:
             self.optfile += ' '+fileopt
 
+    print 'final ',self.optfile
     self.optfile_extra = 'gaudi_extra_options.py'
     self.managePy()
 
@@ -242,8 +255,9 @@ class GaudiApplication(ModuleBase):
     script.write('declare -x MYSITEROOT='+mySiteRoot+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
     script.write('declare -x CSEC_TRACE=1\n')
-    script.write('declare -x CSEC_TRACEFILE=csec.log\n')
-    script.write('. '+mySiteRoot+'/scripts/ExtCMT.sh\n')
+    script.write('declare -x CSEC_TRACEFI8LE=csec.log\n')
+    script.write('. %s/LbLogin.sh\n' %localArea)
+#    script.write('. '+mySiteRoot+'/scripts/ExtCMT.sh\n')
 
     # DLL fix which creates fake CMT package
     cmtFlag = ' '
@@ -287,10 +301,14 @@ class GaudiApplication(ModuleBase):
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
     if self.generator_name == '':
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+localArea+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
     else:
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+localArea+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
@@ -380,9 +398,10 @@ rm -f scrtmp.py
     script.write('env | sort >> localEnv.log\n')
     script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
-    comp_path = mySiteRoot+'/'+self.systemConfig
+#    comp_path = mySiteRoot+'/'+self.systemConfig
+    comp_path = localArea+'/'+self.systemConfig #TODO: why is this not used elsewhere?
     if os.path.exists(comp_path):
-      print 'Compiler libraries found...'
+      self.log.info('Compiler libraries found...')
       # Use the application loader shipped with the application if any (ALWAYS will be here)
       if self.generator_name == '':
         comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
