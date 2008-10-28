@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.7 2008/07/17 14:58:36 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.8 2008/10/28 15:01:19 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -13,8 +13,8 @@ SiteName=$1
 #
 DESTDIR=/opt/vobox/lhcb/dirac
 DIRACSETUP=LHCb-Production
-DIRACVERSION=HEAD
-EXTVERSION=v0r3p0
+DIRACVERSION=v4r0
+EXTVERSION=v4r0
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work requestDB"
@@ -48,8 +48,8 @@ DIRAC
   Setup = $DIRACSETUP
   Configuration
   {
-    Servers =  dips://volhcb01.cern.ch:9135/Configuration/Server
-    Servers+=  dips://volhcb03.cern.ch:9135/Configuration/Server
+    Servers =  dips://volhcb09.cern.ch:9135/Configuration/Server
+    Servers+=  dips://volhcb01.cern.ch:9135/Configuration/Server
     Servers+=  dips://lhcbprod.pic.es:9135/Configuration/Server
     Name = LHCb-Prod
   }
