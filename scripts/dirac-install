@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.104 2008/10/23 08:14:44 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.105 2008/10/28 14:32:26 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.104 2008/10/23 08:14:44 rgracian Exp $"
-__VERSION__ = "$Revision: 1.104 $"
+__RCSID__   = "$Id: dirac-install,v 1.105 2008/10/28 14:32:26 rgracian Exp $"
+__VERSION__ = "$Revision: 1.105 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -25,7 +25,7 @@ myShortName = os.path.basename( myFullName )
 # Some default values that can be changed via options
 DIRAC_CVS_REPOSITORY = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
 DIRAC_HTTP_SERVER    = 'http://cern.ch/lhcbproject/dist/DIRAC3'
-DIRAC_HTTP_SERVER    = 'http://lhcbweb.pic.es/distribution/DIRAC3'
+# DIRAC_HTTP_SERVER    = 'http://lhcbweb.pic.es/distribution/DIRAC3'
 DIRAC_VERSION        = 'HEAD'
 DIRAC_PYTHON         = '24'
 
@@ -2397,8 +2397,8 @@ elif myShortName in ['dirac-distribution']:
 
   if tars > 0:
     dirac.logINFO( 'Upload tar files to repository:' )
-    # dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
-    dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz ) | gsissh -p 1975 lhcbweb.pic.es 'cd /opt/dirac/webRoot/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
+    dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz scripts/dirac-install ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
+    dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz scripts/dirac-install ) | gsissh -p 1975 lhcbweb.pic.es 'cd /opt/dirac/webRoot/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
   exit(0)
   
 else:
