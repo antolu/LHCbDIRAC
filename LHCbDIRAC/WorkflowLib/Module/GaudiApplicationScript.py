@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.11 2008/10/29 15:40:46 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.12 2008/10/29 16:53:56 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.11 2008/10/29 15:40:46 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.12 2008/10/29 16:53:56 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -152,14 +152,29 @@ class GaudiApplicationScript(object):
     cmtEnv['MYSITEROOT'] = mySiteRoot
     cmtEnv['CMTCONFIG']  = self.systemConfig
 
-    extCMT       = os.path.join( mySiteRoot, 'scripts', 'ExtCMT' )
-    setupProject = os.path.join( mySiteRoot, 'scripts', 'SetupProject' )
+    extCMT       = os.path.join( localArea, 'LbLogin' )
+    setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
     setupProject = [setupProject]
     setupProject.append( '--ignore-missing' )
     setupProject.append( self.applicationName )
     setupProject.append( self.applicationVersion )
-    setupProject.append( 'gfal CASTOR dcache_client lfc oracle' )
 
+    externals = ''
+    site = gConfig.getValue('/LocalSite/Site','')
+    if not site:
+      externals = 'gfal CASTOR dcache_client lfc oracle' #should never happen, site is always defined
+      self.log.info('/LocalSite/Site undefined so setting externals to: %s' %externals)
+    else:
+      if gConfig.getOption('/Operations/ExternalsPolicy/%s' %site)['OK']:
+        externals = gConfig.getValue('/Operations/ExternalsPolicy/%s' %site,[])
+        externals = string.join(externals,' ')
+        self.log.info('Found externals policy for %s = %s' %(site,externals))
+      else:
+        externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
+        externals = string.join(externals,' ')
+        self.log.info('Using default externals policy for %s = %s' %(site,externals))
+
+    setupProject.append(externals)
     timeout = 300
 
     # Run ExtCMT
