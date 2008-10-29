@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.8 2008/10/24 12:27:52 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.9 2008/10/29 16:45:34 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.8 2008/10/24 12:27:52 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.9 2008/10/29 16:45:34 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -235,7 +235,8 @@ class LHCbJob(Job):
       self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
     else:
       apps = self.workflow.findParameter(swPackages).getValue()
-      apps += ';'+currentApp
+      if not currentApp in string.split(apps,';'):
+        apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
@@ -381,7 +382,8 @@ class LHCbJob(Job):
       self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
     else:
       apps = self.workflow.findParameter(swPackages).getValue()
-      apps += ';'+currentApp
+      if not currentApp in string.split(apps,';'):
+        apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
@@ -610,7 +612,8 @@ class LHCbJob(Job):
       self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
     else:
       apps = self.workflow.findParameter(swPackages).getValue()
-      apps += ';'+currentApp
+      if not currentApp in string.split(apps,';'):
+        apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
@@ -671,7 +674,8 @@ class LHCbJob(Job):
     else:
       apps = self.workflow.findParameter(swPackages).getValue()
       if apps:
-        apps += ';'+currentApp
+        if not currentApp in string.split(apps,';'):
+          apps += ';'+currentApp
         self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
