@@ -1,6 +1,6 @@
 #!/bin/bash -i
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-bash,v 1.1 2008/10/29 11:31:20 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-bash,v 1.2 2008/10/29 11:58:04 rgracian Exp $
 # File :   dirac-bash
 # Author : Ricardo Graciani
 # Usage : dirac-bash
@@ -15,10 +15,6 @@ if [ -z "$LD_LIBRARY_PATH" ] ; then
 else
   export LD_LIBRARY_PATH=$DIRACROOT/$DIRACPLAT/lib:$LD_LIBRARY_PATH
 fi
-if [ -z "$PYTHONPATH" ] ; then
-  export PYTHONPATH=$DIRACROOT/scripts:$DIRACROOT
-else
-  export PYTHONPATH=$DIRACROOT/scripts:$DIRACROOT:$PYTHONPATH
-fi
+export PYTHONPATH=$DIRACROOT/scripts:$DIRACROOT
 
 /bin/bash -p
