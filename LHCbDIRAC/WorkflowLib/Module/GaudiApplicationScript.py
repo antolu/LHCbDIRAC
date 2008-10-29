@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.10 2008/10/08 12:33:22 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.11 2008/10/29 15:40:46 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.10 2008/10/08 12:33:22 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.11 2008/10/29 15:40:46 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -23,9 +23,9 @@ from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
 
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
 
 import shutil, re, string, os, sys
 
@@ -122,22 +122,19 @@ class GaudiApplicationScript(object):
     self.log.info( "System configuration for job is %s" % ( self.systemConfig ) )
     self.log.info( "Root directory for job is %s" % ( self.root ) )
 
-    sharedArea = SharedArea()
-    localArea  = LocalArea()
-    mySiteRoot = None
-    # 1. Check if Application is available in Shared Area
+    sharedArea = MySiteRoot()
     appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     if appRoot:
       mySiteRoot = sharedArea
     else:
-      # 2. If not, check if available in Local Area
-      appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, localArea )
-      if appRoot:
-        mySiteRoot = localArea
-      else:
-        self.log.warn( 'Application not Found' )
-        self.__report( 'Application Not Found' )
-        self.result = S_ERROR( 'Application not Found' )
+      self.log.error( 'Application not found' )
+      self.setApplicationStatus( 'Application Not Found' )
+      self.result = S_ERROR( 'Application Not Found' )
+
+    localArea = sharedArea
+    if re.search(':',sharedArea):
+      localArea = string.split(sharedArea,':')[0]
+    self.log.info('Setting local software area to %s' %localArea)
 
     if not self.result['OK']:
       return self.result
