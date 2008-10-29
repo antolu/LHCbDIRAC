@@ -1,18 +1,18 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.6 2008/10/13 12:16:03 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.7 2008/10/29 15:16:10 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.6 2008/10/13 12:16:03 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.7 2008/10/29 15:16:10 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import  MySiteRoot
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import  MySiteRoot
 
 import string, os, sys, fnmatch
 
@@ -105,8 +105,13 @@ class RootApplication(object):
     self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
     self.log.info( "Root directory for job is %s" % ( self.root ) )
 
-    sharedArea = SharedArea()
-    rootdir = os.path.join(sharedArea,"lcg/external/root", self.rootVersion, self.systemConfig, "root")
+    mySiteRoot = MySiteRoot()
+    rootdir = ''
+    for path in string.split(mySiteRoot,':'):
+      testdir = os.path.join(sharedArea,"lcg/external/root", self.rootVersion, self.systemConfig, "root")
+      if os.path.exists(testdir):
+        rootdir = testdir
+
     if not os.path.exists(rootdir):
       self.log.warn( 'Root version %s not found' %(self.rootVersion))
       self.__report( 'Application Not Found' )
