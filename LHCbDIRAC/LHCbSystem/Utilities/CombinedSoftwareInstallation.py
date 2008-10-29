@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.20 2008/10/28 18:04:57 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.21 2008/10/29 17:02:57 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.20 2008/10/28 18:04:57 paterson Exp $"
-__VERSION__ = "$Revision: 1.20 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.21 2008/10/29 17:02:57 paterson Exp $"
+__VERSION__ = "$Revision: 1.21 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -125,8 +125,8 @@ def CheckInstallSoftware(app,config,area):
   """
   #NOTE: must cd to LOCAL area directory (install_project requirement)
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    #localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
-    localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/',InstallProject),InstallProject)
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/',InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
@@ -187,8 +187,8 @@ def InstallApplication(app, config, area ):
    only missing parts
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    #localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
-    localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/install_project.py',InstallProject),InstallProject)
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/install_project.py',InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
