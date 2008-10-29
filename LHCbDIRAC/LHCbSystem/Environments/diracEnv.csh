@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.5 2008/10/17 12:58:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.6 2008/10/29 11:31:20 rgracian Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.5 2008/10/17 12:58:12 rgracian Exp $'
-set __VERSION__='$Revision: 1.5 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.6 2008/10/29 11:31:20 rgracian Exp $'
+set __VERSION__='$Revision: 1.6 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -78,3 +78,5 @@ if $status == 1 then
 endif
 
 set prompt = '(DIRAC3-'$role') %B%n@%m %~\[\!]\>%b  '
+
+setenv PS1 "(\[\e[1;31m\]DIRAC3-$role\[\e[0m\])[\u@\h \w]\"'$'" "
