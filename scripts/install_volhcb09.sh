@@ -125,7 +125,8 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+     $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
 #
 # Create pro and old links
@@ -203,7 +204,7 @@ $DESTDIR/pro/scripts/install_agent.sh   Framework SAMAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
+$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMSAgent
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 
 $DESTDIR/pro/scripts/install_service.sh Monitoring SiteMapping
@@ -236,12 +237,14 @@ echo
 echo
 cat << EOF
 umask 0002
-export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
+# export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
+export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
 cd `dirname $DESTDIR`
 cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
 cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
 cd DIRAC3/DIRAC
 ln -s ../LHCbSystem .
+
 EOF
 
 fi
