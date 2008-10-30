@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.106 2008/10/30 08:51:20 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.107 2008/10/30 11:12:46 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.106 2008/10/30 08:51:20 rgracian Exp $"
-__VERSION__ = "$Revision: 1.106 $"
+__RCSID__   = "$Id: dirac-install,v 1.107 2008/10/30 11:12:46 rgracian Exp $"
+__VERSION__ = "$Revision: 1.107 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -22,7 +22,7 @@ except Exception, x:
 myFullName  = os.path.realpath( sys.argv[0] )
 myShortName = os.path.basename( myFullName )
 
-DEFAULT_SITE = DIRAC.Client.local
+DEFAULT_SITE = "DIRAC.Client.local"
 
 # Some default values that can be changed via options
 DIRAC_CVS_REPOSITORY = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
