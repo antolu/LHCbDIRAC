@@ -16,8 +16,8 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB09.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v3r0
-EXTVERSION=v0r4p0
+DIRACVERSION=v4r0
+EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work control requestDB"
@@ -181,6 +181,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
@@ -198,6 +199,7 @@ $DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
+$DESTDIR/pro/scripts/install_agent.sh   Framework SAMAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
