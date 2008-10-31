@@ -1,4 +1,4 @@
-# $Id: SrmSpaceTokenAgent.py,v 1.3 2008/09/25 16:36:32 acasajus Exp $
+# $Id: SrmSpaceTokenAgent.py,v 1.4 2008/10/31 16:36:39 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -27,6 +27,7 @@ class SrmSpaceTokenAgent(Agent):
 
   def initialize( self ):
     result = Agent.initialize( self )
+    self.pollingTime = 43200
     if not result[ 'OK' ]:
       return result
     bdiiServerLocation = gConfig.getValue( "%s/BDIIServer" % self.section, 'lcg-bdii.cern.ch:2170' )
