@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.34 2008/11/03 11:28:00 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.35 2008/11/03 15:11:23 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.34 2008/11/03 11:28:00 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.35 2008/11/03 15:11:23 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -187,7 +187,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     configurations.ConfigVersion=\''+configVersion+'\''
     
     if simcondid != 'ALL':
-      condition += ' and jobs.DAQPeriodId='+str(simcondid)
+      condition += ' and jobs.production=processing_pass.production'
+      condition += ' and processing_pass.simcondid='+str(simcondid)
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -213,12 +214,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
-    '''
-    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations where \
-          files.JobId=jobs.JobId and \
-          files.GotReplica=\'Yes\' and \
-          jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
-    '''
+   
     command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations,processing_pass where \
           files.JobId=jobs.JobId and \
           files.GotReplica=\'Yes\' and \
@@ -232,7 +228,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     configurations.ConfigVersion=\''+configVersion+'\''
     
     if simcondid != 'ALL':
-      condition += ' and jobs.DAQPeriodId='+str(simcondid)
+      condition += ' and jobs.production=processing_pass.production'
+      condition += ' and processing_pass.simcondid='+str(simcondid)
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
