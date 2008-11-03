@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.11 2008/10/10 11:32:00 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.12 2008/11/03 11:11:29 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.11 2008/10/10 11:32:00 acasajus Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.12 2008/11/03 11:11:29 acasajus Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 
 import sys
 import os
@@ -107,17 +107,23 @@ for group in availableGroups:
 
 if not pilotGroup:
   print "WARN: No pilot group defined for user %s" % proxyInfo[ 'username' ]
+  if cliParams.strict:
+    sys.exit(1)
 else:
   cliParams.setDIRACGroup( pilotGroup )
   issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
   remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
   cliParams.setProxyRemainingSecs( remainingSecs - 300 )
   #uploadProxyToMyProxy( cliParams, True )
-  uploadProxyToDIRACProxyManager( cliParams )
+  success = uploadProxyToDIRACProxyManager( cliParams )
+  if not success and cliParams.strict:
+    sys.exit(1)
 
 cliParams.setDIRACGroup( proxyInfo[ 'group' ] )
 #uploadProxyToMyProxy( cliParams, False )
-uploadProxyToDIRACProxyManager( cliParams )
+success = uploadProxyToDIRACProxyManager( cliParams )
+if not success and cliParams.strict:
+  sys.exit(1)
 
 finalChain = proxyInfo[ 'chain' ]
 
@@ -128,6 +134,8 @@ if vomsMapping:
   if not retVal[ 'OK' ]:
     #print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
     print "Cannot add voms attribute %s to proxy" % ( vomsMapping )
+    if cliParams.strict:
+      sys.exit(1)
   else:
     finalChain = retVal[ 'Value' ]
 
