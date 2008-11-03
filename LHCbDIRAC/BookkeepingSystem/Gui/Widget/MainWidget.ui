@@ -1,6 +1,12 @@
 <ui version="4.0" >
  <class>MainWidget</class>
  <widget class="QMainWindow" name="MainWidget" >
+  <property name="windowModality" >
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="enabled" >
+   <bool>true</bool>
+  </property>
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -9,11 +15,20 @@
     <height>841</height>
    </rect>
   </property>
+  <property name="cursor" >
+   <cursorShape>WaitCursor</cursorShape>
+  </property>
   <property name="windowTitle" >
-   <string>MainWindow</string>
+   <string>Feicim Bookkeeping browser</string>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <widget class="QTreeWidget" name="tree" >
+    <property name="windowModality" >
+     <enum>Qt::WindowModal</enum>
+    </property>
+    <property name="enabled" >
+     <bool>true</bool>
+    </property>
     <property name="geometry" >
      <rect>
       <x>20</x>
