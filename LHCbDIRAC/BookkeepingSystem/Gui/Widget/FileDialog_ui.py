@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Thu Oct  9 17:38:57 2008
+# Created: Sun Nov  2 19:58:42 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -185,7 +185,7 @@ class Ui_FileDialog(object):
         QtCore.QMetaObject.connectSlotsByName(FileDialog)
 
     def retranslateUi(self, FileDialog):
-        FileDialog.setWindowTitle(QtGui.QApplication.translate("FileDialog", "FileDialog", None, QtGui.QApplication.UnicodeUTF8))
+        FileDialog.setWindowTitle(QtGui.QApplication.translate("FileDialog", "Feicim FileDialog", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("FileDialog", "Statistics", None, QtGui.QApplication.UnicodeUTF8))

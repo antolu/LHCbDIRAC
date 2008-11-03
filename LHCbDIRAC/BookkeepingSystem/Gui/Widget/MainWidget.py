@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.3 2008/10/18 18:36:52 zmathe Exp $
+# $Id: MainWidget.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $
 ########################################################################
 
 
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 
-__RCSID__ = "$Id: MainWidget.py,v 1.3 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: MainWidget.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
@@ -20,8 +20,9 @@ __RCSID__ = "$Id: MainWidget.py,v 1.3 2008/10/18 18:36:52 zmathe Exp $"
 class MainWidget(QMainWindow, Ui_MainWidget):
   
   #############################################################################  
-  def __init__(self, parent = None):
+  def __init__(self, fileName,parent = None):
     super(MainWidget, self).__init__()
+
     """
     Constructor
     
@@ -32,10 +33,12 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.__controler = ControlerMain(self, None)
     QMainWindow.__init__(self, parent)
     self.setupUi(self)
-
+    
     self.__controler.addChild('TreeWidget', self.tree.getControler())
     self.connect(self.actionExit, SIGNAL("triggered()"),
                      self, SLOT("close()"))
+    
+    self.__controler.setFileName(fileName)
     #self.__controler.addChild('TableWidget', self.tableWidget.getControler())
     
         
@@ -56,5 +59,13 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     message = Message({'action':'list','items':items})
     self.getControler().messageFromParent(message)
     '''
+  
+  #############################################################################  
+  def waitCursor(self):
+    self.setCursor(Qt.WaitCursor)
+  
+  #############################################################################  
+  def arrowCursor(self):
+    self.setCursor(Qt.ArrowCursor)
   
   

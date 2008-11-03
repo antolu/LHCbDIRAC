@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Node Informations</string>
+   <string>Feicim Info dialog</string>
   </property>
   <widget class="QPushButton" name="pushButton" >
    <property name="geometry" >

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -341,6 +341,9 @@ class IBookkeepingDatabaseClient(object):
   def getInputAndJobFiles(self, jobids):
     return self.getManager().getInputAndJobFiles(jobids)
   
+  #############################################################################
+  def checkProcessingPassAndSimCond(self, production):
+    return self.getManager().checkProcessingPassAndSimCond(production)
   
   #############################################################################
   '''

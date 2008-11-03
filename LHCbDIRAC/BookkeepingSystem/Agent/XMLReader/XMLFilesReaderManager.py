@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.18 2008/10/18 18:36:51 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -217,34 +217,7 @@ class XMLFilesReaderManager:
     jobsimcondtitions = job.getSimulationCond()
     simulations = {}
     production = None
-    '''
-    if jobsimcondtitions!=None and self.__checkProgramNameIsGaussTMP(job):
-      simcondtitions=jobsimcondtitions.getParams()
-      if len(simcondtitions.keys())==1: # we send just description !!!!!!!!  We have to remove the else block!
-        simcond = dataManager_.getSimulationCondIdByDesc(simcondtitions['SimDescription'])
-        if not simcond['OK']:
-            gLogger.error("Simulation conditions problem", simcond["Message"])
-            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-        elif simcond['Value'] != 0: # the simulation conditions exist in the database
-          simulations[simcond['Value']]=None
-        else:
-          gLogger.error("Simulation conditions problem")
-          return S_ERROR("Simulation description is not exist in bk Database!")
-      else:
-        simcond = dataManager_.getSimulationCondID(simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions['MagneticField'], simcondtitions['DetectorCond'], simcondtitions['Luminosity'])
-        if not simcond['OK']:
-            gLogger.error("Simulation conditions problem", simcond["Message"])
-            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-        elif simcond['Value'] != 0: # the simulation conditions exist in the database
-          simulations[simcond['Value']]=None
-        else:
-          simcond = dataManager_.insertSimConditions(None,simcondtitions['BeamCond'], simcondtitions['BeamEnergy'], simcondtitions['Generator'], simcondtitions[MagneticField], simcondtitions[DetectorCond], simcondtitions[Luminosity])
-          if not simcond['OK']:
-            gLogger.error("Simulation conditions problem", simcond["Message"])
-            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-          simulations[simcond['Value']]=None
-    else: #not a gauss job!!!! 
-    '''
+    
     condParams = job.getDataTakingCond()
     if condParams != None:
       datataking = condParams.getParams()
@@ -263,6 +236,7 @@ class XMLFilesReaderManager:
             dataTackingPeriodID = res['Value']
       else:
         return S_ERROR("DATA TAKING Problem"+str(res['Message']))
+  
       #insert processing pass
       programName = None
       programVersion = None
@@ -284,51 +258,35 @@ class XMLFilesReaderManager:
       else:
         gLogger.error('Unable to create processing pass!',res['Message'])
         return S_ERROR('Unable to create processing pass!')
-      
-    else:
-      inputfiles = job.getJobInputFiles()
-      if len(inputfiles) == 0:
-        gLogger.error("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
-        return S_ERROR("The ProgramName is not Gauss and it not has input file or missing the simulation conditions!!!")
-      else:
-        for file in inputfiles:
-          simcond = dataManager_.getSimCondIDWhenFileName(file.getFileName())
-          if not simcond['OK']:
-            gLogger.error("Simulation conditions problem", simcond["Message"])
-            return S_ERROR("Simulation conditions problem" + str(simcond["Message"]))
-          if len(simulations) == 0:
-            value = simcond['Value']
-            simulations[value]=None
-          else:
-              value = simcond['Value']
-              if not simulations.__contains__(value):
-                gLogger.error("Different simmulation conditions!!!")
-                return S_ERROR("Different simmulation conditions!!!")
-  '''
-  attrList = {'ConfigName':config.getConfigName(), \
-               'ConfigVersion':config.getConfigVersion(), \
-               'DAQPeriodId':simulations.items()[0][0], \
-               'JobStart':None}
-  '''
-  attrList = {'ConfigName':config.getConfigName(), \
-               'ConfigVersion':config.getConfigVersion(), \
-               'DAQPeriodId':None, \
-               'JobStart':None}
-  
-  for param in job.getJobParams():
-    attrList[str(param.getName())] = param.getValue()
     
-  if attrList['JobStart']==None:
-    #date = config.getDate().split('-')
-    #time = config.getTime().split(':')
-    #dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
-    attrList['JobStart']=config.getDate()+' '+config.getTime()
-  
-  if production != None: # for the online registration
-    attrList['Production'] = production
-  
-  res = dataManager_.insertJob(attrList)
-  return res
+    attrList = {'ConfigName':config.getConfigName(), \
+                 'ConfigVersion':config.getConfigVersion(), \
+                 'DAQPeriodId':None, \
+                 'JobStart':None}
+    
+    for param in job.getJobParams():
+      attrList[str(param.getName())] = param.getValue()
+      
+    res = dataManager_.checkProcessingPassAndSimCond(attrList['Production'])
+    if not res['OK']:
+      gLogger.error('check processing pass and simulation condition error',res['Message'] )
+    else:
+      value = res['Value']
+      if value[0][0]==0:
+        gLogger.error('Missing processing pass and simulation conditions!(Please fill it!) Production='+str(attrList['Production']))
+      
+      
+    if attrList['JobStart']==None:
+      #date = config.getDate().split('-')
+      #time = config.getTime().split(':')
+      #dateAndTime = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+      attrList['JobStart']=config.getDate()+' '+config.getTime()
+    
+    if production != None: # for the online registration
+      attrList['Production'] = production
+    
+    res = dataManager_.insertJob(attrList)
+    return res
 
   #############################################################################
   def __insertOutputFiles(self, job, file):

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.33 2008/10/18 18:36:51 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.34 2008/11/03 11:28:00 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.33 2008/10/18 18:36:51 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.34 2008/11/03 11:28:00 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1013,6 +1013,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def updateEventType(self, evid, desc, primary):
     return self.db_.executeStoredProcedure('BKK_ORACLE.updateEventTypes',[desc, evid, primary], False)
+  
+  #############################################################################
+  def checkProcessingPassAndSimCond(self, production):
+    command = ' select count(*) from processing_pass where production='+ str(production)
+    res = self.db_._query(command)
+    return res
   
   #############################################################################
   #

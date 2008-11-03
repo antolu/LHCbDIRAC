@@ -1,19 +1,13 @@
-########################################################################
-# $Id: InfoDialog_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
-########################################################################
-
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'workspace/BookkeepingSystem/Bookkeeping/Widget/InfoDialog.ui'
+# Form implementation generated from reading ui file 'InfoDialog.ui'
 #
-# Created: Tue Sep  9 16:28:52 2008
+# Created: Mon Nov  3 11:31:05 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-
-__RCSID__ = "$Id: InfoDialog_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -32,6 +26,6 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Node Informations", None, QtGui.QApplication.UnicodeUTF8))
+        Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Feicim Info dialog", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton.setText(QtGui.QApplication.translate("Dialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

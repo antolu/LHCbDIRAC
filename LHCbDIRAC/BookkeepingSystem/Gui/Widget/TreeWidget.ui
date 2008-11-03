@@ -60,6 +60,12 @@
      <height>621</height>
     </rect>
    </property>
+   <property name="cursor" stdset="0" >
+    <cursorShape>ArrowCursor</cursorShape>
+   </property>
+   <property name="animated" >
+    <bool>true</bool>
+   </property>
    <column>
     <property name="text" >
      <string>Path</string>

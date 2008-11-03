@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.5 2008/11/03 11:28:01 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.5 2008/11/03 11:28:01 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -52,6 +52,7 @@ class ControlerFileDialog(ControlerAbstract):
         #self.__progressBar.wait()
         
         self.getWidget().show()
+    return True  
   
   #############################################################################  
   def messageFromChild(self, sender, message):
@@ -69,7 +70,6 @@ class ControlerFileDialog(ControlerAbstract):
   def save(self):
     if len(self.__selectedFiles) > 1:
       fileName,ext = self.getWidget().saveAs()
-      print ext
       if fileName <>'':
         model = self.getWidget().getModel()
         lfns = {}
@@ -82,10 +82,11 @@ class ControlerFileDialog(ControlerAbstract):
             QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
             self.__selectedFiles = []
         elif '.txt' in ext:
-          f = open(fileName,'w')
-          for file in self.__selectedFiles:
-            f.write(file+'\n')       
-          self.__selectedFiles = [] 
+          message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':self.__selectedFiles})
+          feedback = self.getParent().messageFromChild(self, message)
+          if feedback:
+            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
+            self.__selectedFiles = []
         elif '.py' in ext:
           message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
           feedback = self.getParent().messageFromChild(self, message)
@@ -117,11 +118,11 @@ class ControlerFileDialog(ControlerAbstract):
             self.__selectedFiles = []
         
         elif '.txt' in ext:
-          f = open(fileName,'w')
-          for file in model:
-            f.write(file+'\n')
-          self.__selectedFiles = []
-          
+          message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':model})
+          feedback = self.getParent().messageFromChild(self, message)
+          if feedback:
+            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
+            self.__selectedFiles = []
         
     
   #############################################################################  

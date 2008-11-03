@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $
+# $Id: ControlerMain.py,v 1.5 2008/11/03 11:28:01 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerMain.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.5 2008/11/03 11:28:01 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -18,6 +18,7 @@ class ControlerMain(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerMain, self).__init__(widget, parent)
     self.__bkClient = LHCB_BKKDBClient()
+    self.__fileName = ''
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
 
   #############################################################################  
@@ -31,7 +32,6 @@ class ControlerMain(ControlerAbstract):
   def messageFromChild(self, sender, message):
     if sender.__class__.__name__=='ControlerTree':
       if message['action']=='expande':
-        gLogger.info('1')
         '''
         if self.__progressBar.isRunning():
           gLogger.info('2')
@@ -41,6 +41,7 @@ class ControlerMain(ControlerAbstract):
         self.__progressBar.start()
         gLogger.info('4')
         '''
+        self.getWidget().waitCursor()
         path = message['node']
         items=Item({'fullpath':path},None)
         for entity in self.__bkClient.list(str(path)):
@@ -48,8 +49,9 @@ class ControlerMain(ControlerAbstract):
           items.addItem(childItem)
         #self.__progressBar.stop()
         #self.__progressBar.wait()
+        
+        self.getWidget().arrowCursor()
         message = Message({'action':'showNode','items':items})
-        gLogger.info('5')
         return message
       
       elif message['action']=='configbuttonChanged':
@@ -69,10 +71,26 @@ class ControlerMain(ControlerAbstract):
         ct.messageFromParent(message)
         
       elif message.action()=='SaveAs':
-        fileName = message['fileName']
+        if self.__fileName <> '':
+          fileName = self.__fileName
+        else:
+           fileName = message['fileName']
+     
         lfns = message['lfns']
         self.__bkClient.writeJobOptions(lfns, str(fileName))
         return True
+      elif message.action()=='SaveToTxt':
+        if self.__fileName <> '':
+          fileName = self.__fileName
+        else:
+           fileName = message['fileName']
+    
+        lfns = message['lfns']
+        f = open(fileName,'w')
+        for file in lfns:
+          f.write(file+'\n')       
+        return True
+          
       elif message.action() == 'JobInfo':
         files = self.__bkClient.getJobInfo(message['fileName'])
         message = Message({'action':'showJobInfos','items':files})
@@ -80,10 +98,16 @@ class ControlerMain(ControlerAbstract):
         ct = controlers['TreeWidget']
         feedback = ct.messageFromParent(message)
         return feedback
+      elif message.action() == 'waitCursor':
+        self.getWidget().waitCursor()
+        return True
+      elif message.action() == 'arrowCursor':
+        self.getWidget().arrowCursor()
+        return True
       else:        
         print 'Unknown message!',message.action()
       
-  
+  #############################################################################  
   def root(self):
     item = self.__bkClient.get()
     items=Item(item,None)
@@ -93,6 +117,7 @@ class ControlerMain(ControlerAbstract):
       items.addItem(childItem)
     return items
   
+  #############################################################################  
   def start(self):
     items = self.root()  
     message = Message({'action':'list','items':items})
@@ -105,4 +130,7 @@ class ControlerMain(ControlerAbstract):
     #self.getControler().messageFromParent(message)
   #############################################################################  
   
+  #############################################################################  
+  def setFileName(self, fileName):
+    self.__fileName = fileName
   

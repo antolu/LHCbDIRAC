@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $
+# $Id: ControlerTree.py,v 1.2 2008/11/03 11:28:01 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
-__RCSID__ = "$Id: ControlerTree.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.2 2008/11/03 11:28:01 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -61,10 +61,16 @@ class ControlerTree(ControlerAbstract):
           if feedback['items'].childnum() > 0:
             child = feedback['items'].child(0)
             if not child['expandable']:
+              message = Message({'action':'waitCursor','type':None})
+              feeddback = self.getParent().messageFromChild(self, message)
+              
               controlers = self.getChildren()
               ct = controlers['FileDialog']  
               message = Message({'action':'list','items':feedback['items']})
-              ct.messageFromParent(message)
+              res = ct.messageFromParent(message)
+              if res :
+                message = Message({'action':'arrowCursor','type':None})
+                feeddback = self.getParent().messageFromChild(self, message)
             else:
               self.getWidget().getTree().showTree(feedback['items'], parentItem)
         

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $
+# $Id: FileDialog.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.3 2008/10/09 17:37:11 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -150,20 +150,26 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def saveAs(self):
     
-    saveDialog = QFileDialog (self,'Save files')
+    saveDialog = QFileDialog (self,'Feicim Save file(s) dialog',QDir.currentPath(),'Option file (*.opts);;Text file (*.txt);;Python option(*.py)')
     filename = ''
     #self.connect(saveDialog, SIGNAL("filterSelected(const QString &)"),self.filter ) 
-    saveDialog.setDirectory (QDir.currentPath())
+    ##saveDialog.setDirectory (QDir.currentPath())
     #filters = ['Option file (*.opts)' ,'Pool xml file (*.xml)','*.txt']    
-    filters = ['Option file (*.opts)','*.py','*.txt']    
-    saveDialog.setFilter(';;'.join(filters))
-    saveDialog.setFileMode(QFileDialog.AnyFile)
-    saveDialog.setViewMode(QFileDialog.Detail)
+    #filters = ['Option file (*.opts)','*.py','*.txt']    
+    #saveDialog.setFilter(';;'.join(filters))
+    #saveDialog.setFilter('Option file (*.opts);;Text file (*.txt);;Python option')
+    #saveDialog.setFileMode(QFileDialog.AnyFile)
+    #saveDialog.setViewMode(QFileDialog.Detail)
    
     if (saveDialog.exec_()):
       filename = str(saveDialog.selectedFiles()[0]) 
       ext = saveDialog.selectedFilter()
-      filename += ext[1:]
+      if 'Text file (*.txt)' in ext:
+        filename += '.txt'
+      elif 'Option file (*.opts)' in ext:
+        filename += '.opts'
+      elif 'Python option(*.py)' in ext:  
+        filename += '.py'
       try:
         open(filename)
       except IOError:
