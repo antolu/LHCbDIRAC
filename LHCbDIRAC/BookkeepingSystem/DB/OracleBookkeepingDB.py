@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.35 2008/11/03 15:11:23 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.36 2008/11/04 16:56:09 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.35 2008/11/03 15:11:23 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.36 2008/11/04 16:56:09 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -347,17 +347,31 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR("Job is not found!")
 
   
-  def getProductionDSTs(self, prod):
-    command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid=16 and jobs.production='+str(prod)
-    res = self.db_._query(command)
+  def getProductionFiles(self, prod, ftype):
+    command = ''
     value = {}
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.db_._query(fileType)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+        return S_ERROR('Oracle error'+res['Message'])
+      else:
+        if len(res['Value']) == 0:
+          return S_ERROR('File Type not found:'+str(ftype)) 
+        
+        ftypeId = res['Value'][0][0]
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
+    else:
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and jobs.production='+str(prod)
+   
+    res = self.db_._query(command)
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
         value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3]} 
     else:
       return S_ERROR(res['Message'])
-    
     return S_OK(value)
   
   #############################################################################
@@ -379,14 +393,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getInputAndJobFiles(self, jobids):
+  def getInputAndOutputJobFiles(self, jobids):
     list = {}
     for jobid in jobids:
       tmp = {}
       res = self.getInputFiles(jobid)
 
       if not res['OK']:
-        return S_ERORR(res['Message'])
+        return S_ERROR(res['Message'])
       input = res['Value']
       inputs = []
       for lfn in input:
@@ -394,7 +408,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         
       res = self.getOutputFiles(jobid)
       if not res['OK']:
-        return S_ERORR(res['Message'])
+        return S_ERROR(res['Message'])
       output = res['Value'] 
       outputs = []
       for lfn in output:
@@ -406,7 +420,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
   #############################################################################
   def getInputFiles(self, jobid):
-    command = ' select files.filename from files, inputfiles where files.jobid=inputfiles.jobid and inputfiles.jobid='+str(jobid)
+    command = ' select files.filename from inputfiles,files where files.fileid=inputfiles.fileid and inputfiles.jobid='+str(jobid)
     res = self.db_._query(command)
     return res
       

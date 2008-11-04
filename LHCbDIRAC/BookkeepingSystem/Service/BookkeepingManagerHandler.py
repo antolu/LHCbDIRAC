@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.78 2008/10/18 18:36:52 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.79 2008/11/04 16:56:10 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.78 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.79 2008/11/04 16:56:10 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -205,9 +205,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getProgramNameWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype)
   
   #############################################################################  
-  types_getProductionDSTs = [IntType]
-  def export_getProductionDSTs(self, prod):
-    return dataMGMT_.getProductionDSTs(int(prod))
+  types_getProductionFiles = [IntType, StringType]
+  def export_getProductionFiles(self, prod, fileType):
+    return dataMGMT_.getProductionFiles(int(prod), fileType)
   
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
@@ -552,9 +552,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getJobsIds(filelist)
   
   #############################################################################
-  types_getInputAndJobFiles = [ListType]
-  def export_getInputAndJobFiles(self, jobids):
-    return dataMGMT_.getInputAndJobFiles(jobids)
+  types_getInputAndOutputJobFiles = [ListType]
+  def export_getInputAndOutputJobFiles(self, jobids):
+    return dataMGMT_.getInputAndOutputJobFiles(jobids)
     
     
   

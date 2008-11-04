@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.58 2008/10/28 13:07:23 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.59 2008/11/04 16:56:09 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.58 2008/10/28 13:07:23 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.59 2008/11/04 16:56:09 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -171,9 +171,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################  
-  def getProductionDSTs(self, prod):
+  def getProductionFiles(self, prod, fileType):
     server = self.__getServer()
-    result = server.getProductionDSTs(int(prod))
+    result = server.getProductionFiles(int(prod), fileType)
     return result
     
   #############################################################################  
@@ -447,9 +447,9 @@ class BookkeepingClient:
     return server.getJobsIds(filelist)
   
   #############################################################################
-  def getInputAndJobFiles(self, jobids):
+  def getInputAndOutputJobFiles(self, jobids):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    return server.getInputAndJobFiles(jobids)
+    return server.getInputAndOutputJobFiles(jobids)
   
   #############################################################################
   def updateFileMetaData(self, filename, filesAttr): 

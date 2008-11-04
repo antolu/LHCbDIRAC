@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.20 2008/11/04 16:56:09 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.20 2008/11/04 16:56:09 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -107,8 +107,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().removeReplica(File)
   
   #############################################################################
-  def getProductionDSTs(self, prod):
-    return self.getManager().getProductionDSTs(prod)
+  def getProductionFiles(self, prod, fileType):
+    return self.getManager().getProductionFiles(prod, fileType)
   
   #############################################################################
   def addReplica(self, File):
@@ -338,8 +338,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getJobsIds(filelist)
   
   #############################################################################
-  def getInputAndJobFiles(self, jobids):
-    return self.getManager().getInputAndJobFiles(jobids)
+  def getInputAndOutputJobFiles(self, jobids):
+    return self.getManager().getInputAndOutputJobFiles(jobids)
   
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
