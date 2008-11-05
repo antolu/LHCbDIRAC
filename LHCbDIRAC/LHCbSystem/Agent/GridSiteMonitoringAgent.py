@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.1 2008/11/05 19:48:17 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.2 2008/11/05 19:55:19 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -61,22 +61,28 @@ class GridSiteMonitoringAgent(Agent):
 
 
   def _sumDataBuckets( self, bucketedData, filterList = [], average = False ):
+    granularity = bucketedData[ 'granularity' ]
     bucketedData = bucketedData[ 'data' ]
     addedData = {}
-    countData = {}
+    extraData = {}
     for key in bucketedData:
       if key in filterList:
         continue
       if not key in addedData:
         addedData[ key ] = 0
-        countData[ key ] = 0
+        extraData[ key ] = [ 0, 0, 0]
       for time in bucketedData[ key ]:
         addedData[ key ] += bucketedData[ key ][ time ]
-        countData[ key ] += 1
+        if extraData[ key ][0]:
+          extraData[ key ][0] = min( extraData[ key ][1], time )
+        else:
+          extraData[ key ][0] = time
+        extraData[ key ][1] = max( extraData[ key ][2], time + granularity )
+        extraData[ key ][2] += 1
     if average:
       for key in addedData:
-        addedData[key] /= countData[key]
-    return addedData
+        addedData[key] /= extraData[key][2]
+    return addedData, extraData
 
   def _retrieveDataContents(self):
     gLogger.info( "[DATA] Retrieving info...")
@@ -95,18 +101,16 @@ class GridSiteMonitoringAgent(Agent):
     return S_OK( finalData )
 
   def _dataGetSuccessRate( self, startT, endT, reportCond, metricName, rC ):
-    endEpoch = Time.toEpoch( endT )
-    startEpoch = Time.toEpoch( startT )
     result = rC.getReport( "DataOperation", 'SuceededTransfers', startT, endT,
                           reportCond, 'Channel' )
     if not result[ 'OK' ]:
       return result
-    suceededData = self._sumDataBuckets( result[ 'Value' ], [ 'Failed' ] )
+    suceededData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Failed' ] )
     result = rC.getReport( "DataOperation", 'FailedTransfers', startT, endT,
                           reportCond, 'Channel' )
     if not result[ 'OK' ]:
       return result
-    failedData = self._sumDataBuckets( result[ 'Value' ], [ 'Suceeded' ] )
+    failedData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Suceeded' ] )
     okRateData = {}
     for channel in suceededData:
       if channel in failedData:
@@ -117,25 +121,27 @@ class GridSiteMonitoringAgent(Agent):
       sites = List.fromChar( channel, "->" )
       finalData.append( "%s,%s,%s,success_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
                                                                            okRateData[channel],
-                                                                           startEpoch, endEpoch, extraURL ) )
+                                                                           extraData[channel][0],
+                                                                           extraData[channel][1],
+                                                                           extraURL ) )
     gLogger.info( "[DATA]%s successRate data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( okRateData, finalData ) )
 
   def _dataGetThroughput( self, startT, endT, reportCond, metricName, rC ):
-    endEpoch = Time.toEpoch( endT )
-    startEpoch = Time.toEpoch( startT )
     result = rC.getReport( "DataOperation", 'Throughput', startT, endT,
                           reportCond, 'Channel' )
     if not result[ 'OK' ]:
       return result
-    throughtputData = self._sumDataBuckets( result[ 'Value' ], average= True )
+    throughtputData, extraData = self._sumDataBuckets( result[ 'Value' ], average= True )
     finalData = []
     extraURL = self._generateDataExtraURL( "Throughput", reportCond )
     for channel in throughtputData:
       sites = List.fromChar( channel, "->" )
       finalData.append( "%s,%s,%s,average_transfer_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
                                                                          throughtputData[channel],
-                                                                        startEpoch, endEpoch, extraURL ) )
+                                                                           extraData[channel][0],
+                                                                           extraData[channel][1],
+                                                                           extraURL ) )
     gLogger.info( "[DATA]%s throughput data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( throughtputData, finalData ) )
 
