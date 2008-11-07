@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.21 2008/10/29 17:02:57 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.22 2008/11/07 11:49:12 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.21 2008/10/29 17:02:57 paterson Exp $"
-__VERSION__ = "$Revision: 1.21 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.22 2008/11/07 11:49:12 paterson Exp $"
+__VERSION__ = "$Revision: 1.22 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -141,7 +141,7 @@ def CheckInstallSoftware(app,config,area):
   appName    = app[0]
   appVersion = app[1]
 
-  installProject = os.path.join( area, InstallProject )
+  installProject = os.path.join( localArea, InstallProject )
   if not os.path.exists( installProject ):
     try:
       shutil.copy( InstallProject, localArea )
@@ -290,6 +290,7 @@ def CheckApplication(app, config, area):
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   timeout = 300
   ret = DIRAC.systemCall( timeout, cmdTuple, env=cmtEnv, callbackFunction=log )
+  DIRAC.gLogger.debug(ret)
   os.chdir(curDir)
   if not ret['OK']:
     DIRAC.gLogger.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
@@ -298,20 +299,35 @@ def CheckApplication(app, config, area):
     DIRAC.gLogger.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
     return False
 
+  if ret['Value'][2]:
+    DIRAC.gLogger.error('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
+
   # Run SetupProject
   extCMT       = os.path.join( localArea, 'LbLogin' )
   setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
 
   # Run ExtCMT
   ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
+  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
-    DIRAC.gLogger.error('Problem during SetupProject call',ret['Message'])
+    DIRAC.gLogger.error('Problem during SetupProject call')
     if ret['stdout']:
       DIRAC.gLogger.info( ret['stdout'] )
     if ret['stderr']:
       DIRAC.gLogger.error( ret['stderr'] )
     return False
+
+  if ret['stderr']:
+    DIRAC.gLogger.error('Error reported with ok status for LbLogin call:\n\n%s' %ret['stderr'])
+
   setupProjectEnv = ret['outputEnv']
+
+#  for n,v in setupProjectEnv.items():
+#    print '%s = %s' %(n,v)
+#  if not setupProjectEnv.has_key('LHCBPYTHON'):
+#    lhcbPython = os.path.join(localArea,'scripts','python')
+#    DIRAC.gLogger.error('LHCBPYTHON not defined after LbLogin execution, setting to %s' %lhcbPython)
+#    setupProjectEnv['LHCBPYTHON']=lhcbPython
 
   setupProject = [setupProject]
   setupProject.append( '--debug' )
@@ -320,6 +336,7 @@ def CheckApplication(app, config, area):
   setupProject.append( appVersion )
 
   ret = DIRAC.Source( timeout, setupProject, setupProjectEnv )
+  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
     DIRAC.gLogger.info( ret['Message'])
     if ret['stdout']:
@@ -328,11 +345,14 @@ def CheckApplication(app, config, area):
       DIRAC.gLogger.warn( ret['stderr'] )
     return False
 
+  if ret['stderr']:
+    DIRAC.gLogger.error('Error reported with ok status for SetupProject call:\n\n%s' %ret['stderr'])
+
   gaudiEnv = ret['outputEnv']
 
   appRoot = appName.upper() + 'ROOT'
   if not gaudiEnv.has_key( appRoot ):
-    DIRAC.gLogger.warn( 'Can not determine:', appRoot )
+    DIRAC.gLogger.warn( 'Cannot determine application root directory:', appRoot )
     return False
 
   return gaudiEnv[ appRoot ]
@@ -409,13 +429,13 @@ def LocalArea():
       try:
         os.remove( localArea )
       except Exception, x:
-        DIRAC.gLogger.warn( 'Can not remove:', localArea )
+        DIRAC.gLogger.warn( 'Cannot remove:', localArea )
         localArea = ''
     else:
       try:
         os.mkdir( localArea )
       except Exception, x:
-        DIRAC.gLogger.warn( 'Can not create:', localArea )
+        DIRAC.gLogger.warn( 'Cannot create:', localArea )
         localArea = ''
   return localArea
 
