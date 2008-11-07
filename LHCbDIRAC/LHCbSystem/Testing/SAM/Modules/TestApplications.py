@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.11 2008/10/24 14:49:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.12 2008/11/07 07:31:21 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.11 2008/10/24 14:49:00 paterson Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.12 2008/11/07 07:31:21 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -177,10 +177,10 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OP
     newOpts = '%s-Extra.py' %(appName)
     self.log.verbose('Adding extra options for %s %s:\n%s' %(appName,appVersion,extraOpts))
     fopen = open(newOpts,'w')
-    if not appName.lower()=='davinci':
-      fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,appName))
-    else:
+    if appName=='DaVinci':
       fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,'Gaudi'))
+    else:
+      fopen.write('#\n# Options added by TestApplications for DIRAC SAM test %s\n#\nfrom %s.Configuration import *\n' %(self.testName,appName))
     fopen.write(extraOpts)
     fopen.close()
     return S_OK([localOpts,newOpts])
