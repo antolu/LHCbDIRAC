@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.22 2008/11/07 11:49:12 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.23 2008/11/10 15:40:39 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.22 2008/11/07 11:49:12 paterson Exp $"
-__VERSION__ = "$Revision: 1.22 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.23 2008/11/10 15:40:39 paterson Exp $"
+__VERSION__ = "$Revision: 1.23 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -304,7 +304,8 @@ def CheckApplication(app, config, area):
 
   # Run SetupProject
   extCMT       = os.path.join( localArea, 'LbLogin' )
-  setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
+  setupProject = '%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %extCMT)),'SetupProject')
+#  setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
 
   # Run ExtCMT
   ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
