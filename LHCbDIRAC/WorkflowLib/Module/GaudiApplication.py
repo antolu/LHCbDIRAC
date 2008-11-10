@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.94 2008/10/28 18:08:58 paterson Exp $
+# $Id: GaudiApplication.py,v 1.95 2008/11/10 15:51:55 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.94 2008/10/28 18:08:58 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.95 2008/11/10 15:51:55 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -300,15 +300,17 @@ class GaudiApplication(ModuleBase):
         externals = string.join(externals,' ')
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
+    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
+
     if self.generator_name == '':
 #      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
 #                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-      script.write('. '+localArea+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
     else:
 #      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
 #                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-      script.write('. '+localArea+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
