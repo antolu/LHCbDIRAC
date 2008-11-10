@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.9 2008/10/29 16:45:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.10 2008/11/10 16:00:02 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.9 2008/10/29 16:45:34 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.10 2008/11/10 16:00:02 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -93,6 +93,7 @@ from DIRAC.Core.Workflow.Workflow                   import *
 from DIRAC.Core.Workflow.WorkflowReader             import *
 from DIRAC.Interfaces.API.Job                       import Job
 from DIRAC.Core.Utilities.File                      import makeGuid
+from DIRAC.Core.Utilities.List                      import uniqueElements
 from DIRAC                                          import gConfig
 
 COMPONENT_NAME='/WorkflowLib/API/LHCbJob'
@@ -185,6 +186,10 @@ class LHCbJob(Job):
         self.log.verbose('Assuming %s is using an environment variable to be resolved during execution' %optsFile)
       else:
         raise TypeError,'Specified options file %s does not exist' %(optsFile)
+
+    #ensure optionsFile list is unique:
+    tmpList = string.split(optionsFile,';')
+    optionsFile = string.join(uniqueElements(tmpList),';')
 
     if inputData:
       if type(inputData) in types.StringTypes:
@@ -466,6 +471,7 @@ class LHCbJob(Job):
     self.log.verbose('Bender script is: %s/BenderScript.py' %tmpdir)
     fopen.write(string.join(benderScript,'\n'))
     fopen.close()
+    #should try all components of the PYTHONPATH before giving up...
     userModule = '%s.py' %(string.split(modulePath,'.')[-1])
     self.log.verbose('Looking for user module with name: %s' %userModule)
     if os.path.exists(userModule):
