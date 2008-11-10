@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.12 2008/10/29 16:53:56 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.13 2008/11/10 16:02:18 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.12 2008/10/29 16:53:56 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.13 2008/11/10 16:02:18 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -153,7 +153,8 @@ class GaudiApplicationScript(object):
     cmtEnv['CMTCONFIG']  = self.systemConfig
 
     extCMT       = os.path.join( localArea, 'LbLogin' )
-    setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
+    setupProject = '%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %extCMT)),'SetupProject')
+
     setupProject = [setupProject]
     setupProject.append( '--ignore-missing' )
     setupProject.append( self.applicationName )
