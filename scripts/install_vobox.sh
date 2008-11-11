@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.8 2008/10/28 15:01:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.9 2008/11/11 14:48:05 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -156,6 +156,7 @@ killall -9 runsvdir
 killall -9 runsv
 killall -9 dirac-agent
 killall -9 dirac-service
+killall -9 python
 killall -9 svlogd
 EOF
 chmod +x $STOPDIR/runsvdir-stop
