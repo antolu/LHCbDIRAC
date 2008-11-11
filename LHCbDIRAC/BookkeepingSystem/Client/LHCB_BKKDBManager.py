@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.59 2008/10/18 18:36:52 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.60 2008/11/11 15:49:56 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.59 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.60 2008/11/11 15:49:56 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -490,11 +490,11 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
+          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Simulation Conditions/DataTaking')]        
         for record in dbResult:
           event = str(record[0])
           value = {'Event Type':record[0],'Description':record[1]}
-          entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Simulation Conditions')]
+          entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Simulation Conditions/DataTaking')]
         self._cacheIt(entityList)      
       else:
         gLogger.error(result['Message'])
@@ -521,7 +521,7 @@ class LHCB_BKKDBManager(BaseESManager):
         if result['OK']:
           dbResult = result['Value']
           if len(dbResult) > 1:
-            entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
+            entityList += [self._getEntityFromPath(path, "ALL", levels, 'Processing Pass')]        
           for record in dbResult:
             simid = str(record[0])
             description = record[1]
@@ -567,7 +567,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
+          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Production(s)')]        
         for record in dbResult:
           proc = str(record[0])
           value = {'Total ProcessingPass':proc, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
@@ -600,7 +600,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'List of files')]        
+          entityList += [self._getEntityFromPath(path, "ALL", levels, 'File types')]        
         for record in dbResult:
           prod = str(record[0])
           entityList += [self._getEntityFromPath(path, prod, levels,'File types')]

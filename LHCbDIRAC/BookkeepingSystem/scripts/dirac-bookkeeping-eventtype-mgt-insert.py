@@ -1,58 +1,34 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/Attic/dirac-bookkeeping-eventtype-mgt.py,v 1.6 2008/09/29 09:46:26 zmathe Exp $
-# File :   dirac-bookkeeping-eventtype-mgt
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-eventtype-mgt-insert.py,v 1.1 2008/11/11 15:49:56 zmathe Exp $
+# File :   dirac-bookkeeping-eventtype-mgt-insert
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt.py,v 1.6 2008/09/29 09:46:26 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt-insert.py,v 1.1 2008/11/11 15:49:56 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
 from DIRACEnvironment import DIRAC
-from DIRAC.Core.Base import Script
-
-Script.registerSwitch( "", "insert=", "insert event type" )
-Script.registerSwitch( "", "update=", "Update event types" )
-Script.registerSwitch( "", "help=", "Usages:" )
-
-Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
-fileName = ''
-insert = False
-update = False
-
-for switch in Script.getUnprocessedSwitches():
-  if switch[0] == "insert":
-    fileName= switch[1]
-    insert = True
-  elif switch[0] == "update":
-    update = True
-    fileName= switch[1]
-  elif switch[0] == "help":
-    command()
-      
 def usage():
-  print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
+  print 'This tool is insert new event type.'
+  print 'The <file name> list the event on which operate. Each entry  has the following format and is per line.'
+  print 'EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"'
+  print 'Usage: dirac-bookkeeping-eventtype-mgt-insert filename'
   DIRAC.exit(2)
 
-args = Script.getPositionalArgs()
-
-if len(args) < 1:
+fileName = ''
+args = sys.argv     
+if len(args) < 2:
   usage()
 
 exitCode = 0
 
-def command():
-  #print 'dirac-bookkeeping-eventMgmt [-u|-i  <file name>] | -h | --help\n'
-  print 'This tool is used to update or insert new event type.'
-  print 'The <file name> list the event on which operate. Each entry  has the following format and is per line.'
-  print 'EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"'
-  print 'Options:\n   -u: update event type\n   -i: insert event type'
-  print '   -h|--help: print this help'
-
+fileName = args[1]
+  
 
 def process_event(eventline):
   wrongSyntax=0
@@ -93,21 +69,12 @@ except Exception,ex:
   print 'Cannot open file '+fileName
   DIRAC.exit(2)
 
-if insert:
-  for line in events:
-    res = process_event(line)
-    result = bk.addEventType(res['EVTTYPEID'],res['DESCRIPTION'],res['PRIMARY'])
-    if result["OK"]:
-      print result['Value']
-    else:
-      print result['Message']
-elif update:
-  for line in events:
-    res = process_event(line)
-    result = bk.updateEventType(res['EVTTYPEID'],res['DESCRIPTION'],res['PRIMARY'])
-    if result["OK"]:
-      print result['Value']
-    else:
-      print result['Message']
 
+for line in events:
+  res = process_event(line)
+  result = bk.addEventType(res['EVTTYPEID'],res['DESCRIPTION'],res['PRIMARY'])
+  if result["OK"]:
+    print result['Value']
+  else:
+    print result['Message']
 DIRAC.exit(exitCode)
