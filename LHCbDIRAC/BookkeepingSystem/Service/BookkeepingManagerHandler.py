@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.79 2008/11/04 16:56:10 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.80 2008/11/12 13:46:31 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.79 2008/11/04 16:56:10 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.80 2008/11/12 13:46:31 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -277,6 +277,16 @@ class BookkeepingManagerHandler(RequestHandler):
   types_insertProcessing = [LongType, StringType, StringType, StringType]
   def export_insertProcessing(self, production, passdessc, inputprod, simcondsesc):
     return dataMGMT_.insertProcessing(production, passdessc, inputprod, simcondsesc)
+  
+  #############################################################################  
+  types_listProcessingPass = [LongType]
+  def export_listProcessingPass(self, prod=None):
+    return dataMGMT_.listProcessingPass(prod)
+  
+  #############################################################################  
+  types_listProcessingPass = []
+  def listProcessingPass(self):
+    return dataMGMT_.listProcessingPass(None)
   
   #############################################################################  
   types_getProductionsWithPocessingPass = [StringType]

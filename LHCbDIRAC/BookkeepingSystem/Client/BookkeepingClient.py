@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.59 2008/11/04 16:56:09 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.60 2008/11/12 13:46:30 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.59 2008/11/04 16:56:09 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.60 2008/11/12 13:46:30 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -278,6 +278,16 @@ class BookkeepingClient:
   def insertProcessing(self, production, passdessc, inputprod, simcondsesc):
     server = self.__getServer()
     result = server.insertProcessing(long(production), passdessc, inputprod, simcondsesc)
+    return result
+  
+  #############################################################################
+  def listProcessingPass(self, prod=None):
+    server = self.__getServer()
+    result = None
+    if prod != None:
+      result = server.listProcessingPass(prod)
+    else:
+      result = server.listProcessingPass()
     return result
   
   #############################################################################

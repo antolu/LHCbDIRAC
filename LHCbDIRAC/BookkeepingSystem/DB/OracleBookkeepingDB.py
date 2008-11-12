@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.36 2008/11/04 16:56:09 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.37 2008/11/12 13:46:30 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.36 2008/11/04 16:56:09 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.37 2008/11/12 13:46:30 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -476,6 +476,31 @@ class OracleBookkeepingDB(IBookkeepingDB):
       simid = res['Value']
     return self.db_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, totalproc, simid], False)
   
+  #############################################################################  
+  def listProcessingPass(self, prod = None):
+    condition =''
+    if prod != None:
+      condition = ' where production='+str(prod)
+    
+    
+    command = 'select distinct processing_pass.TOTALPROCPASS,  \
+               production from processing_pass'+condition+ ' ORDER BY production'
+    
+    
+    res = self.db_._query(command)
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[0].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[0]=description[:-3] 
+      retvalue += [tuple(tmp)]
+    return S_OK(retvalue)
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):
     return self.db_.executeStoredProcedure('BKK_ORACLE.getProductions', [processingPass])
