@@ -15,6 +15,8 @@ macro dplat "" \
      "slc4-ia32" "Linux_i686_glibc-2.3.4" \
      "slc4-amd64" "Linux_x86_64_glibc-2.3.4"
 
+set DIRACPLAT $(dplat)
+
 macro DiracSys_home "$(DIRACROOT)/$(dplat)"
 apply_pattern set_lib_path
 apply_pattern set_bin_path
