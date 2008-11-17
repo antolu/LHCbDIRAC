@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.61 2008/11/17 16:37:46 acasajus Exp $
+# $Id: BookkeepingClient.py,v 1.62 2008/11/17 17:01:53 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.61 2008/11/17 16:37:46 acasajus Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.62 2008/11/17 17:01:53 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -203,6 +203,12 @@ class BookkeepingClient:
     return result
 
 
+  #############################################################################
+  def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
+    server = self.__getServer()
+    result = server.getLimitedFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, long(startitem), long(maxitems))
+    return result
+  
   #############################################################################
   def getSimCondWithEventType(self, configName, configVersion, eventType, realdata=0):
     server = self.__getServer()
