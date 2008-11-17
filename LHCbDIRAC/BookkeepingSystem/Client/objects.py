@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: objects.py,v 1.9 2008/10/09 17:37:10 zmathe Exp $
+# $Id: objects.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $
 ########################################################################
 
 """
@@ -10,9 +10,10 @@ from UserDict                                                        import User
 
 import types
 
+global VERBOSE 
+VERBOSE = True
 
-
-__RCSID__ = "$Id: objects.py,v 1.9 2008/10/09 17:37:10 zmathe Exp $"
+__RCSID__ = "$Id: objects.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $"
 #############################################################################
 class odict(UserDict):
   
@@ -128,23 +129,34 @@ class Entity(dict):
         keys = self.keys()
         if 'fullpath' in keys:
           s += '\n' + 'fullpath: ' + str(self['fullpath'])
-        for key in keys:
-          if key != 'name' and key != 'fullpath':
-            s += "\n " + str(key) + " : "
-            value = self[key]
-            # some entities do not have this key. Ignore then.
-            try:
-                if key in self['not2show']:
-                    s +=  '-- not shown --'
-                    continue
-            except:
-                pass
-            if isinstance(value, types.DictType):
-                value = Entity(value)
-                s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
-            #childrenString += str(Entity(child)) + "\n"
-            else:
-                s +=  str(value)
+        if VERBOSE:
+          for key in keys:
+            if key != 'name' and key != 'level' and key != 'fullpath' and key != 'expandable' and key != 'Selection':
+              s += "\n " + str(key) + " : "
+              value = self[key]
+              # some entities do not have this key. Ignore then.
+              try:
+                  if key in self['not2show']:
+                      s +=  '-- not shown --'
+                      continue
+              except:
+                  pass
+              if isinstance(value, types.DictType):
+                  value = Entity(value)
+                  s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
+              #childrenString += str(Entity(child)) + "\n"
+              else:
+                  s +=  str(value)
+        else:
+          for key in keys:
+            if key != 'name' and key != 'fullpath' and  key =='FileName':
+              value = self[key]
+              if isinstance(value, types.DictType):
+                  value = Entity(value)
+                  s += "\n" + IndentMaker.prepend(str(value), (len(str(key))+3)*" ")
+              else:
+                s +=  str(value)            
+        
         s += "\n}"                
   #        s = IndentMaker.prepend(s, "_______")                
     return s   

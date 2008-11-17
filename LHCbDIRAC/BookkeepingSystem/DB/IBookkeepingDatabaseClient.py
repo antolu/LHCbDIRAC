@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.21 2008/11/12 13:46:30 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.22 2008/11/17 17:14:45 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.21 2008/11/12 13:46:30 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.22 2008/11/17 17:14:45 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -169,6 +169,9 @@ class IBookkeepingDatabaseClient(object):
   def getSimConditions(self):
     return self.getManager().getSimConditions()
   
+  #############################################################################
+  def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
+    return self.getManager().getLimitedFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems)
   
   #############################################################################
   def getAvailableEventTypes(self):

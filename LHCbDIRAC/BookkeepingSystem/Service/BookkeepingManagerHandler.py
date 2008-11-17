@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.80 2008/11/12 13:46:31 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.81 2008/11/17 17:14:46 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.80 2008/11/12 13:46:31 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.81 2008/11/17 17:14:46 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -235,7 +235,12 @@ class BookkeepingManagerHandler(RequestHandler):
     return S_OK(list)
     '''  
 
-
+    
+  #############################################################################
+  types_getLimitedFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, LongType, LongType]
+  def export_getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems ):
+    result = dataMGMT_.getLimitedFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems)
+    return result
   
   #############################################################################
   types_getSimCondWithEventType = [StringType, StringType, StringType, IntType]

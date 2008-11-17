@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.9 2008/09/25 15:50:34 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $
 ########################################################################
 
 """
@@ -10,14 +10,14 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.9 2008/09/25 15:50:34 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
   
   #############################################################################
-  def __init__(self, manager = LHCB_BKKDBManager()):
-    super(LHCB_BKKDBClient, self).__init__(manager, '/')
+  def __init__(self, rpcClinet = None, manager = None ):
+    super(LHCB_BKKDBClient, self).__init__(LHCB_BKKDBManager(rpcClinet), '/')
         
   #############################################################################  
   def get(self, path = ""):
@@ -54,3 +54,11 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getJobInfo(self, lfn):
     return self.getManager().getJobInfo(lfn)
+  
+  #############################################################################
+  def setVerbose(self, Value):
+    return self.getManager().setVerbose(Value)
+  
+  #############################################################################
+  def getLimitedFiles(self,SelectionDict, SortDict, StartItem, Maxitems):
+    return self.getManager().getLimitedFiles(SelectionDict, SortDict, StartItem, Maxitems)
