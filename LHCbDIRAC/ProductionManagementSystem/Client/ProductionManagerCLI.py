@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.13 2008/08/28 10:22:02 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.14 2008/11/17 14:34:21 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.13 2008/08/28 10:22:02 atsareg Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.14 2008/11/17 14:34:21 atsareg Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 
 import cmd
 import sys, os
@@ -453,7 +453,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
   def do_setProductionParameter(self, args):
     """ Set production parameter
 
-    Usage: setProductionStatus <ProductionNameOrID> <param_name> <param_value>
+    Usage: setProductionParameter <ProductionNameOrID> <param_name> <param_value>
     """
     argss, length = self.check_params(args, 3)
     if not argss:
