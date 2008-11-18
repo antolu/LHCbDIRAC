@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.62 2008/11/17 17:01:53 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.63 2008/11/18 17:04:16 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.62 2008/11/17 17:01:53 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.63 2008/11/18 17:04:16 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -207,6 +207,12 @@ class BookkeepingClient:
   def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
     server = self.__getServer()
     result = server.getLimitedFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, long(startitem), long(maxitems))
+    return result
+  
+  #############################################################################
+  def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    server = self.__getServer()
+    result = server.getLimitedNbOfFiles(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
     return result
   
   #############################################################################

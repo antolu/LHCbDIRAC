@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.61 2008/11/17 17:14:45 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.62 2008/11/18 17:04:16 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.61 2008/11/17 17:14:45 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.62 2008/11/18 17:04:16 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1166,17 +1166,28 @@ class LHCB_BKKDBManager(BaseESManager):
       print "-----------------------------------------------------------"
       print "File list:\n"
       
-      result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
-      selection = {"Configuration Name":configName, \
-                   "Configuration Version":configVersion, \
-                   "Simulation Condition":str(simid), \
-                   "Processing Pass":str(processing), \
-                   "Event type":str(evtType), \
-                   "Production":str(processedPath[4][1]), \
-                   "File Type":str(ftype), \
-                   "Program name":pname, \
-                   "Program version":pversion}
+      res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+      totalrecords = 0
       
+      if not res['OK']:
+        gLogger.error(result['Message'])
+      else:
+        totalrecords = res['Value'][0][0]
+      
+      result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
+    
+      
+      parametersNames = ['name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
+      records = []
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9], evtType]
+          records += [value]
+      else:
+        gLogger.error(result['Message'])
+      
+      '''
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
@@ -1186,6 +1197,6 @@ class LHCB_BKKDBManager(BaseESManager):
         self._cacheIt(entityList)    
       else:
         gLogger.error(result['Message'])
-    
-    return entityList
+      '''
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras':{}}
     
