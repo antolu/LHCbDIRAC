@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.7 2008/10/30 17:29:32 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.8 2008/11/18 11:50:00 rgracian Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.7 2008/10/30 17:29:32 rgracian Exp $'
-set __VERSION__='$Revision: 1.7 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.8 2008/11/18 11:50:00 rgracian Exp $'
+set __VERSION__='$Revision: 1.8 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
