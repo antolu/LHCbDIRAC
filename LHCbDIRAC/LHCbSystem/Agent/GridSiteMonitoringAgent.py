@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.2 2008/11/05 19:55:19 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.3 2008/11/18 17:01:14 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -91,9 +91,12 @@ class GridSiteMonitoringAgent(Agent):
     startT = endT - datetime.timedelta( seconds = gConfig.getValue( "%s/Timespan" % self.section, 3600 ) )
     t0t1Cond = { 'Source' : 'CERN', 'Destination' : self.__dataT1, 'Protocol' : 'FTS' }
     t1t1Cond = { 'Source' : self.__dataT1, 'Destination' : self.__dataT1, 'Protocol' : 'FTS' }
+    allCond = { 'Source' : self.__dataT1 + [ 'CERN' ], 'Destination' : self.__dataT1 + [ 'CERN' ], 'Protocol' : 'FTS' }
     rC = ReportsClient()
     for func in ( self._dataGetSuccessRate, self._dataGetThroughput ):
-      for cond, acName in ( ( t0t1Cond, 'data_transfer_t0_t1' ), ( t1t1Cond, 'data_transfer_t1_t1' ) ):
+      for cond, acName in ( ( t0t1Cond, 'data_transfer_t0_t1' ),
+                            ( t1t1Cond, 'data_transfer_t1_t1' )
+                            ( allCond, 'data_transfer' ) ):
         result = func( startT, endT, cond, acName, rC )
         if not result[ 'OK' ]:
           return result
