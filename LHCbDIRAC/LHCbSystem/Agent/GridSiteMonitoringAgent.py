@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.4 2008/11/18 17:07:40 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.5 2008/11/18 17:58:41 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -24,8 +24,8 @@ AGENT_NAME = "LHCb/GridSiteMonitoringAgent"
 
 class GridSiteMonitoringAgent(Agent):
 
-  __dataT1 = [ 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
-  __dataAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
+  __sitesT1 = [ 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
+  __sitesAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
 
   def __init__( self ):
     Agent.__init__( self, AGENT_NAME )
@@ -90,28 +90,35 @@ class GridSiteMonitoringAgent(Agent):
     finalData = []
     endT = Time.dateTime()
     startT = endT - datetime.timedelta( seconds = gConfig.getValue( "%s/Timespan" % self.section, 3600 ) )
-    t0t1Cond = { 'Source' : 'CERN', 'Destination' : self.__dataT1, 'Protocol' : 'FTS' }
-    t1t1Cond = { 'Source' : self.__dataT1, 'Destination' : self.__dataT1, 'Protocol' : 'FTS' }
-    allCond = { 'Source' : self.__dataAll, 'Destination' : self.__dataAll, 'Protocol' : 'FTS' }
+    activities = []
+    activities.append( ( { 'Source' : 'CERN', 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+                         'data_transfer_t0_t1', 'Channel' ) )
+    activities.append( ( { 'Source' : self.__sitesT1, 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+                         'data_transfer_t1_t1', 'Channel' ) )
+    activities.append( ( { 'Source' : self.__sitesAll, 'Destination' : self.__sitesAll, 'Protocol' : 'FTS' },
+                         'data_transfer', 'Channel' ) )
+    for site in self.__sitesAll:
+      for grouping in ( 'Source', 'Destination' ):
+        condDict = { 'Protocol' : 'FTS' }
+        condDict[ grouping ] = [ site ]
+        activities.append( ( condDict, 'data_transfer', grouping ) )
     rC = ReportsClient()
     for func in ( self._dataGetSuccessRate, self._dataGetThroughput ):
-      for cond, acName in ( ( t0t1Cond, 'data_transfer_t0_t1' ),
-                            ( t1t1Cond, 'data_transfer_t1_t1' ),
-                            ( allCond, 'data_transfer' ) ):
-        result = func( startT, endT, cond, acName, rC )
+      for cond, acName, grouping in activities:
+        result = func( startT, endT, cond, acName, rC, grouping )
         if not result[ 'OK' ]:
           return result
         finalData.extend( result[ 'Value' ][1] )
     return S_OK( finalData )
 
-  def _dataGetSuccessRate( self, startT, endT, reportCond, metricName, rC ):
+  def _dataGetSuccessRate( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
     result = rC.getReport( "DataOperation", 'SuceededTransfers', startT, endT,
                           reportCond, 'Channel' )
     if not result[ 'OK' ]:
       return result
     suceededData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Failed' ] )
     result = rC.getReport( "DataOperation", 'FailedTransfers', startT, endT,
-                          reportCond, 'Channel' )
+                          reportCond, groupBy )
     if not result[ 'OK' ]:
       return result
     failedData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Suceeded' ] )
@@ -120,9 +127,14 @@ class GridSiteMonitoringAgent(Agent):
       if channel in failedData:
         okRateData[channel] = ( suceededData[channel] / ( suceededData[channel] + failedData[channel] ) ) * 100
     finalData = []
-    extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond )
+    extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond, groupBy )
     for channel in okRateData:
-      sites = List.fromChar( channel, "->" )
+      if groupBy == "Channel":
+        sites = List.fromChar( channel, "->" )
+      elif groupBy == 'Source':
+        sites = [ channel, 'all' ]
+      elif groupBy == 'Destination':
+        sites = [ 'all', channel ]
       finalData.append( "%s,%s,%s,success_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
                                                                            okRateData[channel],
                                                                            extraData[channel][0],
@@ -131,16 +143,21 @@ class GridSiteMonitoringAgent(Agent):
     gLogger.info( "[DATA]%s successRate data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( okRateData, finalData ) )
 
-  def _dataGetThroughput( self, startT, endT, reportCond, metricName, rC ):
+  def _dataGetThroughput( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
     result = rC.getReport( "DataOperation", 'Throughput', startT, endT,
-                          reportCond, 'Channel' )
+                          reportCond, groupBy )
     if not result[ 'OK' ]:
       return result
     throughtputData, extraData = self._sumDataBuckets( result[ 'Value' ], average= True )
     finalData = []
-    extraURL = self._generateDataExtraURL( "Throughput", reportCond )
+    extraURL = self._generateDataExtraURL( "Throughput", reportCond, groupBy  )
     for channel in throughtputData:
-      sites = List.fromChar( channel, "->" )
+      if groupBy == "Channel":
+        sites = List.fromChar( channel, "->" )
+      elif groupBy == 'Source':
+        sites = [ channel, 'all' ]
+      elif groupBy == 'Destination':
+        sites = [ 'all', channel ]
       finalData.append( "%s,%s,%s,average_transfer_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
                                                                          throughtputData[channel],
                                                                            extraData[channel][0],
@@ -149,9 +166,9 @@ class GridSiteMonitoringAgent(Agent):
     gLogger.info( "[DATA]%s throughput data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( throughtputData, finalData ) )
 
-  def _generateDataExtraURL( self, reportName, reportCond ):
+  def _generateDataExtraURL( self, reportName, reportCond, groupBy = 'Channel' ):
     baseURL = "http://lhcbweb.pic.es/DIRAC/%s/visitor/systems/accountingPlots/dataOperation" % gConfig.getValue( "/DIRAC/Setup" )
-    baseReportDesc = { '_plotName': reportName, '_grouping': 'Channel', '_typeName': 'DataOperation', '_timeSelector': '86400' }
+    baseReportDesc = { '_plotName': reportName, '_grouping': groupBy, '_typeName': 'DataOperation', '_timeSelector': '86400' }
     for key in reportCond:
       value = reportCond[ key ]
       if type( value ) == types.StringType:
