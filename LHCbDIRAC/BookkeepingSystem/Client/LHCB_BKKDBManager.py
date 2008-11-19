@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.63 2008/11/19 10:24:39 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.64 2008/11/19 11:33:07 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.63 2008/11/19 10:24:39 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.64 2008/11/19 11:33:07 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1170,7 +1170,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if len(SortDict) > 0:
         res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
         if not res['OK']:
-          gLogger.error(result['Message'])
+          gLogger.error(res['Message'])
         else:
           totalrecords = res['Value'][0][0]
       
