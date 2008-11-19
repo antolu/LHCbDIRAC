@@ -178,6 +178,7 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent

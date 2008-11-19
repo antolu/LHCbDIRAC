@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.12 2008/10/27 10:01:40 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.13 2008/11/19 08:31:31 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -161,6 +161,7 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
