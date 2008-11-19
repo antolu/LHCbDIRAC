@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.64 2008/11/19 11:33:07 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.65 2008/11/19 17:49:08 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.64 2008/11/19 11:33:07 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.65 2008/11/19 17:49:08 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1198,5 +1198,14 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         gLogger.error(result['Message'])
       '''
-    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras':{}}
+    selection = {"Configuration Name":configName, \
+                   "Configuration Version":configVersion, \
+                   "Simulation Condition":str(simid), \
+                   "Processing Pass":str(processing), \
+                   "Event type":str(evtType), \
+                   "Production":str(processedPath[4][1]), \
+                   "File Type":str(ftype), \
+                   "Program name":pname, \
+                   "Program version":pversion}
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection} } 
     
