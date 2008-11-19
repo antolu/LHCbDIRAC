@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.31 2008/10/23 14:57:03 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.32 2008/11/19 06:59:34 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.31 2008/10/23 14:57:03 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.32 2008/11/19 06:59:34 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -473,8 +473,7 @@ class AnalyseLogFile(ModuleBase):
     self.log.info(' Sending Errors by E-mail to %s' %(mailadress))
     subject = '['+self.site+']['+self.applicationName+'] '+ self.applicationVersion + \
               ": "+subj+' '+self.PRODUCTION_ID+'_'+self.JOB_ID+' JobID='+str(self.jobID)
-    msg = 'new'
-    msg = msg + 'The Application '+self.applicationName+' '+self.applicationVersion+' had a problem \n'
+    msg = 'The Application '+self.applicationName+' '+self.applicationVersion+' had a problem \n'
     msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
     msg = msg +'JobID is '+str(self.jobID)+'\n'
     msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
