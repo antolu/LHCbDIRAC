@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.5 2008/11/18 17:58:41 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.6 2008/11/19 10:46:41 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -91,17 +91,22 @@ class GridSiteMonitoringAgent(Agent):
     endT = Time.dateTime()
     startT = endT - datetime.timedelta( seconds = gConfig.getValue( "%s/Timespan" % self.section, 3600 ) )
     activities = []
-    activities.append( ( { 'Source' : 'CERN', 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+    activities.append( ( { 'Source' : [ 'CERN' ], 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
                          'data_transfer_t0_t1', 'Channel' ) )
+    activities.append( ( { 'Source' : [ 'CERN' ], 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+                         'data_transfer_t0_t1', 'Source' ) )
     activities.append( ( { 'Source' : self.__sitesT1, 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
                          'data_transfer_t1_t1', 'Channel' ) )
+    activities.append( ( { 'Source' : self.__sitesT1, 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+                         'data_transfer_t1_t1', 'Source' ) )
+    activities.append( ( { 'Source' : self.__sitesT1, 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
+                         'data_transfer_t1_t1', 'Destination' ) )
     activities.append( ( { 'Source' : self.__sitesAll, 'Destination' : self.__sitesAll, 'Protocol' : 'FTS' },
                          'data_transfer', 'Channel' ) )
-    for site in self.__sitesAll:
-      for grouping in ( 'Source', 'Destination' ):
-        condDict = { 'Protocol' : 'FTS' }
-        condDict[ grouping ] = [ site ]
-        activities.append( ( condDict, 'data_transfer', grouping ) )
+    activities.append( ( { 'Source' : self.__sitesAll, 'Destination' : self.__sitesAll, 'Protocol' : 'FTS' },
+                         'data_transfer', 'Source' ) )
+    activities.append( ( { 'Source' : self.__sitesAll, 'Destination' : self.__sitesAll, 'Protocol' : 'FTS' },
+                         'data_transfer', 'Destination' ) )
     rC = ReportsClient()
     for func in ( self._dataGetSuccessRate, self._dataGetThroughput ):
       for cond, acName, grouping in activities:
