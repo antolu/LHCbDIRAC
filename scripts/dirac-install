@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.113 2008/11/18 17:10:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.114 2008/11/19 14:56:00 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.113 2008/11/18 17:10:57 rgracian Exp $"
-__VERSION__ = "$Revision: 1.113 $"
+__RCSID__   = "$Id: dirac-install,v 1.114 2008/11/19 14:56:00 rgracian Exp $"
+__VERSION__ = "$Revision: 1.114 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -128,6 +128,8 @@ bin_tars = [ { 'name': 'DIRAC-external-client',
 
 srcNo = len(src_tars)
 binNo = len(bin_tars)
+
+vomsesDict = {'lhcb':'"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
 
 # Current python versions in use
 
@@ -634,6 +636,7 @@ class Dirac:
   def checkDiracCfg(self):
     """
      Make sure that dirac.cfg file exists in the default location, even if empty
+     create vomses file
     """
     etcPath = os.path.join( self.__rootPath, 'etc')
     cfgPath = os.path.join( etcPath, 'dirac.cfg' )
@@ -656,6 +659,17 @@ class Dirac:
       except Exception, x :
         self.logERROR( 'Can not read "%s", check permissions' % cfgPath )
         self.logEXCEP( x )
+
+    vomsesDir = os.path.join( etcPath, 'vomses' )
+    try:
+      os.mkdir( vomsesDir )
+      for vo in vomsesDict:
+        vomsesFile = os.path.join( vomsesDir, '%s-voms.cern.ch' % vo )
+        f = open( vomsesFile, 'w' )
+        f.write( '%s\n' % '\n'.join(vomsesDict[vo].split('\n')) )
+        f.close()
+    except:
+      pass
 
     return cfgPath
 
@@ -2366,7 +2380,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
     dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
     dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
-  
+    
     # curScript = os.path.join( dirac.root(), 'scripts', 'dirac-update' )
     # newScript = os.path.join( dirac.root(), 'scripts', 'dirac-install' )
     # if os.path.exists( newScript ):
