@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.65 2008/11/19 17:49:08 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.66 2008/11/20 11:08:46 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.65 2008/11/19 17:49:08 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.66 2008/11/20 11:08:46 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1182,7 +1182,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9], evtType]
+          value = [record[0],record[1],record[2],str(record[3]),record[4],record[5],str(record[6]),str(record[7]),record[8],record[9], evtType]
           records += [value]
       else:
         gLogger.error(result['Message'])
