@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.6 2008/11/19 10:46:41 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.7 2008/11/20 14:32:06 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -117,8 +117,11 @@ class GridSiteMonitoringAgent(Agent):
     return S_OK( finalData )
 
   def _dataGetSuccessRate( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
+    metricName = "%s,success_rate" % metricName
     result = rC.getReport( "DataOperation", 'SuceededTransfers', startT, endT,
                           reportCond, 'Channel' )
+    startEpoch = Time.toEpoch( startT )
+    endEpoch = Time.toEpoch( endT )
     if not result[ 'OK' ]:
       return result
     suceededData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Failed' ] )
@@ -134,41 +137,48 @@ class GridSiteMonitoringAgent(Agent):
     finalData = []
     extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond, groupBy )
     for channel in okRateData:
-      if groupBy == "Channel":
-        sites = List.fromChar( channel, "->" )
-      elif groupBy == 'Source':
-        sites = [ channel, 'all' ]
-      elif groupBy == 'Destination':
-        sites = [ 'all', channel ]
-      finalData.append( "%s,%s,%s,success_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
-                                                                           okRateData[channel],
-                                                                           extraData[channel][0],
-                                                                           extraData[channel][1],
-                                                                           extraURL ) )
-    gLogger.info( "[DATA]%s successRate data" % metricName, "%s records" % len( finalData ) )
+      self._appendToFinalData( finalData, channel, metricName, okRateData[ channel ], 100.0,
+                               startEpoch, endEpoch, extraURL, groupBy  )
+    if groupBy == 'Channel':
+      allSites =[ "%s -> %s" % ( source, destination ) for source in reportCond[ 'Source' ]
+                                                       for destination in reportCond[ 'Destination' ] ]
+    else:
+      allSites = reportCond[ groupBy ]
+    for channel in allSites:
+      if channel in okRateData:
+        continue
+      self._appendToFinalData( finalData, channel, metricName, 0.0, 0.0,
+                               startEpoch, endEpoch, extraURL, groupBy  )
+
+    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( okRateData, finalData ) )
 
+  def _appendToFinalData( self, finalData, sites, fullMetricName, value, expected, start, end, URL, groupBy ):
+      if groupBy == "Channel":
+        sites = List.fromChar( sites, "->" )
+      elif groupBy == 'Source':
+        sites = [ sites, 'all' ]
+      elif groupBy == 'Destination':
+        sites = [ 'all', sites ]
+      finalData.append( "%s,%s,%s,%.1f,%.1f,unknown,%d,%d,%s" % ( sites[0], sites[1], fullMetricName,
+                                                                  value, expected, start, end,
+                                                                  URL ) )
+
   def _dataGetThroughput( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
+    metricName = "%s,average_transfer_rate" % metricName
     result = rC.getReport( "DataOperation", 'Throughput', startT, endT,
                           reportCond, groupBy )
     if not result[ 'OK' ]:
       return result
+    startEpoch = Time.toEpoch( startT )
+    endEpoch = Time.toEpoch( endT )
     throughtputData, extraData = self._sumDataBuckets( result[ 'Value' ], average= True )
     finalData = []
     extraURL = self._generateDataExtraURL( "Throughput", reportCond, groupBy  )
     for channel in throughtputData:
-      if groupBy == "Channel":
-        sites = List.fromChar( channel, "->" )
-      elif groupBy == 'Source':
-        sites = [ channel, 'all' ]
-      elif groupBy == 'Destination':
-        sites = [ 'all', channel ]
-      finalData.append( "%s,%s,%s,average_transfer_rate,%.1f,-1,unknown,%d,%d,%s" % ( sites[0], sites[1], metricName,
-                                                                         throughtputData[channel],
-                                                                           extraData[channel][0],
-                                                                           extraData[channel][1],
-                                                                           extraURL ) )
-    gLogger.info( "[DATA]%s throughput data" % metricName, "%s records" % len( finalData ) )
+      self._appendToFinalData( finalData, channel, metricName, throughtputData[channel], -1,
+                               startEpoch, endEpoch, extraURL, groupBy  )
+    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
     return S_OK( ( throughtputData, finalData ) )
 
   def _generateDataExtraURL( self, reportName, reportCond, groupBy = 'Channel' ):
