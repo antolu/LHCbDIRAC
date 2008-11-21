@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.23 2008/11/10 15:40:39 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.24 2008/11/21 08:53:24 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.23 2008/11/10 15:40:39 paterson Exp $"
-__VERSION__ = "$Revision: 1.23 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.24 2008/11/21 08:53:24 paterson Exp $"
+__VERSION__ = "$Revision: 1.24 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -300,7 +300,7 @@ def CheckApplication(app, config, area):
     return False
 
   if ret['Value'][2]:
-    DIRAC.gLogger.error('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
+    DIRAC.gLogger.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
 
   # Run SetupProject
   extCMT       = os.path.join( localArea, 'LbLogin' )
@@ -319,7 +319,7 @@ def CheckApplication(app, config, area):
     return False
 
   if ret['stderr']:
-    DIRAC.gLogger.error('Error reported with ok status for LbLogin call:\n\n%s' %ret['stderr'])
+    DIRAC.gLogger.debug('Error reported with ok status for LbLogin call:\n\n%s' %ret['stderr'])
 
   setupProjectEnv = ret['outputEnv']
 
@@ -347,7 +347,7 @@ def CheckApplication(app, config, area):
     return False
 
   if ret['stderr']:
-    DIRAC.gLogger.error('Error reported with ok status for SetupProject call:\n\n%s' %ret['stderr'])
+    DIRAC.gLogger.debug('Error reported with ok status for SetupProject call:\n\n%s' %ret['stderr'])
 
   gaudiEnv = ret['outputEnv']
 
