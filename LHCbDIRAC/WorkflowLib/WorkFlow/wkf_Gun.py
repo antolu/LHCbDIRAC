@@ -6,8 +6,8 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 simDescription = 'ParticuleGun'
-eventTypeSignal = "55230100"
-wkf_name = "ParticuleGun_"+eventTypeSignal
+eventTypeSignal = "53230100"
+wkf_name = "Particule_Gun_"+eventTypeSignal
 #eventTypeSignal = "30000000"
 numberEventSignal = 20000
 emailList = 'lhcb-datacrash@cern.ch'
