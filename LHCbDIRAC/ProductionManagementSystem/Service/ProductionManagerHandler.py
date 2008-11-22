@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.41 2008/11/10 07:39:31 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.42 2008/11/22 20:41:22 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.41 $"
+__RCSID__ = "$Revision: 1.42 $"
 
 from types import *
 import threading
@@ -445,6 +445,106 @@ class ProductionManagerHandler( TransformationHandler ):
       else:
         prod['NumberOfFiles'] = -1
       resultDict[prodID] = prod
+
+    return S_OK(resultDict)
+
+  types_getProductionSummaryWeb = [DictType, ListType, IntType, IntType]
+  def export_getProductionSummaryWeb(self, selectDict, sortList, startItem, maxItems):
+    """ Get the summary of the production information for a given page in the
+        production monitor in a generic format
+    """
+
+    resultDict = {}
+    last_update = None
+    if selectDict.has_key('CreationDate'):
+      last_update = selectDict['CreationDate']
+      del selectDict['CreationDate']
+
+    # Sorting instructions. Only one for the moment.
+    if sortList:
+      orderAttribute = sortList[0][0]+":"+sortList[0][1]
+    else:
+      orderAttribute = None
+
+    # Select production for the summary
+    result = productionDB.selectTransformations(selectDict, orderAttribute=orderAttribute, newer=last_update)
+    if not result['OK']:
+      return S_ERROR('Failed to select productions: '+result['Message'])
+
+    trList = result['Value']
+    nTrans = len(trList)
+    resultDict['TotalRecords'] = nTrans
+    if nTrans == 0:
+      return S_OK(resultDict)
+
+    ini = startItem
+    last = ini + maxItems
+    if ini >= nTrans:
+      return S_ERROR('Item number out of range')
+    if last > nTrans:
+      last = nTrans
+    summaryList = trList[ini:last]
+
+    print summaryList
+    # Get all the data for selected productions
+    result = productionDB.getTransformations(summaryList)
+    if not result['OK']:
+      return S_ERROR('Failed to get job summary: '+result['Message'])
+
+    summaryDict = result['Value']
+
+    # Prepare the standard structure now
+    paramNames = summaryDict['ParameterNames']
+    jobStateNames = ['Created','Running','Submitted','Failed','Waiting',
+                     'Done','Stalled']
+    fileStateNames = ['Unused','Assigned','Total','Problematic']                 
+
+    records = []
+    
+    # Add specific information for each selected production
+    for prodList in summaryDict['Records']:
+      # Job statistics
+      prodID = prodList[0]
+      result = productionDB.getJobStats(prodID)
+      
+      if not result['OK']:
+        gLogger.warn('Failed to get job statistics for production %d' % prodID)
+        jobDict = {}
+      else:  
+        jobDict = result['Value']
+          
+      for state in jobStateNames:
+        if jobDict:
+          prodList.append(jobDict[state])
+        else:
+          prodList.append(0)  
+          
+      # Get input files stats     
+      result = productionDB.getTransformationStats(prodID)
+      if not result['OK']:
+        gLogger.warn('Failed to get file statistics for production %d' % prodID)
+        fileDict = {}
+      else:  
+        fileDict = result['Value']
+      
+      for state in fileStateNames:
+        if fileDict and fileDict.has_key(state):
+          prodList.append(fileDict[state])
+        else:
+          prodList.append(0)  
+      
+    resultDict['ParameterNames'] = paramNames
+    resultDict['ParameterNames'] += ['Jobs_'+x for x in jobStateNames]
+    resultDict['ParameterNames'] += ['Files_'+x for x in fileStateNames]
+    resultDict['Records'] = summaryDict['Records']
+
+    statusDict = {}
+    result = productionDB.getCounters('Transformations',['Status'],selectDict,
+                                      newer=last_update)                                      
+    if result['OK']:
+      for stDict,count in result['Value']:
+         statusDict[stDict['Status']] = count
+    resultDict['Extras'] = statusDict
 
     return S_OK(resultDict)
 
