@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.63 2008/11/18 17:04:16 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.64 2008/11/24 11:45:15 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.63 2008/11/18 17:04:16 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.64 2008/11/24 11:45:15 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -248,9 +248,9 @@ class BookkeepingClient:
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
-      result = server.getAncestors([lfns], long(depth))
+      result = server.getAncestors([lfns], depth)
     else:
-      result = server.getAncestors(lfns, long(depth))
+      result = server.getAncestors(lfns, depth)
     return result
 
   #############################################################################
