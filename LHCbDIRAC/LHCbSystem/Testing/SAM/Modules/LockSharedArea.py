@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.37 2008/10/16 08:07:47 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.38 2008/11/24 10:48:57 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.37 2008/10/16 08:07:47 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.38 2008/11/24 10:48:57 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -71,7 +71,7 @@ class LockSharedArea(ModuleBaseSAM):
     if self.workflow_commons.has_key('SoftwareInstallationTest'):
        safeFlag = self.workflow_commons['SoftwareInstallationTest']
        if safeFlag=='False':
-         self.safeMode==True
+         self.safeMode=True
 
     self.log.verbose('Enable flag is set to %s' %self.enable)
     self.log.verbose('Force lock flag is set to %s' %self.forceLockRemoval)
