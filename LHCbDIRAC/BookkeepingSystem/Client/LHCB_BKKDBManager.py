@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.67 2008/11/20 11:42:57 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.68 2008/11/24 17:40:06 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.67 2008/11/20 11:42:57 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.68 2008/11/24 17:40:06 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1167,12 +1167,14 @@ class LHCB_BKKDBManager(BaseESManager):
       print "File list:\n"
       
       totalrecords = 0
+      nbOfEvents = 0
       if len(SortDict) > 0:
         res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
         if not res['OK']:
           gLogger.error(res['Message'])
         else:
           totalrecords = res['Value'][0][0]
+          nbOfEvents = res['Value'][0][1]
       
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
     
@@ -1207,5 +1209,5 @@ class LHCB_BKKDBManager(BaseESManager):
                    "File Type":str(ftype), \
                    "Program name":pname, \
                    "Program version":pversion}
-    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection} } 
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection,'Number of Events':nbOfEvents} } 
     
