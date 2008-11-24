@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.20 2008/11/24 16:02:36 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-from xml.dom.ext.reader                                                           import Sax
+from xml.dom.minidom                                                              import parse, parseString
 from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
 from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                            import JobReader
 from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                        import ReplicaReader
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.19 2008/11/03 11:28:00 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.20 2008/11/24 16:02:36 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -28,7 +28,6 @@ class XMLFilesReaderManager:
   
   #############################################################################
   def __init__(self):
-    self.reader_ = Sax.Reader()
     self.fileClient_ = FileSystemClient()
     self.jobReader_ = JobReader()
     self.replicaReader_ = ReplicaReader()
@@ -48,12 +47,12 @@ class XMLFilesReaderManager:
     """
     try:
       stream = open(filename)
-      doc = self.reader_.fromStream(stream)
+      doc = parse(stream)
       stream.close()
     
 
       docType = doc.doctype #job or replica
-      type = docType._get_name().encode('ascii')
+      type = docType.name.encode('ascii')
     except Exception,ex:
       gLogger.error("XML reading error",filename)
       return S_ERROR(ex)
@@ -64,10 +63,10 @@ class XMLFilesReaderManager:
   def readXMLfromString(self, name, xmlString):
     
     try:
-      doc = self.reader_.fromString(xmlString)
+      doc = parseString(xmlString)
     
       docType = doc.doctype #job or replica
-      type = docType._get_name().encode('ascii')
+      type = docType.name.encode('ascii')
     
       if type == 'Replicas':
         replica = self.replicaReader_.readReplica(doc, "IN Memory")
