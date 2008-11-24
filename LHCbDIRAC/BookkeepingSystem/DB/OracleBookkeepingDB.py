@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.39 2008/11/24 16:01:34 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.40 2008/11/24 18:01:24 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.39 2008/11/24 16:01:34 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.40 2008/11/24 18:01:24 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -285,61 +285,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
     
   #############################################################################
-  def getProgramNameWithSimcond_old(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
-    condition = ' and configurations.ConfigName=\''+configName+'\' and \
-                    configurations.ConfigVersion=\''+configVersion+'\''
-    
-    all = 0
-    if simcondid != 'ALL':
-      condition += ' and jobs.production=processing_pass.production'
-      condition += ' and processing_pass.simcondid='+str(simcondid)
-    else:
-      all += 1
-    
-    if procPass != 'ALL':
-      descriptions = procPass.split('+')
-      totalproc = ''
-      for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
-      totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
-      condition += ' and processing_pass.PRODUCTION=jobs.production'
-    else:
-      all += 1
-
-    if evtId != 'ALL':
-      condition += ' and files.EventTypeId='+str(evtId)
-    else:
-      all += 1
-    
-    if prod != 'ALL':
-      condition += ' and jobs.Production='+str(prod)
-    else:
-      all += 1
-    
-    if ftype != 'ALL':
-      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
-      res = self.dbR_._query(fileType)
-      if not res['OK']:
-        gLogger.error('File Type not found:',res['Message'])
-      else:
-        ftypeId = res['Value'][0][0]
-        condition += ' and files.FileTypeId='+str(ftypeId)
-    else:
-      all += 1
-   
-    if all > ALLOWED_ALL:
-      return S_ERROR("To many ALL selected")
-    
-    command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations,processing_pass where \
-          files.JobId=jobs.JobId and \
-          files.GotReplica=\'Yes\' and \
-          jobs.configurationid=configurations.configurationid'+condition+' GROUP By jobs.ProgramName, jobs.ProgramVersion'
-    res = self.dbR_._query(command)
-    return res
-  
-  #############################################################################
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     condition = ' and configurations.ConfigName=\''+configName+'\' and \
                     configurations.ConfigVersion=\''+configVersion+'\''
@@ -543,14 +488,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       all += 1
     if ftype == 'ALL':
-      command =' select count(*) from \
+      command =' select count(*), SUM(files.EventStat) from \
          jobs,files,configurations,filetypes,processing_pass \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all += 1
     else:
-      command =' select count(*) from \
+      command =' select count(*), SUM(files.EventStat) from \
          jobs,files,configurations, processing_pass\
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition 
@@ -872,7 +817,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     logicalFileNames['Failed'] = []
     jobsId = []
     job_id = -1
-    deptpTmp = depth
+    if depth < 1:
+      depth = 1
     for fileName in lfn:
       jobsId = []
       result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
@@ -883,8 +829,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if job_id != 0:
         jobsId = [job_id]
         files = []
-        depthTmp = depth
-        while (depthTmp-1) and jobsId:
+        while (depth-1) and jobsId:
            for job_id in jobsId:
              command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
              jobsId=[]
