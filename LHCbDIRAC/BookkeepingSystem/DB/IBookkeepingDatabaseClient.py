@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.22 2008/11/17 17:14:45 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.23 2008/11/24 16:01:46 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.22 2008/11/17 17:14:45 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.23 2008/11/24 16:01:46 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -284,6 +284,10 @@ class IBookkeepingDatabaseClient(object):
   def getLFNsByProduction(self, prodid):
     return self.getManager().getLFNsByProduction(prodid)
   
+  #############################################################################  
+  def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    return self.getManager().getLimitedNbOfFiles(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     return self.getManager().insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
