@@ -1,18 +1,21 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.38 2008/11/17 17:14:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.39 2008/11/24 16:01:34 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.38 2008/11/17 17:14:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.39 2008/11/24 16:01:34 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
+from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 import datetime
+global ALLOWED_ALL 
+ALLOWED_ALL = 2
 class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
@@ -20,12 +23,40 @@ class OracleBookkeepingDB(IBookkeepingDB):
     """
     """
     super(OracleBookkeepingDB, self).__init__()
-    #self.user_ = gConfig.getValue("userName", "LHCB_BOOKKEEPING_INT")
-    #self.password_ = gConfig.getValue("password", "Ginevra2008")
-    #self.tns_ = gConfig.getValue("tns", "int12r")
-   
-    self.dbW_ = OracleDB("LHCB_BOOKKEEPING_INT_W", "Ginevra2008", "int12r")
-    self.dbR_ = OracleDB("LHCB_BOOKKEEPING_INT_R", "Ginevra2008", "int12r")
+    
+    self.cs_path = getDatabaseSection('Bookkeeping/BookkeepingDB')
+    
+    self.dbHost = ''
+    result = gConfig.getOption( self.cs_path+'/LHCbDIRACBookkeepingTNS')
+    if not result['OK']:
+      gLogger.error('Failed to get the configuration parameters: Host')
+      return
+    self.dbHost = result['Value']
+    
+    self.dbUser = ''
+    result = gConfig.getOption( self.cs_path+'/LHCbDIRACBookkeepingUser')
+    if not result['OK']:
+      gLogger.error('Failed to get the configuration parameters: User')
+      return
+    self.dbUser = result['Value']
+    
+    self.dbPass = ''
+    result = gConfig.getOption( self.cs_path+'/LHCbDIRACBookkeepingPassword')
+    if not result['OK']:
+      gLogger.error('Failed to get the configuration parameters: User')
+      return
+    self.dbPass = result['Value']
+
+
+    self.dbServer = ''
+    result = gConfig.getOption( self.cs_path+'/LHCbDIRACBookkeepingServer')
+    if not result['OK']:
+      gLogger.error('Failed to get the configuration parameters: User')
+      return
+    self.dbServer = result['Value']
+
+    self.dbW_ = OracleDB(self.dbServer, self.dbPass, self.dbHost)
+    self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
   #############################################################################
   def getAvailableConfigurations(self):
     """
@@ -128,11 +159,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
+    all = 0
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \
                     bookkeepingview.configversion=\''+configVersion+'\''
     
     if simcondid != 'ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    else:
+      all += 1
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -142,9 +176,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+    else:
+      all += 1
     
     if evtId != 'ALL':
       condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    else:
+      all += 1
+    
+    if all > ALLOWED_ALL:
+      return S_ERROR('To many ALL selected')
     
     command = 'select distinct bookkeepingview.production from bookkeepingview,processing_pass where \
          bookkeepingview.production=processing_pass.production'+condition
@@ -157,8 +198,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \
                     bookkeepingview.configversion=\''+configVersion+'\''
     
+    all = 0
     if simcondid != 'ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    else:
+      all += 1
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -168,12 +212,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+    else:
+      all += 1
           
     if evtId != 'ALL':
       condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    else:
+        all += 1
     
     if prod != 'ALL':
       condition += ' and bookkeepingview.production='+str(prod)
+    else:
+      all += 1
+    
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many all selected")
     
     command = 'select distinct filetypes.name from filetypes,bookkeepingview,processing_pass where \
                bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=processing_pass.production'+condition
@@ -181,14 +234,67 @@ class OracleBookkeepingDB(IBookkeepingDB):
     res = self.dbR_._query(command)
     return res
   
-  #############################################################################
   def getProgramNameWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    all = 0
+    if simcondid != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+    else:
+      all += 1
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+    else:
+      all += 1
+          
+    if evtId != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    else:
+      all += 1
+    
+    if prod != 'ALL':
+      condition += ' and bookkeepingview.production='+str(prod)
+    else:
+      all += 1
+    
+    if ftype!= 'ALL':
+      fType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and bookkeepingview.filetypeid='+str(ftypeId)
+    else:
+      all += 1
+    
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many ALL selected")
+    command = 'select distinct bookkeepingview.ProgramName, bookkeepingView.ProgramVersion, 0 from filetypes,bookkeepingview,processing_pass where \
+               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=processing_pass.production'+condition
+               
+    res = self.dbR_._query(command)
+    return res
+    
+  #############################################################################
+  def getProgramNameWithSimcond_old(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype):
     condition = ' and configurations.ConfigName=\''+configName+'\' and \
                     configurations.ConfigVersion=\''+configVersion+'\''
     
+    all = 0
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
+    else:
+      all += 1
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -199,12 +305,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+    else:
+      all += 1
 
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
     
     if prod != 'ALL':
       condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
     
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
@@ -214,7 +326,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
    
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many ALL selected")
+    
     command = 'select distinct jobs.ProgramName, jobs.ProgramVersion, SUM(files.EventStat) from jobs,files,configurations,processing_pass where \
           files.JobId=jobs.JobId and \
           files.GotReplica=\'Yes\' and \
@@ -227,6 +344,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ' and configurations.ConfigName=\''+configName+'\' and \
                     configurations.ConfigVersion=\''+configVersion+'\''
     
+    all = 0;
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
@@ -240,13 +358,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+    else:
+      all += 1
       
     
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
     
     if prod != 'ALL':
       condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
     
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
@@ -256,10 +380,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
     
     if progName != 'ALL' and progVersion != 'ALL':
       condition += ' and jobs.ProgramName=\''+progName+'\''
       condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+    else:
+      all +=1
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
@@ -267,13 +395,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs,files,configurations,filetypes,processing_pass \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
-         files.filetypeid=filetypes.filetypeid' + condition + ' and rownum between 1 and 10'
+         files.filetypeid=filetypes.filetypeid' + condition 
+      all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from \
          jobs,files,configurations, processing_pass\
          where files.JobId=jobs.JobId and \
-         jobs.configurationid=configurations.configurationid' + condition + ' and rownum between 1 and 10'
+         jobs.configurationid=configurations.configurationid' + condition 
+    if all > ALLOWED_ALL:
+      return S_ERROR(" TO many ALL selected")
     res = self.dbR_._query(command)
     return res
   
@@ -282,9 +413,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ' and configurations.ConfigName=\''+configName+'\' and \
                     configurations.ConfigVersion=\''+configVersion+'\''
     
+    all = 0
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
+    else:
+      all += 1
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -295,13 +429,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+    else:
+      all += 1
       
     
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
     
     if prod != 'ALL':
       condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
     
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
@@ -311,10 +451,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
     
     if progName != 'ALL' and progVersion != 'ALL':
       condition += ' and jobs.ProgramName=\''+progName+'\''
       condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+    else:
+      all += 1
          
     if ftype == 'ALL':
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype \
@@ -328,7 +472,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
-         
+      all += 1
     else:
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' from \
        ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode \
@@ -340,9 +484,83 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many ALL selected")
+    
     res = self.dbR_._query(command)
     return res
   
+  
+  def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    condition = ' and configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+    
+    all = 0
+    if simcondid != 'ALL':
+      condition += ' and jobs.production=processing_pass.production'
+      condition += ' and processing_pass.simcondid='+str(simcondid)
+    else:
+      all += 1
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())['Value'][0][0]
+        totalproc += str(result)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and processing_pass.PRODUCTION=jobs.production'
+    else:
+      all += 1
+        
+      
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
+    
+    if prod != 'ALL':
+      condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
+    
+    if progName != 'ALL' and progVersion != 'ALL':
+      condition += ' and jobs.ProgramName=\''+progName+'\''
+      condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+    else:
+      all += 1
+    if ftype == 'ALL':
+      command =' select count(*) from \
+         jobs,files,configurations,filetypes,processing_pass \
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid and \
+         files.filetypeid=filetypes.filetypeid' + condition 
+      all += 1
+    else:
+      command =' select count(*) from \
+         jobs,files,configurations, processing_pass\
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid' + condition 
+    
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many ALL selected")
+    
+    res = self.dbR_._query(command)
+    return res
+    
   #############################################################################
   def getSimCondWithEventType(self, configName, configVersion, eventType, realdata = 0):
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \
@@ -650,6 +868,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################  
   def getAncestors(self, lfn, depth):
     logicalFileNames={}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
     jobsId = []
     job_id = -1
     deptpTmp = depth
@@ -660,24 +880,29 @@ class OracleBookkeepingDB(IBookkeepingDB):
         gLogger.error('Ancestor',result['Message'])
       else:
         job_id = int(result['Value'])
-      jobsId = [job_id]
-      files = []
-      depthTmp = depth
-      while (depthTmp-1) and jobsId:
-         for job_id in jobsId:
-           command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
-           jobsId=[]
-           res = self.dbR_._query(command)
-           if not res['OK']:
-             gLogger.error('Ancestor',result["Message"])
-           else:
-             dbResult = res['Value']
-             for record in dbResult:
-               jobsId +=[record[1]]
-               files += [record[0]]
-         depth-=1 
-      logicalFileNames[fileName]=files    
-    return logicalFileNames
+      if job_id != 0:
+        jobsId = [job_id]
+        files = []
+        depthTmp = depth
+        while (depthTmp-1) and jobsId:
+           for job_id in jobsId:
+             command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+             jobsId=[]
+             res = self.dbR_._query(command)
+             if not res['OK']:
+               gLogger.error('Ancestor',result["Message"])
+             else:
+               dbResult = res['Value']
+               for record in dbResult:
+                 jobsId +=[record[1]]
+                 files += [record[0]]
+           depth-=1 
+        
+        ancestorList[fileName]=files    
+      else:
+        logicalFileNames['Failed']+=[fileName]
+      logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
   
     '''
     logicalFileNames=lfn

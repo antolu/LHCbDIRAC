@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.81 2008/11/17 17:14:46 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.82 2008/11/24 16:01:34 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.81 2008/11/17 17:14:46 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.82 2008/11/24 16:01:34 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -243,6 +243,12 @@ class BookkeepingManagerHandler(RequestHandler):
     return result
   
   #############################################################################
+  types_getLimitedNbOfFiles = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
+    result = dataMGMT_.getLimitedNbOfFiles(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    return result
+  
+  #############################################################################
   types_getSimCondWithEventType = [StringType, StringType, StringType, IntType]
   def export_getSimCondWithEventType(self, configName, configVersion, eventType, realdata):
     return dataMGMT_.getSimCondWithEventType(configName, configVersion, eventType, realdata)
@@ -254,7 +260,7 @@ class BookkeepingManagerHandler(RequestHandler):
   
   
   #############################################################################
-  types_getAncestors = [ListType, LongType]
+  types_getAncestors = [ListType, IntType]
   def export_getAncestors(self, lfns, depth):
     return dataMGMT_.getAncestors(lfns, depth)
   
