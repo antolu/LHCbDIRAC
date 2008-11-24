@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.10 2008/09/12 17:39:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.11 2008/11/24 17:40:27 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,11 +12,12 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.10 2008/09/12 17:39:21 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.11 2008/11/24 17:40:27 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
-from DIRAC.BookkeepingSystem.Client.genCatalogOld          import getAncestors
+#from DIRAC.BookkeepingSystem.Client.genCatalogOld          import getAncestors
+from DIRAC.LHCbSystem.Utilities.AncestorFiles              import getAncestorFiles
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Shifter                          import setupShifterProxyInEnv
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
@@ -126,54 +127,25 @@ class AncestorFilesAgent(Optimizer):
     inputData = [ i.replace('LFN:','') for i in inputData]
     start = time.time()
     try:
-      result = getAncestors(inputData,ancestorDepth)
+      result = getAncestorFiles(inputData,ancestorDepth)
     except Exception,x:
       self.log.warn('getAncestors failed with exception:\n%s' %x)
       return S_ERROR(self.failedMinorStatus)
 
-    self.log.info('genCatalog.getAncestors lookup time %.2f s' %(time.time()-start))
-    self.log.verbose(result)
-    if not result:
-      return S_ERROR('Null result from genCatalog utility')
-    if not type(result)==type({}):
-      return S_ERROR('Non-dict object returned from genCatalog utility')
-    if not result.has_key('PFNs'):
-      self.log.error('----------BK-Result------------')
-      self.log.error(result)
-      self.log.error('--------End-BK-Result----------')
-      return S_ERROR('Missing key PFNs from genCatalog utility')
+    self.log.info('BK lookup time %.2f s' %(time.time()-start))
+    self.log.debug(result)
+    if not result['OK']:
+      report = self.setJobParam(job,self.optimizerName,result['Message'])
+      return result
 
-    newInputData = result['PFNs']
-
-    missingFiles = []
-    for i in inputData:
-      if not i in newInputData:
-        missingFiles.append(i)
-
-    #If no missing files and ancestor depth is 1 can return
-    if ancestorDepth==1 and not missingFiles:
-      return S_OK(newInputData)
-
-    if missingFiles:
-      param = '%s input data files missing from genCatalog utility result:\n%s' %(len(missingFiles),string.join(missingFiles,',\n'))
-      report = self.setJobParam(job,self.optimizerName,param)
-      if not report['OK']:
-        self.log.warn(report['Message'])
-      return S_ERROR('genCatalog did not return all of original input data requirement')
-    ancestorFiles = []
-    for i in newInputData:
-      if not i in inputData:
-        ancestorFiles.append(i)
-
-    param = '%s ancestor files retrieved from genCatalog utility' %(len(ancestorFiles))
+    newInputData = result['Value']
+    totalAncestors = len(newInputData)-len(inputData)
+    param = '%s ancestor files retrieved from BK for depth %s' %(totalAncestors,ancestorDepth)
     report = self.setJobParam(job,self.optimizerName,param)
     if not report['OK']:
       self.log.warn(report['Message'])
 
-    if not ancestorFiles:
-      return S_ERROR('No Ancestor Files Found')
-
-    return S_OK(newInputData)
+    return result
 
   #############################################################################
   def __setJobInputData(self,job,jdl,inputData):
