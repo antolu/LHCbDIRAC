@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/AncestorFiles.py,v 1.2 2008/08/19 14:47:52 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/AncestorFiles.py,v 1.3 2008/11/24 17:40:03 paterson Exp $
 # File :   AncestorFiles.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,15 +9,21 @@
       interface this will eventually be updated to use the DIRAC3 BK Client.
 """
 
-__RCSID__ = "$Id: AncestorFiles.py,v 1.2 2008/08/19 14:47:52 atsareg Exp $"
+__RCSID__ = "$Id: AncestorFiles.py,v 1.3 2008/11/24 17:40:03 paterson Exp $"
 
-from DIRAC.BookkeepingSystem.Client.genCatalogOld          import getAncestors
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+
+try:
+  from DIRAC.BookkeepingSystem.Client.genCatalogOld          import getAncestors
+except Exception,x:
+  gLogger.warn('Could not import old BK genCatalog utility.')
+
+from DIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 
 import time, string
 
 #############################################################################
-def getAncestorFiles(inputData,ancestorDepth):
+def getAncestorFilesOld(inputData,ancestorDepth):
   """ Returns S_OK(<list of files>) or S_ERROR(<Message>) after querying the
       Bookkeeping for ancestor files.
 
@@ -80,5 +86,44 @@ def getAncestorFiles(inputData,ancestorDepth):
     return S_ERROR('No Ancestor Files Found')
 
   return S_OK(newInputData)
+
+#############################################################################
+def getAncestorFiles(inputData,ancestorDepth):
+  """ Returns S_OK(<list of files>) or S_ERROR(<Message>) after querying the
+      Bookkeeping for ancestor files.
+
+      Input data can be an LFN string or a list of LFNs.  Ancestor depth is an integer or
+      string that converts to an integer.
+
+      If successful, the original input data LFNs are also returned in the list.
+  """
+  if not type(inputData) == type([]):
+    inputData = [inputData]
+
+  inputData = [ i.replace('LFN:','') for i in inputData]
+  bk = BookkeepingClient()
+
+  result = bk.getAncestors(inputData,depth=ancestorDepth)
+  gLogger.debug(result)
+  if not result['OK']:
+    gLogger.warn('Problem during getAncestors call:\n%s' %(result['Message']))
+    return result
+
+  data = result['Value']
+  if data['Failed']:
+    return S_ERROR('No ancestors found for the following files:\n%s' %(string.join(data['Failed'],'\n')))
+
+  returnedInputData = data['Successful'].keys()
+  if not inputData.sort() == returnedInputData.sort():
+    gLogger.warn('Not all ancestors returned after getAncestors call:\n%s' %result)
+    return S_ERROR('Not all ancestors returned after getAncestors call')
+
+  inputDataWithAncestors = returnedInputData
+  for input,ancestorList in data['Successful'].items():
+    inputDataWithAncestors += ancestorList
+
+  totalFiles = len(inputDataWithAncestors)-len(inputData)
+  gLogger.verbose('%s ancestor files retrieved from the bookkeeping for ancestor depth %s' %(totalFiles,ancestorDepth))
+  return S_OK(inputDataWithAncestors)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
