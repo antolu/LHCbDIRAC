@@ -11,15 +11,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
+    <width>585</width>
     <height>841</height>
    </rect>
   </property>
   <property name="cursor" >
-   <cursorShape>WaitCursor</cursorShape>
+   <cursorShape>ArrowCursor</cursorShape>
   </property>
   <property name="windowTitle" >
-   <string>Feicim Bookkeeping browser</string>
+   <string>Feicim - LHCb Bookkeeping browser</string>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <widget class="QTreeWidget" name="tree" >
@@ -31,15 +31,20 @@
     </property>
     <property name="geometry" >
      <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>401</width>
+      <x>0</x>
+      <y>0</y>
+      <width>581</width>
       <height>631</height>
      </rect>
     </property>
     <column>
      <property name="text" >
-      <string>Path</string>
+      <string>Jaj</string>
+     </property>
+    </column>
+    <column>
+     <property name="text" >
+      <string>New Column</string>
      </property>
     </column>
    </widget>
@@ -49,7 +54,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>444</width>
+     <width>585</width>
      <height>25</height>
     </rect>
    </property>

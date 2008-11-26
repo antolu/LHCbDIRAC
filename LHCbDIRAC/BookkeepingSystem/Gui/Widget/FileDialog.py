@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $
+# $Id: FileDialog.py,v 1.5 2008/11/26 11:37:43 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.5 2008/11/26 11:37:43 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -109,8 +109,11 @@ class FileDialog(QDialog, Ui_FileDialog):
       
     # set the table model
     tm = TableModel(tabledata, header, self) 
+    
     self.tableView.setModel(tm)
     self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+    self.tableView.setSelectionMode(QAbstractItemView.MultiSelection)
+  
     self.tableView.setAlternatingRowColors(True)
 
     sm = self.tableView.selectionModel()
@@ -128,7 +131,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   
     # hide vertical header
     vh = self.tableView.verticalHeader()
-    vh.setVisible(False)
+    vh.setVisible(True)
   
     # set horizontal header properties
     hh = self.tableView.horizontalHeader()
@@ -146,7 +149,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     # enable sorting
     # this doesn't work
     #tv.setSortingEnabled(True)
-  
+    
   #############################################################################  
   def saveAs(self):
     

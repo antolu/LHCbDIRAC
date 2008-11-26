@@ -1,12 +1,13 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.2 2008/11/03 11:28:01 zmathe Exp $
+# $Id: ControlerTree.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerTree.py,v 1.2 2008/11/03 11:28:01 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -52,30 +53,45 @@ class ControlerTree(ControlerAbstract):
       path = node['fullpath']
       if parentItem.childCount() != 1: 
         return
-      #  parentItem.takeChild(0) # I have to remove the dumychildren!
+        #parentItem.takeChild(0) # I have to remove the dumychildren!
       else:
-        message = Message({'action':'expande','node':path})
-      
-        feedback = self.getParent().messageFromChild(self, message)
-        if feedback.action()=='showNode':
-          if feedback['items'].childnum() > 0:
-            child = feedback['items'].child(0)
-            if not child['expandable']:
-              message = Message({'action':'waitCursor','type':None})
-              feeddback = self.getParent().messageFromChild(self, message)
-              
-              controlers = self.getChildren()
-              ct = controlers['FileDialog']  
-              message = Message({'action':'list','items':feedback['items']})
-              res = ct.messageFromParent(message)
-              if res :
-                message = Message({'action':'arrowCursor','type':None})
-                feeddback = self.getParent().messageFromChild(self, message)
-            else:
-              self.getWidget().getTree().showTree(feedback['items'], parentItem)
         
-      
-   
+        if parentItem.childCount() == 1:
+          child = parentItem.child(0)
+          if not child.getUserObject():
+            parentItem.takeChild(0)  
+        
+        if node.has_key('level') and node['level']=='Program name and version':
+          message = Message({'action':'getNbEventsAndFiles','node':path})
+          feedback = self.getParent().messageFromChild(self, message)
+          nbev = feedback['Extras']['Number of Events']
+          files = feedback['TotalRecords']
+          show={'Number of files':files,'Nuber of Events':nbev}
+          #show={'Number of files':feedback['TotalRecords'],'Nuber of Events':feedback['Extras']['Number of Events']}
+          self.getWidget().getTree().addLeaf(show, parentItem)
+        else:
+          message = Message({'action':'expande','node':path})
+          feedback = self.getParent().messageFromChild(self, message)
+          if feedback.action()=='showNode':
+            if feedback['items'].childnum() > 0:
+              child = feedback['items'].child(0)
+              if not child['expandable']:
+                message = Message({'action':'waitCursor','type':None})
+                feeddback = self.getParent().messageFromChild(self, message)
+                
+                controlers = self.getChildren()
+                ct = controlers['FileDialog']  
+                message = Message({'action':'list','items':feedback['items']})
+                #res = ct.messageFromParent(message)
+                res = True
+                if res :
+                  message = Message({'action':'arrowCursor','type':None})
+                  feeddback = self.getParent().messageFromChild(self, message)
+              else:        
+                self.getWidget().getTree().showTree(feedback['items'], parentItem)
+        
+    
+ 
   #############################################################################  
   def _on_item_clicked(self,parentItem):
     node = parentItem.getUserObject()
@@ -83,7 +99,7 @@ class ControlerTree(ControlerAbstract):
     if parentnode != None: 
       parent = parentnode.getUserObject()
       controlers = self.getChildren()
-      if parent['level'] == 'List of files':
+      if parent.has_key('level') and parent['level'] == 'Program name and version':
         path = parent['fullpath']
         message = Message({'action':'expande','node':path})
         feedback = self.getParent().messageFromChild(self, message)
@@ -91,11 +107,21 @@ class ControlerTree(ControlerAbstract):
           ct = controlers['FileDialog']  
           message = Message({'action':'list','items':feedback['items']})
           ct.messageFromParent(message)
-      else:
-        ct = controlers['InfoDialog']
-        if node <> None:
-          if node.expandable():
-            message = Message({'action':'list','items':node})
-            ct.messageFromParent(message)
+  
+  #############################################################################  
+  def _on_itemDuble_clicked(self, parentItem, column):
+    self._on_item_clicked(parentItem)
+     
+  
+  #############################################################################  
+  def moreInformations(self):
+    currentItem = self.getWidget().getTree().getCurrentItem()
+    node = currentItem.getUserObject()
+    controlers = self.getChildren()
+    ct = controlers['InfoDialog']
+    if node <> None:
+      if node.expandable():
+        message = Message({'action':'list','items':node})
+        ct.messageFromParent(message)
 
   #############################################################################  

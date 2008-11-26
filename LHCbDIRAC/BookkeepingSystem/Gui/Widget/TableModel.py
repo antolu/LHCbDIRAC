@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TableModel.py,v 1.2 2008/10/10 15:18:29 zmathe Exp $
+# $Id: TableModel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                 import *
@@ -7,7 +7,7 @@ from PyQt4.QtCore                import *
 
 import operator, datetime  
 
-__RCSID__ = "$Id: TableModel.py,v 1.2 2008/10/10 15:18:29 zmathe Exp $"
+__RCSID__ = "$Id: TableModel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
 
 #############################################################################  
 class TableModel(QAbstractTableModel): 
@@ -40,9 +40,12 @@ class TableModel(QAbstractTableModel):
     return QVariant(data) 
   
   #############################################################################  
+  
   def headerData(self, col, orientation, role):
     if orientation == Qt.Horizontal and role == Qt.DisplayRole:
         return QVariant(self.headerdata[col])
+    elif orientation == Qt.Vertical and role == Qt.DisplayRole:
+      return QVariant(col+1)
     return QVariant()
   
   #############################################################################  

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.2 2008/10/18 18:36:52 zmathe Exp $
+# $Id: TreeWidget.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog       import FileDialog
 
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.2 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -53,15 +53,14 @@ class TreeWidget(QWidget, Ui_TreeWidget):
       items.addItem(childItem)
     self.tree.showTree(items)
     '''
+    self.tree.header().setResizeMode(1, QHeaderView.ResizeToContents)
+    self.tree.header().setResizeMode(0, QHeaderView.ResizeToContents)
   #############################################################################  
   def getTree(self):
     return self.tree
   
-  #############################################################################  
-  def headerItem(self):
-    return self.tree.headerItem()
-  
-  #############################################################################  
+    #############################################################################  
   def getControler(self):
     return self.__controler
+  
   

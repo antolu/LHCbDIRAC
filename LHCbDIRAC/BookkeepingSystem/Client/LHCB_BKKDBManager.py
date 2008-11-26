@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.68 2008/11/24 17:40:06 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.69 2008/11/26 11:37:44 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.68 2008/11/24 17:40:06 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.69 2008/11/26 11:37:44 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -379,10 +379,8 @@ class LHCB_BKKDBManager(BaseESManager):
         for record in dbResult:
           programName = record[0]
           programVersion = record[1]
-          nb = record[2]
           program = programName+' '+programVersion
-          value = { 'Program Name':programName,'Program Version':programVersion,'Number of events':nb}
-          entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'Program name and version')]
+          entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
         self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
@@ -673,10 +671,8 @@ class LHCB_BKKDBManager(BaseESManager):
         for record in dbResult:
           programName = record[0]
           programVersion = record[1]
-          nb = record[2]
           program = programName+' '+programVersion
-          value = { 'Program Name':programName,'Program Version':programVersion,'Number of events':nb}
-          entityList += [self._getSpecificEntityFromPath(path, value, program, levels, None, 'Program name and version')]
+          entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
         self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
@@ -1121,7 +1117,14 @@ class LHCB_BKKDBManager(BaseESManager):
     return value
   
   #############################################################################       
-  def getLimitedFiles(self,SelectionDict, SortDict, StartItem, Maxitems):
+  def getLimitedFiles(self, SelectionDict, SortDict, StartItem, Maxitems):
+    
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+      return self._getLimitedFilesConfigParams(SelectionDict, SortDict, StartItem, Maxitems) 
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+      return self._getLimitedFilesEventTypeParams(SelectionDict, SortDict, StartItem, Maxitems)
+  
+  def _getLimitedFilesConfigParams(self, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
     path = SelectionDict['fullpath'] 
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
@@ -1176,19 +1179,21 @@ class LHCB_BKKDBManager(BaseESManager):
           totalrecords = res['Value'][0][0]
           nbOfEvents = res['Value'][0][1]
       
-      result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
-    
-      
-      parametersNames = ['name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
       records = []
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType]
-          records += [value]
-      else:
-        gLogger.error(result['Message'])
+      parametersNames=[]
+      if StartItem !=0 and Maxitems != 0:
+        result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
       
+        
+        parametersNames = ['name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
+        if result['OK']:
+          dbResult = result['Value']
+          for record in dbResult:
+            value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType]
+            records += [value]
+        else:
+          gLogger.error(result['Message'])
+        
       '''
       if result['OK']:
         dbResult = result['Value']
@@ -1211,3 +1216,101 @@ class LHCB_BKKDBManager(BaseESManager):
                    "Program version":pversion}
     return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection,'Number of Events':nbOfEvents} } 
     
+  def _getLimitedFilesEventTypeParams(self, SelectionDict, SortDict, StartItem, Maxitems):
+    entityList = list()
+    path = SelectionDict['fullpath'] 
+    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
+    valid, processedPath = self._processPath(path)
+   
+    if not valid:
+      gLogger.error(path + " is not valid!");
+      raise ValueError, "Invalid path '%s'" % path
+        # get directory content
+    levels = len(processedPath)
+    self._updateTreeLevels(levels)
+      
+    if levels == 7:    
+      self.files_ = []
+      gLogger.debug("listing files")
+      value = processedPath[0][1]
+      configName = value.split(' ')[0]
+      configVersion = value.split(' ')[1]
+      evtType = processedPath[1][1]
+      simid = processedPath[2][1]
+      processing = processedPath[3][1] 
+      prod = processedPath[4][1]
+      ftype = processedPath[5][1]
+      pname = processedPath[6][1].split(' ')[0]
+      pversion = processedPath[6][1].split(' ')[1]
+
+      print "-----------------------------------------------------------"
+      print "Selected parameters:   "
+      print "-----------------------------------------------------------"
+      print "Configuration Name     | "+configName
+      print "Configuration Version  | "+configVersion
+      print "Simulation Condition   | "+str(simid)
+      print "Processing Pass        | "+str(processing)
+      print "Event type             | "+str(evtType)
+      print "Production             | "+str(processedPath[4][1])
+      print "File Type              | "+str(ftype)
+      print "Program name           | "+pname
+      print "Program version        | "+pversion
+      print "-----------------------------------------------------------"
+      print "File list:\n"
+      
+      selection = {"Configuration Name":configName, \
+                   "Configuration Version":configVersion, \
+                   "Simulation Condition":str(simid), \
+                   "Processing Pass":str(processing), \
+                   "Event type":str(evtType), \
+                   "Production":str(processedPath[4][1]), \
+                   "File Type":str(ftype), \
+                   "Program name":pname, \
+                   "Program version":pversion}
+            
+      totalrecords = 0
+      nbOfEvents = 0
+      if len(SortDict) > 0:
+        res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+        if not res['OK']:
+          gLogger.error(res['Message'])
+        else:
+          totalrecords = res['Value'][0][0]
+          nbOfEvents = res['Value'][0][1]
+      
+      records = []
+      parametersNames=[]
+      if StartItem !=0 and Maxitems != 0:
+        result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
+      
+        
+        parametersNames = ['name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
+        if result['OK']:
+          dbResult = result['Value']
+          for record in dbResult:
+            value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType]
+            records += [value]
+        else:
+          gLogger.error(result['Message'])
+        
+      '''
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          value = {'name':record[1],'EventStat':record[2], 'FileSize':record[3],'CreationDate':record[4],'Generator':record[5],'GeometryVersion':record[6],       'JobStart':record[7], 'JobEnd':record[8],'WorkerNode':record[9],'FileType':record[10], 'EvtTypeId':evtType,'Selection':selection}
+          self.files_ += [record[1]]
+          entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
+        self._cacheIt(entityList)    
+      else:
+        gLogger.error(result['Message'])
+      '''
+    selection = {"Configuration Name":configName, \
+                   "Configuration Version":configVersion, \
+                   "Simulation Condition":str(simid), \
+                   "Processing Pass":str(processing), \
+                   "Event type":str(evtType), \
+                   "Production":str(processedPath[4][1]), \
+                   "File Type":str(ftype), \
+                   "Program name":pname, \
+                   "Program version":pversion}
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection,'Number of Events':nbOfEvents} } 

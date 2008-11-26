@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>433</width>
-    <height>780</height>
+    <width>584</width>
+    <height>775</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -17,7 +17,7 @@
     <rect>
      <x>10</x>
      <y>650</y>
-     <width>421</width>
+     <width>561</width>
      <height>101</height>
     </rect>
    </property>
@@ -52,23 +52,55 @@
    </widget>
   </widget>
   <widget class="QTreeWidget" name="tree" >
+   <property name="windowModality" >
+    <enum>Qt::WindowModal</enum>
+   </property>
+   <property name="enabled" >
+    <bool>true</bool>
+   </property>
    <property name="geometry" >
     <rect>
      <x>10</x>
-     <y>10</y>
-     <width>411</width>
+     <y>20</y>
+     <width>561</width>
      <height>621</height>
     </rect>
    </property>
    <property name="cursor" stdset="0" >
     <cursorShape>ArrowCursor</cursorShape>
    </property>
-   <property name="animated" >
+   <property name="styleSheet" >
+    <string/>
+   </property>
+   <property name="lineWidth" >
+    <number>1</number>
+   </property>
+   <property name="verticalScrollBarPolicy" >
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy" >
+    <enum>Qt::ScrollBarAsNeeded</enum>
+   </property>
+   <property name="tabKeyNavigation" >
     <bool>true</bool>
+   </property>
+   <property name="textElideMode" >
+    <enum>Qt::ElideNone</enum>
+   </property>
+   <property name="sortingEnabled" >
+    <bool>true</bool>
+   </property>
+   <property name="animated" >
+    <bool>false</bool>
    </property>
    <column>
     <property name="text" >
-     <string>Path</string>
+     <string>                                Tree                         </string>
+    </property>
+   </column>
+   <column>
+    <property name="text" >
+     <string>Description</string>
     </property>
    </column>
   </widget>
