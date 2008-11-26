@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.40 2008/11/24 18:01:24 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.41 2008/11/26 12:36:03 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.40 2008/11/24 18:01:24 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.41 2008/11/26 12:36:03 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -488,14 +488,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       all += 1
     if ftype == 'ALL':
-      command =' select count(*), SUM(files.EventStat) from \
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from \
          jobs,files,configurations,filetypes,processing_pass \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all += 1
     else:
-      command =' select count(*), SUM(files.EventStat) from \
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from \
          jobs,files,configurations, processing_pass\
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition 

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
+# $Id: ControlerTree.py,v 1.4 2008/11/26 12:36:04 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerTree.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.4 2008/11/26 12:36:04 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -64,8 +64,9 @@ class ControlerTree(ControlerAbstract):
         if node.has_key('level') and node['level']=='Program name and version':
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)
-          nbev = feedback['Extras']['Number of Events']
+          statistics = feedback['Extras']['GlobalStatistics']
           files = feedback['TotalRecords']
+          nbev = statistics['Number of Events']
           show={'Number of files':files,'Nuber of Events':nbev}
           #show={'Number of files':feedback['TotalRecords'],'Nuber of Events':feedback['Extras']['Number of Events']}
           self.getWidget().getTree().addLeaf(show, parentItem)
