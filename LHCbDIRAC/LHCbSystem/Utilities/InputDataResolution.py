@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.1 2008/06/03 12:47:59 paterson Exp $
+# $Id: InputDataResolution.py,v 1.2 2008/11/26 11:06:34 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.1 2008/06/03 12:47:59 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.2 2008/11/26 11:06:34 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -82,7 +82,13 @@ class InputDataResolution:
         self.log.verbose('Prepending root: to TURL for %s' %lfn)
 
     resolvedData = tmpDict
-    appCatalog = PoolXMLSlice('pool_xml_catalog.xml')
+    catalogName = 'pool_xml_catalog.xml'
+    if self.arguments['Configuration'].has_key('CatalogName'):
+      catalogName = self.arguments['Configuration']['CatalogName']
+
+    self.log.verbose('Catalog name will be: %s' %catalogName)
+    resolvedData = tmpDict
+    appCatalog = PoolXMLSlice(catalogName)
     check = appCatalog.execute(resolvedData)
     return result
 
@@ -91,10 +97,14 @@ class InputDataResolution:
     """This method controls the execution of the DIRAC input data modules according
        to the LHCb VO policy defined in the configuration service.
     """
-    site = gConfig.getValue('/LocalSite/Site','')
-    if not site:
-      return S_ERROR('Could not resolve site from /LocalSite/Site')
+    if self.arguments.has_key('SiteName'):
+      site = self.arguments['SiteName']
+    else:
+      site = gConfig.getValue('/LocalSite/Site','')
+      if not site:
+        return S_ERROR('Could not resolve site from /LocalSite/Site')
 
+    self.log.verbose('Attempting to resolve input data policy for site %s' %site)
     inputDataPolicy = gConfig.getOptionsDict('/Operations/InputDataPolicy')
     if not inputDataPolicy:
       return S_ERROR('Could not resolve InputDataPolicy from /Operations/InputDataPolicy')
