@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.2 2008/11/26 11:06:34 paterson Exp $
+# $Id: InputDataResolution.py,v 1.3 2008/11/26 11:49:31 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.2 2008/11/26 11:06:34 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.3 2008/11/26 11:49:31 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -97,8 +97,8 @@ class InputDataResolution:
     """This method controls the execution of the DIRAC input data modules according
        to the LHCb VO policy defined in the configuration service.
     """
-    if self.arguments.has_key('SiteName'):
-      site = self.arguments['SiteName']
+    if self.arguments['Configuration'].has_key('SiteName'):
+      site = self.arguments['Configuration']['SiteName']
     else:
       site = gConfig.getValue('/LocalSite/Site','')
       if not site:
