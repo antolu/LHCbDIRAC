@@ -7,8 +7,6 @@ from DIRAC.Core.Workflow.WorkflowReader import *
 
 # this workflow run 3 steps (Gauss - Boole - Brunel)
 wkf_name = ""
-#simDescription = 'Beam450GeV-VeloOpen-BfieldZero'
-simDescription = ''
 #eventTypeSignal = "60040000"
 configName = 'MC'
 configVersion = '2008'
@@ -24,28 +22,17 @@ emailList = ''
 generatorName = "Pythia"
 #WorkflowLib_version = "wkf-v6r3"
 WorkflowLib_version = ""
-Gauss_version = "v35r1" #v35r0
-#Gauss_optfile = "Gauss-2008.py;Beam450GeV-VeloOpen-BfieldZero.py;$DECFILESROOT/options/@{eventType}.opts;$GAUSSOPTS/RichExtendedInfo.opts"
-Gauss_optfile = ""
-Boole_version = "v16r3"
-#Boole_optfile = "Boole-2008.py"
-Boole_optfile = ""
 Brunel_version = "v33r3p1"
 Brunel_optfile = ""
 DaVinci_version = "v19r7"
 DaVinci_optfile = "DVOfficialStrippingFile.opts"
 #extraPackages = 'DecFiles.v15r2' #semicolon separated list if necessary
 extraPackages = '' #semicolon separated list if necessary
-soft_package = 'Gauss.'+Gauss_version+';Boole.'+Boole_version+';Brunel.'+Brunel_version
+soft_package = 'Brunel.'+Brunel_version+';DaVinci.'+DaVinci_version
 system_os = "slc4_ia32_gcc34"
 #outputDataFileMask = "dst;digi;sim" #semicolon separated list if necessary
 outputDataFileMask = "" #semicolon separated list if necessary
-#Gauss_SE = "CERN_MC_M-DST"
-Gauss_SE = ""
-#Boole_SE = "CERN_MC_M-DST"
-Boole_SE = ""
 #Brunel_SE = "CERN_MC_M-DST"
-Brunel_SE = ""
 FETC_SE = "Tier1_MC_M-DST"
 SETC_SE = "Tier1_MC_M-DST"
 DST_SE = "Tier1_MC_M-DST"
@@ -204,11 +191,11 @@ stepInstance3 = workflow1.createStepInstance('Job_Finalization', 'Step3')
 #workflow1.addParameterLinked(step3.parameters, step3_prefix)
 # and finally we can unlink them because we inherit them linked
 #workflow1.unlink(workflow1.parameters)
+workflow1.addParameter(Parameter("AncestorDepth","2","JDL","","",True,False, "Ancestor Depth"))
 workflow1.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "InputData set"))
 workflow1.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-"+WorkflowLib_version+".tar.gz","JDL","","",True, False, "WorkflowLib to be used"))
 workflow1.addParameter(Parameter("JobType",JobType,"JDL","","",True, False, "Job Type"))
 workflow1.addParameter(Parameter("Owner","joel","JDL","","",True, False, "user Name"))
-workflow1.addParameter(Parameter("BannedSites","LCG.CERN.ch;LCG.CNAF.it;LCG.RAL.uk;LCG.PIC.es;LCG.IN2P3.fr;LCG.NIKHEF.nl;LCG.GRIDKA.de","JDL","","",True, False, "user Name"))
 workflow1.addParameter(Parameter("StdError","std.err","JDL","","",True, False, "standard Error"))
 workflow1.addParameter(Parameter("StdOutput","std.out","JDL","","",True, False, "standard Output"))
 workflow1.addParameter(Parameter("OUTPUT_MAX","20","string","","",True,False,"nb max of output to keep"))
