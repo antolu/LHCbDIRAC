@@ -1,17 +1,17 @@
 ########################################################################
-# $Id: GaudiApplicationOPTS.py,v 1.1 2008/10/15 11:19:23 joel Exp $
+# $Id: GaudiApplicationOPTS.py,v 1.2 2008/11/27 10:21:56 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.1 2008/10/15 11:19:23 joel Exp $"
+__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.2 2008/11/27 10:21:56 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea, LocalArea, CheckApplication
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -225,7 +225,7 @@ class GaudiApplication(ModuleBase):
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
-    sharedArea = SharedArea()
+    sharedArea = MySiteRoot()
     app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
     if app_dir_path:
       mySiteRoot = sharedArea
@@ -233,6 +233,11 @@ class GaudiApplication(ModuleBase):
       self.log.error( 'Application not Found' )
       self.setApplicationStatus( 'Application not Found' )
       self.result = S_ERROR( 'Application not Found' )
+
+    localArea = sharedArea
+    if re.search(':',sharedArea):
+      localArea = string.split(sharedArea,':')[0]
+    self.log.info('Setting local software area to %s' %localArea)
 
     if not self.result['OK']:
       return self.result
@@ -275,7 +280,7 @@ class GaudiApplication(ModuleBase):
     script.write('declare -x JOBOPTPATH=gaudirun.opts\n')
     script.write('declare -x CSEC_TRACE=1\n')
     script.write('declare -x CSEC_TRACEFILE=csec.log\n')
-    script.write('. '+mySiteRoot+'/scripts/ExtCMT.sh\n')
+    script.write('. %s/LbLogin.sh\n' %localArea)
 
     # DLL fix which creates fake CMT package
     cmtFlag = ' '
@@ -318,11 +323,17 @@ class GaudiApplication(ModuleBase):
         externals = string.join(externals,' ')
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
+    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
+
     if self.generator_name == '':
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
     else:
-      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
                  +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
@@ -412,7 +423,8 @@ rm -f scrtmp.py
     script.write('env | sort >> localEnv.log\n')
     script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
-    comp_path = mySiteRoot+'/'+self.systemConfig
+#    comp_path = mySiteRoot+'/'+self.systemConfig
+    comp_path = localArea+'/'+self.systemConfig #TODO: why is this not used elsewhere?
     if os.path.exists(comp_path):
       print 'Compiler libraries found...'
       # Use the application loader shipped with the application if any (ALWAYS will be here)
