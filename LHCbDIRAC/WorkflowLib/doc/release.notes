@@ -1,4 +1,13 @@
-$Id: release.notes,v 1.2 2008/10/22 11:52:51 joel Exp $
+$Id: release.notes,v 1.3 2008/11/27 10:27:29 joel Exp $
+
+=========
+wkf-v7r2 : JC : 27 Nov 2008
+-Add the usage of the new combinedSoftware in GaudiAppplicationOPTS.py
+-add the template directory with model for each kind of activity in the workflow directory
+
+=========
+wkf-v7r1 : JC : 17 Nov 2008
+add the new module for merging FEST output
 
 =========
 wkf-v6r1 : JC : 22 Oct 2008
