@@ -63,7 +63,7 @@
      <x>10</x>
      <y>20</y>
      <width>561</width>
-     <height>621</height>
+     <height>631</height>
     </rect>
    </property>
    <property name="cursor" stdset="0" >
@@ -103,6 +103,32 @@
      <string>Description</string>
     </property>
    </column>
+  </widget>
+  <widget class="QCheckBox" name="standardQuery" >
+   <property name="geometry" >
+    <rect>
+     <x>10</x>
+     <y>0</y>
+     <width>81</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Standard</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="advancedQuery" >
+   <property name="geometry" >
+    <rect>
+     <x>80</x>
+     <y>0</y>
+     <width>131</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text" >
+    <string>Advanced Queries</string>
+   </property>
   </widget>
   <action name="configNameRadioButton" >
    <property name="text" >

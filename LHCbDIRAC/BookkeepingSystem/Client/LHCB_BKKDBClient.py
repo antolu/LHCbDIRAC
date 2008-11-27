@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.11 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.10 2008/11/17 17:14:45 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.11 2008/11/27 13:52:31 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -58,6 +58,10 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def setVerbose(self, Value):
     return self.getManager().setVerbose(Value)
+  
+  #############################################################################
+  def setAdvancedQueries(self, Value):
+    return self.getManager().setAdvancedQueries(Value)
   
   #############################################################################
   def getLimitedFiles(self,SelectionDict, SortDict, StartItem, Maxitems):

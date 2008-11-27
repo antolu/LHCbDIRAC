@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.6 2008/11/26 11:37:43 zmathe Exp $
+# $Id: ControlerMain.py,v 1.7 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ControlerMain.py,v 1.6 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.7 2008/11/27 13:52:31 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -109,7 +109,10 @@ class ControlerMain(ControlerAbstract):
         path = message['node']
         result = self.__bkClient.getLimitedFiles({'fullpath':str(path)},['nb'],0,0)
         return result
-        
+      elif message.action() == 'StandardQuery':
+        self.__bkClient.setAdvancedQueries(False)
+      elif message.action() == 'AdvancedQuery':
+        self.__bkClient.setAdvancedQueries(True)
       else:        
         print 'Unknown message!',message.action()
       

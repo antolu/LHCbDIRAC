@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.70 2008/11/26 12:36:04 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.71 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.70 2008/11/26 12:36:04 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.71 2008/11/27 13:52:31 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -25,8 +25,7 @@ class LHCB_BKKDBManager(BaseESManager):
     
   LHCB_BKDB_FOLDER_TYPE = "LHCB_BKDB_Folder"
   LHCB_BKDB_FILE_TYPE = "LHCB_BKDB_File"
-    
-                                       
+                                         
   LHCB_BKDB_FOLDER_PROPERTIES = ['name', 
                                 'fullpath',
                                         ]    
@@ -81,6 +80,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self.files_ = []
 
     self.treeLevels_ = -1
+    self.advancedQuery_ = False
     print "First please choise which kind of queries you want to use!"
     print "The default value is Configuration!"
     print "The possible parameters:"
@@ -97,6 +97,10 @@ class LHCB_BKKDBManager(BaseESManager):
   def setVerbose(self, Value):
     objects.VERBOSE = Value
   
+  ############################################################################# 
+  def setAdvancedQueries(self, Value):
+    self.advancedQuery_ = Value
+    
   ############################################################################# 
   def _getTreeLevels(self):
     return self.treeLevels_
@@ -147,9 +151,9 @@ class LHCB_BKKDBManager(BaseESManager):
       return self._listEventTypes(path)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
       return self._listProcessing(path)
-    ############################################################################# 
-  def _listConfigs(self, path):
-    entityList = list()
+  
+  ############################################################################# 
+  def getLevel(self, path):
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     valid, processedPath = self._processPath(path)
    
@@ -159,577 +163,689 @@ class LHCB_BKKDBManager(BaseESManager):
         # get directory content
     levels = len(processedPath)
     self._updateTreeLevels(levels)
+    return levels, processedPath
   
-    if levels == 0:    
-      print "-----------------------------------------------------------"
-      print "Configurations name and version:\n"
-      print "-----------------------------------------------------------"
-
-      # list root
-      gLogger.debug("listing configurations")
-      result = self.db_.getAvailableConfigurations()
-      
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          configs = record[0]+' '+record[1]
-          entityList += [self._getEntityFromPath(path, configs, levels)]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
     
-    if levels == 1:
-      gLogger.debug("listing Simulation Conditions!")
-      config = processedPath[0][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-            
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "-----------------------------------------------------------"
-
-      print "Available Simulation Conditions:\n"
-      if configName=='MC':
-        result = self.db_.getSimulationConditions(configName, configVersion) 
-        if result['OK']:
-          dbResult = result['Value']
-          if len(dbResult) > 1:
-            entityList += [self._getEntityFromPath(path, "ALL", levels, 'Simulation Conditions/DataTaking')]        
-          for record in dbResult:
-            simid = str(record[0])
-            description = record[1]
-            value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
-            entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-          self._cacheIt(entityList)
-        else:
-          gLogger.error(result['Message'])
-      else:
-        result = self.db_.getSimulationConditions(configName, configVersion, 1) 
-        if result['OK']:
-          dbResult = result['Value']
-          if len(dbResult) > 1:
-            entityList += [self._getEntityFromPath(path, "ALL", levels, 'Simulation Conditions/DataTaking')]        
-          for record in dbResult:
-            simid = str(record[0])
-            description = record[1]
-            value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12]}
-            entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-          self._cacheIt(entityList)
-        else:
-          gLogger.error(result['Message'])
-    
+  ############################################################################# 
+  def _listConfigs(self, path):
+    entityList = list()
+    levels, processedPath = self.getLevel(path)
+  
+    if levels == 0:
+       self.clevelHeader_0(path, levels, processedPath)
+       entityList += self.clevelBody_0(path, levels,)
+    if levels == 1: 
+      configName, configVersion = self.clevelHeader_1(path, levels, processedPath) 
+      entityList += self.clevelBody_1(path, levels, configName, configVersion)
     if levels == 2: 
-      gLogger.debug("listing processing pass")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation condition   | "+str(simid)
-      print "-----------------------------------------------------------"
-
-      print "Available processing pass:\n"
-
-      result = self.db_.getProPassWithSimCond(configName, configVersion, simid)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Processing Pass')]        
-        for record in dbResult:
-          prod = str(record[0])
-          value = {'Total ProcessingPass':prod, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
-          entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None,  'Processing Pass')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
-          
-
-    if levels == 3:
-      gLogger.debug("listing event types")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
- 
-      print "-----------------------------------------------------------"
-      print "Selected parameters: "
-      print "-----------------------------------------------------------"
-
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "Simulation Condition    | "+str(simid)
-      print "Processing Pass         | "+str(processing)
-      print "-----------------------------------------------------------"
-
-      print "Available event types types:"
-      result = self.db_.getEventTypeWithSimcond(configName, configVersion, simid, processing)
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          evtType = str(record[0])
-          value = {'Event Type':evtType,'Description':record[1]}
-          entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels,None, 'Event types')]
-        self._cacheIt(entityList)
-      else:
-          gLogger.error(result['Message'])
-      
-        
-      
-    if levels == 4:
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
-      evtType = processedPath[3][1]
-      
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "-----------------------------------------------------------"
-      print "Available Production(s):"
-      
-      result = self.db_.getProductionsWithSimcond(configName, configVersion, simid, processing, evtType)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Production(s)')]        
-        for record in dbResult:
-          prod = str(record[0])
-          entityList += [self._getEntityFromPath(path, prod, levels, 'Production(s)')]
-        self._cacheIt(entityList)        
-      else:
-        gLogger.error(result['Message'])
+      configName, configVersion, simid = self.clevelHeader_2(path, levels, processedPath) 
+      entityList += self.clevelBody_2(path, levels, configName, configVersion, simid)
+    if levels == 3: 
+      configName, configVersion, simid, processing = self.clevelHeader_3(path, levels, processedPath) 
+      entityList += self.clevelBody_3(path, levels, configName, configVersion, simid, processing)
+    if levels == 4 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType = self.clevelHeader_4(path, levels, processedPath) 
+      entityList += self.clevelBody_4(path, levels, configName, configVersion, simid, processing, evtType)
+    elif levels == 4 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[4],'ALL'))
+      path = newPath
+      v,processedPath = self._processPath(path)
+      levels = 5
     
-    if levels ==5:
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
-      evtType = processedPath[3][1]
-      prod = processedPath[4][1]
-    
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "-----------------------------------------------------------"
-      print "Available file types:"
-      
-      result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          ftype = str(record[0])
-          entityList += [self._getEntityFromPath(path, ftype, levels, 'File types')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
 
-        
-    if levels ==6:       
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
-      evtType = processedPath[3][1]
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]  
+    if levels == 5: 
+      configName, configVersion, simid, processing, evtType, prod = self.clevelHeader_5(path, levels, processedPath) 
+      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType, prod)
+   
+    if levels == 6 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType, prod, ftype = self.clevelHeader_6(path, levels, processedPath) 
+      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
+    elif levels == 6 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[6],'ALL'))
+      path = newPath
+      v,processedPath = self._processPath(path)
+      levels = 7
       
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "-----------------------------------------------------------"
-      print "Available program name and version:"
-      
-      result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Program name and version')]        
-        
-        for record in dbResult:
-          programName = record[0]
-          programVersion = record[1]
-          program = programName+' '+programVersion
-          entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
-
-    
-    if levels == 7:
-      self.files_ = []
-      gLogger.debug("listing files")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
-      evtType = processedPath[3][1]
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]
-      if processedPath[6][1] != 'ALL':
-        pname = processedPath[6][1].split(' ')[0]
-        pversion = processedPath[6][1].split(' ')[1]
-      else:
-        pname = processedPath[6][1]
-        pversion = processedPath[6][1]
-
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "Program name           | "+pname
-      print "Program version        | "+pversion
-      print "-----------------------------------------------------------"
-      print "File list:\n"
-      
-      result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-      selection = {"Configuration Name":configName, \
-                   "Configuration Version":configVersion, \
-                   "Simulation Condition":str(simid), \
-                   "Processing Pass":str(processing), \
-                   "Event type":str(evtType), \
-                   "Production":str(processedPath[4][1]), \
-                   "File Type":str(ftype), \
-                   "Program name":pname, \
-                   "Program version":pversion}
-      
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':evtType,'Selection':selection}
-          self.files_ += [record[0]]
-          entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-        self._cacheIt(entityList)    
-      else:
-        gLogger.error(result['Message'])
-      
+    if levels == 7: 
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_7(path, levels, processedPath) 
+      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
     return entityList
+  
+  ############################################################################# 
+  def __addAll(self, path,levels,description):
+    if self.advancedQuery_:
+      return self._getEntityFromPath(path, "ALL", levels, description)
+    else:
+       return None
+  
+  def __createPath(self, processedPath, name):
+    path = ''
+    for i in processedPath:
+     s = '/'+i[0]+'_'+i[1]
+     path += s
     
+    path +='/'+name[0]+'_'+name[1]
+    return path
+
+
+  ############################################################################# 
+  def clevelHeader_0(self, path, levels, processedPath):
+    entityList = list()
+    print "-----------------------------------------------------------"
+    print "Configurations name and version:\n"
+    print "-----------------------------------------------------------"
+
+    # list root
+    gLogger.debug("listing configurations")
+  
+  ############################################################################# 
+  def clevelBody_0(self, path, levels):
+    entityList = list()
+    result = self.db_.getAvailableConfigurations()
+    
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        configs = record[0]+' '+record[1]
+        entityList += [self._getEntityFromPath(path, configs, levels)]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def clevelHeader_1(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing Simulation Conditions!")
+    config = processedPath[0][1]
+    configName = config.split(' ')[0]
+    configVersion = config.split(' ')[1]
+          
+    print "-----------------------------------------------------------"
+    print "Selected parameters:"
+    print "-----------------------------------------------------------"
+    print "Configuration Name      | "+configName
+    print "Configuration Version   | "+configVersion
+    print "-----------------------------------------------------------"
+    print "Available Simulation Conditions:\n"
+    return configName, configVersion
+  
+  ############################################################################# 
+  def clevelBody_1(self, path, levels, configName, configVersion):
+    entityList = list()
+    if configName=='MC':
+      result = self.db_.getSimulationConditions(configName, configVersion) 
+      if result['OK']:
+        dbResult = result['Value']
+        if len(dbResult) > 1:
+          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
+          if add:
+            entityList += [add]
+        for record in dbResult:
+          simid = str(record[0])
+          description = record[1]
+          value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
+        self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
+    else:
+      result = self.db_.getSimulationConditions(configName, configVersion, 1) 
+      if result['OK']:
+        dbResult = result['Value']
+        if len(dbResult) > 1:
+          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
+          if add:
+            entityList += [add]
+        for record in dbResult:
+          simid = str(record[0])
+          description = record[1]
+          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
+        self._cacheIt(entityList)
+      else:
+        gLogger.error(result['Message'])
+    return entityList
+
+  ############################################################################# 
+  def clevelHeader_2(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing processing pass")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+
+    print "-----------------------------------------------------------"
+    print "Selected parameters:"
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation condition   | "+str(simid)
+    print "-----------------------------------------------------------"
+
+    print "Available processing pass:\n"
+    return configName, configVersion, simid
+  
+  ############################################################################# 
+  def clevelBody_2(self, path, levels, configName, configVersion, simid):
+    entityList = list()
+    result = self.db_.getProPassWithSimCond(configName, configVersion, simid)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Processing Pass')
+        if add:
+          entityList += [add]
+      for record in dbResult:
+        prod = str(record[0])
+        value = {'Total ProcessingPass':prod, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
+        entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None,  'Processing Pass')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+          
+  ############################################################################# 
+  def clevelHeader_3(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing event types")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+ 
+    print "-----------------------------------------------------------"
+    print "Selected parameters: "
+    print "-----------------------------------------------------------"
+
+    print "Configuration Name      | "+configName
+    print "Configuration Version   | "+configVersion
+    print "Simulation Condition    | "+str(simid)
+    print "Processing Pass         | "+str(processing)
+    print "-----------------------------------------------------------"
+
+    print "Available event types types:"
+    return configName, configVersion, simid, processing
+  
+  
+  ############################################################################# 
+  def clevelBody_3(self, path, levels, configName, configVersion, simid, processing):
+    entityList = list()
+    result = self.db_.getEventTypeWithSimcond(configName, configVersion, simid, processing)
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        evtType = str(record[0])
+        value = {'Event Type':evtType,'Description':record[1]}
+        entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels,None, 'Event types')]
+      self._cacheIt(entityList)
+    else:
+        gLogger.error(result['Message'])
+    return entityList    
+      
+  ############################################################################# 
+  def clevelHeader_4(self, path, levels, processedPath):
+    entityList = list()
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+    evtType = processedPath[3][1]
+    
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "-----------------------------------------------------------"
+    print "Available Production(s):"
+    return configName, configVersion, simid, processing, evtType
+  
+  ############################################################################# 
+  def clevelBody_4(self, path, levels, configName, configVersion, simid, processing, evtType):
+    entityList = list()
+    result = self.db_.getProductionsWithSimcond(configName, configVersion, simid, processing, evtType)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Production(s)')
+        if add:
+          entityList += [add] 
+      for record in dbResult:
+        prod = str(record[0])
+        entityList += [self._getEntityFromPath(path, prod, levels, 'Production(s)')]
+      self._cacheIt(entityList)        
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def clevelHeader_5(self, path, levels, processedPath):
+    entityList = list()
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+    evtType = processedPath[3][1]
+    prod = processedPath[4][1]
+  
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(processedPath[4][1])
+    print "-----------------------------------------------------------"
+    print "Available file types:"
+    return configName, configVersion, simid, processing, evtType, prod
+  
+  ############################################################################# 
+  def clevelBody_5(self, path, levels, configName, configVersion, simid, processing, evtType, prod):
+    entityList = list()
+    result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        ftype = str(record[0])
+        entityList += [self._getEntityFromPath(path, ftype, levels, 'File types')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+
+  ############################################################################# 
+  def clevelHeader_6(self, path, levels, processedPath):
+    entityList = list()
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+    evtType = processedPath[3][1]
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]  
+    
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(processedPath[4][1])
+    print "File Type              | "+str(ftype)
+    print "-----------------------------------------------------------"
+    print "Available program name and version:"
+    return configName, configVersion, simid, processing, evtType, prod, ftype
+  
+  ############################################################################# 
+  def clevelBody_6(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype):
+    entityList = list()
+    result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Program name and version')
+        if add:
+          entityList += [add] 
+      
+      for record in dbResult:
+        programName = record[0]
+        programVersion = record[1]
+        program = programName+' '+programVersion
+        entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+      
+  ############################################################################# 
+  def clevelHeader_7(self, path, levels, processedPath):
+    entityList = list()
+    self.files_ = []
+    gLogger.debug("listing files")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+    evtType = processedPath[3][1]
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]
+    if processedPath[6][1] != 'ALL':
+      pname = processedPath[6][1].split(' ')[0]
+      pversion = processedPath[6][1].split(' ')[1]
+    else:
+      pname = processedPath[6][1]
+      pversion = processedPath[6][1]
+
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(processedPath[4][1])
+    print "File Type              | "+str(ftype)
+    print "Program name           | "+pname
+    print "Program version        | "+pversion
+    print "-----------------------------------------------------------"
+    print "File list:\n"
+    return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
+  
+  def clevelBody_7(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
+    entityList = list()
+    result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+    selection = {"Configuration Name":configName, \
+                 "Configuration Version":configVersion, \
+                 "Simulation Condition":str(simid), \
+                 "Processing Pass":str(processing), \
+                 "Event type":str(evtType), \
+                 "Production":str(prod), \
+                 "File Type":str(ftype), \
+                 "Program name":pname, \
+                 "Program version":pversion}
+    
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9], 'EvtTypeId':evtType,'Selection':selection}
+        self.files_ += [record[0]]
+        entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
+      self._cacheIt(entityList)    
+    else:
+      gLogger.error(result['Message'])
+    
+    return entityList
+
+
+
+  
+  
+
   ############################################################################# 
   def _listEventTypes(self, path):
     entityList = list()
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    self._updateTreeLevels(levels)
+    levels, processedPath = self.getLevel(path)
   
-    if levels == 0:    
-      print "-----------------------------------------------------------"
-      print "Configurations name and version:\n"
-      print "-----------------------------------------------------------"
+    if levels == 0:
+       self.clevelHeader_0(path, levels, processedPath)
+       entityList += self.clevelBody_0(path, levels,)
+    if levels == 1: 
+      configName, configVersion = self.clevelHeader_1(path, levels, processedPath) 
+      entityList += self.elevelBody_1(path, levels, configName, configVersion)
+    if levels == 2: 
+      configName, configVersion, eventType = self.elevelHeader_2(path, levels, processedPath) 
+      entityList += self.elevelBody_2(path, levels, configName, configVersion, eventType)
+    if levels == 3: 
+      configName, configVersion, eventtype, simcond = self.elevelHeader_3(path, levels, processedPath) 
+      entityList += self.elevelBody_3(path, levels, configName, configVersion, eventtype, simcond)
+    if levels == 4 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType = self.elevelHedaer_4(path, levels, processedPath) 
+      entityList += self.clevelBody_4(path, levels, configName, configVersion, simid, processing, evtType)
+    elif levels == 4 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[4],'ALL'))
+      path = newPath
+      v,processedPath = self._processPath(path)
+      levels = 5
+    
 
-      # list root
-      gLogger.debug("listing configurations")
-      result = self.db_.getAvailableConfigurations()
+    if levels == 5: 
+      configName, configVersion, simid, processing, evtType, prod = self.elevelHeader_5(path, levels, processedPath) 
+      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType, prod)
+   
+    if levels == 6 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType, prod, ftype = self.elevelHeader_6(path, levels, processedPath) 
+      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
+    elif levels == 6 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[6],'ALL'))
+      path = newPath
+      v,processedPath = self._processPath(path)
+      levels = 7
       
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          configs = record[0]+' '+record[1]
-          entityList += [self._getEntityFromPath(path, configs, levels)]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
-           
-    if levels == 1:
-      config = processedPath[0][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-      
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "-----------------------------------------------------------"
+    if levels == 7: 
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_7(path, levels, processedPath) 
+      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+    return entityList
+  
+   ############################################################################# 
+  def elevelBody_1(self, path, levels, configName, configVersion):      
+    entityList = list()
+    result = self.db_.getEventTypes(configName, configVersion)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Event types')
+        if add:
+          entityList += [add]        
+      for record in dbResult:
+        event = str(record[0])
+        value = {'Event Type':record[0],'Description':record[1]}
+        entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Event types')]
+      self._cacheIt(entityList)      
+    else:
+      gLogger.error(result['Message'])
+    return entityList
 
-      print "Available Event types:\n"
-      
-      result = self.db_.getEventTypes(configName, configVersion)
+  ############################################################################# 
+  def elevelHeader_2(self, path, levels, processedPath):
+    gLogger.debug("listing simulation conditions")
+    config = processedPath[0][1]
+    configName = config.split(' ')[0]
+    configVersion = config.split(' ')[1]
+    
+    eventType = processedPath[1][1]
+    
+    print "-----------------------------------------------------------"
+    print "Selected parameters:"
+    print "-----------------------------------------------------------"
+    print "Configuration Name      | "+configName
+    print "Configuration Version   | "+configVersion
+    print "Event Type              | "+ str(eventType)
+    print "-----------------------------------------------------------"
+    
+    print "Available simulation conditions:"
+    return configName, configVersion, eventType
+  
+  ############################################################################# 
+  def elevelBody_2(self,path, levels, configName, configVersion, eventType):
+    entityList = list()
+    if configName=='MC':
+      result = self.db_.getSimCondWithEventType(configName, configVersion, eventType)
       if result['OK']:
         dbResult = result['Value']
         if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Event types')]        
+          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
+          if add:
+            entityList += [add]       
         for record in dbResult:
-          event = str(record[0])
-          value = {'Event Type':record[0],'Description':record[1]}
-          entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Event types')]
-        self._cacheIt(entityList)      
+          simid = str(record[0])
+          description = record[1]
+          value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
+        self._cacheIt(entityList)
       else:
         gLogger.error(result['Message'])
-    
-    if levels == 2:
-      gLogger.debug("listing simulation conditions")
-      config = processedPath[0][1]
-      configName = config.split(' ')[0]
-      configVersion = config.split(' ')[1]
-      
-      eventType = processedPath[1][1]
-      
-      print "-----------------------------------------------------------"
-      print "Selected parameters:"
-      print "-----------------------------------------------------------"
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "Event Type              | "+ str(eventType)
-      print "-----------------------------------------------------------"
-      
-      print "Available simulation conditions:"
-      if configName=='MC':
-        result = self.db_.getSimCondWithEventType(configName, configVersion, eventType)
-        if result['OK']:
-          dbResult = result['Value']
-          if len(dbResult) > 1:
-            entityList += [self._getEntityFromPath(path, "ALL", levels, 'Simulation Conditions/DataTaking')]        
-          for record in dbResult:
-            simid = str(record[0])
-            description = record[1]
-            value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
-            entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-          self._cacheIt(entityList)
-        else:
-          gLogger.error(result['Message'])
+    else:
+      result = self.db_.getSimulationConditions(configName, configVersion, 1) 
+      if result['OK']:
+        dbResult = result['Value']
+        if len(dbResult) > 1:
+          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
+          if add:
+            entityList += [add]       
+        for record in dbResult:
+          simid = str(record[0])
+          description = record[1]
+          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12]}
+          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
+        self._cacheIt(entityList)
       else:
-        result = self.db_.getSimulationConditions(configName, configVersion, 1) 
-        if result['OK']:
-          dbResult = result['Value']
-          if len(dbResult) > 1:
-            entityList += [self._getEntityFromPath(path, "ALL", levels, 'Simulation Conditions/DataTaking')]        
-          for record in dbResult:
-            simid = str(record[0])
-            description = record[1]
-            value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12]}
-            entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-          self._cacheIt(entityList)
-        else:
-          gLogger.error(result['Message'])
-    if levels == 3:
-      gLogger.debug("listing processing pass")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      eventtype = processedPath[1][1]
-      simcond = processedPath[2][1]
+        gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def elevelHeader_3(self, path, levels, processedPath):
+    gLogger.debug("listing processing pass")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    eventtype = processedPath[1][1]
+    simcond = processedPath[2][1]
  
-      print "-----------------------------------------------------------"
-      print "Selected parameters: "
-      print "-----------------------------------------------------------"
+    print "-----------------------------------------------------------"
+    print "Selected parameters: "
+    print "-----------------------------------------------------------"
 
-      print "Configuration Name      | "+configName
-      print "Configuration Version   | "+configVersion
-      print "Event type              | "+str(eventtype)
-      print "Simulation Condition    | "+str(simcond)
-      print "-----------------------------------------------------------"
+    print "Configuration Name      | "+configName
+    print "Configuration Version   | "+configVersion
+    print "Event type              | "+str(eventtype)
+    print "Simulation Condition    | "+str(simcond)
+    print "-----------------------------------------------------------"
 
-      print "Available processing pass types types:"
-      result = self.db_.getProPassWithEventType(configName, configVersion, eventtype, simcond)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Processing Pass')]        
-        for record in dbResult:
-          proc = str(record[0])
-          value = {'Total ProcessingPass':proc, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
-          entityList += [self._getSpecificEntityFromPath(path, value, proc, levels, None, 'Processing Pass')]
-        self._cacheIt(entityList)
-      else:
-          gLogger.error(result['Message'])
-      
-
-    if levels == 4:
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      evtType = processedPath[1][1]
-      simid = processedPath[2][1]
-      processing = processedPath[3][1]
-      
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "-----------------------------------------------------------"
-      print "Available Production(s):"
-      
-      result = self.db_.getProductionsWithSimcond(configName, configVersion, simid, processing, evtType)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels, 'Production(s)')]        
-        for record in dbResult:
-          prod = str(record[0])
-          entityList += [self._getEntityFromPath(path, prod, levels, 'Production(s)')]
-        self._cacheIt(entityList)
-      else:
+    print "Available processing pass types types:"
+    return configName, configVersion, eventtype, simcond
+  
+  ############################################################################# 
+  def elevelBody_3(self, path, levels, configName, configVersion, eventtype, simcond):
+    entityList = list()
+    result = self.db_.getProPassWithEventType(configName, configVersion, eventtype, simcond)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Processing Pass')
+        if add:
+          entityList += [add]        
+      for record in dbResult:
+        proc = str(record[0])
+        value = {'Total ProcessingPass':proc, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
+        entityList += [self._getSpecificEntityFromPath(path, value, proc, levels, None, 'Processing Pass')]
+      self._cacheIt(entityList)
+    else:
         gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def elevelHedaer_4(self, path, levels, processedPath):
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    evtType = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
     
-    if levels ==5:
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      evtType = processedPath[1][1]
-      simid = processedPath[2][1]
-      processing = processedPath[3][1] 
-      prod = processedPath[4][1]
-              
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "-----------------------------------------------------------"
-      print "Available file types:"
-      
-      result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          ftype = str(record[0])
-          entityList += [self._getEntityFromPath(path, ftype, levels,'File types')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
-
-        
-    if levels ==6:       
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      evtType = processedPath[1][1]
-      simid = processedPath[2][1]
-      processing = processedPath[3][1] 
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]  
-      
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "-----------------------------------------------------------"
-      print "Available program name and version:"
-      
-      result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          entityList += [self._getEntityFromPath(path, "ALL", levels,  'Program name and version')]        
-        for record in dbResult:
-          programName = record[0]
-          programVersion = record[1]
-          program = programName+' '+programVersion
-          entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
-
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "-----------------------------------------------------------"
+    print "Available Production(s):"
+    return configName, configVersion, simid, processing, evtType
+  
+  ############################################################################# 
+  def elevelHeader_5(self, path, levels, processedPath):
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    evtType = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1] 
+    prod = processedPath[4][1]
+            
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(processedPath[4][1])
+    print "-----------------------------------------------------------"
+    print "Available file types:"
+    return configName, configVersion, simid, processing, evtType, prod
+  
+  #############################################################################       
+  def elevelHeader_6(self, path, levels, processedPath):
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    evtType = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1] 
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]  
     
-    if levels == 7:
-      self.files_ = []
-      gLogger.debug("listing files")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      evtType = processedPath[1][1]
-      simid = processedPath[2][1]
-      processing = processedPath[3][1] 
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(processedPath[4][1])
+    print "File Type              | "+str(ftype)
+    print "-----------------------------------------------------------"
+    print "Available program name and version:"
+    return configName, configVersion, simid, processing, evtType, prod, ftype
+      
+  
+  ############################################################################# 
+  def elevelHeader_7(self, path, levels, processedPath):
+  
+    self.files_ = []
+    gLogger.debug("listing files")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    evtType = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1] 
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]
+    if len(processedPath[6][1])<7:
+      pname = 'ALL'
+      pversion = 'ALL'
+    else:
       pname = processedPath[6][1].split(' ')[0]
       pversion = processedPath[6][1].split(' ')[1]
 
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "Program name           | "+pname
-      print "Program version        | "+pversion
-      print "-----------------------------------------------------------"
-      print "File list:\n"
-      
-      selection = {"Configuration Name":configName, \
-                   "Configuration Version":configVersion, \
-                   "Simulation Condition":str(simid), \
-                   "Processing Pass":str(processing), \
-                   "Event type":str(evtType), \
-                   "Production":str(processedPath[4][1]), \
-                   "File Type":str(ftype), \
-                   "Program name":pname, \
-                   "Program version":pversion}
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(prod)
+    print "File Type              | "+str(ftype)
+    print "Program name           | "+pname
+    print "Program version        | "+pversion
+    print "-----------------------------------------------------------"
+    print "File list:\n"
+    
+    return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
        
-      result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':ftype, 'EvtTypeId':evtType, 'Selection':selection}
-          self.files_ += [record[0]]
-          entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-        self._cacheIt(entityList)    
-      else:
-        gLogger.error(result['Message'])
-
-    return entityList
-  
+        
   ############################################################################# 
   def _listProcessing(self, path):
     entityList = list()
@@ -891,7 +1007,12 @@ class LHCB_BKKDBManager(BaseESManager):
       entity.update({'name':name, 'fullpath':fullPath,'expandable':expandable})
       
       if leveldescription <> None:
-        entity.update({'level':leveldescription})  
+        entity.update({'level':leveldescription})
+      
+      if not self.advancedQuery_ and level==5:
+        entity.update({'files/eventtypes':0})
+      elif  self.advancedQuery_ and level==6:
+        entity.update({'files/eventtypes':0})
     
     return entity
   
@@ -914,7 +1035,12 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         entity.update({'name':name, 'fullpath':fullPath, 'expandable':expandable})  
       if leveldescription <> None:
-        entity.update({'level':leveldescription})  
+        entity.update({'level':leveldescription})
+    
+      if not self.advancedQuery_ and level==5:
+        entity.update({'files/eventtypes':0})
+      elif  self.advancedQuery_ and level==6:
+        entity.update({'files/eventtypes':0})  
     return entity
     
 
@@ -1137,17 +1263,21 @@ class LHCB_BKKDBManager(BaseESManager):
         # get directory content
     levels = len(processedPath)
     self._updateTreeLevels(levels)
-    if levels == 7:
-      self.files_ = []
-      gLogger.debug("listing files")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      simid = processedPath[1][1]
-      processing = processedPath[2][1]
-      evtType = processedPath[3][1]
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]
+    #if levels == 7:
+    self.files_ = []
+    gLogger.debug("listing files")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    simid = processedPath[1][1]
+    processing = processedPath[2][1]
+    evtType = processedPath[3][1]
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]
+    if len(processedPath) < 7:
+      pname = 'ALL'
+      pversion = 'ALL'
+    else: 
       if processedPath[6][1] != 'ALL':
         pname = processedPath[6][1].split(' ')[0]
         pversion = processedPath[6][1].split(' ')[1]
@@ -1155,33 +1285,33 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = processedPath[6][1]
         pversion = processedPath[6][1]
 
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "Program name           | "+pname
-      print "Program version        | "+pversion
-      print "-----------------------------------------------------------"
-      print "File list:\n"
-      
-    selection = {"Configuration Name":configName, \
-                   "Configuration Version":configVersion, \
-                   "Simulation Condition":str(simid), \
-                   "Processing Pass":str(processing), \
-                   "Event type":str(evtType), \
-                   "Production":str(processedPath[4][1]), \
-                   "File Type":str(ftype), \
-                   "Program name":pname, \
-                   "Program version":pversion}
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(prod)
+    print "File Type              | "+str(ftype)
+    print "Program name           | "+pname
+    print "Program version        | "+pversion
+    print "-----------------------------------------------------------"
+    print "File list:\n"
     
+    selection = {"Configuration Name":configName, \
+                 "Configuration Version":configVersion, \
+                 "Simulation Condition":str(simid), \
+                 "Processing Pass":str(processing), \
+                 "Event type":str(evtType), \
+                 "Production":str(prod), \
+                 "File Type":str(ftype), \
+                 "Program name":pname, \
+                 "Program version":pversion}
+  
     return self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection)
-      
+    
     
   
   #############################################################################       
@@ -1198,46 +1328,50 @@ class LHCB_BKKDBManager(BaseESManager):
     levels = len(processedPath)
     self._updateTreeLevels(levels)
       
-    if levels == 7:    
-      self.files_ = []
-      gLogger.debug("listing files")
-      value = processedPath[0][1]
-      configName = value.split(' ')[0]
-      configVersion = value.split(' ')[1]
-      evtType = processedPath[1][1]
-      simid = processedPath[2][1]
-      processing = processedPath[3][1] 
-      prod = processedPath[4][1]
-      ftype = processedPath[5][1]
+    #if levels == 7:    
+    self.files_ = []
+    gLogger.debug("listing files")
+    value = processedPath[0][1]
+    configName = value.split(' ')[0]
+    configVersion = value.split(' ')[1]
+    evtType = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1] 
+    prod = processedPath[4][1]
+    ftype = processedPath[5][1]
+    if len(processedPath) < 7:
+      pname = 'ALL'
+      pversion = 'ALL'
+    else:
       pname = processedPath[6][1].split(' ')[0]
       pversion = processedPath[6][1].split(' ')[1]
 
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Configuration Name     | "+configName
-      print "Configuration Version  | "+configVersion
-      print "Simulation Condition   | "+str(simid)
-      print "Processing Pass        | "+str(processing)
-      print "Event type             | "+str(evtType)
-      print "Production             | "+str(processedPath[4][1])
-      print "File Type              | "+str(ftype)
-      print "Program name           | "+pname
-      print "Program version        | "+pversion
-      print "-----------------------------------------------------------"
-      print "File list:\n"
-      
-      selection = {"Configuration Name":configName, \
-                   "Configuration Version":configVersion, \
-                   "Simulation Condition":str(simid), \
-                   "Processing Pass":str(processing), \
-                   "Event type":str(evtType), \
-                   "Production":str(processedPath[4][1]), \
-                   "File Type":str(ftype), \
-                   "Program name":pname, \
-                   "Program version":pversion}
-            
-      return self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection)
+    print "-----------------------------------------------------------"
+    print "Selected parameters:   "
+    print "-----------------------------------------------------------"
+    print "Configuration Name     | "+configName
+    print "Configuration Version  | "+configVersion
+    print "Simulation Condition   | "+str(simid)
+    print "Processing Pass        | "+str(processing)
+    print "Event type             | "+str(evtType)
+    print "Production             | "+str(prod)
+    print "File Type              | "+str(ftype)
+    print "Program name           | "+pname
+    print "Program version        | "+pversion
+    print "-----------------------------------------------------------"
+    print "File list:\n"
+    
+    selection = {"Configuration Name":configName, \
+                 "Configuration Version":configVersion, \
+                 "Simulation Condition":str(simid), \
+                 "Processing Pass":str(processing), \
+                 "Event type":str(evtType), \
+                 "Production":str(prod), \
+                 "File Type":str(ftype), \
+                 "Program name":pname, \
+                 "Program version":pversion}
+          
+    return self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection)
   
   #############################################################################       
   def __getFiles(self,configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection):

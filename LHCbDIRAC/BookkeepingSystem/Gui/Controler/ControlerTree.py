@@ -1,13 +1,13 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.4 2008/11/26 12:36:04 zmathe Exp $
+# $Id: ControlerTree.py,v 1.5 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
-
-__RCSID__ = "$Id: ControlerTree.py,v 1.4 2008/11/26 12:36:04 zmathe Exp $"
+import types
+__RCSID__ = "$Id: ControlerTree.py,v 1.5 2008/11/27 13:52:31 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -41,6 +41,18 @@ class ControlerTree(ControlerAbstract):
     self.getParent().messageFromChild(self, message)
   
   #############################################################################  
+  def standardQuery(self):
+    message = Message({'action':'StandardQuery'})
+    self.getParent().messageFromChild(self, message)
+    self.getWidget().setAdvancedQueryValue()
+  
+  #############################################################################  
+  def advancedQuery(self):
+    message = Message({'action':'AdvancedQuery'})
+    self.getParent().messageFromChild(self, message)
+    self.getWidget().setStandardQueryValue()
+    
+  #############################################################################  
   def eventTypeButton(self):
     message = Message({'action':'eventbuttonChanged'})
     self.getParent().messageFromChild(self, message)
@@ -61,7 +73,7 @@ class ControlerTree(ControlerAbstract):
           if not child.getUserObject():
             parentItem.takeChild(0)  
         
-        if node.has_key('level') and node['level']=='Program name and version':
+        if node.has_key('files/eventtypes'):
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)
           statistics = feedback['Extras']['GlobalStatistics']
@@ -100,7 +112,7 @@ class ControlerTree(ControlerAbstract):
     if parentnode != None: 
       parent = parentnode.getUserObject()
       controlers = self.getChildren()
-      if parent.has_key('level') and parent['level'] == 'Program name and version':
+      if parent.has_key('level') and parent.has_key('files/eventtypes'):
         path = parent['fullpath']
         message = Message({'action':'expande','node':path})
         feedback = self.getParent().messageFromChild(self, message)
@@ -121,7 +133,7 @@ class ControlerTree(ControlerAbstract):
     controlers = self.getChildren()
     ct = controlers['InfoDialog']
     if node <> None:
-      if node.expandable():
+      if type(node) != types.DictType and node.expandable():
         message = Message({'action':'list','items':node})
         ct.messageFromParent(message)
 

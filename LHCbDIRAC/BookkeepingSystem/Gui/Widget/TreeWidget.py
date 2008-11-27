@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
+# $Id: TreeWidget.py,v 1.4 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog       import FileDialog
 
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.4 2008/11/27 13:52:31 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -35,6 +35,11 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.configNameRadioButton, SIGNAL("clicked()"), self.__controler.configButton)
     self.connect(self.radioButton_2, SIGNAL("clicked()"), self.__controler.eventTypeButton)
     self.tree.setupControler()
+    
+    
+    self.standardQuery.setChecked(True)
+    self.connect(self.standardQuery, SIGNAL("clicked()"), self.__controler.standardQuery)
+    self.connect(self.advancedQuery, SIGNAL("clicked()"), self.__controler.advancedQuery)
     
     self.__dialog = InfoDialog(self)
     self.__controler.addChild('InfoDialog',self.__dialog.getControler())
@@ -59,8 +64,20 @@ class TreeWidget(QWidget, Ui_TreeWidget):
   def getTree(self):
     return self.tree
   
-    #############################################################################  
+  #############################################################################  
   def getControler(self):
     return self.__controler
   
-  
+  #############################################################################  
+  def setAdvancedQueryValue(self):
+    if self.advancedQuery.isChecked():
+      self.advancedQuery.setChecked(False)
+    else:
+      self.advancedQuery.setChecked(True)
+      
+  #############################################################################  
+  def setStandardQueryValue(self):
+    if self.standardQuery.isChecked():
+      self.standardQuery.setChecked(False)
+    else:
+      self.standardQuery.setChecked(True)

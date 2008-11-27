@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.5 2008/11/26 11:37:43 zmathe Exp $
+# $Id: FileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.5 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -29,6 +29,11 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__jobAction = QAction(self.tr("Job Info"), self.tableView)
     self.connect (self.__jobAction, SIGNAL("triggered()"), self.__controler.jobinfo)
     self.__popUp.addAction(self.__jobAction)
+    
+    self.__ancesstorsAction = QAction(self.tr("Get Anccestors"), self.tableView)
+    self.connect (self.__ancesstorsAction, SIGNAL("triggered()"), self.__controler.getancesstots)
+    self.__popUp.addAction(self.__ancesstorsAction)
+    
     
     self.__closeAction = QAction(self.tr("Close"), self.tableView)
     self.connect (self.__closeAction, SIGNAL("triggered()"), self.__controler.close)
