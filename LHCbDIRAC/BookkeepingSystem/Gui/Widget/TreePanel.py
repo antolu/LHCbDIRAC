@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
+# $Id: TreePanel.py,v 1.4 2008/11/28 16:05:47 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
+import os
 
-__RCSID__ = "$Id: TreePanel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id: TreePanel.py,v 1.4 2008/11/28 16:05:47 zmathe Exp $"
 
 #############################################################################  
 class TreePanel(QTreeWidget):
@@ -42,6 +43,12 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
+    diracRoot = os.environ['DIRACROOT']
+    picturesPath = diracRoot+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
+    
+    self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")
+    
     
       
   #############################################################################  
@@ -101,10 +108,17 @@ class TreePanel(QTreeWidget):
      #               self.updateDomElement)
   
     children = item.getChildren()
+
     keys = children.keys()
     keys.sort()
+    node = children[keys[0]]
+    if node.has_key('level'):
+      self.createdumyNode({'name':node['level']}, parent)
+      
     for child in keys:
       self.parseFolderElement(children[child],parent)
+    
+    
   
     #self.connect(self, QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
     #             self.updateDomElement)
@@ -118,7 +132,7 @@ class TreePanel(QTreeWidget):
     #print '!!!!!!!!!',parentItem.getUserObject()
     nbfiles = element['Number of files'] 
     nbevents = element['Nuber of Events']
-    item.setIcon(0, self.bookmarkIcon)
+    item.setIcon(0, self.filesIcon_)
     title = self.tr("Nb of Files/Events")
     item.setText(0, title)
     
@@ -149,14 +163,9 @@ class TreePanel(QTreeWidget):
           item.setText(1, userobj['Description'])
         else:
           item.setText(1, '')
-      else:
-        item.setText(1, userobj['level'])
-      item.setFlags(item.flags() | Qt.ItemIsEnabled)
-      self.createdumyNode({'name':'Nb of Files/Events'},item)
-    else:
-      dumy = self.createItem({'name':'Nb of Files/Events'},item)
-      self.setItemExpanded(dumy, True)
-      #dumy.setFlags(item.flags() | Qt.ItemIsEnabled)
+    dumy = self.createItem({'name':'Nb of Files/Events'},item)
+    self.setItemExpanded(dumy, True)
+    dumy.setFlags(item.flags() | Qt.ItemIsEnabled)
     
     self.repaint()    
     '''
@@ -190,7 +199,7 @@ class TreePanel(QTreeWidget):
     self.setItemExpanded(dumy, False)
     title = element['name']
     dumy.setFlags(parent.flags() | Qt.ItemIsEditable)
-    dumy.setIcon(0, self.bookmarkIcon)
+    dumy.setIcon(0, self.infoIcon_)
     dumy.setText(0, title)
     return dumy
   

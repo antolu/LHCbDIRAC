@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.7 2008/11/27 13:52:31 zmathe Exp $
+# $Id: ControlerMain.py,v 1.8 2008/11/28 16:05:48 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -8,8 +8,8 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
-
-__RCSID__ = "$Id: ControlerMain.py,v 1.7 2008/11/27 13:52:31 zmathe Exp $"
+import sys
+__RCSID__ = "$Id: ControlerMain.py,v 1.8 2008/11/28 16:05:48 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -82,13 +82,17 @@ class ControlerMain(ControlerAbstract):
       elif message.action()=='SaveToTxt':
         if self.__fileName <> '':
           fileName = self.__fileName
+          lfns = message['lfns']
+          f = open(fileName,'w')
+          for file in lfns:
+            f.write(file+'\n')       
+          sys.exit(0)
         else:
-           fileName = message['fileName']
-    
-        lfns = message['lfns']
-        f = open(fileName,'w')
-        for file in lfns:
-          f.write(file+'\n')       
+          fileName = message['fileName']
+          lfns = message['lfns']
+          f = open(fileName,'w')
+          for file in lfns:
+            f.write(file+'\n')       
         return True
           
       elif message.action() == 'JobInfo':
@@ -113,6 +117,8 @@ class ControlerMain(ControlerAbstract):
         self.__bkClient.setAdvancedQueries(False)
       elif message.action() == 'AdvancedQuery':
         self.__bkClient.setAdvancedQueries(True)
+      elif message.action() == 'GetFileName':
+        return self.__fileName
       else:        
         print 'Unknown message!',message.action()
       

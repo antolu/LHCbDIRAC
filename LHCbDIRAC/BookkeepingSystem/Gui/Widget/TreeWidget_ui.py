@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Thu Nov 27 13:46:09 2008
+# Created: Fri Nov 28 16:04:28 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -37,7 +37,7 @@ class Ui_TreeWidget(object):
         self.tree.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tree.setTabKeyNavigation(True)
         self.tree.setTextElideMode(QtCore.Qt.ElideNone)
-        self.tree.setSortingEnabled(True)
+        self.tree.setSortingEnabled(False)
         self.tree.setAnimated(False)
         self.tree.setObjectName("tree")
 
@@ -60,7 +60,7 @@ class Ui_TreeWidget(object):
         self.selection.setTitle(QtGui.QApplication.translate("TreeWidget", "Queries", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_2.setText(QtGui.QApplication.translate("TreeWidget", "Event type/SimCond/ProcessingPass/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
         self.configNameRadioButton.setText(QtGui.QApplication.translate("TreeWidget", "SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
-        self.tree.headerItem().setText(0,QtGui.QApplication.translate("TreeWidget", "                                Tree                         ", None, QtGui.QApplication.UnicodeUTF8))
+        self.tree.headerItem().setText(0,QtGui.QApplication.translate("TreeWidget", "                                Tree                                                     ", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(1,QtGui.QApplication.translate("TreeWidget", "Description", None, QtGui.QApplication.UnicodeUTF8))
         self.standardQuery.setText(QtGui.QApplication.translate("TreeWidget", "Standard", None, QtGui.QApplication.UnicodeUTF8))
         self.advancedQuery.setText(QtGui.QApplication.translate("TreeWidget", "Advanced Queries", None, QtGui.QApplication.UnicodeUTF8))

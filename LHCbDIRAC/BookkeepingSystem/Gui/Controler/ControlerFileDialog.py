@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -69,7 +69,16 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################  
   def save(self):
     if len(self.__selectedFiles) > 1:
-      fileName,ext = self.getWidget().saveAs()
+      message = Message({'action':'GetFileName'})
+      feedback = self.getParent().messageFromChild(self, message)
+      fileName = ''
+      ext = ''
+      if feedback != '':
+        fileName = feedback
+        ext = '.txt'
+      else:        
+        fileName,ext = self.getWidget().saveAs()
+    
       if fileName <>'':
         model = self.getWidget().getModel()
         lfns = {}
@@ -95,7 +104,15 @@ class ControlerFileDialog(ControlerAbstract):
             self.__selectedFiles = []
           
     else:
-      fileName,ext = self.getWidget().saveAs()
+      message = Message({'action':'GetFileName'})
+      feedback = self.getParent().messageFromChild(self, message)
+      fileName = ''
+      ext = ''
+      if feedback != '':
+        fileName = feedback
+        ext = '.txt'
+      else:        
+        fileName,ext = self.getWidget().saveAs()
       
       if fileName <> '':
         model = self.getWidget().getModel()

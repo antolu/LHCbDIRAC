@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $
+# $Id: FileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.6 2008/11/27 13:52:31 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -22,6 +22,13 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     self.connect(self.saveButton, SIGNAL("clicked()"), self.__controler.save)   
     
+    diracRoot = os.environ['DIRACROOT']
+    picturesPath = diracRoot+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    saveIcon = QIcon(picturesPath+"/images/save.png")
+    self.saveButton.setIcon(saveIcon)
+    
+    closeIcon = QIcon(picturesPath+"/images/close.png")
+    self.closeButton.setIcon(closeIcon)
     self.__model = None
     self.__fileExtension = None
     self.__popUp = QMenu(self.tableView)

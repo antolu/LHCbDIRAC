@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.5 2008/11/27 13:52:31 zmathe Exp $
+# $Id: ControlerTree.py,v 1.6 2008/11/28 16:05:48 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.5 2008/11/27 13:52:31 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.6 2008/11/28 16:05:48 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -68,11 +68,13 @@ class ControlerTree(ControlerAbstract):
         #parentItem.takeChild(0) # I have to remove the dumychildren!
       else:
         
+
         if parentItem.childCount() == 1:
           child = parentItem.child(0)
           if not child.getUserObject():
             parentItem.takeChild(0)  
-        
+
+
         if node.has_key('files/eventtypes'):
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)

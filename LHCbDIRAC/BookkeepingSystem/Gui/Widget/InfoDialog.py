@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InfoDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $
+# $Id: InfoDialog.py,v 1.3 2008/11/28 16:05:47 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -7,8 +7,9 @@ from PyQt4.QtCore                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
+import os
 
-__RCSID__ = "$Id: InfoDialog.py,v 1.2 2008/10/09 13:50:44 zmathe Exp $"
+__RCSID__ = "$Id: InfoDialog.py,v 1.3 2008/11/28 16:05:47 zmathe Exp $"
 
 #############################################################################  
 class InfoDialog(QDialog, Ui_Dialog):
@@ -19,7 +20,12 @@ class InfoDialog(QDialog, Ui_Dialog):
     self.setupUi(self)
     self.__controler = ControlerInfoDialog(self, parent.getControler())
     self.connect(self.pushButton, SIGNAL("clicked()"), self.__controler.close)
-
+    
+    diracRoot = os.environ['DIRACROOT']
+    picturesPath = diracRoot+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    closeIcon = QIcon(picturesPath+"/images/close.png")
+    self.pushButton.setIcon(closeIcon)
+    
   #############################################################################  
   def getControler(self):
     return self.__controler
