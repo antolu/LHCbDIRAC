@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.41 2008/11/26 12:36:03 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.42 2008/12/01 12:38:26 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.41 2008/11/26 12:36:03 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.42 2008/12/01 12:38:26 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -290,9 +290,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     configurations.ConfigVersion=\''+configVersion+'\''
     
     all = 0;
+    tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
+      tables += ' ,processing_pass'
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -303,6 +305,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+      if 'processing_pass' not in tables:
+         tables += ', processing_pass'
     else:
       all += 1
       
@@ -336,16 +340,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from \
-         jobs,files,configurations,filetypes,processing_pass \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from '+ tables+' ,filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from \
-         jobs,files,configurations, processing_pass\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from '+ tables +'\
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition 
     if all > ALLOWED_ALL:
@@ -359,9 +361,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     configurations.ConfigVersion=\''+configVersion+'\''
     
     all = 0
+    tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
+      tables += ' ,processing_pass'
     else:
       all += 1
     
@@ -374,6 +378,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+      if 'processing_pass' not in tables:
+         tables += ', processing_pass'
     else:
       all += 1
       
@@ -413,7 +419,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype \
-        from jobs,files,configurations, processing_pass,filetypes \
+        from'+tables+'filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
@@ -425,7 +431,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode \
-        from jobs,files,configurations, processing_pass \
+        from'+ tables+'\
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
@@ -441,9 +447,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     configurations.ConfigVersion=\''+configVersion+'\''
     
     all = 0
+    tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
       condition += ' and jobs.production=processing_pass.production'
       condition += ' and processing_pass.simcondid='+str(simcondid)
+      tables += ', processing_pass' 
     else:
       all += 1
     
@@ -456,6 +464,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       totalproc = totalproc[:-1]
       condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and processing_pass.PRODUCTION=jobs.production'
+      if 'processing_pass' not in tables:
+         tables += ', processing_pass'
     else:
       all += 1
         
@@ -488,15 +498,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       all += 1
     if ftype == 'ALL':
-      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from \
-         jobs,files,configurations,filetypes,processing_pass \
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from '+ tables +', filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all += 1
     else:
-      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from \
-         jobs,files,configurations, processing_pass\
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from ' + tables +' \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid' + condition 
     
