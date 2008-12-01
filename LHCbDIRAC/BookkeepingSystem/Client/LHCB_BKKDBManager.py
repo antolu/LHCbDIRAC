@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.72 2008/12/01 16:20:59 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.73 2008/12/01 17:18:56 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.72 2008/12/01 16:20:59 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.73 2008/12/01 17:18:56 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1388,7 +1388,7 @@ class LHCB_BKKDBManager(BaseESManager):
         filesSize = res['Value'][0][2]
     records = []
     parametersNames=[]
-    if StartItem !=0 and Maxitems != 0:
+    if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
     
       

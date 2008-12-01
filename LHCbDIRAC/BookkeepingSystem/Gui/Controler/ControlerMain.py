@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.8 2008/11/28 16:05:48 zmathe Exp $
+# $Id: ControlerMain.py,v 1.9 2008/12/01 17:18:56 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.8 2008/11/28 16:05:48 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.9 2008/12/01 17:18:56 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -111,7 +111,7 @@ class ControlerMain(ControlerAbstract):
       
       elif message.action() == 'getNbEventsAndFiles':
         path = message['node']
-        result = self.__bkClient.getLimitedFiles({'fullpath':str(path)},['nb'],0,0)
+        result = self.__bkClient.getLimitedFiles({'fullpath':str(path)},['nb'],-1,-1)
         return result
       elif message.action() == 'StandardQuery':
         self.__bkClient.setAdvancedQueries(False)
