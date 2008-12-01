@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.71 2008/11/27 13:52:31 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.72 2008/12/01 16:20:59 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.71 2008/11/27 13:52:31 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.72 2008/12/01 16:20:59 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1010,9 +1010,9 @@ class LHCB_BKKDBManager(BaseESManager):
         entity.update({'level':leveldescription})
       
       if not self.advancedQuery_ and level==5:
-        entity.update({'files/eventtypes':0})
+        entity.update({'showFiles':0})
       elif  self.advancedQuery_ and level==6:
-        entity.update({'files/eventtypes':0})
+        entity.update({'showFiles':0})
     
     return entity
   
@@ -1038,9 +1038,9 @@ class LHCB_BKKDBManager(BaseESManager):
         entity.update({'level':leveldescription})
     
       if not self.advancedQuery_ and level==5:
-        entity.update({'files/eventtypes':0})
+        entity.update({'showFiles':0})
       elif  self.advancedQuery_ and level==6:
-        entity.update({'files/eventtypes':0})  
+        entity.update({'showFiles':0})  
     return entity
     
 

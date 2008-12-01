@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.6 2008/11/28 16:05:48 zmathe Exp $
+# $Id: ControlerTree.py,v 1.7 2008/12/01 16:20:59 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.6 2008/11/28 16:05:48 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.7 2008/12/01 16:20:59 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -75,7 +75,7 @@ class ControlerTree(ControlerAbstract):
             parentItem.takeChild(0)  
 
 
-        if node.has_key('files/eventtypes'):
+        if node.has_key('showFiles'):
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)
           statistics = feedback['Extras']['GlobalStatistics']
@@ -114,7 +114,7 @@ class ControlerTree(ControlerAbstract):
     if parentnode != None: 
       parent = parentnode.getUserObject()
       controlers = self.getChildren()
-      if parent.has_key('level') and parent.has_key('files/eventtypes'):
+      if parent.has_key('level') and parent.has_key('showFiles'):
         path = parent['fullpath']
         message = Message({'action':'expande','node':path})
         feedback = self.getParent().messageFromChild(self, message)
