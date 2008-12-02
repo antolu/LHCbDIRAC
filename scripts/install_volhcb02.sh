@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.13 2008/11/19 08:31:31 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.14 2008/12/02 15:14:08 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -162,15 +162,16 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement MightyOptimizer
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
