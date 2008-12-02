@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-generate-catalog.py,v 1.1 2008/11/26 11:50:05 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-generate-catalog.py,v 1.2 2008/12/02 08:52:00 paterson Exp $
 # File :   dirac-lhcb-generate-catalog.py
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-generate-catalog.py,v 1.1 2008/11/26 11:50:05 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-generate-catalog.py,v 1.2 2008/12/02 08:52:00 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -23,7 +23,7 @@ def usage():
   print 'Try --help, -h for more information.'
   DIRAC.exit(2)
 
-if not args or not Script.getUnprocessedSwitches():
+if not args:
   usage()
 
 dirac=Dirac()
