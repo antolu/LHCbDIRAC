@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB09.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r2p1
+DIRACVERSION=v4r3
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -200,6 +200,9 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteMonitoringAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteWMSMonitoringAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   SrmSpaceTokenAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
