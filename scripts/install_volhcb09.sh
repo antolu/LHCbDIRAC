@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB09.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r0
+DIRACVERSION=v4r2p1
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -175,18 +175,20 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 # Missing in CS
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
+# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement MightyOptimizer
+
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
