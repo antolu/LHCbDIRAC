@@ -1,4 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.2 2008/11/13 17:36:18 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.3 2008/12/08 09:38:47 atsareg Exp $
 
 
 '''
@@ -163,7 +163,7 @@ class GridSiteWMSMonitoringAgent(Agent):
     monDict = {}
 
     # Currently running jobs
-    result = self.jobDB.getCounters(['Site','JobType'],{'Status':'Running'},None)
+    result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':'Running'},None)
     if not result['OK']:
       return result
     for siteTuple in result['Value']:
@@ -187,7 +187,7 @@ class GridSiteWMSMonitoringAgent(Agent):
 
     # Jobs finished in the last hour
     dt = Time.dateTime() - datetime.timedelta(seconds=3600)
-    result = self.jobDB.getCounters(['Site','JobType'],{'Status':['Done','Completed','Failed','Killed']},str(dt),timeStamp='EndExecTime')
+    result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':['Done','Completed','Failed','Killed']},str(dt),timeStamp='EndExecTime')
     if not result['OK']:
       return result
     for siteTuple in result['Value']:
@@ -221,7 +221,7 @@ class GridSiteWMSMonitoringAgent(Agent):
             monDict[site][jobType]['WallClockTime'] += result['Value']['WallClockTime']
 
     # Successful jobs in the last hour
-    result = self.jobDB.getCounters(['Site','JobType'],{'Status':['Done','Completed']},str(dt),timeStamp='EndExecTime')
+    result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':['Done','Completed']},str(dt),timeStamp='EndExecTime')
     if not result['OK']:
       return result
     for siteTuple in result['Value']:
