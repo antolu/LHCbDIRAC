@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.4 2008/11/28 16:05:47 zmathe Exp $
+# $Id: TreePanel.py,v 1.5 2008/12/08 13:27:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
-import os
+import DIRAC
 
-__RCSID__ = "$Id: TreePanel.py,v 1.4 2008/11/28 16:05:47 zmathe Exp $"
+__RCSID__ = "$Id: TreePanel.py,v 1.5 2008/12/08 13:27:01 zmathe Exp $"
 
 #############################################################################  
 class TreePanel(QTreeWidget):
@@ -43,8 +43,7 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
-    diracRoot = os.environ['DIRACROOT']
-    picturesPath = diracRoot+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = DIRAC.rootPath+'/DIRAC/BookkeepingSystem/Gui/Widget'
     self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
     
     self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")

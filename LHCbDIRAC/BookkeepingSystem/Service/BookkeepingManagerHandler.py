@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.82 2008/11/24 16:01:34 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.83 2008/12/08 13:27:02 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.82 2008/11/24 16:01:34 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.83 2008/12/08 13:27:02 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -208,6 +208,33 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getProductionFiles = [IntType, StringType]
   def export_getProductionFiles(self, prod, fileType):
     return dataMGMT_.getProductionFiles(int(prod), fileType)
+  
+  #############################################################################  
+  types_getAvailableFileTypes = []
+  def export_getAvailableFileTypes(self):
+    res = dataMGMT_.getAvailableFileTypes()
+    result = []
+    if res['OK']:
+      for record in res['Value']:
+        element = [record[0]]
+        result += [element]
+    else:
+      return res
+    
+    return S_OK(result)
+  
+  
+  #############################################################################  
+  types_getFileMetaDataForUsers = [ListType]
+  def export_getFileMetaDataForUsers(self, lfns):
+    res = dataMGMT_.getFileMetaDataForUsers(lfns)
+    return res
+  
+  #############################################################################  
+  types_getProductionFilesForUsers = [IntType, StringType]
+  def export_getProductionFilesForUsers(self, prod, ftype):
+    res = dataMGMT_.getProductionFilesForUsers(prod, ftype)
+    return res
   
   #############################################################################  
   types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.65 2008/11/24 18:01:24 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.66 2008/12/08 13:27:01 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.65 2008/11/24 18:01:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.66 2008/12/08 13:27:01 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -213,6 +213,24 @@ class BookkeepingClient:
   def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     server = self.__getServer()
     result = server.getLimitedNbOfFiles(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
+    return result
+  
+  #############################################################################
+  def getAvailableFileTypes(self):
+    server = self.__getServer()
+    result = server.getAvailableFileTypes()
+    return result
+  
+  #############################################################################
+  def getFileMetaDataForUsers(self, lfns):
+    server = self.__getServer()
+    result = server.getFileMetaDataForUsers(lfns)
+    return result
+  
+  #############################################################################
+  def getProductionFilesForUsers(self, prod, ftype):
+    server = self.__getServer()
+    result = server.getProductionFilesForUsers(int(prod), ftype)
     return result
   
   #############################################################################

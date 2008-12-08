@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $
+# $Id: FileDialog.py,v 1.8 2008/12/08 13:27:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -7,9 +7,9 @@ from PyQt4.QtCore                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
-import os
+import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.8 2008/12/08 13:27:01 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -22,8 +22,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     self.connect(self.saveButton, SIGNAL("clicked()"), self.__controler.save)   
     
-    diracRoot = os.environ['DIRACROOT']
-    picturesPath = diracRoot+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = DIRAC.rootPath+'/DIRAC/BookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
     self.saveButton.setIcon(saveIcon)
     
