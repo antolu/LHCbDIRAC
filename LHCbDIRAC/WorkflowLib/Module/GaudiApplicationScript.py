@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.13 2008/11/10 16:02:18 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.14 2008/12/09 09:30:24 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.13 2008/11/10 16:02:18 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.14 2008/12/09 09:30:24 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -273,27 +273,27 @@ class GaudiApplicationScript(object):
     stdOutput = resultTuple[1]
     stdError = resultTuple[2]
 
-    self.log.info( "Status after %s execution is %s" %(self.script,str(status)) )
+    self.log.info( "Status after %s execution is %s" %(os.path.basename(self.script),str(status)) )
 
     failed = False
     if status > 0:
-      self.log.info( "%s execution completed with non-zero status:" % self.script )
+      self.log.info( "%s execution completed with non-zero status:" % os.path.basename(self.script) )
       failed = True
     elif len(stdError) > 0:
-      self.log.info( "%s execution completed with application warning:" % self.script )
+      self.log.info( "%s execution completed with application warning:" % os.path.basename(self.script) )
       self.log.info(stdError)
     else:
-      self.log.info( "%s execution completed succesfully:" % self.script )
+      self.log.info( "%s execution completed succesfully:" % os.path.basename(self.script) )
 
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.__report('%s Exited With Status %s' %(self.script,status))
+      self.__report('%s Exited With Status %s' %(os.path.basename(self.script),status))
       self.result = S_ERROR("Script execution completed with errors")
       return self.result
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
-    self.__report('%s (%s %s) Successful' %(self.script,self.applicationName,self.applicationVersion))
+    self.__report('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
     self.result = S_OK()
     return self.result
 
