@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.10 2008/11/10 16:00:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.11 2008/12/09 09:22:34 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.10 2008/11/10 16:00:02 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.11 2008/12/09 09:22:34 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -314,19 +314,20 @@ class LHCbJob(Job):
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
       raise TypeError,'Expected strings for application name and version'
 
+    if not script or not type(script)==type(' '):
+      raise TypeError,'Expected string for script name'
+
+    if not os.path.exists(script):
+      raise TypeError,'Script must exist locally'
+
     if logFile:
       if type(logFile) == type(' '):
         logName = logFile
       else:
         raise TypeError,'Expected string for log file name'
     else:
-      logName = '%s_%s_%s.log' %(appName,appVersion,script)
-
-    if not script or not type(script)==type(' '):
-      raise TypeError,'Expected string for script name'
-
-    if not os.path.exists(script):
-      raise TypeError,'Script must exist locally'
+      shortScriptName = os.path.basename(script).split('.')[0]
+      logName = '%s_%s_%s.log' %(appName,appVersion,shortScriptName)
 
     self.addToInputSandbox.append(script)
 
