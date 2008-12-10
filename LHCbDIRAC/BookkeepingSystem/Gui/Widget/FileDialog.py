@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.8 2008/12/08 13:27:01 zmathe Exp $
+# $Id: FileDialog.py,v 1.9 2008/12/10 14:10:09 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.8 2008/12/08 13:27:01 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.9 2008/12/10 14:10:09 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -164,7 +164,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def saveAs(self):
     
-    saveDialog = QFileDialog (self,'Feicim Save file(s) dialog',QDir.currentPath(),'Option file (*.opts);;Text file (*.txt);;Python option(*.py)')
+    saveDialog = QFileDialog (self,'Feicim Save file(s) dialog',QDir.currentPath(),'Python option(*.py);;Option file (*.opts);;Text file (*.txt)')
     filename = ''
     #self.connect(saveDialog, SIGNAL("filterSelected(const QString &)"),self.filter ) 
     ##saveDialog.setDirectory (QDir.currentPath())
