@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.24 2008/12/08 13:27:01 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.25 2008/12/10 11:24:58 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.24 2008/12/08 13:27:01 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.25 2008/12/10 11:24:58 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -186,8 +186,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getFileMetaDataForUsers(lfns)
   
   #############################################################################
-  def getProductionFilesForUsers(self, prod, ftype):
-    return self.getManager().getProductionFilesForUsers(prod, ftype)
+  def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
+    return self.getManager().getProductionFilesForUsers(prod, ftype, SortDict, StartItem, Maxitems)
   
   #############################################################################
   def getEventTypes(self, configName, configVersion):

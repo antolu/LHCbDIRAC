@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.73 2008/12/01 17:18:56 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.74 2008/12/10 11:24:58 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.73 2008/12/01 17:18:56 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.74 2008/12/10 11:24:58 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1199,7 +1199,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
     # Now write the event selector option
     if pythonOpts:
-        fd.write("\nEventSelector.Input()   = [\n")
+        fd.write("\nfrom Gaudi.Configuration import * \n")
+        fd.write("\nEventSelector().Input   = [\n")
     else:
         fd.write("\nEventSelector.Input   = {\n")
     fileType = fileType.split()[0]
@@ -1392,7 +1393,7 @@ class LHCB_BKKDBManager(BaseESManager):
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
     
       
-      parametersNames = ['name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId']
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:

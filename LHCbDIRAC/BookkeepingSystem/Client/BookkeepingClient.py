@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.66 2008/12/08 13:27:01 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.67 2008/12/10 11:24:58 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.66 2008/12/08 13:27:01 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.67 2008/12/10 11:24:58 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -228,9 +228,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def getProductionFilesForUsers(self, prod, ftype):
+  def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
     server = self.__getServer()
-    result = server.getProductionFilesForUsers(int(prod), ftype)
+    result = server.getProductionFilesForUsers(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
     return result
   
   #############################################################################

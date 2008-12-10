@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.43 2008/12/08 13:27:01 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.44 2008/12/10 11:24:58 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.43 2008/12/08 13:27:01 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.44 2008/12/10 11:24:58 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1203,7 +1203,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getAvailableFileTypes(self):
-    command = ' select Name from filetypes'
+    command = ' select distinct Name from filetypes'
     res = self.dbR_._query(command)
     return res
   
@@ -1237,7 +1237,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
     totalrecords = len(lfns)
-    parametersNames = ['FileName', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica']
+    parametersNames = ['Name', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica']
     records = []
     for file in lfns:
       res = self.dbR_.executeStoredProcedure('BKK_ORACLE.getFileMetaData',[file])
@@ -1250,12 +1250,31 @@ class OracleBookkeepingDB(IBookkeepingDB):
           records += [row]
     return S_OK({'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records}) 
   
-  def getProductionFilesForUsers(self, prod, ftype):
+  #############################################################################
+  def __getProductionStatisticsForUsers(self, prod):
+    command = 'select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from files ,jobs where jobs.jobid=files.jobid and jobs.production='+str(prod)
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getProductionFilesForUsers(self, prod, ftypeDict, SortDict, StartItem, Maxitems):
     command = ''
-    totalrecords = 0
-    parametersNames = ['FileName', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica']
+    parametersNames = ['Name', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica']
     records = []
     
+    totalrecords = 0
+    nbOfEvents = 0
+    filesSize = 0
+    ftype = ftypeDict['type']
+    if len(SortDict) > 0:
+      res = self.db_.__getProductionStatisticsForUsers(prod)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+      else:
+        totalrecords = res['Value'][0][0]
+        nbOfEvents = res['Value'][0][1]
+        filesSize = res['Value'][0][2]
+        
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
       res = self.dbR_._query(fileType)
@@ -1267,20 +1286,35 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('File Type not found:'+str(ftype)) 
         
         ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.filesize,\''+str(ftype)+'\' ,files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
+        
+        command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica from \
+                ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica \
+                from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica \
+                           from jobs,files,filetypes where \
+                           jobs.jobid=files.jobid and \
+                           files.filetypeid='+str(ftypeId)+' and \
+                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
     else:
-      command = 'select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica  from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)
+      
+      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica from \
+                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica \
+                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica \
+                           from jobs,files,filetypes where \
+                           jobs.jobid=files.jobid and \
+                           files.filetypeid=filetypes.filetypeid and \
+                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
    
     res = self.dbR_._query(command)
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        row = [record[0],record[1],record[2],record[3],record[4],record[5],record[6]]
+        row = [record[1],record[2],record[3],record[4],record[5],record[6],record[7]]
         records += [row]
         totalrecords += 1
     else:
       return S_ERROR(res['Message'])
-    return S_OK({'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records}) 
+    return S_OK({'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize }}}) 
+  
   #############################################################################
   def exists(self, lfns):
     result ={}
