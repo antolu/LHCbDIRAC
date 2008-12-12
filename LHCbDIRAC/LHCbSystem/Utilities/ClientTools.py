@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.1 2008/12/02 13:57:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.2 2008/12/12 16:00:14 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.1 2008/12/02 13:57:20 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.2 2008/12/12 16:00:14 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -174,6 +174,9 @@ def _getLibFiles(inputPath,destinationDir):
   """ Simple function to retrieve user libraries.
   """
   gLogger.verbose('dir is at :"%s"' % inputPath)
+  if not os.path.exists(inputPath):
+    return S_ERROR('Directory %s does not exist' %inputPath)
+
   if not os.path.exists('%s/lib' %destinationDir):
     try:
       os.makedirs('%s/lib' %destinationDir)
