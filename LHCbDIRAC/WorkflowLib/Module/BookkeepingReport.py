@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.28 2008/10/08 14:54:30 joel Exp $
+# $Id: BookkeepingReport.py,v 1.29 2008/12/12 13:22:29 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.28 2008/10/08 14:54:30 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.29 2008/12/12 13:22:29 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -85,10 +85,10 @@ class BookkeepingReport(ModuleBase):
 
     self.resolveInputVariables()
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
-    bfile = open(bfilename,'w')
-    print >> bfile,self.makeBookkeepingXMLString()
-    bfile.close()
+#    bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
+#    bfile = open(bfilename,'w')
+#    print >> bfile,self.makeBookkeepingXMLString()
+#    bfile.close()
 
     bfilename = 'newbookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
