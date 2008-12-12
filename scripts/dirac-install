@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.116 2008/11/25 16:27:27 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.117 2008/12/12 21:38:21 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.116 2008/11/25 16:27:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.116 $"
+__RCSID__   = "$Id: dirac-install,v 1.117 2008/12/12 21:38:21 rgracian Exp $"
+__VERSION__ = "$Revision: 1.117 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -752,7 +752,7 @@ class Dirac:
     except Exception, x:
       try:
         error = 'Extracting file "%s"' % localName
-        ret = os.system( 'tar -tzf %s > /dev/null' % localName )
+        ret = os.system( 'tar -tzf %s > /dev/null 2>&1' % localName )
         if ret != 0:
           raise Exception( 'Fail to extract tarfile'  )
         if dir:
@@ -763,10 +763,11 @@ class Dirac:
         os.remove( localName )
         return
       except Exception, x:
-        pass
-      if reportError:
-        self.logERROR( error )
-        self.logEXCEP( x )
+        if reportError:
+          self.logERROR( error )
+          self.logEXCEP( x )
+        else:
+          raise x
 
   def _createTar( self, name, dirs):
     """
@@ -891,7 +892,7 @@ class Dirac:
     try:
       self._getTar( name, externalTimeout, reportError=False )
     except:
-      self.logINFO( 'LCG tool tar file is not available for your platform' )
+      self.logERROR( '\nLCG tar file is not available for your platform %s\n' % name )
 
 
   def cleanScripts(self):
