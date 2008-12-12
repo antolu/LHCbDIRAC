@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.32 2008/11/19 06:59:34 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.33 2008/12/12 12:53:02 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.32 2008/11/19 06:59:34 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.33 2008/12/12 12:53:02 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -182,7 +182,7 @@ class AnalyseLogFile(ModuleBase):
       n=0
       thisline = ''
       for line in file:
-         if line.find(string)!= -1:
+         if line.lower().find(string.lower())!= -1:
             n = n+1
             if opt == '-cl':
                thisline = line
@@ -405,17 +405,21 @@ class AnalyseLogFile(ModuleBase):
                         'Error:connectDataIO':'connectDataIO error',\
                         ' glibc ':'Problem with glibc'}
 
+      if self.applicationName == 'Gauss':
+          dict_app_error['G4Exception'] = 'Geant4 Exception'
+
       for type_error in dict_app_error.keys():
           self.log.info('Check %s' %(dict_app_error[type_error]))
           line,founderror = self.grep(self.applicationLog,type_error)
           if founderror >= 1:
               return S_ERROR(mailto +' '+type_error)
 
+      Geanterr = 'G4Exception'
       writerr = 'Writer failed'
       if self.applicationName == 'Gauss':
          writerr = 'GaussTape failed'
 
-      writer_error_list = [writerr,'bus error','User defined signal 1','Not found DLL']
+      writer_error_list = [writerr,'Bus error','User defined signal 1','Not found DLL']
       for writer_error in writer_error_list:
          line,n = self.grep(self.applicationLog,writer_error)
          if n == 1:
