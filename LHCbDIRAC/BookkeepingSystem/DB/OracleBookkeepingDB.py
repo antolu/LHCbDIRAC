@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.45 2008/12/15 15:04:59 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.46 2008/12/15 15:44:49 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.45 2008/12/15 15:04:59 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.46 2008/12/15 15:44:49 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1279,7 +1279,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     filesSize = 0
     ftype = ftypeDict['type']
     if len(SortDict) > 0:
-      res = self.db_.__getProductionStatisticsForUsers(prod)
+      res = self.__getProductionStatisticsForUsers(prod)
       if not res['OK']:
         gLogger.error(res['Message'])
       else:

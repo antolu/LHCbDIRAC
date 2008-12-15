@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.68 2008/12/15 15:04:59 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.69 2008/12/15 15:44:49 zmathe Exp $
 ########################################################################
 
 """
@@ -11,11 +11,11 @@ from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.Base                 import Script
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities            import DEncode
-import types,cPickle
+import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.68 2008/12/15 15:04:59 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.69 2008/12/15 15:44:49 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -194,6 +194,7 @@ class BookkeepingClient:
       return result
     else:
       value = cPickle.load(open('tmp.txt'))
+      os.remove('tmp.txt')
       return S_OK(value)
     return S_ERROR()
 
