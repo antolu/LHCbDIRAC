@@ -20,7 +20,10 @@ set DIRACPLAT $(dplat)
 macro DiracSys_home "$(DIRACROOT)/$(dplat)"
 apply_pattern set_lib_path
 apply_pattern set_bin_path
+path_remove PATH "/DIRAC/"
+path_remove PYTHONPATH "/DIRAC/"
 path_prepend PATH "$(DIRACROOT)/scripts"
+path_prepend PATH "$(DIRACROOT)/$(dplat)/bin"
 path_prepend PYTHONPATH $(DIRACROOT)
 path_prepend PYTHONPATH $(DIRACROOT)/$(dplat)/lib/python$(Python_config_version_twodigit)/site-packages
 set DIRAC_VOMSES "$(DIRACROOT)/etc/vomses"
