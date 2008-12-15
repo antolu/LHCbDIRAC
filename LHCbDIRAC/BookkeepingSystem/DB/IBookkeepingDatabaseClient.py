@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.25 2008/12/10 11:24:58 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.26 2008/12/15 15:05:00 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.25 2008/12/10 11:24:58 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.26 2008/12/15 15:05:00 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -136,6 +136,14 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getAvailableConfigurations(self):
     return self.getManager().getAvailableConfigurations()
+  
+  #############################################################################
+  def getAvailableConfigNames(self):
+    return self.getManager().getAvailableConfigNames()
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    return self.getManager().getConfigVersions(configname)
   
   #############################################################################
   def getSimulationConditions(self, configName, configVersion, realdata):

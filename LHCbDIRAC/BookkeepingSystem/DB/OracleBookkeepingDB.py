@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.44 2008/12/10 11:24:58 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.45 2008/12/15 15:04:59 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.44 2008/12/10 11:24:58 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.45 2008/12/15 15:04:59 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -63,6 +63,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
     """
     return self.dbR_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
 
+  #############################################################################
+  def getAvailableConfigNames(self):
+    command = ' select distinct Configname from configurations'
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    command = ' select distinct configversion from configurations where configname=\''+configname+'\''
+    res = self.dbR_._query(command)
+    return res
+  
   #############################################################################
   def getSimulationConditions(self, configName, configVersion, realdata):
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \

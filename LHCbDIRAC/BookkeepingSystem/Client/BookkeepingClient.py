@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.67 2008/12/10 11:24:58 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.68 2008/12/15 15:04:59 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.67 2008/12/10 11:24:58 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.68 2008/12/15 15:04:59 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -257,9 +257,20 @@ class BookkeepingClient:
     result = server.updateFileMetaData(filename, filesAttr)
     return result
 
-
-
-
+  
+  #############################################################################
+  def getAvailableConfigNames(self):
+    server = self.__getServer()
+    result = server.getAvailableConfigNames()
+    return result
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    server = self.__getServer()
+    result = server.getConfigVersions(configname)
+    return result
+  
+  
 
   #############################################################################
   def getAncestors(self, lfns, depth=1):

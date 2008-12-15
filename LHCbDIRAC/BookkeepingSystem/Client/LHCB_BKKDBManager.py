@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.74 2008/12/10 11:24:58 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.75 2008/12/15 15:04:59 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.74 2008/12/10 11:24:58 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.75 2008/12/15 15:04:59 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -32,7 +32,8 @@ class LHCB_BKKDBManager(BaseESManager):
     # watch out for this ad hoc solution
     # if any changes made check all functions
     #
-  LHCB_BKDB_PREFIXES_CONFIG =     ['CFG',    # configurations
+  LHCB_BKDB_PREFIXES_CONFIG =     ['CFGN',  # configname
+                                   'CFGV',  #configversion
                                    'SCON',
                                    'PAS',
                                    'EVT',    # event type
@@ -49,7 +50,8 @@ class LHCB_BKKDBManager(BaseESManager):
                                    ''
                                   ]
   
-  LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFG',
+  LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFGN',
+                                  'CFGV',
                                   'EVT',
                                   'SCON',
                                   'PAS',
@@ -175,40 +177,44 @@ class LHCB_BKKDBManager(BaseESManager):
        self.clevelHeader_0(path, levels, processedPath)
        entityList += self.clevelBody_0(path, levels,)
     if levels == 1: 
-      configName, configVersion = self.clevelHeader_1(path, levels, processedPath) 
-      entityList += self.clevelBody_1(path, levels, configName, configVersion)
+      configName = self.clevelHeader_1(path, levels, processedPath) 
+      entityList += self.clevelBody_1(path, levels, configName)  
     if levels == 2: 
-      configName, configVersion, simid = self.clevelHeader_2(path, levels, processedPath) 
-      entityList += self.clevelBody_2(path, levels, configName, configVersion, simid)
+      configName, configVersion = self.clevelHeader_2(path, levels, processedPath) 
+      entityList += self.clevelBody_2(path, levels, configName, configVersion)
     if levels == 3: 
-      configName, configVersion, simid, processing = self.clevelHeader_3(path, levels, processedPath) 
-      entityList += self.clevelBody_3(path, levels, configName, configVersion, simid, processing)
-    if levels == 4 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType = self.clevelHeader_4(path, levels, processedPath) 
-      entityList += self.clevelBody_4(path, levels, configName, configVersion, simid, processing, evtType)
-    elif levels == 4 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[4],'ALL'))
-      path = newPath
-      v,processedPath = self._processPath(path)
-      levels = 5
+      configName, configVersion, simid = self.clevelHeader_3(path, levels, processedPath) 
+      entityList += self.clevelBody_3(path, levels, configName, configVersion, simid)
+    if levels == 4: 
+      configName, configVersion, simid, processing = self.clevelHeader_4(path, levels, processedPath) 
+      entityList += self.clevelBody_4(path, levels, configName, configVersion, simid, processing)
     
-
-    if levels == 5: 
-      configName, configVersion, simid, processing, evtType, prod = self.clevelHeader_5(path, levels, processedPath) 
-      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType, prod)
-   
-    if levels == 6 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType, prod, ftype = self.clevelHeader_6(path, levels, processedPath) 
-      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
-    elif levels == 6 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[6],'ALL'))
+    if levels == 5 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType = self.clevelHeader_5(path, levels, processedPath) 
+      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType)
+    elif levels == 5 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[5],'ALL'))
       path = newPath
       v,processedPath = self._processPath(path)
-      levels = 7
-      
-    if levels == 7: 
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_7(path, levels, processedPath) 
-      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+      levels = 6
+
+    if levels == 6: 
+      configName, configVersion, simid, processing, evtType, prod = self.clevelHeader_6(path, levels, processedPath) 
+      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod)
+
+    if levels == 7 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType, prod, ftype = self.clevelHeader_7(path, levels, processedPath) 
+      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
+    elif levels == 7 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[7],'ALL'))
+      path = newPath
+      v,processedPath = self._processPath(path)
+      levels = 8
+
+    if levels == 8: 
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_8(path, levels, processedPath) 
+      entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+
     return entityList
   
   ############################################################################# 
@@ -232,21 +238,21 @@ class LHCB_BKKDBManager(BaseESManager):
   def clevelHeader_0(self, path, levels, processedPath):
     entityList = list()
     print "-----------------------------------------------------------"
-    print "Configurations name and version:\n"
+    print "Configurations names:\n"
     print "-----------------------------------------------------------"
 
     # list root
-    gLogger.debug("listing configurations")
+    gLogger.debug("listing Configuration Names")
   
   ############################################################################# 
   def clevelBody_0(self, path, levels):
     entityList = list()
-    result = self.db_.getAvailableConfigurations()
+    result = self.db_.getAvailableConfigNames()
     
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        configs = record[0]+' '+record[1]
+        configs = record[0]
         entityList += [self._getEntityFromPath(path, configs, levels)]
       self._cacheIt(entityList)
     else:
@@ -256,10 +262,36 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelHeader_1(self, path, levels, processedPath):
     entityList = list()
+    gLogger.debug("listing configversions")
+    configName = processedPath[0][1]  
+    print "-----------------------------------------------------------"
+    print "Selected parameters:"
+    print "-----------------------------------------------------------"
+    print "Configuration Name      | "+configName
+    
+    print "Available Config Versions:\n"
+    return configName
+  
+  def clevelBody_1(self, path, levels, configName):
+    entityList = list()
+    result = self.db_.getConfigVersions(configName)
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        configs = record[0]
+        entityList += [self._getEntityFromPath(path, configs, levels,'Configuration versions')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  
+  ############################################################################# 
+  def clevelHeader_2(self, path, levels, processedPath):
+    entityList = list()
     gLogger.debug("listing Simulation Conditions!")
-    config = processedPath[0][1]
-    configName = config.split(' ')[0]
-    configVersion = config.split(' ')[1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
           
     print "-----------------------------------------------------------"
     print "Selected parameters:"
@@ -271,7 +303,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion
   
   ############################################################################# 
-  def clevelBody_1(self, path, levels, configName, configVersion):
+  def clevelBody_2(self, path, levels, configName, configVersion):
     entityList = list()
     if configName=='MC':
       result = self.db_.getSimulationConditions(configName, configVersion) 
@@ -306,15 +338,15 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         gLogger.error(result['Message'])
     return entityList
+  
 
   ############################################################################# 
-  def clevelHeader_2(self, path, levels, processedPath):
+  def clevelHeader_3(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("listing processing pass")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
 
     print "-----------------------------------------------------------"
     print "Selected parameters:"
@@ -328,7 +360,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid
   
   ############################################################################# 
-  def clevelBody_2(self, path, levels, configName, configVersion, simid):
+  def clevelBody_3(self, path, levels, configName, configVersion, simid):
     entityList = list()
     result = self.db_.getProPassWithSimCond(configName, configVersion, simid)
     if result['OK']:
@@ -345,16 +377,15 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       gLogger.error(result['Message'])
     return entityList
-          
+  
   ############################################################################# 
-  def clevelHeader_3(self, path, levels, processedPath):
+  def clevelHeader_4(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("listing event types")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
  
     print "-----------------------------------------------------------"
     print "Selected parameters: "
@@ -371,7 +402,7 @@ class LHCB_BKKDBManager(BaseESManager):
   
   
   ############################################################################# 
-  def clevelBody_3(self, path, levels, configName, configVersion, simid, processing):
+  def clevelBody_4(self, path, levels, configName, configVersion, simid, processing):
     entityList = list()
     result = self.db_.getEventTypeWithSimcond(configName, configVersion, simid, processing)
     if result['OK']:
@@ -384,16 +415,15 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
         gLogger.error(result['Message'])
     return entityList    
-      
+    
   ############################################################################# 
-  def clevelHeader_4(self, path, levels, processedPath):
+  def clevelHeader_5(self, path, levels, processedPath):
     entityList = list()
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
-    evtType = processedPath[3][1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
     
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -408,7 +438,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid, processing, evtType
   
   ############################################################################# 
-  def clevelBody_4(self, path, levels, configName, configVersion, simid, processing, evtType):
+  def clevelBody_5(self, path, levels, configName, configVersion, simid, processing, evtType):
     entityList = list()
     result = self.db_.getProductionsWithSimcond(configName, configVersion, simid, processing, evtType)
     if result['OK']:
@@ -426,15 +456,14 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
-  def clevelHeader_5(self, path, levels, processedPath):
+  def clevelHeader_6(self, path, levels, processedPath):
     entityList = list()
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
-    evtType = processedPath[3][1]
-    prod = processedPath[4][1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
   
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -450,7 +479,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid, processing, evtType, prod
   
   ############################################################################# 
-  def clevelBody_5(self, path, levels, configName, configVersion, simid, processing, evtType, prod):
+  def clevelBody_6(self, path, levels, configName, configVersion, simid, processing, evtType, prod):
     entityList = list()
     result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
     if result['OK']:
@@ -462,18 +491,17 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       gLogger.error(result['Message'])
     return entityList
-
+  
   ############################################################################# 
-  def clevelHeader_6(self, path, levels, processedPath):
+  def clevelHeader_7(self, path, levels, processedPath):
     entityList = list()
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
-    evtType = processedPath[3][1]
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]  
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]  
     
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -490,7 +518,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid, processing, evtType, prod, ftype
   
   ############################################################################# 
-  def clevelBody_6(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype):
+  def clevelBody_7(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype):
     entityList = list()
     result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
     if result['OK']:
@@ -509,26 +537,25 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       gLogger.error(result['Message'])
     return entityList
-      
+ 
   ############################################################################# 
-  def clevelHeader_7(self, path, levels, processedPath):
+  def clevelHeader_8(self, path, levels, processedPath):
     entityList = list()
     self.files_ = []
     gLogger.debug("listing files")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
-    evtType = processedPath[3][1]
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]
-    if processedPath[6][1] != 'ALL':
-      pname = processedPath[6][1].split(' ')[0]
-      pversion = processedPath[6][1].split(' ')[1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if processedPath[7][1] != 'ALL':
+      pname = processedPath[7][1].split(' ')[0]
+      pversion = processedPath[7][1].split(' ')[1]
     else:
-      pname = processedPath[6][1]
-      pversion = processedPath[6][1]
+      pname = processedPath[7][1]
+      pversion = processedPath[7][1]
 
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -546,7 +573,7 @@ class LHCB_BKKDBManager(BaseESManager):
     print "File list:\n"
     return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
   
-  def clevelBody_7(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
+  def clevelBody_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
     entityList = list()
     result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
     selection = {"Configuration Name":configName, \
@@ -585,44 +612,51 @@ class LHCB_BKKDBManager(BaseESManager):
        self.clevelHeader_0(path, levels, processedPath)
        entityList += self.clevelBody_0(path, levels,)
     if levels == 1: 
-      configName, configVersion = self.clevelHeader_1(path, levels, processedPath) 
-      entityList += self.elevelBody_1(path, levels, configName, configVersion)
+      configName = self.clevelHeader_1(path, levels, processedPath) 
+      entityList += self.clevelBody_1(path, levels, configName)  
+
     if levels == 2: 
-      configName, configVersion, eventType = self.elevelHeader_2(path, levels, processedPath) 
-      entityList += self.elevelBody_2(path, levels, configName, configVersion, eventType)
+      configName, configVersion = self.clevelHeader_2(path, levels, processedPath) 
+      entityList += self.elevelBody_2(path, levels, configName, configVersion)
+   
     if levels == 3: 
-      configName, configVersion, eventtype, simcond = self.elevelHeader_3(path, levels, processedPath) 
-      entityList += self.elevelBody_3(path, levels, configName, configVersion, eventtype, simcond)
-    if levels == 4 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType = self.elevelHedaer_4(path, levels, processedPath) 
-      entityList += self.clevelBody_4(path, levels, configName, configVersion, simid, processing, evtType)
-    elif levels == 4 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[4],'ALL'))
+      configName, configVersion, eventType = self.elevelHeader_3(path, levels, processedPath) 
+      entityList += self.elevelBody_3(path, levels, configName, configVersion, eventType)
+    
+    if levels == 4: 
+      configName, configVersion, eventtype, simcond = self.elevelHeader_4(path, levels, processedPath) 
+      entityList += self.elevelBody_4(path, levels, configName, configVersion, eventtype, simcond)
+   
+    if levels == 5 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType = self.elevelHedaer_5(path, levels, processedPath) 
+      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType)
+    elif levels == 5 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[5],'ALL'))
       path = newPath
       v,processedPath = self._processPath(path)
-      levels = 5
+      levels = 6
     
 
-    if levels == 5: 
-      configName, configVersion, simid, processing, evtType, prod = self.elevelHeader_5(path, levels, processedPath) 
-      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType, prod)
+    if levels == 6: 
+      configName, configVersion, simid, processing, evtType, prod = self.elevelHeader_6(path, levels, processedPath) 
+      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod)
    
-    if levels == 6 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType, prod, ftype = self.elevelHeader_6(path, levels, processedPath) 
-      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
-    elif levels == 6 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[6],'ALL'))
+    if levels == 7 and self.advancedQuery_: 
+      configName, configVersion, simid, processing, evtType, prod, ftype = self.elevelHeader_7(path, levels, processedPath) 
+      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
+    elif levels == 7 and not self.advancedQuery_:
+      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[7],'ALL'))
       path = newPath
       v,processedPath = self._processPath(path)
-      levels = 7
+      levels = 8
       
-    if levels == 7: 
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_7(path, levels, processedPath) 
-      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+    if levels == 8: 
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_8(path, levels, processedPath) 
+      entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
     return entityList
   
    ############################################################################# 
-  def elevelBody_1(self, path, levels, configName, configVersion):      
+  def elevelBody_2(self, path, levels, configName, configVersion):      
     entityList = list()
     result = self.db_.getEventTypes(configName, configVersion)
     if result['OK']:
@@ -641,13 +675,11 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   ############################################################################# 
-  def elevelHeader_2(self, path, levels, processedPath):
+  def elevelHeader_3(self, path, levels, processedPath):
     gLogger.debug("listing simulation conditions")
-    config = processedPath[0][1]
-    configName = config.split(' ')[0]
-    configVersion = config.split(' ')[1]
-    
-    eventType = processedPath[1][1]
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    eventType = processedPath[2][1]
     
     print "-----------------------------------------------------------"
     print "Selected parameters:"
@@ -661,7 +693,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, eventType
   
   ############################################################################# 
-  def elevelBody_2(self,path, levels, configName, configVersion, eventType):
+  def elevelBody_3(self,path, levels, configName, configVersion, eventType):
     entityList = list()
     if configName=='MC':
       result = self.db_.getSimCondWithEventType(configName, configVersion, eventType)
@@ -698,13 +730,12 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
-  def elevelHeader_3(self, path, levels, processedPath):
+  def elevelHeader_4(self, path, levels, processedPath):
     gLogger.debug("listing processing pass")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    eventtype = processedPath[1][1]
-    simcond = processedPath[2][1]
+    configName = processedPath[0][1] 
+    configVersion = processedPath[1][1]
+    eventtype = processedPath[2][1]
+    simcond = processedPath[3][1]
  
     print "-----------------------------------------------------------"
     print "Selected parameters: "
@@ -716,11 +747,11 @@ class LHCB_BKKDBManager(BaseESManager):
     print "Simulation Condition    | "+str(simcond)
     print "-----------------------------------------------------------"
 
-    print "Available processing pass types types:"
+    print "Available processing pass types:"
     return configName, configVersion, eventtype, simcond
   
   ############################################################################# 
-  def elevelBody_3(self, path, levels, configName, configVersion, eventtype, simcond):
+  def elevelBody_4(self, path, levels, configName, configVersion, eventtype, simcond):
     entityList = list()
     result = self.db_.getProPassWithEventType(configName, configVersion, eventtype, simcond)
     if result['OK']:
@@ -739,13 +770,12 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
-  def elevelHedaer_4(self, path, levels, processedPath):
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    evtType = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
+  def elevelHedaer_5(self, path, levels, processedPath):
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    evtType = processedPath[2][1]
+    simid = processedPath[3][1]
+    processing = processedPath[4][1]
     
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -760,14 +790,13 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid, processing, evtType
   
   ############################################################################# 
-  def elevelHeader_5(self, path, levels, processedPath):
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    evtType = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1] 
-    prod = processedPath[4][1]
+  def elevelHeader_6(self, path, levels, processedPath):
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    evtType = processedPath[2][1]
+    simid = processedPath[3][1]
+    processing = processedPath[4][1] 
+    prod = processedPath[5][1]
             
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -777,21 +806,20 @@ class LHCB_BKKDBManager(BaseESManager):
     print "Simulation Condition   | "+str(simid)
     print "Processing Pass        | "+str(processing)
     print "Event type             | "+str(evtType)
-    print "Production             | "+str(processedPath[4][1])
+    print "Production             | "+str(prod)
     print "-----------------------------------------------------------"
     print "Available file types:"
     return configName, configVersion, simid, processing, evtType, prod
   
   #############################################################################       
-  def elevelHeader_6(self, path, levels, processedPath):
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    evtType = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1] 
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]  
+  def elevelHeader_7(self, path, levels, processedPath):
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    evtType = processedPath[2][1]
+    simid = processedPath[3][1]
+    processing = processedPath[4][1] 
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]  
     
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -801,7 +829,7 @@ class LHCB_BKKDBManager(BaseESManager):
     print "Simulation Condition   | "+str(simid)
     print "Processing Pass        | "+str(processing)
     print "Event type             | "+str(evtType)
-    print "Production             | "+str(processedPath[4][1])
+    print "Production             | "+str(prod)
     print "File Type              | "+str(ftype)
     print "-----------------------------------------------------------"
     print "Available program name and version:"
@@ -809,24 +837,23 @@ class LHCB_BKKDBManager(BaseESManager):
       
   
   ############################################################################# 
-  def elevelHeader_7(self, path, levels, processedPath):
+  def elevelHeader_8(self, path, levels, processedPath):
   
     self.files_ = []
     gLogger.debug("listing files")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    evtType = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1] 
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]
-    if len(processedPath[6][1])<7:
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    evtType = processedPath[2][1]
+    simid = processedPath[3][1]
+    processing = processedPath[4][1] 
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if len(processedPath[7][1]) < 8:
       pname = 'ALL'
       pversion = 'ALL'
     else:
-      pname = processedPath[6][1].split(' ')[0]
-      pversion = processedPath[6][1].split(' ')[1]
+      pname = processedPath[7][1].split(' ')[0]
+      pversion = processedPath[7][1].split(' ')[1]
 
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -1009,9 +1036,9 @@ class LHCB_BKKDBManager(BaseESManager):
       if leveldescription <> None:
         entity.update({'level':leveldescription})
       
-      if not self.advancedQuery_ and level==5:
+      if not self.advancedQuery_ and level==6:
         entity.update({'showFiles':0})
-      elif  self.advancedQuery_ and level==6:
+      elif  self.advancedQuery_ and level==7:
         entity.update({'showFiles':0})
     
     return entity
@@ -1037,9 +1064,9 @@ class LHCB_BKKDBManager(BaseESManager):
       if leveldescription <> None:
         entity.update({'level':leveldescription})
     
-      if not self.advancedQuery_ and level==5:
+      if not self.advancedQuery_ and level==6:
         entity.update({'showFiles':0})
-      elif  self.advancedQuery_ and level==6:
+      elif  self.advancedQuery_ and level==7:
         entity.update({'showFiles':0})  
     return entity
     
@@ -1267,24 +1294,23 @@ class LHCB_BKKDBManager(BaseESManager):
     #if levels == 7:
     self.files_ = []
     gLogger.debug("listing files")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    simid = processedPath[1][1]
-    processing = processedPath[2][1]
-    evtType = processedPath[3][1]
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]
-    if len(processedPath) < 7:
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if len(processedPath) < 8:
       pname = 'ALL'
       pversion = 'ALL'
     else: 
-      if processedPath[6][1] != 'ALL':
-        pname = processedPath[6][1].split(' ')[0]
-        pversion = processedPath[6][1].split(' ')[1]
+      if processedPath[7][1] != 'ALL':
+        pname = processedPath[7][1].split(' ')[0]
+        pversion = processedPath[7][1].split(' ')[1]
       else:
-        pname = processedPath[6][1]
-        pversion = processedPath[6][1]
+        pname = processedPath[7][1]
+        pversion = processedPath[7][1]
 
     print "-----------------------------------------------------------"
     print "Selected parameters:   "
@@ -1332,20 +1358,19 @@ class LHCB_BKKDBManager(BaseESManager):
     #if levels == 7:    
     self.files_ = []
     gLogger.debug("listing files")
-    value = processedPath[0][1]
-    configName = value.split(' ')[0]
-    configVersion = value.split(' ')[1]
-    evtType = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1] 
-    prod = processedPath[4][1]
-    ftype = processedPath[5][1]
-    if len(processedPath) < 7:
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    evtType = processedPath[2][1]
+    simid = processedPath[3][1]
+    processing = processedPath[4][1] 
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if len(processedPath) < 8:
       pname = 'ALL'
       pversion = 'ALL'
     else:
-      pname = processedPath[6][1].split(' ')[0]
-      pversion = processedPath[6][1].split(' ')[1]
+      pname = processedPath[7][1].split(' ')[0]
+      pversion = processedPath[7][1].split(' ')[1]
 
     print "-----------------------------------------------------------"
     print "Selected parameters:   "

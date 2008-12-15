@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.84 2008/12/10 11:24:58 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.85 2008/12/15 15:05:00 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.84 2008/12/10 11:24:58 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.85 2008/12/15 15:05:00 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -174,6 +174,18 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getAvailableConfigurations(self):
     return dataMGMT_.getAvailableConfigurations()
     
+    
+  #############################################################################
+  types_getAvailableConfigNames = []
+  def export_getAvailableConfigNames(self):
+    return dataMGMT_.getAvailableConfigNames()
+  
+  #############################################################################
+  types_getConfigVersions = [StringType]
+  def export_getConfigVersions(self, configname):
+    return dataMGMT_.getConfigVersions(configname)
+
+
   #############################################################################
   types_getSimulationConditions = [StringType, StringType, IntType ]
   def export_getSimulationConditions(self, configName, configVersion, realdata):
