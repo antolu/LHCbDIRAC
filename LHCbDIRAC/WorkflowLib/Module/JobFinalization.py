@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.129 2008/10/23 09:46:34 paterson Exp $
+# $Id: JobFinalization.py,v 1.130 2008/12/15 09:00:16 joel Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,15 +22,13 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.129 2008/10/23 09:46:34 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.130 2008/12/15 09:00:16 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
-from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBOldClient import BookkeepingDBOldClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from DIRAC.BookkeepingSystem.Client.BookkeepingClientOld import BookkeepingClientOld
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from WorkflowLib.Utilities.Tools import *
@@ -85,9 +83,7 @@ class JobFinalization(ModuleBase):
 
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
-    self.bkold = BookkeepingClientOld()
     self.bkDB = BookkeepingDBClient()
-    self.bkDBOld = BookkeepingDBOldClient()
     self.jobReport  = None
     self.fileReport = None
     self.request = None
@@ -257,24 +253,12 @@ class JobFinalization(ModuleBase):
         if result['Value'] == "Catalog does not exist":
           bk_catalog_exists = False
 
-      # Remove explicitly BookkeepingDBOld catalog for the output data operations
-      result = self.rm.fileCatalogue.removeCatalog('BookkeepingDBOld')
-      if not result['OK']:
-        self.log.warn('Failed to remove BookkeepingDB from the list of catalogs')
-        bk_catalog_old_exists = False
-      else:
-        bk_catalog_old_exists = True
-        if result['Value'] == "Catalog does not exist":
-          bk_catalog_old_exists = False
-
       # Do the data upload now
       resultUpload = self.uploadOutput()
 
       # Add the BK catalog back
       if bk_catalog_exists:
         self.rm.fileCatalogue.addCatalog('BookkeepingDB')
-      if bk_catalog_old_exists:
-        self.rm.fileCatalogue.addCatalog('BookkeepingDBOld')
 
 
       #################################################################
@@ -289,12 +273,6 @@ class JobFinalization(ModuleBase):
         if not resultBK['OK']:
           self.log.error(resultBK['Message'])
           bk_done = False
-
-        # Report to the old Bookkeeping Manager
-        resultBKOld = self.reportBookkeepingOld()
-        if not resultBKOld['OK']:
-          self.log.error(resultBKOld['Message'])
-          bkold_done = False
 
         resultBKReplica = self.setBKReplica(lfnList,failoverLfnList,bk_done)
       else:
@@ -381,50 +359,6 @@ class JobFinalization(ModuleBase):
 
     return result
 
-################################################################################
-  def reportBookkeepingOld(self):
-    """ Collect and send safely the bookkeeping reports
-    """
-
-    result = S_OK()
-    books = []
-    files = os.listdir('.')
-    for f in files:
-      if re.search('^bookkeeping',f):
-        books.append(f)
-
-    bk_OK = True
-    failed = []
-
-    for f in books:
-      counter = 0
-      send_flag = True
-      self.log.info( "Sending bookkeeping file %s" % str( f ) )
-      fm = f.replace('bookkeeping_','')
-      reqfile = open(f,'r')
-      xmlstring = reqfile.read()
-      while (send_flag):
-        result = self.bkold.sendBookkeeping(fm,xmlstring)
-        if not result['OK']:
-          counter += 1
-          if result['Message'].find('Connection timed out') != -1:
-            time.sleep(self.bookkeepingTimeOut)
-          if counter > 3:
-            self.log.error( "Failed to send bookkeeping information for %s: \n%s" % (str(f),result['Message']) )
-            self.log.info('Setting DISET request for bookkeeping upload')
-            self.request.setDISETRequest(result['rpcStub'],executionOrder=2)
-            send_flag = False
-            bk_OK = False
-            failed.append(str(f))
-        else:
-          self.log.info( "Bookkeeping %s sent successfully" % f )
-          send_flag = False
-
-    if not bk_OK:
-      failed_string = ','.join(failed)
-      result = S_ERROR('Failed to send bookkeeping information for %s' % failed_string)
-      result['Failed'] = failed
-    return result
 
 ################################################################################
   def setBKReplica(self,lfns,failover_lfns,bk_flag):
@@ -452,22 +386,6 @@ class JobFinalization(ModuleBase):
       for lfn,i1,i2,i3,i4,i5 in fileTupleList_OK:
         self.log.info(lfn)
 
-      # Send replica flag to the old Bookkeeping Manager
-      resultBKReplicaOld = self.bkDBOld.addFile(fileTupleList_OK)
-      if not resultBKReplicaOld['OK']:
-        self.log.warn('Sending Bookkeeping replica flag (old) failed')
-        self.log.warn('Setting Registration request for BookkeepingDBOld catalog')
-        for lfn in fileList_OK:
-          fileDict['LFN'] = lfn
-          resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDBOld',fileDict)
-      else:
-        # Check if all the files are added successfully
-        for lfn in resultBKReplicaOld['Value']['Failed'].keys():
-          self.log.warn('Sending Bookkeeping replica flag (old) for %s failed' % lfn)
-          self.log.warn('Setting Registration request for BookkeepingDBOld catalog')
-          fileDict['LFN'] = lfn
-          resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDBOld',fileDict)
-
       # Send replica flag to the new Bookkeeping Manager
       resultBKReplica = self.bkDB.addFile(fileTupleList_OK)
       if not resultBKReplica['OK']:
@@ -486,7 +404,6 @@ class JobFinalization(ModuleBase):
 
     for lfn in fileList_KO:
       fileDict['LFN'] = lfn
-      resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDBOld',fileDict,executionOrder=3)
       resultBKRequest = self.setRegistrationRequest('SE','BookkeepingDB',fileDict,executionOrder=3)
 
     return S_OK()
