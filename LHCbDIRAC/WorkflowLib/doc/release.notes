@@ -1,4 +1,10 @@
-$Id: release.notes,v 1.4 2008/12/08 07:26:57 joel Exp $
+$Id: release.notes,v 1.5 2008/12/15 17:27:36 joel Exp $
+
+=========
+wkf-v8r0 : JC : 15 Dec 2008
+AnalyseLogFile.py : add some new messages to be trapped
+JobFinalization.py, BookkeepingReport.py : remove any reference to OLD Bookkeeping
+update some template for the workflow
 
 =========
 wkf-v7r3 : JC : 8 Dec 2008
