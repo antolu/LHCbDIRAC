@@ -46,20 +46,16 @@ maxcputime = 300000
 JobType = 'MCSimulation'
 
 #opt_gauss = "importOptions(\"$DECFILESROOT/options/@{eventType}.opts\")"
-opt_gauss = ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_gauss = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 
-opt_boole = "from Boole.Configuration import *"
-opt_boole = opt_boole + ";Boole().useSpillOver = True"
-opt_boole = opt_boole + ";Boole().DDDBtag      = \"2008-default\""
-opt_boole = opt_boole + ";Boole().condDBtag    = \"2008-default\""
-opt_boole = opt_boole + ";Boole().applyConf()"
+opt_boole = "Boole().UseSpillover = True"
 opt_boole = opt_boole + ";OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_boole = opt_boole +";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_boole = opt_boole + ";EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\",\"DATAFILE=\'@{pileupData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]"
 
 #opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
-opt_brunel = ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_brunel = opt_brunel+";EventLoopMgr().OutputLevel = 3"
 opt_brunel = opt_brunel+";OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 opt_brunel = opt_brunel+";HistogramPersistencySvc().OutputFile = \"\""

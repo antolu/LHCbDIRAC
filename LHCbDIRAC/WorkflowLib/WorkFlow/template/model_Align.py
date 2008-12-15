@@ -46,17 +46,12 @@ maxcputime = 300000
 JobType = 'MCSimulation'
 
 # options for Gauss step
-opt_gauss = "importOptions(\"$DECFILESROOT/options/@{eventType}.opts\")"
-opt_gauss = opt_gauss + ";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_gauss = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
 opt_gauss = opt_gauss + ";OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
 
 # options for Boole
-opt_boole ="from DetCond.Configuration import addCondDBLayer"
-opt_boole = opt_boole + ";simCondVelo = allConfigurables[\"SIMCOND\"].clone(\"VELOCOND\")"
-opt_boole = opt_boole + ";simCondVelo.DefaultTAG = \"velo-open\""
-opt_boole = opt_boole + ";addCondDBLayer(simCondVelo)"
-opt_boole = opt_boole + ";OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
-opt_boole = opt_boole +";Boole().noWarnings = True"
+opt_boole = "OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
+opt_boole = opt_boole +";Boole().NoWarnings = True"
 
 # options for Brunel
 opt_brunel = "from Brunel.Configuration import *"
