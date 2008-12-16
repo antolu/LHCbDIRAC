@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.46 2008/12/15 15:44:49 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.47 2008/12/16 12:35:45 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.46 2008/12/15 15:44:49 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.47 2008/12/16 12:35:45 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1322,7 +1322,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
       for record in dbResult:
         row = [record[1],record[2],record[3],record[4],record[5],record[6],record[7]]
         records += [row]
-        totalrecords += 1
     else:
       return S_ERROR(res['Message'])
     return S_OK({'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize }}}) 
