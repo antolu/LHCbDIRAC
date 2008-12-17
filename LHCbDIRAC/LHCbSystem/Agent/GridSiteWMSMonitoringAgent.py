@@ -1,4 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.3 2008/12/08 09:38:47 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.4 2008/12/17 17:12:39 atsareg Exp $
 
 
 '''
@@ -49,12 +49,16 @@ class GridSiteWMSMonitoringAgent(Agent):
 
     fileContents = ''
     href = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    hrefTemp = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
     for site,sDict in result['Value'].items():
       parallel_jobs = 0
       completed_jobs = 0
       successfully_completed_jobs = 0
       CPU_time = 0
       wall_time = 0
+      diracName = sDict['DIRACName']
+      del sDict['DIRACName']
+      href = hrefTemp % (len(diracName),diracName)
       for activity,aDict in result['Value'][site].items():
         parallel_jobs += aDict['Running']
         lTuple = (site,activity,aDict['Running'],int(time.time())-3600,int(time.time()),href)
@@ -83,7 +87,7 @@ class GridSiteWMSMonitoringAgent(Agent):
       line = '%s,%s,completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
       lTuple = (site,'overall_activity',successfully_completed_jobs,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,parallel_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
+      line = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
       lTuple = (site,'overall_activity',CPU_time,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
@@ -91,6 +95,16 @@ class GridSiteWMSMonitoringAgent(Agent):
       lTuple = (site,'overall_activity',wall_time,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
+      
+      # Evaluate success rate and site status
+      if completed_jobs > 0:
+        success_rate = float(successfully_completed_jobs)/float(completed_jobs)*100.
+      else:
+        success_rate = 0.  
+      lTuple = (site,'overall_activity',success_rate,int(time.time())-3600,int(time.time()),href)
+      line = '%s,%s,success_rate,%.2f,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+      
     self._lastUpdateTime = time.time()
     result = self._commitFileContents( fileContents )
     if result['OK']:
@@ -173,6 +187,7 @@ class GridSiteWMSMonitoringAgent(Agent):
         jobType = self.__getJobType(siteDict['JobType'])
         if site not in monDict.keys():
           monDict[site] = {}
+          monDict[site]['DIRACName'] = siteDict['Site']
         if jobType not in monDict[site].keys():
           monDict[site][jobType] = {}
           monDict[site][jobType]['Running'] = 0
@@ -197,6 +212,7 @@ class GridSiteWMSMonitoringAgent(Agent):
         jobType = self.__getJobType(siteDict['JobType'])
         if site not in monDict.keys():
           monDict[site] = {}
+          monDict[site]['DIRACName'] = siteDict['Site']
         if jobType not in monDict[site].keys():
           monDict[site][jobType] = {}
           monDict[site][jobType]['Running'] = 0
@@ -231,6 +247,7 @@ class GridSiteWMSMonitoringAgent(Agent):
         jobType = self.__getJobType(siteDict['JobType'])
         if site not in monDict.keys():
           monDict[site] = {}
+          monDict[site]['DIRACName'] = siteDict['Site']
         if jobType not in monDict[site].keys():
           monDict[site][jobType] = {}
           monDict[site][jobType]['Running'] = 0
