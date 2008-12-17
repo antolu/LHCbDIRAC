@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.11 2008/12/09 09:22:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.12 2008/12/17 10:17:15 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.11 2008/12/09 09:22:34 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.12 2008/12/17 10:17:15 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -184,13 +184,15 @@ class LHCbJob(Job):
         optionsFile +=';%s' %optsFile
       elif re.search('\$',optsFile):
         self.log.verbose('Assuming %s is using an environment variable to be resolved during execution' %optsFile)
+        if not optionsFile==optsFile:
+          optionsFile +=';%s' %optsFile
       else:
         raise TypeError,'Specified options file %s does not exist' %(optsFile)
 
     #ensure optionsFile list is unique:
     tmpList = string.split(optionsFile,';')
     optionsFile = string.join(uniqueElements(tmpList),';')
-
+    self.log.verbose('Final options list is: %s' %optionsFile)
     if inputData:
       if type(inputData) in types.StringTypes:
         inputData = [inputData]
