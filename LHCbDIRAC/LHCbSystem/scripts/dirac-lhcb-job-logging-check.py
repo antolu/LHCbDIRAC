@@ -1,27 +1,28 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.2 2008/12/17 15:21:40 gcowan Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.3 2008/12/17 16:55:31 gcowan Exp $
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.2 2008/12/17 15:21:40 gcowan Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.3 2008/12/17 16:55:31 gcowan Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.Interfaces.API.Dirac import Dirac
 
 Script.registerSwitch( "", "Status=", "Primary status" )
 Script.registerSwitch( "", "MinorStatus=", "Secondary status" )
 Script.registerSwitch( "", "ApplicationStatus=", "Application status" )
 Script.registerSwitch( "", "Site=", "Execution site" )
 Script.registerSwitch( "", "Owner=", "Owner (DIRAC nickname)" )
-Script.registerSwitch( "", "Date=", "Date (YYYY-MM-DD)" )
+Script.registerSwitch( "", "Date=", "Date in YYYY-MM-DD format, if not specified default is today" )
 Script.registerSwitch( "", "JobGroup=", "Select jobs for specified job group" )
 Script.registerSwitch( "", "Verbose=", "For more detailed information about file and job states. Default False." )
 Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
+
+from DIRAC.Interfaces.API.Dirac import Dirac
 
 args = Script.getPositionalArgs()
 
@@ -38,7 +39,7 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
   DIRAC.exit(2)
 
-def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, date, jobGroup, dirac):
+def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac):
   '''Gets information about jobs from the WMS'''
   # getJobStates
   result_wms = dirac.selectJobs( Status = wmsStatus,
@@ -122,7 +123,7 @@ if not date:
 
 dirac = Dirac()
 
-jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, date, jobGroup, dirac)
+jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac)
 error2Nodes = {}
 node2Errors = {}
 efficiencies = []
@@ -152,7 +153,7 @@ for jobID in jobIDs:
 
 print '\nError summary information\n'
 for error, nodes in error2Nodes.iteritems():
-  print error, 'occurred on', len(nodes), 'nodes'
+  print error, 'occurred on', len(nodes), 'nodes, of which', len(set(nodes)), 'were unique'
 
 print '\nNode summary information\n'
 for node, errors in node2Errors.iteritems():
