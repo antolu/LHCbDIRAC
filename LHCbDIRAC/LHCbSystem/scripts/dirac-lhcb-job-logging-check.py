@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.1 2008/12/16 15:27:03 gcowan Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.2 2008/12/17 15:21:40 gcowan Exp $
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.1 2008/12/16 15:27:03 gcowan Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.2 2008/12/17 15:21:40 gcowan Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -17,6 +17,7 @@ Script.registerSwitch( "", "MinorStatus=", "Secondary status" )
 Script.registerSwitch( "", "ApplicationStatus=", "Application status" )
 Script.registerSwitch( "", "Site=", "Execution site" )
 Script.registerSwitch( "", "Owner=", "Owner (DIRAC nickname)" )
+Script.registerSwitch( "", "Date=", "Date (YYYY-MM-DD)" )
 Script.registerSwitch( "", "JobGroup=", "Select jobs for specified job group" )
 Script.registerSwitch( "", "Verbose=", "For more detailed information about file and job states. Default False." )
 Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
@@ -37,7 +38,7 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
   DIRAC.exit(2)
 
-def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, dirac):
+def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, date, jobGroup, dirac):
   '''Gets information about jobs from the WMS'''
   # getJobStates
   result_wms = dirac.selectJobs( Status = wmsStatus,
@@ -121,7 +122,7 @@ if not date:
 
 dirac = Dirac()
 
-jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, dirac)
+jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, date, jobGroup, dirac)
 error2Nodes = {}
 node2Errors = {}
 efficiencies = []
