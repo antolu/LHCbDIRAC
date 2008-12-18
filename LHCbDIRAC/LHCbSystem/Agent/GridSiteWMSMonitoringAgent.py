@@ -1,4 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.4 2008/12/17 17:12:39 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.5 2008/12/18 15:24:36 atsareg Exp $
 
 
 '''
@@ -40,6 +40,13 @@ class GridSiteWMSMonitoringAgent(Agent):
     return S_OK()
 
   def execute( self ):
+  
+    # Get the site mask
+    siteMask = []
+    result = self.jobDB.getSiteMask('Banned')
+    if result['OK']:
+      siteMask = result['Value']
+  
     elapsedTime = time.time() - self._lastUpdateTime
     if elapsedTime < gConfig.getValue( "%s/GenerationInterval" % self.section, 1800 ):
       return S_OK()
@@ -48,15 +55,22 @@ class GridSiteWMSMonitoringAgent(Agent):
       return result
 
     fileContents = ''
-    href = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
-    hrefTemp = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    href = 
+'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    hrefTemp = 
+'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
     for site,sDict in result['Value'].items():
       parallel_jobs = 0
       completed_jobs = 0
       successfully_completed_jobs = 0
+      completed_jobs_24h = 0
+      successfully_completed_jobs_24h = 0
       CPU_time = 0
       wall_time = 0
       diracName = sDict['DIRACName']
+      banned = False
+      if diracName in siteMask:
+        banned = True
       del sDict['DIRACName']
       href = hrefTemp % (len(diracName),diracName)
       for activity,aDict in result['Value'][site].items():
@@ -72,6 +86,14 @@ class GridSiteWMSMonitoringAgent(Agent):
         lTuple =  (site,activity,aDict['FinishedSuccessful'],int(time.time())-3600,int(time.time()),href)
         line = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
+        completed_jobs_24h += aDict['FinishedTotal24']
+        lTuple = (site,activity,aDict['FinishedTotal24'],int(time.time())-86400,int(time.time()),href)
+        line = '%s,%s,completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
+        successfully_completed_jobs_24h += aDict['FinishedSuccessful24']
+        lTuple =  (site,activity,aDict['FinishedSuccessful24'],int(time.time())-86400,int(time.time()),href)
+        line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
         CPU_time += aDict['CPUTime']
         lTuple =  (site,activity,aDict['CPUTime'],int(time.time())-3600,int(time.time()),href)
         line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
@@ -80,29 +102,75 @@ class GridSiteWMSMonitoringAgent(Agent):
         lTuple =  (site,activity,aDict['WallClockTime'],int(time.time())-3600,int(time.time()),href)
         line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
-      lTuple = (site,'overall_activity',parallel_jobs,int(time.time())-3600,int(time.time()),href)
+        
+        # Evaluate success rate and site status
+        if aDict['FinishedTotal24'] > 0:
+          success_rate = float(aDict['FinishedSuccessful24'])/float(aDict['FinishedTotal24'])*100.
+        else:
+          success_rate = 0.  
+
+        # Evaluate the site status out of the success rate
+        if banned:
+          site_status = 'banned'
+        elif aDict['FinishedTotal24'] < 10:
+          site_status = 'idle'
+        elif success_rate > 90.0:
+          site_status = 'good'
+        elif success_rate > 80.0:
+          site_status = 'fair'
+        elif success_rate > 50.0:
+          site_status = 'poor'
+        else:
+          site_status = 'bad'           
+
+        lTuple = (site,activity,success_rate,site_status,int(time.time())-3600,int(time.time()),href)
+        line = '%s,%s,success_rate,%.2f,-1,%s,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
+        
+      lTuple = (site,'job_processing',parallel_jobs,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,parallel_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'overall_activity',completed_jobs,int(time.time())-3600,int(time.time()),href)
+      lTuple = (site,'job_processing',completed_jobs,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'overall_activity',successfully_completed_jobs,int(time.time())-3600,int(time.time()),href)
+      lTuple = (site,'job_processing',successfully_completed_jobs,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'overall_activity',CPU_time,int(time.time())-3600,int(time.time()),href)
+      lTuple = (site,'job_processing',completed_jobs_24h,int(time.time())-86400,int(time.time()),href)
+      line = '%s,%s,completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+      lTuple = (site,'job_processing',successfully_completed_jobs_24h,int(time.time())-86400,int(time.time()),href)
+      line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+      lTuple = (site,'job_processing',CPU_time,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'overall_activity',wall_time,int(time.time())-3600,int(time.time()),href)
+      lTuple = (site,'job_processing',wall_time,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
       
       # Evaluate success rate and site status
-      if completed_jobs > 0:
-        success_rate = float(successfully_completed_jobs)/float(completed_jobs)*100.
+      if completed_jobs_24h > 0:
+        success_rate = float(successfully_completed_jobs_24h)/float(completed_jobs_24h)*100.
       else:
         success_rate = 0.  
-      lTuple = (site,'overall_activity',success_rate,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,success_rate,%.2f,-1,unknown,%d,%d,%s ' % lTuple
+        
+      # Evaluate the site status out of the success rate
+      if banned:
+        site_status = 'banned'
+      elif completed_jobs_24h < 10:
+        site_status = 'idle'
+      elif success_rate > 90.0:
+        site_status = 'good'
+      elif success_rate > 80.0:
+        site_status = 'fair'
+      elif success_rate > 50.0:
+        site_status = 'poor'
+      else:
+        site_status = 'bad'           
+        
+      lTuple = (site,'job_processing',success_rate,site_status,int(time.time())-3600,int(time.time()),href)
+      line = '%s,%s,success_rate,%.2f,-1,%s,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
       
     self._lastUpdateTime = time.time()
@@ -147,7 +215,7 @@ class GridSiteWMSMonitoringAgent(Agent):
       gocName = self.siteGOCNameDict[site]
       return gocName
     except KeyError:
-      return ''
+      return site
 
   def __getJobType(self,jType):
     """ Get standard monitoring job type
@@ -175,6 +243,23 @@ class GridSiteWMSMonitoringAgent(Agent):
     self._getSiteGOCNameMapping()
 
     monDict = {}
+    result = self.jobDB.getDistinctJobAttributes('Site')
+    if not result['OK']:
+      return result
+      
+    for siteDIRAC in result['Value']+['ANY']:
+      site = self.__getGOCName(siteDIRAC)
+      monDict[site] = {}
+      for jobType in ['mc_production','data_reconstruction','user_analysis','SAM_monitoring']:
+        monDict[site][jobType] = {}
+        monDict[site][jobType]['Running'] = 0
+        monDict[site][jobType]['FinishedTotal'] = 0
+        monDict[site][jobType]['FinishedSuccessful'] = 0
+        monDict[site][jobType]['FinishedTotal24'] = 0
+        monDict[site][jobType]['FinishedSuccessful24'] = 0
+        monDict[site][jobType]['CPUTime'] = 0
+        monDict[site][jobType]['WallClockTime'] = 0
+        monDict[site]['DIRACName'] = siteDIRAC
 
     # Currently running jobs
     result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':'Running'},None)
@@ -185,24 +270,22 @@ class GridSiteWMSMonitoringAgent(Agent):
       site = self.__getGOCName(siteDict['Site'])
       if site:
         jobType = self.__getJobType(siteDict['JobType'])
-        if site not in monDict.keys():
-          monDict[site] = {}
-          monDict[site]['DIRACName'] = siteDict['Site']
-        if jobType not in monDict[site].keys():
-          monDict[site][jobType] = {}
-          monDict[site][jobType]['Running'] = 0
-          monDict[site][jobType]['FinishedTotal'] = 0
-          monDict[site][jobType]['FinishedSuccessful'] = 0
-          monDict[site][jobType]['CPUTime'] = 0
-          monDict[site][jobType]['WallClockTime'] = 0
-        if not monDict[site][jobType].has_key('Running'):
-          monDict[site][jobType]['Running'] = count
-        else:
-          monDict[site][jobType]['Running'] += count
+        monDict[site][jobType]['Running'] += count
 
     # Jobs finished in the last hour
     dt = Time.dateTime() - datetime.timedelta(seconds=3600)
-    result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':['Done','Completed','Failed','Killed']},str(dt),timeStamp='EndExecTime')
+    monDict = self.__getFinishedJobs(dt,monDict)
+    # Jobs finished in the last 24 hours
+    dt = Time.dateTime() - datetime.timedelta(hours=24)
+    monDict = self.__getFinishedJobs(dt,monDict,'24')
+    
+    return S_OK(monDict)
+
+  def __getFinishedJobs(self,date,monDict,interval=''):
+  
+    result = self.jobDB.getCounters('Jobs',['Site','JobType'],
+                                   {'Status':['Done','Completed','Failed','Killed']},
+                                   newer = str(date),timeStamp='EndExecTime')
     if not result['OK']:
       return result
     for siteTuple in result['Value']:
@@ -210,34 +293,23 @@ class GridSiteWMSMonitoringAgent(Agent):
       site = self.__getGOCName(siteDict['Site'])
       if site:
         jobType = self.__getJobType(siteDict['JobType'])
-        if site not in monDict.keys():
-          monDict[site] = {}
-          monDict[site]['DIRACName'] = siteDict['Site']
-        if jobType not in monDict[site].keys():
-          monDict[site][jobType] = {}
-          monDict[site][jobType]['Running'] = 0
-          monDict[site][jobType]['FinishedTotal'] = 0
-          monDict[site][jobType]['FinishedSuccessful'] = 0
-          monDict[site][jobType]['CPUTime'] = 0
-          monDict[site][jobType]['WallClockTime'] = 0
-        if not monDict[site][jobType].has_key('FinishedTotal'):
-          monDict[site][jobType]['FinishedTotal'] = count
-        else:
-          monDict[site][jobType]['FinishedTotal'] += count
-        result = self.jobDB.getTimings(siteDict['Site'])
-        #result = S_ERROR()
-        if result['OK']:
-          if not monDict[site][jobType].has_key('CPUTime'):
-            monDict[site][jobType]['CPUTime'] = result['Value']['CPUTime']
-          else:
-            monDict[site][jobType]['CPUTime'] += result['Value']['CPUTime']
-          if not monDict[site][jobType].has_key('WallClockTime'):
-            monDict[site][jobType]['WallClockTime'] = result['Value']['WallClockTime']
-          else:
-            monDict[site][jobType]['WallClockTime'] += result['Value']['WallClockTime']
+        monDict[site][jobType]['FinishedTotal'+interval] += count
+        if not interval:
+          result = self.jobDB.getTimings(siteDict['Site'])
+          if result['OK']:
+            if not monDict[site][jobType].has_key('CPUTime'):
+              monDict[site][jobType]['CPUTime'] = result['Value']['CPUTime']
+            else:
+              monDict[site][jobType]['CPUTime'] += result['Value']['CPUTime']
+            if not monDict[site][jobType].has_key('WallClockTime'):
+              monDict[site][jobType]['WallClockTime'] = result['Value']['WallClockTime']
+            else:
+              monDict[site][jobType]['WallClockTime'] += result['Value']['WallClockTime']
 
     # Successful jobs in the last hour
-    result = self.jobDB.getCounters('Jobs',['Site','JobType'],{'Status':['Done','Completed']},str(dt),timeStamp='EndExecTime')
+    result = self.jobDB.getCounters('Jobs',['Site','JobType'],
+                                    {'Status':['Done','Completed']},
+                                    newer = str(date),timeStamp='EndExecTime')
     if not result['OK']:
       return result
     for siteTuple in result['Value']:
@@ -245,19 +317,7 @@ class GridSiteWMSMonitoringAgent(Agent):
       site = self.__getGOCName(siteDict['Site'])
       if site:
         jobType = self.__getJobType(siteDict['JobType'])
-        if site not in monDict.keys():
-          monDict[site] = {}
-          monDict[site]['DIRACName'] = siteDict['Site']
-        if jobType not in monDict[site].keys():
-          monDict[site][jobType] = {}
-          monDict[site][jobType]['Running'] = 0
-          monDict[site][jobType]['FinishedTotal'] = 0
-          monDict[site][jobType]['FinishedSuccessful'] = 0
-          monDict[site][jobType]['CPUTime'] = 0
-          monDict[site][jobType]['WallClockTime'] = 0
-        if not monDict[site][jobType].has_key('FinishedSuccessful'):
-          monDict[site][jobType]['FinishedSuccessful'] = count
-        else:
-          monDict[site][jobType]['FinishedSuccessful'] += count
+        monDict[site][jobType]['FinishedSuccessful'+interval] += count
+          
+    return monDict      
 
-    return S_OK(monDict)
