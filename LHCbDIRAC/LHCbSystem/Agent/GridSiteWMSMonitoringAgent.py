@@ -1,5 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.5 2008/12/18 15:24:36 atsareg Exp $
-
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.6 2008/12/19 08:57:44 atsareg Exp $
 
 '''
 GridSiteWMSMonitoringAgent extracts information on the current Grid activity from the DIRAC WMS
@@ -40,13 +39,13 @@ class GridSiteWMSMonitoringAgent(Agent):
     return S_OK()
 
   def execute( self ):
-  
+
     # Get the site mask
     siteMask = []
     result = self.jobDB.getSiteMask('Banned')
     if result['OK']:
       siteMask = result['Value']
-  
+
     elapsedTime = time.time() - self._lastUpdateTime
     if elapsedTime < gConfig.getValue( "%s/GenerationInterval" % self.section, 1800 ):
       return S_OK()
@@ -55,10 +54,8 @@ class GridSiteWMSMonitoringAgent(Agent):
       return result
 
     fileContents = ''
-    href = 
-'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
-    hrefTemp = 
-'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    href = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    hrefTemp = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
     for site,sDict in result['Value'].items():
       parallel_jobs = 0
       completed_jobs = 0
@@ -74,40 +71,46 @@ class GridSiteWMSMonitoringAgent(Agent):
       del sDict['DIRACName']
       href = hrefTemp % (len(diracName),diracName)
       for activity,aDict in result['Value'][site].items():
+
         parallel_jobs += aDict['Running']
         lTuple = (site,activity,aDict['Running'],int(time.time())-3600,int(time.time()),href)
         line = '%s,%s,parallel_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
+
+        # Evaluate success rate and site status
+        if aDict['FinishedTotal'] > 0:
+          success_rate = float(aDict['FinishedSuccessful'])/float(aDict['FinishedTotal'])*100.
+        else:
+          success_rate = 0.
+
+        # Evaluate the site status out of the success rate
+        if banned:
+          site_status = 'banned'
+        elif aDict['FinishedTotal'] < 10:
+          site_status = 'unknown'
+        elif success_rate > 90.0:
+          site_status = 'good'
+        elif success_rate > 80.0:
+          site_status = 'fair'
+        elif success_rate > 50.0:
+          site_status = 'poor'
+        else:
+          site_status = 'bad'
+
         completed_jobs += aDict['FinishedTotal']
-        lTuple = (site,activity,aDict['FinishedTotal'],int(time.time())-3600,int(time.time()),href)
-        line = '%s,%s,completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
+        lTuple = (site,activity,aDict['FinishedTotal'],site_status,int(time.time())-3600,int(time.time()),href)
+        line = '%s,%s,completed_jobs,%d,-1,%s,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
         successfully_completed_jobs += aDict['FinishedSuccessful']
         lTuple =  (site,activity,aDict['FinishedSuccessful'],int(time.time())-3600,int(time.time()),href)
         line = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
-        completed_jobs_24h += aDict['FinishedTotal24']
-        lTuple = (site,activity,aDict['FinishedTotal24'],int(time.time())-86400,int(time.time()),href)
-        line = '%s,%s,completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
-        fileContents += line+'\n'
-        successfully_completed_jobs_24h += aDict['FinishedSuccessful24']
-        lTuple =  (site,activity,aDict['FinishedSuccessful24'],int(time.time())-86400,int(time.time()),href)
-        line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
-        fileContents += line+'\n'
-        CPU_time += aDict['CPUTime']
-        lTuple =  (site,activity,aDict['CPUTime'],int(time.time())-3600,int(time.time()),href)
-        line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
-        fileContents += line+'\n'
-        wall_time += aDict['WallClockTime']
-        lTuple =  (site,activity,aDict['WallClockTime'],int(time.time())-3600,int(time.time()),href)
-        line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
-        fileContents += line+'\n'
-        
+
         # Evaluate success rate and site status
         if aDict['FinishedTotal24'] > 0:
           success_rate = float(aDict['FinishedSuccessful24'])/float(aDict['FinishedTotal24'])*100.
         else:
-          success_rate = 0.  
+          success_rate = 0.
 
         # Evaluate the site status out of the success rate
         if banned:
@@ -121,40 +124,62 @@ class GridSiteWMSMonitoringAgent(Agent):
         elif success_rate > 50.0:
           site_status = 'poor'
         else:
-          site_status = 'bad'           
+          site_status = 'bad'
 
-        lTuple = (site,activity,success_rate,site_status,int(time.time())-3600,int(time.time()),href)
-        line = '%s,%s,success_rate,%.2f,-1,%s,%d,%d,%s ' % lTuple
+        completed_jobs_24h += aDict['FinishedTotal24']
+        lTuple = (site,activity,aDict['FinishedTotal24'],site_status,int(time.time())-86400,int(time.time()),href)
+        line = '%s,%s,completed_jobs_24h,%d,-1,%s,%d,%d,%s ' % lTuple
         fileContents += line+'\n'
-        
+        successfully_completed_jobs_24h += aDict['FinishedSuccessful24']
+        lTuple =  (site,activity,aDict['FinishedSuccessful24'],int(time.time())-86400,int(time.time()),href)
+        line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
+        CPU_time += aDict['CPUTime']
+        lTuple =  (site,activity,aDict['CPUTime'],int(time.time())-3600,int(time.time()),href)
+        line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
+        wall_time += aDict['WallClockTime']
+        lTuple =  (site,activity,aDict['WallClockTime'],int(time.time())-3600,int(time.time()),href)
+        line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
+        fileContents += line+'\n'
+
       lTuple = (site,'job_processing',parallel_jobs,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,parallel_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'job_processing',completed_jobs,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
+
+      # Evaluate success rate and site status
+      if completed_jobs > 0:
+        success_rate = float(successfully_completed_jobs)/float(completed_jobs)*100.
+      else:
+        success_rate = 0.
+
+      # Evaluate the site status out of the success rate
+      if banned:
+        site_status = 'banned'
+      elif completed_jobs < 10:
+        site_status = 'idle'
+      elif success_rate > 90.0:
+        site_status = 'good'
+      elif success_rate > 80.0:
+        site_status = 'fair'
+      elif success_rate > 50.0:
+        site_status = 'poor'
+      else:
+        site_status = 'bad'
+
+      lTuple = (site,'job_processing',completed_jobs,site_status,int(time.time())-3600,int(time.time()),href)
+      line = '%s,%s,completed_jobs,%d,-1,%s,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
       lTuple = (site,'job_processing',successfully_completed_jobs,int(time.time())-3600,int(time.time()),href)
       line = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      lTuple = (site,'job_processing',completed_jobs_24h,int(time.time())-86400,int(time.time()),href)
-      line = '%s,%s,completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
-      fileContents += line+'\n'
-      lTuple = (site,'job_processing',successfully_completed_jobs_24h,int(time.time())-86400,int(time.time()),href)
-      line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
-      fileContents += line+'\n'
-      lTuple = (site,'job_processing',CPU_time,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
-      fileContents += line+'\n'
-      lTuple = (site,'job_processing',wall_time,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
-      fileContents += line+'\n'
-      
+
       # Evaluate success rate and site status
       if completed_jobs_24h > 0:
         success_rate = float(successfully_completed_jobs_24h)/float(completed_jobs_24h)*100.
       else:
-        success_rate = 0.  
-        
+        success_rate = 0.
+
       # Evaluate the site status out of the success rate
       if banned:
         site_status = 'banned'
@@ -167,12 +192,22 @@ class GridSiteWMSMonitoringAgent(Agent):
       elif success_rate > 50.0:
         site_status = 'poor'
       else:
-        site_status = 'bad'           
-        
-      lTuple = (site,'job_processing',success_rate,site_status,int(time.time())-3600,int(time.time()),href)
-      line = '%s,%s,success_rate,%.2f,-1,%s,%d,%d,%s ' % lTuple
+        site_status = 'bad'
+
+      lTuple = (site,'job_processing',completed_jobs_24h,site_status,int(time.time())-86400,int(time.time()),href)
+      line = '%s,%s,completed_jobs_24h,%d,-1,%s,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      
+      lTuple = (site,'job_processing',successfully_completed_jobs_24h,int(time.time())-86400,int(time.time()),href)
+      line = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+      lTuple = (site,'job_processing',CPU_time,int(time.time())-3600,int(time.time()),href)
+      line = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+      lTuple = (site,'job_processing',wall_time,int(time.time())-3600,int(time.time()),href)
+      line = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
+      fileContents += line+'\n'
+
+
     self._lastUpdateTime = time.time()
     result = self._commitFileContents( fileContents )
     if result['OK']:
@@ -246,7 +281,7 @@ class GridSiteWMSMonitoringAgent(Agent):
     result = self.jobDB.getDistinctJobAttributes('Site')
     if not result['OK']:
       return result
-      
+
     for siteDIRAC in result['Value']+['ANY']:
       site = self.__getGOCName(siteDIRAC)
       monDict[site] = {}
@@ -278,11 +313,11 @@ class GridSiteWMSMonitoringAgent(Agent):
     # Jobs finished in the last 24 hours
     dt = Time.dateTime() - datetime.timedelta(hours=24)
     monDict = self.__getFinishedJobs(dt,monDict,'24')
-    
+
     return S_OK(monDict)
 
   def __getFinishedJobs(self,date,monDict,interval=''):
-  
+
     result = self.jobDB.getCounters('Jobs',['Site','JobType'],
                                    {'Status':['Done','Completed','Failed','Killed']},
                                    newer = str(date),timeStamp='EndExecTime')
@@ -318,6 +353,5 @@ class GridSiteWMSMonitoringAgent(Agent):
       if site:
         jobType = self.__getJobType(siteDict['JobType'])
         monDict[site][jobType]['FinishedSuccessful'+interval] += count
-          
-    return monDict      
 
+    return monDict
