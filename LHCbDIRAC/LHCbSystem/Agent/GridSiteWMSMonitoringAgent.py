@@ -1,4 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.6 2008/12/19 08:57:44 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.7 2008/12/19 12:09:02 atsareg Exp $
 
 '''
 GridSiteWMSMonitoringAgent extracts information on the current Grid activity from the DIRAC WMS
@@ -93,7 +93,7 @@ class GridSiteWMSMonitoringAgent(Agent):
         elif success_rate > 80.0:
           site_status = 'fair'
         elif success_rate > 50.0:
-          site_status = 'poor'
+          site_status = 'degraded'
         else:
           site_status = 'bad'
 
@@ -122,7 +122,7 @@ class GridSiteWMSMonitoringAgent(Agent):
         elif success_rate > 80.0:
           site_status = 'fair'
         elif success_rate > 50.0:
-          site_status = 'poor'
+          site_status = 'degraded'
         else:
           site_status = 'bad'
 
@@ -163,7 +163,7 @@ class GridSiteWMSMonitoringAgent(Agent):
       elif success_rate > 80.0:
         site_status = 'fair'
       elif success_rate > 50.0:
-        site_status = 'poor'
+        site_status = 'degraded'
       else:
         site_status = 'bad'
 
@@ -190,7 +190,7 @@ class GridSiteWMSMonitoringAgent(Agent):
       elif success_rate > 80.0:
         site_status = 'fair'
       elif success_rate > 50.0:
-        site_status = 'poor'
+        site_status = 'degraded'
       else:
         site_status = 'bad'
 
