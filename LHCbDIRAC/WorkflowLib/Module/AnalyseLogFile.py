@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.33 2008/12/12 12:53:02 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.34 2009/01/05 09:43:27 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.33 2008/12/12 12:53:02 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.34 2009/01/05 09:43:27 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -405,8 +405,8 @@ class AnalyseLogFile(ModuleBase):
                         'Error:connectDataIO':'connectDataIO error',\
                         ' glibc ':'Problem with glibc'}
 
-      if self.applicationName == 'Gauss':
-          dict_app_error['G4Exception'] = 'Geant4 Exception'
+#      if self.applicationName == 'Gauss':
+#          dict_app_error['G4Exception'] = 'Geant4 Exception'
 
       for type_error in dict_app_error.keys():
           self.log.info('Check %s' %(dict_app_error[type_error]))
