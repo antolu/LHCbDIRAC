@@ -1,4 +1,8 @@
-$Id: release.notes,v 1.5 2008/12/15 17:27:36 joel Exp $
+$Id: release.notes,v 1.6 2009/01/05 09:52:42 joel Exp $
+
+=========
+wkf-v8r2 : JC : 5 Jan 2009
+AnalyseLogFile.py : Remove G4 exception error
 
 =========
 wkf-v8r0 : JC : 15 Dec 2008
