@@ -1,0 +1,45 @@
+#============================================================================
+# Created    : 2008-09-24
+# Maintainer : Philippe Charpentier
+#============================================================================
+package           DiracPolicy
+
+cmtpath_pattern \
+   macro <project>_install_python "" \
+         <project>_without_installarea "<path>" \
+         <project>_with_installarea&Unix "<path>/$(<project>_installarea_prefix)/python"\
+         <project>_with_installarea&WIN32 "<path>\$(<project>_installarea_prefix)\python" ; \
+    path_remove  PYTHONPATH ${<project>_install_python} ; \
+    path_prepend PYTHONPATH ${<project>_install_python}
+
+cmtpath_pattern \
+   macro <project>_install_pyd_module "" \
+         <project>_without_installarea "" \
+         <project>_with_installarea&Unix "<path>/$(<project>_installarea_prefix)/$(tag)/python$(Python_config_version_twodigit)" \
+         <project>_with_installarea&WIN32 "<path>\$(<project>_installarea_prefix)\$(tag)\python$(Python_config_version_twodigit)" ; \
+    path_remove  PYTHONPATH $(<project>_install_pyd_module) ; \
+    path_prepend PYTHONPATH $(<project>_install_pyd_module) ;
+
+cmtpath_pattern \
+   macro <project>_install_scripts "" \
+         <project>_without_installarea "<path>/scripts" \
+         <project>_with_installarea&Unix "<path>/$(<project>_installarea_prefix)/scripts"\
+         <project>_with_installarea&WIN32 "<path>\$(<project>_installarea_prefix)\scripts" ; \
+   path_remove  PATH ${<project>_install_scripts} ; \
+   path_prepend PATH ${<project>_install_scripts}
+
+# Path cleaner
+#-------------------------------------------------------------------
+
+macro strip_script "$(DIRACPOLICYROOT)/scripts/StripPath" WIN32 "$(DIRACPOLICYROOT)\scripts\StripPath"
+
+cmtpath_pattern \
+    setup_script $(strip_script) ;
+
+#-------------------------------------------------------------------
+# Determine which DIRAC platform we are on
+macro dplat "" \
+      "slc4-ia32" "Linux_i686_glibc-2.3.4" \
+      "slc4-amd64" "Linux_x86_64_glibc-2.3.4"
+set DIRACPLAT $(dplat)
+
