@@ -11,6 +11,24 @@ branches          cmt doc src
 
 include_path      none
 
-use DiracHome v1r0
-use DiracConfig v1r0
+use DiracPolicy v*
 use LHCbGridSys v*
+use DiracConfig v*
+
+use LHCbSystem       		 v*
+
+use BookkeepingSystem		 v* DIRAC
+use AccountingSystem  		 v* DIRAC
+use Core	      		 v* DIRAC
+use ProductionManagementSystem   v* DIRAC
+use StagerSystem		 v* DIRAC
+use BookkeepingSystem    	 v* DIRAC
+use DataManagementSystem 	 v* DIRAC
+use LoggingSystem     		 v* DIRAC
+use RequestManagementSystem	 v* DIRAC
+use WorkloadManagementSystem	 v* DIRAC
+use ConfigurationSystem		 v* DIRAC
+use FrameworkSystem  		 v* DIRAC
+use Interfaces    		 v* DIRAC
+use MonitoringSystem  		 v* DIRAC
+use Resources			 v* DIRAC

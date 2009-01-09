@@ -3,47 +3,31 @@
 # Maintainer : Philippe Charpentier
 #============================================================================
 package           DiracConfig
-version           v1r0
 
 use LCG_Settings *
-use DiracHome *
 
-set DIRACROOT "$(DiracHome_cmtpath)"
+#set DIRACROOT "$(DiracConfig_cmtpath)"
 # Determine which DIRAC platform we are on
 
-macro dplat "" \
-     "slc4-ia32" "Linux_i686_glibc-2.3.4" \
-     "slc4-amd64" "Linux_x86_64_glibc-2.3.4"
-
-set DIRACPLAT $(dplat)
-
-macro DiracSys_home "$(DIRACROOT)/$(dplat)"
-apply_pattern set_lib_path
-apply_pattern set_bin_path
-path_remove PATH "/DIRAC/"
-path_remove PYTHONPATH "/DIRAC/"
-path_prepend PATH "$(DIRACROOT)/scripts"
-path_prepend PATH "$(DIRACROOT)/$(dplat)/bin"
-path_prepend PYTHONPATH $(DIRACROOT)
-path_prepend PYTHONPATH $(DIRACROOT)/$(dplat)/lib/python$(Python_config_version_twodigit)/site-packages
-set DIRAC_VOMSES "$(DIRACROOT)/etc/vomses"
+set DIRAC_VOMSES "$(DiracConfig_cmtpath)/etc/vomses"
 
 use pyqt     v* LCG_Interfaces
-use sqlite   v* LCG_Interfaces
 
-macro py_vers_cmd "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py"
-macro py_vers_cmd2 "$(DiracHome_cmtpath)/$(dplat)/bin/python $(DIRACCONFIGROOT)/cmt/python_vers.py -2"
-macro Python_config_version_twodigit   `$(py_vers_cmd2)`
-macro Python_config_version   `$(py_vers_cmd)`
+macro        Python_config_version               2.4.2
+macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
+macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
+macro        Python_config_version_twodigit   `$(pyth_maj)`.`$(pyth_min)`
 
-# define specific version which are not in LHCBGRID package if needed
-#macro       lcgutils_native_version             "1.6.15"
-#macro       gfal_native_version                 "1.10.17"
+macro        pyqt_config_version                 4.2
+macro        Qt_config_version                   4.3.0
 
-#macro       lfc_dpm_version                     "1.6.11"
+#----------------------------------------------------------------------------------------
+# define specific version which are not in LHCBGRID package if needed: examples below
+#macro       lcgutils_native_version             1.6.15
+#macro       gfal_native_version                 1.10.18
+
+#macro       lfc_dpm_version                     1.6.11
 #macro       lfc_native_version                  $(lfc_dpm_version)
 #macro       dpm_native_version                  $(lfc_dpm_version)
 #macro       lcgdmcommon_native_version          $(lfc_dpm_version)
 
-macro       pyqt_config_version            "4.2"
-macro       Qt_config_version              "4.3.0"
