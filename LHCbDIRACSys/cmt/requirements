@@ -12,7 +12,6 @@ branches          cmt doc src
 include_path      none
 
 use DiracPolicy v*
-use LHCbGridSys v*
 use DiracConfig v*
 
 use LHCbSystem       		 v*

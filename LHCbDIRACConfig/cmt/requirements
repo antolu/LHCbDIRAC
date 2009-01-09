@@ -5,6 +5,7 @@
 package           DiracConfig
 
 use LCG_Settings *
+use LHCbGridSys v*
 
 #set DIRACROOT "$(DiracConfig_cmtpath)"
 # Determine which DIRAC platform we are on
