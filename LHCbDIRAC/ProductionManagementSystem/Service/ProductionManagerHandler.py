@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.42 2008/11/22 20:41:22 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.43 2009/01/09 10:07:04 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.42 $"
+__RCSID__ = "$Revision: 1.43 $"
 
 from types import *
 import threading
@@ -231,7 +231,10 @@ class ProductionManagerHandler( TransformationHandler ):
 
   types_extendProduction = [ [LongType, IntType, StringType], [LongType, IntType]]
   def export_extendProduction( self, productionID, nJobs):
-    result = productionDB.extendProduction(productionID, nJobs)
+    
+    authorDN = self._clientTransport.peerCredentials['DN']
+    
+    result = productionDB.extendProduction(productionID, nJobs, authorDN)
     if not result['OK']:
       gLogger.error(result['Message'])
     return result
@@ -497,42 +500,42 @@ class ProductionManagerHandler( TransformationHandler ):
     paramNames = summaryDict['ParameterNames']
     jobStateNames = ['Created','Running','Submitted','Failed','Waiting',
                      'Done','Stalled']
-    fileStateNames = ['Unused','Assigned','Total','Problematic']                 
+    fileStateNames = ['Unused','Assigned','Total','Problematic']
 
     records = []
-    
+
     # Add specific information for each selected production
     for prodList in summaryDict['Records']:
       # Job statistics
       prodID = prodList[0]
       result = productionDB.getJobStats(prodID)
-      
+
       if not result['OK']:
         gLogger.warn('Failed to get job statistics for production %d' % prodID)
         jobDict = {}
-      else:  
+      else:
         jobDict = result['Value']
-          
+
       for state in jobStateNames:
         if jobDict:
           prodList.append(jobDict[state])
         else:
-          prodList.append(0)  
-          
-      # Get input files stats     
+          prodList.append(0)
+
+      # Get input files stats
       result = productionDB.getTransformationStats(prodID)
       if not result['OK']:
         gLogger.warn('Failed to get file statistics for production %d' % prodID)
         fileDict = {}
-      else:  
+      else:
         fileDict = result['Value']
-      
+
       for state in fileStateNames:
         if fileDict and fileDict.has_key(state):
           prodList.append(fileDict[state])
         else:
-          prodList.append(0)  
-      
+          prodList.append(0)
+
     resultDict['ParameterNames'] = paramNames
     resultDict['ParameterNames'] += ['Jobs_'+x for x in jobStateNames]
     resultDict['ParameterNames'] += ['Files_'+x for x in fileStateNames]
@@ -540,13 +543,21 @@ class ProductionManagerHandler( TransformationHandler ):
 
     statusDict = {}
     result = productionDB.getCounters('Transformations',['Status'],selectDict,
-                                      newer=last_update)                                      
+                                      newer=last_update,timeStamp='CreationDate')
     if result['OK']:
       for stDict,count in result['Value']:
          statusDict[stDict['Status']] = count
     resultDict['Extras'] = statusDict
 
     return S_OK(resultDict)
+
+  types_getDistinctAttributeValues = [DictType, ListType, IntType, IntType]
+  def export_getDistinctAttributeValues(self, selectDict, sortList, startItem, maxItems):
+    """ Get the summary of the production information for a given page in the
+        production monitor in a generic format
+    """
+
+    result = productionDB.getDistinctAttributeValues()
 
   types_createProductionRequest = [DictType]
   def export_createProductionRequest(self,requestDict):
