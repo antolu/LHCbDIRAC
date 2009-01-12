@@ -14,7 +14,7 @@ include_path      none
 use DiracPolicy v*
 use DiracConfig v*
 
-use LHCbSystem       		 v*
+use LHCbSystem       		 v* DIRAC
 
 use BookkeepingSystem		 v* DIRAC
 use AccountingSystem  		 v* DIRAC
