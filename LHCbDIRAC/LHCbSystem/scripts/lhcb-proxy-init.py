@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.12 2008/11/03 11:11:29 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.13 2009/01/12 15:44:15 acasajus Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.12 2008/11/03 11:11:29 acasajus Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.13 2009/01/12 15:44:15 acasajus Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 
 import sys
 import os
@@ -14,13 +14,8 @@ import imp
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 
-#Hack to load dirac-proxy-init because python grammar does not allow - in the module names
-mod= imp.load_source( "dirac-proxy-init", "%s/DIRAC/FrameworkSystem/scripts/dirac-proxy-init.py" % DIRAC.rootPath )
-CLIParams = getattr( mod, "CLIParams" )
-generateProxy = getattr( mod, "generateProxy" )
-
-mod= imp.load_source( "dirac-proxy-upload", "%s/DIRAC/FrameworkSystem/scripts/dirac-proxy-upload.py" % DIRAC.rootPath )
-uploadProxy = getattr( mod, "uploadProxy" )
+from DIRAC.FrameworkSystem.Client.ProxyGeneration import CLIParams, generateProxy
+from DIRAC.FrameworkSystem.Client.ProxyUpload import uploadProxy
 
 cliParams = CLIParams()
 cliParams.registerCLISwitches()
