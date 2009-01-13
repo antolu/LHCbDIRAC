@@ -1,4 +1,8 @@
-$Id: release.notes,v 1.6 2009/01/05 09:52:42 joel Exp $
+$Id: release.notes,v 1.7 2009/01/13 14:16:47 joel Exp $
+
+=========
+wkf-v8r3 : JC : 13 Jan 2009
+GaudiApplication.py : Add possibility for users to ship a python/ directory with this being prepended to the PYTHONPATH for Gaudi applications.
 
 =========
 wkf-v8r2 : JC : 5 Jan 2009
