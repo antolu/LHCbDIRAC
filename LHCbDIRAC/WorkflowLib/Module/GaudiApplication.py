@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.99 2008/12/17 15:15:13 paterson Exp $
+# $Id: GaudiApplication.py,v 1.100 2009/01/13 14:00:24 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.99 2008/12/17 15:15:13 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.100 2009/01/13 14:00:24 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -358,6 +358,10 @@ done
     if os.path.exists(compatLib):
       script.write('declare -x LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:'+compatLib+'\n')
 
+    shippedPythonComponents = '%s/python' %ld_base_path
+    if os.path.exists(shippedPythonComponents):
+      self.log.info('Found shipped python directory, prepending to PYTHONPATH')
+      script.write('declare -x PYTHONPATH=%s:${PYTHONPATH}\n' %shippedPythonComponents)
 
     script.write('echo =============================\n')
     script.write('echo LD_LIBRARY_PATH is\n')
@@ -365,6 +369,9 @@ done
     script.write('echo =============================\n')
     script.write('echo PATH is\n')
     script.write('echo $PATH | tr ":" "\n"\n')
+    script.write('echo =============================\n')
+    script.write('echo PYTHONPATH is\n')
+    script.write('echo $PYTHONPATH | tr ":" "\n"\n')
     script.write('env | sort >> localEnv.log\n')
     script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
