@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.85 2008/12/15 15:05:00 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.86 2009/01/13 17:02:42 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.85 2008/12/15 15:05:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.86 2009/01/13 17:02:42 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -388,6 +388,45 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getJobInfo(self, lfn):
     return dataMGMT_.getJobInfo(lfn)
   
+  #############################################################################
+  types_addProduction = [DictType]
+  '''
+  infos is a dictionary. It contains: PrgNamesVersions,  GroupDescription, SimulationConditions, Production, InputProductionTotalProcessingPass
+  for example: cl.addProduction({'PrgNamesVersions':{'Step0':'Gauss-v35r1','Step1':'Boole-v16r3','Step2':'Brunel-v33r3'},'GroupDescription':'ParticleGun','SimulationConditions':simcond,'Production':12})
+               
+  
+  PrgNamesVersions: program names and versions are used this production
+  GroupDescription: wich group correspond this processing ex: DC06-Sim or ParticleGun ....
+  SimulationCondition: ex. simcond = {'BeamEnergy': 'rerer', 'Generator': 'dsds', 'Luminosity': 'wwww', 'MagneticField': 'hhh', 'BeamCond': 'sasas', 'DetectorCond': 'ddfd', 'SimDescription': 'Proba'}
+  InputProductionTotalProcessingPass: we have to know the input production total processing_pass ex: {'InputProductionTotalProcessingPass':'MC08-SIM-Reco_v33'}
+  '''
+  def export_addProduction(self, infos):
+    result = None
+    if not infos.has_key('PrgNamesVersions'):
+      result = S_ERROR("Missing Program name and versions!")
+    if not infos.has_key('GroupDescription'):
+      result = S_ERROR("Missing Group Description!")
+    if not infos.has_key('SimulationConditions'):
+      result = S_ERROR("Missing Simulation Conditions!")
+    if not infos.has_key('Production'):
+      result = S_ERROR('Production is missing!')
+    if not result:
+      programs = infos['PrgNamesVersions']
+      groupdesc = infos['GroupDescription']
+      simcond = infos['SimulationConditions']
+      inputProdTotalProcessingPass = ''
+      production = infos['Production']
+      if infos.has_key('InputProductionTotalProcessingPass'):
+        inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
+        
+      res = dataMGMT_.insert_procressing_pass(programs, groupdesc, simcond, inputProdTotalProcessingPass, production)
+      if res['OK']:
+        result = S_OK('Processing pass succesfull defined!')
+      else:
+        result = res
+        
+    return result
+  
   # ----------------------------------Event Types------------------------------------------------------------------
   #############################################################################  
   types_getAvailableEventTypes = []
@@ -559,7 +598,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if value['OK']==True:
       prodinfo = value['Value']
   
-    result = {"Production Info":prodinfo,"Number Of jobs":nbjobs,"Number Of files":nbOfFiles,"Number of Events":nbOfEvents}
+    result = {"Production Info":prodinfo,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents}
     return S_OK(result)
   
   #############################################################################

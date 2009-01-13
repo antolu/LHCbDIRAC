@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.26 2008/12/15 15:05:00 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.27 2009/01/13 17:02:41 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.26 2008/12/15 15:05:00 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.27 2009/01/13 17:02:41 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -210,6 +210,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProPassWithEventType(configName, configVersion, eventType, simcond)
   
   
+  #############################################################################
+  def insert_procressing_pass(self, programs, groupdesc, simcond, inputProdTotalProcessingPass, production):
+    return self.getManager().insert_procressing_pass(programs, groupdesc, simcond, inputProdTotalProcessingPass, production)
   
   #############################################################################
   def getSpecificFiles(self,configName, configVersion, programName, programVersion, fileType, eventTypeId, production):
@@ -218,6 +221,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getPass_index(self):
     return self.getManager().getPass_index()
+  
+  #############################################################################  
+  def checkPass_index(self, programs):
+    return self.getManager().checkPass_index(programs)
   
   #############################################################################  
   def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):

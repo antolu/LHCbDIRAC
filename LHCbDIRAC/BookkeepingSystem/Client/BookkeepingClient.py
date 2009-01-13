@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.69 2008/12/15 15:44:49 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.70 2009/01/13 17:02:41 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.69 2008/12/15 15:44:49 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.70 2009/01/13 17:02:41 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -387,6 +387,12 @@ class BookkeepingClient:
   def getProgramNameAndVersion(self, configName, configVersion, eventType, prod, fileType):
     server = self.__getServer()
     result = server.getProgramNameAndVersion(configName, configVersion, long(eventType), long(prod), fileType)
+    return result
+
+  #############################################################################
+  def addProduction(self, infos):
+    server = self.__getServer()
+    result = server.addProduction(infos)
     return result
 
   #-----------------------------------Event Types------------------------------------------------------------------

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.47 2008/12/16 12:35:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.48 2009/01/13 17:02:41 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.47 2008/12/16 12:35:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.48 2009/01/13 17:02:41 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -355,12 +355,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from '+ tables+' ,filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from '+ tables +'\
          where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid' + condition 
     if all > ALLOWED_ALL:
       return S_ERROR(" TO many ALL selected")
@@ -434,6 +436,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+tables+'filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
     else:
@@ -445,6 +448,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode \
         from'+ tables+'\
          where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
     if all > ALLOWED_ALL:
@@ -513,11 +517,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from '+ tables +', filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all += 1
     else:
       command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from ' + tables +' \
          where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid' + condition 
     
     if all > ALLOWED_ALL:
@@ -707,6 +713,134 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################  
   def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
     return self.dbW_.executeStoredFunctions('BKK_ORACLE.insert_pass_index', LongType, [groupdesc, step0, step1, step2, step3, step4, step5, step6])
+  
+  #############################################################################  
+  def insert_procressing_pass(self, programs, groupdesc, simcond, inputProdTotalProcessingPass, production):
+    retVal = self.__getpass_indexDescription(programs, groupdesc) 
+    pass_desc = ''
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      pass_desc = retVal['Value']
+    
+    gLogger.debug('Pass description: '+str(pass_desc))
+    
+    simdesc = ''
+    retVal = self.__getSimDesc(simcond)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      simdesc = retVal['Value']
+      print '!!!222',simdesc
+  
+    gLogger.info('Insert Processing_pass:')
+    gLogger.info('Pass description: '+str(pass_desc))
+    gLogger.info('Simulation description: '+str(simdesc))
+    gLogger.info('Production: '+str(production))
+    gLogger.info('Input Production total processing pass: '+str(inputProdTotalProcessingPass))
+    
+    retVal = self.insertProcessing(production, pass_desc, inputProdTotalProcessingPass, simdesc)
+    if retVal['OK']:
+      return S_OK('The processing pass added successfully!')
+    else:
+      return S_ERROR('Error discovered!',res['Message'])
+
+  
+  #############################################################################  
+  def __getpass_indexDescription(self, programs, groupdesc):
+    command = 'select * from pass_index where '
+    for i in range(len(programs)):
+      version = programs['Step'+str(i)].split('-')
+      if len(version) == 1:
+        return S_ERROR('Missing program version!')
+      else:
+        version = version[1]
+      command += ' Step'+str(i)+' like \'%'+str(version)+'%\' and'
+    command = command[:-3]
+    gLogger.debug(command)
+    
+    res = self.dbR_._query(command)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    value = res['Value']
+    pass_desc = '' 
+    if len(value) != 0:
+      for i in range(len(value)):
+        if self.__equalsPrograms(value[i], programs):
+          pass_desc = value[i][1]
+    
+    if pass_desc == '':
+      insertprograms = {'Step0':None,'Step1':None, 'Step2':None, 'Step3':None, 'Step4':None, 'Step5':None, 'Step6':None}
+      for step in programs:
+        insertprograms[step] = programs[step]
+      
+      retVal = self.insert_pass_index(groupdesc, insertprograms['Step0'], insertprograms['Step1'], insertprograms['Step2'], insertprograms['Step3'], insertprograms['Step4'], insertprograms['Step5'], insertprograms['Step6'])      
+      
+      pass_id = None
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+      else:
+        pass_id = retVal['Value']
+        pass_desc = 'Pass'+str(pass_id) 
+      
+    return S_OK(pass_desc)
+
+  #############################################################################  
+  def __getSimDesc(self, simcond):
+    res = self.getSimulationCondIdByDesc(simcond['SimDescription'])
+    print 'VVV',res['Value']
+    if not res['OK']:
+      gLogger.error("Simulation conditions problem", res["Message"])
+      return S_ERROR("Simulation conditions problem" + str(res["Message"]))
+    elif res['Value'] == 0: 
+      retVal = self.insertSimConditions(simcond['SimDescription'], simcond['BeamCond'], simcond['BeamEnergy'], simcond['Generator'], simcond['MagneticField'], simcond['DetectorCond'], simcond['Luminosity'])
+      if not retVal['OK']:
+         return S_ERROR(retVal['Message'])
+    simdesc = simcond['SimDescription'] 
+    return S_OK(simdesc)
+       
+    
+  
+  #############################################################################  
+  def __equalsPrograms(self, existing, new):
+    ok = True
+    if self.__countSteps(existing) != len(new):
+      ok = False
+    else:
+      i = 3
+      keys = new.keys()
+      keys.sort()
+      for key in keys:
+        newProgramName = new[key].split('-')[0]
+        newProgramVersion = new[key].split('-')[1]
+        tags = self.__getTags(existing[i])
+        name = self.__getProgramName(existing[i])
+        i += 1
+        ok = (newProgramName == name and newProgramVersion == tags[0])
+        if not ok:
+          break;
+    return ok
+  
+  #############################################################################  
+  def __countSteps(self, value):
+    stepNb = 0
+    for i in range(3, len(value)):
+      if value[i] != None:
+        stepNb += 1
+      i += 1
+    return stepNb
+  #############################################################################  
+  
+  def __getTags(self, value):
+    tmp = value.split('&')
+    tags = []
+    for i in range(len(tmp)):
+      tags  += tmp[i].split('-')[1].split('/')
+    return tags
+  
+  #############################################################################  
+  def __getProgramName(self, value):
+    return value.split('-')[0]
   
   #############################################################################  
   def insertProcessing(self, production, passid, inputprod, simdesc):

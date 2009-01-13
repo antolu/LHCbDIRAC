@@ -1,11 +1,14 @@
 <ui version="4.0" >
  <class>Dialog</class>
  <widget class="QDialog" name="Dialog" >
+  <property name="windowModality" >
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>505</width>
+    <width>620</width>
     <height>310</height>
    </rect>
   </property>
@@ -13,9 +16,12 @@
    <string>Feicim Info dialog</string>
   </property>
   <widget class="QPushButton" name="pushButton" >
+   <property name="windowModality" >
+    <enum>Qt::NonModal</enum>
+   </property>
    <property name="geometry" >
     <rect>
-     <x>380</x>
+     <x>490</x>
      <y>260</y>
      <width>111</width>
      <height>31</height>
@@ -30,7 +36,7 @@
     <rect>
      <x>10</x>
      <y>30</y>
-     <width>491</width>
+     <width>601</width>
      <height>221</height>
     </rect>
    </property>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Sun Nov  2 19:58:42 2008
+# Created: Fri Nov 28 13:27:30 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ class Ui_FileDialog(object):
         FileDialog.setModal(False)
 
         self.closeButton = QtGui.QPushButton(FileDialog)
-        self.closeButton.setGeometry(QtCore.QRect(1060,680,91,31))
+        self.closeButton.setGeometry(QtCore.QRect(1040,680,111,31))
         self.closeButton.setObjectName("closeButton")
 
         self.tableView = QtGui.QTableView(FileDialog)
@@ -25,7 +25,7 @@ class Ui_FileDialog(object):
         self.tableView.setObjectName("tableView")
 
         self.saveButton = QtGui.QPushButton(FileDialog)
-        self.saveButton.setGeometry(QtCore.QRect(940,680,91,31))
+        self.saveButton.setGeometry(QtCore.QRect(920,680,111,31))
         self.saveButton.setObjectName("saveButton")
 
         self.groupBox = QtGui.QGroupBox(FileDialog)
