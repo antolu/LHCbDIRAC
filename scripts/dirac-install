@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.118 2008/12/16 12:05:14 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.119 2009/01/14 07:56:50 joel Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.118 2008/12/16 12:05:14 rgracian Exp $"
-__VERSION__ = "$Revision: 1.118 $"
+__RCSID__   = "$Id: dirac-install,v 1.119 2009/01/14 07:56:50 joel Exp $"
+__VERSION__ = "$Revision: 1.119 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -33,7 +33,7 @@ DIRAC_HTTP_SERVER    = 'http://cern.ch/lhcbproject/dist/DIRAC3'
 DIRAC_VERSION        = 'HEAD'
 DIRAC_PYTHON         = '24'
 
-# List of native DIRAC platform supported by DIRAC, currently limmited by the 
+# List of native DIRAC platform supported by DIRAC, currently limmited by the
 # availability of LCG python modules
 availablePlatforms =  [ 'Linux_x86_64_glibc-2.5',      # slc5 64 bits
                         'Linux_x86_64_glibc-2.3.4',    # slc4 64 bits
@@ -60,6 +60,7 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                'packages': ['DIRAC',
                             'cmt',
                             'DiracSys',
+                            'DiracPolicy',
                             'DiracConfig',
                             'DiracHome',
                             'WorkflowLib',
@@ -69,6 +70,7 @@ src_tars = [ { 'name': 'DIRAC-scripts',
                                'cmt',
                                'DiracSys',
                                'DiracConfig',
+                               'DiracPolicy',
                                'DiracHome',
                                'WorkflowLib',
                                'LHCbSystem']
@@ -357,7 +359,7 @@ class Dirac:
     print 'Usage: %s [options]' % self.shortName
     print help
     sys.exit(-1)
-    
+
   def __rmDir(self, dir):
     """
      Remove dir if it exits
@@ -568,7 +570,7 @@ class Dirac:
           #   import zlib
           # except Exception, x:
           #   self.logEXCEP( x )
-          
+
       tarName = '%s-%s-%s-%s' % ( name, self.external, self.localPlatform, self.python )
       if i == binNo - 1:
         tarDirs.append('mysql')
@@ -864,7 +866,7 @@ class Dirac:
       return True
     else:
       return False
-    
+
   def installExternal( self ):
     """
      Install external package for the requiered platform
@@ -2194,7 +2196,7 @@ if __name__ == '__main__':
     except Exception, x:
       self.logERROR( 'Can not create "%s"' % platformFile )
       self.logEXCEP( x )
-      
+
   def scriptOutput(self, scriptName, exitOnError=True, interpreter=None):
     """
      Execute a script from the scripts directory and return its output
@@ -2220,7 +2222,7 @@ if __name__ == '__main__':
      signal handler for SIGALRM, just raise an exception
     """
     raise Exception( 'TimeOut' )
-  
+
   def cleanDir( dir ):
     """
      Walk the given directory and remove all .pyc and .pyo files
@@ -2251,9 +2253,9 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
 
 
   if not dirac.localPlatform:
-    dirac.platform()  
+    dirac.platform()
   dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
-  
+
   if uploadFlag:
     dirac.build()
     tars = dirac.createSrcTars()
@@ -2267,9 +2269,9 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
   else:
     if not dirac.checkInterpreter():
       dirac.installExternal()
-  
+
   dirac.checkDirac( )
-  
+
   updateScript = os.path.join( dirac.root(), 'scripts', 'dirac-update' )
   distroScript = os.path.join( dirac.root(), 'scripts', 'dirac-distribution' )
   newScript = os.path.join( dirac.root(), 'scripts', 'dirac-install' )
@@ -2280,16 +2282,16 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
   if dirac.checkInterpreter():
     dirac.logINFO( 'DIRAC-platform = %s' % dirac.localPlatform )
     dirac.lhcbPlatform()
-  
+
     # dirac.checkDirac( )
     from DIRACEnvironment import DIRAC
     if dirac.debugFlag:
       DIRAC.gLogger.setLevel( 'DEBUG' )
     else:
       DIRAC.gLogger.setLevel( 'INFO' )
-  
+
     from DIRAC.Core.Base import Script
-  
+
     Script.registerSwitch( "b",  "build",     "Allow compilation if platform not available" )
     Script.registerSwitch( "d",  "debug",     "Set debug flag" )
     Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
@@ -2303,7 +2305,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "P:", "path=",     "Install under <root>" )
     Script.registerSwitch( "S",  "server",    "Make a full server installation" )
     Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
-  
+
     from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
     localCfg = LocalConfiguration()
     localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Production' )
@@ -2335,14 +2337,14 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
     # else:
     #  localCfg.addDefaultEntry( '/LocalSite/Site', DEFAULT_SITE )
-  
+
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
-  
+
     if ceName:
       siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
       if not siteSections['OK']:
         dirac.logEXCEP('Could not get LCG site list')
-  
+
       siteName = None
       sites = siteSections['Value']
       for site in sites:
@@ -2352,12 +2354,12 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           break
       if not siteName:
         dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % siteName)
-  
+
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
       dirac.logINFO( 'Setting /LocalSite/GridCE = %s' % ceName )
       localCfg.addDefaultEntry( '/LocalSite/GridCE', ceName )
-  
+
     if siteName:
       localSE = DIRAC.gConfig.getValue( '/Resources/Sites/LCG/%s/SE' % siteName, 'None' )
       localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
@@ -2365,17 +2367,17 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
 
     localCfg.addDefaultEntry( '/LocalSite/Site', DEFAULT_SITE )
 
-  
+
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
-  
+
     if DIRAC.gConfig.getValue('/LocalSite/Site','') == DEFAULT_SITE:
       # if there is no Site Name, assume there is LCG CA's available and disable
-      # check of server identity on the clients. 
+      # check of server identity on the clients.
       localCfg.addDefaultEntry( '/DIRAC/Security/SkipCAChecks','yes')
       Script.parseCommandLine( script = myShortName, ignoreErrors = True )
-      
-  
-  
+
+
+
     # further checks can be implemented here
     try:
       import bz2
@@ -2384,19 +2386,19 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
       dirac.logEXCEP( x )
     diracSetup = DIRAC.gConfig.getValue( '/DIRAC/Setup' )
     dirac.logINFO( 'Setting /DIRAC/Setup = %s' % diracSetup )
-  
+
     DIRAC.gConfig.dumpLocalCFGToFile( dirac.checkDiracCfg() )
     dirac.logINFO( 'DIRAC version "%s" installed' % dirac.version )
     dirac.logINFO( 'DIRAC-external version "%s" installed' % dirac.external )
-    
+
     # curScript = os.path.join( dirac.root(), 'scripts', 'dirac-update' )
     # newScript = os.path.join( dirac.root(), 'scripts', 'dirac-install' )
     # if os.path.exists( newScript ):
     #  shutil.move( newScript, curScript )
-      
-  
+
+
     sys.exit(0)
-    
+
   else:
 
     dirac.logINFO( 'Will retry now with DIRAC python' )
@@ -2415,7 +2417,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     # to be removed
     # if os.path.realpath( sys.argv[0] ) != os.path.realpath( myScript ):
     #   shutil.copy( sys.argv[0], myScript )
-    # 
+    #
     # shutil.copy( sys.argv[0], distroScript )
     dirac.logDEBUG( myCmd )
     sys.exit( os.system( myCmd ) / 256 )
@@ -2433,7 +2435,7 @@ elif myShortName in ['dirac-distribution']:
   dirac.logINFO( 'Preparing DIRAC distribution at "%s"' %  dirac.root() )
   if dirac.buildFlag:
     dirac.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
-  
+
   tars =  dirac.createSrcTars()
   tars += dirac.createBinTars()
 
@@ -2442,7 +2444,7 @@ elif myShortName in ['dirac-distribution']:
     dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz scripts/dirac-install ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
     dirac.logINFO( " ( cd %s ; tar -cf - *.tar.gz scripts/dirac-install ) | gsissh -p 1975 lhcbweb.pic.es 'cd /opt/dirac/webRoot/distribution/DIRAC3 &&  tar -xvf - && ls *.tar.gz > DIRAC.list'" % rootPath )
   exit(0)
-  
+
 else:
   dirac.logERROR( 'Not recognized script name, exiting' )
   exit(-1)
