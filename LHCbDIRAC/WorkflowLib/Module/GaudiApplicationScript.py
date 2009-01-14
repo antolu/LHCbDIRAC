@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.14 2008/12/09 09:30:24 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.15 2009/01/14 14:19:58 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,13 +13,14 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.14 2008/12/09 09:30:24 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.15 2009/01/14 14:19:58 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
 from DIRAC.Core.Utilities                                import Source
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from WorkflowLib.Module.ModuleBase                       import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
 
 try:
