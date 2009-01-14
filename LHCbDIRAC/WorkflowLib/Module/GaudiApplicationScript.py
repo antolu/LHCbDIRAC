@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.15 2009/01/14 14:19:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.16 2009/01/14 14:33:53 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.15 2009/01/14 14:19:58 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.16 2009/01/14 14:33:53 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -177,7 +177,7 @@ class GaudiApplicationScript(object):
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
     setupProject.append(externals)
-    timeout = 300
+    timeout = 600
 
     # Run ExtCMT
     ret = Source( timeout, [extCMT], cmtEnv )
