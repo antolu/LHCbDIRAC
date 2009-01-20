@@ -205,10 +205,10 @@ $DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteMonitoringAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteWMSMonitoringAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   SrmSpaceTokenAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   SAMAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
-$DESTDIR/pro/scripts/install_agent.sh   Framework SAMAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
