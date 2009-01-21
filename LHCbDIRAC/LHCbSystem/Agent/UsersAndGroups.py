@@ -1,16 +1,17 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.19 2008/10/10 09:52:39 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.20 2009/01/21 11:35:38 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.19 2008/10/10 09:52:39 rgracian Exp $"
-__VERSION__ = "$Revision: 1.19 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.20 2009/01/21 11:35:38 rgracian Exp $"
+__VERSION__ = "$Revision: 1.20 $"
 """
   Update Users and Groups from VOMS on CS
 """
 import os
 from DIRAC.Core.Base.Agent                    import Agent
 from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
+from DIRAC.Framework.Client.NotificationClient import NotificationClient
 from DIRAC                                    import S_OK, S_ERROR, gConfig
 
 from DIRAC                                    import systemCall
@@ -171,10 +172,31 @@ class UsersAndGroups(Agent):
         self.log.error('Obsolete User', user )
         obsoleteUsers.append(user)
 
-    self.log.info( 'New Users found', newUsers )
-    self.log.info( 'Duplicated Users found', duplicateUsers )
-    self.log.info( 'Users with multiple DN found', multiDNUsers )
-    self.log.info( 'Obsolete Users found', obsoleteUsers )
+    address = gConfig.getValue(self.section+'/mailTo', 'lhcb-vo-admin@cern.ch' )
+    fromAddress = gConfig.getValue(self.section+'/mailFrom', 'Joel.Closier@cern.ch' )
+    if newUsers:
+      subject = 'New Users found'
+      self.log.info( subject, newUsers )
+      body = ', '.join( newUsers )
+      NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
+
+    if duplicateUsers:
+      subject = 'Duplicated Users found'
+      self.log.info( subject, duplicateUsers )
+      body = ', '.join( duplicateUsers )
+      NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
+      
+    if multiDNUsers:
+      subject = 'Users with multiple DN found'
+      self.log.info( subject, multiDNUsers )
+      body = ', '.join( multiDNUsers )
+      NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
+
+    if obsoleteUsers:
+      subject = 'Obsolete Users found'
+      self.log.info( subject, obsoleteUsers )
+      body = ', '.join( obsoleteUsers )
+      NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
 
     ret = csapi.deleteUsers( obsoleteUsers )
 
