@@ -172,7 +172,6 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
@@ -208,6 +207,7 @@ $DESTDIR/pro/scripts/install_agent.sh   LHCb   SrmSpaceTokenAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   SAMAgent
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
+$DESTDIR/pro/scripts/install_service.sh Framework Notification
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager

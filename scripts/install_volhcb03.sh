@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.11 2008/10/22 08:32:16 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.12 2009/01/21 11:27:59 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -173,7 +173,6 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Notification
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
@@ -206,6 +205,7 @@ $DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
 
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
+$DESTDIR/pro/scripts/install_service.sh Framework Notification
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
 

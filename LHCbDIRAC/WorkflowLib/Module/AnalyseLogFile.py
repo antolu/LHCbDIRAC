@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.34 2009/01/05 09:43:27 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.35 2009/01/21 11:28:00 rgracian Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.34 2009/01/05 09:43:27 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.35 2009/01/21 11:28:00 rgracian Exp $"
 
 import commands, os, time, smtplib, re
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
-from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
+from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 #from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
