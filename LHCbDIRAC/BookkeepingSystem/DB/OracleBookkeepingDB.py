@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.48 2009/01/13 17:02:41 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.49 2009/01/22 18:15:41 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.48 2009/01/13 17:02:41 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.49 2009/01/22 18:15:41 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -89,7 +89,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command = 'select data_taking_conditions.DAQPERIODID,data_taking_conditions.DESCRIPTION,data_taking_conditions.BEAMCOND, \
                 data_taking_conditions.BEAMENERGY,data_taking_conditions.MAGNETICFIELD,data_taking_conditions.VELO,data_taking_conditions.IT, \
                data_taking_conditions.TT,data_taking_conditions.OT,data_taking_conditions.RICH1,data_taking_conditions.RICH2,data_taking_conditions.SPD_PRS, \
-             data_taking_conditions.ECAL \
+             data_taking_conditions.ECAL, data_taking_conditions.HCAL, data_taking_conditions.MUON, data_taking_conditions.L0, data_taking_conditions.HLT\
           from data_taking_conditions,bookkeepingView where \
                bookkeepingview.DAQPeriodId=data_taking_conditions.DAQPERIODID'+ condition
       res = self.dbR_._query(command)
@@ -114,11 +114,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if simcondid !='ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
                 
-    command = 'select distinct processing_pass.TOTALPROCPASS,  \
-               pass_index.step0, pass_index.step1, pass_index.step2, \
-               pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6  from bookkeepingview,processing_pass,pass_index where \
-               bookkeepingview.production=processing_pass.production and \
-               processing_pass.passid=pass_index.passid'+condition
+    command = 'select distinct productions.TOTALPROCPASS,  \
+               pass_index.step0,pass_index.step1,pass_index.step2,pass_index.step3,pass_index.step4,pass_index.step5,pass_index.step6 from bookkeepingview,productions,pass_index,applications where \
+               bookkeepingview.production=productions.production and \
+               productions.passid=pass_index.passid'+condition
     res = self.dbR_._query(command)
     value = res['Value']
     retvalue = []
@@ -131,8 +130,27 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getDescription(group)['Value'][0][0]
         description += result +' + '
       tmp[0]=description[:-3] 
+      for appid in range(1,7):
+        appname = ''
+        if tmp[appid]!= None:
+          retVal = self._getApplication(tmp[appid])
+          if retVal['OK']:
+            value = retVal['Value']
+            appname = value[0][1]+' '+value[0][2]
+            gLogger.info('Application name:',appname)
+            infos = '/'+str(value[0][3])+'/'+str(value[0][4])+'/'+str(value[0][5])
+            tmp[appid]=appname+infos
+          else:
+            return S_ERROR(retVal['Message'])
+      
       retvalue += [tuple(tmp)]
     return S_OK(retvalue)
+  
+  #############################################################################
+  def _getApplication(self, applid):
+    command = 'select * from applications where applicationid='+str(applid)
+    res = self.dbR_._query(command)
+    return res
   
   #############################################################################
   def getDescription(self, id):
@@ -160,10 +178,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     
-    command ='select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,bookkeepingview,processing_pass where \
-         bookkeepingview.production=processing_pass.production and \
+    command ='select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,bookkeepingview,productions where \
+         bookkeepingview.production=productions.production and \
          eventTypes.EventTypeId=bookkeepingview.eventtypeid'+condition
   
     res = self.dbR_._query(command)
@@ -187,7 +205,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
       all += 1
     
@@ -199,8 +217,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if all > ALLOWED_ALL:
       return S_ERROR('To many ALL selected')
     
-    command = 'select distinct bookkeepingview.production from bookkeepingview,processing_pass where \
-         bookkeepingview.production=processing_pass.production'+condition
+    command = 'select distinct bookkeepingview.production from bookkeepingview,productions where \
+         bookkeepingview.production=productions.production'+condition
   
     res = self.dbR_._query(command)
     return res
@@ -223,7 +241,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
       all += 1
           
@@ -240,8 +258,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if all > ALLOWED_ALL:
       return S_ERROR("To many all selected")
     
-    command = 'select distinct filetypes.name from filetypes,bookkeepingview,processing_pass where \
-               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=processing_pass.production'+condition
+    command = 'select distinct filetypes.name from filetypes,bookkeepingview,productions where \
+               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=productions.production'+condition
                
     res = self.dbR_._query(command)
     return res
@@ -263,7 +281,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
       all += 1
           
@@ -290,8 +308,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if all > ALLOWED_ALL:
       return S_ERROR("To many ALL selected")
-    command = 'select distinct bookkeepingview.ProgramName, bookkeepingView.ProgramVersion, 0 from filetypes,bookkeepingview,processing_pass where \
-               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=processing_pass.production'+condition
+    command = 'select distinct bookkeepingview.ProgramName, bookkeepingView.ProgramVersion, 0 from filetypes,bookkeepingview,productions where \
+               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=productions.production'+condition
                
     res = self.dbR_._query(command)
     return res
@@ -304,9 +322,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     all = 0;
     tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
-      condition += ' and jobs.production=processing_pass.production'
-      condition += ' and processing_pass.simcondid='+str(simcondid)
-      tables += ' ,processing_pass'
+      condition += ' and jobs.production=productions.production'
+      condition += ' and productions.simcondid='+str(simcondid)
+      tables += ' ,productions'
     
     if procPass != 'ALL':
       descriptions = procPass.split('+')
@@ -315,10 +333,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
-      condition += ' and processing_pass.PRODUCTION=jobs.production'
-      if 'processing_pass' not in tables:
-         tables += ', processing_pass'
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      if 'productions' not in tables:
+         tables += ', productions'
     else:
       all += 1
       
@@ -352,7 +370,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name from '+ tables+' ,filetypes \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat from '+ tables+' ,filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
@@ -360,7 +378,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' from '+ tables +'\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat from '+ tables +'\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid' + condition 
@@ -377,9 +395,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     all = 0
     tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
-      condition += ' and jobs.production=processing_pass.production'
-      condition += ' and processing_pass.simcondid='+str(simcondid)
-      tables += ' ,processing_pass'
+      condition += ' and jobs.production=productions.production'
+      condition += ' and productions.simcondid='+str(simcondid)
+      tables += ' ,productions'
     else:
       all += 1
     
@@ -390,10 +408,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
-      condition += ' and processing_pass.PRODUCTION=jobs.production'
-      if 'processing_pass' not in tables:
-         tables += ', processing_pass'
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      if 'productions' not in tables:
+         tables += ', productions'
     else:
       all += 1
       
@@ -426,13 +444,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all += 1
          
     if ftype == 'ALL':
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt \
       FROM \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt\
         from'+tables+'filetypes \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
@@ -440,12 +459,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
     else:
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt \
         from'+ tables+'\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
@@ -465,9 +484,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     all = 0
     tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
-      condition += ' and jobs.production=processing_pass.production'
-      condition += ' and processing_pass.simcondid='+str(simcondid)
-      tables += ', processing_pass' 
+      condition += ' and jobs.production=productions.production'
+      condition += ' and productions.simcondid='+str(simcondid)
+      tables += ', productions' 
     else:
       all += 1
     
@@ -478,10 +497,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
-      condition += ' and processing_pass.TOTALPROCPASS=\''+totalproc+'\''
-      condition += ' and processing_pass.PRODUCTION=jobs.production'
-      if 'processing_pass' not in tables:
-         tables += ', processing_pass'
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      if 'productions' not in tables:
+         tables += ', productions'
     else:
       all += 1
         
@@ -555,6 +574,50 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
+  def getFilesWithGivenDataSets(self, simdesc, procPass,ftype, configName='ALL', configVersion='ALL'):
+    
+    configid = None
+    condition = ''
+    
+    if configName != 'ALL' and configVersion != 'ALL':
+      command = ' select configurationid from configurations where configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      else:
+        configid = res['Value'][0][0]
+        if configid != 0:
+          condition = ' and jobs.configurationid='+str(configid)
+        else:
+          return S_ERROR('Wrong configuration name and version!')
+                    
+    
+    
+    descriptions = procPass.split('+')
+    totalproc = ''
+    for desc in descriptions:
+      result = self.getGroupId(desc.strip())['Value'][0][0]
+      totalproc += str(result)+"<"
+    totalproc = totalproc[:-1]
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                 and jobs.production in ( select production from  productions, simulationconditions where  \
+                 simulationconditions.simdescription=\''+simdesc+'\' and \
+                 productions.simcondid= simulationconditions.simid and \
+                 productions.totalprocpass=\''+totalproc+'\')'
+    res = self.dbR_._query(command)
+    return res
+    
+  #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \
                     bookkeepingview.configversion=\''+configVersion+'\''
@@ -565,10 +628,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if  simcond != 'ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcond)
   
-    command = 'select distinct processing_pass.TOTALPROCPASS, pass_index.step0, pass_index.step1, pass_index.step2, pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6 \
-       from bookkeepingview,processing_pass,pass_index where \
-            bookkeepingview.production=processing_pass.production and \
-            processing_pass.passid=pass_index.passid'+ condition
+    command = 'select distinct productions.TOTALPROCPASS, pass_index.step0, pass_index.step1, pass_index.step2, pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6 \
+       from bookkeepingview,productions,pass_index where \
+            bookkeepingview.production=productions.production and \
+            productions.passid=pass_index.passid'+ condition
     res = self.dbR_._query(command)
     value = res['Value']
     retvalue = []
@@ -629,6 +692,62 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(res['Message'])
     return S_OK(value)
   
+  #############################################################################
+  def insert_aplications(self, appName, appVersion, option, dddb, condb):
+    command = ''
+    condition = ''
+    if dddb != '':
+      condition += ' and ddb=\''+str(dddb)+'\' '
+    
+    if option != '':
+      condition += ' and optionfiles=\''+str(option)+'\' '
+    
+    if condb != '':
+      condition += ' and condb=\''+str(condb)+'\' '
+    
+    command = 'select applicationid from applications where applicationname=\''+str(appName)+'\' and applicationversion=\''+str(appVersion)+'\''+condition
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      id = retVal['Value']
+      if len(id) == 0:
+        command = ' SELECT applications_index_seq.nextval FROM dual'
+        retVal = self.dbR_._query(command)
+        if retVal['OK']:
+          appid = retVal['Value'][0][0]
+          values = str(appid) + ','
+          values += '\''+str(appName)+'\','
+          values += '\''+str(appVersion)+'\','
+          values += '\''+str(option)+'\','
+          values += '\''+str(dddb)+'\','
+          values += '\''+str(condb)+'\''
+          command = ' insert into applications (ApplicationID, ApplicationName, ApplicationVersion, OptionFiles, DDDb, condDb) values ('+values+')'
+          retVal = self.dbW_._query(command)
+          if not retVal['OK']:
+            return S_ERROR(retVal['Message'])
+        else:
+          return S_ERROR(retVal['Message'])
+        return S_OK(appid)
+      else:
+        return S_OK(id[0][0])
+  
+  #############################################################################
+  def insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):
+    values = str(passid)+','
+    values += '\''+descr+'\','
+    values += str(groupid) +','
+    values += str(step0) +','
+    values += str(step1) +','
+    values += str(step2) +','
+    values += str(step3) +','
+    values += str(step4) +','
+    values += str(step5) +','
+    values += str(step6)
+    command = 'insert into pass_index (PASSID, DESCRIPTION, GROUPID, STEP0, STEP1, STEP2, STEP3, STEP4, STEP5, STEP6) values('+values+')'
+    res = self.dbW_._query(command)
+    print res
+    return res
+
+
   #############################################################################
   def updateFileMetaData(self, filename, filesAttr):
     command = 'update files Set '
@@ -731,9 +850,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(retVal['Message'])
     else:
       simdesc = retVal['Value']
-      print '!!!222',simdesc
   
-    gLogger.info('Insert Processing_pass:')
+    gLogger.info('Insert productions:')
     gLogger.info('Pass description: '+str(pass_desc))
     gLogger.info('Simulation description: '+str(simdesc))
     gLogger.info('Production: '+str(production))
@@ -866,8 +984,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition = ' where production='+str(prod)
     
     
-    command = 'select distinct processing_pass.TOTALPROCPASS,  \
-               production from processing_pass'+condition+ ' ORDER BY production'
+    command = 'select distinct productions.TOTALPROCPASS,  \
+               production from productions'+condition+ ' ORDER BY production'
     
     
     res = self.dbR_._query(command)
@@ -1122,7 +1240,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     gLogger.info("Insert job into database!")
     attrList = {'ConfigName':None, \
                  'ConfigVersion':None, \
-                 'DAQPeriodId':None, \
                  'DiracJobId':None, \
                  'DiracVersion':None, \
                  'EventInputStat':None, \
@@ -1135,8 +1252,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'JobStart':None, \
                  'LocalJobId':None, \
                  'Location':None, \
-                 'LuminosityEnd':None, \
-                 'LuminosityStart':None, \
                  'Name':None, \
                  'NumberOfEvents':None, \
                  'Production':None, \
@@ -1148,8 +1263,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'WNCache':None, \
                  'WNMemory':None, \
                  'WNModel':None, \
-                 'WorkerNode':None}
-    
+                 'WorkerNode':None, \
+                 'RunNumber':None,
+                 'FillNumber':None}
     
     for param in job:
       if not attrList.__contains__(param):
@@ -1168,7 +1284,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
       
     result = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertJobsRow',LongType,[ attrList['ConfigName'], attrList['ConfigVersion'], \
-                  attrList['DAQPeriodId'], \
                   attrList['DiracJobId'], \
                   attrList['DiracVersion'], \
                   attrList['EventInputStat'], \
@@ -1181,8 +1296,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['JobStart'], \
                   attrList['LocalJobId'], \
                   attrList['Location'], \
-                  attrList['LuminosityEnd'], \
-                  attrList['LuminosityStart'], \
                   attrList['Name'], \
                   attrList['NumberOfEvents'], \
                   attrList['Production'], \
@@ -1194,7 +1307,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['WNCache'], \
                   attrList['WNMemory'], \
                   attrList['WNModel'], \
-                  attrList['WorkerNode'] ])           
+                  attrList['WorkerNode'], \
+                  attrList['RunNumber'], \
+                  attrList['FillNumber'] ])           
     return result
   
   #############################################################################
@@ -1214,7 +1329,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'Guid':None,  \
                     'JobId':None, \
                     'MD5Sum':None, \
-                    'FileSize':None }
+                    'FileSize':None, \
+                    'PhysicStat':None }
       
       for param in file:
         if not attrList.__contains__(param):
@@ -1232,7 +1348,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['Guid'],  \
                     attrList['JobId'], \
                     attrList['MD5Sum'], \
-                    attrList['FileSize'] ] ) 
+                    attrList['FileSize'],
+                    attrList['PhysicStat'] ] ) 
       return result
       
   #############################################################################
@@ -1488,23 +1605,126 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getPassIndexID(self, programName, programVersion):
-    condition = programName+'-'+programVersion
-    command = 'select passid from pass_index where step0=\''+condition+'\''
-    res = self.dbR_._query(command)
     returnValue = None
+    res = self.insert_aplications(programName, programVersion, '', '', '')
     if not res['OK']:
-      returnValue = S_ERROR('Message')
+      return S_ERROR(res['Message'])
     else:
-      if len(res['Value']) == 0:
-        retVal = self.insert_pass_index('UNKNOWN', condition, None, None, None, None, None, None)
-        if not retVal['OK']:
-          returnValue = S_ERROR(retVal['Message'])
-        else:
-          returnValue = S_OK(retVal['Value'])
+      step0 = res['Value']
+      retVal = self.insert_pass_index_new('UNKNOWN', step0, None, None, None, None, None, None)
+      if not retVal['OK']:
+        returnValue = S_ERROR(retVal['Message'])
       else:
-        returnValue = S_OK(res['Value'][0][0])
+        returnValue = S_OK(retVal['Value'])    
+      return returnValue 
+  
+  #############################################################################
+  def insert_pass_index_new(self, groupdesc, step0, step1, step2, step3, step4, step5,step6):
+    command = ' select groupId from PASS_GROUP where GROUPDESCRIPTION=\''+str(groupdesc)+'\''
+    retVal = self.dbR_._query(command)
+    groupid = None
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      if len(retVal['Value']) == 0:
+        command = ' SELECT GROUPID_SEQ.nextval from dual'
+        retVal = self.dbR_._query(command)
+        if not retVal['OK']:
+          return S_ERROR(retVal['Message'])
+        else:
+          groupid = retVal['Value'][0][0]
+          command = ' insert into PASS_GROUP (GROUPID, GROUPDESCRIPTION) values ('+str(id)+','+str(groupdesc)+')'
+          retVal = self.dbW_._query(command)
+          if not retVal['OK']:
+            return S_ERROR(retVal['Message'])
+      else:  
+        groupid = retVal['Value'][0][0]
+        retVal = self.check_pass_index(groupid, step0, step1, step2, step3, step4, step5,step6)
+        if not retVal['OK']:
+          return S_ERROR(retVal['Message'])
+        elif retVal['Value']==None:
+          command = 'select PASS_INDEX_SEQ.nextval from dual'
+          retVal = self.dbR_._query(command)
+          if not retVal['OK']:
+            return S_ERROR(retVal['Message'])
+          else:
+            passid = retVal['Value'][0][0]
+            descr = 'Pass'+str(passid)
+            values = str(passid)+','
+            values += '\''+descr+'\','
+            values += str(groupid) +','
+            if step0 != None:
+              values += str(step0) +','
+            else:
+              values += 'NULL,'
+            
+            if step1 != None:
+              values += str(step1) +','
+            else:
+              values += 'NULL,'
+            
+            if step2 != None:
+              values += str(step2) +','
+            else:
+              values += 'NULL,'
+              
+            if step3 != None:
+              values += str(step3) +','
+            else:
+              values += 'NULL,'
+              
+            if step4 != None:
+              values += str(step4) +','
+            else:
+              values += 'NULL,'
+              
+            if step5 != None:
+              values += str(step5) +','
+            else:
+              values += 'NULL,'
+              
+            if step6 != None:
+              values += str(step6)
+            else:
+              values += 'NULL'
+              
+            command = 'insert into pass_index (PASSID, DESCRIPTION, GROUPID, STEP0, STEP1, STEP2, STEP3, STEP4, STEP5, STEP6) values('+values+')'
+            retVal = self.dbW_._query(command)
+            if not retVal['OK']:
+              return S_ERROR(retVal['Message'])
+            else:
+              return S_OK(passid)
+        else:
+          return S_OK(retVal['Value'])
+          
       
-    return returnValue
+  #############################################################################
+  def check_pass_index(self, groupid, step0, step1, step2, step3, step4, step5,step6):
+    conditions = ''
+    if step0 != None:
+      conditions += ' and step0='+str(step0)
+    if step1 != None:
+      conditions += ' and step0='+str(step1)
+    if step2 != None:
+      conditions += ' and step0='+str(step2)
+    if step3 != None:
+      conditions += ' and step0='+str(step3)
+    if step4 != None:
+      conditions += ' and step0='+str(step4)
+    if step5 != None:
+      conditions += ' and step0='+str(step5)
+    if step6 != None:
+      conditions += ' and step0='+str(step6)
+    command = ' select passid from pass_index where groupid='+str(groupid)+conditions
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      if len(retVal['Value']) == 0:
+        return S_OK(None)
+      else:
+        return S_OK(retVal['Value'][0][0])
+    return S_ERROR()
   
   #############################################################################
   def insertProcessing_pass(self, passid, simcond):
@@ -1526,9 +1746,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def updateEventType(self, evid, desc, primary):
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.updateEventTypes',[desc, evid, primary], False)
   
+    
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
-    command = ' select count(*) from processing_pass where production='+ str(production)
+    command = ' select count(*) from productions where production='+ str(production)
     res = self.dbR_._query(command)
     return res
   
@@ -1556,7 +1777,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_.executeStoredProcedure('BKK_MONITORING.getProductionInformation', [prodid])
   
   #############################################################################
+  def getSteps(self, prodid):
+    return self.dbR_.executeStoredProcedure('BKK_MONITORING.getSteps', [prodid])
+  
+  #############################################################################
   def getNbOfJobsBySites(self, prodid):
     return self.dbR_.executeStoredProcedure('BKK_MONITORING.getJobsbySites', [prodid])
-    
+  
+  #############################################################################
+  def getConfigsAndEvtType(self, prodid):
+    return self.dbR_.executeStoredProcedure('BKK_MONITORING.getConfigsAndEvtType',[prodid])
+  
   
