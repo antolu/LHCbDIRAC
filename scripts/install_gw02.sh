@@ -1,6 +1,8 @@
 #!/bin/bash
 ########################################################################
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_gw02.sh,v 1.6 2009/01/22 11:42:30 acsmith Exp $
 # File :   install_gw02.sh
+# Author : Andrew C. Smith
 ########################################################################
 #
 # User that is allow to execute the script
@@ -14,34 +16,31 @@ DESTDIR=/sw/dirac
 #
 SiteName=DIRAC.ONLINE.ch
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v0r4p0
-EXTVERSION=v0r4p0
-#DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACVERSION=v4r4
+EXTVERSION=v4r4
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit requestDB"
 export LOGLEVEL=VERBOSE
 export DIRACINSTANCE=Production
-#
-# Uncomment to install from CVS (default install from TAR)
-# it implies -b (build from sources)
-#DIRACCVS=yes
-#
+
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
   echo $0 should be run at $DIRACHOST
 fi
+
 # check if we are the right user
 if [ $USER != $DIRACUSER ] ; then
   echo $0 should be run by $DIRACUSER
   exit
 fi
+
 # check if the mask is properly set
 #if [ "`umask`" != "0002" ] ; then
 #  echo umask should be set to 0002 at system level for users
 #  exit
 #fi
-#
+
 # make sure $DESTDIR is available
 mkdir -p $DESTDIR || exit 1
 
@@ -60,10 +59,13 @@ if [ ! -d $DESTDIR/etc ]; then
 fi
 if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
   cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
-
 LocalSite
 {
   EnableAgentMonitoring = no
+  Architecture = $DIRACARCH
+  CPUScalingFactor = 0.0
+  Root = $DESTDIR
+  Site = $SiteName
 }
 DIRAC
 {
@@ -90,19 +92,30 @@ DIRAC
       DataManagement = $DIRACINSTANCE
       RequestManagement = $DIRACINSTANCE
       Monitoring = $DIRACINSTANCE
+      Bookkeeping = $DIRACINSTANCE
     }
   }
 }
 Systems
 {
+  Bookkeeping
+  {
+    $DIRACINSTANCE
+    {
+      URLs
+      {
+        BookkeepingManager = dips://lhcb-bk-dirac.cern.ch:9202/Bookkeeping/BookkeepingManager
+      }
+    }
+  }
   DataManagement
   {
     $DIRACINSTANCE
     {
       URLs
       {
-        RAWIntegrity = dips://volhcb10.cern.ch:9198/DataManagement/RAWIntegrity
-        DataLogging = dips://volhcb10.cern.ch:9146/DataManagement/DataLogging
+        RAWIntegrity = dips://lhcb-dms-dirac.cern.ch:9190/DataManagement/RAWIntegrity
+        DataLogging = dips://lhcb-dms-dirac.ch:9146/DataManagement/DataLogging
       }
     }
   }
@@ -139,8 +152,6 @@ Resources
         Protocol = http
         Host = rundb02.lbdaq.cern.ch
         Port = 8080
-        Path =
-        SpaceToken =
       }
     }
     CERN-RAW
@@ -158,13 +169,24 @@ Resources
       }
     }
   }
+  Sites
+  {
+    DIRAC
+    {
+      DIRAC.ONLINE.ch
+      {
+        SE = CERN-RAW
+        SE += OnlineRunDB
+      }
+    }
+  }
   SiteLocalSEMapping
   {
-    DIRAC.ONLINE.ch = CERN-RAW,OnlineRunDB
+    DIRAC.ONLINE.ch = CERN-RAW
+    DIRAC.ONLINE.ch += OnlineRunDB
   }
 }
 EOF
-
 fi
 
 for dir in $DIRACDIRS ; do
@@ -185,30 +207,26 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
-#
 # Create pro and old links
 old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
 
-#
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
 ## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
-python -c "$cmd" 1> /dev/null || exit 1
-python -O -c "$cmd" 1> /dev/null  || exit 1
+$DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
+$DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
 
-#
 # fix user .bashrc
-#
 grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
   echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
@@ -220,7 +238,7 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 # INSTALL SERVICES
 
 $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
-cat >  $DESTDIR/etc/RequestManagement_RequestManager.cfg <<EOF
+cat > $DESTDIR/etc/RequestManagement_RequestManager.cfg <<EOF
 Systems
 {
   RequestManagement
@@ -231,12 +249,12 @@ Systems
       {
         RequestManager
         {
-          LogLevel = DEBUG
+          LogLevel = INFO
           HandlerPath = DIRAC/RequestManagementSystem/Service/RequestManagerHandler.py
           Port = 9199
           Protocol = dip
           Backend = file
-          Path = /sw/dirac/requestDB
+          Path = $DESTDIR/requestDB
           Authorization
           {
             Default = all
@@ -252,7 +270,7 @@ EOF
 # INSTALL AGENTS
 
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement    TransferAgent
-cat >  $DESTDIR/etc/DataManagement_TransferAgent.cfg <<EOF
+cat > $DESTDIR/etc/DataManagement_TransferAgent.cfg <<EOF
 Systems
 {
   DataManagement
@@ -267,9 +285,9 @@ Systems
           LogOutputs = stdout
           PollingTime = 10
           Status = Active
-          ControlDirectory = /sw/dirac/runit/DataManagement/TransferAgentAgent
+          ControlDirectory = $DESTDIR/runit/DataManagement/TransferAgent
           NumberOfThreads = 4
-          ThreadPoolDepth = 4
+          ThreadPoolDepth = 0
           UseProxies = False
         }
       }
@@ -279,7 +297,7 @@ Systems
 EOF
 
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement    RemovalAgent
-cat >  $DESTDIR/etc/DataManagement_RemovalAgent.cfg <<EOF
+cat > $DESTDIR/etc/DataManagement_RemovalAgent.cfg <<EOF
 Systems
 {
   DataManagement
@@ -294,8 +312,8 @@ Systems
           LogOutputs = stdout
           PollingTime = 10
           Status = Active
-          ControlDirectory = /sw/dirac/runit/DataManagement/RemovalAgentAgent
-          NumberOfThreads = 1
+          ControlDirectory = $DESTDIR/runit/DataManagement/RemovalAgent
+          NumberOfThreads = 4
           ThreadPoolDepth = 0
           UseProxies = False
         }
@@ -306,7 +324,7 @@ Systems
 EOF
 
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement    RegistrationAgent
-cat >  $DESTDIR/etc/DataManagement_RegistrationAgent.cfg <<EOF
+cat > $DESTDIR/etc/DataManagement_RegistrationAgent.cfg <<EOF
 Systems
 {
   DataManagement
@@ -321,8 +339,8 @@ Systems
           LogOutputs = stdout
           PollingTime = 10
           Status = Active
-          ControlDirectory = /sw/dirac/runit/DataManagement/RegistrationAgentAgent
-          NumberOfThreads = 1
+          ControlDirectory = $DESTDIR/runit/DataManagement/RegistrationAgent
+          NumberOfThreads = 4
           ThreadPoolDepth = 0
           UseProxies = False
         }
@@ -331,33 +349,5 @@ Systems
   }
 }
 EOF
-
-
-######################################################################
-
-if [ ! -z $DIRACCVS ] ; then
-
-
-        cd `dirname $DESTDIR`
-        mv DIRAC3/DIRAC DIRAC3/DIRAC.save
-
-echo
-echo
-echo   To get a CVS installation:
-echo
-echo   "   login with your own user"
-echo   "   start a bash shell"
-echo   "   execute"
-echo
-echo
-cat << EOF
-umask 0002
-export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
-cd `dirname $DESTDIR`
-cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
-
-EOF
-
-fi
 
 exit
