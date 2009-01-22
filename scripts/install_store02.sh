@@ -1,8 +1,8 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.8 2008/07/01 15:56:25 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.9 2009/01/22 11:44:20 acsmith Exp $
 # File :   install_store02.sh
-# Author : Ricardo Graciani
+# Author : Andrew C. Smith
 ########################################################################
 #
 # User that is allow to execute the script
@@ -11,36 +11,36 @@ DIRACUSER=lhcbprod
 # Host where it es allow to run the script
 DIRACHOST=store02.lbdaq.cern.ch
 #
-# Location of the installtion
-DESTDIR=/opt/dirac
+# Location of the installation
+DESTDIR=/sw/dirac
 #
 SiteName=DIRAC.ONLINE.ch
-DIRACSETUP=LHCb-Development
-DIRACVERSION=HEAD
-EXTVERSION=HEAD
-DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACSETUP=LHCb-Production
+DIRACVERSION=v4r4
+EXTVERSION=v4r4
+DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
-DIRACDIRS="startup runit data requestDB"
-#
-# Uncomment to install from CVS (default install from TAR)
-# it imples -b (build from sources)
-# DIRACCVS=-C
-#
+DIRACDIRS="startup runit requestDB"
+export LOGLEVEL=VERBOSE
+export DIRACINSTANCE=Production
+
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
   echo $0 should be run at $DIRACHOST
 fi
+
 # check if we are the right user
 if [ $USER != $DIRACUSER ] ; then
   echo $0 should be run by $DIRACUSER
   exit
 fi
-# # check if the mask is properly set
-# if [ "`umask`" != "0002" ] ; then
-#   echo umask should be set to 0002 at system level for users
-#   exit
-# fi
-#
+
+# check if the mask is properly set
+#if [ "`umask`" != "0002" ] ; then
+#  echo umask should be set to 0002 at system level for users
+#  exit
+#fi
+
 # make sure $DESTDIR is available
 mkdir -p $DESTDIR || exit 1
 
@@ -61,126 +61,71 @@ if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
   cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
 LocalSite
 {
-  Site = DIRAC.ONLINE.ch
+  EnableAgentMonitoring = no
+  Architecture = $DIRACARCH
+  CPUScalingFactor = 0.0
+  Root = $DESTDIR
+  Site = $SiteName
 }
 DIRAC
 {
-  Site = DIRAC.ONLINE.ch
-  Setup = LHCb-Development
-  Security
-  {
-    CertFile = /opt/dirac/etc/grid-security/hostcert.pem
-    KeyFile = /opt/dirac/etc/grid-security/hostkey.pem
-  }
+  Setup = $DIRACSETUP
   Configuration
   {
     Name = Online
     Master = no
   }
+  Security
+  {
+    CertFile = $DESTDIR/etc/grid-security/hostcert.pem
+    KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
+    UseServerCertificate = true
+  }
   Setups
   {
-    LHCb-Development
+    $DIRACSETUP
     {
-      Configuration = Development
-      WorkloadManagement = Development
-      ProductionManagement = Development
-      Logging = Development
-      DataManagement = Development
-      RequestManagement = Development
-      Monitoring = Development
+      Configuration = $DIRACINSTANCE
+      WorkloadManagement = $DIRACINSTANCE
+      ProductionManagement = $DIRACINSTANCE
+      Logging = $DIRACINSTANCE
+      DataManagement = $DIRACINSTANCE
+      RequestManagement = $DIRACINSTANCE
+      Monitoring = $DIRACINSTANCE
+      Bookkeeping = $DIRACINSTANCE
     }
   }
 }
-
 Systems
 {
-
-  Monitoring
+  Bookkeeping
   {
-     Development
-     {
-       URLs
-       {
-         Server = dips://volhcb03.cern.ch:9142/Monitoring/Server
-       }
-     }
-  }
-  DataManagement
-  {
-    Development
+    $DIRACINSTANCE
     {
       URLs
       {
-        PlacementDB = dips://volhcb03.cern.ch:9147/DataManagement/ReplicationPlacement
-        RAWIntegrity = dips://volhcb03.cern.ch:9198/DataManagement/RAWIntegrity
-        DataLogging = dips://volhcb03.cern.ch:9146/DataManagement/DataLogging
+        BookkeepingManager = dips://lhcb-bk-dirac.cern.ch:9202/Bookkeeping/BookkeepingManager
       }
-      Agents
+    }
+  }
+  DataManagement
+  {
+    $DIRACINSTANCE
+    {
+      URLs
       {
-        RemovalAgent
-        {
-          LogLevel = INFO
-          LogOutputs = stdout
-          PollingTime = 10
-          Status = Active
-          ControlDirectory = /opt/dirac/runit/RemovalAgent
-          NumberOfThreads = 1
-          ThreadPoolDepth = 0
-          UseProxies = False
-        }
-        TransferAgent
-        {
-          LogLevel = INFO
-          LogOutputs = stdout
-          PollingTime = 10
-          Status = Active
-          ControlDirectory = /opt/dirac/runit/TransferAgent
-          NumberOfThreads = 4
-          ThreadPoolDepth = 4
-          ProxyDN = /C=UK/O=eScience/OU=Edinburgh/L=NeSC/CN=andrew cameron smith
-          ProxyGroup = lhcb_prod
-          ProxyLocation = /opt/DIRAC3/runit/DataManagement/TransferAgentAgent/proxy
-          UseProxies = True
-        }
+        RAWIntegrity = dips://lhcb-dms-dirac.cern.ch:9190/DataManagement/RAWIntegrity
+        DataLogging = dips://lhcb-dms-dirac.ch:9146/DataManagement/DataLogging
       }
     }
   }
   RequestManagement
   {
-    Development
+    $DIRACINSTANCE
     {
       URLs
       {
         localURL = dip://store02.lbdaq.cern.ch:9199/RequestManagement/RequestManager
-      }
-      Databases
-      {
-      }
-      Services
-      {
-        RequestManager
-        {
-          LogLevel = DEBUG
-          HandlerPath = DIRAC/RequestManagementSystem/Service/RequestManagerHandler.py
-          Port = 9199
-          Protocol = dip
-          Backend = file
-          Path = /opt/dirac/requestDB
-          Authorization
-          {
-            Default = all
-          }
-        }
-      }
-    }
-  }
-  WorkloadManagement
-  {
-    Development
-    {
-      URLs
-      {
-        WMSAdministrator = dips://volhcb03.cern.ch:9145/WorkloadManagement/WMSAdministrator
       }
     }
   }
@@ -189,22 +134,9 @@ Resources
 {
   FileCatalogs
   {
-    LcgFileCatalogCombined
-    {
-      AccessType = Read-Write
-      Status = Active
-      LcgGfalInfosys = lcg-bdii.cern.ch:2170
-      MasterHost = lfc-lhcb.cern.ch
-      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
-    }
-    PlacementDB
-    {
-      AccessType = Write
-      Status = Active
-    }
     RAWIntegrity
     {
-      AccessType = Write
+      AccessType = Read-Write
       Status = Active
     }
   }
@@ -220,10 +152,7 @@ Resources
         Protocol = http
         Host = rundb02.lbdaq.cern.ch
         Port = 8080
-        Path =
-        SpaceToken =
       }
-
     }
     CERN-RAW
     {
@@ -240,12 +169,23 @@ Resources
       }
     }
   }
+  Sites
+  {
+    DIRAC
+    {
+      DIRAC.ONLINE.ch
+      {
+        SE = CERN-RAW
+        SE += OnlineRunDB
+      }
+    }
+  }
   SiteLocalSEMapping
   {
-    DIRAC.ONLINE.ch = CERN-RAW,OnlineRunDB
+    DIRAC.ONLINE.ch = CERN-RAW
+    DIRAC.ONLINE.ch += OnlineRunDB
   }
 }
-
 EOF
 fi
 
@@ -269,12 +209,11 @@ PATH=`echo $PATH | sed "s/$dir://"`
 
 $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
 
-#
 # Create pro and old links
 old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
-#
+
 # Create bin link
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 ##
@@ -287,17 +226,128 @@ $DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
 
-#
 # fix user .bashrc
-#
-# grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
-#   echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
+grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
+  echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
+cp $CURDIR/dirac-install $DESTDIR/pro/scripts
+
+##############################################################
+# INSTALL SERVICES
 
 $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+cat > $DESTDIR/etc/RequestManagement_RequestManager.cfg <<EOF
+Systems
+{
+  RequestManagement
+  {
+    $DIRACINSTANCE
+    {
+      Services
+      {
+        RequestManager
+        {
+          LogLevel = INFO
+          HandlerPath = DIRAC/RequestManagementSystem/Service/RequestManagerHandler.py
+          Port = 9199
+          Protocol = dip
+          Backend = file
+          Path = $DESTDIR/requestDB
+          Authorization
+          {
+            Default = all
+          }
+        }
+      }
+    }
+  }
+}
+EOF
+
+##############################################################
+# INSTALL AGENTS
+
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement    TransferAgent
+cat > $DESTDIR/etc/DataManagement_TransferAgent.cfg <<EOF
+Systems
+{
+  DataManagement
+  {
+    $DIRACINSTANCE
+    {
+      Agents
+      {
+        TransferAgent
+        {
+          LogLevel = INFO
+          LogOutputs = stdout
+          PollingTime = 10
+          Status = Active
+          ControlDirectory = $DESTDIR/runit/DataManagement/TransferAgent
+          NumberOfThreads = 4
+          ThreadPoolDepth = 0
+          UseProxies = False
+        }
+      }
+    }
+  }
+}
+EOF
+
 $DESTDIR/pro/scripts/install_agent.sh   DataManagement    RemovalAgent
+cat > $DESTDIR/etc/DataManagement_RemovalAgent.cfg <<EOF
+Systems
+{
+  DataManagement
+  {
+    $DIRACINSTANCE
+    {
+      Agents
+      {
+        RemovalAgent
+        {
+          LogLevel = INFO
+          LogOutputs = stdout
+          PollingTime = 10
+          Status = Active
+          ControlDirectory = $DESTDIR/runit/DataManagement/RemovalAgent
+          NumberOfThreads = 4
+          ThreadPoolDepth = 0
+          UseProxies = False
+        }
+      }
+    }
+  }
+}
+EOF
+
+$DESTDIR/pro/scripts/install_agent.sh   DataManagement    RegistrationAgent
+cat > $DESTDIR/etc/DataManagement_RegistrationAgent.cfg <<EOF
+Systems
+{
+  DataManagement
+  {
+    $DIRACINSTANCE
+    {
+      Agents
+      {
+        RegistrationAgent
+        {
+          LogLevel = INFO
+          LogOutputs = stdout
+          PollingTime = 10
+          Status = Active
+          ControlDirectory = $DESTDIR/runit/DataManagement/RegistrationAgent
+          NumberOfThreads = 4
+          ThreadPoolDepth = 0
+          UseProxies = False
+        }
+      }
+    }
+  }
+}
+EOF
 
 exit
