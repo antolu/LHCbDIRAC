@@ -10,8 +10,8 @@ use LHCbGridSys v*
 set DIRAC_VOMSES "$(DiracConfig_cmtpath)/etc/vomses"
 
 #At CERN, define the location of certificates...
-set X509_CERT_DIR ""  CERN "/afs/cern.ch/project/gd/LCG-share/current/external/etc/grid-security/certificates"
-set X509_VOMS_DIR ""  CERN "/afs/cern.ch/project/gd/LCG-share/current/external/etc/grid-security/vomsdir"
+set X509_CERT_DIR "$(X509_CERT_DIR)  CERN "/afs/cern.ch/project/gd/LCG-share/current/external/etc/grid-security/certificates"
+set X509_VOMS_DIR "$(X509_VOMS_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/current/external/etc/grid-security/vomsdir"
 
 use pyqt     v* LCG_Interfaces
 
