@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.9 2009/01/22 11:44:20 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.10 2009/01/23 09:38:02 acsmith Exp $
 # File :   install_store02.sh
 # Author : Andrew C. Smith
 ########################################################################
@@ -207,7 +207,7 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName -o /DIRAC/Configuration/Servers= 2>/dev/null || exit 1
 
 # Create pro and old links
 old=$DESTDIR/old
