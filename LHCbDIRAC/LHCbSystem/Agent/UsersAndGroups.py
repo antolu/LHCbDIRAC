@@ -1,17 +1,17 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.20 2009/01/21 11:35:38 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.21 2009/01/23 10:52:17 atsareg Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.20 2009/01/21 11:35:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.20 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.21 2009/01/23 10:52:17 atsareg Exp $"
+__VERSION__ = "$Revision: 1.21 $"
 """
   Update Users and Groups from VOMS on CS
 """
 import os
 from DIRAC.Core.Base.Agent                    import Agent
 from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
-from DIRAC.Framework.Client.NotificationClient import NotificationClient
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC                                    import S_OK, S_ERROR, gConfig
 
 from DIRAC                                    import systemCall
