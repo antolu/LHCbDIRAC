@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.3 2008/10/15 11:55:05 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $
 # File :   dirac-bookkeeping-pass-index-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.3 2008/10/15 11:55:05 joel Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -27,26 +27,43 @@ else:
 
 print 'Please write a description (existing or not)'
 groupdesc = raw_input("Group description: ")
-step0 = raw_input("Step 0: ")
-step1 = raw_input("Step 1: ")
-step2 = raw_input("Step 2: ")
-step3 = raw_input("Step 3: ")
-step4 = raw_input("Step 4: ")
-step5 = raw_input("Step 5: ")
-step6 = raw_input("Step 6: ")
+res = raw_input("How many steps do you have?")
+nb = int(res)
+steps = {}
+for i in range(nb):
+  print 'Step '+str(i)
+  appname = raw_input("Application Name: ")
+  appversion = raw_input("Application Version: ")
+  opts = raw_input('Option files:')
+  dddb = raw_input("DDDb tag: ")
+  condb = raw_input("CondDb tag: ")
+  steps[i]=[appname,appversion,opts,dddb,condb]
+
 print 'Do you want to add this new pass_index conditions? (yes or no)'
 value = raw_input('Choice: ')
 choice=value.lower()
 if choice in ['yes','y']:
-  res = bk.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
-  if res['OK']:
-    print 'The pass_index added successfully!'
-    print 'The new passid ',res['Value']
-  else:
-    print "Error discovered!",res['Message']
+    keys = steps.keys()
+    keys.sort()
+    s = ['NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL']
+    i = 0
+    for i in keys:
+      res = bk.insert_aplications(appname, appversion, opts, dddb, condb)
+      if not res['OK']:
+        print res['Message']
+      else:
+        s[i] = res['Value']
+        i += 1
+    
+    res = bk.insert_pass_index_new(groupdesc, str(s[0]), str(s[1]), str(s[2]), str(s[3]), str(s[4]), str(s[5]),str(s[6]))
+    if not res['OK']:
+      print res['Message']
+    else:
+      print 'The pass_index added successfully!'
+      print 'The new passid ',res['Value']
+
 elif choice in ['no','n']:
   print 'Aborded!'
-
 
 exitCode = 0
 

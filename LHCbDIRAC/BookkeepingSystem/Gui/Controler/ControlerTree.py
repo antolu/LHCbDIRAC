@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.7 2008/12/01 16:20:59 zmathe Exp $
+# $Id: ControlerTree.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.7 2008/12/01 16:20:59 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -24,6 +24,9 @@ class ControlerTree(ControlerAbstract):
       self.getWidget().getTree().clearTree()
       self.getWidget().getTree().showTree(message['items'])      
     elif message.action()=='showJobInfos':
+      controlers = self.getChildren()
+      controlers['InfoDialog'].messageFromParent(message)
+    elif message.action()== 'showAncestors':
       controlers = self.getChildren()
       controlers['InfoDialog'].messageFromParent(message)
     else:
@@ -59,7 +62,7 @@ class ControlerTree(ControlerAbstract):
   
   #############################################################################  
   def _on_item_expanded(self,parentItem):
-    
+
     node = parentItem.getUserObject()
     if node <> None:
       path = node['fullpath']

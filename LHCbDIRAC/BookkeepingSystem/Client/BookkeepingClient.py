@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.70 2009/01/13 17:02:41 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.71 2009/01/26 17:38:01 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.70 2009/01/13 17:02:41 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.71 2009/01/26 17:38:01 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -318,13 +318,43 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
     return result
+  
+  #############################################################################
+  def insert_pass_index_new(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    server = self.__getServer()
+    result = server.insert_pass_index_new(groupdesc, step0, step1, step2, step3, step4, step5, step6)
+    return result
+  
+  #############################################################################
+  def insert_aplications(self, appName, appVersion, option, dddb, condb):
+    server = self.__getServer()
+    result = server.insert_aplications(appName, appVersion, option, dddb, condb)
+    return result
 
+  #############################################################################
+  def insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):
+    server = self.__getServer()
+    result = server.insert_pass_index_migration(passid, descr, groupid, step0, step1, step2, step3, step4, step5, step6)
+    return result
+    
   #############################################################################
   def insertProcessing(self, production, passdessc, inputprod, simcondsesc):
     server = self.__getServer()
     result = server.insertProcessing(long(production), passdessc, inputprod, simcondsesc)
     return result
-
+  
+  #############################################################################
+  def checkAddProduction(self, infos):
+    server = self.__getServer()
+    result = server.checkAddProduction(infos)
+    return result
+    
+  #############################################################################
+  def getProductionInformations_new(self, prodid):
+    server = self.__getServer()
+    result = server.getProductionInformations_new(prodid)
+    return result 
+  
   #############################################################################
   def listProcessingPass(self, prod=None):
     server = self.__getServer()
@@ -517,6 +547,12 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.updateFileMetaData( filename, filesAttr)
 
+  #############################################################################
+  def getFilesWithGivenDataSets(self, simdesc, procPass,ftype, configname='ALL', configversion='ALL'):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFilesWithGivenDataSets(simdesc, procPass,ftype, configname, configversion)
+  
+  
   '''
   Monitoring
   '''

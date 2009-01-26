@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.11 2008/11/27 13:52:31 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.12 2009/01/26 17:38:01 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.11 2008/11/27 13:52:31 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.12 2009/01/26 17:38:01 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -66,3 +66,7 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getLimitedFiles(self,SelectionDict, SortDict, StartItem, Maxitems):
     return self.getManager().getLimitedFiles(SelectionDict, SortDict, StartItem, Maxitems)
+  
+  #############################################################################
+  def getAncestors(self, files, depth):
+    return self.getManager().getAncestors(files, depth)

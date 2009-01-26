@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.49 2009/01/22 18:15:41 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.50 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.49 2009/01/22 18:15:41 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.50 2009/01/26 17:38:00 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -694,22 +694,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb):
-    command = ''
-    condition = ''
-    if dddb != '':
-      condition += ' and ddb=\''+str(dddb)+'\' '
     
-    if option != '':
-      condition += ' and optionfiles=\''+str(option)+'\' '
-    
-    if condb != '':
-      condition += ' and condb=\''+str(condb)+'\' '
-    
-    command = 'select applicationid from applications where applicationname=\''+str(appName)+'\' and applicationversion=\''+str(appVersion)+'\''+condition
-    retVal = self.dbR_._query(command)
+    retVal = self.check_applications(appName, appVersion, option, dddb, condb)
     if retVal['OK']:
       id = retVal['Value']
-      if len(id) == 0:
+      if id == 0:
         command = ' SELECT applications_index_seq.nextval FROM dual'
         retVal = self.dbR_._query(command)
         if retVal['OK']:
@@ -728,7 +717,33 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR(retVal['Message'])
         return S_OK(appid)
       else:
+        return S_OK(id)
+    else:
+      return S_ERROR(retVal['Message'])
+  
+  #############################################################################
+  def check_applications(self,appName, appVersion, option, dddb, condb):
+    command = ''
+    condition = ''
+    if dddb != '':
+      condition += ' and dddb=\''+str(dddb)+'\' '
+    
+    if option != '':
+      condition += ' and optionfiles=\''+str(option)+'\' '
+    
+    if condb != '':
+      condition += ' and conddb=\''+str(condb)+'\' '
+    
+    command = 'select applicationid from applications where applicationname=\''+str(appName)+'\' and applicationversion=\''+str(appVersion)+'\''+condition
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      id = retVal['Value']
+      if len(id) == 0:
+        return S_OK(0)
+      else:
         return S_OK(id[0][0])
+    else:
+      return S_ERROR(retVal['Message'])
   
   #############################################################################
   def insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):
@@ -834,15 +849,106 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbW_.executeStoredFunctions('BKK_ORACLE.insert_pass_index', LongType, [groupdesc, step0, step1, step2, step3, step4, step5, step6])
   
   #############################################################################  
-  def insert_procressing_pass(self, programs, groupdesc, simcond, inputProdTotalProcessingPass, production):
-    retVal = self.__getpass_indexDescription(programs, groupdesc) 
-    pass_desc = ''
+  def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):
+    keys = steps.keys()
+    keys.sort()
+    s = [None, None, None, None, None, None, None]
+    i = 0
+    result = ''
+    for step in keys:
+      appName = steps[step]['ApplicationName']
+      appVersion = steps[step]['ApplicationVersion'] 
+      optfiles = steps[step]['OptionFiles']
+      if optfiles == None:
+        optfiles = ''
+        result += 'Option files are missing! \n'
+      dddb = steps[step]['DDDb']
+      if dddb == None: 
+        dddb = ''
+        result += 'DDDb tag is missing! \n'
+      condb = steps[step]['CondDb']
+      if condb == None:
+        condb = ''
+        result += 'ConDDb tag is missing! \n'
+      
+      res = self.check_applications(appName, appVersion, optfiles, dddb, condb)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      else:
+        value = res['Value']
+        if value == 0:
+          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+' are missing in the BKKDB! \n'
+        else:
+          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+' are in the BKKDB! \n'
+          s[i] = res['Value']
+          i += 1
+    
+
+    command = ' select groupId from PASS_GROUP where GROUPDESCRIPTION=\''+str(groupdesc)+'\''
+    retVal = self.dbR_._query(command)
+    groupid = None
+    
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:
-      pass_desc = retVal['Value']
+      if len(retVal['Value']) == 0:
+        result += 'Group description is not exist in the BKKDB! \n'
+      else: 
+        groupid = retVal['Value'][0][0]
+      
     
-    gLogger.debug('Pass description: '+str(pass_desc))
+      retVal = self.check_pass_index(groupid, s[0], s[1], s[2], s[3], s[4], s[5],s[6])
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+      elif retVal['Value']==None:
+        result += 'Pass index not exists! \n'
+        result += '     pass index:'+str(steps)+'\n'
+      else:
+        result += 'Pass index exists!\n'
+        result += '     pass index:'+str(steps)+'\n'
+    
+    res = self.getSimulationCondIdByDesc(simcond['SimDescription'])
+    if not res['OK']:
+      result += res['Message'] +'\n'
+    elif res['Value'] == 0: 
+      result += ' Simulation conditions not exists!\n'
+    else:
+      result += ' Simulation conditions exists!\n'
+    
+    return S_OK(result)
+
+    
+  
+  #############################################################################  
+  def insert_procressing_pass(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):
+    keys = steps.keys()
+    keys.sort()
+    s = [None, None, None, None, None, None, None]
+    i = 0
+    for step in keys:
+      appName = steps[step]['ApplicationName']
+      appVersion = steps[step]['ApplicationVersion'] 
+      optfiles = steps[step]['OptionFiles']
+      if optfiles == None:
+        optfiles = ''
+      dddb = steps[step]['DDDb']
+      if dddb == None: 
+        dddb = ''
+      condb = steps[step]['CondDb']
+      if condb == None:
+        condb = ''
+      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      else:
+        s[i] = res['Value']
+        i += 1
+    res = self.insert_pass_index_new(groupdesc, s[0], s[1], s[2], s[3], s[4], s[5],s[6])
+    passid = None
+    if not res['OK']:
+      print res['Message']
+    else:
+      passid = res['Value']
     
     simdesc = ''
     retVal = self.__getSimDesc(simcond)
@@ -850,63 +956,22 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(retVal['Message'])
     else:
       simdesc = retVal['Value']
-  
+    
     gLogger.info('Insert productions:')
-    gLogger.info('Pass description: '+str(pass_desc))
+    gLogger.info('Passid: '+str(passid))
     gLogger.info('Simulation description: '+str(simdesc))
     gLogger.info('Production: '+str(production))
     gLogger.info('Input Production total processing pass: '+str(inputProdTotalProcessingPass))
     
-    retVal = self.insertProcessing(production, pass_desc, inputProdTotalProcessingPass, simdesc)
+    retVal = self.insertProcessing(production, passid, inputProdTotalProcessingPass, simdesc)
     if retVal['OK']:
       return S_OK('The processing pass added successfully!')
     else:
-      return S_ERROR('Error discovered!',res['Message'])
-
+      return S_ERROR('Error discovered!'+ str(retVal['Message']))
   
-  #############################################################################  
-  def __getpass_indexDescription(self, programs, groupdesc):
-    command = 'select * from pass_index where '
-    for i in range(len(programs)):
-      version = programs['Step'+str(i)].split('-')
-      if len(version) == 1:
-        return S_ERROR('Missing program version!')
-      else:
-        version = version[1]
-      command += ' Step'+str(i)+' like \'%'+str(version)+'%\' and'
-    command = command[:-3]
-    gLogger.debug(command)
-    
-    res = self.dbR_._query(command)
-    if not res['OK']:
-      return S_ERROR(res['Message'])
-    value = res['Value']
-    pass_desc = '' 
-    if len(value) != 0:
-      for i in range(len(value)):
-        if self.__equalsPrograms(value[i], programs):
-          pass_desc = value[i][1]
-    
-    if pass_desc == '':
-      insertprograms = {'Step0':None,'Step1':None, 'Step2':None, 'Step3':None, 'Step4':None, 'Step5':None, 'Step6':None}
-      for step in programs:
-        insertprograms[step] = programs[step]
-      
-      retVal = self.insert_pass_index(groupdesc, insertprograms['Step0'], insertprograms['Step1'], insertprograms['Step2'], insertprograms['Step3'], insertprograms['Step4'], insertprograms['Step5'], insertprograms['Step6'])      
-      
-      pass_id = None
-      if not retVal['OK']:
-        return S_ERROR(retVal['Message'])
-      else:
-        pass_id = retVal['Value']
-        pass_desc = 'Pass'+str(pass_id) 
-      
-    return S_OK(pass_desc)
-
   #############################################################################  
   def __getSimDesc(self, simcond):
     res = self.getSimulationCondIdByDesc(simcond['SimDescription'])
-    print 'VVV',res['Value']
     if not res['OK']:
       gLogger.error("Simulation conditions problem", res["Message"])
       return S_ERROR("Simulation conditions problem" + str(res["Message"]))
@@ -963,18 +1028,24 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################  
   def insertProcessing(self, production, passid, inputprod, simdesc):
     totalproc = ''
+    simid = None
     if inputprod <> '':
       descriptions = inputprod.split('+')
       for desc in descriptions:
         result = self.getGroupId(desc.strip())['Value'][0][0]
         totalproc += str(result)+"<"
       totalproc = totalproc[:-1]
+    else:
+      inputprod = None
     res = self.getSimulationCondIdByDesc(simdesc)
+    print res['Value']
     if not res['OK']:
       gLogger.error("Simulation conditions problem", res["Message"])
       return S_ERROR("Simulation conditions problem" + str(res["Message"]))
     elif res['Value'] != 0: 
       simid = res['Value']
+    else:
+      return S_ERROR('Simulation condition is not found in BKK!')
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, totalproc, simid], False)
   
   #############################################################################  
@@ -1091,7 +1162,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     job_id = -1
     if depth < 1:
       depth = 1
+    odepth = depth 
+    gLogger.debug('original',lfn)
     for fileName in lfn:
+      depth = odepth
+      jobsId = []
+      gLogger.debug('filename',fileName)
       jobsId = []
       result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
       if not result["OK"]:
@@ -1633,88 +1709,89 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR(retVal['Message'])
         else:
           groupid = retVal['Value'][0][0]
-          command = ' insert into PASS_GROUP (GROUPID, GROUPDESCRIPTION) values ('+str(id)+','+str(groupdesc)+')'
+          command = ' insert /* +APPEND */ into PASS_GROUP (GROUPID, GROUPDESCRIPTION) values ('+str(groupid)+',\''+str(groupdesc)+'\')'
           retVal = self.dbW_._query(command)
           if not retVal['OK']:
             return S_ERROR(retVal['Message'])
       else:  
         groupid = retVal['Value'][0][0]
-        retVal = self.check_pass_index(groupid, step0, step1, step2, step3, step4, step5,step6)
+      
+      retVal = self.check_pass_index(groupid, step0, step1, step2, step3, step4, step5,step6)
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+      elif retVal['Value']==None:
+        command = 'select PASS_INDEX_SEQ.nextval from dual'
+        retVal = self.dbR_._query(command)
         if not retVal['OK']:
           return S_ERROR(retVal['Message'])
-        elif retVal['Value']==None:
-          command = 'select PASS_INDEX_SEQ.nextval from dual'
-          retVal = self.dbR_._query(command)
+        else:
+          passid = retVal['Value'][0][0]
+          descr = 'Pass'+str(passid)
+          values = str(passid)+','
+          values += '\''+descr+'\','
+          values += str(groupid) +','
+          if step0 != None:
+            values += str(step0) +','
+          else:
+            values += 'NULL,'
+          
+          if step1 != None:
+            values += str(step1) +','
+          else:
+            values += 'NULL,'
+          
+          if step2 != None:
+            values += str(step2) +','
+          else:
+            values += 'NULL,'
+            
+          if step3 != None:
+            values += str(step3) +','
+          else:
+            values += 'NULL,'
+            
+          if step4 != None:
+            values += str(step4) +','
+          else:
+            values += 'NULL,'
+            
+          if step5 != None:
+            values += str(step5) +','
+          else:
+            values += 'NULL,'
+            
+          if step6 != None:
+            values += str(step6)
+          else:
+            values += 'NULL'
+            
+          command = 'insert /* +APPEND */ into pass_index (PASSID, DESCRIPTION, GROUPID, STEP0, STEP1, STEP2, STEP3, STEP4, STEP5, STEP6) values('+values+')'
+          retVal = self.dbW_._query(command)
           if not retVal['OK']:
             return S_ERROR(retVal['Message'])
           else:
-            passid = retVal['Value'][0][0]
-            descr = 'Pass'+str(passid)
-            values = str(passid)+','
-            values += '\''+descr+'\','
-            values += str(groupid) +','
-            if step0 != None:
-              values += str(step0) +','
-            else:
-              values += 'NULL,'
-            
-            if step1 != None:
-              values += str(step1) +','
-            else:
-              values += 'NULL,'
-            
-            if step2 != None:
-              values += str(step2) +','
-            else:
-              values += 'NULL,'
-              
-            if step3 != None:
-              values += str(step3) +','
-            else:
-              values += 'NULL,'
-              
-            if step4 != None:
-              values += str(step4) +','
-            else:
-              values += 'NULL,'
-              
-            if step5 != None:
-              values += str(step5) +','
-            else:
-              values += 'NULL,'
-              
-            if step6 != None:
-              values += str(step6)
-            else:
-              values += 'NULL'
-              
-            command = 'insert into pass_index (PASSID, DESCRIPTION, GROUPID, STEP0, STEP1, STEP2, STEP3, STEP4, STEP5, STEP6) values('+values+')'
-            retVal = self.dbW_._query(command)
-            if not retVal['OK']:
-              return S_ERROR(retVal['Message'])
-            else:
-              return S_OK(passid)
-        else:
+            return S_OK(passid)
+      else:
           return S_OK(retVal['Value'])
           
-      
+    return S_ERROR()  
   #############################################################################
   def check_pass_index(self, groupid, step0, step1, step2, step3, step4, step5,step6):
     conditions = ''
     if step0 != None:
       conditions += ' and step0='+str(step0)
     if step1 != None:
-      conditions += ' and step0='+str(step1)
+      conditions += ' and step1='+str(step1)
     if step2 != None:
-      conditions += ' and step0='+str(step2)
+      conditions += ' and step2='+str(step2)
     if step3 != None:
-      conditions += ' and step0='+str(step3)
+      conditions += ' and step3='+str(step3)
     if step4 != None:
-      conditions += ' and step0='+str(step4)
+      conditions += ' and step4='+str(step4)
     if step5 != None:
-      conditions += ' and step0='+str(step5)
+      conditions += ' and step5='+str(step5)
     if step6 != None:
-      conditions += ' and step0='+str(step6)
+      conditions += ' and step6='+str(step6)
     command = ' select passid from pass_index where groupid='+str(groupid)+conditions
     retVal = self.dbR_._query(command)
     if not retVal['OK']:

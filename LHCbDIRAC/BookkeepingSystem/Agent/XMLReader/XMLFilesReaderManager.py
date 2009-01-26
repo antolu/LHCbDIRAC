@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.20 2008/11/24 16:02:36 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.21 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.20 2008/11/24 16:02:36 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.21 2009/01/26 17:38:00 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -249,6 +249,7 @@ class XMLFilesReaderManager:
         return S_ERROR(retVal['Message'])
       passIndex = retVal['Value']
       gLogger.debug('Pass_indexid', passIndex)
+      gLogger.debug('Pass_indexid', dataTackingPeriodID)
       res = dataManager_.insertProcessing_pass(passIndex, dataTackingPeriodID)
       if res['OK']:
         production = res['Value']
@@ -260,7 +261,6 @@ class XMLFilesReaderManager:
     
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
-                 'DAQPeriodId':None, \
                  'JobStart':None}
     
     for param in job.getJobParams():

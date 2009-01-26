@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InfoDialog.py,v 1.4 2008/12/08 13:27:01 zmathe Exp $
+# $Id: InfoDialog.py,v 1.5 2009/01/26 17:38:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 import DIRAC
 
-__RCSID__ = "$Id: InfoDialog.py,v 1.4 2008/12/08 13:27:01 zmathe Exp $"
+__RCSID__ = "$Id: InfoDialog.py,v 1.5 2009/01/26 17:38:01 zmathe Exp $"
 
 #############################################################################  
 class InfoDialog(QDialog, Ui_Dialog):
@@ -47,6 +47,28 @@ class InfoDialog(QDialog, Ui_Dialog):
       self.filltable(header, tabledata)
       return True
   
+  #############################################################################  
+  def showDictionary(self, data):
+    header = ['FileName','Ancestor1','Ancestor2','Ancestor3','Ancestor4']
+    keys = data.keys()
+    keys.sort()
+    tabledata = []
+    for i in keys:
+      d = data[i]
+      if len(d) == 0:
+        tabledata += [ [i,'','','','']]
+      else:
+        tmp = ['','','','','']
+        j = 1
+        tmp[0] = i
+        for an in d:
+          tmp[j] = an
+          j += 1
+        tabledata += [tmp]
+    if len(tabledata) > 0:
+      self.filltable(header, tabledata)
+    return True
+    
   #############################################################################  
   def filltable(self, header, tabledata):
       

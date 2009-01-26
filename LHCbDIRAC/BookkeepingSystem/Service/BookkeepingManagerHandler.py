@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.86 2009/01/13 17:02:42 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.87 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.86 2009/01/13 17:02:42 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.87 2009/01/26 17:38:00 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -324,6 +324,11 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.insert_pass_index(groupdesc, step0, step1, step2, step3, step4, step5, step6)
   
   #############################################################################  
+  types_insert_pass_index_new = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insert_pass_index_new(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    return dataMGMT_.insert_pass_index_new(groupdesc, step0, step1, step2, step3, step4, step5, step6)
+  
+  #############################################################################  
   types_insertProcessing = [LongType, StringType, StringType, StringType]
   def export_insertProcessing(self, production, passdessc, inputprod, simcondsesc):
     return dataMGMT_.insertProcessing(production, passdessc, inputprod, simcondsesc)
@@ -337,6 +342,11 @@ class BookkeepingManagerHandler(RequestHandler):
   types_listProcessingPass = []
   def listProcessingPass(self):
     return dataMGMT_.listProcessingPass(None)
+  
+  #############################################################################  
+  types_getFilesWithGivenDataSets = [StringType,StringType,StringType, StringType, StringType]
+  def export_getFilesWithGivenDataSets(self,simdesc, procPass,ftype, configname='ALL', configversion='ALL'):
+    return dataMGMT_.getFilesWithGivenDataSets(simdesc, procPass,ftype, configname, configversion)
   
   #############################################################################  
   types_getProductionsWithPocessingPass = [StringType]
@@ -388,6 +398,48 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getJobInfo(self, lfn):
     return dataMGMT_.getJobInfo(lfn)
   
+  
+  #############################################################################
+  types_checkAddProduction = [DictType]
+  def export_checkAddProduction(self, infos):
+    gLogger.debug(infos)
+    result = ''
+    if not infos.has_key('Steps'):
+      result += "Missing Steps!\n"
+    if not infos.has_key('GroupDescription'):
+      result += "Missing Group Description!\n"
+    if not infos.has_key('SimulationConditions'):
+      result += "Missing Simulation Conditions!\n"
+    if not infos.has_key('Production'):
+      result += "Production is missing!\n"
+    if result == '':
+      steps = infos['Steps']
+      groupdesc = infos['GroupDescription']
+      simcond = infos['SimulationConditions']
+      inputProdTotalProcessingPass = ''
+      production = infos['Production']
+      if infos.has_key('InputProductionTotalProcessingPass'):
+        inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
+      retVal = dataMGMT_.checkProcessingPassAndSimCond(production)
+      if not retVal['OK']:
+        result += retVal['Message']+'\n'
+      else:
+        value = retVal['Value']
+        if value[0][0] != 0:
+          result += 'The production is exist in the productions table!'          
+
+    if result=='':
+      result += ' Production: '+str(production)+'\n'
+      result += 'Group description: '+str(groupdesc) +'\n'
+      result += 'Simulation conditions: '+str(simcond) +'\n\n'
+      result += 'Input production total processing pass: '+ str(inputProdTotalProcessingPass) +'\n'
+      retVal  = dataMGMT_.checkAddProduction(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
+      if retVal['OK']:
+        result += retVal['Value']
+      else:
+         result += retVal['Value']
+    return S_OK(result)
+      
   #############################################################################
   types_addProduction = [DictType]
   '''
@@ -398,12 +450,13 @@ class BookkeepingManagerHandler(RequestHandler):
   PrgNamesVersions: program names and versions are used this production
   GroupDescription: wich group correspond this processing ex: DC06-Sim or ParticleGun ....
   SimulationCondition: ex. simcond = {'BeamEnergy': 'rerer', 'Generator': 'dsds', 'Luminosity': 'wwww', 'MagneticField': 'hhh', 'BeamCond': 'sasas', 'DetectorCond': 'ddfd', 'SimDescription': 'Proba'}
-  InputProductionTotalProcessingPass: we have to know the input production total processing_pass ex: {'InputProductionTotalProcessingPass':'MC08-SIM-Reco_v33'}
+  InputProductionTotalProcessingPass: we have to know the input production total production ex: {'InputProductionTotalProcessingPass':'MC08-SIM-Reco_v33'}
   '''
   def export_addProduction(self, infos):
+    gLogger.debug(infos)
     result = None
-    if not infos.has_key('PrgNamesVersions'):
-      result = S_ERROR("Missing Program name and versions!")
+    if not infos.has_key('Steps'):
+      result = S_ERROR("Missing Steps!")
     if not infos.has_key('GroupDescription'):
       result = S_ERROR("Missing Group Description!")
     if not infos.has_key('SimulationConditions'):
@@ -411,7 +464,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if not infos.has_key('Production'):
       result = S_ERROR('Production is missing!')
     if not result:
-      programs = infos['PrgNamesVersions']
+      steps = infos['Steps']
       groupdesc = infos['GroupDescription']
       simcond = infos['SimulationConditions']
       inputProdTotalProcessingPass = ''
@@ -419,13 +472,23 @@ class BookkeepingManagerHandler(RequestHandler):
       if infos.has_key('InputProductionTotalProcessingPass'):
         inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
         
-      res = dataMGMT_.insert_procressing_pass(programs, groupdesc, simcond, inputProdTotalProcessingPass, production)
+      res = dataMGMT_.insert_procressing_pass(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
       if res['OK']:
         result = S_OK('Processing pass succesfull defined!')
       else:
         result = res
         
     return result
+  
+  #############################################################################  
+  types_insert_aplications = [StringType, StringType, StringType, StringType, StringType]
+  def export_insert_aplications(self, appName, appVersion, option, dddb, condb):
+    return dataMGMT_.insert_aplications(appName, appVersion, option, dddb, condb)
+  
+  #############################################################################  
+  types_insert_pass_index_migration = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):
+    return dataMGMT_.insert_pass_index_migration(passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6)
   
   # ----------------------------------Event Types------------------------------------------------------------------
   #############################################################################  
@@ -567,6 +630,44 @@ class BookkeepingManagerHandler(RequestHandler):
   '''
   Monitoring
   '''
+  
+  #############################################################################
+  types_getProductionInformations_new = [LongType]
+  def export_getProductionInformations_new(self, prodid):
+    
+    nbjobs = None
+    nbOfFiles = None
+    sizeofFiles = None
+    nbOfEvents = None
+    steps = None
+    prodinfos = None 
+    
+    value = dataMGMT_.getJobsNb(prodid)
+    if value['OK']==True:
+      nbjobs = value['Value']
+      
+    value = dataMGMT_.getNbOfFiles(prodid)
+    if value['OK']==True:
+      nbOfFiles =value['Value']
+      
+    value = dataMGMT_.getSizeOfFiles(prodid)
+    if value['OK']==True:
+      sizeofFiles =  value['Value']
+                 
+    value = dataMGMT_.getNumberOfEvents(prodid)
+    if value['OK']==True:
+      nbOfEvents = value['Value']
+      
+    value = dataMGMT_.getSteps(prodid)
+    if value['OK']==True:
+      steps = value['Value']
+  
+    value = dataMGMT_.getConfigsAndEvtType(prodid)
+    if value['OK']==True:
+      prodinfos = value['Value']
+      
+    result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents}
+    return S_OK(result)
   
   #############################################################################
   types_getProductionInformations = [LongType]

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.9 2008/12/01 17:18:56 zmathe Exp $
+# $Id: ControlerMain.py,v 1.10 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.9 2008/12/01 17:18:56 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.10 2009/01/26 17:38:00 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -119,8 +119,25 @@ class ControlerMain(ControlerAbstract):
         self.__bkClient.setAdvancedQueries(True)
       elif message.action() == 'GetFileName':
         return self.__fileName
+      elif message.action() == 'getAnccestors':
+        files = message['files']
+        if len(files) == 0:
+          message = Message({'action':'error','message':'Please select a file or files!'})
+          return message
+        res = self.__bkClient.getAncestors(files, 3)
+        if not res['OK']:
+          message = Message({'action':'error','message':res['Message']})
+          return message
+        else:
+          message = Message({'action':'showAncestors','files':res['Value']})
+          controlers = self.getChildren()
+          ct = controlers['TreeWidget']
+          ct.messageFromParent(message)
+          message = Message({'action':'OK'})
+          return message
       else:        
         print 'Unknown message!',message.action()
+        
       
   #############################################################################  
   def root(self):

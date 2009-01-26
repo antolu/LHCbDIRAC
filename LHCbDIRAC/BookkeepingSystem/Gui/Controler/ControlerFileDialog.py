@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.7 2008/11/28 16:05:47 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -217,7 +217,8 @@ class ControlerFileDialog(ControlerAbstract):
   
   #############################################################################  
   def getancesstots(self):
-    if len(self.__selectedFiles) != 0:
-      message = Message({'action':'getAnccestors','files':self.__selectedFiles})
-      feedback = self.getParent().messageFromChild(self, message)
-  
+    message = Message({'action':'getAnccestors','files':self.__selectedFiles})
+    feedback = self.getParent().messageFromChild(self, message)
+    action = feedback.action()
+    if action == 'error':
+      self.getWidget().showError(feedback['message'])  

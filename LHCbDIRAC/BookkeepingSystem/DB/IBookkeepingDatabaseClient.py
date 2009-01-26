@@ -1,5 +1,4 @@
-########################################################################
-# $Id: IBookkeepingDatabaseClient.py,v 1.27 2009/01/13 17:02:41 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.28 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 """
@@ -9,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.27 2009/01/13 17:02:41 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.28 2009/01/26 17:38:00 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -231,6 +230,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insert_pass_index( groupdesc, step0, step1, step2, step3, step4, step5, step6)
   
   #############################################################################  
+  def insert_pass_index_new(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
+    return self.getManager().insert_pass_index_new( groupdesc, step0, step1, step2, step3, step4, step5, step6)
+  
+  #############################################################################  
   def insertProcessing(self, production, passdesc, inputprod, simdesc):
     return self.getManager().insertProcessing(production, passdesc, inputprod, simdesc)
   
@@ -383,6 +386,30 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().checkProcessingPassAndSimCond(production)
   
   #############################################################################
+  def getFilesWithGivenDataSets(self, simdesc, procPass,ftype, configname, configversion):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, procPass,ftype, configname, configversion)
+  
+  #############################################################################
+  def insert_aplications(self, appName, appVersion, option, dddb, condb):
+    return self.getManager().insert_aplications(appName, appVersion, option, dddb, condb)
+  
+  #############################################################################
+  def insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):
+    return self.getManager().insert_pass_index_migration(passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6)
+  
+  #############################################################################
+  def getSteps(self, prodid):
+    return self.getManager().getSteps(prodid)
+  
+  #############################################################################
+  def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):  
+    return self.getManager().checkAddProduction(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
+  
+  
+  
+  
+  
+  #############################################################################
   '''
     MONITORING
   '''
@@ -408,6 +435,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getNbOfJobsBySites(self, prodid):
     return self.getManager().getNbOfJobsBySites(prodid)
+  
+  #############################################################################
+  def getConfigsAndEvtType(self, prodid):
+    return self.getManager().getConfigsAndEvtType(prodid)
   
   '''
   END MONITORING

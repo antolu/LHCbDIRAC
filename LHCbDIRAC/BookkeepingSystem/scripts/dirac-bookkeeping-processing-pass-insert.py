@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-processing-pass-insert.py,v 1.3 2008/10/15 11:52:44 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-processing-pass-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $
 # File :   dirac-bookkeeping-processing-pass-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-processing-pass-insert.py,v 1.3 2008/10/15 11:52:44 joel Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-processing-pass-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -18,7 +18,7 @@ bk = BookkeepingClient()
 
 
 production = raw_input("Production: ")
-passid = raw_input("Pass description: ")
+passid = raw_input("PassId: ")
 inputprod = raw_input("Total processing pass for input production: ")
 simcond = raw_input('Simulation description: ')
 

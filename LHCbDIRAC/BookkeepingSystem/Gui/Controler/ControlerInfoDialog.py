@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ControlerInfoDialog.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $
+# $Id: ControlerInfoDialog.py,v 1.2 2009/01/26 17:38:00 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
-__RCSID__ = "$Id: ControlerInfoDialog.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id: ControlerInfoDialog.py,v 1.2 2009/01/26 17:38:00 zmathe Exp $"
 
 #############################################################################  
 class ControlerInfoDialog(ControlerAbstract):
@@ -22,6 +22,11 @@ class ControlerInfoDialog(ControlerAbstract):
         self.getWidget().show()
     elif message.action()=='showJobInfos':
       res = self.getWidget().showData(message['items'])
+      if res:
+        self.getWidget().show()
+    elif message.action()=='showAncestors':
+      files = message['files']['Successful']
+      res = self.getWidget().showDictionary(files)
       if res:
         self.getWidget().show()
     else:

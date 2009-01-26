@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.9 2008/12/10 14:10:09 zmathe Exp $
+# $Id: FileDialog.py,v 1.10 2009/01/26 17:38:01 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.9 2008/12/10 14:10:09 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.10 2009/01/26 17:38:01 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -84,12 +84,16 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def showSelectedFileSize(self, number):
     self.lineEdit_6.setText(str(number)+'  GB')
+    
+  #############################################################################  
+  def showError(self, message):
+    QMessageBox.critical(self, "ERROR", message,QMessageBox.Ok)
   
   #############################################################################  
   def showData(self, data):
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId']
     tabledata =[]
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','Generator','JobStart', 'JobEnd' ]
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','Generator','JobStart', 'JobEnd', 'RunNumber','FillNumber','PhysicStat']
     keys = data.keys()
     keys.sort()
     for item in keys:
