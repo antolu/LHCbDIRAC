@@ -24,7 +24,7 @@ macro        pyqt_config_version                 4.2
 macro        Qt_config_version                   4.3.0
 
 #----------------------------------------------------------------------------------------
-# define specific version which are not in LHCBGRID package if needed: examples below
+# define specific version which are not in LHCBGRID package if needed: examples here
 #macro       lcgutils_config_version             1.6.15
 #macro       gfal_config_version                 1.11.0-1
 
