@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.87 2009/01/26 17:38:00 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.88 2009/01/27 12:45:38 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.87 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.88 2009/01/27 12:45:38 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -344,9 +344,54 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.listProcessingPass(None)
   
   #############################################################################  
-  types_getFilesWithGivenDataSets = [StringType,StringType,StringType, StringType, StringType]
-  def export_getFilesWithGivenDataSets(self,simdesc, procPass,ftype, configname='ALL', configversion='ALL'):
-    return dataMGMT_.getFilesWithGivenDataSets(simdesc, procPass,ftype, configname, configversion)
+  types_getFilesWithGivenDataSets = [DictType]
+  def export_getFilesWithGivenDataSets(self, values):
+    
+    if values.has_key('SimulationConditions'):
+      simdesc = values['SimulationConditions'] 
+    else:
+      return S_ERROR('Simulation conditions is missing!')
+    
+    if values.has_key('ProcessingPass'):
+      procPass = values['ProcessingPass']
+    else:
+      return S_ERROR('Missing processing pass!')
+    
+    if values.has_key('FileType'):
+      ftype = values['FileType']
+    else:
+      return S_ERROR('FileType is missing!')
+    
+    if values.has_key('EventType'):
+      evt = values['EventType']
+    else:
+      return S_ERROR('Event Type is missing!')
+      
+    if values.has_key('ConfigName'):
+      configname = values['ConfigName']
+    else:
+      configname = 'ALL'
+     
+    if values.has_key('ConfigVersion'):
+      configversion = values['ConfigVersion']
+    else:
+      configversion = 'ALL'
+    
+    if values.has_key('ProductionID'):
+      prod = values['ProductionID']
+    else:
+      prod = 'ALL'
+    
+    result = []
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, procPass, ftype, evt, configname, configversion, prod)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      values = retVal['Value']
+      for i in values:
+        result += [i[0]]
+
+    return S_OK(result)
   
   #############################################################################  
   types_getProductionsWithPocessingPass = [StringType]

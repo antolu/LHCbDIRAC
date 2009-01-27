@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.50 2009/01/26 17:38:00 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.51 2009/01/27 12:45:38 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.50 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.51 2009/01/27 12:45:38 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -574,7 +574,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, procPass,ftype, configName='ALL', configVersion='ALL'):
+  def getFilesWithGivenDataSets(self, simdesc, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL'):
     
     configid = None
     condition = ''
@@ -592,7 +592,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
         else:
           return S_ERROR('Wrong configuration name and version!')
                     
-    
+    if production != 'ALL':
+      condition += ' and jobs.production='+str(production)
     
     descriptions = procPass.split('+')
     totalproc = ''
@@ -609,6 +610,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
+    
+    condition +=  ' and files.eventtypeid='+str(evt)
+      
     command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
                  and jobs.production in ( select production from  productions, simulationconditions where  \
                  simulationconditions.simdescription=\''+simdesc+'\' and \

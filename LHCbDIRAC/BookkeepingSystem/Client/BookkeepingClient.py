@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.71 2009/01/26 17:38:01 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.72 2009/01/27 12:45:37 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.71 2009/01/26 17:38:01 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.72 2009/01/27 12:45:37 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -548,9 +548,9 @@ class BookkeepingClient:
     return server.updateFileMetaData( filename, filesAttr)
 
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, procPass,ftype, configname='ALL', configversion='ALL'):
+  def getFilesWithGivenDataSets(self, values):
     server = RPCClient('Bookkeeping/BookkeepingManager')
-    return server.getFilesWithGivenDataSets(simdesc, procPass,ftype, configname, configversion)
+    return server.getFilesWithGivenDataSets(values)
   
   
   '''
