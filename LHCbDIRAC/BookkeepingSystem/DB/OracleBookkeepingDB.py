@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.51 2009/01/27 12:45:38 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.52 2009/01/27 13:26:52 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.51 2009/01/27 12:45:38 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.52 2009/01/27 13:26:52 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1416,7 +1416,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
         if not attrList.__contains__(param):
           gLogger.error("insert file error: "," the files table not contains "+param+" this attributte!!")
           return S_ERROR(" The files table not contains "+param+" this attributte!!")
-        attrList[param] = file[param]
+        
+        if param=='CreationDate': # We have to convert data format
+          dateAndTime = file[param].split(' ')
+          date = dateAndTime[0].split('-')
+          time = dateAndTime[1].split(':')
+          timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+          attrList[param]=timestamp
+        else:
+          attrList[param] = file[param]
       
       result = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',LongType, [  attrList['Adler32'], \
                     attrList['CreationDate'], \
