@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.11 2008/10/16 07:57:59 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.12 2009/01/28 14:33:34 acasajus Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.11 2008/10/16 07:57:59 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.12 2009/01/28 14:33:34 acasajus Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -78,7 +78,8 @@ class LHCbSAMJob(Job):
     self.setJobGroup(self.samGroup)
     self.setOwnerGroup(self.samOwnerGroup)
     self.setType('sam')
-    self._addJDLParameter('PilotType','private')
+    self._addJDLParameter('PilotTypes','private')
+    self._addJDLParameter('SubmitPools','SAM')
 
   #############################################################################
   def setSharedAreaLock(self,forceDeletion=False,enableFlag=True):
