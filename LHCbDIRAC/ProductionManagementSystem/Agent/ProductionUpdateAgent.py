@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.9 2009/01/20 17:37:05 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionUpdateAgent.py,v 1.10 2009/01/28 16:34:14 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.9 2009/01/20 17:37:05 atsareg Exp $"
+__RCSID__ = "$Id: ProductionUpdateAgent.py,v 1.10 2009/01/28 16:34:14 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -89,9 +89,10 @@ class ProductionUpdateAgent(Agent):
           elif result['Value'].has_key('InputVector'):
             lfns = result['Value']['InputVector'].split(',')
             for l in lfns:
-              lfn = l.replace('LFN:','')
-              gLogger.verbose('Setting Data logging for %s to Job waiting' % lfn)
-              result = dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdateAgent')    
+              if l:
+                lfn = l.replace('LFN:','')
+                gLogger.verbose('Setting Data logging for %s to Job waiting' % lfn)
+                result = dataLog.addFileRecord(lfn,'Job waiting','','','ProductionUpdateAgent')    
         elif old_status in WAITING_STATUS and status in RUNNING_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
@@ -99,9 +100,10 @@ class ProductionUpdateAgent(Agent):
           elif result['Value'].has_key('InputVector'):
             lfns = result['Value']['InputVector'].split(',')
             for l in lfns:
-              lfn = l.replace('LFN:','')
-              gLogger.verbose('Setting Data logging for %s to Job running' % lfn)
-              result = dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdateAgent')
+              if l:
+                lfn = l.replace('LFN:','')
+                gLogger.verbose('Setting Data logging for %s to Job running' % lfn)
+                result = dataLog.addFileRecord(lfn,'Job running','','','ProductionUpdateAgent')
         elif old_status in RUNNING_STATUS and status in FINAL_STATUS:
           result = self.prodDB.getJobInfo(transID,jobID)
           if not result['OK']:
@@ -109,18 +111,19 @@ class ProductionUpdateAgent(Agent):
           elif result['Value'].has_key('InputVector'):
             lfns = result['Value']['InputVector'].split(',')
             for l in lfns:
-              lfn = l.replace('LFN:','')
-              dstatus = ''
-              if status == "Done":
-                dstatus = 'Job done'
-              elif status == "Failed":
-                dstatus = 'Job failed'
-              elif status == "Stalled":
-                dstatus = 'Job stalled'
-              else:
-                gLogger.warn('Unknown status %s for job %d/%d' % (status,jobID,jobWMS))  
-              if dstatus:
-                gLogger.verbose('Setting Data logging for %s to %s' % (lfn,dstatus)) 
-                result = dataLog.addFileRecord(lfn,dstatus,'','','ProductionUpdateAgent') 
+              if l:
+                lfn = l.replace('LFN:','')
+                dstatus = ''
+                if status == "Done":
+                  dstatus = 'Job done'
+                elif status == "Failed":
+                  dstatus = 'Job failed'
+                elif status == "Stalled":
+                  dstatus = 'Job stalled'
+                else:
+                  gLogger.warn('Unknown status %s for job %d/%d' % (status,jobID,jobWMS))  
+                if dstatus:
+                  gLogger.verbose('Setting Data logging for %s to %s' % (lfn,dstatus)) 
+                  result = dataLog.addFileRecord(lfn,dstatus,'','','ProductionUpdateAgent') 
 
     return S_OK()
