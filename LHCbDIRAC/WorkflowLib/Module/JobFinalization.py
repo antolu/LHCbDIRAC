@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.130 2008/12/15 09:00:16 joel Exp $
+# $Id: JobFinalization.py,v 1.131 2009/01/29 22:24:01 acsmith Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.130 2008/12/15 09:00:16 joel Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.131 2009/01/29 22:24:01 acsmith Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -322,7 +322,7 @@ class JobFinalization(ModuleBase):
     books = []
     files = os.listdir('.')
     for f in files:
-      if re.search('^newbookkeeping',f):
+      if re.search('^bookkeeping',f):
         books.append(f)
 
     bk_OK = True
@@ -332,11 +332,10 @@ class JobFinalization(ModuleBase):
       counter = 0
       send_flag = True
       self.log.info( "Sending bookkeeping file %s" % str( f ) )
-      fm = f.replace('newbookkeeping_','')
       reqfile = open(f,'r')
       xmlstring = reqfile.read()
       while (send_flag):
-        result = self.bk.sendBookkeeping(fm,xmlstring)
+        result = self.bk.sendBookkeeping(f,xmlstring)
         if not result['OK']:
           counter += 1
           if result['Message'].find('Connection timed out') != -1:
