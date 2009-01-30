@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.100 2009/01/13 14:00:24 paterson Exp $
+# $Id: GaudiApplication.py,v 1.101 2009/01/30 10:31:44 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.100 2009/01/13 14:00:24 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.101 2009/01/30 10:31:44 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -397,7 +397,7 @@ done
     os.chmod(self.applicationName+'Run.sh',0755)
     comm = 'sh -c "./'+self.applicationName+'Run.sh"'
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
-    self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput)
+    self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     resultTuple = self.result['Value']
 
     status = resultTuple[0]
