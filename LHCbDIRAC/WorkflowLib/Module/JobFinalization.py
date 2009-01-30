@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.131 2009/01/29 22:24:01 acsmith Exp $
+# $Id: JobFinalization.py,v 1.132 2009/01/30 10:45:42 paterson Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.131 2009/01/29 22:24:01 acsmith Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.132 2009/01/30 10:45:42 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -322,7 +322,7 @@ class JobFinalization(ModuleBase):
     books = []
     files = os.listdir('.')
     for f in files:
-      if re.search('^bookkeeping',f):
+      if re.search('^newbookkeeping',f):
         books.append(f)
 
     bk_OK = True
