@@ -25,7 +25,7 @@ macro        Qt_config_version                   4.3.0
 
 #----------------------------------------------------------------------------------------
 # define specific version which are not in LHCBGRID package if needed: examples here
-macro       lcgutils_config_version             1.6.17-2
+#macro       lcgutils_config_version             1.6.17-2
 #macro       gfal_config_version                 1.11.0-1
 
 #macro       lfc_dpm_version                     1.6.11
