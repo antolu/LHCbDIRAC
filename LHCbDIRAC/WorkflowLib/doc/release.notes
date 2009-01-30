@@ -1,4 +1,10 @@
-$Id: release.notes,v 1.7 2009/01/13 14:16:47 joel Exp $
+$Id: release.notes,v 1.8 2009/01/30 12:54:02 paterson Exp $
+
+=========
+wkf-v8r4 : SKP : 30 Jan 2009
+GaudiApplication.py : Increased buffer size to 20MB
+JobFinalization.py / BookkeepingReport.py : Bug introduced in wkf-v8r0 is fixed.
+AnalyseLogFile.py: Bug fix for backwards compatibility re. NotificationClient
 
 =========
 wkf-v8r3 : JC : 13 Jan 2009
