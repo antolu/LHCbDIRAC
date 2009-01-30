@@ -1,4 +1,9 @@
-$Id: release.notes,v 1.8 2009/01/30 12:54:02 paterson Exp $
+$Id: release.notes,v 1.9 2009/01/30 13:36:42 paterson Exp $
+
+=========
+wkf-v9r0 : SKP : 30 Jan 2009
+Tools.py: Joel removed DC06 hack that caused incorrect namespace for real (FEST) data.
+ - v9 series is DC06 incompatible.
 
 =========
 wkf-v8r4 : SKP : 30 Jan 2009
