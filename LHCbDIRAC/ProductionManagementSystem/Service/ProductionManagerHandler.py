@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.43 2009/01/09 10:07:04 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.44 2009/02/01 13:56:14 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.43 $"
+__RCSID__ = "$Revision: 1.44 $"
 
 from types import *
 import threading
@@ -120,7 +120,8 @@ class ProductionManagerHandler( TransformationHandler ):
 ################ TRANSFORMATION SECTION ####################################
 
   types_publishProduction = [ StringType, StringType, IntType, BooleanType ]
-  def export_publishProduction( self, body, filemask='', groupsize=0, update=False):
+  def export_publishProduction( self, body, filemask='', groupsize=0, update=False, bkQuery = {},
+                                productionGroup='', productionType='', maxJobs=0):
     """ Publish new transformation in the ProductionDB
     """
     errKey = "Publishing Production failed: "
@@ -133,9 +134,12 @@ class ProductionManagerHandler( TransformationHandler ):
     parent = wf.getType()
     description = wf.getDescrShort()
     long_description = wf.getDescription()
-
+    
     try:
-      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup, update)
+      result = productionDB.addProduction(name, parent, description, long_description, body, filemask, 
+                                          groupsize, authorDN, authorGroup, update,
+                                          bkQuery=bkQuery,productionGroup=productionGroup,
+                                          productionType=productionType,maxJobs=maxJobs)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)

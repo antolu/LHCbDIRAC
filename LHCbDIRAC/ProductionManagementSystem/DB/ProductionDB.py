@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.47 2009/01/09 10:14:52 atsareg Exp $
+# $Id: ProductionDB.py,v 1.48 2009/02/01 13:56:15 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.47 $"
+__RCSID__ = "$Revision: 1.48 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -124,12 +124,19 @@ class ProductionDB(TransformationDB):
 ################ PRODUCTION SECTION ####################################
 
 
-  def addProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, update=False, inheritedFrom=0L):
+  def addProduction(self, name, parent, description, long_description, body, 
+                    fileMask, groupsize, authorDN, authorGroup, update=False, 
+                    inheritedFrom=0L, bkQuery = {}, productionType='', productionGroup='',
+                    maxJobs=0):
 
-    if fileMask == '' or fileMask == None: # if mask is empty it is simulation
-      type_ = "Simulation"
-    else:
-      type_ = "Processing"
+    prod_type = productionType
+    if not prod_type:
+      # if there is no input specification it is simulation
+      if (fileMask == '' or fileMask == None) and not bkQuery: 
+        prod_type = "Simulation"
+      else:
+        prod_type = "Processing"
+        
     plugin = "None"
     agentType = "Manual"
 
@@ -141,27 +148,26 @@ class ProductionDB(TransformationDB):
       gLogger.error( error )
       return S_ERROR( error )
 
-    result = self.addTransformation(name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
-
-    print result, 'This is the result of addTransformation'
-
+    result = self.addTransformation(name, description, long_description, 
+                                    authorDN, authorGroup, prod_type, plugin, 
+                                    agentType, fileMask, bkQuery=bkQuery,
+                                    transformationGroup=productionGroup)
     if not result['OK']:
       error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
 
     TransformationID = result['Value']
-    result = self.__insertProductionParameters(TransformationID, groupsize, parent, body, inheritedFrom)
-    print result, 'This is the result of __insertProductionParameters'
+    result = self.__insertProductionParameters(TransformationID, groupsize, parent, body, 
+                                               inheritedFrom,maxJobs=maxJobs)
     if not result['OK']:
       # if for some reason this failed we have to roll back
       result_rollback1 = self.deleteTransformation(TransformationID)
-      error = 'Transformation "%s" ID=$d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
+      error = 'Transformation "%s" ID=%d FAILED to add ProductionsParameters with message "%s"' % (name, TransformationID, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
 
     result = self.__addJobTable(TransformationID)
-    print result,'This is the result of __addJobTable'
     if not result['OK']:
       # if for some reason this failed we have to roll back
       result_rollback2 = self.__deleteProductionParameters(TransformationID)
@@ -169,16 +175,8 @@ class ProductionDB(TransformationDB):
       error = 'Transformation "%s" ID=$d FAILED to add JobTable with message "%s"' % (name, TransformationID, result['Message'])
       gLogger.error(error)
       return S_ERROR( error )
+      
     return S_OK(TransformationID)
-
-    #elif update:
-      # update
-      #result = self.modifyTransformation(name, description, long_description, authorDN, authorGroup, type_, plugin, agentType, fileMask)
-      #if result['OK']:
-        #result = self.__insertProductionParameters(TransformationID, groupsize, parent, body)
-        #if result['OK']:
-      #return result
-
 
   def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, originaProdIDOrName):
     """ Create a new production derived from a previous one
@@ -226,12 +224,13 @@ class ProductionDB(TransformationDB):
 
     return S_OK(newProdID)
 
-  def __insertProductionParameters(self, TransformationID, groupsize, parent, body, inheritedFrom=0):
+  def __insertProductionParameters(self, TransformationID, groupsize, parent, body, 
+                                   inheritedFrom=0,maxJobs=0):
     """
     Inserts additional parameters into ProductionParameters Table
     """
-    inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body', 'InheritedFrom']
-    inValues = [TransformationID, groupsize, parent, body, inheritedFrom]
+    inFields = ['TransformationID', 'GroupSize', 'Parent', 'Body', 'InheritedFrom','MaxNumberOfJobs']
+    inValues = [TransformationID, groupsize, parent, body, inheritedFrom, maxJobs]
     result = self._insert('ProductionParameters',inFields,inValues)
     if not result['OK']:
       error = "Failed to add production parameters into ProductionParameters table for the TransformationID %s with message: %s" % (TransformationID, result['Message'])
@@ -244,7 +243,7 @@ class ProductionDB(TransformationDB):
     Get additional parameters from ProductionParameters Table
     """
     id_ = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent, Body, InheritedFrom  from ProductionParameters WHERE TransformationID='%d';" % id_
+    cmd = "SELECT GroupSize, Parent, Body, InheritedFrom,MaxNumberOfJobs,EventsPerJob  from ProductionParameters WHERE TransformationID='%d';" % id_
     result = self._query(cmd)
     retdict={}
     if not result['OK']:
@@ -257,11 +256,15 @@ class ProductionDB(TransformationDB):
       retdict['Parent']=result['Value'][0][1]
       retdict['Body']=result['Value'][0][2]
       retdict['InheritedFrom']=result['Value'][0][3]
+      retdict['MaxNumberOfJobs']=result['Value'][0][4]
+      retdict['EventsPerJob']=result['Value'][0][5]
     else:
       retdict['GroupSize']=0
       retdict['Parent']=""
       retdict['Body']=""
       retdict['InheritedFrom']=0
+      retdict['MaxNumberOfJobs']=0
+      retdict['EventsPerJob']=0
 
     return S_OK(retdict)
 
@@ -270,7 +273,7 @@ class ProductionDB(TransformationDB):
     Get additional parameters from ProductionParameters Table
     """
     id_ = self.getTransformationID(transName)
-    cmd = "SELECT GroupSize, Parent, InheritedFrom  from ProductionParameters WHERE TransformationID='%d'" % id_
+    cmd = "SELECT GroupSize, Parent, InheritedFrom,MaxNumberOfJobs,EventsPerJob  from ProductionParameters WHERE TransformationID='%d'" % id_
     result = self._query(cmd)
     retdict={}
     if not result['OK']:
@@ -282,11 +285,14 @@ class ProductionDB(TransformationDB):
       retdict['GroupSize']=result['Value'][0][0]
       retdict['Parent']=result['Value'][0][1]
       retdict['InheritedFrom']=result['Value'][0][2]
+      retdict['MaxNumberOfJobs']=result['Value'][0][3]
+      retdict['EventsPerJob']=result['Value'][0][4]
     else:
       retdict['GroupSize']=0
       retdict['Parent']=""
       retdict['InheritedFrom']=0
-
+      retdict['MaxNumberOfJobs']=0
+      retdict['EventsPerJob']=0
 
     return S_OK(retdict)
 
@@ -342,8 +348,18 @@ INDEX(WmsStatus)
     if result['OK']:
       newres=[] # repacking
       for pr in result['Value']:
-        newres.append({'TransformationID':pr[0], 'TransformationName':pr[1], 'Description':pr[2], 'LongDescription':pr[3], 'CreationDate':Time.toString(pr[4]),
-                            'AuthorDN':pr[5], 'AuthorGroup':pr[6], 'Type':pr[7], 'Plugin':pr[8], 'AgentType':pr[9], 'Status':pr[10], 'FileMask':pr[11] })
+        newres.append({'TransformationID':pr[0], 
+                       'TransformationName':pr[1], 
+                       'Description':pr[2], 
+                       'LongDescription':pr[3], 
+                       'CreationDate':Time.toString(pr[4]),
+                       'AuthorDN':pr[5], 
+                       'AuthorGroup':pr[6], 
+                       'Type':pr[7], 
+                       'Plugin':pr[8], 
+                       'AgentType':pr[9], 
+                       'Status':pr[10], 
+                       'FileMask':pr[11] })
       return S_OK(newres)
     return result
 
@@ -429,6 +445,8 @@ INDEX(WmsStatus)
       prod['GroupSize']=result['Value']['GroupSize']
       prod['Parent']=result['Value']['Parent']
       prod['InheritedFrom']=result['Value']['InheritedFrom']
+      prod['MaxNumberOfJobs']=result['Value']['MaxNumberOfJobs']
+      prod['EventsPerJob']=result['Value']['EventsPerJob']
       return S_OK(prod)
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
@@ -442,6 +460,7 @@ INDEX(WmsStatus)
       prod['Value']['Parent']=result['Value']['Parent']
       prod['Value']['Body']=result['Value']['Body']
       prod['Value']['InheritedFrom']=result['Value']['InheritedFrom']
+      prod['Value']['MaxNumberOfJobs']=result['Value']['MaxNumberOfJobs']
       return prod
     else:
       return S_ERROR('Failed to retrive Production=%s message=%s' % (transName, result['Message']))
