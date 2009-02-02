@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.88 2009/01/27 12:45:38 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.89 2009/02/02 11:36:22 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.88 2009/01/27 12:45:38 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.89 2009/02/02 11:36:22 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -347,10 +347,18 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets(self, values):
     
+    simdesc = ''
+    ok = False
     if values.has_key('SimulationConditions'):
-      simdesc = values['SimulationConditions'] 
-    else:
-      return S_ERROR('Simulation conditions is missing!')
+      simdesc = 'S*'+str(values['SimulationConditions']) 
+      ok = True
+    
+    if values.has_key('DataTakingConditions'):
+      simdesc = 'D*'+str(values['DataTakingConditions'])
+      ok = True
+    
+    if not ok:
+      return S_ERROR('SimulationConditions or DataTakingConditins is missing!')
     
     if values.has_key('ProcessingPass'):
       procPass = values['ProcessingPass']
@@ -500,29 +508,48 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_addProduction(self, infos):
     gLogger.debug(infos)
     result = None
+    
+    simcond = None
+    daqdesc = None
+    ok = False
+    if infos.has_key('SimulationConditions'):
+      simcond = infos['SimulationConditions']
+      ok = True
+    
+    if infos.has_key('DataTakingConditions'):
+      daqdesc = infos['DataTakingConditions']
+      ok = True
+    
+    if not ok:
+      result = S_ERROR('SimulationConditions or DataTakingConditins is missing!')
+    
+    
     if not infos.has_key('Steps'):
       result = S_ERROR("Missing Steps!")
     if not infos.has_key('GroupDescription'):
       result = S_ERROR("Missing Group Description!")
-    if not infos.has_key('SimulationConditions'):
-      result = S_ERROR("Missing Simulation Conditions!")
     if not infos.has_key('Production'):
       result = S_ERROR('Production is missing!')
     if not result:
       steps = infos['Steps']
       groupdesc = infos['GroupDescription']
-      simcond = infos['SimulationConditions']
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       if infos.has_key('InputProductionTotalProcessingPass'):
         inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
-        
-      res = dataMGMT_.insert_procressing_pass(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
-      if res['OK']:
-        result = S_OK('Processing pass succesfull defined!')
-      else:
-        result = res
-        
+      
+      if simcond != None:
+        res = dataMGMT_.insert_procressing_pass(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
+        if res['OK']:
+          result = S_OK('Processing pass succesfull defined!')
+        else:
+          result = res
+      elif daqdesc != None:
+        res = dataMGMT_.insert_procressing_passRealData(steps, groupdesc, daqdesc, inputProdTotalProcessingPass, production)
+        if res['OK']:
+          result = S_OK('Processing pass succesfull defined!')
+        else:
+          result = res
     return result
   
   #############################################################################  

@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.29 2009/01/27 12:45:38 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.30 2009/02/02 11:36:22 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.29 2009/01/27 12:45:38 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.30 2009/02/02 11:36:22 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -236,6 +236,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################  
   def insertProcessing(self, production, passdesc, inputprod, simdesc):
     return self.getManager().insertProcessing(production, passdesc, inputprod, simdesc)
+  
+  #############################################################################  
+  def insert_procressing_passRealData(self, steps, groupdesc, daqdesc, inputProdTotalProcessingPass, production):
+    return self.getManager().insert_procressing_passRealData(steps, groupdesc, daqdesc, inputProdTotalProcessingPass, production)
   
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.52 2009/01/27 13:26:52 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.53 2009/02/02 11:36:22 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.52 2009/01/27 13:26:52 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.53 2009/02/02 11:36:22 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -175,8 +175,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     
@@ -202,8 +207,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
@@ -238,8 +249,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
@@ -278,8 +295,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     else:
@@ -330,8 +352,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and productions.PRODUCTION=jobs.production'
@@ -405,8 +432,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and productions.PRODUCTION=jobs.production'
@@ -494,8 +526,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       descriptions = procPass.split('+')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and productions.PRODUCTION=jobs.production'
@@ -598,8 +635,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     descriptions = procPass.split('+')
     totalproc = ''
     for desc in descriptions:
-      result = self.getGroupId(desc.strip())['Value'][0][0]
-      totalproc += str(result)+"<"
+      result = self.getGroupId(desc.strip())
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      elif len(result['Value']) == 0:
+        return S_ERROR('Data taking or Simulation Conditions is missing in the BKK database!')
+      val = result['Value'][0][0]
+      totalproc += str(val)+"<"
     totalproc = totalproc[:-1]
     
     if ftype != 'ALL':
@@ -612,11 +654,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condition += ' and files.FileTypeId='+str(ftypeId)
     
     condition +=  ' and files.eventtypeid='+str(evt)
-      
-    command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+  
+    cond = simdesc.split('*')
+    if cond[0] == 'S':
+      command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
                  and jobs.production in ( select production from  productions, simulationconditions where  \
-                 simulationconditions.simdescription=\''+simdesc+'\' and \
+                 simulationconditions.simdescription=\''+cond[1]+'\' and \
                  productions.simcondid= simulationconditions.simid and \
+                 productions.totalprocpass=\''+totalproc+'\')'
+    else:
+      command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                 and jobs.production in ( select production from  productions, data_Taking_conditions where  \
+                 data_Taking_conditions.description=\''+cond[1]+'\' and \
+                 productions.simcondid= data_Taking_conditions.Daqperiodid and \
                  productions.totalprocpass=\''+totalproc+'\')'
     res = self.dbR_._query(command)
     return res
@@ -974,6 +1024,49 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Error discovered!'+ str(retVal['Message']))
   
   #############################################################################  
+  def insert_procressing_passRealData(self, steps, groupdesc, daqdesc, inputProdTotalProcessingPass, production):
+    keys = steps.keys()
+    keys.sort()
+    s = [None, None, None, None, None, None, None]
+    i = 0
+    for step in keys:
+      appName = steps[step]['ApplicationName']
+      appVersion = steps[step]['ApplicationVersion'] 
+      optfiles = steps[step]['OptionFiles']
+      if optfiles == None:
+        optfiles = ''
+      dddb = steps[step]['DDDb']
+      if dddb == None: 
+        dddb = ''
+      condb = steps[step]['CondDb']
+      if condb == None:
+        condb = ''
+      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      else:
+        s[i] = res['Value']
+        i += 1
+    res = self.insert_pass_index_new(groupdesc, s[0], s[1], s[2], s[3], s[4], s[5],s[6])
+    passid = None
+    if not res['OK']:
+      print res['Message']
+    else:
+      passid = res['Value']
+    
+    gLogger.info('Insert productions:')
+    gLogger.info('Passid: '+str(passid))
+    gLogger.info('Data taking description: '+str(daqdesc))
+    gLogger.info('Production: '+str(production))
+    gLogger.info('Input Production total processing pass: '+str(inputProdTotalProcessingPass))
+    
+    retVal = self.insertProcessingRealData(production, passid, inputProdTotalProcessingPass, daqdesc)
+    if retVal['OK']:
+      return S_OK('The processing pass added successfully!')
+    else:
+      return S_ERROR('Error discovered!'+ str(retVal['Message']))
+  
+  #############################################################################  
   def __getSimDesc(self, simcond):
     res = self.getSimulationCondIdByDesc(simcond['SimDescription'])
     if not res['OK']:
@@ -1036,8 +1129,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if inputprod <> '':
       descriptions = inputprod.split('+')
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())['Value'][0][0]
-        totalproc += str(result)+"<"
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
     else:
       inputprod = None
@@ -1051,6 +1149,35 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR('Simulation condition is not found in BKK!')
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, totalproc, simid], False)
+  
+  #############################################################################  
+  def insertProcessingRealData(self, production, passid, inputprod, datataking):
+    totalproc = ''
+    daqid = None
+    if inputprod <> '':
+      descriptions = inputprod.split('+')
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions is missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+    else:
+      inputprod = None
+    daq = {'Description':datataking}
+    res = self.getDataTakingCondId(daq)
+    if not res['OK']:
+      gLogger.error("Data takin conditions problem", res["Message"])
+      return S_ERROR("Data takin conditions problem" + str(res["Message"]))
+    elif len(res['Value']) != 0: 
+      daqid = res['Value'][0][0]
+    else:
+      return S_ERROR('Data takin conditions is not found in BKK!')
+    return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertProcessing', [production, passid, totalproc, daqid], False)
+  
   
   #############################################################################  
   def listProcessingPass(self, prod = None):
@@ -1699,7 +1826,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(res['Message'])
     else:
       step0 = res['Value']
-      retVal = self.insert_pass_index_new('UNKNOWN', step0, None, None, None, None, None, None)
+      retVal = self.insert_pass_index_new('Real Data', step0, None, None, None, None, None, None)
       if not retVal['OK']:
         returnValue = S_ERROR(retVal['Message'])
       else:
