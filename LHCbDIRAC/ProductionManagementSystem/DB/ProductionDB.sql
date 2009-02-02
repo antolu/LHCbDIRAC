@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.14 2008/08/11 07:44:08 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.15 2009/02/02 11:40:57 atsareg Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -56,6 +56,8 @@ CREATE TABLE ProductionParameters (
     Parent VARCHAR(255) DEFAULT '',
     InheritedFrom INTEGER DEFAULT 0,
     Body BLOB,
+    MaxNumberOfJobs INT NOT NULL DEFAULT 0,
+    EventsPerJob INT NOT NULL DEFAULT 0,
     PRIMARY KEY(TransformationID)
 );
 
