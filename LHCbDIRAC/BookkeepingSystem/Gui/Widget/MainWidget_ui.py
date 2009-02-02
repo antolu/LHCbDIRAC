@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Thu Nov 20 17:25:33 2008
+# Created: Sat Jan 31 18:17:40 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -21,11 +21,14 @@ class Ui_MainWidget(object):
         self.centralwidget = QtGui.QWidget(MainWidget)
         self.centralwidget.setObjectName("centralwidget")
 
+        self.vboxlayout = QtGui.QVBoxLayout(self.centralwidget)
+        self.vboxlayout.setObjectName("vboxlayout")
+
         self.tree = TreeWidget(self.centralwidget)
         self.tree.setWindowModality(QtCore.Qt.WindowModal)
         self.tree.setEnabled(True)
-        #self.tree.setGeometry(QtCore.QRect(0,0,581,631))
         self.tree.setObjectName("tree")
+        self.vboxlayout.addWidget(self.tree)
         MainWidget.setCentralWidget(self.centralwidget)
 
         self.menubar = QtGui.QMenuBar(MainWidget)
