@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.10 2009/01/23 09:38:02 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.11 2009/02/02 15:33:56 acsmith Exp $
 # File :   install_store02.sh
 # Author : Andrew C. Smith
 ########################################################################
@@ -115,7 +115,7 @@ Systems
       URLs
       {
         RAWIntegrity = dips://lhcb-dms-dirac.cern.ch:9190/DataManagement/RAWIntegrity
-        DataLogging = dips://lhcb-dms-dirac.ch:9146/DataManagement/DataLogging
+        DataLogging = dips://lhcb-dms-dirac.cern.ch:9146/DataManagement/DataLogging
       }
     }
   }
