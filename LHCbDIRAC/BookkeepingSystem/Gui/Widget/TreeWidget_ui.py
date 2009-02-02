@@ -35,7 +35,7 @@ class Ui_TreeWidget(object):
         self.tree.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tree.setTabKeyNavigation(True)
         self.tree.setTextElideMode(QtCore.Qt.ElideNone)
-        self.tree.setSortingEnabled(True)
+        self.tree.setSortingEnabled(False)
         self.tree.setAnimated(False)
         self.tree.setObjectName("tree")
         self.gridlayout.addWidget(self.tree,1,0,1,2)
