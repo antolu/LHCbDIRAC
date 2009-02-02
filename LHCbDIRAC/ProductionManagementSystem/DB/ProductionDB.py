@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.48 2009/02/01 13:56:15 atsareg Exp $
+# $Id: ProductionDB.py,v 1.49 2009/02/02 15:56:11 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.48 $"
+__RCSID__ = "$Revision: 1.49 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -267,6 +267,34 @@ class ProductionDB(TransformationDB):
       retdict['EventsPerJob']=0
 
     return S_OK(retdict)
+    
+  def getDistinctAttributeValues(self, attribute, selectDict ):  
+    """ Get distinct values of the given production attribute
+    """
+    
+    transformationParameters = ['Type','Plugin','AgentType','Status','TransformationGroup']
+    
+    if not attribute in transformationParameters:
+      return S_ERROR('Can not serve values for attribute %s' % attribute) 
+    
+    selectionList = []
+    selectionString = ''
+    for name,value in selectDict.items():
+      selectionList.append("%s='%s'" % (name,value) )
+    if selectionList:
+      selectionString = ' AND '.join(selectionList)
+      
+    req = 'SELECT DISTINCT(%s) FROM Transformations' % attribute
+    if selectionString:
+      req += " WHERE %s" % selectionString
+            
+    result = self._query(req)
+    if not result['OK']:
+      return result
+      
+    valueList = [ x[0] for x in result['Value'] ]
+    return S_OK(valueList)        
+        
 
   def getProductionParametersWithoutBody(self, transName):
     """
