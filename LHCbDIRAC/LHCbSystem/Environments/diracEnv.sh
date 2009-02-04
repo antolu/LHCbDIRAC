@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.3 2008/10/17 12:58:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.4 2009/02/04 08:10:50 atsareg Exp $
 # File :   diracEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: diracEnv.sh,v 1.3 2008/10/17 12:58:12 rgracian Exp $"
-__VERSION__="$Revision: 1.3 $"
+__RCSID__="$Id: diracEnv.sh,v 1.4 2009/02/04 08:10:50 atsareg Exp $"
+__VERSION__="$Revision: 1.4 $"
 
 if ! [ $# = 1 ] ;then
   echo "usage : . diracEnv <role>"
@@ -17,7 +17,7 @@ fi
 role=$1
 
 export DIRACROOT=`dirname $0`
-export DIRACROOT=`cd $DIRACROOT ; pwd`
+export DIRACROOT=`cd $DIRACROOT/.. ; pwd`
 
 echo
 echo Running DIRAC diracEnv.sh version $__VERSION__ with DIRACROOT=$DIRACROOT

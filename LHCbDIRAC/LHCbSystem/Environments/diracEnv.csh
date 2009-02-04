@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.8 2008/11/18 11:50:00 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.9 2009/02/04 08:10:50 atsareg Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.8 2008/11/18 11:50:00 rgracian Exp $'
-set __VERSION__='$Revision: 1.8 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.9 2009/02/04 08:10:50 atsareg Exp $'
+set __VERSION__='$Revision: 1.9 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -16,7 +16,7 @@ if ($#argv != 1) then
 endif
 
 setenv DIRACROOT `dirname $0`
-setenv DIRACROOT `cd $DIRACROOT ; pwd`
+setenv DIRACROOT `cd $DIRACROOT/.. ; pwd`
 
 set role=$1
 
