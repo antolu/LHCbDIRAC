@@ -62,7 +62,7 @@ class SAMPublisher:
       cmd = '%s %s %s' %(self.Script,test,fname)
       result = shellCall(0,cmd)
       if not result['OK']:
-        gLogger.warning("Publishing %s"%(test),result['Message'])
+        gLogger.warn("Publishing %s"%(test),result['Message'])
         publishFlag = False
       os.remove(fname)
       
@@ -151,7 +151,7 @@ class SAMAgent(Agent):
    
     return S_OK()
   
-  def _clearSAMjobs(self,days=7):
+  def _clearSAMjobs(self,days=2):
 
     gLogger.info("Clear SAM jobs for last %d day(s)"%days)
     dirac = Dirac()
@@ -182,7 +182,7 @@ class SAMAgent(Agent):
 
       result = monitoring.getJobs(conditions,Date)
       if not result['OK']:
-        gLogger.warning("Error get Jobs for Site %s"%(site),result['Message'])
+        gLogger.warn("Error get Jobs for Site %s"%(site),result['Message'])
         continue
       gLogger.debug("Jobs for site %s"%site,repr(result['Value']))
       jobIDs += result['Value']
@@ -196,7 +196,7 @@ class SAMAgent(Agent):
   
       result = monitoring.getJobAttributes(int(j))
       if not result['OK']:
-        gLogger.warning("getJobAttributes", result['Message'])
+        gLogger.warn("getJobAttributes", result['Message'])
         continue
     
       attr = result['Value']
@@ -240,7 +240,7 @@ class SAMAgent(Agent):
 
       res = samPub.publish(testName,ce,status)
       if not res['OK']:
-        gLogger.warning("SAM publisher error for CE %s"%testCE, res['Message'])
+        gLogger.warn("SAM publisher error for CE %s"%testCE, res['Message'])
     
 
 
