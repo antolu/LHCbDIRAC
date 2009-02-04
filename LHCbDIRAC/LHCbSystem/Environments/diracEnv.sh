@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.4 2009/02/04 08:10:50 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.5 2009/02/04 10:14:41 atsareg Exp $
 # File :   diracEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: diracEnv.sh,v 1.4 2009/02/04 08:10:50 atsareg Exp $"
-__VERSION__="$Revision: 1.4 $"
+__RCSID__="$Id: diracEnv.sh,v 1.5 2009/02/04 10:14:41 atsareg Exp $"
+__VERSION__="$Revision: 1.5 $"
 
 if ! [ $# = 1 ] ;then
   echo "usage : . diracEnv <role>"
@@ -64,7 +64,7 @@ fi
 
 
 export DIRACPLAT=`$DIRACROOT/scripts/platform.py`
-export PATH=$DIRACROOT/scripts:$PATH
+export PATH=$DIRACROOT/$DIRACPLAT/bin:$DIRACROOT/scripts:$PATH
 
 if ! echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin; then
   echo "You aren't allowed in the DIRAC $group group!"
