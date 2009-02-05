@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.2 2009/02/05 17:05:00 paterson Exp $
+# $Id: UploadLogFile.py,v 1.3 2009/02/05 17:36:44 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.2 2009/02/05 17:05:00 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.3 2009/02/05 17:36:44 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -98,8 +98,6 @@ class UploadLogFile(ModuleBase):
     # Add global reporting tool
     self.resolveInputVariables()
 
-    result = self.setApplicationStatus('Uploading Logs')
-
     res = shellCall(0,'ls -al')
     if res['OK']:
       self.log.info('The contents of the working directory...')
@@ -138,6 +136,7 @@ class UploadLogFile(ModuleBase):
     res = self.populateLogDirectory(selectedFiles)
     if not res['OK']:
       self.log.error('Completely failed to populate temporary log file directory.',res['Message'])
+      self.setApplicationStatus('Failed To Populate Log Dir')
       return S_OK()
     self.log.info('%s populated with log files.' % self.logdir)
 
@@ -184,6 +183,7 @@ class UploadLogFile(ModuleBase):
     res = shellCall(0,comm)
     if not res['OK']:
       self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Message']))
+      self.setApplicationStatus('Failed To Create Log Tar Dir')
       return S_OK()
     ############################################################
     logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
@@ -193,10 +193,12 @@ class UploadLogFile(ModuleBase):
     res = self.uploadFileToFailover(tarFileName,self.logLFNPath)
     if not res['OK']:
       self.log.error('Failed to upload logs to all destinations')
+      self.setApplicationStatus('Failed To Upload Logs')
       return S_OK()
     res = self.createLogUploadRequest(self.logSE,self.logLFNPath)
     if not res['OK']:
       self.log.error('Failed to create failover request', res['Message'])
+      self.setApplicationStatus('Failed To Create Log Failover Request')
     else:
       self.log.info('Successfully created failover request')
     return S_OK()
