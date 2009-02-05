@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.7 2008/11/20 14:32:06 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.8 2009/02/05 16:58:19 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -9,7 +9,7 @@ Queries BDII to pick out information about SRM2.2 space token descriptions.
 '''
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
 from DIRAC.Core.Utilities import Time, List, DEncode
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -20,26 +20,18 @@ import time
 import datetime
 import types
 
-AGENT_NAME = "LHCb/GridSiteMonitoringAgent"
-
-class GridSiteMonitoringAgent(Agent):
+class GridSiteMonitoringAgent(AgentModule):
 
   __sitesT1 = [ 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
   __sitesAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
 
-  def __init__( self ):
-    Agent.__init__( self, AGENT_NAME )
-
   def initialize( self ):
-    result = Agent.initialize( self )
-    if not result[ 'OK' ]:
-      return result
     self._lastUpdateTime = 0
     return S_OK()
 
   def execute( self ):
     elapsedTime = time.time() - self._lastUpdateTime
-    if elapsedTime < gConfig.getValue( "%s/GenerationInterval" % self.section, 1800 ):
+    if elapsedTime < self.am_getOption( "GenerationInterval", 1800 ):
       return S_OK()
     result = self._retrieveDataContents()
     if not result[ 'OK' ]:
@@ -89,7 +81,7 @@ class GridSiteMonitoringAgent(Agent):
     gLogger.info( "[DATA] Retrieving info...")
     finalData = []
     endT = Time.dateTime()
-    startT = endT - datetime.timedelta( seconds = gConfig.getValue( "%s/Timespan" % self.section, 3600 ) )
+    startT = endT - datetime.timedelta( seconds = self.am_getOption( "Timespan", 3600 ) )
     activities = []
     activities.append( ( { 'Source' : [ 'CERN' ], 'Destination' : self.__sitesT1, 'Protocol' : 'FTS' },
                          'data_transfer_t0_t1', 'Channel' ) )
