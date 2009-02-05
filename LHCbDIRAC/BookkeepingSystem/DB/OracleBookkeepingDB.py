@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.54 2009/02/05 11:03:16 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.55 2009/02/05 12:11:59 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.54 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.55 2009/02/05 12:11:59 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1818,7 +1818,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica from \
                 ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica \
                 from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica \
-                           from jobs,files,filetypes where \
+                           from jobs,files where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid='+str(ftypeId)+' and \
                            jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
