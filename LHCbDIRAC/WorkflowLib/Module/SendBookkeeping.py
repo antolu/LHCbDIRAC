@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SendBookkeeping.py,v 1.1 2009/02/05 17:01:06 paterson Exp $
+# $Id: SendBookkeeping.py,v 1.2 2009/02/05 17:47:32 paterson Exp $
 ########################################################################
 """ This module uploads the BK records prior to performing the transfer
     and registration (BK,LFC) operations using the preprepared BK XML
@@ -7,7 +7,7 @@
     no application crashes have been observed.
 """
 
-__RCSID__ = "$Id: SendBookkeeping.py,v 1.1 2009/02/05 17:01:06 paterson Exp $"
+__RCSID__ = "$Id: SendBookkeeping.py,v 1.2 2009/02/05 17:47:32 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -118,6 +118,7 @@ class SendBookkeeping(ModuleBase):
       bkXML = fopen.read()
       fopen.close()
       if not self.failoverTest:
+        self.log.verbose('Sending BK record %s:\n%s' %(bkFile,bkXML))
         result = self.bk.sendBookkeeping(bkFile,bkXML)
         self.log.verbose(result)
         if result['OK']:
