@@ -1,0 +1,145 @@
+########################################################################
+# $Id: FailoverRequest.py,v 1.1 2009/02/05 17:05:34 paterson Exp $
+########################################################################
+""" Create and send a combined request for any pending operations at
+    the end of a job.
+"""
+
+__RCSID__ = "$Id: FailoverRequest.py,v 1.1 2009/02/05 17:05:34 paterson Exp $"
+
+from WorkflowLib.Module.ModuleBase                         import *
+from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+
+import os
+
+class FailoverRequest(ModuleBase):
+
+  #############################################################################
+  def __init__(self):
+    """Module initialization.
+    """
+    self.version = __RCSID__
+    self.log = gLogger.getSubLogger( "FailoverRequest" )
+    #Internal parameters
+    self.enable=True
+    self.jobID = ''
+    self.productionID = None
+    self.prodJobID = None
+    #Workflow parameters
+    self.jobReport  = None
+    self.fileReport = None
+    self.request = None
+
+  #############################################################################
+  def resolveInputVariables(self):
+    """ By convention the module input parameters are resolved here.
+    """
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
+
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
+      self.log.verbose('Found WMS JobID = %s' %self.jobID)
+    else:
+      self.log.info('No WMS JobID found, disabling module via control flag')
+      self.enable=False
+
+    if self.step_commons.has_key('Enable'):
+      self.enable=self.step_commons['Enable']
+      if not type(self.enable)==type(True):
+        self.log.warn('Enable flag set to non-boolean value %s, setting to False' %self.enable)
+        self.enable=False
+
+    #Earlier modules will have populated the report objects
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport = self.workflow_commons['JobReport']
+
+    if self.workflow_commons.has_key('FileReport'):
+      self.fileReport = self.workflow_commons['FileReport']
+
+    if self.workflow_commons.has_key('Request'):
+      self.request = self.workflow_commons['Request']
+    else:
+      self.request = RequestContainer()
+      self.request.setRequestName('job_%s_request.xml' % self.jobID)
+      self.request.setJobID(self.jobID)
+      self.request.setSourceComponent("Job_%s" % self.jobID)
+
+    if self.workflow_commons.has_key('PRODUCTION_ID'):
+      self.productionID=self.workflow_commons['PRODUCTION_ID']
+
+    if self.workflow_commons.has_key('JOB_ID'):
+      self.prodJobID=self.workflow_commons['JOB_ID']
+
+    return S_OK('Parameters resolved')
+
+  #############################################################################
+  def execute(self):
+    """ Main execution function.
+    """
+    self.log.info('Initializing %s' %self.version)
+    result = self.resolveInputVariables()
+    if not result['OK']:
+      self.log.error(result['Message'])
+      return result
+
+    fileReportFlag=False
+
+    # Retrieve the accumulated reporting request
+    reportRequest = None
+    if self.jobReport:
+      result = self.jobReport.generateRequest()
+      if not result['OK']:
+        self.log.warn('Could not generate request for job report with result:\n%s' %(result))
+      else:
+        reportRequest = result['Value']
+    if reportRequest:
+      self.log.info('Populating request with job report information')
+      self.request.update(reportRequest)
+
+    fileReportRequest = None
+    if self.fileReport and fileReportFlag: #TODO: check fileReportFlag -> always false in JobFinalization.
+      result = self.fileReport.generateRequest()
+      if not result['OK']:
+        self.log.warn('Could not generate request for file report with result:\n%s' %(result))
+      else:
+        fileReportRequest = result['Value']
+    if fileReportRequest:
+      self.log.info('Populating request with file report information')
+      result = self.request.update(fileReportRequest)
+
+    accountingReport = None
+    if self.workflow_commons.has_key('AccountingReport'):
+      accountingReport  = self.workflow_commons['AccountingReport']
+    if accountingReport:
+      result = accountingReport.commit()
+      if not result['OK']:
+        self.log.info('Populating request with accounting report information')
+        self.request.setDISETRequest(result['rpcStub'])
+
+    if self.request.isEmpty()['Value']:
+      self.log.info('Request is empty, nothing to do.')
+      return S_OK()
+
+    request_string = self.request.toXML()['Value']
+    self.log.debug(request_string)
+    # Write out the request string
+    fname = '%s_%s_request.xml' %(self.productionID,self.prodJobID)
+    xmlfile = open(fname,'w')
+    xmlfile.write(request_string)
+    xmlfile.close()
+    self.log.info('Creating failover request for deferred operations for job %s:' %self.jobID)
+    result = self.request.getDigest()
+    if result['OK']:
+      digest = result['Value']
+      self.log.info(digest)
+
+    if not self.enable:
+      self.log.info('Module is disabled by control flag')
+      return S_OK('Module is disabled by control flag')
+
+    self.setApplicationStatus('Job Finished Successfully')
+    return S_OK('Saved failover requests')
+
+  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
