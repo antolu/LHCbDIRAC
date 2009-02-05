@@ -1,15 +1,15 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.9 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.9 2009/02/05 11:03:16 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
-
+from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
 #############################################################################  
 class ControlerFileDialog(ControlerAbstract):
   
@@ -222,3 +222,15 @@ class ControlerFileDialog(ControlerAbstract):
     action = feedback.action()
     if action == 'error':
       self.getWidget().showError(feedback['message'])  
+  
+  def loggininginfo(self):
+    message = Message({'action':'logfile','fileName':self.__selectedFiles})
+    feedback = self.getParent().messageFromChild(self, message)
+    action = feedback.action()
+    if action == 'error':
+      self.getWidget().showError(feedback['message'])  
+    elif action == 'showLog':
+      controlers = self.getChildren()
+      controlers['LogFileWidget'].messageFromParent(feedback)
+      
+      

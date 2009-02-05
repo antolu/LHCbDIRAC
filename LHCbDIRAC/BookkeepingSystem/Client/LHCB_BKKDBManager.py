@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.77 2009/02/02 12:47:46 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.78 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.77 2009/02/02 12:47:46 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.78 2009/02/05 11:03:16 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -589,7 +589,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2],'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'EvtTypeId':evtType,'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1432,3 +1432,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################       
   def getAncestors(self, files, depth):
     return self.db_.getAncestors(files, depth)
+  
+  #############################################################################       
+  def getLogfile(self, filename):
+    return self.db_.getLogfile(filename)

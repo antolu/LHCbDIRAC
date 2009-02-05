@@ -1,15 +1,16 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.10 2009/01/26 17:38:01 zmathe Exp $
+# $Id: FileDialog.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.10 2009/01/26 17:38:01 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -40,6 +41,9 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect (self.__ancesstorsAction, SIGNAL("triggered()"), self.__controler.getancesstots)
     self.__popUp.addAction(self.__ancesstorsAction)
     
+    self.__loginfoAction = QAction(self.tr("Logginig informations"), self.tableView)
+    self.connect (self.__loginfoAction, SIGNAL("triggered()"), self.__controler.loggininginfo)
+    self.__popUp.addAction(self.__loginfoAction)
     
     self.__closeAction = QAction(self.tr("Close"), self.tableView)
     self.connect (self.__closeAction, SIGNAL("triggered()"), self.__controler.close)
@@ -48,7 +52,9 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.tableView.setContextMenuPolicy(Qt.CustomContextMenu);
     self.connect(self.tableView, SIGNAL('customContextMenuRequested(QPoint)'), self.popUpMenu)
 
-
+    self.__log = LogFileWidget(self)
+    self.__controler.addChild('LogFileWidget',self.__log.getControler())
+    
   #############################################################################  
   def getControler(self):
     return self.__controler
@@ -93,7 +99,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   def showData(self, data):
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId']
     tabledata =[]
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','Generator','JobStart', 'JobEnd', 'RunNumber','FillNumber','PhysicStat']
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat','Generator']
     keys = data.keys()
     keys.sort()
     for item in keys:

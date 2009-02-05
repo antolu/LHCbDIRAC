@@ -12,124 +12,92 @@
   <property name="windowTitle" >
    <string>Form</string>
   </property>
-  <widget class="QGroupBox" name="selection" >
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>650</y>
-     <width>561</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <property name="title" >
-    <string>Queries</string>
-   </property>
-   <widget class="QRadioButton" name="radioButton_2" >
-    <property name="geometry" >
-     <rect>
-      <x>0</x>
-      <y>60</y>
-      <width>421</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text" >
-     <string>Event type/SimCond/ProcessingPass/Production/FileType/Program/Files</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="configNameRadioButton" >
-    <property name="geometry" >
-     <rect>
-      <x>0</x>
-      <y>20</y>
-      <width>411</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text" >
-     <string>SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QTreeWidget" name="tree" >
-   <property name="windowModality" >
-    <enum>Qt::WindowModal</enum>
-   </property>
-   <property name="enabled" >
-    <bool>true</bool>
-   </property>
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>561</width>
-     <height>631</height>
-    </rect>
-   </property>
-   <property name="cursor" stdset="0" >
-    <cursorShape>ArrowCursor</cursorShape>
-   </property>
-   <property name="styleSheet" >
-    <string/>
-   </property>
-   <property name="lineWidth" >
-    <number>1</number>
-   </property>
-   <property name="verticalScrollBarPolicy" >
-    <enum>Qt::ScrollBarAsNeeded</enum>
-   </property>
-   <property name="horizontalScrollBarPolicy" >
-    <enum>Qt::ScrollBarAsNeeded</enum>
-   </property>
-   <property name="tabKeyNavigation" >
-    <bool>true</bool>
-   </property>
-   <property name="textElideMode" >
-    <enum>Qt::ElideNone</enum>
-   </property>
-   <property name="sortingEnabled" >
-    <bool>true</bool>
-   </property>
-   <property name="animated" >
-    <bool>false</bool>
-   </property>
-   <column>
-    <property name="text" >
-     <string>                                Tree                                                     </string>
-    </property>
-   </column>
-   <column>
-    <property name="text" >
-     <string>Description</string>
-    </property>
-   </column>
-  </widget>
-  <widget class="QCheckBox" name="standardQuery" >
-   <property name="geometry" >
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>81</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>Standard</string>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="advancedQuery" >
-   <property name="geometry" >
-    <rect>
-     <x>80</x>
-     <y>0</y>
-     <width>131</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>Advanced Queries</string>
-   </property>
-  </widget>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <widget class="QCheckBox" name="standardQuery" >
+     <property name="text" >
+      <string>Standard</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QCheckBox" name="advancedQuery" >
+     <property name="text" >
+      <string>Advanced Queries</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2" >
+    <widget class="QTreeWidget" name="tree" >
+     <property name="windowModality" >
+      <enum>Qt::WindowModal</enum>
+     </property>
+     <property name="enabled" >
+      <bool>true</bool>
+     </property>
+     <property name="cursor" stdset="0" >
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="styleSheet" >
+      <string/>
+     </property>
+     <property name="lineWidth" >
+      <number>1</number>
+     </property>
+     <property name="verticalScrollBarPolicy" >
+      <enum>Qt::ScrollBarAsNeeded</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy" >
+      <enum>Qt::ScrollBarAsNeeded</enum>
+     </property>
+     <property name="tabKeyNavigation" >
+      <bool>true</bool>
+     </property>
+     <property name="textElideMode" >
+      <enum>Qt::ElideNone</enum>
+     </property>
+     <property name="sortingEnabled" >
+      <bool>true</bool>
+     </property>
+     <property name="animated" >
+      <bool>false</bool>
+     </property>
+     <column>
+      <property name="text" >
+       <string>                                Tree                                                     </string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Description</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2" >
+    <widget class="QGroupBox" name="selection" >
+     <property name="title" >
+      <string>Queries</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <widget class="QRadioButton" name="configNameRadioButton" >
+        <property name="text" >
+         <string>SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QRadioButton" name="radioButton_2" >
+        <property name="text" >
+         <string>Event type/SimCond/ProcessingPass/Production/FileType/Program/Files</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
   <action name="configNameRadioButton" >
    <property name="text" >
     <string>config_click</string>

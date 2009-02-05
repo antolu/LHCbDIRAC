@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.89 2009/02/02 11:36:22 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.90 2009/02/05 11:03:17 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.89 2009/02/02 11:36:22 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.90 2009/02/05 11:03:17 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -553,6 +553,16 @@ class BookkeepingManagerHandler(RequestHandler):
     return result
   
   #############################################################################  
+  types_setQuality = [ListType, StringType]
+  def export_setQuality(self, lfns, flag):
+    return dataMGMT_.setQuality(lfns, flag)
+  
+  #############################################################################  
+  types_setQualityRun = [IntType, StringType, StringType]
+  def export_setQualityRun(self, runNb, dataTaking, flag):
+    return dataMGMT_.setQualityRun(runNb, dataTaking, flag)
+  
+  #############################################################################  
   types_insert_aplications = [StringType, StringType, StringType, StringType, StringType]
   def export_insert_aplications(self, appName, appVersion, option, dddb, condb):
     return dataMGMT_.insert_aplications(appName, appVersion, option, dddb, condb)
@@ -643,6 +653,11 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getLFNsByProduction = [LongType]
   def export_getLFNsByProduction(self, prodid):
     return dataMGMT_.getLFNsByProduction(prodid)
+  
+  #############################################################################
+  types_getLogfile = [StringType]
+  def export_getLogfile(self, lfn):
+    return dataMGMT_.getLogfile(lfn)
   
   #############################################################################
   types_checkProduction = [LongType]

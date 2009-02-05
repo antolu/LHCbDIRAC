@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.72 2009/01/27 12:45:37 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.73 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.72 2009/01/27 12:45:37 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.73 2009/02/05 11:03:16 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -136,7 +136,21 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.getAvailableConfigurations()
     return result
+  
+  #############################################################################
+  def setQuality(self, lfns, flag):
+    if type(lfns) == types.StringType:
+      lfns = [lfns]
+    server = self.__getServer()
+    result = server.setQuality(lfns, flag)
+    return result
 
+  #############################################################################
+  def setQualityRun(self, runNb, dataTaking, flag):
+    server = self.__getServer()
+    result = server.setQualityRun(runNb, dataTaking, flag)
+    return result
+  
   #############################################################################
   def getSimulationConditions(self, configName, configVersion, realdata = 0):
     server = self.__getServer()
@@ -423,6 +437,12 @@ class BookkeepingClient:
   def addProduction(self, infos):
     server = self.__getServer()
     result = server.addProduction(infos)
+    return result
+
+  #############################################################################
+  def getLogfile(self, lfn):
+    server = self.__getServer()
+    result = server.getLogfile(lfn)
     return result
 
   #-----------------------------------Event Types------------------------------------------------------------------

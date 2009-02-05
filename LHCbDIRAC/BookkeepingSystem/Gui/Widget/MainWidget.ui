@@ -22,32 +22,28 @@
    <string>Feicim - LHCb Bookkeeping browser</string>
   </property>
   <widget class="QWidget" name="centralwidget" >
-   <widget class="QTreeWidget" name="tree" >
-    <property name="windowModality" >
-     <enum>Qt::WindowModal</enum>
-    </property>
-    <property name="enabled" >
-     <bool>true</bool>
-    </property>
-    <property name="geometry" >
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>581</width>
-      <height>631</height>
-     </rect>
-    </property>
-    <column>
-     <property name="text" >
-      <string>Jaj</string>
-     </property>
-    </column>
-    <column>
-     <property name="text" >
-      <string>New Column</string>
-     </property>
-    </column>
-   </widget>
+   <layout class="QVBoxLayout" >
+    <item>
+     <widget class="QTreeWidget" name="tree" >
+      <property name="windowModality" >
+       <enum>Qt::WindowModal</enum>
+      </property>
+      <property name="enabled" >
+       <bool>true</bool>
+      </property>
+      <column>
+       <property name="text" >
+        <string>Jaj</string>
+       </property>
+      </column>
+      <column>
+       <property name="text" >
+        <string>New Column</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar" >
    <property name="geometry" >

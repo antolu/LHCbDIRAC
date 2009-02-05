@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.30 2009/02/02 11:36:22 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.31 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.30 2009/02/02 11:36:22 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.31 2009/02/05 11:03:16 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -32,7 +32,10 @@ class IBookkeepingDatabaseClient(object):
   def eventType(self, eventTypeId):
     return self.getManager().eventType(eventTypeId)
   
-
+  #############################################################################
+  def getLogfile(self, lfn):
+    return self.getManager().getLogfile(lfn)
+  
   #############################################################################
   def insertJob(self, job):
     return self.getManager().insertJob(job)
@@ -409,8 +412,13 @@ class IBookkeepingDatabaseClient(object):
   def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):  
     return self.getManager().checkAddProduction(steps, groupdesc, simcond, inputProdTotalProcessingPass, production)
   
+  #############################################################################
+  def setQuality(self, lfns, flag):
+    return self.getManager().setQuality(lfns, flag)
   
-  
+  #############################################################################
+  def setQualityRun(self, runNb, dataTaking, flag):
+    return self.getManager().setQualityRun(runNb, dataTaking, flag)
   
   
   #############################################################################

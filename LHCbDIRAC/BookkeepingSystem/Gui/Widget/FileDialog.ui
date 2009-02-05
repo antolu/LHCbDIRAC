@@ -2,14 +2,14 @@
  <class>FileDialog</class>
  <widget class="QDialog" name="FileDialog" >
   <property name="windowModality" >
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModal</enum>
   </property>
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1171</width>
-    <height>724</height>
+    <width>1234</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -18,265 +18,212 @@
   <property name="modal" >
    <bool>false</bool>
   </property>
-  <widget class="QPushButton" name="closeButton" >
-   <property name="geometry" >
-    <rect>
-     <x>1040</x>
-     <y>680</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>Close</string>
-   </property>
-  </widget>
-  <widget class="QTableView" name="tableView" >
-   <property name="geometry" >
-    <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>841</width>
-     <height>651</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="saveButton" >
-   <property name="geometry" >
-    <rect>
-     <x>920</x>
-     <y>680</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text" >
-    <string>Save Files...</string>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="groupBox" >
-   <property name="geometry" >
-    <rect>
-     <x>870</x>
-     <y>320</y>
-     <width>301</width>
-     <height>181</height>
-    </rect>
-   </property>
-   <property name="title" >
-    <string>Statistics</string>
-   </property>
-   <widget class="QWidget" name="gridLayout_2" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>30</y>
-      <width>271</width>
-      <height>131</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" >
-     <item row="1" column="0" >
-      <layout class="QHBoxLayout" >
-       <item>
-        <widget class="QLabel" name="label_2" >
-         <property name="text" >
-          <string>Number Of Events</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label" >
-       <property name="text" >
-        <string>Number Of Files:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="lineEdit" />
-     </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="lineEdit_2" />
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_5" >
-       <property name="text" >
-        <string>Files size</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1" >
-      <widget class="QLineEdit" name="lineEdit_5" />
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_2" >
-   <property name="geometry" >
-    <rect>
-     <x>870</x>
-     <y>510</y>
-     <width>301</width>
-     <height>161</height>
-    </rect>
-   </property>
-   <property name="title" >
-    <string>Selected</string>
-   </property>
-   <widget class="QWidget" name="gridLayout" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>271</width>
-      <height>131</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" >
-     <item row="1" column="0" >
-      <layout class="QHBoxLayout" >
-       <item>
-        <widget class="QLabel" name="label_4" >
-         <property name="text" >
-          <string>Number Of Events</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="lineEdit_3" />
-     </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="lineEdit_4" />
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label_6" >
-       <property name="text" >
-        <string>Number Of Files:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1" >
-      <widget class="QLineEdit" name="lineEdit_6" />
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_3" >
-       <property name="text" >
-        <string>Files size</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_3" >
-   <property name="geometry" >
-    <rect>
-     <x>870</x>
-     <y>20</y>
-     <width>301</width>
-     <height>291</height>
-    </rect>
-   </property>
-   <property name="title" >
-    <string/>
-   </property>
-   <widget class="QWidget" name="gridLayout_3" >
-    <property name="geometry" >
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>281</width>
-      <height>276</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" >
-     <item row="0" column="1" >
-      <widget class="QLineEdit" name="configname" />
-     </item>
-     <item row="1" column="1" >
-      <widget class="QLineEdit" name="configversion" />
-     </item>
-     <item row="2" column="1" >
-      <widget class="QLineEdit" name="simulation" />
-     </item>
-     <item row="3" column="1" >
-      <widget class="QLineEdit" name="processing" />
-     </item>
-     <item row="4" column="1" >
-      <widget class="QLineEdit" name="eventtype" />
-     </item>
-     <item row="5" column="1" >
-      <widget class="QLineEdit" name="filetype" />
-     </item>
-     <item row="6" column="1" >
-      <widget class="QLineEdit" name="production" />
-     </item>
-     <item row="7" column="1" >
-      <widget class="QLineEdit" name="progrnameandversion" />
-     </item>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label_7" >
-       <property name="text" >
-        <string>Configuration Name</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_8" >
-       <property name="text" >
-        <string>Configuration Version</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_9" >
-       <property name="text" >
-        <string>Simulation Conditions</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" >
-      <widget class="QLabel" name="label_10" >
-       <property name="text" >
-        <string>Processing pass</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" >
-      <widget class="QLabel" name="label_11" >
-       <property name="text" >
-        <string>Event Type</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" >
-      <widget class="QLabel" name="label_12" >
-       <property name="text" >
-        <string>File Type</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0" >
-      <widget class="QLabel" name="label_13" >
-       <property name="text" >
-        <string>Production</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0" >
-      <widget class="QLabel" name="label_14" >
-       <property name="text" >
-        <string>Program Name and version</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
+  <layout class="QGridLayout" >
+   <item rowspan="3" row="0" column="0" >
+    <widget class="QTableView" name="tableView" />
+   </item>
+   <item row="0" column="1" colspan="2" >
+    <widget class="QGroupBox" name="groupBox_3" >
+     <property name="title" >
+      <string/>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <layout class="QGridLayout" >
+        <item row="0" column="1" >
+         <widget class="QLineEdit" name="configname" />
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLineEdit" name="configversion" />
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLineEdit" name="simulation" />
+        </item>
+        <item row="3" column="1" >
+         <widget class="QLineEdit" name="processing" />
+        </item>
+        <item row="4" column="1" >
+         <widget class="QLineEdit" name="eventtype" />
+        </item>
+        <item row="5" column="1" >
+         <widget class="QLineEdit" name="filetype" />
+        </item>
+        <item row="6" column="1" >
+         <widget class="QLineEdit" name="production" />
+        </item>
+        <item row="7" column="1" >
+         <widget class="QLineEdit" name="progrnameandversion" />
+        </item>
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_7" >
+          <property name="text" >
+           <string>Configuration Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QLabel" name="label_8" >
+          <property name="text" >
+           <string>Configuration Version</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_9" >
+          <property name="text" >
+           <string>Simulation Conditions</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" >
+         <widget class="QLabel" name="label_10" >
+          <property name="text" >
+           <string>Processing pass</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0" >
+         <widget class="QLabel" name="label_11" >
+          <property name="text" >
+           <string>Event Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" >
+         <widget class="QLabel" name="label_12" >
+          <property name="text" >
+           <string>File Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0" >
+         <widget class="QLabel" name="label_13" >
+          <property name="text" >
+           <string>Production</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" >
+         <widget class="QLabel" name="label_14" >
+          <property name="text" >
+           <string>Program Name and version</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2" >
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Statistics</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <layout class="QGridLayout" >
+        <item row="1" column="0" >
+         <layout class="QHBoxLayout" >
+          <item>
+           <widget class="QLabel" name="label_2" >
+            <property name="text" >
+             <string>Number Of Events</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label" >
+          <property name="text" >
+           <string>Number Of Files:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLineEdit" name="lineEdit" />
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLineEdit" name="lineEdit_2" />
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_5" >
+          <property name="text" >
+           <string>Files size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLineEdit" name="lineEdit_5" />
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="2" >
+    <widget class="QGroupBox" name="groupBox_2" >
+     <property name="title" >
+      <string>Selected</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <layout class="QGridLayout" >
+        <item row="1" column="0" >
+         <layout class="QHBoxLayout" >
+          <item>
+           <widget class="QLabel" name="label_4" >
+            <property name="text" >
+             <string>Number Of Events</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QLineEdit" name="lineEdit_3" />
+        </item>
+        <item row="1" column="1" >
+         <widget class="QLineEdit" name="lineEdit_4" />
+        </item>
+        <item row="0" column="0" >
+         <widget class="QLabel" name="label_6" >
+          <property name="text" >
+           <string>Number Of Files:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" >
+         <widget class="QLineEdit" name="lineEdit_6" />
+        </item>
+        <item row="2" column="0" >
+         <widget class="QLabel" name="label_3" >
+          <property name="text" >
+           <string>Files size</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="1" >
+    <widget class="QPushButton" name="saveButton" >
+     <property name="text" >
+      <string>Save Files...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" >
+    <widget class="QPushButton" name="closeButton" >
+     <property name="text" >
+      <string>Close</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.53 2009/02/02 11:36:22 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.54 2009/02/05 11:03:16 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.53 2009/02/02 11:36:22 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.54 2009/02/05 11:03:16 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -397,18 +397,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat from '+ tables+' ,filetypes \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
-         files.filetypeid=filetypes.filetypeid' + condition 
+         files.filetypeid=filetypes.filetypeid and \
+         files.qualityid= dataquality.qualityid' + condition 
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat from '+ tables +'\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
-         jobs.configurationid=configurations.configurationid' + condition 
+         jobs.configurationid=configurations.configurationid and \
+         files.qualityid= dataquality.qualityid' + condition 
     if all > ALLOWED_ALL:
       return S_ERROR(" TO many ALL selected")
     res = self.dbR_._query(command)
@@ -476,28 +478,28 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all += 1
          
     if ftype == 'ALL':
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt,quality \
       FROM \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt,quality \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
-        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt\
-        from'+tables+'filetypes \
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality\
+        from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
     else:
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt,quality from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt,quality \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             jobs.Generator gen, jobs.GeometryVersion geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt \
-        from'+ tables+'\
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality \
+        from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
@@ -1204,6 +1206,54 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tmp[0]=description[:-3] 
       retvalue += [tuple(tmp)]
     return S_OK(retvalue)
+  
+  #############################################################################  
+  def setQuality(self, lfns, flag):
+    command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    elif len(retVal['Value']) == 0:
+      return S_ERROR('Data quality flag is missing in the DB')
+    qid = retVal['Value'][0][0]
+  
+    for lfn in lfns:
+      retVal = self.__updateQualityFlag(lfn, qid)
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+          
+    return S_OK('Quality flag updated!')
+  
+  #############################################################################  
+  def setQualityRun(self, runNb, dataTaking, flag):
+    command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    elif len(retVal['Value']) == 0:
+      return S_ERROR('Data quality flag is missing in the DB')
+    qid = retVal['Value'][0][0]
+    
+    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files, data_taking_conditions,productions where jobs.jobid=files.jobid and \
+      jobs.runnumber='+str(runNb)+' and \
+      jobs.production=productions.production and \
+      data_taking_conditions.daqperiodid=productions.simcondid and \
+      data_taking_conditions.description=\''+str(dataTaking)+'\')'
+    retVal = self.dbW_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    
+    return S_OK('Quality flag has been updated!')
+    
+  #############################################################################  
+  def __updateQualityFlag(self, lfn, qid):
+    command = 'update files set qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''
+    retVal = self.dbW_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      return S_OK('Quality flag has been updated!')
+    
   #############################################################################  
   def getProductionsWithPocessingPass(self, processingPass):
     return self.dbR_.executeStoredProcedure('BKK_ORACLE.getProductions', [processingPass])
@@ -1310,7 +1360,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and jobsId:
            for job_id in jobsId:
-             command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+             command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and files.gotreplica=\'Yes\' and inputfiles.jobid='+str(job_id)
              jobsId=[]
              res = self.dbR_._query(command)
              if not res['OK']:
@@ -1941,6 +1991,25 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         return S_OK(retVal['Value'][0][0])
     return S_ERROR()
+  
+  #############################################################################
+  def getLogfile(self, lfn):
+    command = 'select files.jobid from files where files.filename=\''+str(lfn)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    if len(retVal['Value']) == 0:
+      return S_ERROR('Job not in the DB')
+    jobid = retVal['Value'][0][0]
+    command = 'select filename from files where files.filetypeid=17 and files.jobid='+str(jobid)
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      if len(retVal['Value']) == 0:
+        return S_ERROR('Log file is not exist!')
+      return S_OK(retVal['Value'][0][0])
+    return S_ERROR('getLogfile error!')
   
   #############################################################################
   def insertProcessing_pass(self, passid, simcond):
