@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.55 2009/02/05 12:11:59 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.56 2009/02/06 11:28:48 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.55 2009/02/05 12:11:59 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.56 2009/02/06 11:28:48 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -490,6 +490,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
     else:
@@ -502,6 +503,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
     if all > ALLOWED_ALL:
