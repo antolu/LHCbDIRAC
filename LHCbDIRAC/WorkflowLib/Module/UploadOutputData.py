@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.1 2009/02/05 17:41:00 paterson Exp $
+# $Id: UploadOutputData.py,v 1.2 2009/02/06 11:57:03 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.1 2009/02/05 17:41:00 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.2 2009/02/06 11:57:03 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -249,16 +249,16 @@ class UploadOutputData(ModuleBase):
       return failover
 
     #set removal requests and replication requests
-    result = self.__setPFNReplicationRequest(failover['Value']['lfn'],targetSE,failover['Value']['filedict'])
+    result = self.__setFileReplicationRequest(failover['Value']['lfn'],targetSE,failover['Value']['filedict'])
     if not result['OK']:
-      self.log.error('Could not set PFN replication request',result['Message'])
+      self.log.error('Could not set file replication request',result['Message'])
       return result
 
     lfn = failover['Value']['lfn']
     failoverSE = failover['Value']['uploadedSE']
     pfn = failover['Value']['filedict']['PFN']
-    self.log.info('Attempting to set removal request for LFN %s at failover SE %s with PFN %s' %(lfn,failoverSE,pfn))
-    result = self.__setRemovalRequest(lfn,failoverSE,pfn)
+    self.log.info('Attempting to set replica removal request for LFN %s at failover SE %s with PFN %s' %(lfn,failoverSE,pfn))
+    result = self.__setReplicaRemovalRequest(lfn,failoverSE,pfn)
     if not result['OK']:
       self.log.error('Could not set removal request',result['Message'])
       return result
@@ -266,7 +266,7 @@ class UploadOutputData(ModuleBase):
     return S_OK(metadata)
 
   #############################################################################
-  def __setPFNReplicationRequest(self,lfn,se,fileDict):
+  def __setFileReplicationRequest(self,lfn,se,fileDict):
     """ Sets a registration request.
     """
     self.log.info('Setting PFN replication request for %s to %s' % (lfn,se))
@@ -299,10 +299,22 @@ class UploadOutputData(ModuleBase):
     return S_OK()
 
   #############################################################################
-  def __setRemovalRequest(self,lfn,se='',pfn=''):
-    """ Sets a removal request.
+  def __setReplicaRemovalRequest(self,lfn,se='',pfn=''):
+    """ Sets a removal request for a replica.
     """
-    result = self.request.addSubRequest({'Attributes':{'Operation':'physicalRemoval',
+    result = self.request.addSubRequest({'Attributes':{'Operation':'replicaRemoval',
+                                                       'TargetSE':se,'ExecutionOrder':1}},
+                                         'removal')
+    index = result['Value']
+    fileDict = {'LFN':lfn,'PFN':pfn,'Status':'Waiting'}
+    result = self.request.setSubRequestFiles(index,'removal',[fileDict])
+    return S_OK()
+
+  #############################################################################
+  def __setFileRemovalRequest(self,lfn,se='',pfn=''):
+    """ Sets a removal request for a file including all replicas.
+    """
+    result = self.request.addSubRequest({'Attributes':{'Operation':'removeFile',
                                                        'TargetSE':se,'ExecutionOrder':1}},
                                          'removal')
     index = result['Value']
@@ -334,7 +346,7 @@ class UploadOutputData(ModuleBase):
 
       # Set removal requests just in case
       for lfn in lfnList:
-        result = self.__setRemovalRequest(lfn)
+        result = self.__setFileRemovalRequest(lfn)
 
     return S_OK()
 
