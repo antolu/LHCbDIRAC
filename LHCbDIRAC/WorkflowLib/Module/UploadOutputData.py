@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.2 2009/02/06 11:57:03 paterson Exp $
+# $Id: UploadOutputData.py,v 1.3 2009/02/08 20:24:07 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.2 2009/02/06 11:57:03 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.3 2009/02/08 20:24:07 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -94,7 +94,7 @@ class UploadOutputData(ModuleBase):
     if self.workflow_commons.has_key('ProductionOutputData'):
         self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
         if not type(self.prodOutputLFNs)==type([]):
-          self.prodOutputLFNs = [i.lower().strip() for i in self.prodOutputLFNs.split(';')]
+          self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split(';')]
     else:
       self.log.info('ProductionOutputData parameter not found, creating on the fly')
       result = constructProductionLFNs(self.workflow_commons)
