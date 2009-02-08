@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.3 2009/02/05 17:36:44 paterson Exp $
+# $Id: UploadLogFile.py,v 1.4 2009/02/08 13:24:06 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.3 2009/02/05 17:36:44 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.4 2009/02/08 13:24:06 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -108,6 +108,11 @@ class UploadLogFile(ModuleBase):
     self.log.info('Job root is found to be %s' % (self.root))
     self.log.info('PRODUCTION_ID = %s, JOB_ID = %s '  % (self.PRODUCTION_ID, self.JOB_ID))
     self.logdir = os.path.realpath('./job/log/%s/%s' % (self.PRODUCTION_ID, self.JOB_ID))
+    self.log.info('Changing log directory permissions to 0777')
+    try:
+      os.chmod(self.logdir,0777)
+    except Exception,x:
+      self.log.error('Could not set permissions of %s to 0777' %self.logdir)
     self.log.info('Selected log files will be temporarily stored in %s' % self.logdir)
 
     res = self.finalize()
