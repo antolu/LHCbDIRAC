@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: FailoverRequest.py,v 1.2 2009/02/08 16:52:36 paterson Exp $
+# $Id: FailoverRequest.py,v 1.3 2009/02/08 20:30:39 paterson Exp $
 ########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job.
 """
 
-__RCSID__ = "$Id: FailoverRequest.py,v 1.2 2009/02/08 16:52:36 paterson Exp $"
+__RCSID__ = "$Id: FailoverRequest.py,v 1.3 2009/02/08 20:30:39 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -120,8 +120,7 @@ class FailoverRequest(ModuleBase):
 
     if self.request.isEmpty()['Value']:
       self.log.info('Request is empty, nothing to do.')
-      self.setApplicationStatus('Job Finished Successfully')
-      return S_OK()
+      return self.finalize()
 
     request_string = self.request.toXML()['Value']
     self.log.debug(request_string)
@@ -140,7 +139,19 @@ class FailoverRequest(ModuleBase):
       self.log.info('Module is disabled by control flag')
       return S_OK('Module is disabled by control flag')
 
+    return self.finalize()
+
+  #############################################################################
+  def finalize(self):
+    """ Finalize and report correct status for the workflow based on the workflow
+        or step status.
+    """
+    self.log.verbose('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+      self.log.error('Workflow status is not ok, will not overwrite status')
+      return S_ERROR('Workflow failed, FailoverRequest module completed')
+
     self.setApplicationStatus('Job Finished Successfully')
-    return S_OK('Saved failover requests')
+    return S_OK('FailoverRequest module completed')
 
   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
