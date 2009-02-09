@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.56 2009/02/06 11:28:48 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.57 2009/02/09 16:46:50 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.56 2009/02/06 11:28:48 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.57 2009/02/09 16:46:50 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -722,7 +722,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return res
     return S_ERROR("Job is not found!")
 
-  
+  #############################################################################
   def getProductionFiles(self, prod, ftype):
     command = ''
     value = {}
@@ -749,7 +749,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
-  
+    
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb):
     
@@ -1362,7 +1362,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and jobsId:
            for job_id in jobsId:
-             command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and files.gotreplica=\'Yes\' and inputfiles.jobid='+str(job_id)
+             command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
              jobsId=[]
              res = self.dbR_._query(command)
              if not res['OK']:
@@ -1371,7 +1371,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                dbResult = res['Value']
                for record in dbResult:
                  jobsId +=[record[1]]
-                 files += [record[0]]
+                 if record[2] != 'No':
+                   files += [record[0]]
            depth-=1 
         
         ancestorList[fileName]=files    
@@ -2003,7 +2004,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(retVal['Value']) == 0:
       return S_ERROR('Job not in the DB')
     jobid = retVal['Value'][0][0]
-    command = 'select filename from files where files.filetypeid=17 and files.jobid='+str(jobid)
+    command = 'select filename from files where (files.filetypeid=17 or files.filetypeid=9) and files.jobid='+str(jobid)
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
