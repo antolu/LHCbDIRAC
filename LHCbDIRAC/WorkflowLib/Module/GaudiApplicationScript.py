@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.16 2009/01/14 14:33:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.17 2009/02/09 16:50:56 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.16 2009/01/14 14:33:53 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.17 2009/02/09 16:50:56 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -225,10 +225,20 @@ class GaudiApplicationScript(object):
     #  gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % extraLibs
     #  self.log.info( 'Adding %s to LD_LIBRARY_PATH' % extraLibs )
     # Add compat libs
+
+    localPath = os.path.abspath('.')
+    if os.path.exists('%s/lib' %localPath):
+      self.log.info('Found local lib directory, prepending to LD_LIBRARY_PATH')
+      origLD = '' #just in case LD_LIBRARY_PATH is not defined
+      if gaudiEnv.has_key('LD_LIBRARY_PATH'):
+        origLD = gaudiEnv['LD_LIBRARY_PATH']
+        gaudiEnv['LD_LIBRARY_PATH']='%s/lib:%s' %(localPath,origLD)
+      else:
+        gaudiEnv['LD_LIBRARY_PATH']='%s/lib' %localPath
+
     compatLib = os.path.join( self.root, self.systemConfig, 'compat' )
     if os.path.exists(compatLib):
       gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % compatLib
-    # gaudiEnv['LD_LIBRARY_PATH'] = ldLibraryPath.unify( gaudiEnv['LD_LIBRARY_PATH'], appDir )
 
     f = open( 'localEnv.log', 'w' )
     for k in gaudiEnv:
