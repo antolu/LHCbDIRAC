@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.73 2009/02/05 11:03:16 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.74 2009/02/10 12:04:20 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.73 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.74 2009/02/10 12:04:20 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -112,7 +112,13 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.getSimulationCondID(BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
     return result
-
+  
+  #############################################################################
+  def getRunInformations(self, runnb):
+    server = self.__getServer()
+    result = server.getRunInformations(runnb)
+    return result
+  
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     server = self.__getServer()

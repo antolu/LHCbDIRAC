@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.57 2009/02/09 16:46:50 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.58 2009/02/10 12:04:20 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.57 2009/02/09 16:46:50 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.58 2009/02/10 12:04:20 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1968,12 +1968,38 @@ class OracleBookkeepingDB(IBookkeepingDB):
           
     return S_ERROR()  
   #############################################################################
+  def getRunInformations(self, runnb):
+    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion from jobs, configurations where jobs.configurationid=configurations.configurationid and jobs.runnumber='+str(runnb)
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    value = retVal['Value']
+    if len(value) == 0:
+      return S_ERROR('This run is missing in the BKK DB!')
+    result = {'Configuration Name':value[0][1],'Configuration Version':value[0][2],'FillNumber':value[0][0]}
+    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.physicstat) from files,jobs \
+         where files.JobId=jobs.JobId and  \
+         files.gotReplica=\'Yes\' and \
+         jobs.runnumber='+str(runnb)
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    value = retVal['Value']
+    if len(value) == 0:
+      return S_ERROR('Missing the informations!')
+    result['Number of file']=value[0][0]
+    result['Number of events']=value[0][1]
+    result['File size']=value[0][2]
+    result['PhysicStat']=value[0][3]
+    return S_OK(result)
+          
+  #############################################################################
   def check_pass_index(self, groupid, step0, step1, step2, step3, step4, step5,step6):
     conditions = ''
     if step0 != None:
       conditions += ' and step0='+str(step0)
     if step1 != None:
-      conditions += ' and step1='+str(step1)
+      conditions += ' and step1='+str(step1) 
     if step2 != None:
       conditions += ' and step2='+str(step2)
     if step3 != None:
