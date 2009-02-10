@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.4 2009/02/08 13:24:06 paterson Exp $
+# $Id: UploadLogFile.py,v 1.5 2009/02/10 15:52:47 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.4 2009/02/08 13:24:06 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.5 2009/02/10 15:52:47 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -203,7 +203,7 @@ class UploadLogFile(ModuleBase):
     res = self.createLogUploadRequest(self.logSE,self.logLFNPath)
     if not res['OK']:
       self.log.error('Failed to create failover request', res['Message'])
-      self.setApplicationStatus('Failed To Create Log Failover Request')
+      self.setApplicationStatus('Failed To Upload Logs To Failover')
     else:
       self.log.info('Successfully created failover request')
     return S_OK()
@@ -271,7 +271,6 @@ class UploadLogFile(ModuleBase):
       self.log.info('Prepared %s files in the temporary directory.' % self.logdir)
       return S_OK()
 
-
   #############################################################################
   def uploadFileToFailover(self,localFile,logicalFileName,guid=None):
     """ This method will upload the localFile supplied to a failover storage element with the supplied logical file name
@@ -305,16 +304,23 @@ class UploadLogFile(ModuleBase):
     if not res['Value']['Failed'].has_key(logicalFileName):
       self.log.info('Successfully registered in catalogs')
       return S_OK()
-    # In the event that some of the registration operations failed
-    for catalog in res['Value']['Failed'][logicalFileName].keys():
-      # TODO: Create registration requests for the failed registrations
-      self.log.error('DO SOMETHING HERE!!!!!!!!!!!!!!!!!!!!!!!!')
+    # In the event that the registration failed, catalog is only LFC
+    if not res['Value']['Failed'].has_key('register'):
+      self.log.error('rm.putAndRegister failed with unknown error for failover logs',str(res))
+      return S_ERROR()
+
+    fileDict = res['Value']['Failed'][logicalFileName]['register']
+    result = self.__setRegistrationRequest(logicalFileName,storageElement,catalog,fileDict)
+    if not result['OK']:
+      self.log.error('Failed to set registration request for: LFN %s, SE %s, catalog %s with message %s' %(logicalFileName,storageElement,catalog,result['Message']))
+
     return S_OK()
 
   #############################################################################
   def createLogUploadRequest(self,targetSE,logFileLFN):
     """ Set a request to upload job log files from the output sandbox
     """
+    self.log.info('Setting log upload request for %s at %s' %(targetSE,logFileLFN))
     res = self.request.addSubRequest({'Attributes':{'Operation':'uploadLogFiles',
                                                        'TargetSE':targetSE,
                                                       'ExecutionOrder':0}},
@@ -326,6 +332,22 @@ class UploadLogFile(ModuleBase):
     fileDict['Status'] = 'Waiting'
     fileDict['LFN'] = logFileLFN
     result = self.request.setSubRequestFiles(index,'logupload',[fileDict])
+    return S_OK()
+
+  #############################################################################
+  def __setRegistrationRequest(self,lfn,se,catalog,fileDict):
+    """ Sets a registration request.
+    """
+    self.log.info('Setting registration request for %s at %s for catalog %s' % (lfn,se,catalog))
+    result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':0,
+                                                       'TargetSE':se,'Catalogue':catalog}},'register')
+    if not result['OK']:
+      return result
+
+    fileDict['Status'] = 'Waiting'
+    index = result['Value']
+    result = self.request.setSubRequestFiles(index,'register',[fileDict])
+
     return S_OK()
 
   #############################################################################
