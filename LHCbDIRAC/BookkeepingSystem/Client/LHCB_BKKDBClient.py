@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.13 2009/02/05 11:03:16 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.14 2009/02/10 16:56:04 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.13 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.14 2009/02/10 16:56:04 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -74,3 +74,7 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getLogfile(self, filename):
     return self.getManager().getLogfile(filename)
+  
+  #############################################################################
+  def writePythonOrJobOptions(self, StartItem, Maxitems, path, type ): 
+    return self.getManager().writePythonOrJobOptions(StartItem, Maxitems, path, type )

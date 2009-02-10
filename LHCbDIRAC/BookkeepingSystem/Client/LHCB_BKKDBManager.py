@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.78 2009/02/05 11:03:16 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.79 2009/02/10 16:56:04 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.78 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.79 2009/02/10 16:56:04 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1436,3 +1436,104 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################       
   def getLogfile(self, filename):
     return self.db_.getLogfile(filename)
+  
+  #############################################################################       
+  def writePythonOrJobOptions(self, StartItem, Maxitems, path, savetype ): 
+    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
+    valid, processedPath = self._processPath(path)
+    selection = {}
+    if not valid:
+      gLogger.error(path + " is not valid!");
+      raise ValueError, "Invalid path '%s'" % path
+        # get directory content
+    levels = len(processedPath)
+    gLogger.debug("listing files")
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if len(processedPath) < 8:
+      pname = 'ALL'
+      pversion = 'ALL'
+    else: 
+      if processedPath[7][1] != 'ALL':
+        pname = processedPath[7][1].split(' ')[0]
+        pversion = processedPath[7][1].split(' ')[1]
+      else:
+        pname = processedPath[7][1]
+        pversion = processedPath[7][1]
+    retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
+    return self.__writeJobopts(retVal['Records'],savetype)
+    
+  
+  #############################################################################       
+  def __writeJobopts(self,files,savetype):
+    fd = ''
+    if savetype == 'txt':
+      for lfn in files:
+        fd += str(lfn[0])+'\n'
+      return fd
+    
+    import time
+    evtTypes = {}
+    nbEvts = 0
+    fileType = None
+    for i in files:
+        type = int(i[10])
+        stat = int(i[1])
+        if not evtTypes.has_key(type):
+            evtTypes[type] = [0, 0, 0.]
+        evtTypes[type][0] += 1
+        evtTypes[type][1] += stat
+        evtTypes[type][2] += int(i[2])/1000000000.
+        nbEvts += stat
+        if not fileType:
+            fileType = i[9]
+        if i[9] != fileType:
+            print "All files don't have the same type, impossible to write jobOptions"
+            return 1
+
+
+    pythonOpts = savetype == 'py'
+    if pythonOpts:
+        comment = "#-- "
+    else:
+        comment = "//-- "
+    fd += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
+    fd += comment + "Contains event types : \n"
+    types = evtTypes.keys()
+    types.sort()
+    for type in types:
+        fd += comment + "  %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2])
+
+    # Now write the event selector option
+    if pythonOpts:
+        fd += "\nfrom Gaudi.Configuration import * \n"
+        fd += "\nEventSelector().Input   = [\n"
+    else:
+        fd += "\nEventSelector.Input   = {\n"
+    fileType = fileType.split()[0]
+    poolTypes = ["DST", "RDST", "DIGI", "SIM"]
+    mdfTypes = ["RAW"]
+    etcTypes = ["SETC", "FETC", "ETC"]
+    #lfns = [file['FileName'] for file in files]
+    #lfns.sort()
+    first = True
+    for lfn in files:
+        if not first:
+            fd += ",\n"
+        first = False
+        if fileType in poolTypes:    
+            fd += "\"   DATAFILE='LFN:" + lfn[0] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+        elif fileType in mdfTypes:
+            fd += "\"   DATAFILE='LFN:" + lfn[0] + "' SVC='LHCb::MDFSelector'\""
+        elif fileType in etcTypes:
+            fd += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + lfn[0] + "' TYP='POOL_ROOT'\""
+    if pythonOpts:
+        fd += "]\n"
+    else:
+        fd += "\n};\n"
+    return fd
