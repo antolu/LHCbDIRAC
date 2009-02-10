@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.4 2009/02/10 10:45:58 paterson Exp $
+# $Id: UploadOutputData.py,v 1.5 2009/02/10 16:23:42 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.4 2009/02/10 10:45:58 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.5 2009/02/10 16:23:42 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -218,20 +218,16 @@ class UploadOutputData(ModuleBase):
         continue
 
       #Therefore the registration failed but the upload was successful
-      fileDict = metadata['fileDict']
-      fileDict['PFN']=errorDict['PFN']
-      for cat in errorDict.keys():
-        if cat in self.existingCatalogs:
-          result = self.__setRegistrationRequest(se,cat,fileDict)
-          if not result['OK']:
-            self.log.error('Failed to set registration request for: SE %s, catalog %s and metadata: \n%s' %(se,cat,fileDict))
-            errorList.append('Failed to set registration request for: SE %s, catalog %s and metadata: \n%s' %(se,cat,fileDict))
-            continue
-          else:
-            self.log.info('Successfully set registration request for: SE %s, catalog %s and metadata: \n%s' %(se,cat,fileDict))
-            metadata['filedict']=fileDict
-            metadata['uploadedSE']=se
-            return S_OK(metadata)
+      result = self.__setRegistrationRequest(se,'',errorDict['register'])
+      if not result['OK']:
+        self.log.error('Failed to set registration request for: SE %s and metadata: \n%s' %(se,fileDict))
+        errorList.append('Failed to set registration request for: SE %s and metadata: \n%s' %(se,fileDict))
+        continue
+      else:
+        self.log.info('Successfully set registration request for: SE %s and metadata: \n%s' %(se,fileDict))
+        metadata['filedict']=fileDict
+        metadata['uploadedSE']=se
+        return S_OK(metadata)
 
     self.log.error('Encountered %s errors during attempts to upload output data' %len(errorList))
     return S_ERROR('Failed to upload output data file')
@@ -288,7 +284,7 @@ class UploadOutputData(ModuleBase):
     """ Sets a registration request.
     """
     lfn = fileDict['LFN']
-    self.log.info('Setting registration request for %s at %s for catalog %s' % (lfn,se,catalog))
+    self.log.info('Setting registration request for %s at %s for metadata:\n%s' % (lfn,se,fileDict))
     result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':0,
                                                        'TargetSE':se,'Catalogue':catalog}},'register')
     if not result['OK']:
