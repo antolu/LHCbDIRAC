@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.58 2009/02/10 12:04:20 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.59 2009/02/10 13:54:06 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.58 2009/02/10 12:04:20 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.59 2009/02/10 13:54:06 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1992,7 +1992,49 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['File size']=value[0][2]
     result['PhysicStat']=value[0][3]
     return S_OK(result)
-          
+  
+  #############################################################################
+  def checkProductionStatus(self, productionid = None, lfns = []):
+    result = {}
+    missing = []
+    replicas = []
+    noreplicas = []
+    if productionid != None:
+      command = 'select files.filename, files.gotreplica from files,jobs where \
+                 files.jobid=jobs.jobid and \
+                 jobs.production='+str(productionid)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return S_ERROR(retVal['Message'])
+      files = retVal['Value']
+      for file in files:
+        if file[1] == 'Yes':
+          replicas +=  [file[0]]
+        else:
+          noreplicas += [file[0]]
+      result['replica'] = replicas
+      result['noreplica'] = noreplicas
+    elif len(lfns) != 0:
+      for file in lfns:
+        command = ' select files.filename, files.gotreplica from files where filename=\''+str(file)+'\''
+        retVal = self.dbR_._query(command)
+        if not retVal['OK']:
+          return S_ERROR(retVal['Message'])
+        value = retVal['Value']
+        if len(value) == 0:
+          missing += [file]
+        else:
+          for i in value:
+            if i[1] == 'Yes':
+              replicas +=  [i[0]]
+            else:
+              noreplicas += [i[0]]
+      result['replica'] = replicas
+      result['noreplica'] = noreplicas
+      result['missing'] = missing
+    
+    return S_OK(result)
+  
   #############################################################################
   def check_pass_index(self, groupid, step0, step1, step2, step3, step4, step5,step6):
     conditions = ''

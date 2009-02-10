@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.74 2009/02/10 12:04:20 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.75 2009/02/10 13:54:06 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.74 2009/02/10 12:04:20 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.75 2009/02/10 13:54:06 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -119,6 +119,16 @@ class BookkeepingClient:
     result = server.getRunInformations(runnb)
     return result
   
+  #############################################################################
+  def getProductionStatus(self, productionid = None, lfns = []):
+    server = self.__getServer()
+    result = None
+    if productionid != None:
+      result = server.checkProductionReplicas(productionid)
+    else:
+      result = server.checkLfns(lfns)
+    return result
+    
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
     server = self.__getServer()

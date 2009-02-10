@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.32 2009/02/10 12:04:20 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.33 2009/02/10 13:54:06 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.32 2009/02/10 12:04:20 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.33 2009/02/10 13:54:06 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -186,6 +186,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getRunInformations(self, runnb):
     return self.getManager().getRunInformations(runnb)
+  
+  #############################################################################
+  def checkProductionStatus(self, productionid = None, lfns = []):
+    return self.getManager().checkProductionStatus(productionid, lfns)
   
   #############################################################################
   def getAvailableEventTypes(self):
