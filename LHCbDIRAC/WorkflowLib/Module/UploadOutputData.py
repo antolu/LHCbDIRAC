@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.3 2009/02/08 20:24:07 paterson Exp $
+# $Id: UploadOutputData.py,v 1.4 2009/02/10 10:45:58 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.3 2009/02/08 20:24:07 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.4 2009/02/10 10:45:58 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -123,6 +123,7 @@ class UploadOutputData(ModuleBase):
     #workflow and all the parameters needed to upload them.
     result = self.__getFileMetadata()
     if not result['OK']:
+      self.setApplicationStatus(result['Message'])
       return result
 
     if not result['Value']:
@@ -344,9 +345,9 @@ class UploadOutputData(ModuleBase):
                 if fileList[0]['LFN'] == lfn:
                   result = self.request.removeSubRequest(i,req_type)
 
-      # Set removal requests just in case
-      for lfn in lfnList:
-        result = self.__setFileRemovalRequest(lfn)
+    # Set removal requests just in case
+    for lfn in lfnList:
+      result = self.__setFileRemovalRequest(lfn)
 
     return S_OK()
 
@@ -368,6 +369,12 @@ class UploadOutputData(ModuleBase):
       if os.path.basename(lfn) in fileInfo.keys():
         fileInfo[os.path.basename(lfn)]['lfn']=lfn
         self.log.verbose('Found LFN %s for file %s' %(lfn,os.path.basename(lfn)))
+
+    #Check that the list of output files were produced
+    for fileName,metadata in fileInfo.items():
+      if not os.path.exists(fileName):
+        self.log.error('Output data file %s does not exist locally' %fileName)
+        return S_ERROR('Output Data Not Found')
 
     #Check the list of files against the output file mask (if it exists)
     candidateFiles = {}
