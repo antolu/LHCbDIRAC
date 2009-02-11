@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.5 2009/02/10 15:52:47 paterson Exp $
+# $Id: UploadLogFile.py,v 1.6 2009/02/11 11:55:45 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.5 2009/02/10 15:52:47 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.6 2009/02/11 11:55:45 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -108,11 +108,11 @@ class UploadLogFile(ModuleBase):
     self.log.info('Job root is found to be %s' % (self.root))
     self.log.info('PRODUCTION_ID = %s, JOB_ID = %s '  % (self.PRODUCTION_ID, self.JOB_ID))
     self.logdir = os.path.realpath('./job/log/%s/%s' % (self.PRODUCTION_ID, self.JOB_ID))
-    self.log.info('Changing log directory permissions to 0777')
+    self.log.info('Changing log directory permissions to 0755')
     try:
-      os.chmod(self.logdir,0777)
+      os.chmod(self.logdir,0755)
     except Exception,x:
-      self.log.error('Could not set permissions of %s to 0777' %self.logdir)
+      self.log.error('Could not set permissions of %s to 0755' %self.logdir)
     self.log.info('Selected log files will be temporarily stored in %s' % self.logdir)
 
     res = self.finalize()
@@ -155,6 +155,12 @@ class UploadLogFile(ModuleBase):
     if not self.enable:
       self.log.info('Module is disabled by control flag')
       return S_OK('Module is disabled by control flag')
+
+    #########################################
+    #Make sure all the files in the log directory have the correct permissions
+    result = self.__setLogFilePermissions(self.logdir)
+    if not result['OK']:
+      self.log.error('Could not set permissions of log files to 0755 with message:\n%s' %(result['Message']))
 
     #########################################
     # Attempt to uplaod logs to the LogSE
@@ -261,7 +267,8 @@ class UploadLogFile(ModuleBase):
         shutil.copy (file,destinationFile)
     except Exception,x:
       self.log.exception('Exception while trying to copy file.',file,str(x))
-      self.log.info('This file will be skipped and can be considered lost.')
+      self.log.info('File %s will be skipped and can be considered lost.' %file)
+
     # Now verify the contents of our target log dir
     successfulFiles = os.listdir(self.logdir)
     if len(successfulFiles) == 0:
@@ -347,6 +354,22 @@ class UploadLogFile(ModuleBase):
     fileDict['Status'] = 'Waiting'
     index = result['Value']
     result = self.request.setSubRequestFiles(index,'register',[fileDict])
+
+    return S_OK()
+
+  #############################################################################
+  def __setLogFilePermissions(self,logDir):
+    """ Sets the permissions of all the files in the log directory to ensure
+        they are readable.
+    """
+    try:
+      for toChange in os.listdir(logDir):
+        if not os.path.islink('%s/%s' %(dirName,toChange)):
+          self.log.debug('Changing permissions of %s/%s to 0755' %(logDir,toChange))
+          os.chmod('%s/%s' %(logDir,toChange),0755)
+    except Exception,x:
+      self.log.error('Problem changing shared area permissions',str(x))
+      return S_ERROR(x)
 
     return S_OK()
 
