@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.101 2009/01/30 10:31:44 paterson Exp $
+# $Id: GaudiApplication.py,v 1.102 2009/02/11 10:14:33 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.101 2009/01/30 10:31:44 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.102 2009/02/11 10:14:33 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -417,8 +417,9 @@ done
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.setApplicationStatus('%s Exited With Status %s' %(self.applicationName,status))
-      return S_ERROR('%s execution completed with errors' % (self.applicationName))
+      #self.setApplicationStatus('%s Exited With Status %s' %(self.applicationName,status))
+      self.log.error('%s Exited With Status %s' %(self.applicationName,status))
+      return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
     self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
