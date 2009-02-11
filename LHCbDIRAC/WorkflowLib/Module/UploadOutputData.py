@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.5 2009/02/10 16:23:42 paterson Exp $
+# $Id: UploadOutputData.py,v 1.6 2009/02/11 12:24:55 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.5 2009/02/10 16:23:42 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.6 2009/02/11 12:24:55 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -253,9 +253,8 @@ class UploadOutputData(ModuleBase):
 
     lfn = failover['Value']['lfn']
     failoverSE = failover['Value']['uploadedSE']
-    pfn = failover['Value']['filedict']['PFN']
-    self.log.info('Attempting to set replica removal request for LFN %s at failover SE %s with PFN %s' %(lfn,failoverSE,pfn))
-    result = self.__setReplicaRemovalRequest(lfn,failoverSE,pfn)
+    self.log.info('Attempting to set replica removal request for LFN %s at failover SE %s' %(lfn,failoverSE))
+    result = self.__setReplicaRemovalRequest(lfn,failoverSE)
     if not result['OK']:
       self.log.error('Could not set removal request',result['Message'])
       return result
@@ -266,7 +265,7 @@ class UploadOutputData(ModuleBase):
   def __setFileReplicationRequest(self,lfn,se,fileDict):
     """ Sets a registration request.
     """
-    self.log.info('Setting PFN replication request for %s to %s' % (lfn,se))
+    self.log.info('Setting replication request for %s to %s' % (lfn,se))
     result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegister',
                                                        'TargetSE':se,'ExecutionOrder':0}},
                                          'transfer')
@@ -296,14 +295,14 @@ class UploadOutputData(ModuleBase):
     return S_OK()
 
   #############################################################################
-  def __setReplicaRemovalRequest(self,lfn,se='',pfn=''):
+  def __setReplicaRemovalRequest(self,lfn,se):
     """ Sets a removal request for a replica.
     """
     result = self.request.addSubRequest({'Attributes':{'Operation':'replicaRemoval',
                                                        'TargetSE':se,'ExecutionOrder':1}},
                                          'removal')
     index = result['Value']
-    fileDict = {'LFN':lfn,'PFN':pfn,'Status':'Waiting'}
+    fileDict = {'LFN':lfn,'Status':'Waiting'}
     result = self.request.setSubRequestFiles(index,'removal',[fileDict])
     return S_OK()
 
