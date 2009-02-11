@@ -2,10 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-file-metadata.py,v 1.1 2009/02/11 11:54:29 acsmith Exp $
-# File :   dirac-bookkeeping-get-production-files.py  
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-file-metadata.py,v 1.2 2009/02/11 11:55:13 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-file-metadata.py,v 1.1 2009/02/11 11:54:29 acsmith Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-file-metadata.py,v 1.2 2009/02/11 11:55:13 acsmith Exp $"
 __VERSION__ = "$ $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -44,4 +43,3 @@ if lfns:
 for lfn in lfns:
   if lfn:
     print '%s does not exist in the Bookkeeping.' % lfn
-
