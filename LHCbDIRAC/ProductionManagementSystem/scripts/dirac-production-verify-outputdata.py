@@ -2,10 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.1 2009/02/11 15:40:39 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.2 2009/02/11 19:20:00 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.1 2009/02/11 15:40:39 acsmith Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.2 2009/02/11 19:20:00 acsmith Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
@@ -47,8 +47,7 @@ for lfn,lfnDict in res['Value'].items():
   else:
     filesWithoutReplicas.append(lfn)
 print '\n################### %s ########################\n' % 'Bookkeeping contents'.center(20)
-print 'Found a total of %s files in the BK.' % (len(filesWithoutReplicas)+len(filesWithReplicas))
-print '%s : %s' % ('Without replicas'.ljust(20),str(len(filesWithoutReplicas)).ljust(20)) 
+print '%s : %s' % ('Total files'.ljust(20),str(len(filesWithoutReplicas)+len(filesWithReplicas)).ljust(20))
 print '%s : %s' % ('With replicas'.ljust(20),str(len(filesWithReplicas)).ljust(20))
 print '%s : %s' % ('Total size (bytes)'.ljust(20),str(totalBKSize).ljust(20))
 
@@ -74,7 +73,7 @@ for lfn,exists in res['Value']['Successful'].items():
 print '\n################### %s ########################\n' % 'LFC contents'.center(20)
 if filesMissingFromLFC:
   print 'The following %s files were missing from the the LFC.' % len(filesMissingFromLFC)
-  for lfn in filesMissingFromLFC:
+  for lfn in sortList(filesMissingFromLFC):
     print lfn
 
 if not filesMissingFromLFC:
@@ -102,11 +101,11 @@ for lfn,fileMetadata in res['Value']['Successful'].items():
 print '\n################### %s ########################\n' % 'LFC metadata'.center(20)
 if sizeMismatches:
   print 'The following %s files found with LFC-BK size mismatches.' % len(sizeMismatches)
-  for lfn in sizeMismatches:
+  for lfn in sortList(sizeMismatches):
     print lfn
 if guidMismatches:
   print 'The following %s files found with LFC-BK guid mismatches.' % len(guidMismatches)
-  for lfn in guidMismatches:
+  for lfn in sortList(guidMismatches):
     print lfn
 if not (guidMismatches or sizeMismatches):
   print 'The LFC and BK metadata matched for %s files.' % len(res['Value']['Successful'].keys())
@@ -136,7 +135,7 @@ for lfn,replicaDict in res['Value']['Successful'].items():
 print '\n################### %s ########################\n' % 'LFC Replicas'.center(20)
 if zeroReplicaFiles:
   print 'The following %s files found with zero replicas.\n' % len(zeroReplicaFiles)
-  for lfn in zeroReplicaFiles:
+  for lfn in sortList(zeroReplicaFiles):
     print lfn
 
 if sePfns:
@@ -174,16 +173,18 @@ for se,pfns in sePfns.items():
 print '\n################### %s ########################\n' % 'SE physical files'.center(20)
 if missingReplicas:
   print 'The following files were missing at %s SEs' % len(missingReplicas.keys())
-  for se,lfns in missingReplicas.items():
+  for se in sortList(missingReplicas.keys()):
+    lfns = missingReplicas[se]
     print '%s : %s' % (se.ljust(10),str(len(lfns)).ljust(10))
-    for lfn in lfns:
+    for lfn in sortList(lfns):
       print lfn
 
 if bkSESizeMismatch:
   print 'The following files had size mis-matches at %s SEs' % len(bkSESizeMismatch.keys())
-  for se,lfns in bkSESizeMismatch.items():
+  for se in sortList(bkSESizeMismatch.keys()):
+    lfns = bkSESizeMismatch[se]
     print '%s : %s' % (se.ljust(10),str(len(lfns)).ljust(10))
-    for lfn in lfns:
+    for lfn in sortList(lfns):
       print lfn
 
 if not (missingReplicas or bkSESizeMismatch):
