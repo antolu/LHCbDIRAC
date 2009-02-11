@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: ResolveSE.py,v 1.1 2009/02/05 17:07:50 paterson Exp $
+# $Id: ResolveSE.py,v 1.2 2009/02/11 15:05:34 paterson Exp $
 ########################################################################
 """ Resolve SE takes the workflow SE description and returns the list
     of destination storage elements for uploading an output file.
 """
 
-__RCSID__ = "$Id: ResolveSE.py,v 1.1 2009/02/05 17:07:50 paterson Exp $"
+__RCSID__ = "$Id: ResolveSE.py,v 1.2 2009/02/11 15:05:34 paterson Exp $"
 
 from DIRAC.Core.Utilities.SiteSEMapping                   import getSEsForSite
+from DIRAC.Core.Utilities.List                            import uniqueElements
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 #############################################################################
@@ -41,10 +42,10 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
   if not groupSEs:
     return S_ERROR('Failed to resolve SE '+outputSE)
 
-  if outputmode == "Local":
+  if outputmode.lower() == "local":
     for se in localSEs:
       if se in groupSEs:
-        gLogger.info('Found SE for Local mode: %s' %(se))
+        gLogger.info('Found eligible local SE: %s' %(se))
         return S_OK([se])
 
     #check if country is already one with associated SEs
@@ -87,7 +88,7 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
   for se in groupSEs:
     if se in localSEs:
       newSEList.append(se)
-  SEs = uniq(newSEList+groupSEs)
+  SEs = uniqueElements(newSEList+groupSEs)
   gLogger.info('Found unique SEs: %s' %(SEs))
   return S_OK(SEs)
 
