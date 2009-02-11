@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.6 2009/02/11 11:55:45 paterson Exp $
+# $Id: UploadLogFile.py,v 1.7 2009/02/11 15:06:01 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.6 2009/02/11 11:55:45 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.7 2009/02/11 15:06:01 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -364,7 +364,7 @@ class UploadLogFile(ModuleBase):
     """
     try:
       for toChange in os.listdir(logDir):
-        if not os.path.islink('%s/%s' %(dirName,toChange)):
+        if not os.path.islink('%s/%s' %(logDir,toChange)):
           self.log.debug('Changing permissions of %s/%s to 0755' %(logDir,toChange))
           os.chmod('%s/%s' %(logDir,toChange),0755)
     except Exception,x:
