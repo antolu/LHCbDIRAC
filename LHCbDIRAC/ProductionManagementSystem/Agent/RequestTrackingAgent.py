@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/RequestTrackingAgent.py,v 1.1 2009/02/11 10:52:32 azhelezo Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/RequestTrackingAgent.py,v 1.2 2009/02/11 13:21:59 atsareg Exp $
 ########################################################################
 
 """ Production requests agent perform all periodic task with
     requests. Nothing for now...
 """
 
-__RCSID__ = "$Id: RequestTrackingAgent.py,v 1.1 2009/02/11 10:52:32 azhelezo Exp $"
+__RCSID__ = "$Id: RequestTrackingAgent.py,v 1.2 2009/02/11 13:21:59 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent          import Agent
 from DIRAC.Core.DISET.RPCClient     import RPCClient
@@ -43,7 +43,7 @@ class RequestTrackingAgent(Agent):
     """Sets defaults"""
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-    self.setup       = gConfig.getValue(self.section+'/Setup','LHCb-Production')
+    self.setup       = gConfig.getValue('/DIRAC/Setup','LHCb-Production')
     return result
 
   def getTrackedProductions(self):
