@@ -2,10 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-files.py,v 1.1 2009/02/11 11:42:40 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-files.py,v 1.2 2009/02/11 11:48:29 acsmith Exp $
 # File :   dirac-bookkeeping-get-production-files.py  
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-production-files.py,v 1.1 2009/02/11 11:42:40 acsmith Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-production-files.py,v 1.2 2009/02/11 11:48:29 acsmith Exp $"
 __VERSION__ = "$ $"
 
 from DIRAC import gLogger
@@ -15,7 +15,7 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 import sys
 
 if not len(sys.argv) == 3:
-  print 'Usage: getProductionLFNs.py prodID <ALL,DST,SIM,DIGI,RDST,MDF>'
+  print 'Usage: dirac-bookkeeping-production-files.py prodID <ALL,DST,SIM,DIGI,RDST,MDF>'
   sys.exit()
 else:
   prodID = int(sys.argv[1])
@@ -34,6 +34,4 @@ else:
       size = res['Value'][lfn]['FilesSize']
       guid = res['Value'][lfn]['GUID']
       hasReplica = res['Value'][lfn]['GotReplica']
-      #print lfn,dict['GotReplica'],dict['FilesSize'],dict['GUID']
       print '%s %s %s %s' % (lfn.ljust(100),str(size).ljust(10),guid.ljust(40),hasReplica.ljust(8))
-
