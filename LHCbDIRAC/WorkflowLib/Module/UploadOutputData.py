@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.6 2009/02/11 12:24:55 paterson Exp $
+# $Id: UploadOutputData.py,v 1.7 2009/02/11 15:06:38 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.6 2009/02/11 12:24:55 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.7 2009/02/11 15:06:38 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -45,6 +45,7 @@ class UploadOutputData(ModuleBase):
 
     #List all parameters here
     self.outputDataFileMask = ''
+    self.outputMode='Any' #or 'Local' for reco case
     self.outputList = []
     self.request = None
 
@@ -84,6 +85,9 @@ class UploadOutputData(ModuleBase):
 
     if self.workflow_commons.has_key('outputList'):
        self.outputList = self.workflow_commons['outputList']
+
+    if self.workflow_commons.has_key('outputMode'):
+      self.outputMode = self.workflow_commons['outputMode']
 
     if self.workflow_commons.has_key('outputDataFileMask'):
         self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
@@ -135,7 +139,7 @@ class UploadOutputData(ModuleBase):
     #Get final, resolved SE list for files
     final = {}
     for fileName,metadata in fileMetadata.items():
-      result = getDestinationSEList(metadata['workflowSE'],self.site)
+      result = getDestinationSEList(metadata['workflowSE'],self.site,self.outputMode)
       if not result['OK']:
         self.log.error('Could not resolve output data SE',result['Message'])
         self.setApplicationStatus('Failed To Resolve OutputSE')
