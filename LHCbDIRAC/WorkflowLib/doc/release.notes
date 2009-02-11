@@ -1,4 +1,14 @@
-$Id: release.notes,v 1.9 2009/01/30 13:36:42 paterson Exp $
+$Id: release.notes,v 1.10 2009/02/11 15:07:14 paterson Exp $
+
+=========
+wkf-v9r1 : SKP : 11 Feb 2009
+Added several modules that replace existing JobFinalization module:
+ - SendBookkeeping.py
+ - UploadOutputData.py
+ - UploadLogFile.py
+ - FailoverRequest.py
+GaudiApplication.py : Removed misleading message '<PROJECT> execution completed with errors'
+GaudiApplicationScript.py : Added prepending of local lib directory if present by default.
 
 =========
 wkf-v9r0 : SKP : 30 Jan 2009
