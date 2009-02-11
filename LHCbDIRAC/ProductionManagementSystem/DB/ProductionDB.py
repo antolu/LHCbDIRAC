@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.49 2009/02/02 15:56:11 atsareg Exp $
+# $Id: ProductionDB.py,v 1.50 2009/02/11 23:08:19 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.49 $"
+__RCSID__ = "$Revision: 1.50 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -127,7 +127,7 @@ class ProductionDB(TransformationDB):
   def addProduction(self, name, parent, description, long_description, body, 
                     fileMask, groupsize, authorDN, authorGroup, update=False, 
                     inheritedFrom=0L, bkQuery = {}, productionType='', productionGroup='',
-                    maxJobs=0):
+                    maxJobs=0,addFiles=True):
 
     prod_type = productionType
     if not prod_type:
@@ -151,7 +151,7 @@ class ProductionDB(TransformationDB):
     result = self.addTransformation(name, description, long_description, 
                                     authorDN, authorGroup, prod_type, plugin, 
                                     agentType, fileMask, bkQuery=bkQuery,
-                                    transformationGroup=productionGroup)
+                                    transformationGroup=productionGroup,addFiles=addFiles)
     if not result['OK']:
       error = 'Transformation "%s" FAILED to be published by DN="%s" with message "%s"' % (name, authorDN, result['Message'])
       gLogger.error(error)
@@ -178,7 +178,9 @@ class ProductionDB(TransformationDB):
       
     return S_OK(TransformationID)
 
-  def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, originaProdIDOrName):
+  def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, 
+                           authorDN, authorGroup, originaProdIDOrName,bkQuery = {}, 
+                           productionType='', productionGroup='',maxJobs=0):
     """ Create a new production derived from a previous one
     """
 
@@ -195,7 +197,10 @@ class ProductionDB(TransformationDB):
     message = 'Status changed to "Stopped" due to creation of the Derived Production'
     resultlog = self.updateTransformationLogging(originalProdID,message,authorDN) #ignoring result
 
-    result = self.addProduction(name, parent, description, long_description, body, fileMask, groupsize, authorDN, authorGroup, False, originalProdID)
+    result = self.addProduction(name, parent, description, long_description, body, fileMask, 
+                                groupsize, authorDN, authorGroup, False, originalProdID,
+                                bkQuery=bkQuery, productionType=productionType,
+                                productionGroup=productionGroup,addFiles=False)
     if not result['OK']:
       return result
 
@@ -203,16 +208,16 @@ class ProductionDB(TransformationDB):
 
     # Mark the previously processed files
     ids = {}
-    req = "SELECT FileID,Status,JobID from T_%s WHERE Status<>'Unused';" % (originalProdID)
+    req = "SELECT FileID,Status,JobID,TargetSE,UsedSE from T_%s WHERE Status<>'Unused';" % (originalProdID)
     result = self._query(req)
     if result['OK']:
       if result['Value']:
-        for fileID,status,jobID in result['Value']:
+        for fileID,status,jobID,targetSE,usedSE in result['Value']:
+          jobName = str(int(originalProdID)).zfill(8)+'_'+str(int(jobID)).zfill(8)
           if jobID:
-            jobName = str(int(originalProdID)).zfill(8)+'_'+str(int(jobID)).zfill(8)
-            req = "UPDATE T_%s SET Status='%sInherited', JobID='%s' WHERE FileID=%s" % (newProdID,status,jobName,fileID)
+            req = "INSERT INTO T_%s (Status,JobID,FileID,TargetSE,UsedSE,LastUpdate) VALUES ('%s','%s',%d,'%s','%s',UTC_TIMESTAMP())" % (newProdID,status,jobName,int(fileID),targetSE,usedSE)
           else:
-            req = "UPDATE T_%s SET Status='%s' WHERE FileID=%s" % (newProdID,status,fileID)
+            req = "INSERT INTO T_%s (Status,FileID,FileID,TargetSE,LastUpdate) VALUES ('%s',%d,'%s','%s',UTC_TIMESTAMP())" % (newProdID,status,fileID,targetSE,usedSE)
           result = self._update(req)
           if not result['OK']:
             # rollback the operation
@@ -221,6 +226,9 @@ class ProductionDB(TransformationDB):
             if not result['OK']:
               gLogger.warn('Failed to rollback the production creation')
             return S_ERROR('Failed to create derived production: error while marking already processed files')
+
+    if fileMask:
+      result = self.updateTransformation(newProdID)
 
     return S_OK(newProdID)
 
