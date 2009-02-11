@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.7 2009/02/11 15:06:01 paterson Exp $
+# $Id: UploadLogFile.py,v 1.8 2009/02/11 15:15:44 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.7 2009/02/11 15:06:01 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.8 2009/02/11 15:15:44 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -15,9 +15,9 @@ from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 try:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath
-except Exception,x:
   from LHCbSystem.Utilities.ProductionData  import getLogPath
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath
 
 import os,shutil,glob,string,random
 

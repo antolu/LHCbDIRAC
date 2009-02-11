@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.7 2009/02/11 15:06:38 paterson Exp $
+# $Id: UploadOutputData.py,v 1.8 2009/02/11 15:15:07 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.7 2009/02/11 15:06:38 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.8 2009/02/11 15:15:07 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -15,11 +15,11 @@ from DIRAC.Core.Utilities.File                             import fileAdler
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 try:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-  from DIRAC.LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
-except Exception,x:
   from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
   from LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+  from DIRAC.LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
 
 import string,os,random
 
