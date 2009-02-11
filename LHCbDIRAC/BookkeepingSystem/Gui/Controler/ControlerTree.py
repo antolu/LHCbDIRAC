@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $
+# $Id: ControlerTree.py,v 1.9 2009/02/11 14:38:34 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.8 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.9 2009/02/11 14:38:34 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -62,7 +62,7 @@ class ControlerTree(ControlerAbstract):
   
   #############################################################################  
   def _on_item_expanded(self,parentItem):
-
+    gLogger.debug('On item expanded',parentItem.getUserObject())
     node = parentItem.getUserObject()
     if node <> None:
       path = node['fullpath']
@@ -74,9 +74,8 @@ class ControlerTree(ControlerAbstract):
 
         if parentItem.childCount() == 1:
           child = parentItem.child(0)
-          if not child.getUserObject():
-            parentItem.takeChild(0)  
-
+          gLogger.debug('Childcount:',child.getUserObject())
+          parentItem.takeChild(0)           
 
         if node.has_key('showFiles'):
           message = Message({'action':'getNbEventsAndFiles','node':path})
