@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.21 2009/01/26 17:38:00 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.22 2009/02/11 11:20:43 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.21 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.22 2009/02/11 11:20:43 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -131,7 +131,7 @@ class XMLFilesReaderManager:
         if paramName == "EventStat":
           eventNb = long(param.getParamValue())
           if eventNb <= 0:
-            self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName)
+            self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName, errorReport)
             return S_ERROR("The event number not greater 0!")
         if paramName == "EventType":
           value = long(param.getParamValue())
