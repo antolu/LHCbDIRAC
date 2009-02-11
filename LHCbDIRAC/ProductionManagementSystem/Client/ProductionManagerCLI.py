@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.15 2009/02/01 22:25:20 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.16 2009/02/11 12:11:15 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.15 2009/02/01 22:25:20 atsareg Exp $"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.16 2009/02/11 12:11:15 atsareg Exp $"
+__VERSION__ = "$Revision: 1.16 $"
 
 import cmd
 import sys, os
@@ -540,7 +540,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
   def do_setProductionQuery(self, args):
     """ Overrides transformation mask for the production
 
-    Usage: setProductionMask <ProdNameOrID> <Mask>
+    Usage: setProductionQuery <ProdNameOrID> <queryID>
     """
     argss, length = self.check_params(args, 2)
     if not argss:
@@ -549,7 +549,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
     queryID = int(argss[1])
     result = self.server.setTransformationQuery(prodID, queryID)  
     if not result['OK']:
-      print "Opertion failed: ",result['Message']
+      print "Operation failed: ",result['Message']
     
   def do_createBkQuery(self,args):
     """ Create a new Bookkeeping Query to be used in production definitions.
