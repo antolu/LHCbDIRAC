@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.79 2009/02/10 16:56:04 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.80 2009/02/12 15:41:02 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.79 2009/02/10 16:56:04 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.80 2009/02/12 15:41:02 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -133,7 +133,7 @@ class LHCB_BKKDBManager(BaseESManager):
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_EVENTTYPE
    
     else:
-      print "Wrong Parameter!"
+      gLogger.error("Wrong Parameter!")
   
   #############################################################################
   def getLogicalFiles(self):
@@ -237,9 +237,9 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelHeader_0(self, path, levels, processedPath):
     entityList = list()
-    print "-----------------------------------------------------------"
-    print "Configurations names:\n"
-    print "-----------------------------------------------------------"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug ("Configurations names:")
+    gLogger.debug ("-----------------------------------------------------------")
 
     # list root
     gLogger.debug("listing Configuration Names")
@@ -264,12 +264,12 @@ class LHCB_BKKDBManager(BaseESManager):
     entityList = list()
     gLogger.debug("listing configversions")
     configName = processedPath[0][1]  
-    print "-----------------------------------------------------------"
-    print "Selected parameters:"
-    print "-----------------------------------------------------------"
-    print "Configuration Name      | "+configName
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name      | %s " % (configName))
     
-    print "Available Config Versions:\n"
+    gLogger.debug("Available Config Versions:")
     return configName
   
   def clevelBody_1(self, path, levels, configName):
@@ -293,13 +293,13 @@ class LHCB_BKKDBManager(BaseESManager):
     configName = processedPath[0][1]
     configVersion = processedPath[1][1]
           
-    print "-----------------------------------------------------------"
-    print "Selected parameters:"
-    print "-----------------------------------------------------------"
-    print "Configuration Name      | "+configName
-    print "Configuration Version   | "+configVersion
-    print "-----------------------------------------------------------"
-    print "Available Simulation Conditions:\n"
+    gLogger.debug( "-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:" )                             
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name      | %s " % (configName) )
+    gLogger.debug("Configuration Version   | %s " % (configVersion))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available Simulation Conditions:")
     return configName, configVersion
   
   ############################################################################# 
@@ -348,15 +348,15 @@ class LHCB_BKKDBManager(BaseESManager):
     configVersion = processedPath[1][1]
     simid = processedPath[2][1]
 
-    print "-----------------------------------------------------------"
-    print "Selected parameters:"
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation condition   | "+str(simid)
-    print "-----------------------------------------------------------"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " % (configName))
+    gLogger.debug("Configuration Version  | %s " % (configVersion))
+    gLogger.debug("Simulation condition   | %s " % (str(simid)) )
+    gLogger.debug( "-----------------------------------------------------------")
 
-    print "Available processing pass:\n"
+    gLogger.debug("Available processing pass:\n")
     return configName, configVersion, simid
   
   ############################################################################# 
@@ -387,17 +387,17 @@ class LHCB_BKKDBManager(BaseESManager):
     simid = processedPath[2][1]
     processing = processedPath[3][1]
  
-    print "-----------------------------------------------------------"
-    print "Selected parameters: "
-    print "-----------------------------------------------------------"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters: ")
+    gLogger.debug("-----------------------------------------------------------")
 
-    print "Configuration Name      | "+configName
-    print "Configuration Version   | "+configVersion
-    print "Simulation Condition    | "+str(simid)
-    print "Processing Pass         | "+str(processing)
-    print "-----------------------------------------------------------"
+    gLogger.debug("Configuration Name      | %s " % (configName))
+    gLogger.debug("Configuration Version   | %s " % (configVersion))
+    gLogger.debug("Simulation Condition    | %s " % (str(simid)) )
+    gLogger.debug("Processing Pass         | %s " % (str(processing)) )
+    gLogger.debug("-----------------------------------------------------------")
 
-    print "Available event types types:"
+    gLogger.debug("Available event types types:")
     return configName, configVersion, simid, processing
   
   
@@ -425,16 +425,16 @@ class LHCB_BKKDBManager(BaseESManager):
     processing = processedPath[3][1]
     evtType = processedPath[4][1]
     
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "-----------------------------------------------------------"
-    print "Available Production(s):"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " % (configName) )
+    gLogger.debug("Configuration Version  | %s " % (configVersion) )
+    gLogger.debug("Simulation Condition   | %s " % (str(simid)) )
+    gLogger.debug("Processing Pass        | %s " % (str(processing)) )
+    gLogger.debug("Event type             | %s " % (str(evtType)))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available Production(s):")
     return configName, configVersion, simid, processing, evtType
   
   ############################################################################# 
@@ -465,17 +465,17 @@ class LHCB_BKKDBManager(BaseESManager):
     evtType = processedPath[4][1]
     prod = processedPath[5][1]
   
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(processedPath[4][1])
-    print "-----------------------------------------------------------"
-    print "Available file types:"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " % (configName))
+    gLogger.debug("Configuration Version  | %s " % (configVersion))
+    gLogger.debug("Simulation Condition   | %s " % (str(simid)))
+    gLogger.debug("Processing Pass        | %s " % (str(processing)))
+    gLogger.debug("Event type             | %s " % (str(evtType)))
+    gLogger.debug("Production             | %s"  % (str(processedPath[4][1])))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available file types:")
     return configName, configVersion, simid, processing, evtType, prod
   
   ############################################################################# 
@@ -503,18 +503,18 @@ class LHCB_BKKDBManager(BaseESManager):
     prod = processedPath[5][1]
     ftype = processedPath[6][1]  
     
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(processedPath[4][1])
-    print "File Type              | "+str(ftype)
-    print "-----------------------------------------------------------"
-    print "Available program name and version:"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " % (str(processing)))
+    gLogger.debug("Event type             | %s " % (str(evtType)))
+    gLogger.debug("Production             | %s " % (str(processedPath[4][1])))
+    gLogger.debug("File Type              | %s " % (str(ftype)))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available program name and version:")
     return configName, configVersion, simid, processing, evtType, prod, ftype
   
   ############################################################################# 
@@ -557,20 +557,20 @@ class LHCB_BKKDBManager(BaseESManager):
       pname = processedPath[7][1]
       pversion = processedPath[7][1]
 
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(processedPath[4][1])
-    print "File Type              | "+str(ftype)
-    print "Program name           | "+pname
-    print "Program version        | "+pversion
-    print "-----------------------------------------------------------"
-    print "File list:\n"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " % (str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(processedPath[4][1])))
+    gLogger.debug("File Type              | %s " %(str(ftype)))
+    gLogger.debug("Program name           | %s " %(pname))
+    gLogger.debug("Program version        | %s " %(pversion))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("File list:\n")
     return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
   
   def clevelBody_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
@@ -681,15 +681,15 @@ class LHCB_BKKDBManager(BaseESManager):
     configVersion = processedPath[1][1]
     eventType = processedPath[2][1]
     
-    print "-----------------------------------------------------------"
-    print "Selected parameters:"
-    print "-----------------------------------------------------------"
-    print "Configuration Name      | "+configName
-    print "Configuration Version   | "+configVersion
-    print "Event Type              | "+ str(eventType)
-    print "-----------------------------------------------------------"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name      | %s " %(configName))
+    gLogger.debug("Configuration Version   | %s " %(configVersion))
+    gLogger.debug("Event Type              | %s " %(str(eventType)))
+    gLogger.debug("-----------------------------------------------------------")
     
-    print "Available simulation conditions:"
+    gLogger.debug("Available simulation conditions:")
     return configName, configVersion, eventType
   
   ############################################################################# 
@@ -737,17 +737,17 @@ class LHCB_BKKDBManager(BaseESManager):
     eventtype = processedPath[2][1]
     simcond = processedPath[3][1]
  
-    print "-----------------------------------------------------------"
-    print "Selected parameters: "
-    print "-----------------------------------------------------------"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters: ")
+    gLogger.debug("-----------------------------------------------------------")
 
-    print "Configuration Name      | "+configName
-    print "Configuration Version   | "+configVersion
-    print "Event type              | "+str(eventtype)
-    print "Simulation Condition    | "+str(simcond)
-    print "-----------------------------------------------------------"
+    gLogger.debug("Configuration Name      | %s " %(configName))
+    gLogger.debug("Configuration Version   | %s " %(configVersion))
+    gLogger.debug("Event type              | %s " %(str(eventtype)))
+    gLogger.debug("Simulation Condition    | %s " %(str(simcond)))
+    gLogger.debug("-----------------------------------------------------------")
 
-    print "Available processing pass types:"
+    gLogger.debug("Available processing pass types:")
     return configName, configVersion, eventtype, simcond
   
   ############################################################################# 
@@ -777,16 +777,16 @@ class LHCB_BKKDBManager(BaseESManager):
     simid = processedPath[3][1]
     processing = processedPath[4][1]
     
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "-----------------------------------------------------------"
-    print "Available Production(s):"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available Production(s):")
     return configName, configVersion, simid, processing, evtType
   
   ############################################################################# 
@@ -798,17 +798,17 @@ class LHCB_BKKDBManager(BaseESManager):
     processing = processedPath[4][1] 
     prod = processedPath[5][1]
             
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(prod)
-    print "-----------------------------------------------------------"
-    print "Available file types:"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available file types:")
     return configName, configVersion, simid, processing, evtType, prod
   
   #############################################################################       
@@ -821,18 +821,18 @@ class LHCB_BKKDBManager(BaseESManager):
     prod = processedPath[5][1]
     ftype = processedPath[6][1]  
     
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(prod)
-    print "File Type              | "+str(ftype)
-    print "-----------------------------------------------------------"
-    print "Available program name and version:"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug("File Type              | %s " %(str(ftype)))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Available program name and version:")
     return configName, configVersion, simid, processing, evtType, prod, ftype
       
   
@@ -855,20 +855,20 @@ class LHCB_BKKDBManager(BaseESManager):
       pname = processedPath[7][1].split(' ')[0]
       pversion = processedPath[7][1].split(' ')[1]
 
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(prod)
-    print "File Type              | "+str(ftype)
-    print "Program name           | "+pname
-    print "Program version        | "+pversion
-    print "-----------------------------------------------------------"
-    print "File list:\n"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug("File Type              | %s " %(str(ftype)))
+    gLogger.debug("Program name           | %s " %(pname))
+    gLogger.debug("Program version        | %s " %(pversion))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("File list:\n")
     
     return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
        
@@ -887,9 +887,9 @@ class LHCB_BKKDBManager(BaseESManager):
     self._updateTreeLevels(levels)
   
     if levels == 0:    
-      print "-----------------------------------------------------------"
-      print "Processing Pass:"
-      print "-----------------------------------------------------------"
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Processing Pass:")
+      gLogger.debug("-----------------------------------------------------------")
 
       gLogger.debug("listing processing pass")
       result = self.db_.getProcessingPass()
@@ -908,13 +908,13 @@ class LHCB_BKKDBManager(BaseESManager):
       gLogger.debug("listing productions")
       processingPass = processedPath[0][1]
 
-      print "-----------------------------------------------------------"
-      print "Selected parameters:    "
-      print "-----------------------------------------------------------"
-      print "Processing Pass:      | "+str(processingPass)
-      print "-----------------------------------------------------------"
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Selected parameters:    ")
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Processing Pass:      | %s " %(str(processingPass)))
+      gLogger.debug("-----------------------------------------------------------")
      
-      print "Available productions:"
+      gLogger.debug("Available productions:")
       result = self.db_.getProductionsWithPocessingPass(processingPass)
       if result['OK']:
         dbResult = result['Value']
@@ -931,14 +931,14 @@ class LHCB_BKKDBManager(BaseESManager):
     if levels == 2:
       processingPass = processedPath[0][1]
       prod =  int(processedPath[1][1])
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Processing Pass:       |"+str(processingPass)
-      print "Production:            | "+str(prod)
-      print "-----------------------------------------------------------"
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Selected parameters:   ")
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Processing Pass:       | %s " %(str(processingPass)))
+      gLogger.debug("Production:            | %s " %(str(prod)))
+      gLogger.debug("-----------------------------------------------------------")
       
-      print "Available Event types:"
+      gLogger.debug("Available Event types:")
       
       result = self.db_.getEventTyesWithProduction(prod)
       if result['OK']:
@@ -955,15 +955,15 @@ class LHCB_BKKDBManager(BaseESManager):
       processingPass = processedPath[0][1]
       prod =  int(processedPath[1][1])
       evt = int(processedPath[2][1])
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Processing Pass:       |"+str(processingPass)
-      print "Production:            |"+str(prod)
-      print "Event type:            |"+str(evt)
-      print "-----------------------------------------------------------"
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Selected parameters:   ")
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Processing Pass:       | %s " %(str(processingPass)))
+      gLogger.debug("Production:            | %s " %(str(prod)))
+      gLogger.debug("Event type:            | %s " %(str(evt)))
+      gLogger.debug("-----------------------------------------------------------")
 
-      print "Available file types:"
+      gLogger.debug("Available file types:")
 
       result = self.db_.getFileTypesWithProduction(prod, evt)
       if result['OK']:
@@ -981,16 +981,16 @@ class LHCB_BKKDBManager(BaseESManager):
       prod =  int(processedPath[1][1])
       evt = int(processedPath[2][1])
       fileType = str(processedPath[3][1])
-      print "-----------------------------------------------------------"
-      print "Selected parameters:   "
-      print "-----------------------------------------------------------"
-      print "Processing Pass:       |"+str(processingPass)
-      print "Production:            |"+str(prod)
-      print "Event type:            |"+str(evt)
-      print "File type              |"+fileType
-      print "-----------------------------------------------------------"
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Selected parameters:   ")
+      gLogger.debug("-----------------------------------------------------------")
+      gLogger.debug("Processing Pass:       | %s " %(str(processingPass)))
+      gLogger.debug("Production:            | %s " %(str(prod)))
+      gLogger.debug("Event type:            | %s " %(str(evt)))
+      gLogger.debug("File type              | %s " %(fileType))
+      gLogger.debug("-----------------------------------------------------------")
 
-      print "Available files:"
+      gLogger.debug("Available files:")
 
       result = self.db_.getFilesByProduction(prod, evt, fileType)
       if result['OK']:
@@ -1312,20 +1312,20 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = processedPath[7][1]
         pversion = processedPath[7][1]
 
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(prod)
-    print "File Type              | "+str(ftype)
-    print "Program name           | "+pname
-    print "Program version        | "+pversion
-    print "-----------------------------------------------------------"
-    print "File list:\n"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug("File Type              | %s " %(str(ftype)))
+    gLogger.debug("Program name           | %s " %(pname))
+    gLogger.debug("Program version        | %s " %(pversion))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("File list:\n")
     
     selection = {"Configuration Name":configName, \
                  "Configuration Version":configVersion, \
@@ -1372,20 +1372,20 @@ class LHCB_BKKDBManager(BaseESManager):
       pname = processedPath[7][1].split(' ')[0]
       pversion = processedPath[7][1].split(' ')[1]
 
-    print "-----------------------------------------------------------"
-    print "Selected parameters:   "
-    print "-----------------------------------------------------------"
-    print "Configuration Name     | "+configName
-    print "Configuration Version  | "+configVersion
-    print "Simulation Condition   | "+str(simid)
-    print "Processing Pass        | "+str(processing)
-    print "Event type             | "+str(evtType)
-    print "Production             | "+str(prod)
-    print "File Type              | "+str(ftype)
-    print "Program name           | "+pname
-    print "Program version        | "+pversion
-    print "-----------------------------------------------------------"
-    print "File list:\n"
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:   ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Configuration Name     | %s " %(configName))
+    gLogger.debug("Configuration Version  | %s " %(configVersion))
+    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
+    gLogger.debug("Processing Pass        | %s " %(str(processing)))
+    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug("File Type              | %s " %(str(ftype)))
+    gLogger.debug("Program name           | %s " %(pname))
+    gLogger.debug("Program version        | %s " %(pversion))
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("File list:\n")
     
     selection = {"Configuration Name":configName, \
                  "Configuration Version":configVersion, \
