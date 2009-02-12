@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.75 2009/02/10 13:54:06 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.76 2009/02/12 11:04:52 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.75 2009/02/10 13:54:06 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.76 2009/02/12 11:04:52 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -459,6 +459,12 @@ class BookkeepingClient:
   def getLogfile(self, lfn):
     server = self.__getServer()
     result = server.getLogfile(lfn)
+    return result
+
+  #############################################################################
+  def getRunFiles(self, runid):
+    server = self.__getServer()
+    result = server.getRunFiles(runid)
     return result
 
   #-----------------------------------Event Types------------------------------------------------------------------

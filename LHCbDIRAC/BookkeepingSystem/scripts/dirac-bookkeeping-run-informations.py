@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-run-informations.py,v 1.1 2009/02/10 12:04:20 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-run-informations.py,v 1.2 2009/02/12 11:04:52 zmathe Exp $
 # File :   dirac-bookkeeping-run-informations
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-run-informations.py,v 1.1 2009/02/10 12:04:20 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-run-informations.py,v 1.2 2009/02/12 11:04:52 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -34,6 +34,8 @@ if res['OK']:
     print "  Configuration Version:",val['Configuration Version']
     print "  FillNumber:",val['FillNumber']
     print "  PhysicStat:",val['PhysicStat']
+    print "  Data taking description:",val['DataTakingDescription']
+    print "  Processing pass:",val['ProcessingPass']
     print "  Number of events",val['Number of events']
     print "  Number of file:",val['Number of file']
     print "  File size:",val['File size']

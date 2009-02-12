@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.59 2009/02/10 13:54:06 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.60 2009/02/12 11:04:52 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.59 2009/02/10 13:54:06 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.60 2009/02/12 11:04:52 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -749,7 +749,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
-    
+  
+  #############################################################################
+  def getRunFiles(self, runid):
+    value = {}
+    command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid=23 and jobs.runnumber='+str(runid)
+    res = self.dbR_._query(command)
+    if res['OK']:
+      dbResult = res['Value']
+      for record in dbResult:
+        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3]} 
+    else:
+      return S_ERROR(res['Message'])
+    return S_OK(value)
+  
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb):
     
@@ -1969,7 +1982,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR()  
   #############################################################################
   def getRunInformations(self, runnb):
-    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion from jobs, configurations where jobs.configurationid=configurations.configurationid and jobs.runnumber='+str(runnb)
+    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion, data_taking_conditions.description, pass_group.groupdescription from \
+          jobs, configurations,data_taking_conditions,productions, pass_group, pass_index \
+         where jobs.configurationid=configurations.configurationid and data_taking_conditions.daqperiodid=productions.simcondid and \
+         productions.passid=pass_index.passid and pass_index.groupid=pass_group.groupid and \
+         jobs.production=productions.production and jobs.runnumber='+str(runnb)
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
@@ -1977,6 +1994,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(value) == 0:
       return S_ERROR('This run is missing in the BKK DB!')
     result = {'Configuration Name':value[0][1],'Configuration Version':value[0][2],'FillNumber':value[0][0]}
+    result['DataTakingDescription']=value[0][3]
+    result['ProcessingPass']=value[0][4]
+    
     command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.physicstat) from files,jobs \
          where files.JobId=jobs.JobId and  \
          files.gotReplica=\'Yes\' and \
@@ -1991,6 +2011,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['Number of events']=value[0][1]
     result['File size']=value[0][2]
     result['PhysicStat']=value[0][3]
+
     return S_OK(result)
   
   #############################################################################
