@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.36 2009/01/30 11:53:16 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.37 2009/02/13 10:48:06 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.36 2009/01/30 11:53:16 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.37 2009/02/13 10:48:06 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -381,7 +381,7 @@ class AnalyseLogFile(ModuleBase):
                poolroot = poolroot-1
          for lfn in self.inputs.keys():
            pfn = catalog.getPfnsByLfn(lfn)
-           if not pfn['Status'] == 'OK' and self.inputs[lfn] == 'OK':
+           if not pfn['OK'] and self.inputs[lfn] == 'OK':
              self.inputs[lfn] = 'Unused'
 
          return S_ERROR(mailto + ' error to connectDatabase')
