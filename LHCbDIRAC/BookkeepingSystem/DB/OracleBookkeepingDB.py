@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.61 2009/02/13 11:47:37 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.62 2009/02/13 11:57:35 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.61 2009/02/13 11:47:37 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.62 2009/02/13 11:57:35 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2011,10 +2011,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['DataTakingDescription']=value[0][3]
     result['ProcessingPass']=value[0][4]
     
-    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.physicstat) from files,jobs \
+    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.physicstat), files.eventtypeid from files,jobs \
          where files.JobId=jobs.JobId and  \
          files.gotReplica=\'Yes\' and \
-         jobs.runnumber='+str(runnb)
+         jobs.runnumber='+str(runnb)+' Group by files.eventtypeid'
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
@@ -2025,6 +2025,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['Number of events']=value[0][1]
     result['File size']=value[0][2]
     result['PhysicStat']=value[0][3]
+    result['Stream']=value[0][4]
 
     return S_OK(result)
   
