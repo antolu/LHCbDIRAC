@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.60 2009/02/12 11:04:52 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.61 2009/02/13 11:47:37 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.60 2009/02/12 11:04:52 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.61 2009/02/13 11:47:37 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -615,7 +615,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL'):
+  def getFilesWithGivenDataSets(self, simdesc, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL'):
     
     configid = None
     condition = ''
@@ -653,12 +653,26 @@ class OracleBookkeepingDB(IBookkeepingDB):
       res = self.dbR_._query(fileType)
       if not res['OK']:
         gLogger.error('File Type not found:',res['Message'])
+      elif len(res['Value'])==0:
+        return S_ERROR('File type not found!')
       else:
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
     
     condition +=  ' and files.eventtypeid='+str(evt)
-  
+    if flag != 'ALL':
+      quality = None
+      command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        gLogger.error('Data quality problem:',res['Message'])
+      elif len(res['Value']) == 0:
+          return S_ERROR('Dataquality is missing!')
+      else:
+        quality = res['Value'][0][0]
+      
+      condition += ' and files.qualityid='+str(quality)
+        
     cond = simdesc.split('*')
     if cond[0] == 'S':
       command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
