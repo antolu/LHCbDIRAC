@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.62 2009/02/13 11:57:35 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.63 2009/02/13 15:59:17 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.62 2009/02/13 11:57:35 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.63 2009/02/13 15:59:17 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -626,6 +626,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       res = self.dbR_._query(command)
       if not res['OK']:
         return S_ERROR(res['Message'])
+      elif len(res['Value']) == 0:
+        return S_ERROR('Config name and version dosnt exist!')
       else:
         configid = res['Value'][0][0]
         if configid != 0:

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.80 2009/02/12 15:41:02 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.81 2009/02/13 15:59:16 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.80 2009/02/12 15:41:02 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.81 2009/02/13 15:59:16 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1467,8 +1467,49 @@ class LHCB_BKKDBManager(BaseESManager):
         pversion = processedPath[7][1]
     retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
     return self.__writeJobopts(retVal['Records'],savetype)
-    
   
+  #############################################################################         
+  def getLimitedInformations(self,StartItem, Maxitems, path):
+    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
+    valid, processedPath = self._processPath(path)
+    selection = {}
+    if not valid:
+      gLogger.error(path + " is not valid!");
+      raise ValueError, "Invalid path '%s'" % path
+        # get directory content
+    levels = len(processedPath)
+    gLogger.debug("listing files")
+    configName = processedPath[0][1]
+    configVersion = processedPath[1][1]
+    simid = processedPath[2][1]
+    processing = processedPath[3][1]
+    evtType = processedPath[4][1]
+    prod = processedPath[5][1]
+    ftype = processedPath[6][1]
+    if len(processedPath) < 8:
+      pname = 'ALL'
+      pversion = 'ALL'
+    else: 
+      if processedPath[7][1] != 'ALL':
+        pname = processedPath[7][1].split(' ')[0]
+        pversion = processedPath[7][1].split(' ')[1]
+      else:
+        pname = processedPath[7][1]
+        pversion = processedPath[7][1]
+    files = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
+    
+    nbe = 0
+    fsize=0
+    nbfiles = 0
+    
+    for file in files['Records']:
+      nbfiles += 1
+      if file[2] != None:
+        nbe += int(file[1])
+      if file[2] != None:
+        fsize += int(file[2])
+    return S_OK({'Number of Events':nbe, 'Files Size':fsize,'Number of files':nbfiles} )  
+    
   #############################################################################       
   def __writeJobopts(self,files,savetype):
     fd = ''
