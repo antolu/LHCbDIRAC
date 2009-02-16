@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.1 2009/02/11 10:52:33 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.2 2009/02/16 17:34:53 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.1 $"
+__RCSID__ = "$Revision: 1.2 $"
 
 import re
 
@@ -61,8 +61,8 @@ class ProductionRequestHandler( RequestHandler ):
     if not result['OK']:
       return result
     rows = {}
-    for row in result['Value']:
-      id = row.pop('RequestID')
+    for row in result['Value']['Rows']:
+      id = row['RequestID']
       rows[id] = row
     return S_OK(rows)
 
