@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.24 2009/02/16 12:42:26 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.25 2009/02/17 13:14:38 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.24 2009/02/16 12:42:26 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.25 2009/02/17 13:14:38 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -280,7 +280,7 @@ class XMLFilesReaderManager:
     else:
       value = res['Value']
       if value[0][0]==0:
-        gLogger.error('Missing processing pass and simulation conditions!(Please fill it!) Production='+str(attrList['Production']))
+        gLogger.error('Missing processing pass and simulation conditions!(Please fill it!) Production=',str(attrList['Production']))
       
       
     if attrList['JobStart']==None:
