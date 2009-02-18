@@ -2,7 +2,7 @@
 #FEST production workflow
 ####################################################################
 
-__RCSID__ = "$Id: wkf_Fest.py,v 1.5 2009/02/16 08:16:58 paterson Exp $"
+__RCSID__ = "$Id: wkf_Fest.py,v 1.6 2009/02/18 19:58:53 paterson Exp $"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *
@@ -11,19 +11,19 @@ from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
 
 
-attempt=1
+attempt=2
 prodID = '00009999'
 jobID = '00000111'
-#simDescription = 'Beam5TeV-VeloClosed-MagDown'
-simDescription = 'Beam7TeV-VeloClosed-MagDown'
+simDescription = 'Beam5TeV-VeloClosed-MagDown'
+#simDescription = 'Beam7TeV-VeloClosed-MagDown'
 wkf_name = "FEST_%s_%s" %(simDescription,attempt)
 eventType = "30000000"
 numberEventSignal = 2000 #was 4000 but trying to be quick
 numberEvent = -1
 generatorName = "Pythia"
 Gauss_version = "v36r2" #
-#Gauss_optfile = "Gauss-2008.py;Beam5TeV-VeloClosed-MagDown.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.opts"
-Gauss_optfile = "Gauss-2008.py;Beam7TeV-VeloClosed-MagDown.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.opts"
+Gauss_optfile = "Gauss-2008.py;Beam5TeV-VeloClosed-MagDown.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.opts"
+#Gauss_optfile = "Gauss-2008.py;Beam7TeV-VeloClosed-MagDown.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.opts"
 Boole_version = "v17r2p1"
 Boole_optfile = "Boole-FEST09.py"
 system_os = "slc4_ia32_gcc34"
@@ -31,7 +31,7 @@ WorkflowLib_version = "wkf-v9r1"
 priority = '8'
 loglevel='verbose'
 maxcputime=300000
-configName='FEST'
+configName='MC'
 configVersion='2009'
 emailList = 'lhcb-datacrash@cern.ch'
 dataType = 'DATA'
