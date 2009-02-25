@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.121 2009/02/02 10:44:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.122 2009/02/25 10:29:11 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.121 2009/02/02 10:44:30 rgracian Exp $"
-__VERSION__ = "$Revision: 1.121 $"
+__RCSID__   = "$Id: dirac-install,v 1.122 2009/02/25 10:29:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.122 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -2351,7 +2351,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           siteName = site
           break
       if not siteName:
-        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % siteName)
+        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % ceName)
 
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
