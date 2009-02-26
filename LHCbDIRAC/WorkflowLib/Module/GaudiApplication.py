@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.102 2009/02/11 10:14:33 paterson Exp $
+# $Id: GaudiApplication.py,v 1.103 2009/02/26 11:23:48 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.102 2009/02/11 10:14:33 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.103 2009/02/26 11:23:48 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -173,7 +173,7 @@ class GaudiApplication(ModuleBase):
 
     self.result = S_OK()
 
-    self.setApplicationStatus( 'Initializing GaudiApplication' )
+    #self.setApplicationStatus( 'Initializing GaudiApplication' )
 
     if not self.applicationName or not self.applicationName:
       self.resul = S_ERROR( 'No Gaudi Application defined' )
@@ -204,9 +204,9 @@ class GaudiApplication(ModuleBase):
     if app_dir_path:
       mySiteRoot = sharedArea
     else:
-      self.log.error( 'Application not Found' )
-      self.setApplicationStatus( 'Application not Found' )
-      self.result = S_ERROR( 'Application not Found' )
+      self.log.error( 'Application Not Found' )
+      #self.setApplicationStatus( 'Application Not Found' )
+      self.result = S_ERROR( 'Application Not Found' )
 
     localArea = sharedArea
     if re.search(':',sharedArea):
@@ -422,8 +422,8 @@ done
       return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
-    self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
-    return S_OK()
+    #self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
+    return S_OK('%s %s Successful' %(self.applicationName,self.applicationVersion))
 
   #############################################################################
   def redirectLogOutput(self, fd, message):
