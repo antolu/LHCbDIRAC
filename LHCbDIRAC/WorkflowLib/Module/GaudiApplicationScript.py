@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.17 2009/02/09 16:50:56 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.18 2009/02/26 11:41:26 paterson Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.17 2009/02/09 16:50:56 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.18 2009/02/26 11:41:26 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -114,7 +114,7 @@ class GaudiApplicationScript(object):
     if not self.result['OK']:
       return self.result
 
-    self.__report( 'Initializing GaudiApplicationScript module' )
+    #self.__report( 'Initializing GaudiApplicationScript module' )
     self.cwd  = os.getcwd()
     self.root = gConfig.getValue( '/LocalSite/Root', self.cwd )
 
@@ -128,7 +128,7 @@ class GaudiApplicationScript(object):
     if appRoot:
       mySiteRoot = sharedArea
     else:
-      self.log.error( 'Application not found' )
+      self.log.error( 'Application Not found' )
       self.setApplicationStatus( 'Application Not Found' )
       self.result = S_ERROR( 'Application Not Found' )
 
@@ -140,7 +140,7 @@ class GaudiApplicationScript(object):
     if not self.result['OK']:
       return self.result
 
-    self.__report( 'Application Found' )
+    #self.__report( 'Application Found' )
     self.log.info( 'Application Root Found:', appRoot )
 
     cmtEnv = dict(os.environ)
@@ -263,7 +263,7 @@ class GaudiApplicationScript(object):
     self.log.info('POOL XML Catalog file is %s' %(self.poolXMLCatName))
 
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
-    self.__report('%s %s' %(self.applicationName,self.applicationVersion))
+    #self.__report('%s %s' %(self.applicationName,self.applicationVersion))
     self.writeGaudiRun(gaudiCmd, gaudiEnv)
     ret = shellCall(0,'which python',env=gaudiEnv,callbackFunction=self.redirectLogOutput)
     self.log.info( 'Running:', ' '.join(gaudiCmd)  )
@@ -299,14 +299,13 @@ class GaudiApplicationScript(object):
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( stdError )
-      self.__report('%s Exited With Status %s' %(os.path.basename(self.script),status))
-      self.result = S_ERROR("Script execution completed with errors")
-      return self.result
+      #self.__report('%s Exited With Status %s' %(os.path.basename(self.script),status))
+      return S_ERROR('%s Exited With Status %s' %(os.path.basename(self.script),status))
 
     # Return OK assuming that subsequent CheckLogFile will spot problems
     self.__report('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
-    self.result = S_OK()
-    return self.result
+    #Above can't be removed as it is the last notification for user jobs
+    return S_OK('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
 
   #############################################################################
   def writeGaudiRun( self, gaudiCmd, gaudiEnv, shell='/bin/bash'):
