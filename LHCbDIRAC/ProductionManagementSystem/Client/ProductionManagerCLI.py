@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.16 2009/02/11 12:11:15 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.17 2009/02/27 16:26:34 paterson Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.16 2009/02/11 12:11:15 atsareg Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.17 2009/02/27 16:26:34 paterson Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 
 import cmd
 import sys, os
@@ -401,7 +401,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     result = self.server.getProductionInfo(prodID)
-    
+
     if result['OK']:
 
       if result['Value'].has_key('Message'):
@@ -417,13 +417,13 @@ class ProductionManagerCLI( TransformationDBCLI ):
       del result['Value']
       print "\nGeneral information:"
       printDict(dict)
-      
+
       if dict['BkQueryID'] != 0:
         result = self.server.getBookkeepingQuery(dict['BkQueryID'])
         if result['OK']:
           print "\nInput Data Bookkeeping Query:"
-          printDict(result['Value'])   
-      
+          printDict(result['Value'])
+
     result = self.server.getJobWmsStats(prodID)
     if result['OK']:
       print "\nJob statistics:"
@@ -456,7 +456,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
     prodID = self.check_id_or_name(argss[0])
     status = argss[1].lower().capitalize()
     self.server.setTransformationStatus(prodID, status)
-    
+
   def do_setProductionPlugin(self, args):
     """ Set status of the production
 
@@ -467,7 +467,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     plugin = argss[1].lower().capitalize()
-    self.server.setTransformationPlugin(prodID, plugin)  
+    self.server.setTransformationPlugin(prodID, plugin)
 
   def do_setProductionParameter(self, args):
     """ Set production parameter
@@ -536,7 +536,7 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     print self.server.updateTransformation(prodID)
-    
+
   def do_setProductionQuery(self, args):
     """ Overrides transformation mask for the production
 
@@ -547,18 +547,18 @@ class ProductionManagerCLI( TransformationDBCLI ):
       return
     prodID = self.check_id_or_name(argss[0])
     queryID = int(argss[1])
-    result = self.server.setTransformationQuery(prodID, queryID)  
+    result = self.server.setTransformationQuery(prodID, queryID)
     if not result['OK']:
       print "Operation failed: ",result['Message']
-    
+
   def do_createBkQuery(self,args):
     """ Create a new Bookkeeping Query to be used in production definitions.
-    
+
         Usage: createBkQuery [prodID]
-        
+
         - prodID - production ID to be used for initial query definition
-    """   
-    
+    """
+
     fields = ['SimulationConditions',
               'DataTakingConditions',
               'ProcessingPass',
@@ -566,8 +566,9 @@ class ProductionManagerCLI( TransformationDBCLI ):
               'EventType',
               'ConfigName',
               'ConfigVersion',
-              'ProductionID' ]
-    
+              'ProductionID',
+              'DataQualityFlag']
+
     resultQuery = {'SimulationConditions':'All',
                 'DataTakingConditions':'All',
                 'ProcessingPass':'No default!',
@@ -575,8 +576,9 @@ class ProductionManagerCLI( TransformationDBCLI ):
                 'EventType':90000000,
                 'ConfigName':'All',
                 'ConfigVersion':'All',
-                'ProductionID':0}
-    
+                'ProductionID':0,
+                'DataQualityFlag':'OK'}
+
     argss, length = self.check_params(args, 0)
     if length:
       prodID = int(argss[0])
@@ -584,9 +586,9 @@ class ProductionManagerCLI( TransformationDBCLI ):
       if not result['OK']:
         print "Failed to get initial query"
         return
-      
-      resultQuery = result['Value']  
-    
+
+      resultQuery = result['Value']
+
     done = False
     while not done:
       OK = True
@@ -594,49 +596,49 @@ class ProductionManagerCLI( TransformationDBCLI ):
         value = raw_input('%s [%s]: ' % (field,resultQuery[field]) )
         if value:
           resultQuery[field] = value
-     
+
       print "\nResulting query:"
       printDict(resultQuery)
       print
-      
+
       # Do some basic verification of the values
       if resultQuery['SimulationConditions'] != "All" and resultQuery['DataTakingConditions'] != "All":
         print "SimulationConditions and DataTakingConditions can not be defined simultaneously !"
         OK = False
-      if resultQuery['SimulationConditions'] == "All" and resultQuery['DataTakingConditions'] == "All":
-        print "Either SimulationConditions or DataTakingConditions must be defined !"
-        OK = False  
+#      if resultQuery['SimulationConditions'] == "All" and resultQuery['DataTakingConditions'] == "All":
+#        print "Either SimulationConditions or DataTakingConditions must be defined !"
+#        OK = False
       if resultQuery['ProcessingPass'] == "No default!":
         print "ProcessingPass must be defined !"
         OK = False
       for par in ['EventType','ProductionID']:
         try:
-          dummy = int(resultQuery[par])  
+          dummy = int(resultQuery[par])
           resultQuery[par] = dummy
-        except: 
+        except:
           print "%s must be integer" % par
-          OK = False  
-      
+          OK = False
+
       if OK:
         value = raw_input("OK,[A]bort,[R]etry:  [OK]:")
       else:
-        value = raw_input("[A]bort,[R]etry:  [R]:")  
+        value = raw_input("[A]bort,[R]etry:  [R]:")
         if not value:
           value = 'r'
-        
+
       if not value and OK:
         result = self.server.addBookkeepingQuery(resultQuery)
         if not result['OK']:
           print "Query definition failed: ",result['Message']
         else:
-          print "Query ID: ",result['Value']  
+          print "Query ID: ",result['Value']
         done = True
       elif value.lower() == 'a':
         done = True
       elif value.lower() == 'r':
-        pass    
+        pass
       else:
-        done = True  
+        done = True
 
   #################################### JOBS SECTION ########################################################
 
