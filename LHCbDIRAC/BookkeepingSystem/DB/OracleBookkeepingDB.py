@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.64 2009/02/27 14:35:17 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.65 2009/02/27 15:33:11 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.64 2009/02/27 14:35:17 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.65 2009/02/27 15:33:11 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1277,7 +1277,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
     
-    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files, data_taking_conditions,productions where jobs.jobid=files.jobid and \
+    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.runnumber='+str(runNb)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
