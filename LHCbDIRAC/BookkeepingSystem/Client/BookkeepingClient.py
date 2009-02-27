@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.76 2009/02/12 11:04:52 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.77 2009/02/27 14:35:17 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.76 2009/02/12 11:04:52 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.77 2009/02/27 14:35:17 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -162,9 +162,15 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def setQualityRun(self, runNb, dataTaking, flag):
+  def setQualityRun(self, runNb, flag):
     server = self.__getServer()
-    result = server.setQualityRun(runNb, dataTaking, flag)
+    result = server.setQualityRun(runNb, flag)
+    return result
+  
+  #############################################################################
+  def getAvailableDataQuality(self):
+    server = self.__getServer()
+    result = server.getAvailableDataQuality()
     return result
   
   #############################################################################

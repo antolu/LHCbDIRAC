@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.94 2009/02/13 11:47:37 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.95 2009/02/27 14:35:17 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.94 2009/02/13 11:47:37 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.95 2009/02/27 14:35:17 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -562,9 +562,14 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.setQuality(lfns, flag)
   
   #############################################################################  
-  types_setQualityRun = [IntType, StringType, StringType]
-  def export_setQualityRun(self, runNb, dataTaking, flag):
-    return dataMGMT_.setQualityRun(runNb, dataTaking, flag)
+  types_setQualityRun = [IntType, StringType]
+  def export_setQualityRun(self, runNb, flag):
+    return dataMGMT_.setQualityRun(runNb, flag)
+  
+  #############################################################################  
+  types_getAvailableDataQuality = []
+  def export_getAvailableDataQuality(self):
+    return dataMGMT_.getAvailableDataQuality()
   
   #############################################################################  
   types_insert_aplications = [StringType, StringType, StringType, StringType, StringType]

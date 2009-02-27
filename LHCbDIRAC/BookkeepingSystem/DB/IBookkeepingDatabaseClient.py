@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.35 2009/02/13 11:47:37 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.36 2009/02/27 14:35:17 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.35 2009/02/13 11:47:37 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.36 2009/02/27 14:35:17 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -425,8 +425,12 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().setQuality(lfns, flag)
   
   #############################################################################
-  def setQualityRun(self, runNb, dataTaking, flag):
-    return self.getManager().setQualityRun(runNb, dataTaking, flag)
+  def setQualityRun(self, runNb, flag):
+    return self.getManager().setQualityRun(runNb, flag)
+  
+  #############################################################################
+  def getAvailableDataQuality(self):
+    return self.getManager().getAvailableDataQuality()
   
   #############################################################################
   def getRunFiles(self, runid):

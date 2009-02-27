@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.63 2009/02/13 15:59:17 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.64 2009/02/27 14:35:17 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.63 2009/02/13 15:59:17 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.64 2009/02/27 14:35:17 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1256,7 +1256,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK('Quality flag updated!')
   
   #############################################################################  
-  def setQualityRun(self, runNb, dataTaking, flag):
+  def getAvailableDataQuality(self):
+    command = ' select dataqualityflag from dataquality'
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    flags = retVal['Value']
+    result = []
+    for i in flags:
+      result += [i[0]]
+    return S_OK(result)
+  
+  #############################################################################  
+  def setQualityRun(self, runNb, flag):
     command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
@@ -1266,10 +1278,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     qid = retVal['Value'][0][0]
     
     command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files, data_taking_conditions,productions where jobs.jobid=files.jobid and \
-      jobs.runnumber='+str(runNb)+' and \
-      jobs.production=productions.production and \
-      data_taking_conditions.daqperiodid=productions.simcondid and \
-      data_taking_conditions.description=\''+str(dataTaking)+'\')'
+      jobs.runnumber='+str(runNb)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
