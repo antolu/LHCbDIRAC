@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.65 2009/02/27 15:33:11 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.66 2009/02/27 18:01:41 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.65 2009/02/27 15:33:11 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.66 2009/02/27 18:01:41 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -674,20 +674,24 @@ class OracleBookkeepingDB(IBookkeepingDB):
         quality = res['Value'][0][0]
       
       condition += ' and files.qualityid='+str(quality)
-        
+    
     cond = simdesc.split('*')
-    if cond[0] == 'S':
+    if cond[1] == 'ALL':
+        command = ' select filename from files,jobs,productions where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production=productions.production and \
+                   productions.totalprocpass=\''+totalproc+'\''
+    elif cond[0] == 'S':
       command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
-                 and jobs.production in ( select production from  productions, simulationconditions where  \
-                 simulationconditions.simdescription=\''+cond[1]+'\' and \
-                 productions.simcondid= simulationconditions.simid and \
-                 productions.totalprocpass=\''+totalproc+'\')'
+                   and jobs.production in ( select production from  productions, simulationconditions where  \
+                   simulationconditions.simdescription=\''+cond[1]+'\' and \
+                   productions.simcondid= simulationconditions.simid and \
+                   productions.totalprocpass=\''+totalproc+'\')'
     else:
-      command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
-                 and jobs.production in ( select production from  productions, data_Taking_conditions where  \
-                 data_Taking_conditions.description=\''+cond[1]+'\' and \
-                 productions.simcondid= data_Taking_conditions.Daqperiodid and \
-                 productions.totalprocpass=\''+totalproc+'\')'
+        command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production in ( select production from  productions, data_Taking_conditions where  \
+                   data_Taking_conditions.description=\''+cond[1]+'\' and \
+                   productions.simcondid= data_Taking_conditions.Daqperiodid and \
+                   productions.totalprocpass=\''+totalproc+'\')'
     res = self.dbR_._query(command)
     return res
     
@@ -1452,36 +1456,59 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def getReverseAncestors(self, lfn, depth):
-    logicalFileNames={}
-    jobsId = []
-    job_id = -1
-    deptpTmp = depth
+    logicalFileNames = {}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
+    logicalFileNames['NotProcessed'] = []
+    file_id = -1
+    fileids = []
+    if depth < 1:
+      depth = 1
+    odepth = depth 
+    gLogger.debug('original',lfn)
     for fileName in lfn:
-      jobsId = []
-      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
-      if not result["OK"]:
+      depth = odepth
+      gLogger.debug('filename',fileName)
+      fileids = []
+      command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
+      res = self.dbR_._query(command)
+      if not res["OK"]:
         gLogger.error('Ancestor',result['Message'])
+      elif len(res['Value']) == 0:
+        logicalFileNames['Failed']+=[fileName]
       else:
-        job_id = int(result['Value'])
-      jobsId = [job_id]
-      files = []
-      depthTmp = depth
-      while (depthTmp-1) and jobsId:
-         for job_id in jobsId:
-           command = 'select files.fileName,files.jobid from inputfiles,files where inputfiles.fileid=files.fileid and files.jobid='+str(job_id)
-           jobsId=[]
-           res = self.dbR_._query(command)
-           if not res['OK']:
-             gLogger.error('Ancestor',result["Message"])
-           else:
-             dbResult = res['Value']
-             for record in dbResult:
-               jobsId +=[record[1]]
-               files += [record[0]]
-         depth-=1 
-      logicalFileNames[fileName]=files    
-    return logicalFileNames
-  
+        file_id = int(res['Value'][0][0])
+      if file_id != 0:
+        fileids += [file_id]
+        files = []
+        while (depth-1) and fileids:
+          for file_id in fileids:
+            #command = 'select jobid from inputfiles where fileid='+str(file_id)
+            #res = self.dbR_._query(command)
+            
+            command = 'select files.fileName,files.fileid,files.gotreplica from inputfiles,files where inputfiles.fileid='+str(file_id)+' and files.fileid=inputfiles.fileid'
+            print command
+            fileids = []
+            res = self.dbR_._query(command)
+            if not res["OK"]:
+              gLogger.error('Ancestor',result['Message'])
+            elif len(res['Value']) == 0:
+              logicalFileNames['NotProcessed']+=[fileName]
+            else:
+               dbResult = res['Value']
+               print dbResult
+               for record in dbResult:
+                 fileids +=[record[1]]
+                 if record[2] != 'No':
+                   files += [record[0]]
+          depth-=1 
+        
+        ancestorList[fileName]=files    
+      else:
+        logicalFileNames['Failed']+=[fileName]
+      logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
+    
   """
   data insertation into the database
   """

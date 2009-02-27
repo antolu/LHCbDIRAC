@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.77 2009/02/27 14:35:17 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.78 2009/02/27 18:01:38 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.77 2009/02/27 14:35:17 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.78 2009/02/27 18:01:38 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -319,6 +319,16 @@ class BookkeepingClient:
       result = server.getAncestors(lfns, depth)
     return result
 
+  #############################################################################
+  def getReverseAncestors(self, lfns, depth=1):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getReverseAncestors([lfns], depth)
+    else:
+      result = server.getReverseAncestors(lfns, depth)
+    return result
+      
   #############################################################################
   def getAvailableEventTypes(self):
     server = self.__getServer()

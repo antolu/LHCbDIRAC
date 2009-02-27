@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.95 2009/02/27 14:35:17 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.96 2009/02/27 18:01:41 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.95 2009/02/27 14:35:17 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.96 2009/02/27 18:01:41 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -304,6 +304,11 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getAncestors(lfns, depth)
   
   #############################################################################
+  types_getReverseAncestors = [ListType, IntType]
+  def export_getReverseAncestors(self, lfn, depth):
+    return dataMGMT_.getReverseAncestors(lfn, depth)
+  
+  #############################################################################
   types_getEventTypes = [StringType, StringType]
   def export_getEventTypes(self, configName, configVersion):
     return dataMGMT_.getEventTypes(configName, configVersion)
@@ -347,18 +352,12 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets(self, values):
     
-    simdesc = ''
-    ok = False
+    simdesc = 'S*ALL'
     if values.has_key('SimulationConditions'):
       simdesc = 'S*'+str(values['SimulationConditions']) 
-      ok = True
     
     if values.has_key('DataTakingConditions'):
       simdesc = 'D*'+str(values['DataTakingConditions'])
-      ok = True
-    
-    if not ok:
-      return S_ERROR('SimulationConditions or DataTakingConditins is missing!')
     
     if values.has_key('ProcessingPass'):
       procPass = values['ProcessingPass']
