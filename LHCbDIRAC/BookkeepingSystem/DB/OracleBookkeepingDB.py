@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.66 2009/02/27 18:01:41 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.67 2009/02/27 18:55:16 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.66 2009/02/27 18:01:41 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.67 2009/02/27 18:55:16 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1483,24 +1483,27 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and fileids:
           for file_id in fileids:
-            #command = 'select jobid from inputfiles where fileid='+str(file_id)
-            #res = self.dbR_._query(command)
-            
-            command = 'select files.fileName,files.fileid,files.gotreplica from inputfiles,files where inputfiles.fileid='+str(file_id)+' and files.fileid=inputfiles.fileid'
-            print command
-            fileids = []
+            command = 'select jobid from inputfiles where fileid='+str(file_id)
             res = self.dbR_._query(command)
             if not res["OK"]:
               gLogger.error('Ancestor',result['Message'])
-            elif len(res['Value']) == 0:
-              logicalFileNames['NotProcessed']+=[fileName]
-            else:
-               dbResult = res['Value']
-               print dbResult
-               for record in dbResult:
-                 fileids +=[record[1]]
-                 if record[2] != 'No':
-                   files += [record[0]]
+            elif len(res['Value']) != 0:
+              job_id = res['Value'][0][0]
+    
+              command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
+              fileids = []
+              res = self.dbR_._query(command)
+              if not res["OK"]:
+                gLogger.error('Ancestor',result['Message'])
+              elif len(res['Value']) == 0:
+                logicalFileNames['NotProcessed']+=[fileName]
+              else:
+                 dbResult = res['Value']
+                 print dbResult
+                 for record in dbResult:
+                   fileids +=[record[1]]
+                   if record[2] != 'No':
+                     files += [record[0]]
           depth-=1 
         
         ancestorList[fileName]=files    
