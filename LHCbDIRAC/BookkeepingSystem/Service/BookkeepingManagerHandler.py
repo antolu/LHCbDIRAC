@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.96 2009/02/27 18:01:41 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.97 2009/03/02 12:03:46 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.96 2009/02/27 18:01:41 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.97 2009/03/02 12:03:46 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -304,9 +304,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getAncestors(lfns, depth)
   
   #############################################################################
-  types_getReverseAncestors = [ListType, IntType]
-  def export_getReverseAncestors(self, lfn, depth):
-    return dataMGMT_.getReverseAncestors(lfn, depth)
+  types_getDescendents = [ListType, IntType]
+  def export_getDescendents(self, lfn, depth):
+    return dataMGMT_.getDescendents(lfn, depth)
   
   #############################################################################
   types_getEventTypes = [StringType, StringType]

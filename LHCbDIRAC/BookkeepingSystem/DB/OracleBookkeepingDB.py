@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.67 2009/02/27 18:55:16 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.68 2009/03/02 12:03:46 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.67 2009/02/27 18:55:16 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.68 2009/03/02 12:03:46 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1423,39 +1423,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       logicalFileNames['Successful'] = ancestorList
     return S_OK(logicalFileNames)
   
-    '''
-    logicalFileNames=lfn
-    jobsId = []
-    id = -1
-    for fileName in lfn:
-      result = self.db_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
-      if not result["OK"]:
-        gLogger.error('Ancestor',result['Message'])
-      else:
-        id = int(result['Value'])
-      jobsId += [id]
-     
-    command=''
-    while (depth-1) and jobsId:
-         command = 'select files.fileName,files.jobid from inputfiles,files where '
-         for job_id in jobsId:
-             command +='inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)+' or '
-         command=command[:-3]
-         jobsId=[]
-         res = self.db_._query(command)
-         if not res['OK']:
-           gLogger.error('Ancestor',result["Message"])
-         else:
-           dbResult = res['Value']
-           for record in dbResult:
-             jobsId +=[record[1]]
-             logicalFileNames += [record[0]]
-         depth-=1     
-    return logicalFileNames
-   '''
-  
   #############################################################################  
-  def getReverseAncestors(self, lfn, depth):
+  def getDescendents(self, lfn, depth):
     logicalFileNames = {}
     ancestorList = {}
     logicalFileNames['Failed'] = []
