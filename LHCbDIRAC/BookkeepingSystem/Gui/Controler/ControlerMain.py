@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $
+# $Id: ControlerMain.py,v 1.12 2009/03/03 11:52:03 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.12 2009/03/03 11:52:03 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -152,6 +152,9 @@ class ControlerMain(ControlerAbstract):
             for i in range(len(f)-1):
               if f[i] != '':
                 logfile += '/'+str(f[i])
+            
+            name = f[len(f)-1].split('_')
+            logfile += '/'+str(name[2])
             message = Message({'action':'showLog','fileName':logfile})
             return message
       else:        
