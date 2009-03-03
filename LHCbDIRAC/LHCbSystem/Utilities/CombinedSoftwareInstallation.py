@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.24 2008/11/21 08:53:24 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.25 2009/03/03 11:41:16 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.24 2008/11/21 08:53:24 paterson Exp $"
-__VERSION__ = "$Revision: 1.24 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.25 2009/03/03 11:41:16 paterson Exp $"
+__VERSION__ = "$Revision: 1.25 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -165,7 +165,7 @@ def CheckInstallSoftware(app,config,area):
   cmdTuple += ['-d']
   cmdTuple += [ '-p', appName ]
   cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '-b', '-m', 'do_config' ] #apparently no longer need -m do_config
+  cmdTuple += [ '-b' ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
 
@@ -223,7 +223,7 @@ def InstallApplication(app, config, area ):
   cmdTuple += ['-d']
   cmdTuple += [ '-p', appName ]
   cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '-b', '-m', 'do_config' ]
+  cmdTuple += ['-b']
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
@@ -285,7 +285,7 @@ def CheckApplication(app, config, area):
   cmdTuple += ['-d']
   cmdTuple += [ '-p', appName ]
   cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '--check' ] #apparently no longer need -m do_config
+  cmdTuple += [ '--check' ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   timeout = 300
