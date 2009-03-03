@@ -1,15 +1,16 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.9 2009/02/05 11:03:16 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.10 2009/03/03 15:10:55 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.9 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.10 2009/03/03 15:10:55 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
+import sys
 #############################################################################  
 class ControlerFileDialog(ControlerAbstract):
   
@@ -31,6 +32,7 @@ class ControlerFileDialog(ControlerAbstract):
       '''
       items = message['items'].getChildren()
       self.getWidget().setModel(items) # I have to save files.
+      self.getWidget().setPath(message['items']['fullpath'])
       self.__selectedFiles = []
       res = self.getWidget().showData(items)
       
@@ -110,9 +112,25 @@ class ControlerFileDialog(ControlerAbstract):
       ext = ''
       if feedback != '':
         fileName = feedback
-        ext = '.txt'
-      else:        
+        ext = '.txt'        
+      message = Message({'action':'GetPathFileName'})
+      
+      fname = self.getParent().messageFromChild(self, message)
+    
+      if fname == '' and fileName == '':
         fileName,ext = self.getWidget().saveAs()
+      elif fname != '' and fileName =='':
+        path = self.getWidget().getPath()
+        f=open(fname,'a')
+        f.write(path+'\n')
+        f.close()
+        sys.exit(0)
+      elif fname != '':
+        path = self.getWidget().getPath()
+        f=open(fname,'a')
+        f.write(path+'\n')
+        f.close()
+      
       
       if fileName <> '':
         model = self.getWidget().getModel()

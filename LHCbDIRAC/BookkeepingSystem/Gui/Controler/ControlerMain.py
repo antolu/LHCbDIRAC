@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.12 2009/03/03 11:52:03 zmathe Exp $
+# $Id: ControlerMain.py,v 1.13 2009/03/03 15:10:55 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.12 2009/03/03 11:52:03 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.13 2009/03/03 15:10:55 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -19,6 +19,7 @@ class ControlerMain(ControlerAbstract):
     super(ControlerMain, self).__init__(widget, parent)
     self.__bkClient = LHCB_BKKDBClient()
     self.__fileName = ''
+    self.__pathfilename = ''
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
 
   #############################################################################  
@@ -119,6 +120,8 @@ class ControlerMain(ControlerAbstract):
         self.__bkClient.setAdvancedQueries(True)
       elif message.action() == 'GetFileName':
         return self.__fileName
+      elif message.action() == 'GetPathFileName':
+        return self.__pathfilename
       elif message.action() == 'getAnccestors':
         files = message['files']
         if len(files) == 0:
@@ -187,4 +190,8 @@ class ControlerMain(ControlerAbstract):
   #############################################################################  
   def setFileName(self, fileName):
     self.__fileName = fileName
+  
+  #############################################################################  
+  def setPathFileName(self, filename):
+    self.__pathfilename = filename
   

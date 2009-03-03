@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $
+# $Id: MainWidget.py,v 1.5 2009/03/03 15:10:55 zmathe Exp $
 ########################################################################
 
 
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 
-__RCSID__ = "$Id: MainWidget.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $"
+__RCSID__ = "$Id: MainWidget.py,v 1.5 2009/03/03 15:10:55 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
@@ -20,7 +20,7 @@ __RCSID__ = "$Id: MainWidget.py,v 1.4 2008/11/03 11:28:01 zmathe Exp $"
 class MainWidget(QMainWindow, Ui_MainWidget):
   
   #############################################################################  
-  def __init__(self, fileName,parent = None):
+  def __init__(self, fileName, savepath = None, parent = None):
     super(MainWidget, self).__init__()
 
     """
@@ -39,6 +39,8 @@ class MainWidget(QMainWindow, Ui_MainWidget):
                      self, SLOT("close()"))
     
     self.__controler.setFileName(fileName)
+    if savepath != '':
+      self.__controler.setPathFileName(savepath)
     #self.__controler.addChild('TableWidget', self.tableWidget.getControler())
     
         

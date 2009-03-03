@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $
+# $Id: FileDialog.py,v 1.12 2009/03/03 15:10:55 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -10,7 +10,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWi
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.11 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.12 2009/03/03 15:10:55 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -30,6 +30,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
     self.__model = None
+    self.__path = None
     self.__fileExtension = None
     self.__popUp = QMenu(self.tableView)
     
@@ -66,6 +67,14 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def getModel(self):
     return self.__model
+  
+  #############################################################################  
+  def setPath(self, path):
+    self.__path = path
+  
+  #############################################################################  
+  def getPath(self):
+    return self.__path
   
   #############################################################################  
   def showNumberOfEvents(self, number):
