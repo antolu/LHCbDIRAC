@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-setdataquality-files.py,v 1.1 2009/02/27 14:35:17 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-setdataquality-files.py,v 1.2 2009/03/03 16:30:52 zmathe Exp $
 # File :   dirac-bookkeeping-setdataquality-files
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-setdataquality-files.py,v 1.1 2009/02/27 14:35:17 zmathe Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-bookkeeping-setdataquality-files.py,v 1.2 2009/03/03 16:30:52 zmathe Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -44,7 +44,6 @@ try:
 except Exception,ex:
   lfns = [file]
 
-print lfns 
 result = bk.setQuality(lfns,flag)
 
 if not result['OK']:
