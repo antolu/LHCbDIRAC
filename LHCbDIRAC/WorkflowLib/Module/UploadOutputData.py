@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.8 2009/02/11 15:15:07 paterson Exp $
+# $Id: UploadOutputData.py,v 1.9 2009/03/03 14:45:09 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.8 2009/02/11 15:15:07 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.9 2009/03/03 14:45:09 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -270,7 +270,7 @@ class UploadOutputData(ModuleBase):
     """ Sets a registration request.
     """
     self.log.info('Setting replication request for %s to %s' % (lfn,se))
-    result = self.request.addSubRequest({'Attributes':{'Operation':'putAndRegister',
+    result = self.request.addSubRequest({'Attributes':{'Operation':'replicateAndRegister',
                                                        'TargetSE':se,'ExecutionOrder':0}},
                                          'transfer')
     if not result['OK']:
