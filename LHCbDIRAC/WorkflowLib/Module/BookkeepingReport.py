@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.30 2009/01/09 14:12:49 joel Exp $
+# $Id: BookkeepingReport.py,v 1.31 2009/03/04 18:09:17 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.30 2009/01/09 14:12:49 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.31 2009/03/04 18:09:17 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -105,7 +105,7 @@ class BookkeepingReport(ModuleBase):
 
   def makeBookkeepingXMLString(self):
 
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','HIST']
     site = gConfig.getValue('/LocalSite/Site','Site')
     if self.workflow_commons.has_key('dataType'):
       job_mode = self.workflow_commons['dataType'].lower()
@@ -245,7 +245,19 @@ class BookkeepingReport(ModuleBase):
       # build the lfn
       lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
 
+      #Fix for histograms
+      oldTypeName=None
+      if typeName.upper()=='HIST':
+        typeVersion='0'
+        oldTypeName=typeName
+        typeName='%sHIST' %(self.applicationName.upper())
+
       s = s+'  <OutputFile   Name="'+lfn+'" TypeName="'+typeName+'" TypeVersion="'+typeVersion+'">\n'
+
+      #HIST is in the dataTypes e.g. we may have new names in the future ;)
+      if oldTypeName:
+        typeName=oldTypeName
+
       if typeName in dataTypes:
         s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
         s = s+'    <Parameter  Name="EventStat"       Value="'+statistics+'"/>\n'
