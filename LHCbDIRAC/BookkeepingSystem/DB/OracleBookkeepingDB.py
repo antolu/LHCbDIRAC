@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.68 2009/03/02 12:03:46 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.69 2009/03/04 10:50:44 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.68 2009/03/02 12:03:46 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.69 2009/03/04 10:50:44 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1424,16 +1424,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(logicalFileNames)
   
   #############################################################################  
-  def getDescendents(self, lfn, depth):
+  def getDescendents(self, lfn, depth = 0):
     logicalFileNames = {}
     ancestorList = {}
     logicalFileNames['Failed'] = []
     logicalFileNames['NotProcessed'] = []
     file_id = -1
     fileids = []
+    odepth = -1
     if depth < 1:
       depth = 1
-    odepth = depth 
+      odepth = depth
+    else:
+      odepth = depth + 1
+    
     gLogger.debug('original',lfn)
     for fileName in lfn:
       depth = odepth

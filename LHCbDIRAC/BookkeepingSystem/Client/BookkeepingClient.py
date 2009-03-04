@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.79 2009/03/02 12:03:46 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.80 2009/03/04 10:50:44 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.79 2009/03/02 12:03:46 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.80 2009/03/04 10:50:44 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -320,7 +320,7 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getDescendents(self, lfns, depth=1):
+  def getDescendents(self, lfns, depth=0):
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
