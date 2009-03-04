@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.9 2009/03/03 14:45:09 paterson Exp $
+# $Id: UploadOutputData.py,v 1.10 2009/03/04 18:14:41 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.9 2009/03/03 14:45:09 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.10 2009/03/04 18:14:41 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -379,7 +379,7 @@ class UploadOutputData(ModuleBase):
     candidateFiles = {}
     if self.outputDataFileMask:
       for fileName,metadata in fileInfo.items():
-        if metadata['type'].lower() in self.outputDataFileMask:
+        if metadata['type'].lower() in self.outputDataFileMask or fileName.split('.')[-1] in self.outputDataFileMask:
           candidateFiles[fileName]=metadata
         else:
           self.log.info('Output file %s was produced but will not be treated (outputDataFileMask is %s)' %(fileName,string.join(self.outputDataFileMask,', ')))
