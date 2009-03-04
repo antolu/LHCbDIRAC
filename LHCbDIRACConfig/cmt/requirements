@@ -20,9 +20,9 @@ macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
 macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
 macro        Python_config_version_twodigit   `$(pyth_maj)`.`$(pyth_min)`
 
-macro        pyqt_config_version                 4.4.3
+macro        pyqt_config_version                 4.4.4
 macro        Qt_config_version                   4.4.2
-macro        sip_config_version                  4.7.7
+macro        sip_config_version                  4.7.9
 
 #----------------------------------------------------------------------------------------
 # define specific version which are not in LHCBGRID package if needed: examples here
