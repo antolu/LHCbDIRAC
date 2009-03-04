@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.38 2009/03/02 12:03:46 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.39 2009/03/04 13:40:20 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.38 2009/03/02 12:03:46 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.39 2009/03/04 13:40:20 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -369,8 +369,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getPassIndexID(programName, programVersion)
   
   #############################################################################
-  def insertProcessing_pass(self, passid, simcond):
-    return self.getManager().insertProcessing_pass(passid, simcond)
+  def insertProcessing_pass(self, prod, passid, simcond):
+    return self.getManager().insertProcessing_pass(prod, passid, simcond)
   
   #############################################################################
   def listProcessingPass(self, prod = None):

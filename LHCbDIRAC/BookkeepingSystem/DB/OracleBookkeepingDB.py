@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.69 2009/03/04 10:50:44 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.70 2009/03/04 13:40:20 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.69 2009/03/04 10:50:44 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.70 2009/03/04 13:40:20 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2133,8 +2133,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR('getLogfile error!')
   
   #############################################################################
-  def insertProcessing_pass(self, passid, simcond):
-    return self.dbW_.executeStoredFunctions('BKK_ORACLE.insertProcessing_PASS', LongType, [passid, simcond])
+  def insertProcessing_pass(self, prod, passid, simcond):
+    return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertProcessing_PASS', [prod, passid, simcond], False)
   
   #############################################################################
   def getProcessingPassGroups(self):

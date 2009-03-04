@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.25 2009/02/17 13:14:38 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.26 2009/03/04 13:40:19 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.25 2009/02/17 13:14:38 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.26 2009/03/04 13:40:19 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -147,11 +147,21 @@ class XMLFilesReaderManager:
           if not result['OK']:
             self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName, errorReport)
             return S_ERROR("The event type " + str(value) + " is missing.\n")
+        
+        
       ################
       
     config = job.getJobConfiguration()
     params = job.getJobParams()
-            
+    
+    for param in params:
+      if param.getName() == "RunNumber":
+        value = long(param.getValue())
+        if value <= 0:
+          self.errorMgmt_.reportError (13, "The run number not greater 0!" , deleteFileName, errorReport)
+          return S_ERROR('The run number not greater 0!')
+  
+        
     result = self.__insertJob(job)  
       
     if not result['OK']:
@@ -247,20 +257,27 @@ class XMLFilesReaderManager:
       #insert processing pass
       programName = None
       programVersion = None
+      found = False
       for param in job.getJobParams():
         if param.getName() =='ProgramName':
           programName = param.getValue()
         elif param.getName() =='ProgramVersion':
           programVersion = param.getValue()
+        elif param.getName() == 'RunNumber':
+          production = long(param.getValue()) * -1
+          found = True
+      if not found:
+        gLogger.error('Runn number is missing!')
+        return S_ERROR('Runn number is missing!')
       retVal = dataManager_.getPassIndexID(programName, programVersion)
       if not retVal['OK']:
         return S_ERROR(retVal['Message'])
       passIndex = retVal['Value']
       gLogger.debug('Pass_indexid', passIndex)
-      gLogger.debug('Pass_indexid', dataTackingPeriodID)
-      res = dataManager_.insertProcessing_pass(passIndex, dataTackingPeriodID)
+      gLogger.debug('Data taking', dataTackingPeriodID)
+      gLogger.debug('production', production)
+      res = dataManager_.insertProcessing_pass(production, passIndex, dataTackingPeriodID)
       if res['OK']:
-        production = res['Value']
         gLogger.info("New processing pass has been created!")
         gLogger.info("New production is:",production)
       else:

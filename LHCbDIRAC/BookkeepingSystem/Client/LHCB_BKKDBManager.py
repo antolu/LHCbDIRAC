@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.81 2009/02/13 15:59:16 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.82 2009/03/04 13:40:20 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.81 2009/02/13 15:59:16 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.82 2009/03/04 13:40:20 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -444,12 +444,12 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       if len(dbResult) > 1:
-        add = self.__addAll(path, levels, 'Production(s)')
+        add = self.__addAll(path, levels, 'Production(s)/Run(s)')
         if add:
           entityList += [add] 
       for record in dbResult:
         prod = str(record[0])
-        entityList += [self._getEntityFromPath(path, prod, levels, 'Production(s)')]
+        entityList += [self._getEntityFromPath(path, prod, levels, 'Production(s)/Run(s)')]
       self._cacheIt(entityList)        
     else:
       gLogger.error(result['Message'])
