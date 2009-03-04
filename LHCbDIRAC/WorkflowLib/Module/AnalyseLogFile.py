@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.37 2009/02/13 10:48:06 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.38 2009/03/04 13:27:28 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.37 2009/02/13 10:48:06 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.38 2009/03/04 13:27:28 paterson Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -267,6 +267,7 @@ class AnalyseLogFile(ModuleBase):
       self.setJobParameter(report,nprocessed)
 
 # find number of events written
+      noutput = 0
       loutput,n = self.grep(self.applicationLog,'Events output:')
       if n == 0:
          if self.applicationName == 'Gauss ' or self.applicationName == 'Brunel':
