@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py,v 1.1 2009/03/04 08:51:22 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py,v 1.2 2009/03/04 09:14:53 zmathe Exp $
 # File :   dirac-bookkeeping-get-file-descendants
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-get-file-descendants.py,v 1.1 2009/03/04 08:51:22 zmathe Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-bookkeeping-get-file-descendants.py,v 1.2 2009/03/04 09:14:53 zmathe Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -26,7 +26,7 @@ if len(args) < 2:
 
 exitCode = 0
 file = str(args[0])
-level = str(args[1])
+level = int(args[1])
 lfns = []
 try:
   files =open(file)
