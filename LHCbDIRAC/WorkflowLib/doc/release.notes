@@ -1,4 +1,13 @@
-$Id: release.notes,v 1.10 2009/02/11 15:07:14 paterson Exp $
+$Id: release.notes,v 1.11 2009/03/04 14:50:57 paterson Exp $
+
+=========
+wkf-v9r2 : SKP : 4 March 2009
+Minor fixes to the following modules:
+ - UploadOutputData.py
+ - AnalyseLogFile.py
+ - GaudiApplication.py
+ - GaudiApplicationScript.py
+Optimization of job state calls in most modules.
 
 =========
 wkf-v9r1 : SKP : 11 Feb 2009
