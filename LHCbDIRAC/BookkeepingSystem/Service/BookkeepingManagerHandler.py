@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.97 2009/03/02 12:03:46 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.98 2009/03/05 16:40:45 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.97 2009/03/02 12:03:46 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.98 2009/03/05 16:40:45 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -571,9 +571,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getAvailableDataQuality()
   
   #############################################################################  
-  types_insert_aplications = [StringType, StringType, StringType, StringType, StringType]
-  def export_insert_aplications(self, appName, appVersion, option, dddb, condb):
-    return dataMGMT_.insert_aplications(appName, appVersion, option, dddb, condb)
+  types_insert_aplications = [StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):
+    return dataMGMT_.insert_aplications(appName, appVersion, option, dddb, condb, extrapack)
   
   #############################################################################  
   types_insert_pass_index_migration = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]

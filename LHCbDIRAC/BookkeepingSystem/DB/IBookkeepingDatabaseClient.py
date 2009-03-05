@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.39 2009/03/04 13:40:20 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.40 2009/03/05 16:40:45 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.39 2009/03/04 13:40:20 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.40 2009/03/05 16:40:45 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -409,8 +409,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getFilesWithGivenDataSets(simdesc, procPass,ftype, evt, configname, configversion, prod, flag)
   
   #############################################################################
-  def insert_aplications(self, appName, appVersion, option, dddb, condb):
-    return self.getManager().insert_aplications(appName, appVersion, option, dddb, condb)
+  def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):
+    return self.getManager().insert_aplications(appName, appVersion, option, dddb, condb, extrapack)
   
   #############################################################################
   def insert_pass_index_migration(self, passid, descr, groupid, step0,step1, step2,step3,step4,step5,step6):

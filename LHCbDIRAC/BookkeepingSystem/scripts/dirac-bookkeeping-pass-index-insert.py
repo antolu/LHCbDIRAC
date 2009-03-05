@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.5 2009/03/05 16:40:45 zmathe Exp $
 # File :   dirac-bookkeeping-pass-index-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.5 2009/03/05 16:40:45 zmathe Exp $"
 __VERSION__ = "$ $"
 
 import sys,string,re
@@ -37,7 +37,8 @@ for i in range(nb):
   opts = raw_input('Option files:')
   dddb = raw_input("DDDb tag: ")
   condb = raw_input("CondDb tag: ")
-  steps[i]=[appname,appversion,opts,dddb,condb]
+  extrapack = raw_input("Extra packages: ")
+  steps[i]=[appname,appversion,opts,dddb,condb,extrapack]
 
 print 'Do you want to add this new pass_index conditions? (yes or no)'
 value = raw_input('Choice: ')
@@ -45,10 +46,10 @@ choice=value.lower()
 if choice in ['yes','y']:
     keys = steps.keys()
     keys.sort()
-    s = ['NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL']
+    s = ['NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL']
     i = 0
     for i in keys:
-      res = bk.insert_aplications(appname, appversion, opts, dddb, condb)
+      res = bk.insert_aplications(appname, appversion, opts, dddb, condb, extrapack)
       if not res['OK']:
         print res['Message']
       else:

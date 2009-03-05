@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.80 2009/03/04 10:50:44 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.81 2009/03/05 16:40:45 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.80 2009/03/04 10:50:44 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.81 2009/03/05 16:40:45 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -372,9 +372,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def insert_aplications(self, appName, appVersion, option, dddb, condb):
+  def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):
     server = self.__getServer()
-    result = server.insert_aplications(appName, appVersion, option, dddb, condb)
+    result = server.insert_aplications(appName, appVersion, option, dddb, condb, extrapack)
     return result
 
   #############################################################################

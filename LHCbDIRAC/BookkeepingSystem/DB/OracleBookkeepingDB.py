@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.72 2009/03/05 15:51:53 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.73 2009/03/05 16:40:45 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.72 2009/03/05 15:51:53 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.73 2009/03/05 16:40:45 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -138,7 +138,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
             value = retVal['Value']
             appname = value[0][1]+' '+value[0][2]
             gLogger.info('Application name:',appname)
-            infos = '/'+str(value[0][3])+'/'+str(value[0][4])+'/'+str(value[0][5])
+            infos = '/'+str(value[0][3])+'/'+str(value[0][4])+'/'+str(value[0][5])+'/'+str(value[0][6])
             tmp[appid]=appname+infos
           else:
             return S_ERROR(retVal['Message'])
@@ -784,9 +784,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(value)
   
   #############################################################################
-  def insert_aplications(self, appName, appVersion, option, dddb, condb):
+  def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):
     
-    retVal = self.check_applications(appName, appVersion, option, dddb, condb)
+    retVal = self.check_applications(appName, appVersion, option, dddb, condb, extrapack)
     if retVal['OK']:
       id = retVal['Value']
       if id == 0:
@@ -799,8 +799,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
           values += '\''+str(appVersion)+'\','
           values += '\''+str(option)+'\','
           values += '\''+str(dddb)+'\','
-          values += '\''+str(condb)+'\''
-          command = ' insert into applications (ApplicationID, ApplicationName, ApplicationVersion, OptionFiles, DDDb, condDb) values ('+values+')'
+          values += '\''+str(condb)+'\','
+          values += '\''+str(extrapack)+'\''
+          command = ' insert into applications (ApplicationID, ApplicationName, ApplicationVersion, OptionFiles, DDDb, condDb, Extrapackages) values ('+values+')'
           retVal = self.dbW_._query(command)
           if not retVal['OK']:
             return S_ERROR(retVal['Message'])
@@ -813,7 +814,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(retVal['Message'])
   
   #############################################################################
-  def check_applications(self,appName, appVersion, option, dddb, condb):
+  def check_applications(self,appName, appVersion, option, dddb, condb, extrapack):
     command = ''
     condition = ''
     if dddb != '':
@@ -824,6 +825,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if condb != '':
       condition += ' and conddb=\''+str(condb)+'\' '
+    
+    if extrapack != '':
+      condition += ' and ExtraPackages=\''+str(extrapack)+'\' '
     
     command = 'select applicationid from applications where applicationname=\''+str(appName)+'\' and applicationversion=\''+str(appVersion)+'\''+condition
     retVal = self.dbR_._query(command)
@@ -962,15 +966,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condb = ''
         result += 'ConDDb tag is missing! \n'
       
-      res = self.check_applications(appName, appVersion, optfiles, dddb, condb)
+      extrapack = steps[step]['ExtraPackages']
+      if extrapack != None:
+        extrapack = ''
+        result += 'ExtraPackages is missing! \n'
+      
+      
+      res = self.check_applications(appName, appVersion, optfiles, dddb, condb, extrapack)
       if not res['OK']:
         return S_ERROR(res['Message'])
       else:
         value = res['Value']
         if value == 0:
-          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+' are missing in the BKKDB! \n'
+          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+'ExtraPackages:'+str(extrapack)+' are missing in the BKKDB! \n'
         else:
-          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+' are in the BKKDB! \n'
+          result += 'Application Name:'+str(appName)+' Application Version:'+str(appVersion)+' Optionfiles:'+str(optfiles)+ 'DDDb:'+str(dddb) +'CondDb:'+str(condb)+'ExtraPackages:'+str(extrapack)+' are in the BKKDB! \n'
           s[i] = res['Value']
           i += 1
     
@@ -1028,7 +1038,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condb = steps[step]['CondDb']
       if condb == None:
         condb = ''
-      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb)
+      extrapack = steps[step]['ExtraPackages']
+      if extrapack == None:
+        extrapack = ''
+      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb, extrapack)
       if not res['OK']:
         return S_ERROR(res['Message'])
       else:
@@ -1078,7 +1091,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condb = steps[step]['CondDb']
       if condb == None:
         condb = ''
-      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb)
+      extrapack = steps[step]['ExtraPackages']
+      if extrapack == None:
+        extrapack = ''
+        
+      res = self.insert_aplications(appName, appVersion, optfiles, dddb, condb,extrapack)
       if not res['OK']:
         return S_ERROR(res['Message'])
       else:
@@ -1917,7 +1934,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getPassIndexID(self, programName, programVersion):
     returnValue = None
-    res = self.insert_aplications(programName, programVersion, '', '', '')
+    res = self.insert_aplications(programName, programVersion, '', '', '','')
     if not res['OK']:
       return S_ERROR(res['Message'])
     else:
