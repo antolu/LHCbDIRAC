@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.45 2009/02/02 15:57:40 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.46 2009/03/05 10:31:55 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.45 $"
+__RCSID__ = "$Revision: 1.46 $"
 
 from types import *
 import threading
@@ -546,62 +546,62 @@ class ProductionManagerHandler( TransformationHandler ):
           prodList.append(0)
           
       # Get Bookkeeping information
-      result = bkClient.getProductionInformations_new(long(prodID))
-      if not result['OK']:
-        for p in bkParameters:
-          prodList.append('-')
-          
-      if result['Value']['Production informations']:
-        for row in result['Value']['Production informations']:
-          if row[2]:
-            prodList += list(row)
-            break
-      else:
-        prodList += ['-','-','-']
-        
-      if result['Value']['Number of jobs']:  
-        prodList.append(result['Value']['Number of jobs'][0][0])    
-      else:
-        prodList.append(0)
-        
-      # Number of files  
-      files_done = False  
-      if result['Value']['Number of files']:  
-        for dfile in fileOrder:
-          for row in result['Value']['Number of files']:
-            if dfile == row[1]:
-              prodList.append(row[0])
-              files_done = True
-              break
-          if files_done:
-            break    
-      if not files_done:
-        prodList.append(0)            
-    
-      # Number of events
-      events_done = False
-      if result['Value']['Number of events']:  
-        for dfile in fileOrder:  
-          for row in result['Value']['Number of events']:
-            if dfile == row[0]:
-              prodList.append(row[1])
-              events_done = True
-              break
-          if events_done:
-            break 
-      if not events_done:
-        prodList.append(0)      
-        
-      # Number of steps
-      if result['Value']['Steps']:      
-        prodList.append(len(result['Value']['Steps'])) 
-      else:
-        prodList.append(0)          
+#      result = bkClient.getProductionInformations_new(long(prodID))
+#      if not result['OK']:
+#        for p in bkParameters:
+#          prodList.append('-')
+#          
+#      if result['Value']['Production informations']:
+#        for row in result['Value']['Production informations']:
+#          if row[2]:
+#            prodList += list(row)
+#            break
+#      else:
+#        prodList += ['-','-','-']
+#        
+#      if result['Value']['Number of jobs']:  
+#        prodList.append(result['Value']['Number of jobs'][0][0])    
+#      else:
+#        prodList.append(0)
+#        
+#      # Number of files  
+#      files_done = False  
+#      if result['Value']['Number of files']:  
+#        for dfile in fileOrder:
+#          for row in result['Value']['Number of files']:
+#            if dfile == row[1]:
+#              prodList.append(row[0])
+#              files_done = True
+#              break
+#          if files_done:
+#            break    
+#      if not files_done:
+#        prodList.append(0)            
+#    
+#      # Number of events
+#      events_done = False
+#      if result['Value']['Number of events']:  
+#        for dfile in fileOrder:  
+#          for row in result['Value']['Number of events']:
+#            if dfile == row[0]:
+#              prodList.append(row[1])
+#              events_done = True
+#              break
+#          if events_done:
+#            break 
+#      if not events_done:
+#        prodList.append(0)      
+#        
+#      # Number of steps
+#      if result['Value']['Steps']:      
+#        prodList.append(len(result['Value']['Steps'])) 
+#      else:
+#        prodList.append(0)          
 
     resultDict['ParameterNames'] = paramNames
     resultDict['ParameterNames'] += ['Jobs_'+x for x in jobStateNames]
     resultDict['ParameterNames'] += ['Files_'+x for x in fileStateNames]
-    resultDict['ParameterNames'] += ['Bk_'+x for x in bkParameters]
+#    resultDict['ParameterNames'] += ['Bk_'+x for x in bkParameters]
     resultDict['Records'] = summaryDict['Records']
 
     statusDict = {}
