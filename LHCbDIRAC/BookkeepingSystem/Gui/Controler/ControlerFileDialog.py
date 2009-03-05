@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.10 2009/03/03 15:10:55 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.11 2009/03/05 17:45:31 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.10 2009/03/03 15:10:55 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.11 2009/03/05 17:45:31 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -187,7 +187,8 @@ class ControlerFileDialog(ControlerAbstract):
     eventnum = 0;
     for item in items:
       value = items[item]
-      eventnum += int(value['EventStat'])
+      if value['EventStat'] != None:
+        eventnum += int(value['EventStat'])
     return eventnum
   
   #############################################################################  
