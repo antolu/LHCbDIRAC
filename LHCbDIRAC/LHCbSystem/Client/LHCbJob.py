@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.12 2008/12/17 10:17:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.13 2009/03/05 22:23:53 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.12 2008/12/17 10:17:15 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.13 2009/03/05 22:23:53 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -111,6 +111,7 @@ class LHCbJob(Job):
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
     self.scratchDir = gConfig.getValue(self.section+'/LocalSite/ScratchDir','/tmp')
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
+    self.defaultOutputSE = string.join(gConfig.getValue('/Resources/StorageElementGroups/Tier1-USER',[]),';')
 
   #############################################################################
   def setApplication(self,appName,appVersion,optionsFiles,inputData='',optionsLine='',inputDataType='',logFile=''):
