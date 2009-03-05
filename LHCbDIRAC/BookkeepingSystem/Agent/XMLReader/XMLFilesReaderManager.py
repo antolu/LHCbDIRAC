@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.26 2009/03/04 13:40:19 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.27 2009/03/05 11:46:11 zmathe Exp $
 ########################################################################
 
 """
@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient     
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.26 2009/03/04 13:40:19 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.27 2009/03/05 11:46:11 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -130,11 +130,16 @@ class XMLFilesReaderManager:
         paramName = param.getParamName()
         
         if paramName == "EventStat":
-          eventNb = long(param.getParamValue())
-          if eventNb <= 0:
-            self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName, errorReport)
-            return S_ERROR("The event number not greater 0!")
-        
+          if param.getParamValue()=='' and file.getFileType() in ['BRUNELHIST','DAVINCIHIST','GAUSSHIST','BOOLEHIST']:
+            param.setParamValue(None) # default value
+          elif param.getParamValue()=='':
+            return S_ERROR('EventStat value is null')
+          else:
+            eventNb = long(param.getParamValue())
+            if eventNb <= 0:
+              self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName, errorReport)
+              return S_ERROR("The event number not greater 0!")
+          
         if paramName == "PhysicStat":
           phys = long(param.getParamValue())
           if phys <= 0:
