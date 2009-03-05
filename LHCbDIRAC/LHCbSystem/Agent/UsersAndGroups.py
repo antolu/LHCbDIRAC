@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.21 2009/01/23 10:52:17 atsareg Exp $
+# $Id: UsersAndGroups.py,v 1.22 2009/03/05 15:21:55 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.21 2009/01/23 10:52:17 atsareg Exp $"
-__VERSION__ = "$Revision: 1.21 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.22 2009/03/05 15:21:55 rgracian Exp $"
+__VERSION__ = "$Revision: 1.22 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -120,6 +120,8 @@ class UsersAndGroups(Agent):
           self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, users[user]) )
           self.log.error('User Duplicated in VOMS:','%s = %s' % ( user, { 'DN':dn, 'CA':ca }) )
           multiDNUsers.append( user )
+          users[user]['DN'] += ', %s' % dn
+          users[user]['CA'] += ', %s' % ca
         duplicateUsers.append( user )
         continue
       users[user] = { 'DN': dn, 'CA': ca , 'email': '%s@cern.ch' % user }
