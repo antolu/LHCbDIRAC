@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.3 2009/01/26 13:04:54 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.4 2009/03/05 22:44:03 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.3 2009/01/26 13:04:54 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.4 2009/03/05 22:44:03 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -83,6 +83,10 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
     if not result['OK']:
       return result
     finalResult['libraries']=result['Value']
+    result = _getPythonDir(inputPathPython,destinationDir)
+    if not result['OK']:
+      return result
+    finalResult['pythondir']=result['Value']
 
   return S_OK(finalResult)
 
@@ -189,6 +193,24 @@ def _getLibFiles(inputPath,destinationDir):
     gLogger.verbose('Copied file:"%s"' % fname)
   return S_OK('%s/lib' %destinationDir)
 
+#############################################################################
+def _getPythonDir(inputPath,destinationDir):
+  """ Simple function to retrieve user python modules.
+  """
+  gLogger.verbose('dir is at :"%s"' % inputPath)
+  if not os.path.exists(inputPath):
+    return S_ERROR('Directory %s does not exist' %inputPath)
+  if not os.path.exists('%s/python' %destinationDir):
+    try:
+      os.makedirs('%s/python' %destinationDir)
+    except Exception,x:
+     gLogger.warn('Could not create directory python in %s' %destinationDir)
+     return S_ERROR(x)
+  shutil.rmtree('%s/python' % destinationDir,True)
+  shutil.copytree(inputPath+'/python','%s/python' % destinationDir)
+  for fname in os.listdir(destinationDir+'/python'):
+    gLogger.verbose('Copied file:"%s"' % fname)
+  return S_OK('%s/python' %destinationDir)
 
 #############################################################################
 def _errorReport(error,message=None):
