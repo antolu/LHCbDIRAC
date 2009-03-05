@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.6 2009/03/04 13:40:19 zmathe Exp $
+# $Id: TreePanel.py,v 1.7 2009/03/05 15:51:52 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore import *
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 import DIRAC
 
-__RCSID__ = "$Id: TreePanel.py,v 1.6 2009/03/04 13:40:19 zmathe Exp $"
+__RCSID__ = "$Id: TreePanel.py,v 1.7 2009/03/05 15:51:52 zmathe Exp $"
 
 #############################################################################  
 class TreePanel(QTreeWidget):
@@ -148,7 +148,8 @@ class TreePanel(QTreeWidget):
     title = element.name()
     if element.has_key('level'):
       if element['level']=='Production(s)/Run(s)':
-        title = str(abs(long(element.name()))) #['fullpath']
+        if element.name() != 'ALL':
+          title = str(abs(long(element.name()))) #['fullpath']
     
     #if title != '':
     #    title = QtCore.QObject.tr("Folder")
