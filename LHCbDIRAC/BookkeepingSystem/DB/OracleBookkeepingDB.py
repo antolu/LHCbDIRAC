@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.70 2009/03/04 13:40:20 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.71 2009/03/05 12:57:10 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.70 2009/03/04 13:40:20 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.71 2009/03/05 12:57:10 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1461,22 +1461,24 @@ class OracleBookkeepingDB(IBookkeepingDB):
             if not res["OK"]:
               gLogger.error('Ancestor',result['Message'])
             elif len(res['Value']) != 0:
-              job_id = res['Value'][0][0]
-    
-              command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
-              fileids = []
-              res = self.dbR_._query(command)
-              if not res["OK"]:
-                gLogger.error('Ancestor',result['Message'])
-              elif len(res['Value']) == 0:
-                logicalFileNames['NotProcessed']+=[fileName]
-              else:
-                 dbResult = res['Value']
-                 print dbResult
-                 for record in dbResult:
-                   fileids +=[record[1]]
-                   if record[2] != 'No':
-                     files += [record[0]]
+              job_ids = res['Value']
+              
+              for i in job_ids:
+                job_id = i[0]
+                command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
+                fileids = []
+                res = self.dbR_._query(command)
+                if not res["OK"]:
+                  gLogger.error('Ancestor',result['Message'])
+                elif len(res['Value']) == 0:
+                  logicalFileNames['NotProcessed']+=[fileName]
+                else:
+                   dbResult = res['Value']
+                   print dbResult
+                   for record in dbResult:
+                     fileids +=[record[1]]
+                     if record[2] != 'No':
+                       files += [record[0]]
           depth-=1 
         
         ancestorList[fileName]=files    
