@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.13 2009/03/03 15:10:55 zmathe Exp $
+# $Id: ControlerMain.py,v 1.14 2009/03/05 18:12:18 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.13 2009/03/03 15:10:55 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.14 2009/03/05 18:12:18 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -116,8 +116,20 @@ class ControlerMain(ControlerAbstract):
         return result
       elif message.action() == 'StandardQuery':
         self.__bkClient.setAdvancedQueries(False)
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        items = self.root()
+        message = Message({'action':'removeTree','items':items})
+        ct.messageFromParent(message)
+        
       elif message.action() == 'AdvancedQuery':
         self.__bkClient.setAdvancedQueries(True)
+        items = self.root()
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        message = Message({'action':'removeTree','items':items})
+        ct.messageFromParent(message)
+        
       elif message.action() == 'GetFileName':
         return self.__fileName
       elif message.action() == 'GetPathFileName':
