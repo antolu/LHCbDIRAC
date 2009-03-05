@@ -2,62 +2,71 @@
 #Updated FEST reconstruction workflow with new finalization modules
 ####################################################################
 
-__RCSID__ = "$Id: FEST_Reconstruction.py,v 1.1 2009/02/11 15:09:33 paterson Exp $"
+__RCSID__ = "$Id: FEST_Reconstruction.py,v 1.2 2009/03/05 13:28:10 paterson Exp $"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *
 from DIRAC.Core.Workflow.Step import *
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Workflow.WorkflowReader import *
-
+#same as RecoTemplate
+# Variable which need to be set
 attempt=1
-prodID = '00009999'
-jobID = '00000011'
-wkf_name = "FEST_Reco_Test_%s" %(attempt)
+prodID = '00099998'
+jobID =  '00000001'
+wkf_name = "FEST_Reconstruction_Full_%s" %(attempt)
 eventTypeSignal = "90000000"
 #90000000 -  Full Stream
 #91000000 - Express Stream
 numberOfEvents = -1 #90k / FEST file
-Brunel_version = "v34r1p1"
-Brunel_optfile = "Brunel-Default.py"
+Brunel_version = "v34r2"
+DaVinci_version = "v22r1"
+Brunel_AppConfig="AppConfig.v2r1"
+Brunel_optfile = "$APPCONFIGOPTS/Brunel/FEST-200903.py;$APPCONFIGOPTS/UseOracle.py"
+DaVinci_optfile = "$APPCONFIGOPTS/DaVinci/DVMonitorDst.py" #;$APPCONFIGOPTS/UseOracle.py"
 system_os = "slc4_ia32_gcc34"
-WorkflowLib_version = "wkf-v9r1"
+WorkflowLib_version = "wkf-v9r3"
 priority = '8'
-loglevel='verbose'
+loglevel='debug'
 maxcputime=300000
 configName='Fest'
 configVersion='Fest'
 emailList = 'lhcb-datacrash@cern.ch'
 dataType = 'DATA'
-outputDataFileMask = "rdst"
-soft_package = 'Brunel.'+Brunel_version
-Brunel_SE = 'Tier1-RDST'
+outputDataFileMask = "rdst;root"
 outputMode = 'Local'
-dddbOpt = ";LHCbApp().DDDBtag = \"head-20081002\""
-conddbOpt = ";LHCbApp().CondDBtag = \"head-20081002\""
+soft_package = 'Brunel.'+Brunel_version
+soft_package+= ';'+Brunel_AppConfig
+soft_package+= ';'+'DaVinci.'+DaVinci_version
+extraPackages = Brunel_AppConfig
+Brunel_SE = 'Tier1-RDST'
+Hist_SE = 'CERN-HIST'
+
+histogramName = '@{applicationName}_@{STEP_ID}_Hist.root'
+
+#General options
 evtOpt = ";LHCbApp().EvtMax = %s" %numberOfEvents
 
-opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
-opt_brunel = opt_brunel+";#include \"$SQLDDDBROOT/options/SQLDDDB-Oracle.opts\""
-opt_brunel = opt_brunel+";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
-opt_brunel = opt_brunel+";EventLoopMgr().OutputLevel = 3"
-opt_brunel = opt_brunel+";from Configurables import OTRawBankDecoder"
-opt_brunel = opt_brunel+";OTRawBankDecoder().OutputLevel = 5"
-opt_brunel = opt_brunel+";from Configurables import OTTimeCreator"
-opt_brunel = opt_brunel+";OTTimeCreator().OutputLevel=5"
-opt_brunel = opt_brunel+";from Configurables import OTChannelMapTool"
-opt_brunel = opt_brunel+";OTChannelMapTool().OutputLevel=4"
-opt_brunel = opt_brunel+";OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
-opt_brunel = opt_brunel+";HistogramPersistencySvc().OutputFile = \"@{STEP_ID}_Histogram.root\""
-opt_brunel = opt_brunel+";IODataManager().AgeLimit = 2"
-opt_brunel = opt_brunel+";Brunel().Simulation   = True"
-opt_brunel = opt_brunel+ evtOpt
-opt_brunel = opt_brunel+ dddbOpt
-opt_brunel = opt_brunel+ conddbOpt
+#dddbOpt = ";LHCbApp().DDDBtag = \"head-20081002\""
+#conddbOpt = ";LHCbApp().CondDBtag = \"head-20081002\""
 
-indata = "LFN:/lhcb/data/2009/RAW/FULL/FEST/FEST/43041/043041_0000000002.raw"
-#indata="LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/43041/043041_0000000001.raw"
-#define Module 2
+opt_brunel = "#include \"$BRUNELOPTS/SuppressWarnings.opts\""
+#opt_brunel = opt_brunel+";#include \"$SQLDDDBROOT/options/SQLDDDB-Oracle.opts\""
+opt_brunel = opt_brunel+";MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_brunel = opt_brunel+";OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\""
+opt_brunel = opt_brunel+";HistogramPersistencySvc().OutputFile = \"%s\"" %(histogramName)
+opt_brunel = opt_brunel+ evtOpt
+#opt_brunel = opt_brunel+ dddbOpt
+#opt_brunel = opt_brunel+ conddbOpt
+
+opt_davinci = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'"
+opt_davinci += ';from DaVinci.Configuration import *'
+opt_davinci += ";DaVinci().HistogramFile = \"%s\"" %(histogramName)
+opt_davinci += ';DaVinci().EvtMax = %s' %(numberOfEvents)
+
+#indata = "LFN:/lhcb/data/2009/RAW/FULL/FEST/FEST/43041/043041_0000000002.raw"
+indata="LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw"
+
 gaudiApp = ModuleDefinition('GaudiApplication')
 gaudiApp.setDescription('Gaudi Application module')
 gaudiApp.setBody('from WorkflowLib.Module.GaudiApplication import GaudiApplication\n')
@@ -125,6 +134,7 @@ gaudiAppDefn.addParameter(Parameter("numberOfEventsInput","","string","","",True
 gaudiAppDefn.addParameter(Parameter("numberOfEventsOutput","","string","","",True,False,"number of events as input"))
 gaudiAppDefn.addParameter(Parameter("inputDataType","","string","","",True, False, "Input Data Type"))
 gaudiAppDefn.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+gaudiAppDefn.addParameter(Parameter("extraPackages","","string","","",True,False,"Extra software packages to setup"))
 
 #################################################
 #Finalization step
@@ -166,13 +176,38 @@ brunelStep.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
 brunelStep.setValue("outputData","@{STEP_ID}.@{applicationType}")
 brunelStep.setValue("optionsFile", Brunel_optfile)
 brunelStep.setValue("optionsLine",opt_brunel)
+brunelStep.setValue("extraPackages",extraPackages)
 brunelStep.setValue("optionsLinePrev","None")
 brunelStep.setLink("inputData","self","InputData")
-list1_out=[{"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"@{applicationType}","outputDataSE":Brunel_SE}]
+list1_out=[]
+list1_out.append({"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"@{applicationType}","outputDataSE":Brunel_SE})
+list1_out.append({"outputDataName":histogramName,"outputDataType":"HIST","outputDataSE":Hist_SE})
 brunelStep.setValue("listoutput",list1_out)
 
+davinciStep = workflow.createStepInstance('Gaudi_App_Step', 'davinci')
+davinciStep.addParameter(Parameter("inputData","","string","","",True,False,"InputData"))
+davinciStep.setLink("inputData",brunelStep.getName(),"outputData")
+davinciStep.setValue("eventType", eventTypeSignal)
+davinciStep.setValue("numberOfEvents", numberOfEvents)
+davinciStep.setValue("inputDataType","RDST")
+davinciStep.setValue("applicationName", "DaVinci")
+davinciStep.setValue("applicationVersion", DaVinci_version)
+davinciStep.setValue("applicationType", "dst")
+davinciStep.setValue("applicationLog", "@{applicationName}_@{STEP_ID}.log")
+davinciStep.setValue("outputData","@{STEP_ID}.@{applicationType}")
+davinciStep.setValue("optionsFile", DaVinci_optfile)
+davinciStep.setValue("optionsLine",opt_davinci)
+davinciStep.setValue("optionsLinePrev","None")
+davinciStep.setValue("extraPackages",extraPackages)
+list2_out=[]
+list2_out.append({"outputDataName":histogramName,"outputDataType":"HIST","outputDataSE":Hist_SE})
+davinciStep.setValue("listoutput",list2_out)
 workflow.addStep(finalization)
 workflow.createStepInstance('Job_Finalization', 'finalization')
+
+#################################################
+#Parameters
+#################################################
 
 workflow.addParameter(Parameter("InputSandbox","LFN:/lhcb/applications/WorkflowLib-"+WorkflowLib_version+".tar.gz","JDL","","",True, False, "WorkflowLib to be used"))
 workflow.addParameter(Parameter("InputData",indata,"JDL","","",True, False, "Application Name"))
