@@ -20,7 +20,7 @@ def getExpressStreamRAW():
     DIRAC.exit(0)
   return lfns
 
-def getRunFiles(runID):
+def getRunRAWFiles(runID):
   res = bkClient.getRunFiles(runID)
   if not res['OK']:
     gLogger.error(res['Message'])
@@ -66,8 +66,11 @@ def getFilesOfInterest(rawDescendants):
   return raw2Reco
 
 bkClient = BookkeepingClient()
-rawLfns = getExpressStreamRAW()
-#rawLfns = getRunFiles(44878)
+if args:
+  runID = int(args[0])
+  rawLfns = getRunRAWFiles(runID)
+else:
+  rawLfns = getExpressStreamRAW()
 gLogger.info("Obtained %s RAW files for consideration." %len(rawLfns))
 rawDescendants = getRAWDescendants(rawLfns)
 raw2Reco = getFilesOfInterest(rawDescendants)
