@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.17 2009/02/27 16:26:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.18 2009/03/05 11:04:19 atsareg Exp $
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.17 2009/02/27 16:26:34 paterson Exp $"
-__VERSION__ = "$Revision: 1.17 $"
+__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.18 2009/03/05 11:04:19 atsareg Exp $"
+__VERSION__ = "$Revision: 1.18 $"
 
 import cmd
 import sys, os
@@ -466,7 +466,6 @@ class ProductionManagerCLI( TransformationDBCLI ):
     if not argss:
       return
     prodID = self.check_id_or_name(argss[0])
-    plugin = argss[1].lower().capitalize()
     self.server.setTransformationPlugin(prodID, plugin)
 
   def do_setProductionParameter(self, args):
