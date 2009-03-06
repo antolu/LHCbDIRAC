@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.2 2009/02/16 17:34:53 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.3 2009/03/06 17:01:34 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.2 $"
+__RCSID__ = "$Revision: 1.3 $"
 
 import re
 
@@ -35,10 +35,10 @@ class ProductionRequestHandler( RequestHandler ):
   def __clientCredentials(self):
     creds = self.getRemoteCredentials()
     group = creds.get('group','(unknown)')
-    if 'DN' in creds:
-      cn = re.search('/CN=([^/]+)',creds['DN'])
-      if cn:
-        return { 'User':cn.group(1), 'Group':group }
+#    if 'DN' in creds:
+#      cn = re.search('/CN=([^/]+)',creds['DN'])
+#      if cn:
+#        return { 'User':cn.group(1), 'Group':group }
     return { 'User':creds.get('username','Anonymous'), 'Group':group }
 
   types_createProductionRequest = [DictType]
@@ -46,9 +46,9 @@ class ProductionRequestHandler( RequestHandler ):
     """ Create production request
     """
     creds = self.__clientCredentials()
-    if not 'MasterID' in requestDict or 'RequestAuthor' in requestDict:
+    if not 'MasterID' in requestDict:
       requestDict['RequestAuthor'] = creds['User']
-    return self.database.createProductionRequest(requestDict)
+    return self.database.createProductionRequest(requestDict,creds)
 
   types_getProductionRequest = [ListType]
   def export_getProductionRequest(self,requestIDList):
@@ -83,11 +83,19 @@ class ProductionRequestHandler( RequestHandler ):
     creds = self.__clientCredentials()
     return self.database.updateProductionRequest(requestID,requestDict,creds)
 
+  types_duplicateProductionRequest = [LongType]
+  def export_duplicateProductionRequest(self,requestID):
+    """ Duplicate production request with subrequests.
+    """
+    creds = self.__clientCredentials()
+    return self.database.duplicateProductionRequest(requestID,creds)
+
   types_deleteProductionRequest = [LongType]
   def export_deleteProductionRequest(self,requestID):
     """ Delete production request specified by requestID
     """
-    return self.database.deleteProductionRequest(requestID)
+    creds = self.__clientCredentials()
+    return self.database.deleteProductionRequest(requestID,creds)
 
   types_getProductionProgressList = [LongType]
   def export_getProductionProgressList(self,requestID):
