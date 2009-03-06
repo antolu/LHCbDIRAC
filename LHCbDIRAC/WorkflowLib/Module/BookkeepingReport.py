@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.31 2009/03/04 18:09:17 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.32 2009/03/06 14:28:29 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.31 2009/03/04 18:09:17 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.32 2009/03/06 14:28:29 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -20,9 +20,9 @@ class BookkeepingReport(ModuleBase):
     self.configVersion = ''
     self.run_number = 0
     self.firstEventNumber = 1
-    self.numberOfEvents = 0
-    self.numberOfEventsInput = 0
-    self.numberOfEventsOutput = 0
+    self.numberOfEvents = ''
+    self.numberOfEventsInput = ''
+    self.numberOfEventsOutput = ''
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
@@ -156,7 +156,7 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("ProgramVersion",self.applicationVersion,'Info')
 
     # DIRAC version
-    s = s+self.__parameter_string('DiracVersion',str(majorVersion)+' '+str(minorVersion)+' '+str(patchLevel),'Info')
+    s = s+self.__parameter_string('DiracVersion','v'+str(majorVersion)+'r'+str(minorVersion)+'p'+str(patchLevel),'Info')
 
     if self.firstEventNumber != None:
       s = s+self.__parameter_string('FirstEventNumber',self.firstEventNumber,"Info")
@@ -186,6 +186,7 @@ class BookkeepingReport(ModuleBase):
     # Output files
     # Define DATA TYPES - ugly! should find another way to do that
 
+    statistics = "0"
 
     if self.eventType != None:
       eventtype = self.eventType
@@ -193,11 +194,13 @@ class BookkeepingReport(ModuleBase):
       self.log.warn( 'BookkeepingReport: no eventType specified' )
       eventtype = 'Unknown'
     self.log.info( 'Event type = %s' % (str(self.eventType)))
-    self.log.info( 'stats = %s' %(self.numberOfEventsOutput))
+    self.log.info( 'stats = %s' %(str(self.numberOfEventsOutput)))
 
-    if self.numberOfEventsOutput != None:
+    if self.numberOfEventsOutput != '':
       statistics = self.numberOfEventsOutput
-    elif self.numberOfEvents != None:
+    elif self.numberOfEventsInput != '':
+      statistics = self.numberOfEventsInput
+    elif self.numberOfEvents != '':
       statistics = self.numberOfEvents
     else:
       self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
