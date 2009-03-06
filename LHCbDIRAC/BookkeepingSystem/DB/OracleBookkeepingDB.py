@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.73 2009/03/05 16:40:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.74 2009/03/06 15:34:49 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.73 2009/03/05 16:40:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.74 2009/03/06 15:34:49 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1290,6 +1290,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def setQualityRun(self, runNb, flag):
+    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion, data_taking_conditions.description, pass_group.groupdescription from \
+          jobs, configurations,data_taking_conditions,productions, pass_group, pass_index \
+         where jobs.configurationid=configurations.configurationid and data_taking_conditions.daqperiodid=productions.simcondid and \
+         productions.passid=pass_index.passid and pass_index.groupid=pass_group.groupid and \
+         jobs.production=productions.production and jobs.runnumber='+str(runNb)
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    value = retVal['Value']
+    if len(value) == 0:
+      return S_ERROR('This '+str(runNb)+' run is missing in the BKK DB!')
     command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
