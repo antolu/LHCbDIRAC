@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.38 2009/03/04 13:27:28 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.39 2009/03/06 14:11:31 joel Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.38 2009/03/04 13:27:28 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.39 2009/03/06 14:11:31 joel Exp $"
 
 import commands, os, time, smtplib, re
 
@@ -31,9 +31,9 @@ class AnalyseLogFile(ModuleBase):
       self.systemConfig = ''
       self.result = S_ERROR()
       self.mailadress = ''
-      self.numberOfEventsInput = 0
-      self.numberOfEventsOutput = 0
-      self.numberOfEvents = 0
+      self.numberOfEventsInput = ''
+      self.numberOfEventsOutput = ''
+      self.numberOfEvents = ''
       self.applicationName = ''
       self.inputData = ''
       self.InputData = ''
