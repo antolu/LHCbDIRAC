@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: FailoverRequest.py,v 1.3 2009/02/08 20:30:39 paterson Exp $
+# $Id: FailoverRequest.py,v 1.4 2009/03/06 14:27:45 paterson Exp $
 ########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job.
 """
 
-__RCSID__ = "$Id: FailoverRequest.py,v 1.3 2009/02/08 20:30:39 paterson Exp $"
+__RCSID__ = "$Id: FailoverRequest.py,v 1.4 2009/03/06 14:27:45 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -84,7 +84,18 @@ class FailoverRequest(ModuleBase):
       self.log.error(result['Message'])
       return result
 
-    fileReportFlag=False
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+      self.log.info('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
+      inputFiles = self.fileReport.getFiles()
+      for lfn in inputFiles:
+        if inputFiles[lfn] != 'ApplicationCrash':
+          self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
+
+    result = self.fileReport.commit()
+    if not result['OK']:
+      self.log.error('Failed to report file status to ProductionDB, request will be generated',result['Message'])
+    else:
+      self.log.info('Status of files have been properly updated in the ProcessingDB')
 
     # Retrieve the accumulated reporting request
     reportRequest = None
@@ -99,7 +110,7 @@ class FailoverRequest(ModuleBase):
       self.request.update(reportRequest)
 
     fileReportRequest = None
-    if self.fileReport and fileReportFlag: #TODO: check fileReportFlag -> always false in JobFinalization.
+    if self.fileReport:
       result = self.fileReport.generateRequest()
       if not result['OK']:
         self.log.warn('Could not generate request for file report with result:\n%s' %(result))
