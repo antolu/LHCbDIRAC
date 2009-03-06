@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.6 2009/03/03 15:10:55 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.7 2009/03/06 14:21:23 zmathe Exp $
 # File :   dirac-bookkeeping-gui.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.6 2009/03/03 15:10:55 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.7 2009/03/06 14:21:23 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget import MainWidget
@@ -24,6 +24,8 @@ class bkk(QApplication):
           for i in range(1,len(args)):
             arg = args[i]
             opts = arg.split('=')
+            if len(opts) == 1:
+              fileName=opts[0]
             if opts[0]=='txt':
               fileName = opts[1]
             elif opts[0] == 'ds':
