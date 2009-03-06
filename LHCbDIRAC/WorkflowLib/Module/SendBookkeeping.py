@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SendBookkeeping.py,v 1.4 2009/03/06 14:13:38 paterson Exp $
+# $Id: SendBookkeeping.py,v 1.5 2009/03/06 14:26:16 paterson Exp $
 ########################################################################
 """ This module uploads the BK records prior to performing the transfer
     and registration (BK,LFC) operations using the preprepared BK XML
@@ -7,7 +7,7 @@
     no application crashes have been observed.
 """
 
-__RCSID__ = "$Id: SendBookkeeping.py,v 1.4 2009/03/06 14:13:38 paterson Exp $"
+__RCSID__ = "$Id: SendBookkeeping.py,v 1.5 2009/03/06 14:26:16 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -31,7 +31,6 @@ class SendBookkeeping(ModuleBase):
     #Workflow parameters
     self.request = None
     #Globals
-    self.fileReport = None
     self.bk = BookkeepingClient()
 
   #############################################################################
@@ -60,9 +59,6 @@ class SendBookkeeping(ModuleBase):
       self.log.info('No WMS JobID found, disabling module via control flag')
       self.enable=False
 
-    if self.workflow_commons.has_key('FileReport'):
-      self.fileReport = self.workflow_commons['FileReport']
-
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
     else:
@@ -85,23 +81,8 @@ class SendBookkeeping(ModuleBase):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
-      inputFiles = self.fileReport.getFiles()
-      for lfn in inputFiles:
-        if inputFiles[lfn] != 'ApplicationCrash':
-          self.fileReport.setFileStatus(int(self.PRODUCTION_ID),lfn,'Unused')
-      result = self.fileReport.commit()
-      if not result['OK']:
-        self.log.error('Failed to report file status to ProductionDB',result['Message'])
-      self.workflow_commons['FileReport'] = self.fileReport
-
       self.log.info('Job completed with errors, no bookkeeping records will be sent')
       return S_OK('Job completed with errors')
-
-    result = self.fileReport.commit()
-    if not result['OK']:
-      self.log.error('Failed to report file status to ProductionDB, request will be generated',result['Message'])
-    else:
-      self.log.info('Status of files have been properly updated in the ProcessingDB')
 
     bkFileExtensions = ['bookkeeping*.xml']
     bkFiles=[]
