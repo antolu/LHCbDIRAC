@@ -1,13 +1,14 @@
-$Id: release.notes,v 1.14 2009/03/09 13:01:20 paterson Exp $
+$Id: release.notes,v 1.15 2009/03/09 16:59:04 paterson Exp $
 
 =========
-wkf-v9r4, wkf-v9r5 : SKP : 9 March 2009
+wkf-v9r4, wkf-v9r5, wkf-v9r6 : SKP : 9 March 2009
 Updates to the following modules to properly treat monitoring histograms:
  - BookkeepingReport.py
  - UploadOutputData.py
 Reshuffled treatment of fileReport object, minor changes to:
  - SendBookkeeping.py
  - FailoverRequest.py
+Testing required iterations.
 
 =========
 wkf-v9r3 : SKP : 4 March 2009
