@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: FailoverRequest.py,v 1.4 2009/03/06 14:27:45 paterson Exp $
+# $Id: FailoverRequest.py,v 1.5 2009/03/09 13:00:14 paterson Exp $
 ########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job.
 """
 
-__RCSID__ = "$Id: FailoverRequest.py,v 1.4 2009/03/06 14:27:45 paterson Exp $"
+__RCSID__ = "$Id: FailoverRequest.py,v 1.5 2009/03/09 13:00:14 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -30,6 +30,7 @@ class FailoverRequest(ModuleBase):
     self.jobReport  = None
     self.fileReport = None
     self.request = None
+    self.inputData = []
 
   #############################################################################
   def resolveInputVariables(self):
@@ -58,6 +59,10 @@ class FailoverRequest(ModuleBase):
     if self.workflow_commons.has_key('FileReport'):
       self.fileReport = self.workflow_commons['FileReport']
 
+    if self.workflow_commons.has_key('InputData'):
+      self.inputData = self.workflow_commons['InputData']
+      self.inputData = [i.replace('LFN:','') for i in self.inputData]
+
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
     else:
@@ -84,12 +89,24 @@ class FailoverRequest(ModuleBase):
       self.log.error(result['Message'])
       return result
 
+    if self.inputData:
+      inputFiles = self.fileReport.getFiles()
+      for lfn in self.inputData:
+        if not lfn in inputFiles:
+          self.log.verbose('No status populated for input data %s, setting to "Unused"')
+          result = self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
+
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
       inputFiles = self.fileReport.getFiles()
       for lfn in inputFiles:
         if inputFiles[lfn] != 'ApplicationCrash':
           self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
+    else:
+      self.log.verbose('Workflow status ok, setting input file status to processed')
+      inputFiles = self.fileReport.getFiles()
+      for lfn in inputFiles:
+        self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')
 
     result = self.fileReport.commit()
     if not result['OK']:
