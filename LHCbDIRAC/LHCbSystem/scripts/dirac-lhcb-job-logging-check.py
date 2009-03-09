@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.4 2009/03/09 18:07:21 gcowan Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.5 2009/03/09 18:29:45 gcowan Exp $
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.4 2009/03/09 18:07:21 gcowan Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.5 2009/03/09 18:29:45 gcowan Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -72,13 +72,13 @@ def getLogging( jobID):
     try:
       for status in result['Value']:
         if ( status[0] == 'Running' ) and ('error' in status[2].lower() or \
-             'not found' in status[2].lower()):# or \
-             #'exited' in status[2].lower()):
+             'not found' in status[2].lower() or \
+             'exited with status' in status[2].lower()):
           failed_time = status[3]
           return failed_time, status[2]
         elif ( status[0] == 'Completed' ) and ('error' in status[1].lower() or \
-             'not found' in status[1].lower()):# or \
-             #'exited' in status[1].lower()):
+             'not found' in status[1].lower() or \
+             'exited with status' in status[1].lower()):
           failed_time = status[3]
           return failed_time, status[1]
     except:
@@ -189,14 +189,14 @@ print '##################################'
 print '# Error-Node summary information #'
 print '##################################'
 for error, nodes in error2Nodes.iteritems():
-  print error, 'occurred on', len(nodes), 'nodes, of which', len(set(nodes)), 'were unique'
+  print error, '\toccurred on', len(nodes), 'nodes, of which', len(set(nodes)), 'were unique'
 
 print
 print '##################################'
 print '# Error-User summary information #'
 print '##################################'
 for error, users in error2Users.iteritems():
-  print error, 'occurred for', len(users), 'users, of which', len(set(users)), 'were unique'
+  print error, '\toccurred for', len(users), 'users, of which', len(set(users)), 'were unique'
 
 
 print
@@ -204,14 +204,14 @@ print '###################################'
 print '# Node-Error summary information  #'
 print '###################################'
 for node, errors in node2Errors.iteritems():
-  print node, 'had', len(errors), 'errors, of which', len(set(errors)), 'were unique'
+  print node, '\thad', len(errors), 'errors, of which', len(set(errors)), 'were unique'
 
 print
 print '###################################'
 print '# User-Error summary information  #'
 print '###################################'
 for user, errors in user2Errors.iteritems():
-  print user, 'had', len(errors), 'errors, of which', len(set(errors)), 'were unique'
+  print user, '\t\thad', len(errors), 'errors, of which', len(set(errors)), 'were unique'
 
 n = len(efficiencies)
 if n != 0:
