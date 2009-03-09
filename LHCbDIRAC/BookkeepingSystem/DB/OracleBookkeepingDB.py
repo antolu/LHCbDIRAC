@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.74 2009/03/06 15:34:49 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.75 2009/03/09 19:19:24 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.74 2009/03/06 15:34:49 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.75 2009/03/09 19:19:24 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1832,8 +1832,37 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         records = res['Value']  
         for record in records:
-          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11]}
+          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'PhysicStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12]}
           result[file]= row
+    return S_OK(result)
+  
+  #############################################################################
+  def getFilesInformations(self,lfns):
+    result = {}
+    res = self.getFileMetadata(lfns)
+    if not res['OK']:
+      result = res
+    else:
+      records = res['Value']  
+      print records
+      for file in records:
+        value = records[file]
+        command = 'select jobs.runnumber,jobs.fillnumber, configurations.configname,configurations.configversion from jobs,configurations where configurations.configurationid= jobs.configurationid and jobs.jobid='+str(value['JobId'])
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          result[file]= res['Message']
+        else:
+            info = res['Value']
+            if len(info)!=0:
+              row = {'RunNumber':info[0][0],'FillNumber':info[0][1],'ConfigName':info[0][2],'ConfigVersion':info[0][3]}
+              value.pop('ADLER32')
+              value.pop('GUID')
+              value.pop('MD5SUM')
+              value.pop('JobId')
+              row.update(value)
+              result[file]= row
+            else:
+              result[file]= {}
     return S_OK(result)
   
   #############################################################################

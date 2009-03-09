@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.81 2009/03/05 16:40:45 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.82 2009/03/09 19:19:24 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.81 2009/03/05 16:40:45 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.82 2009/03/09 19:19:24 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -559,6 +559,11 @@ class BookkeepingClient:
   def getFileMetadata(self, lfns):
     server = self.__getServer()
     return server.getFileMetadata(lfns)
+
+  #############################################################################
+  def getFilesInformations(self,lfns):
+    server = self.__getServer()
+    return server.getFilesInformations(lfns)
 
   #############################################################################
   def exists(self, lfns):

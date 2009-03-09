@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.40 2009/03/05 16:40:45 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.41 2009/03/09 19:19:24 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.40 2009/03/05 16:40:45 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.41 2009/03/09 19:19:24 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -27,6 +27,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def fileTypeAndFileTypeVersion(self, type, version):
     return self.getManager().fileTypeAndFileTypeVersion(type, version)
+  
+  #############################################################################
+  def getFilesInformations(self,lfns):
+    return self.getManager().getFilesInformations(lfns)
   
   #############################################################################
   def eventType(self, eventTypeId):
