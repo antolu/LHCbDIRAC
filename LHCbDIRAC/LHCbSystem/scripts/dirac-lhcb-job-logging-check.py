@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.3 2008/12/17 16:55:31 gcowan Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.4 2009/03/09 18:07:21 gcowan Exp $
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.3 2008/12/17 16:55:31 gcowan Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.4 2009/03/09 18:07:21 gcowan Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -23,6 +23,7 @@ Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 
 args = Script.getPositionalArgs()
 
@@ -57,23 +58,27 @@ def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, da
   else:
     # create list of jobIDs in this state belonging to this production
     jobIDs = result_wms['Value']
-
+    
   return jobIDs
+
+def getAttributes( jobID):
+  result = dirac.attributes( jobID, printOutput=False)
+  if result['OK']:
+    return result['Value']['Owner']
 
 def getLogging( jobID):
   result = dirac.loggingInfo(jobID,printOutput=False)
-  
   if result['OK']:
     try:
       for status in result['Value']:
         if ( status[0] == 'Running' ) and ('error' in status[2].lower() or \
-             'found' in status[2].lower() or \
-             'exited' in status[2].lower()):
+             'not found' in status[2].lower()):# or \
+             #'exited' in status[2].lower()):
           failed_time = status[3]
           return failed_time, status[2]
         elif ( status[0] == 'Completed' ) and ('error' in status[1].lower() or \
-             'found' in status[1].lower() or \
-             'exited' in status[1].lower()):
+             'not found' in status[1].lower()):# or \
+             #'exited' in status[1].lower()):
           failed_time = status[3]
           return failed_time, status[1]
     except:
@@ -123,13 +128,30 @@ if not date:
 
 dirac = Dirac()
 
+print '''* This script collates information about job error messages.
+* The following job IDs meet the criteria specified on the command line.
+* If the jobs failed at the pilot stage (i.e.,failure to download an
+input sandbox or issues with LFN resolution) then there will be no job
+logging information available to summarise.
+'''
+
 jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac)
 error2Nodes = {}
 node2Errors = {}
+error2Users = {}
+user2Errors = {}
 efficiencies = []
+
+print 'Number of jobs that pass the above criteria: %d' % len(jobIDs)
+
 for jobID in jobIDs:
+  print jobID
   node, eff, memory = getParameters( int(jobID))
   logging = getLogging( int(jobID))
+  user = getAttributes( int(jobID))
+  
+  if not logging:
+    continue
 
   if eff:
     efficiencies.append( eff)
@@ -142,30 +164,64 @@ for jobID in jobIDs:
       error2Nodes[ logging[1] ] = [ node ] 
 
     if node2Errors.has_key( node):
-      node2Errors[ node ].append( node)
+      node2Errors[ node ].append( logging[1])
     else:
       node2Errors[ node ] = [ logging[1]]  
+
+    if error2Users.has_key( logging[1] ):
+      error2Users[ logging[1] ].append( user)
+    else:
+      error2Users[ logging[1] ] = [ user ] 
+
+    if user2Errors.has_key( user):
+      user2Errors[ user ].append( logging[1])
+    else:
+      user2Errors[ user ] = [ logging[1]]  
 
     if verbose:
       print jobID, node, logging[0], logging[1], eff, memory
   except Exception, e:
     print e
 
-print '\nError summary information\n'
+
+print
+print '##################################'
+print '# Error-Node summary information #'
+print '##################################'
 for error, nodes in error2Nodes.iteritems():
   print error, 'occurred on', len(nodes), 'nodes, of which', len(set(nodes)), 'were unique'
 
-print '\nNode summary information\n'
+print
+print '##################################'
+print '# Error-User summary information #'
+print '##################################'
+for error, users in error2Users.iteritems():
+  print error, 'occurred for', len(users), 'users, of which', len(set(users)), 'were unique'
+
+
+print
+print '###################################'
+print '# Node-Error summary information  #'
+print '###################################'
 for node, errors in node2Errors.iteritems():
   print node, 'had', len(errors), 'errors, of which', len(set(errors)), 'were unique'
 
-average = sum( efficiencies)/len( efficiencies)
-tmp = 0.0
-for eff in efficiencies:
-  tmp += (eff - average)**2
-stddev = ( tmp/ len(efficiencies))**0.5
+print
+print '###################################'
+print '# User-Error summary information  #'
+print '###################################'
+for user, errors in user2Errors.iteritems():
+  print user, 'had', len(errors), 'errors, of which', len(set(errors)), 'were unique'
 
-print '\nAverage CPU efficiency is %0.2f' % average
-print 'Standard Deviation of CPU efficiency is %0.2f' % stddev
+n = len(efficiencies)
+if n != 0:
+  average = sum( efficiencies)/len( efficiencies)
+  tmp = 0.0
+  for eff in efficiencies:
+    tmp += (eff - average)**2
+  stddev = ( tmp/ len(efficiencies))**0.5
+
+  print '\nAverage CPU efficiency is %0.2f' % average
+  print 'Standard Deviation of CPU efficiency is %0.2f' % stddev
 
 DIRAC.exit( 0 )
