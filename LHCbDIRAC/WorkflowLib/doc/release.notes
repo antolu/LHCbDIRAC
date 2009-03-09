@@ -1,7 +1,7 @@
-$Id: release.notes,v 1.13 2009/03/09 08:49:21 paterson Exp $
+$Id: release.notes,v 1.14 2009/03/09 13:01:20 paterson Exp $
 
 =========
-wkf-v9r4 : SKP : 9 March 2009
+wkf-v9r4, wkf-v9r5 : SKP : 9 March 2009
 Updates to the following modules to properly treat monitoring histograms:
  - BookkeepingReport.py
  - UploadOutputData.py
