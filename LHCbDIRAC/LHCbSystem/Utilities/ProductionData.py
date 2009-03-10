@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.1 2009/02/05 17:06:48 paterson Exp $
+# $Id: ProductionData.py,v 1.2 2009/03/10 21:17:40 paterson Exp $
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.1 2009/02/05 17:06:48 paterson Exp $"
+__RCSID__ = "$Id: ProductionData.py,v 1.2 2009/03/10 21:17:40 paterson Exp $"
 
 import string
 
@@ -42,13 +42,21 @@ def constructProductionLFNs(paramDict):
   fileTupleList = []
   gLogger.verbose('WFMode = %s, WFConfigVersion = %s, WFMask = %s, WFType=%s' %(wfMode,wfConfigVersion,wfMask,wfType))
   for info in outputList:
-    fileTupleList.append((info['outputDataName'],info['outputDataType']))
+    #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
+    fileName = info['outputDataName'].split('_')
+    if not fileName[0]==str(productionID).zfill(8):
+      fileName[0]=str(productionID).zfill(8)
+    if not fileName[1]==str(productionID).zfill(8):
+      fileName[1]=str(jobID).zfill(8)
+    fileTupleList.append((string.join(fileName,'_'),info['outputDataType']))
 
   lfnRoot = ''
+  debugRoot = ''
   if inputData:
     lfnRoot = getLFNRoot(inputData,wfType)
   else:
     lfnRoot = getLFNRoot('',wfType,wfConfigVersion)
+    debugRoot= getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
 
   if not lfnRoot:
     return S_ERROR('LFN root could not be constructed')
@@ -56,10 +64,13 @@ def constructProductionLFNs(paramDict):
   #Get all LFN(s) to both output data and BK lists at this point (fine for BK)
   outputData = []
   bkLFNs = []
+  debugLFNs = []
   for fileTuple in fileTupleList:
     lfn = makeProductionLfn(str(jobID).zfill(8),lfnRoot,fileTuple,wfMode,str(productionID).zfill(8))
     outputData.append(lfn)
     bkLFNs.append(lfn)
+    if debugRoot:
+      debugLFNs.append(makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfMode,str(productionID).zfill(8)))
 
   #Get log file path - unique for all modules
   logPath = makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
@@ -87,12 +98,32 @@ def constructProductionLFNs(paramDict):
     gLogger.info('No output data LFN(s) constructed')
   else:
     gLogger.verbose('Created the following output data LFN(s):\n%s' %(string.join(outputData,'\n')))
-  gLogger.verbose('Log file path is:\n%s' %logFilePath)
-  gLogger.verbose('Log target path is:\n%s' %logTargetPath)
+  gLogger.verbose('Log file path is:\n%s' %logFilePath[0])
+  gLogger.verbose('Log target path is:\n%s' %logTargetPath[0])
   if bkLFNs:
     gLogger.verbose('BookkeepingLFN(s) are:\n%s' %(string.join(bkLFNs,'\n')))
-  jobOutputs = {'ProductionOutputData':outputData,'LogFilePath':logFilePath,'LogTargetPath':logTargetPath,'BookkeepingLFNs':bkLFNs}
+  if debugLFNs:
+    gLogger.verbose('DebugLFN(s) are:\n%s' %(string.join(debugLFNs,'\n')))
+  jobOutputs = {'ProductionOutputData':outputData,'LogFilePath':logFilePath,'LogTargetPath':logTargetPath,'BookkeepingLFNs':bkLFNs,'DebugLFNs':debugLFNs}
   return S_OK(jobOutputs)
+
+#############################################################################
+def constructDebugLFNs(paramDict,fileList):
+  """ Construct LFNs for upload to the DEBUG SE.
+  """
+  paramDict['JobType']='debug' #apparently
+  paramDict['outputDataFileMask']=''
+  result = constructProductionLFNs(paramDict)
+  if not result['OK']:
+    return result
+
+  fileDict = {}
+  for lfn in result['ProductionOutputData']:
+    for f in fileList:
+      if os.path.basename(lfn)==f:
+        fileDict[f]=lfn
+
+  return S_OK(fileDict)
 
 #############################################################################
 def getLogPath(paramDict):
