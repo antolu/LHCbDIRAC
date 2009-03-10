@@ -1,17 +1,23 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.39 2009/03/06 14:11:31 joel Exp $
+# $Id: AnalyseLogFile.py,v 1.40 2009/03/10 23:43:42 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.39 2009/03/06 14:11:31 joel Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.40 2009/03/10 23:43:42 paterson Exp $"
 
-import commands, os, time, smtplib, re
+import commands, os, time, smtplib, re, string
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
+
 try:
   from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 except Exception,x:
   from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
+
+try:
+  from LHCbSystem.Utilities.ProductionData  import getLogPath
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath
 
 #from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -45,9 +51,33 @@ class AnalyseLogFile(ModuleBase):
       self.poolXMLCatName = 'pool_xml_catalog.xml'
       self.applicationLog = ''
       self.applicationVersion = ''
+      self.logFilePath = ''
+
+  def resolveInputVariables(self):
+    """ By convention any workflow parameters are resolved here.
+    """
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
+    #Use LHCb utility for local running via jobexec
+    if self.workflow_commons.has_key('LogFilePath'):
+      self.logFilePath = self.workflow_commons['LogFilePath']
+    else:
+      self.log.info('LogFilePath parameter not found, creating on the fly')
+      result = getLogPath(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create LogFilePath',result['Message'])
+        return result
+      self.logFilePath=result['Value']['LogFilePath'][0]
+
+    return S_OK()
 
   def execute(self):
       self.log.info('Initializing '+self.version)
+      result = self.resolveInputVariables()
+      if not result['OK']:
+        self.log.error(result['Message'])
+        return result
+
       if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
         if self.stepStatus.has_key('Message'):
           if not self.stepStatus['Message'] == 'Application not found':
@@ -64,7 +94,6 @@ class AnalyseLogFile(ModuleBase):
       self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
       self.site = gConfig.getValue('/LocalSite/Site','Site')
       self.notify = NotificationClient()
-
 
       if self.step_commons.has_key('inputData'):
          self.inputData = self.step_commons['inputData']
@@ -488,10 +517,21 @@ class AnalyseLogFile(ModuleBase):
     msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
     if self.inputData:
       msg = msg + '\n\nInput Data:\n'
+      result = constructProductionLFNs(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        return result
+
+      debugLFNs = result['Value']['DebugLFNs']
       for inputname in self.inputData.split(';'):
         if not self.InputData:
-          lfninputroot = getLFNRoot('','debug',configVersion)
-          lfninput = makeProductionLfn(self.JOB_ID,lfninputroot,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+          lfninput = ''
+          for lfn in debugLFNs:
+            if os.path.basename(lfn)==inputname:
+              lfninput = lfn
+          if not lfninput:
+            return S_ERROR('Could not construct LFN for %s' %inputname)
+
           guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
           result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput)
           if not result['OK']:
@@ -501,24 +541,17 @@ class AnalyseLogFile(ModuleBase):
         else:
           msg = msg +inputname+'\n'
 
-
-    if self.InputData:
-      self.LFN_ROOT= getLFNRoot(self.InputData,configName)
-    else:
-      self.LFN_ROOT=getLFNRoot(self.InputData,configName,configVersion)
-    logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,'LOG',self.mode,self.PRODUCTION_ID,log=True)
-
     if self.applicationLog:
       logse = gConfig.getOptions('/Resources/StorageElements/LogSE')
-      logurl = 'http://lhcb-logs.cern.ch/storage'+logpath
+      logurl = 'http://lhcb-logs.cern.ch/storage'+self.logFilePath
       msg = msg + '\n\nLog Files directory for the job:\n'
-      msg = msg+logurl+'/'+ self.JOB_ID+'/\n'
+      msg = msg+logurl+'/\n'
       msg = msg +'\n\nLog File for the problematic step:\n'
-      msg = msg+logurl+'/'+ self.JOB_ID+'/'+ self.applicationLog+'\n'
+      msg = msg+logurl+'/'+ self.applicationLog+'\n'
       msg = msg + '\n\nJob StdOut:\n'
-      msg = msg+logurl+'/'+ self.JOB_ID+'/std.out\n'
+      msg = msg+logurl+'/std.out\n'
       msg = msg +'\n\nJob StdErr:\n'
-      msg = msg+logurl+'/'+ self.JOB_ID+'/std.err\n'
+      msg = msg+logurl+'/std.err\n'
 
     if os.path.exists('corecomm.log'):
       fd = open('corecomm.log')

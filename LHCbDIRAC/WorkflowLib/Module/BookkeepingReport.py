@@ -1,16 +1,21 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.32 2009/03/06 14:28:29 joel Exp $
+# $Id: BookkeepingReport.py,v 1.33 2009/03/10 23:43:52 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.32 2009/03/06 14:28:29 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.33 2009/03/10 23:43:52 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
 from WorkflowLib.Module.ModuleBase import ModuleBase
 from DIRAC import  *
 
-import os, time, re
+try:
+  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+
+import os, time, re, string
 
 class BookkeepingReport(ModuleBase):
 
@@ -69,10 +74,35 @@ class BookkeepingReport(ModuleBase):
     if self.step_commons.has_key('listoutput'):
        self.listoutput = self.step_commons['listoutput']
 
+    if self.workflow_commons.has_key('outputList'):
+        self.workflow_commons['outputList'] = self.workflow_commons['outputList'] + self.listoutput
+    else:
+        self.workflow_commons['outputList'] = self.listoutput
+
     if self.step_commons.has_key('applicationName'):
        self.applicationName = self.step_commons['applicationName']
        self.applicationVersion = self.step_commons['applicationVersion']
        self.applicationLog = self.step_commons['applicationLog']
+
+    if self.workflow_commons.has_key('BookkeepingLFNs') and self.workflow_commons.has_key('LogFilePath') and self.workflow_commons.has_key('ProductionOutputData'):
+      self.logFilePath = self.workflow_commons['LogFilePath']
+      self.bkLFNs = self.workflow_commons['BookkeepingLFNs']
+      if not type(self.bkLFNs)==type([]):
+        self.bkLFNs = [i.strip() for i in self.bkLFNs.split(';')]
+      self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
+      if not type(self.prodOutputLFNs)==type([]):
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split(';')]
+    else:
+      self.log.info('LogFilePath / BookkeepingLFNs parameters not found, creating on the fly')
+      result = constructProductionLFNs(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        return result
+      self.bkLFNs=result['Value']['BookkeepingLFNs']
+      self.logFilePath=result['Value']['LogFilePath'][0]
+      self.prodOutputLFNs=result['Value']['ProductionOutputData']
+
+    return S_OK()
 
 
   def execute(self):
@@ -83,17 +113,16 @@ class BookkeepingReport(ModuleBase):
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
 
-    self.resolveInputVariables()
+    result = self.resolveInputVariables()
+    if not result['OK']:
+      self.log.error(result['Message'])
+      return result
+
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
     bfile = open(bfilename,'w')
     print >> bfile,self.makeBookkeepingXMLString()
     bfile.close()
-
-    if self.workflow_commons.has_key('outputList'):
-        self.workflow_commons['outputList'] = self.workflow_commons['outputList'] + self.listoutput
-    else:
-        self.workflow_commons['outputList'] = self.listoutput
 
     return S_OK()
 
@@ -171,14 +200,14 @@ class BookkeepingReport(ModuleBase):
     else:
       s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
-    if self.InputData:
-      self.LFN_ROOT= getLFNRoot(self.InputData,configName)
-    else:
-      self.LFN_ROOT=getLFNRoot(self.InputData,configName,configVersion)
-
     if self.inputData:
       for inputname in self.inputData.split(';'):
-        lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(inputname,self.inputDataType,''),job_mode,self.PRODUCTION_ID)
+        lfn = ''
+        for bkLFN in self.bkLFNs:
+          if os.path.basename(bkLFN)==inputname:
+            lfn = bkLFN
+        if not lfn:
+          return S_ERROR('Could not construct LFN for %s' %inputname)
         s = s+'  <InputFile    Name="'+lfn+'"/>\n'
 
 
@@ -217,6 +246,7 @@ class BookkeepingReport(ModuleBase):
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
     self.log.info(outputs)
     for output,outputse,outputtype in outputs:
+      self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
       typeName = outputtype.upper()
       typeVersion = '1'
 
@@ -245,8 +275,16 @@ class BookkeepingReport(ModuleBase):
         else:
           guid = makeGuid()
 
-      # build the lfn
-      lfn = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode, self.PRODUCTION_ID)
+      # find the constructed lfn
+      lfn = ''
+      if not re.search('.log$',output):
+        for outputLFN in self.prodOutputLFNs:
+          if os.path.basename(outputLFN)==output:
+            lfn=outputLFN
+        if not lfn:
+          return S_ERROR('Could not find LFN for %s' %output)
+      else:
+        lfn = '%s/%s' %(self.logFilePath,self.applicationLog)
 
       #Fix for histograms
       oldTypeName=None
@@ -273,11 +311,8 @@ class BookkeepingReport(ModuleBase):
       if self.applicationLog != None:
           logfile = self.applicationLog
           if logfile == output:
-#            logpath = makeProductionLfn(self.JOB_ID,self.LFN_ROOT,(output,typeName,typeVersion),job_mode,self.PRODUCTION_ID)
-            logpath = makeProductionPath(self.JOB_ID,self.LFN_ROOT,typeName,job_mode,self.PRODUCTION_ID,log=True)
             logurl = 'http://lhcb-logs.cern.ch/storage'
-
-            url = logurl+logpath+'/'+self.JOB_ID+'/'
+            url = logurl+self.logFilePath+'/'+self.applicationLog
             s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
 
       s = s+'    <Parameter  Name="MD5Sum"        Value="'+md5sum+'"/>\n'
