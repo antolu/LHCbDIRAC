@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.8 2009/02/11 15:15:44 paterson Exp $
+# $Id: UploadLogFile.py,v 1.9 2009/03/10 14:14:58 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.8 2009/02/11 15:15:44 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.9 2009/03/10 14:14:58 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -190,12 +190,17 @@ class UploadLogFile(ModuleBase):
     tarFileDir = os.path.dirname(self.logdir)
     self.logLFNPath = '%s.gz' %self.logLFNPath
     tarFileName = os.path.basename(self.logLFNPath)
-    comm = 'tar czvf %s %s' % (tarFileName,self.logdir)
+    start = os.getcwd()
+    os.chdir(self.logdir)
+    logTarFiles = os.listdir(self.logdir)
+    comm = 'tar czvf %s %s' % (tarFileName,string.join(logTarFiles,' '))
     res = shellCall(0,comm)
+    os.chdir(start)
     if not res['OK']:
       self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Message']))
       self.setApplicationStatus('Failed To Create Log Tar Dir')
       return S_OK()
+
     ############################################################
     logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
     self.setJobParameter('Log URL',logURL)
