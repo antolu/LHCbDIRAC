@@ -1,13 +1,13 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.2 2009/03/10 21:17:40 paterson Exp $
+# $Id: ProductionData.py,v 1.3 2009/03/10 21:47:41 paterson Exp $
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.2 2009/03/10 21:17:40 paterson Exp $"
+__RCSID__ = "$Id: ProductionData.py,v 1.3 2009/03/10 21:47:41 paterson Exp $"
 
-import string
+import string,re
 
 #Until the workflow_commons and this utility (for local running) is used by all modules we have
 #to retain this dependency on the wokflow library here.
@@ -44,10 +44,13 @@ def constructProductionLFNs(paramDict):
   for info in outputList:
     #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
     fileName = info['outputDataName'].split('_')
-    if not fileName[0]==str(productionID).zfill(8):
-      fileName[0]=str(productionID).zfill(8)
-    if not fileName[1]==str(productionID).zfill(8):
-      fileName[1]=str(jobID).zfill(8)
+    index=0
+    if not re.search('\d',fileName[index]):
+      index+=1
+    if not fileName[index]==str(productionID).zfill(8):
+      fileName[index]=str(productionID).zfill(8)
+    if not fileName[index+1]==str(productionID).zfill(8):
+      fileName[index+1]=str(jobID).zfill(8)
     fileTupleList.append((string.join(fileName,'_'),info['outputDataType']))
 
   lfnRoot = ''
@@ -88,9 +91,7 @@ def constructProductionLFNs(paramDict):
         if re.search('.%s$' %i,od):
           newOutputData.append(od)
     for bk in bkLFNs:
-      for i in wfMask:
-        if re.search('.%s$' %i,bk):
-          newBKLFNs.append(bk)
+      newBKLFNs.append(bk)
     outputData = newOutputData
     bkLFNs = newBKLFNs
 
