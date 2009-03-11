@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.10 2009/02/04 10:15:54 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.11 2009/03/11 11:21:25 paterson Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.10 2009/02/04 10:15:54 atsareg Exp $'
-set __VERSION__='$Revision: 1.10 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.11 2009/03/11 11:21:25 paterson Exp $'
+set __VERSION__='$Revision: 1.11 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -70,7 +70,7 @@ endif
 
 setenv DIRACPLAT `$DIRACROOT/scripts/platform.py`
 setenv PATH $DIRACROOT/$DIRACPLAT/bin:$DIRACROOT/scripts:$PATH
-
+setenv DIRACPYTHON `which python`
 echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin
 if $status == 1 then
   echo "You aren't allowed in the DIRAC $group group!"
