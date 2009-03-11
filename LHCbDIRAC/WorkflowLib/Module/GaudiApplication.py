@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.104 2009/03/04 13:53:58 paterson Exp $
+# $Id: GaudiApplication.py,v 1.105 2009/03/11 11:55:58 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.104 2009/03/04 13:53:58 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.105 2009/03/11 11:55:58 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -22,6 +22,7 @@ class GaudiApplication(ModuleBase):
 
   #############################################################################
   def __init__(self):
+    ModuleBase.__init__(self)
     self.enable = True
     self.STEP_NUMBER = ''
     self.version = __RCSID__
