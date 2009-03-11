@@ -1,4 +1,14 @@
-$Id: release.notes,v 1.15 2009/03/09 16:59:04 paterson Exp $
+$Id: release.notes,v 1.16 2009/03/11 17:42:01 paterson Exp $
+
+
+=========
+wkf-v9r7 : SKP : 11 March 2009
+- Added initialization to ModuleBase for printing proxy information, should help to
+  debug data management operations and other failures without going to the pilot stdout
+- Updated modules to initialize ModuleBase
+- AnalyseLogFile and BKReport were updated to use JDL parameters for LFN structures
+  or create on the fly if not available using the LHCbSystem ProductionData utility
+- UploadLogFile failover LFN structure updated to new convention
 
 =========
 wkf-v9r4, wkf-v9r5, wkf-v9r6 : SKP : 9 March 2009
