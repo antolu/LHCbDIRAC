@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.3 2009/03/10 21:47:41 paterson Exp $
+# $Id: ProductionData.py,v 1.4 2009/03/11 12:08:55 paterson Exp $
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.3 2009/03/10 21:47:41 paterson Exp $"
+__RCSID__ = "$Id: ProductionData.py,v 1.4 2009/03/11 12:08:55 paterson Exp $"
 
 import string,re
 
@@ -49,7 +49,7 @@ def constructProductionLFNs(paramDict):
       index+=1
     if not fileName[index]==str(productionID).zfill(8):
       fileName[index]=str(productionID).zfill(8)
-    if not fileName[index+1]==str(productionID).zfill(8):
+    if not fileName[index+1]==str(jobID).zfill(8):
       fileName[index+1]=str(jobID).zfill(8)
     fileTupleList.append((string.join(fileName,'_'),info['outputDataType']))
 
