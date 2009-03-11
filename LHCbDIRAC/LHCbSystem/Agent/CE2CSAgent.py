@@ -42,8 +42,6 @@ class CE2CSAgent(Agent):
     if not self.proxyLocation:
       self.proxyLocation = False
 
-    self.csAPI = CSAPI()      
-
     return S_OK()
 
   def execute(self):
@@ -55,6 +53,7 @@ class CE2CSAgent(Agent):
       if not result[ 'OK' ]:
         self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
         return result
+    self.csAPI = CSAPI()      
 
     self._lookForCE()
     self._infoFromCE()
