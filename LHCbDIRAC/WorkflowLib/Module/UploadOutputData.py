@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.10 2009/03/04 18:14:41 paterson Exp $
+# $Id: UploadOutputData.py,v 1.11 2009/03/11 11:42:03 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.10 2009/03/04 18:14:41 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.11 2009/03/11 11:42:03 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -29,6 +29,7 @@ class UploadOutputData(ModuleBase):
   def __init__(self):
     """Module initialization.
     """
+    ModuleBase.__init__(self)
     self.version = __RCSID__
     self.log = gLogger.getSubLogger( "UploadOutputData" )
     self.commandTimeOut = 10*60
