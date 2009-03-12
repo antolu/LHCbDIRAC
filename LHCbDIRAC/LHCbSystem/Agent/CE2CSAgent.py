@@ -49,10 +49,12 @@ class CE2CSAgent(Agent):
     gLogger.info("Executing %s"%(self.name))
 
     if self.useProxies:
-      result = setupShifterProxyInEnv( "CSManager", self.proxyLocation )
+      result = setupShifterProxyInEnv( "SAMManager", self.proxyLocation )
       if not result[ 'OK' ]:
         self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
         return result
+    os.system('dirac-proxy-info')
+    
     self.csAPI = CSAPI()      
 
     self._lookForCE()
@@ -96,8 +98,8 @@ class CE2CSAgent(Agent):
         newces[cename] = None
         gLogger.debug("newce",cename)
 
-    body = "We are glade to inform You about new CE(s) possibly suitable for LHCb:\n"    
-
+    body = ""
+    
     for ce in newces.iterkeys():
       response = ldapCluster(ce)
       if not response['OK']:
@@ -163,6 +165,7 @@ class CE2CSAgent(Agent):
       if usefull:
         body += newcestring
     if body:
+      body = "We are glade to inform You about new CE(s) possibly suitable for LHCb:\n" + body
       body += "\n\nTo suppress information about CE add its name to %s/BannedCEs list."%self.section
       gLogger.info(body)
       notification = NotificationClient()
