@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.82 2009/03/09 19:19:24 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.83 2009/03/12 08:32:34 zmathe Exp $
 ########################################################################
 
 """
@@ -15,7 +15,7 @@ import types,cPickle,os
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.82 2009/03/09 19:19:24 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.83 2009/03/12 08:32:34 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -574,7 +574,12 @@ class BookkeepingClient:
   def getLFNsByProduction(self, prodid):
     server = self.__getServer()
     return server.getLFNsByProduction(long(prodid))
-
+  
+  #############################################################################
+  def getProductionsWithPrgAndEvt(self, programName='ALL', programversion='ALL', evt='ALL'):
+    server = self.__getServer()
+    return server.getProductionsWithPrgAndEvt(programName, programversion, evt)
+  
   #############################################################################
   def checkProduction(self,prodid):
     server = self.__getServer()

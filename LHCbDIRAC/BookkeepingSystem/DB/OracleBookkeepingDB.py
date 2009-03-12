@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.75 2009/03/09 19:19:24 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.76 2009/03/12 08:32:34 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.75 2009/03/09 19:19:24 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.76 2009/03/12 08:32:34 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1865,6 +1865,29 @@ class OracleBookkeepingDB(IBookkeepingDB):
               result[file]= {}
     return S_OK(result)
   
+  #############################################################################
+  def getProductionsWithPrgAndEvt(self, programName='ALL', programversion='ALL', evt='ALL'):
+    condition = ''
+    if programName != 'ALL':
+      condition = ' bookkeepingview.PROGRAMNAME=\''+str(programName)+'\'' 
+    
+    if programversion!='ALL':
+      if condition !='':
+        condition += ' and '
+      condition += ' bookkeepingview.PROGRAMVERSION=\''+str(programversion)+'\''
+    
+    if evt != 'ALL':
+      if condition !='':
+        condition += ' and '
+      condition += ' bookkeepingview.EVENTTYPEID='+str(evt)
+    
+    command = 'select EVENTTYPEID, DESCRIPTION,PRODUCTION from bookkeepingview where '+condition
+    res = self.dbR_._query(command)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      return S_OK(res['Value'])
+      
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
     totalrecords = len(lfns)
