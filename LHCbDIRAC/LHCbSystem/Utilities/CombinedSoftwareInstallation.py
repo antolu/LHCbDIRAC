@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.25 2009/03/03 11:41:16 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.26 2009/03/12 11:38:21 paterson Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.25 2009/03/03 11:41:16 paterson Exp $"
-__VERSION__ = "$Revision: 1.25 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.26 2009/03/12 11:38:21 paterson Exp $"
+__VERSION__ = "$Revision: 1.26 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -290,7 +290,7 @@ def CheckApplication(app, config, area):
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
   timeout = 300
   ret = DIRAC.systemCall( timeout, cmdTuple, env=cmtEnv, callbackFunction=log )
-  DIRAC.gLogger.debug(ret)
+#  DIRAC.gLogger.debug(ret)
   os.chdir(curDir)
   if not ret['OK']:
     DIRAC.gLogger.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
@@ -309,7 +309,7 @@ def CheckApplication(app, config, area):
 
   # Run ExtCMT
   ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
-  DIRAC.gLogger.debug(ret)
+#  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
     DIRAC.gLogger.error('Problem during SetupProject call')
     if ret['stdout']:
@@ -337,7 +337,7 @@ def CheckApplication(app, config, area):
   setupProject.append( appVersion )
 
   ret = DIRAC.Source( timeout, setupProject, setupProjectEnv )
-  DIRAC.gLogger.debug(ret)
+#  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
     DIRAC.gLogger.info( ret['Message'])
     if ret['stdout']:
