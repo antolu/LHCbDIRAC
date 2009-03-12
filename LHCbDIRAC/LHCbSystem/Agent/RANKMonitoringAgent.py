@@ -39,26 +39,47 @@ class RANKMonitoringAgent(Agent):
     for ce in cesqueues:
       for queue in cesqueues[ce]:
         queuename = "%s:2119/%s"%(ce,queue)
-        gMonitor.registerActivity(queuename,queuename,"RANK","",gMonitor.OP_MEAN,60*10)
+        rankname = "RANK-%s"%ce
+#        rankname = "RANK"
+        gLogger.info( queuename, rankname )
+        gMonitor.registerActivity(queuename,queuename,rankname,"",gMonitor.OP_MEAN,60*10)
       
     return S_OK()
 
   def execute( self ):
 
+    cestates = ldapCEState("")
+    if not cestates['OK']:
+      gLogger.warn("cestate",cestates['Message'])
+      return S_ERROR(cestates['Message'])
+    cestates = cestates['Value']
+    cestatedict = {}
+    for cestate in cestates:
+      try:
+        cestatedict[cestate['GlueCEUniqueID']] = cestate
+      except:
+        continue
+    
+    
     cesqueues = self.cesqueues
     for ce in cesqueues:
       for queue in self.cesqueues[ce]:
         queuename = "%s:2119/%s"%(ce,queue)
-        cestate = ldapCEState(queuename)
-        if not cestate['OK']:
-          gLogger.warn("cestate",cestate['Message'])
-          continue
-        cestate = cestate['Value']
-        if len(cestate) != 1:
-          gLogger.warn("cestate",cestate)
-          continue
-        cestate = cestate[0]
+#        cestate = ldapCEState(queuename)
+#        if not cestate['OK']:
+#          gLogger.warn("cestate",cestate['Message'])
+#          continue
+#        cestate = cestate['Value']
+#        if len(cestate) != 1:
+#          gLogger.warn("cestate",cestate)
+#          continue
+#        cestate = cestate[0]
         
+        try:
+          cestate = cestatedict[queuename]
+        except:
+          continue
+
         gLogger.debug(queuename,cestate)
         try:
           waitingJobs = int(cestate['GlueCEStateWaitingJobs'])
@@ -79,7 +100,7 @@ class RANKMonitoringAgent(Agent):
         if rank<-100:
           rank = -100
           
-        gLogger.debug(queuename,rank)
+        gLogger.info(queuename,rank)
         gMonitor.addMark(queuename,rank)
            
     return S_OK()
@@ -103,10 +124,7 @@ class RANKMonitoringAgent(Agent):
       ces = ces['Value']
       for ce in ces:
         queues = gConfig.getSections('/Resources/Sites/LCG/%s/CEs/%s/Queues'%(site,ce))
-        if not queues['OK']:
-          continue
-        queues = queues['Value']
-        
-      cesqueues[ce] = queues
+        if queues['OK']:
+          cesqueues[ce] = queues['Value']
 
     return S_OK(cesqueues)
