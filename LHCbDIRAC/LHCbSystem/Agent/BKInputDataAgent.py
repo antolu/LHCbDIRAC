@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.2 2009/03/13 11:29:59 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.3 2009/03/13 13:45:03 acsmith Exp $
 # File :   InputDataAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py,v 1.2 2009/03/13 11:29:59 acsmith Exp $"
+__RCSID__ = "$Id: BKInputDataAgent.py,v 1.3 2009/03/13 13:45:03 acsmith Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
@@ -23,7 +23,7 @@ class BKInputDataAgent(OptimizerModule):
   def initializeOptimizer(self):
     """Initialize specific parameters for BKInputDataAgent.
     """
-    self.failedMinorStatus = self.am_getOption( '/FailedJobStatus', 'BK Input Data Not Available' )
+    self.dataAgentName        = self.am_getOption('InputDataAgent','InputData')
 
     #Define the shifter proxy needed
     self.am_setModuleParam( "shifterProxy", "ProductionManager" )
@@ -47,20 +47,15 @@ class BKInputDataAgent(OptimizerModule):
 
     self.log.verbose('Job %s has an input data requirement and will be processed' % (job))
     inputData = result['Value']
-    result = self.__resolveInputData(job,inputData)
-    if not result['OK']:
-      self.log.warn( result['Message'] )
-      return result
-    resolvedData = result['Value']
-    result = self.setOptimizerJobInfo(job,self.am_getModuleParam( 'optimizerName' ),resolvedData)
+    result = self.__determineInputDataIntegrity(job,inputData)
     if not result['OK']:
       self.log.warn( result['Message'] )
       return result
     return self.setNextOptimizer(job)
 
   #############################################################################
-  def __resolveInputData( self, job, inputData ):
-    """This method checks the file catalogue for replica information.
+  def __determineInputDataIntegrity( self, job, inputData ):
+    """This method checks the mutual consistency of the file catalog and bookkeeping information.
     """
     lfns = [string.replace(fname,'LFN:','') for fname in inputData]
     start = time.time()
@@ -72,26 +67,56 @@ class BKInputDataAgent(OptimizerModule):
       return res
 
     bkFileMetadata = res['Value']
-    badLFNCount = 0
     badLFNs = []
     bkGuidDict = {}
     for lfn in lfns:
       if not bkFileMetadata.has_key(lfn):
-        badLFNCount+=1
         badLFNs.append('BK:%s Problem: %s' %(lfn,'File does not exist in the BK'))
      
-    if badLFNCount:
-      self.log.info('Found %s problematic LFN(s) for job %s' % (badLFNCount,job) )
+    if badLFNs:
+      self.log.info('Found %s problematic LFN(s) for job %s' % (len(badLFNs),job) )
       param = string.join(badLFNs,'\n')
       self.log.info(param)
       result = self.setJobParam(job,self.am_getModuleParam( 'optimizerName' ),param)
       if not result['OK']:
         self.log.warn(result['Message'])
-      return S_ERROR(self.failedMinorStatus)
+      return S_ERROR('BK Input Data Not Available')
 
-    result = {}
-    result['Value'] = bkFileMetadata
-    result['SiteCandidates'] = {}
-    return S_OK(result)
+    res = self.getOptimizerJobInfo(job,self.dataAgentName)
+    if not res['OK']:
+      self.log.warn(res['Message'])
+      return S_ERROR('Failed To Get LFC Metadata')
+    lfcMetadataResult = res['Value']
+    if not lfcMetadataResult['Value']:
+      errStr = 'LFC Metadata Not Available'
+      self.log.warn(errStr)
+      return S_ERROR(errStr)
+    lfcMetadata = res['Value']
+    
+    badFileCount = 0
+    for lfn,lfcMeta in lfcMetadata['Value']['Successful'].items():
+      bkMeta = bkFileMetadata[lfn]
+      badFile=False
+      if lfcMeta['GUID'].upper() != bkMeta['GUID'].upper(): 
+        badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK GUID Mismatch'))
+        badFile=True
+      if int(lfcMeta['Size']) != int(bkMeta['FileSize']):
+        badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK File Size Mismatch'))
+        badFile=True
+      if (lfcMeta['CheckSumType'] == 'AD') and bkMeta['ADLER32']:
+        if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
+          badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK Checksum Mismatch'))
+          badFile=True
+      if badFile:
+        badFileCount +=1
+ 
+    if badLFNs:
+      self.log.info('Found %s problematic LFN(s) for job %s' % (badFileCount,job) )
+      param = string.join(badLFNs,'\n')
+      self.log.info(param)
+      result = self.setJobParam(job,self.am_getModuleParam( 'optimizerName' ),param)
+      if not result['OK']:
+        self.log.warn(result['Message'])
+      return S_ERROR('BK-LFC Integrity Check Failed')
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+    return S_OK()
