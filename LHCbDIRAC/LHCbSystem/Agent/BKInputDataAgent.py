@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.1 2009/03/13 11:28:40 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.2 2009/03/13 11:29:59 acsmith Exp $
 # File :   InputDataAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,12 +9,10 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py,v 1.1 2009/03/13 11:28:40 acsmith Exp $"
+__RCSID__ = "$Id: BKInputDataAgent.py,v 1.2 2009/03/13 11:29:59 acsmith Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
-from DIRAC.Core.Utilities.SiteSEMapping                    import getSitesForSE
-from DIRAC.Core.Utilities.Shifter                          import setupShifterProxyInEnv
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
 
 import os, re, time, string
