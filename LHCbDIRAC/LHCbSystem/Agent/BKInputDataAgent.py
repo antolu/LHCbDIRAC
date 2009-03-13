@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.4 2009/03/13 17:10:08 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.5 2009/03/13 17:34:28 acsmith Exp $
 # File :   InputDataAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py,v 1.4 2009/03/13 17:10:08 acsmith Exp $"
+__RCSID__ = "$Id: BKInputDataAgent.py,v 1.5 2009/03/13 17:34:28 acsmith Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
@@ -58,21 +58,34 @@ class BKInputDataAgent(OptimizerModule):
     """This method checks the mutual consistency of the file catalog and bookkeeping information.
     """
     lfns = [string.replace(fname,'LFN:','') for fname in inputData]
+
+    # Remove user generated files as they will not have BK entries
+    self.log.info("Obtained %s input files for job" % len(lfns))
+    productionFiles = []
+    for lfn in lfns:
+      if not lfn.startswith('/lhcb/user'):
+        productionFiles.append(lfn)
+    if not productionFiles:
+      self.log.info("No production files to be checked")
+      return S_OK()
+    self.log.info("Checking the consistency of %s production files" % len(productionFiles))
+
+    # Obtain the metadata stored in the BK
     start = time.time()
-    res = self.bkClient.getFileMetadata(lfns) 
+    res = self.bkClient.getFileMetadata(productionFiles) 
     timing = time.time() - start
     self.log.info('BK Lookup Time: %.2f seconds ' % (timing) )
     if not res['OK']:
       self.log.warn(res['Message'])
       return res
 
+    # Fail the job if any of the files are not in the BK
     bkFileMetadata = res['Value']
     badLFNs = []
     bkGuidDict = {}
-    for lfn in lfns:
+    for lfn in productionFiles:
       if not bkFileMetadata.has_key(lfn):
         badLFNs.append('BK:%s Problem: %s' %(lfn,'File does not exist in the BK'))
-     
     if badLFNs:
       self.log.info('Found %s problematic LFN(s) for job %s' % (len(badLFNs),job) )
       param = string.join(badLFNs,'\n')
@@ -82,6 +95,7 @@ class BKInputDataAgent(OptimizerModule):
         self.log.warn(result['Message'])
       return S_ERROR('BK Input Data Not Available')
 
+    # Get the LFC metadata from the InputData optimizer
     res = self.getOptimizerJobInfo(job,self.dataAgentName)
     if not res['OK']:
       self.log.warn(res['Message'])
@@ -92,7 +106,8 @@ class BKInputDataAgent(OptimizerModule):
       self.log.warn(errStr)
       return S_ERROR(errStr)
     lfcMetadata = res['Value']
-    
+
+    # Verify the consistency of the LFC and BK metadata    
     badFileCount = 0
     for lfn,lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
       bkMeta = bkFileMetadata[lfn]
@@ -110,6 +125,7 @@ class BKInputDataAgent(OptimizerModule):
       if badFile:
         badFileCount +=1
  
+    # Failed the job if there are any inconsistencies
     if badLFNs:
       self.log.info('Found %s problematic LFN(s) for job %s' % (badFileCount,job) )
       param = string.join(badLFNs,'\n')
