@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobPathResolution.py,v 1.1 2008/06/03 12:48:29 paterson Exp $
+# $Id: JobPathResolution.py,v 1.2 2009/03/13 11:06:40 acsmith Exp $
 # File :   JobPathResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
     of JDL parameters.
 """
 
-__RCSID__ = "$Id: JobPathResolution.py,v 1.1 2008/06/03 12:48:29 paterson Exp $"
+__RCSID__ = "$Id: JobPathResolution.py,v 1.2 2009/03/13 11:06:40 acsmith Exp $"
 
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger
@@ -54,6 +54,12 @@ class JobPathResolution:
       self.log.info('Job %s has specified ancestor depth' % (job))
       ancestors = gConfig.getValue(section+'/AncestorFiles','AncestorFiles')
       lhcbPath += ancestors+','
+
+    inputData = classadJob.get_expression('InputData').replace('"','').replace('Unknown','')
+    if inputData:
+      self.log.info('Job %s has input data requirement' % (job))
+      bkInputData = gConfig.getValue(section+'/BKInputData','BKInputData')
+      lhcbPath += bkInputData+','       
 
     inputDataType = classadJob.get_expression('InputDataType').replace('"','').replace('Unknown','')
     if inputDataType=='ETC':
