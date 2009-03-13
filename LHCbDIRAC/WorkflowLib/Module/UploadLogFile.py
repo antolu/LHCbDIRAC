@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.10 2009/03/11 11:41:35 paterson Exp $
+# $Id: UploadLogFile.py,v 1.11 2009/03/13 09:28:29 acsmith Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.10 2009/03/11 11:41:35 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.11 2009/03/13 09:28:29 acsmith Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -168,8 +168,8 @@ class UploadLogFile(ModuleBase):
     self.log.info('Transferring log files to the %s' % self.logSE)
     res = S_ERROR()
     if not self.failoverTest:
-      self.log.info('PutDirectory %s %s %s' % (string.replace(self.logFilePath,'/%s' %self.JOB_ID,''), os.path.realpath(self.logdir),self.logSE))
-      res = self.rm.putDirectory(string.replace(self.logFilePath,'/%s' %self.JOB_ID,''),os.path.realpath(self.logdir),self.logSE)
+      self.log.info('PutDirectory %s %s %s' % (self.logFilePath, os.path.realpath(self.logdir),self.logSE))
+      res = self.rm.putDirectory(self.logFilePath,os.path.realpath(self.logdir),self.logSE)
       self.log.verbose(res)
       if res['OK']:
         self.log.info('Successfully upload log directory to %s' % self.logSE)
