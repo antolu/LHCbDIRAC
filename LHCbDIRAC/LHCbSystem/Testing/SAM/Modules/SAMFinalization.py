@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.26 2008/10/15 14:16:33 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.27 2009/03/13 09:21:05 acsmith Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.26 2008/10/15 14:16:33 joel Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.27 2009/03/13 09:21:05 acsmith Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -418,7 +418,7 @@ EOT
     """Returns LFN path string according to SAM convention.
     """
     date = time.strftime('%Y-%m-%d')
-    return '/%s/test/sam/%s/%s/%s/log' %(self.samVO,samNode,date,self.jobID)
+    return '/%s/test/sam/%s/%s/%s' %(self.samVO,samNode,date,self.jobID)
 
   #############################################################################
   def __uploadSAMLogs(self,samNode):
@@ -450,7 +450,7 @@ EOT
     lfnPath = self.__getLFNPathString(samNode)
     rm = ReplicaManager()
     self.log.verbose('Arguments for rm.putDirectory are: %s\n%s\n%s' %(lfnPath,os.path.realpath(logDir),self.logSE))
-    result = rm.putDirectory(lfnPath.replace('/log',''),os.path.realpath(logDir),self.logSE)
+    result = rm.putDirectory(lfnPath,os.path.realpath(logDir),self.logSE)
     self.log.verbose(result)
     if not result['OK']:
       return result
