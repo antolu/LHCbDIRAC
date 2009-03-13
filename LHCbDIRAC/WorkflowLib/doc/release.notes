@@ -1,5 +1,8 @@
-$Id: release.notes,v 1.16 2009/03/11 17:42:01 paterson Exp $
+$Id: release.notes,v 1.17 2009/03/13 12:28:10 paterson Exp $
 
+=========
+wkf-v9r8 : SKP : 13 March 2009
+ - Change to log URLs after putDirectory DMS updates.
 
 =========
 wkf-v9r7 : SKP : 11 March 2009
