@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.11 2009/03/11 11:42:03 paterson Exp $
+# $Id: UploadOutputData.py,v 1.12 2009/03/17 18:07:54 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.11 2009/03/11 11:42:03 paterson Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.12 2009/03/17 18:07:54 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -222,8 +222,9 @@ class UploadOutputData(ModuleBase):
         errorList.append('Unknown error while attempting upload to %s' %se)
         continue
 
+      fileDict = errorDict['register']
       #Therefore the registration failed but the upload was successful
-      result = self.__setRegistrationRequest(se,'',errorDict['register'])
+      result = self.__setRegistrationRequest(se,'',fileDict)
       if not result['OK']:
         self.log.error('Failed to set registration request for: SE %s and metadata: \n%s' %(se,fileDict))
         errorList.append('Failed to set registration request for: SE %s and metadata: \n%s' %(se,fileDict))
