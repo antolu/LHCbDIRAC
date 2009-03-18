@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.106 2009/03/18 10:42:11 paterson Exp $
+# $Id: GaudiApplication.py,v 1.107 2009/03/18 11:05:23 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.106 2009/03/18 10:42:11 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.107 2009/03/18 11:05:23 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -209,10 +209,12 @@ class GaudiApplication(ModuleBase):
       #self.setApplicationStatus( 'Application Not Found' )
 #      self.result = S_ERROR( 'Application Not Found' )
 
+    mySiteRoot=sharedArea
+    self.log.info('MYSITEROOT is %s' %mySiteRoot)
     localArea = sharedArea
     if re.search(':',sharedArea):
       localArea = string.split(sharedArea,':')[0]
-    self.log.info('Setting local software area to %s' %localArea)
+      self.log.info('Setting local software area to %s' %localArea)
 
     if not self.result['OK']:
       return self.result
