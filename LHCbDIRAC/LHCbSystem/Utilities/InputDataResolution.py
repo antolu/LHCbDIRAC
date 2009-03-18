@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.3 2008/11/26 11:49:31 paterson Exp $
+# $Id: InputDataResolution.py,v 1.4 2009/03/18 14:20:42 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.3 2008/11/26 11:49:31 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.4 2009/03/18 14:20:42 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -43,16 +43,21 @@ class InputDataResolution:
     if not result['OK']:
       self.log.warn('InputData resolution failed with result:\n%s' %(result))
 
+    #For local running of this module we can expose an option to ignore missing files
+    ignoreMissing = False
+    if self.arguments.has_key('IgnoreMissing'):
+      ignoreMissing = self.arguments['IgnoreMissing']
+
     #For LHCb original policy was as long as one TURL exists, this can be conveyed to the application
     #this breaks due to the stripping so the policy has been changed.
     failedReplicas = result['Failed']
-    if failedReplicas:
-      self.log.info('Failed to obtain access to the following files:\n%s' %(string.join(failedReplicas,'\n')))
+    if failedReplicas and not ignoreMissing:
+      self.log.error('Failed to obtain access to the following files:\n%s' %(string.join(failedReplicas,'\n')))
       return S_ERROR('Failed to access all of requested input data')
 
 
     if not result['Successful']:
-      return S_ERROR('Could not access requested input data')
+      return S_ERROR('Could not access any requested input data')
 
     #TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
     #term this will be derived from file catalog metadata information but for now is based
