@@ -1,17 +1,17 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.105 2009/03/11 11:55:58 paterson Exp $
+# $Id: GaudiApplication.py,v 1.106 2009/03/18 10:42:11 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.105 2009/03/11 11:55:58 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.106 2009/03/18 10:42:11 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -201,13 +201,13 @@ class GaudiApplication(ModuleBase):
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
     sharedArea = MySiteRoot()
-    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if app_dir_path:
-      mySiteRoot = sharedArea
-    else:
-      self.log.error( 'Application Not Found' )
+#    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
+#    if app_dir_path:
+#      mySiteRoot = sharedArea
+#    else:
+#      self.log.error( 'Application Not Found' )
       #self.setApplicationStatus( 'Application Not Found' )
-      self.result = S_ERROR( 'Application Not Found' )
+#      self.result = S_ERROR( 'Application Not Found' )
 
     localArea = sharedArea
     if re.search(':',sharedArea):
