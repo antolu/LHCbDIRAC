@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.82 2009/03/04 13:40:20 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.83 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.82 2009/03/04 13:40:20 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.83 2009/03/20 17:13:56 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -370,8 +370,9 @@ class LHCB_BKKDBManager(BaseESManager):
         if add:
           entityList += [add]
       for record in dbResult:
-        prod = str(record[0])
-        value = {'Total ProcessingPass':prod, 'Step 0':record[1], 'Step 1':record[2],'Step 2':record[3],'Step 3':record[4],'Step 5':record[5],'Step 6':record[6]}
+        prod = str(record[1])
+        value = {'passid':record[0],'Total ProcessingPass':prod}
+  
         entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None,  'Processing Pass')]
       self._cacheIt(entityList)
     else:
@@ -1578,3 +1579,7 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
         fd += "\n};\n"
     return fd
+  
+  #############################################################################       
+  def getProcessingPassDesc(self, desc, passid, simid='ALL'):
+    return self.db_.getProcessingPassDesc(desc, passid, simid)

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.9 2009/02/11 14:38:34 zmathe Exp $
+# $Id: ControlerTree.py,v 1.10 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.9 2009/02/11 14:38:34 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.10 2009/03/20 17:13:56 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -134,11 +134,16 @@ class ControlerTree(ControlerAbstract):
   def moreInformations(self):
     currentItem = self.getWidget().getTree().getCurrentItem()
     node = currentItem.getUserObject()
+    
     controlers = self.getChildren()
     ct = controlers['InfoDialog']
     if node <> None:
-      if type(node) != types.DictType and node.expandable():
+      if node.has_key('level') and node['level'] == 'Processing Pass':
+        ctproc = controlers['ProcessingPassDialog']
         message = Message({'action':'list','items':node})
-        ct.messageFromParent(message)
+        ctproc.messageFromParent(message)
+      elif type(node) != types.DictType and node.expandable() :
+          message = Message({'action':'list','items':node})
+          ct.messageFromParent(message)
 
   #############################################################################  

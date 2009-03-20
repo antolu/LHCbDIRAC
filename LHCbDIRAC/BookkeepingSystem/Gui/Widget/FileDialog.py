@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.12 2009/03/03 15:10:55 zmathe Exp $
+# $Id: FileDialog.py,v 1.13 2009/03/20 17:13:55 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -10,7 +10,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWi
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.12 2009/03/03 15:10:55 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.13 2009/03/20 17:13:55 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -45,10 +45,6 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__loginfoAction = QAction(self.tr("Logginig informations"), self.tableView)
     self.connect (self.__loginfoAction, SIGNAL("triggered()"), self.__controler.loggininginfo)
     self.__popUp.addAction(self.__loginfoAction)
-    
-    self.__closeAction = QAction(self.tr("Close"), self.tableView)
-    self.connect (self.__closeAction, SIGNAL("triggered()"), self.__controler.close)
-    self.__popUp.addAction(self.__closeAction)
     
     self.tableView.setContextMenuPolicy(Qt.CustomContextMenu);
     self.connect(self.tableView, SIGNAL('customContextMenuRequested(QPoint)'), self.popUpMenu)
@@ -198,11 +194,14 @@ class FileDialog(QDialog, Ui_FileDialog):
       filename = str(saveDialog.selectedFiles()[0]) 
       ext = saveDialog.selectedFilter()
       if 'Text file (*.txt)' in ext:
-        filename += '.txt'
+        if filename.find('.') > 0:
+          filename += '.txt'
       elif 'Option file (*.opts)' in ext:
-        filename += '.opts'
+        if filename.find('.') < 0:
+          filename += '.opts'
       elif 'Python option(*.py)' in ext:  
-        filename += '.py'
+        if filename.find('.') < 0:
+          filename += '.py'
       try:
         open(filename)
       except IOError:

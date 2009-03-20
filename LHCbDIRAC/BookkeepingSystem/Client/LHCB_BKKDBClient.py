@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.15 2009/02/13 15:59:16 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.16 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.15 2009/02/13 15:59:16 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.16 2009/03/20 17:13:56 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -82,3 +82,7 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getLimitedInformations(self, StartItem, Maxitems, path):
     return self.getManager().getLimitedInformations(StartItem, Maxitems, path)
+  
+  #############################################################################       
+  def getProcessingPassDesc(self, desc, passid, simid='ALL'):
+    return self.getManager().getProcessingPassDesc(desc, passid, simid)

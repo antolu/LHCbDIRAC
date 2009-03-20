@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.42 2009/03/12 08:32:34 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.43 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.42 2009/03/12 08:32:34 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.43 2009/03/20 17:13:56 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -210,6 +210,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
     return self.getManager().getFileMetaDataForUsers(lfns)
+  
+  #############################################################################
+  def getProcessingPassDesc(self, totalproc, passid, simid='ALL'):
+    return self.getManager().getProcessingPassDesc(totalproc, passid, simid)
   
   #############################################################################
   def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):

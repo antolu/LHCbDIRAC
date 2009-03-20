@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Mon Feb  2 13:42:27 2009
+# Created: Fri Mar 20 17:49:34 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,34 +33,42 @@ class Ui_FileDialog(object):
         self.gridlayout2.setObjectName("gridlayout2")
 
         self.configname = QtGui.QLineEdit(self.groupBox_3)
+        self.configname.setReadOnly(True)
         self.configname.setObjectName("configname")
         self.gridlayout2.addWidget(self.configname,0,1,1,1)
 
         self.configversion = QtGui.QLineEdit(self.groupBox_3)
+        self.configversion.setReadOnly(True)
         self.configversion.setObjectName("configversion")
         self.gridlayout2.addWidget(self.configversion,1,1,1,1)
 
         self.simulation = QtGui.QLineEdit(self.groupBox_3)
+        self.simulation.setReadOnly(True)
         self.simulation.setObjectName("simulation")
         self.gridlayout2.addWidget(self.simulation,2,1,1,1)
 
         self.processing = QtGui.QLineEdit(self.groupBox_3)
+        self.processing.setReadOnly(True)
         self.processing.setObjectName("processing")
         self.gridlayout2.addWidget(self.processing,3,1,1,1)
 
         self.eventtype = QtGui.QLineEdit(self.groupBox_3)
+        self.eventtype.setReadOnly(True)
         self.eventtype.setObjectName("eventtype")
         self.gridlayout2.addWidget(self.eventtype,4,1,1,1)
 
         self.filetype = QtGui.QLineEdit(self.groupBox_3)
+        self.filetype.setReadOnly(True)
         self.filetype.setObjectName("filetype")
         self.gridlayout2.addWidget(self.filetype,5,1,1,1)
 
         self.production = QtGui.QLineEdit(self.groupBox_3)
+        self.production.setReadOnly(True)
         self.production.setObjectName("production")
         self.gridlayout2.addWidget(self.production,6,1,1,1)
 
         self.progrnameandversion = QtGui.QLineEdit(self.groupBox_3)
+        self.progrnameandversion.setReadOnly(True)
         self.progrnameandversion.setObjectName("progrnameandversion")
         self.gridlayout2.addWidget(self.progrnameandversion,7,1,1,1)
 
@@ -120,10 +128,12 @@ class Ui_FileDialog(object):
         self.gridlayout4.addWidget(self.label,0,0,1,1)
 
         self.lineEdit = QtGui.QLineEdit(self.groupBox)
+        self.lineEdit.setReadOnly(True)
         self.lineEdit.setObjectName("lineEdit")
         self.gridlayout4.addWidget(self.lineEdit,0,1,1,1)
 
         self.lineEdit_2 = QtGui.QLineEdit(self.groupBox)
+        self.lineEdit_2.setReadOnly(True)
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.gridlayout4.addWidget(self.lineEdit_2,1,1,1,1)
 
@@ -132,6 +142,7 @@ class Ui_FileDialog(object):
         self.gridlayout4.addWidget(self.label_5,2,0,1,1)
 
         self.lineEdit_5 = QtGui.QLineEdit(self.groupBox)
+        self.lineEdit_5.setReadOnly(True)
         self.lineEdit_5.setObjectName("lineEdit_5")
         self.gridlayout4.addWidget(self.lineEdit_5,2,1,1,1)
         self.gridlayout3.addLayout(self.gridlayout4,0,0,1,1)
@@ -155,10 +166,12 @@ class Ui_FileDialog(object):
         self.gridlayout6.addLayout(self.hboxlayout1,1,0,1,1)
 
         self.lineEdit_3 = QtGui.QLineEdit(self.groupBox_2)
+        self.lineEdit_3.setReadOnly(True)
         self.lineEdit_3.setObjectName("lineEdit_3")
         self.gridlayout6.addWidget(self.lineEdit_3,0,1,1,1)
 
         self.lineEdit_4 = QtGui.QLineEdit(self.groupBox_2)
+        self.lineEdit_4.setReadOnly(True)
         self.lineEdit_4.setObjectName("lineEdit_4")
         self.gridlayout6.addWidget(self.lineEdit_4,1,1,1,1)
 
@@ -167,6 +180,7 @@ class Ui_FileDialog(object):
         self.gridlayout6.addWidget(self.label_6,0,0,1,1)
 
         self.lineEdit_6 = QtGui.QLineEdit(self.groupBox_2)
+        self.lineEdit_6.setReadOnly(True)
         self.lineEdit_6.setObjectName("lineEdit_6")
         self.gridlayout6.addWidget(self.lineEdit_6,2,1,1,1)
 

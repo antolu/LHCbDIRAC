@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InfoDialog.py,v 1.5 2009/01/26 17:38:01 zmathe Exp $
+# $Id: InfoDialog.py,v 1.6 2009/03/20 17:13:55 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 import DIRAC
 
-__RCSID__ = "$Id: InfoDialog.py,v 1.5 2009/01/26 17:38:01 zmathe Exp $"
+__RCSID__ = "$Id: InfoDialog.py,v 1.6 2009/03/20 17:13:55 zmathe Exp $"
 
 #############################################################################  
 class InfoDialog(QDialog, Ui_Dialog):
@@ -49,16 +49,16 @@ class InfoDialog(QDialog, Ui_Dialog):
   
   #############################################################################  
   def showDictionary(self, data):
-    header = ['FileName','Ancestor1','Ancestor2','Ancestor3','Ancestor4']
+    header = ['FileName','Ancestor1','Ancestor2','Ancestor3','Ancestor4','Ancestor5','Ancestor6']
     keys = data.keys()
     keys.sort()
     tabledata = []
     for i in keys:
       d = data[i]
       if len(d) == 0:
-        tabledata += [ [i,'','','','']]
+        tabledata += [ [i,'','','','','','']]
       else:
-        tmp = ['','','','','']
+        tmp = ['','','','','','','']
         j = 1
         tmp[0] = i
         for an in d:

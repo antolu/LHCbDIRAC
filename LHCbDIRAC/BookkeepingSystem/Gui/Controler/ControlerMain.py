@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.14 2009/03/05 18:12:18 zmathe Exp $
+# $Id: ControlerMain.py,v 1.15 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.14 2009/03/05 18:12:18 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.15 2009/03/20 17:13:56 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -172,6 +172,15 @@ class ControlerMain(ControlerAbstract):
             logfile += '/'+str(name[2])
             message = Message({'action':'showLog','fileName':logfile})
             return message
+      elif message.action() == 'procDescription':
+        desc = message['groupdesc']
+        passid = message['passid']
+        retVal = self.__bkClient.getProcessingPassDesc(desc, passid)
+        if not retVal['OK']:
+          gLogger.error(retVal['Message'])
+          return None   
+        else:
+          return retVal['Value']
       else:        
         print 'Unknown message!',message.action(),message
         

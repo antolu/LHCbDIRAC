@@ -1,18 +1,19 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.6 2009/02/05 11:03:16 zmathe Exp $
+# $Id: TreeWidget.py,v 1.7 2009/03/20 17:13:55 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui    import Ui_TreeWidget
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTree import ControlerTree
-from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog       import InfoDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog       import FileDialog
+from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
+from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
+from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                import InfoDialog
+from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
+from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 
-from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
+from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.6 2009/02/05 11:03:16 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.7 2009/03/20 17:13:55 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -41,8 +42,11 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.standardQuery, SIGNAL("clicked()"), self.__controler.standardQuery)
     self.connect(self.advancedQuery, SIGNAL("clicked()"), self.__controler.advancedQuery)
     
-    self.__dialog = InfoDialog(self)
-    self.__controler.addChild('InfoDialog',self.__dialog.getControler())
+    self.__dialog = ProcessingPassDialog(self)
+    self.__controler.addChild('ProcessingPassDialog',self.__dialog.getControler())
+    
+    self.__infodialog = InfoDialog(self)
+    self.__controler.addChild('InfoDialog', self.__infodialog.getControler())
     
     self.__fileDialog = FileDialog(self)
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.83 2009/03/12 08:32:34 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.84 2009/03/20 17:13:56 zmathe Exp $
 ########################################################################
 
 """
@@ -11,11 +11,12 @@ from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.Base                 import Script
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities            import DEncode
-import types,cPickle,os
+import types,cPickle,os, tempfile
+
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.83 2009/03/12 08:32:34 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.84 2009/03/20 17:13:56 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -216,6 +217,12 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def getProcessingPassDesc(self, totalproc, passid, simid='ALL'):
+    server = self.__getServer()
+    result = server.getProcessingPassDesc(totalproc, int(passid), simid)
+    return result
+
+  #############################################################################
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     '''
     server = self.__getServer()
@@ -225,12 +232,13 @@ class BookkeepingClient:
     '''
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     s = ''+configName+'>'+configVersion+'>'+str(simcondid)+'>'+str(procPass)+'>'+str(evtId)+'>'+str(prod)+'>'+str(ftype)+'>'+str(progName)+'>'+str(progVersion)
-    result = bkk.receiveFile('tmp.txt', s)
+    file = tempfile.NamedTemporaryFile()
+    result = bkk.receiveFile(file.name, s)
     if not result['OK']:
       return result
     else:
-      value = cPickle.load(open('tmp.txt'))
-      os.remove('tmp.txt')
+      value = cPickle.load(open(file.name))
+      file.close()
       return S_OK(value)
     return S_ERROR()
 
