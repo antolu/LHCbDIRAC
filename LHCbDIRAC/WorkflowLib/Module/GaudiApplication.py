@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.108 2009/03/18 11:08:10 paterson Exp $
+# $Id: GaudiApplication.py,v 1.109 2009/03/21 10:17:14 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.108 2009/03/18 11:08:10 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.109 2009/03/21 10:17:14 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -233,8 +233,8 @@ class GaudiApplication(ModuleBase):
           self.log.info('Found options file containing environment variable: %s' %fileopt)
           self.optfile += '  %s' %(fileopt)
         else:
-          self.log.info('Assume SetupProject environment knows where to find %s' %fileopt)
-          self.optfile+=' '+fileopt
+          self.log.info('Assume options file %s is in $%sOPTS' %(fileopt,self.applicationName.upper()))
+          self.optfile+=' $%sOPTS/%s' %(self.applicationName.upper(),fileopt)
 #          optpath = app_dir_path+'/options'
 #          if os.path.exists(optpath+'/'+fileopt):
 #            self.optfile += ' '+optpath+'/'+fileopt
