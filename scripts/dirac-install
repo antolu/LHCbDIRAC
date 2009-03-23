@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.125 2009/03/17 18:20:21 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.126 2009/03/23 17:59:27 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.125 2009/03/17 18:20:21 rgracian Exp $"
-__VERSION__ = "$Revision: 1.125 $"
+__RCSID__   = "$Id: dirac-install,v 1.126 2009/03/23 17:59:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.126 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -534,7 +534,7 @@ class Dirac:
         self._createTar( tarName, tar['directories'] )
         tars += 1
     else:
-      self.logINFO( 'Donwloading from tar, do not create src tars.' )
+      self.logINFO( 'Downloading from tar, do not create src tars.' )
       if self.buildFlag:
         # if build is required, download external tars
         for i in range(n):
@@ -823,7 +823,7 @@ class Dirac:
     if not self.serverFlag:
       n -= 1
     if self.fromTar:
-      self.logINFO( 'Donwloading src tar' )
+      self.logINFO( 'Downloading src tar' )
       for i in range(n):
         tar = src_tars[i]
         name = tar['name']
@@ -831,7 +831,7 @@ class Dirac:
           tarName = '%s-%s' % ( name, self.external )
           self._getTar( tarName, externalTimeout )
     else:
-      self.logINFO( 'Donwloading src from CVS' )
+      self.logINFO( 'Downloading src from CVS' )
       for i in range(n):
         tar = src_tars[i]
         name = tar['name']
@@ -2339,8 +2339,6 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     if siteName:
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
-    # else:
-    #  localCfg.addDefaultEntry( '/LocalSite/Site', DEFAULT_SITE )
 
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
