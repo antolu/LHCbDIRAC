@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.11 2009/03/05 17:45:31 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.12 2009/03/24 12:30:46 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.11 2009/03/05 17:45:31 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.12 2009/03/24 12:30:46 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -163,9 +163,12 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################  
   def selection(self, selected, deselected):
     if selected:
-      row = selected.indexes()[0].row()
-      data = selected.indexes()[0].model().arraydata[row][0]
-      self.__selectedFiles += [data]
+      for i in selected.indexes():
+        row = i.row()
+        data = i.model().arraydata[row][0]
+        if data not in self.__selectedFiles:
+          self.__selectedFiles += [data]
+      
       self.updateSelectedNbEventType(self.__selectedFiles)
       self.updateSelectedNbFiles(self.__selectedFiles)
       self.updateSelectedFileSize(self.__selectedFiles)
