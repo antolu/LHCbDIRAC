@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.7 2009/03/06 14:21:23 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.8 2009/03/30 14:55:32 zmathe Exp $
 # File :   dirac-bookkeeping-gui.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.7 2009/03/06 14:21:23 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.8 2009/03/30 14:55:32 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget import MainWidget
@@ -36,7 +36,6 @@ class bkk(QApplication):
         #self.mainWidget.setWindowFlags( Qt.WindowTitleHint | Qt.WindowMinimizeButtonHint | Qt.WindowSystemMenuHint)
         self.mainWidget.show()
         self.mainWidget.start()
-
 if __name__ == "__main__":
     app = bkk(sys.argv)
     sys.exit(app.exec_())

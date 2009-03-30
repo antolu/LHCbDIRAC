@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.83 2009/03/20 17:13:56 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.84 2009/03/30 14:55:31 zmathe Exp $
 ########################################################################
 
 """
@@ -11,12 +11,12 @@ from DIRAC.BookkeepingSystem.Client.BaseESManager                        import 
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from DIRAC.BookkeepingSystem.Client                                      import objects
 from DIRAC.BookkeepingSystem.Client.Help                                 import Help
-#from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
 import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.83 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.84 2009/03/30 14:55:31 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -72,7 +72,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient(rpcClinet)
-    self.lfc_ = None #LcgFileCatalogCombinedClient()
+    self.lfc_ = LcgFileCatalogCombinedClient()
     
     self.helper_ = Help()
     
@@ -142,7 +142,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getFilesPFN(self):
     lfns = self.files_
-    res = []#self.lfc_.getPfnsByLfnList(lfns)
+    res = self.lfc_.getReplicas(lfns)
     return res
   
   ############################################################################# 
@@ -1188,74 +1188,6 @@ class LHCB_BKKDBManager(BaseESManager):
       sum += int(file['EventStat'])
     return sum
   
-  #############################################################################       
-  def writeJobOptions(self, files, optionsFile = "jobOptions.opts"):
-       # get lst of event types
-    import time
-    evtTypes = {}
-    nbEvts = 0
-    fileType = None
-    for i in files:
-        file = files[i]
-        type = int(file['EvtTypeId'])
-        stat = int(file['EventStat'])
-        if not evtTypes.has_key(type):
-            evtTypes[type] = [0, 0, 0.]
-        evtTypes[type][0] += 1
-        evtTypes[type][1] += stat
-        evtTypes[type][2] += int(file['FileSize'])/1000000000.
-        nbEvts += stat
-        if not fileType:
-            fileType = file['FileType']
-        if file['FileType'] != fileType:
-            print "All files don't have the same type, impossible to write jobOptions"
-            return 1
-
-    fd = open(optionsFile, 'w')
-    n,ext = os.path.splitext(optionsFile)
-    pythonOpts = ext == '.py'
-    if pythonOpts:
-        comment = "#-- "
-    else:
-        comment = "//-- "
-    fd.write(comment + "GAUDI jobOptions generated on " + time.asctime() + "\n")
-    fd.write(comment + "Contains event types : \n")
-    types = evtTypes.keys()
-    types.sort()
-    for type in types:
-        fd.write(comment + "  %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2]))
-
-    # Now write the event selector option
-    if pythonOpts:
-        fd.write("\nfrom Gaudi.Configuration import * \n")
-        fd.write("\nEventSelector().Input   = [\n")
-    else:
-        fd.write("\nEventSelector.Input   = {\n")
-    fileType = fileType.split()[0]
-    poolTypes = ["DST", "RDST", "DIGI", "SIM"]
-    mdfTypes = ["RAW"]
-    etcTypes = ["SETC", "FETC", "ETC"]
-    #lfns = [file['FileName'] for file in files]
-    #lfns.sort()
-    keys = files.keys()
-    keys.sort()
-    first = True
-    for lfn in keys:
-        file = files[lfn]
-        if not first:
-            fd.write(",\n")
-        first = False
-        if fileType in poolTypes:    
-            fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"")
-        elif fileType in mdfTypes:
-            fd.write("\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"")
-        elif fileType in etcTypes:
-            fd.write("\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"")
-    if pythonOpts:
-        fd.write("]\n")
-    else:
-        fd.write("\n};\n")
-    fd.close
     
   def getJobInfo(self, lfn):
     result = self.db_.getJobInfo(lfn)
@@ -1467,7 +1399,7 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = processedPath[7][1]
         pversion = processedPath[7][1]
     retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
-    return self.__writeJobopts(retVal['Records'],savetype)
+    return self.writeJobOptions(retVal['Records'],optionsFile = '', savedType = savetype)
   
   #############################################################################         
   def getLimitedInformations(self,StartItem, Maxitems, path):
@@ -1512,74 +1444,93 @@ class LHCB_BKKDBManager(BaseESManager):
     return S_OK({'Number of Events':nbe, 'Files Size':fsize,'Number of files':nbfiles} )  
     
   #############################################################################       
-  def __writeJobopts(self,files,savetype):
+  def writeJobOptions(self, files, optionsFile = '', savedType = None):
     fd = ''
-    if savetype == 'txt':
-      for lfn in files:
-        fd += str(lfn[0])+'\n'
-      return fd
-    
+    if optionsFile == '':
+      fd = ''
+      if savetype == 'txt':
+        for lfn in files:
+          fd += str(lfn[0])+'\n'
+        return fd
+    else:
+      pass
+    # get lst of event types
     import time
     evtTypes = {}
     nbEvts = 0
     fileType = None
     for i in files:
-        type = int(i[10])
-        stat = int(i[1])
+        file = files[i]
+        type = int(file['EvtTypeId'])
+        stat = int(file['EventStat'])
         if not evtTypes.has_key(type):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
-        evtTypes[type][2] += int(i[2])/1000000000.
+        evtTypes[type][2] += int(file['FileSize'])/1000000000.
         nbEvts += stat
         if not fileType:
-            fileType = i[9]
-        if i[9] != fileType:
+            fileType = file['FileType']
+        if file['FileType'] != fileType:
             print "All files don't have the same type, impossible to write jobOptions"
             return 1
-
-
-    pythonOpts = savetype == 'py'
+    
+    pythonOpts = None
+    if savedType != None:
+      pythonOpts = savedType == 'py'
+    else:
+      fd = open(optionsFile, 'w')
+      n,ext = os.path.splitext(optionsFile)
+      pythonOpts = ext == '.py'  
+      
+    s = ''
     if pythonOpts:
         comment = "#-- "
     else:
         comment = "//-- "
-    fd += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
-    fd += comment + "Contains event types : \n"
+    s += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
+    s += comment + "Contains event types : \n"
     types = evtTypes.keys()
     types.sort()
     for type in types:
-        fd += comment + "  %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2])
+        s += comment + "  %8d - %d files - %d events - %.2f GBytes\n"%(type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2])
 
     # Now write the event selector option
     if pythonOpts:
-        fd += "\nfrom Gaudi.Configuration import * \n"
-        fd += "\nEventSelector().Input   = [\n"
+        s += "\nfrom Gaudi.Configuration import * \n"
+        s += "\nEventSelector().Input   = [\n"
     else:
-        fd += "\nEventSelector.Input   = {\n"
+        s += "\nEventSelector.Input   = {\n"
     fileType = fileType.split()[0]
     poolTypes = ["DST", "RDST", "DIGI", "SIM"]
     mdfTypes = ["RAW"]
     etcTypes = ["SETC", "FETC", "ETC"]
     #lfns = [file['FileName'] for file in files]
     #lfns.sort()
+    keys = files.keys()
+    keys.sort()
     first = True
-    for lfn in files:
+    for lfn in keys:
+        file = files[lfn]
         if not first:
-            fd += ",\n"
+            fd.write(",\n")
         first = False
         if fileType in poolTypes:    
-            fd += "\"   DATAFILE='LFN:" + lfn[0] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" + "\n"
         elif fileType in mdfTypes:
-            fd += "\"   DATAFILE='LFN:" + lfn[0] + "' SVC='LHCb::MDFSelector'\""
+            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"" + "\n"
         elif fileType in etcTypes:
-            fd += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + lfn[0] + "' TYP='POOL_ROOT'\""
+            s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"" + "\n"
     if pythonOpts:
-        fd += "]\n"
+        s += "]\n"
     else:
-        fd += "\n};\n"
-    return fd
-  
+        s += "\n};\n"
+    if fd:
+      fd.write(s)
+      fd.close
+    else:
+      return s
+    
   #############################################################################       
   def getProcessingPassDesc(self, desc, passid, simid='ALL'):
     return self.db_.getProcessingPassDesc(desc, passid, simid)
