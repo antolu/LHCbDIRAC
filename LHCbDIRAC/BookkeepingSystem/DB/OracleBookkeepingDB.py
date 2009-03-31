@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.77 2009/03/20 17:13:56 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.78 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.77 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.78 2009/03/31 16:26:45 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -66,6 +66,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getAvailableConfigNames(self):
     command = ' select distinct Configname from configurations'
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getAvailableProductions(self):
+    command = ' select distinct production from bookkeepingview'
     res = self.dbR_._query(command)
     return res
   
@@ -263,8 +269,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
   #############################################################################
   def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
-    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
-                    bookkeepingview.configversion=\''+configVersion+'\''
+    condition = ''
+    if configName != 'ALL':
+      condition += ' and bookkeepingview.configname=\''+configName+'\''
+    if configVersion != 'ALL':
+      condition += 'and bookkeepingview.configversion=\''+configVersion+'\''
+    
     if simcondid != 'ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
     
@@ -333,8 +343,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getFileTypesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod):
-    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
-                    bookkeepingview.configversion=\''+configVersion+'\''
+
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and bookkeepingview.configname=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and bookkeepingview.configversion=\''+configVersion+'\''
     
     all = 0
     if simcondid != 'ALL':
@@ -435,8 +450,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
   #############################################################################
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-    condition = ' and configurations.ConfigName=\''+configName+'\' and \
-                    configurations.ConfigVersion=\''+configVersion+'\''
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and configurations.ConfigName=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
     
     all = 0;
     tables = ' jobs, files,configurations'
@@ -515,18 +534,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
-    condition = ' and configurations.ConfigName=\''+configName+'\' and \
-                    configurations.ConfigVersion=\''+configVersion+'\''
     
-    all = 0
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and configurations.ConfigName=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
+     
     tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
       condition += ' and jobs.production=productions.production'
       condition += ' and productions.simcondid='+str(simcondid)
       tables += ' ,productions'
-    else:
-      all += 1
-    
+        
     if procPass != 'ALL':
       descriptions = procPass.split('+')
       totalproc = ''
@@ -543,10 +564,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and productions.PRODUCTION=jobs.production'
       if 'productions' not in tables:
          tables += ', productions'
-    else:
-      all += 1
       
-    
+    all = 0
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
     else:
@@ -611,18 +630,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   
   def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
-    condition = ' and configurations.ConfigName=\''+configName+'\' and \
-                    configurations.ConfigVersion=\''+configVersion+'\''
     
-    all = 0
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and configurations.ConfigName=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
+    
     tables = ' jobs, files,configurations'
     if simcondid != 'ALL':
       condition += ' and jobs.production=productions.production'
       condition += ' and productions.simcondid='+str(simcondid)
       tables += ', productions' 
-    else:
-      all += 1
     
+
     if procPass != 'ALL':
       descriptions = procPass.split('+')
       totalproc = ''
@@ -638,12 +660,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and productions.PRODUCTION=jobs.production'
       if 'productions' not in tables:
-         tables += ', productions'
-    else:
-      all += 1
-        
+         tables += ', productions'   
       
-    
+    all = 0
     if evtId != 'ALL':
       condition += ' and files.EventTypeId='+str(evtId)
     else:

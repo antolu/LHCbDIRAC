@@ -1,14 +1,14 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.7 2009/03/05 15:51:52 zmathe Exp $
+# $Id: TreePanel.py,v 1.8 2009/03/31 16:26:44 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
-import DIRAC
+import DIRAC, types
 
-__RCSID__ = "$Id: TreePanel.py,v 1.7 2009/03/05 15:51:52 zmathe Exp $"
+__RCSID__ = "$Id: TreePanel.py,v 1.8 2009/03/31 16:26:44 zmathe Exp $"
 
 #############################################################################  
 class TreePanel(QTreeWidget):
@@ -107,7 +107,7 @@ class TreePanel(QTreeWidget):
      #               self.updateDomElement)
   
     children = item.getChildren()
-
+    
     keys = children.keys()
     keys.sort()
     node = children[keys[0]]
@@ -198,14 +198,15 @@ class TreePanel(QTreeWidget):
   
   #############################################################################  
   def createdumyNode(self,element,parent):
-    dumy = self.createItem(element,parent)
-    dumy.setUserObject(None)
-    self.setItemExpanded(dumy, False)
-    title = element['name']
-    dumy.setFlags(parent.flags() | Qt.ItemIsEditable)
-    dumy.setIcon(0, self.infoIcon_)
-    dumy.setText(0, title)
-    return dumy
+    if parent != None:
+      dumy = self.createItem(element,parent)
+      dumy.setUserObject(None)
+      self.setItemExpanded(dumy, False)
+      title = element['name']
+      dumy.setFlags(parent.flags() | Qt.ItemIsEditable)
+      dumy.setIcon(0, self.infoIcon_)
+      dumy.setText(0, title)
+      return dumy
   
   #############################################################################  
   def createItem(self, element, parentItem=None):

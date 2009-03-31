@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Fri Mar 20 17:49:34 2009
+# Created: Tue Mar 31 14:14:57 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -104,7 +104,7 @@ class Ui_FileDialog(object):
         self.label_14.setObjectName("label_14")
         self.gridlayout2.addWidget(self.label_14,7,0,1,1)
         self.gridlayout1.addLayout(self.gridlayout2,0,0,1,1)
-        self.gridlayout.addWidget(self.groupBox_3,0,1,1,2)
+        self.gridlayout.addWidget(self.groupBox_3,0,1,1,3)
 
         self.groupBox = QtGui.QGroupBox(FileDialog)
         self.groupBox.setObjectName("groupBox")
@@ -146,7 +146,7 @@ class Ui_FileDialog(object):
         self.lineEdit_5.setObjectName("lineEdit_5")
         self.gridlayout4.addWidget(self.lineEdit_5,2,1,1,1)
         self.gridlayout3.addLayout(self.gridlayout4,0,0,1,1)
-        self.gridlayout.addWidget(self.groupBox,1,1,1,2)
+        self.gridlayout.addWidget(self.groupBox,1,1,1,3)
 
         self.groupBox_2 = QtGui.QGroupBox(FileDialog)
         self.groupBox_2.setObjectName("groupBox_2")
@@ -188,15 +188,19 @@ class Ui_FileDialog(object):
         self.label_3.setObjectName("label_3")
         self.gridlayout6.addWidget(self.label_3,2,0,1,1)
         self.gridlayout5.addLayout(self.gridlayout6,0,0,1,1)
-        self.gridlayout.addWidget(self.groupBox_2,2,1,1,2)
+        self.gridlayout.addWidget(self.groupBox_2,2,1,1,3)
+
+        self.advancedSave = QtGui.QPushButton(FileDialog)
+        self.advancedSave.setObjectName("advancedSave")
+        self.gridlayout.addWidget(self.advancedSave,3,1,1,1)
 
         self.saveButton = QtGui.QPushButton(FileDialog)
         self.saveButton.setObjectName("saveButton")
-        self.gridlayout.addWidget(self.saveButton,3,1,1,1)
+        self.gridlayout.addWidget(self.saveButton,3,2,1,1)
 
         self.closeButton = QtGui.QPushButton(FileDialog)
         self.closeButton.setObjectName("closeButton")
-        self.gridlayout.addWidget(self.closeButton,3,2,1,1)
+        self.gridlayout.addWidget(self.closeButton,3,3,1,1)
 
         self.retranslateUi(FileDialog)
         QtCore.QMetaObject.connectSlotsByName(FileDialog)
@@ -219,6 +223,7 @@ class Ui_FileDialog(object):
         self.label_4.setText(QtGui.QApplication.translate("FileDialog", "Number Of Events", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("FileDialog", "Number Of Files:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("FileDialog", "Files size", None, QtGui.QApplication.UnicodeUTF8))
+        self.advancedSave.setText(QtGui.QApplication.translate("FileDialog", "Advanced Save..", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

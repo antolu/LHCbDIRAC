@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>584</width>
-    <height>775</height>
+    <width>534</width>
+    <height>736</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -91,6 +91,13 @@
        <widget class="QRadioButton" name="radioButton_2" >
         <property name="text" >
          <string>Event type/SimCond/ProcessingPass/Production/FileType/Program/Files</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QRadioButton" name="productionRadioButton" >
+        <property name="text" >
+         <string>Production lookup</string>
         </property>
        </widget>
       </item>

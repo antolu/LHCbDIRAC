@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.14 2009/03/24 12:30:47 zmathe Exp $
+# $Id: FileDialog.py,v 1.15 2009/03/31 16:26:44 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -7,10 +7,11 @@ from PyQt4.QtCore                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
+from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.14 2009/03/24 12:30:47 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.15 2009/03/31 16:26:44 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -22,10 +23,12 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__controler = ControlerFileDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     self.connect(self.saveButton, SIGNAL("clicked()"), self.__controler.save)   
+    self.connect(self.advancedSave, SIGNAL("clicked()"), self.__controler.advancedSave)
     
     picturesPath = DIRAC.rootPath+'/DIRAC/BookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
     self.saveButton.setIcon(saveIcon)
+    self.advancedSave.setIcon(saveIcon)
     
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
@@ -51,6 +54,9 @@ class FileDialog(QDialog, Ui_FileDialog):
 
     self.__log = LogFileWidget(self)
     self.__controler.addChild('LogFileWidget',self.__log.getControler())
+    
+    self.__advancedSave = AdvancedSave(self)
+    self.__controler.addChild('AdvancedSave', self.__advancedSave.getControler())
     
   #############################################################################  
   def getControler(self):
@@ -194,7 +200,7 @@ class FileDialog(QDialog, Ui_FileDialog):
       filename = str(saveDialog.selectedFiles()[0]) 
       ext = saveDialog.selectedFilter()
       if 'Text file (*.txt)' in ext:
-        if filename.find('.') > 0:
+        if filename.find('.') < 0:
           filename += '.txt'
       elif 'Option file (*.opts)' in ext:
         if filename.find('.') < 0:

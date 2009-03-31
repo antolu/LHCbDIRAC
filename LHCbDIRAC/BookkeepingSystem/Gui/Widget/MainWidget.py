@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.5 2009/03/03 15:10:55 zmathe Exp $
+# $Id: MainWidget.py,v 1.6 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 
@@ -11,8 +11,8 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import Con
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Item
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
-
-__RCSID__ = "$Id: MainWidget.py,v 1.5 2009/03/03 15:10:55 zmathe Exp $"
+from DIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
+__RCSID__ = "$Id: MainWidget.py,v 1.6 2009/03/31 16:26:45 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
@@ -38,9 +38,13 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.connect(self.actionExit, SIGNAL("triggered()"),
                      self, SLOT("close()"))
     
+    self.__productionLookup = ProductionLookup(data = None, parent = self)
+    self.__controler.addChild('ProductionLookup', self.__productionLookup.getControler())
+    
     self.__controler.setFileName(fileName)
     if savepath != '':
       self.__controler.setPathFileName(savepath)
+    
     #self.__controler.addChild('TableWidget', self.tableWidget.getControler())
     
         

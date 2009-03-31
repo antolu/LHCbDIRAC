@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.84 2009/03/20 17:13:56 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.85 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.84 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.85 2009/03/31 16:26:45 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -129,6 +129,12 @@ class BookkeepingClient:
     else:
       result = server.checkLfns(lfns)
     return result
+  
+  #############################################################################
+  def getAvailableProductions(self):
+     server = self.__getServer()
+     result = server.getAvailableProductions()
+     return result
     
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):

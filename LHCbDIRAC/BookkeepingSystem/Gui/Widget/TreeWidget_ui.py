@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Mon Feb  2 13:27:24 2009
+# Created: Mon Mar 30 18:34:02 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 class Ui_TreeWidget(object):
     def setupUi(self, TreeWidget):
         TreeWidget.setObjectName("TreeWidget")
-        TreeWidget.resize(QtCore.QSize(QtCore.QRect(0,0,584,775).size()).expandedTo(TreeWidget.minimumSizeHint()))
+        TreeWidget.resize(QtCore.QSize(QtCore.QRect(0,0,534,736).size()).expandedTo(TreeWidget.minimumSizeHint()))
 
         self.gridlayout = QtGui.QGridLayout(TreeWidget)
         self.gridlayout.setObjectName("gridlayout")
@@ -53,6 +53,10 @@ class Ui_TreeWidget(object):
         self.radioButton_2 = QtGui.QRadioButton(self.selection)
         self.radioButton_2.setObjectName("radioButton_2")
         self.gridlayout1.addWidget(self.radioButton_2,1,0,1,1)
+
+        self.productionRadioButton = QtGui.QRadioButton(self.selection)
+        self.productionRadioButton.setObjectName("productionRadioButton")
+        self.gridlayout1.addWidget(self.productionRadioButton,2,0,1,1)
         self.gridlayout.addWidget(self.selection,2,0,1,2)
 
         self.configNameRadioButton1 = QtGui.QAction(TreeWidget)
@@ -70,5 +74,6 @@ class Ui_TreeWidget(object):
         self.selection.setTitle(QtGui.QApplication.translate("TreeWidget", "Queries", None, QtGui.QApplication.UnicodeUTF8))
         self.configNameRadioButton.setText(QtGui.QApplication.translate("TreeWidget", "SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_2.setText(QtGui.QApplication.translate("TreeWidget", "Event type/SimCond/ProcessingPass/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
+        self.productionRadioButton.setText(QtGui.QApplication.translate("TreeWidget", "Production lookup", None, QtGui.QApplication.UnicodeUTF8))
         self.configNameRadioButton1.setText(QtGui.QApplication.translate("TreeWidget", "config_click", None, QtGui.QApplication.UnicodeUTF8))
 

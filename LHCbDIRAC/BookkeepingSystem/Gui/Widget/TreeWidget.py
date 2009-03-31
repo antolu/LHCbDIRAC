@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.7 2009/03/20 17:13:55 zmathe Exp $
+# $Id: TreeWidget.py,v 1.8 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -7,13 +7,12 @@ from PyQt4.QtGui   import *
 
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
-from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                import InfoDialog
+from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
 from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
-
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.7 2009/03/20 17:13:55 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.8 2009/03/31 16:26:45 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -35,6 +34,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.__controler = ControlerTree(self, parent.parentWidget().getControler())
     self.connect(self.configNameRadioButton, SIGNAL("clicked()"), self.__controler.configButton)
     self.connect(self.radioButton_2, SIGNAL("clicked()"), self.__controler.eventTypeButton)
+    self.connect(self.productionRadioButton, SIGNAL("clicked()"), self.__controler.productionRadioButton)
     self.tree.setupControler()
     
     
@@ -50,6 +50,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     self.__fileDialog = FileDialog(self)
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
+    
     
     #self.__dialog.show()
     #self.__dialog.hide()

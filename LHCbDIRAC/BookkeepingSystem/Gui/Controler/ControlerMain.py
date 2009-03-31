@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.15 2009/03/20 17:13:56 zmathe Exp $
+# $Id: ControlerMain.py,v 1.16 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
@@ -7,9 +7,10 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
+from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.15 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.16 2009/03/31 16:26:45 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -18,6 +19,8 @@ class ControlerMain(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerMain, self).__init__(widget, parent)
     self.__bkClient = LHCB_BKKDBClient()
+    self.__diracAPI = Dirac()
+
     self.__fileName = ''
     self.__pathfilename = ''
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
@@ -70,6 +73,15 @@ class ControlerMain(ControlerAbstract):
         items = self.root()
         message = Message({'action':'removeTree','items':items})
         ct.messageFromParent(message)
+        
+      elif message['action'] == 'productionButtonChanged':
+        self.__bkClient.setParameter('Productions')
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        items = self.root()
+        ctProd = controlers['ProductionLookup']
+        message = Message({'action':'list','items':items})
+        ctProd.messageFromParent(message)
         
       elif message.action()=='SaveAs':
         if self.__fileName <> '':
@@ -181,9 +193,50 @@ class ControlerMain(ControlerAbstract):
           return None   
         else:
           return retVal['Value']
+      
+      elif message.action() == 'createCatalog':
+        site = message['selection']['Site']
+        catalog = message['fileName']
+        lfnList = message['lfns'].keys()
+        ff = catalog.split('.')
+        catalog = ff[0]+'_catalog.'+ff[1]
+        retVal = self.__diracAPI.getInputDataCatalog(lfnList,site,catalog, True)
+        if retVal['OK']:
+          print 'asasasasa', retVal
+        else:
+          print 'ERROR',retVal['Message']
+      
       else:        
         print 'Unknown message!',message.action(),message
+    elif sender.__class__.__name__=='ControlerProductionLookup':
+      if message.action() =='showAllProduction':
+        items = message['items']
+        message = Message({'action':'removeTree','items':items})
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        ct.messageFromParent(message)        
+      
+      elif message.action() == 'error':
+        print 'ERROR: Please select a production!'
+      
+      elif message.action() == 'showOneProduction':
+        paths = message['paths']
+
+        items=Item(paths.pop(),None)
+        childItem = Item(items,items)
+        items.addItem(childItem)
         
+        for i in paths:
+          item1=Item(i,None)
+          childItems = Item(item1,items)
+          items.addItem(childItems)
+
+        message = Message({'action':'removeTree','items':items})
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        ct.messageFromParent(message)        
+      else:
+        print 'Unknown message!',message.action(),message
       
   #############################################################################  
   def root(self):

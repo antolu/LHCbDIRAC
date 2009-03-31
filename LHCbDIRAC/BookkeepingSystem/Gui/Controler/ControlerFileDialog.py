@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.12 2009/03/24 12:30:46 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.13 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.12 2009/03/24 12:30:46 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.13 2009/03/31 16:26:45 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -58,7 +58,28 @@ class ControlerFileDialog(ControlerAbstract):
   
   #############################################################################  
   def messageFromChild(self, sender, message):
-    pass
+    if message.action()=='advancedSave':
+            
+      sel = message['selection']
+      fileName = sel['FileName']
+      if fileName.find('.py') < 0:
+          fileName += '.py'
+      model = self.getWidget().getModel()
+      lfns = {}
+      if len(self.__selectedFiles) > 1:
+        for i in self.__selectedFiles:
+          lfns[i] = model[i]
+      else:
+        for file in model:
+          lfns[file] = model[file]  
+          
+      message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
+      feedback = self.getParent().messageFromChild(self, message)
+      
+      message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel})
+      feedback = self.getParent().messageFromChild(self, message)
+    else:
+      self.getParent().messageFromChild(self, message)
   
   #############################################################################  
   def close(self):
@@ -245,6 +266,7 @@ class ControlerFileDialog(ControlerAbstract):
     if action == 'error':
       self.getWidget().showError(feedback['message'])  
   
+  #############################################################################  
   def loggininginfo(self):
     message = Message({'action':'logfile','fileName':self.__selectedFiles})
     feedback = self.getParent().messageFromChild(self, message)
@@ -254,5 +276,10 @@ class ControlerFileDialog(ControlerAbstract):
     elif action == 'showLog':
       controlers = self.getChildren()
       controlers['LogFileWidget'].messageFromParent(feedback)
-      
-      
+  
+  #############################################################################  
+  def advancedSave(self):
+    message = Message({'action':'showWidget'})
+    controlers = self.getChildren()
+    controlers['AdvancedSave'].messageFromParent(message)
+    

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.10 2009/03/20 17:13:56 zmathe Exp $
+# $Id: ControlerTree.py,v 1.11 2009/03/31 16:26:45 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.10 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.11 2009/03/31 16:26:45 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -43,6 +43,10 @@ class ControlerTree(ControlerAbstract):
     message = Message({'action':'configbuttonChanged'})
     self.getParent().messageFromChild(self, message)
   
+  def productionRadioButton(self):
+    message = Message({'action':'productionButtonChanged'})
+    self.getParent().messageFromChild(self, message)
+    
   #############################################################################  
   def standardQuery(self):
     message = Message({'action':'StandardQuery'})
