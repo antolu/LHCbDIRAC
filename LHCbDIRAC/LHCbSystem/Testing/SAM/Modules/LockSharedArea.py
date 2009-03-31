@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.38 2008/11/24 10:48:57 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.39 2009/03/31 12:40:11 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.38 2008/11/24 10:48:57 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.39 2009/03/31 12:40:11 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -213,14 +213,14 @@ class LockSharedArea(ModuleBaseSAM):
         self.setApplicationStatus('Could Not Create Lock File')
         return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
 
-    if os.path.exists('%s/install_project.py' %(sharedArea)):
-      self.log.info('Removing install_project.py from SharedArea')
-      cmd = 'rm -fv %s/install_project.py' %(sharedArea)
-      result = self.runCommand('Removing install_project.py from SharedArea',cmd,check=True)
+    if os.path.exists('%s/install_project' %(sharedArea)):
+      self.log.info('Removing install_project from SharedArea')
+      cmd = 'rm -fv %s/install_project' %(sharedArea)
+      result = self.runCommand('Removing install_project from SharedArea',cmd,check=True)
       if not result['OK']:
         self.setApplicationStatus('Could Not Remove File')
         self.log.warn(result['Message'])
-        return self.finalize('Could not remove install_project.py from SharedArea ',result['Message'],'critical')
+        return self.finalize('Could not remove install_project from SharedArea ',result['Message'],'critical')
 
     self.setJobParameter('NewSAMLock','Created on %s' %(time.asctime()))
     self.log.info('Test %s completed successfully' %self.testName)
