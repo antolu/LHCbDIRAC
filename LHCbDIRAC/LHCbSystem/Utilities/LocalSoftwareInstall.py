@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.1 2008/06/03 12:49:03 paterson Exp $
+# $Id: LocalSoftwareInstall.py,v 1.2 2009/03/31 12:34:53 paterson Exp $
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -11,11 +11,11 @@
     - SoftwarePackages - for the necessary parameters to install software
     and DIRAC assumes an execute() method will exist during usage.
 
-    In its initial incarnation, this simply uses install_proyect.py to install 
+    In its initial incarnation, this simply uses install_proyect.py to install
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.1 2008/06/03 12:49:03 paterson Exp $"
+__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.2 2009/03/31 12:34:53 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -33,7 +33,7 @@ class LocalSoftwareInstall:
     apps = argumentsDict['Job']['SoftwarePackages']
     if type(apps) == type(' '):
       apps = [apps]
-    
+
     self.installProject = 'install_project.py'
     self.apps = []
     for app in apps:
@@ -58,7 +58,7 @@ class LocalSoftwareInstall:
     shutil.copy('install_project.py','lib')
     os.chdir('lib')
     for app in self.apps:
-      cmd = '%s install_project.py -p %s -v %s -b -m do_config' % (( sys.executable,)+app)
+      cmd = '%s install_project -p %s -v %s -b' % (( sys.executable,)+app)
       ret = systemCall( 3600, cmd.split(), callbackFunction=log )
       if not ret['OK']:
         break
