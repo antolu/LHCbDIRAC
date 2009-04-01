@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.80 2009/04/01 16:58:26 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.81 2009/04/01 17:00:55 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.80 2009/04/01 16:58:26 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.81 2009/04/01 17:00:55 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -211,7 +211,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if simdesc != '':
       return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Simulation conditions':simdesc})
     else:
-      return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Data taking conditions':daqsesc})
+      return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Data taking conditions':daqdesc})
   
   #############################################################################
   def getPassindex(self, passid):
