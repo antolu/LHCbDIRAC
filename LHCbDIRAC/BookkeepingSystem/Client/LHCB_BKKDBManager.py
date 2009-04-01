@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.85 2009/03/31 16:26:45 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.86 2009/04/01 13:06:35 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.85 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.86 2009/04/01 13:06:35 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1447,7 +1447,7 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = processedPath[7][1]
         pversion = processedPath[7][1]
     retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
-    return self.writeJobOptions(retVal['Records'],optionsFile = '', savedType = savetype)
+    return self.writeJobOptions(retVal['Records'],optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
   
   #############################################################################         
   def getLimitedInformations(self,StartItem, Maxitems, path):
@@ -1492,7 +1492,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return S_OK({'Number of Events':nbe, 'Files Size':fsize,'Number of files':nbfiles} )  
     
   #############################################################################       
-  def writeJobOptions(self, files, optionsFile = '', savedType = None):
+  def writeJobOptions(self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None):
     fd = ''
     if optionsFile == '':
       fd = ''
@@ -1562,16 +1562,26 @@ class LHCB_BKKDBManager(BaseESManager):
         if not first:
             s +=",\n"
         first = False
-        if fileType in poolTypes:    
-            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" 
-        elif fileType in mdfTypes:
-            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"" 
-        elif fileType in etcTypes:
-            s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"" 
+        if savePfn:
+          if fileType in poolTypes:    
+              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" 
+          elif fileType in mdfTypes:
+              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\"" 
+          elif fileType in etcTypes:
+              s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\"" 
+        else:
+          if fileType in poolTypes:    
+              s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" 
+          elif fileType in mdfTypes:
+              s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"" 
+          elif fileType in etcTypes:
+              s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"" 
     if pythonOpts:
         s += "]\n"
     else:
         s += "\n};\n"
+    if catalog != None:
+        s += "FileCatalog().Catalogs = [ 'xmlcatalog_file:"+catalog+"' ]\n"
     if fd:
       fd.write(s)
       fd.close()

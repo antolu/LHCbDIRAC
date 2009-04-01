@@ -1,7 +1,8 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.16 2009/03/31 16:26:45 zmathe Exp $
+# $Id: ControlerMain.py,v 1.17 2009/04/01 13:06:36 zmathe Exp $
 ########################################################################
 
+from PyQt4.QtGui                                                     import *
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
@@ -10,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.16 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.17 2009/04/01 13:06:36 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -194,17 +195,35 @@ class ControlerMain(ControlerAbstract):
         else:
           return retVal['Value']
       
-      elif message.action() == 'createCatalog':
+      elif message.action() == 'createCatalog': 
         site = message['selection']['Site']
-        catalog = message['fileName']
+        filename = message['fileName']
         lfnList = message['lfns'].keys()
-        ff = catalog.split('.')
-        catalog = ff[0]+'_catalog.'+ff[1]
+        totalFiles = len(lfnList)
+        ff = filename.split('.')
+        catalog = ff[0]+'.xml'
         retVal = self.__diracAPI.getInputDataCatalog(lfnList,site,catalog, True)
+        nbofsuccsessful = 0
         if retVal['OK']:
-          print 'asasasasa', retVal
+          slist = retVal['Successful']
+          print slist[slist.keys()[0]]
+          faild = retVal['Failed']
+          nbofsuccsessful = len(slist)
+          nboffaild = len(faild)
+          exist = {}
+          lfns = message['lfns']
+          for i in slist.keys():
+            exist[i] = lfns[i]
+          if message['selection']['pfn']:
+            self.__bkClient.writeJobOptions(exist, filename, savedType = None, catalog= catalog, savePfn=slist)
+          else:
+            self.__bkClient.writeJobOptions(exist, filename, catalog= catalog)
+          m = 'Total files:'+str(totalFiles)+'\n'
+          m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'
+          m += str(nboffaild)+ ' not found '+str(site.split('.')[1])
+          QMessageBox.information(self.getWidget(), "Information", m ,QMessageBox.Ok)
         else:
-          print 'ERROR',retVal['Message']
+          QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
       
       else:        
         print 'Unknown message!',message.action(),message
@@ -217,7 +236,7 @@ class ControlerMain(ControlerAbstract):
         ct.messageFromParent(message)        
       
       elif message.action() == 'error':
-        print 'ERROR: Please select a production!'
+        QMessageBox.information(self.getWidget(), "Error", 'Please select a production!', QMessageBox.Ok)
       
       elif message.action() == 'showOneProduction':
         paths = message['paths']

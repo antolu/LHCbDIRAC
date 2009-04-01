@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.13 2009/03/31 16:26:45 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.14 2009/04/01 13:06:36 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.13 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.14 2009/04/01 13:06:36 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -73,9 +73,6 @@ class ControlerFileDialog(ControlerAbstract):
         for file in model:
           lfns[file] = model[file]  
           
-      message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
-      feedback = self.getParent().messageFromChild(self, message)
-      
       message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel})
       feedback = self.getParent().messageFromChild(self, message)
     else:
