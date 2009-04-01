@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.79 2009/04/01 15:44:53 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.80 2009/04/01 16:58:26 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.79 2009/04/01 15:44:53 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.80 2009/04/01 16:58:26 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -171,7 +171,47 @@ class OracleBookkeepingDB(IBookkeepingDB):
       pname = record[0][2]
       pversion = record[0][3]
     
-    return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion})
+    command = 'select totalprocpass, simcondid from productions where production='+str(prodid)
+    res = self.dbR_._query(command)
+    simid = 0
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      record = res['Value']
+      p = record[0][0]
+      simid = record[0][1]
+      description = ''
+      groups = p.split('<')
+      procdescription = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        procdescription += result +' + '
+      procdescription = procdescription[:-3]
+    simdesc = ''
+    daqdesc = ''
+    command = 'select simdescription from simulationconditions where simid='+str(simid)
+    res = self.dbR_._query(command)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      value = res['Value']
+      if len(value) != 0:
+        simdesc = value[0][0]
+      else:
+        command = 'select description from data_taking_conditions where daqperiodid='+str(simid)
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          return S_ERROR(res['Message'])
+        else:
+          value = res['Value']
+          if len(value) != 0:
+            daqdesc = value[0][0]
+          else:
+            return S_ERROR('Simulation condition or data taking condition not exist!')
+    if simdesc != '':
+      return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Simulation conditions':simdesc})
+    else:
+      return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Data taking conditions':daqsesc})
   
   #############################################################################
   def getPassindex(self, passid):
