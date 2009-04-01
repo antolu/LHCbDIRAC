@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.11 2009/03/31 16:26:45 zmathe Exp $
+# $Id: ControlerTree.py,v 1.12 2009/04/01 15:44:53 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.11 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.12 2009/04/01 15:44:53 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -146,6 +146,12 @@ class ControlerTree(ControlerAbstract):
         ctproc = controlers['ProcessingPassDialog']
         message = Message({'action':'list','items':node})
         ctproc.messageFromParent(message)
+      elif node.has_key('level') and node['level'] == 'Production(s)/Run(s)':
+        message = Message({'action':'ProductionInformations','production':node['name']})
+        feedback = self.getParent().messageFromChild(self, message)
+        if feedback != None:
+          message = Message({'action':'list','items':feedback})
+          ct.messageFromParent(message)
       elif type(node) != types.DictType and node.expandable() :
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)

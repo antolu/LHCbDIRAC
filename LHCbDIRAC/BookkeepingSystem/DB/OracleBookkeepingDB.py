@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.78 2009/03/31 16:26:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.79 2009/04/01 15:44:53 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.78 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.79 2009/04/01 15:44:53 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -157,6 +157,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tmp[1]=description[:-3] 
       retvalue += [tuple(tmp)]
     return S_OK(retvalue)
+  
+  #############################################################################
+  def getMoreProductionInformations(self, prodid):
+    command = 'select bookkeepingview.configname, bookkeepingview.configversion, bookkeepingview.ProgramName, bookkeepingview.programversion from bookkeepingview where bookkeepingview.production='+str(prodid)
+    res = self.dbR_._query(command)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      record = res['Value']
+      cname = record[0][0]
+      cversion = record[0][1]
+      pname = record[0][2]
+      pversion = record[0][3]
+    
+    return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion})
   
   #############################################################################
   def getPassindex(self, passid):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.86 2009/04/01 13:06:35 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.87 2009/04/01 15:44:53 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.86 2009/04/01 13:06:35 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.87 2009/04/01 15:44:53 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1591,3 +1591,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################       
   def getProcessingPassDesc(self, desc, passid, simid='ALL'):
     return self.db_.getProcessingPassDesc(desc, passid, simid)
+  
+  #############################################################################       
+  def getMoreProductionInformations(self, prodid):
+    return self.db_.getMoreProductionInformations(prodid)

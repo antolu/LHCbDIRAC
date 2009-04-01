@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.17 2009/04/01 13:06:36 zmathe Exp $
+# $Id: ControlerMain.py,v 1.18 2009/04/01 15:44:53 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.17 2009/04/01 13:06:36 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.18 2009/04/01 15:44:53 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -225,8 +225,15 @@ class ControlerMain(ControlerAbstract):
         else:
           QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
       
+      elif message.action()=='ProductionInformations': 
+        res = self.__bkClient.getMoreProductionInformations(int(message['production']))
+        if res['OK']:
+          return res['Value']
+        else:
+          QMessageBox.information(self.getWidget(), "Error", res['Message'], QMessageBox.Ok)
       else:        
         print 'Unknown message!',message.action(),message
+    
     elif sender.__class__.__name__=='ControlerProductionLookup':
       if message.action() =='showAllProduction':
         items = message['items']
