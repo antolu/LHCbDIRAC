@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-getProduction.py,v 1.1 2009/03/12 08:32:34 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-getProduction.py,v 1.2 2009/04/02 13:27:14 zmathe Exp $
 # File :   dirac-bookkeeping-getProduction
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-getProduction.py,v 1.1 2009/03/12 08:32:34 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-getProduction.py,v 1.2 2009/04/02 13:27:14 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -13,13 +13,13 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 def usage():
-  print 'Usage: %s ProgramName=Boole ProgramVersion=v31r12 Evt=ALL' %(Script.scriptName)
+  print 'Usage: %s ProgramName=Boole ProgramVersion=v13r3 Evt=ALL' %(Script.scriptName)
   print 'OR'
-  print 'Usage: %s ProgramName=ALL ProgramVersion=ALL, Evt=13463000' %(Script.scriptName)
+  print 'Usage: %s ProgramName=ALL ProgramVersion=ALL Evt=13463000' %(Script.scriptName)
   print 'OR'
-  print 'Usage: %s ProgramName=ALL ProgramVersion=v31r12, Evt=ALL' %(Script.scriptName)
+  print 'Usage: %s ProgramName=ALL ProgramVersion=v13r3 Evt=ALL' %(Script.scriptName)
   print 'OR'
-  print 'Usage: %s ProgramName=Brunel ProgramVersion=ALL, Evt=ALL' %(Script.scriptName)
+  print 'Usage: %s ProgramName=Brunel ProgramVersion=ALL Evt=ALL' %(Script.scriptName)
   DIRAC.exit(2)
 
 if len(args) < 3:
