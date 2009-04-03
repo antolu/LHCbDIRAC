@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.109 2009/03/21 10:17:14 paterson Exp $
+# $Id: GaudiApplication.py,v 1.110 2009/04/03 11:42:10 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.109 2009/03/21 10:17:14 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.110 2009/04/03 11:42:10 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -109,7 +109,7 @@ class GaudiApplication(ModuleBase):
                  options.write(opt+'\n')
         self.resolveInputDataPy(options)
         if self.run_number != 0 and self.applicationName == 'Gauss':
-          options.write("""GaussGen = GenInit(\"GaussGen")\n""")
+          options.write("""GaussGen = GenInit(\"GaussGen\")\n""")
           options.write("""GaussGen.RunNumber = """+str(self.run_number)+"""\n""")
 
         if self.step_commons.has_key('firstEventNumber') and self.applicationName == 'Gauss':
