@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.111 2009/04/03 12:59:55 joel Exp $
+# $Id: GaudiApplication.py,v 1.112 2009/04/03 13:13:35 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.111 2009/04/03 12:59:55 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.112 2009/04/03 13:13:35 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -98,7 +98,7 @@ class GaudiApplication(ModuleBase):
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
         #TEMPORARY HACK because DaVinci doesn't yet have a configuration package.
-        if self.applicationName.lower()=='davinci':
+        if self.applicationName.lower()=='davinci' or self.applicationName.lower()=='lhcb':
           options.write('from Gaudi.Configuration import *\n')
         else:
           options.write('from '+self.applicationName+'.Configuration import *\n')
