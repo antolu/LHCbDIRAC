@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.40 2009/03/10 23:43:42 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.41 2009/04/05 13:54:41 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.40 2009/03/10 23:43:42 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.41 2009/04/05 13:54:41 paterson Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -15,9 +15,9 @@ except Exception,x:
   from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
 
 try:
-  from LHCbSystem.Utilities.ProductionData  import getLogPath
+  from LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
 except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
 
 #from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -417,7 +417,7 @@ class AnalyseLogFile(ModuleBase):
          return S_ERROR(mailto + ' error to connectDatabase')
 
 #  error where you need to find the last open file to mark it as crash...
-      dict_app_error = {'Terminating event processing loop due to errors':'Event loop no terminated'}
+      dict_app_error = {'Terminating event processing loop due to errors':'Event loop not terminated'}
 
       for type_error in dict_app_error.keys():
           self.log.info('Check %s' %(dict_app_error[type_error]))
@@ -532,12 +532,15 @@ class AnalyseLogFile(ModuleBase):
           if not lfninput:
             return S_ERROR('Could not construct LFN for %s' %inputname)
 
-          guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
-          result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput)
-          if not result['OK']:
-              self.log.error('could not save the INPUT data file')
+          if self.jobID:
+            guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
+            result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput,catalog='LcgFileCatalogCombined')
+            if not result['OK']:
+                self.log.error('could not save the INPUT data file')
+            else:
+                msg = msg +lfninput+'\n'
           else:
-              msg = msg +lfninput+'\n'
+            self.log.info('No WMS JOBID environment variable found, not uploading debug outputs')
         else:
           msg = msg +inputname+'\n'
 
@@ -560,10 +563,13 @@ class AnalyseLogFile(ModuleBase):
       for j in msgtmp:
           msg = msg + str(j)
 
-    result = self.notify.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
-    self.log.info(result)
-    if not result[ 'OK' ]:
+    if self.jobID:
+      result = self.notify.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
+      self.log.info(result)
+      if not result[ 'OK' ]:
         self.log.warn( "The mail could not be sent" )
+    else:
+      self.log.info('No WMS JOBID environment variable found, not sending mail')
 
 
   def checkApplicationLog(self,error):
