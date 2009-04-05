@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.1 2009/03/31 22:37:44 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.2 2009/04/05 15:19:55 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -7,15 +7,22 @@
 """ Production API
 
     Notes:
-    - Tested for simulation type workflows only
-    - Reconstruction is yet to be fully implemented
-    - Automatic construction and publishing of the BK pass info is yet to
-      be implemented (but now trivial)
+    - Supports simulation + reconstruction type workflows only
+    - Stripping is yet to be fully implemented (pending something to test)
+    - Now have create() method that takes a workflow or Production object
+      and publishes to the production management system, in addition this
+      can automatically construct and publish the BK pass info
+
+    To add:
+    - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.1 2009/03/31 22:37:44 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.2 2009/04/05 15:19:55 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
+
+from DIRAC.Interfaces.API.DiracProduction import DiracProduction
+from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 try:
   from LHCbSystem.Client.LHCbJob import *
@@ -31,6 +38,7 @@ class Production(LHCbJob):
     """Instantiates the Workflow object and some default parameters.
     """
     Job.__init__(self,script)
+    self.prodVersion=__RCSID__
     self.csSection = '/Production/Defaults'
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
@@ -40,10 +48,14 @@ class Production(LHCbJob):
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
     self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),'/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw')
+    self.defaultProdID = '12345'
+    self.defaultProdJobID = '12345'
     self.ioDict = {}
     self.gaussList = []
     self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge']
     self.name='unspecifiedWorkflow'
+    self.firstEventType = ''
+    self.bkSteps = {}
     if not script:
       self.__setDefaults()
 
@@ -58,9 +70,12 @@ class Production(LHCbJob):
     self.setJobGroup('@{PRODUCTION_ID}')
     self.setFileMask('dummy')
 
+    #version control
+    self._setParameter('productionVersion','string',self.prodVersion,'ProdAPIVersion')
+
     #General workflow parameters
-    self._setParameter('PRODUCTION_ID','string','00012345','ProductionID')
-    self._setParameter('JOB_ID','string','00012345','ProductionJobID')
+    self._setParameter('PRODUCTION_ID','string',self.defaultProdID.zfill(8),'ProductionID')
+    self._setParameter('JOB_ID','string',self.defaultProdJobID.zfill(8),'ProductionJobID')
     self._setParameter('poolXMLCatName','string','pool_xml_catalog.xml','POOLXMLCatalogName')
     self._setParameter('Priority','JDL','1','Priority')
     self._setParameter('emailAddress','string','lhcb-datacrash@cern.ch','CrashEmailAddress')
@@ -139,7 +154,13 @@ class Production(LHCbJob):
       options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append('from DaVinci.Configuration import *')
       options.append("DaVinci().HistogramFile = \"%s\"" %(self.histogramName))
+      #options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       options.append('DaVinci().EvtMax=@{numberOfEvents}')
+      #N.B. to be reviewed pending stripping case
+      #DV only supported for reco histograms, nevertheless write an output file to preserve i/o nature of the gaudi app step
+      options.append('from Configurables import InputCopyStream')
+      options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
+      options.append('DaVinci().MoniSequence.append(InputCopyStream())')
     else:
       self.log.warn('No specific options found for project %s' %appName)
 
@@ -152,13 +173,28 @@ class Production(LHCbJob):
     return options
 
   #############################################################################
-  def addGaussStep(self,appVersion,eventType,generatorName,numberOfEvents,optionsFile,extraPackages,outputSE=None,histograms=True,overrideOpts=''):
+  def __getEventType(self,eventType):
+    """ Checks whether or not the global event type should be set.
+    """
+    if eventType.lower()=='firststep' and not self.firstEventType:
+      raise TypeError,'Must specify event type for initial step'
+    elif eventType.lower()=='firststep' and self.firstEventType:
+      eventType=self.firstEventType
+    elif not self.firstEventType:
+      self.firstEventType = eventType
+
+    self.log.verbose('Setting event type for current step to %s' %(eventType))
+    return eventType
+
+  #############################################################################
+  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts=''):
     """ Wraps around addGaudiStep and getOptions.
     """
+    eventType = self.__getEventType(eventType)
     firstEventNumber=1
     if not overrideOpts:
       optionsLine = self._getOptions('Gauss','sim',extraOpts=None,spillOver=False,pileUp=False)
-      self.log.info('Default options are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.info('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -166,18 +202,19 @@ class Production(LHCbJob):
     if not outputSE:
       outputSE='CERN-RDST'
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,eventType,optionsFile,optionsLine,extraPackages,outputSE,'','None',histograms,firstEventNumber,'','')
+    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,'','')
     self.gaussList.append(gaussStep.getName())
     gaussStep.setValue('numberOfEventsInput', 0)
     gaussStep.setValue('numberOfEventsOutput', 0)
     gaussStep.setValue('generatorName',generatorName)
 
   #############################################################################
-  def addBooleStep(self,appVersion,appType,eventType,optionsFile,extraPackages,outputSE=None,histograms=True,spillover=False,pileup=True,inputData='previousStep',overrideOpts=''):
+  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,spillover=False,pileup=True,inputData='previousStep',overrideOpts=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi
         currently assumes input data type is sim
     """
+    eventType = self.__getEventType(eventType)
     firstEventNumber=0
     numberOfEvents='-1'
     inputDataType='sim'
@@ -185,17 +222,18 @@ class Production(LHCbJob):
 
     if not overrideOpts:
       optionsLine = self._getOptions('Boole',appType,extraOpts=None,spillOver=spillover,pileUp=pileup)
-      self.log.info('Default options are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.info('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
 
     if not outputSE:
-      outputSE='CERN-RDST'
+      outputSE='Tier1-RDST'
 
     spilloverValue=''
     pileupValue=''
     if spillover:
+      inputData = 'firstStep'
       spilloverValue=self.gaussList[1]
       if not self.gaussList:
         raise TypeError,'No Gauss step outputs found'
@@ -205,16 +243,17 @@ class Production(LHCbJob):
         pileupValue=self.gaussList[2]
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,eventType,optionsFile,optionsLine,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,spilloverValue,pileupValue)
+    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,spilloverValue,pileupValue)
 
   #############################################################################
-  def addBrunelStep(self,appVersion,appType,eventType,optionsFile,extraPackages,inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=True,overrideOpts='',numberOfEvents='-1'):
+  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1'):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst
         inputDataType is mdf / digi
         enough to set one of the above
         TODO: stripping case - to review
     """
+    eventType = self.__getEventType(eventType)
     if appType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
@@ -229,33 +268,50 @@ class Production(LHCbJob):
       elif inputDataType.lower()=='fetc': #TODO: stripping case - to review
         dataType='DATA'
         if not outputSE:
-          outputSE='Tier1 _M-DST' #for real data master dst
+          outputSE='Tier1_M-DST' #for real data master dst
 
     if not overrideOpts:
       optionsLine = self._getOptions('Brunel',appType,extraOpts=None,spillOver=False,pileUp=False)
-      self.log.info('Default options are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.info('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
 
     firstEventNumber=0
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,eventType,optionsFile,optionsLine,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
+    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,eventType,optionsFile,extraPackages,inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=True,overrideOpts='',numberOfEvents='-1'):
+  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1'):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst /undefined at the moment ;)
         inputDataType is rdst / root
 
         TODO: stripping case - to review
     """
+    eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,eventType,optionsFile,optionsLine,extraPackages,outputSE,'','None',histograms,firstEventNumber,'','')
+    if not appType=='dst':
+      raise TypeError,'Only DST application type currently supported'
+    if not inputDataType=='rdst':
+      raise TypeError,'Only RDST input data type currently supported'
+
+    dataType='DATA'
+    if not outputSE:
+      outputSE='Tier1_M-DST'
+
+    if not overrideOpts:
+      optionsLine = self._getOptions('DaVinci',appType,extraOpts=None,spillOver=False,pileUp=False)
+      self.log.info('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
+      optionsLine = string.join(optionsLine,';')
+    else:
+      optionsLine = overrideOpts
+
+    self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
+    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
 
   #############################################################################
-  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,eventType,optionsFile,optionsLine,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=True,firstEventNumber=0,spillover='',pileup=''):
+  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup=''):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -281,8 +337,9 @@ class Production(LHCbJob):
     gaudiStep.setValue('optionsLinePrev','None')
     gaudiStep.setValue('numberOfEvents', numberOfEvents)
     gaudiStep.setValue('eventType',eventType)
-    gaudiStep.setValue('extraPackages',extraPackages)
-    self.__addSoftwarePackages(extraPackages)
+    if extraPackages:
+      gaudiStep.setValue('extraPackages',extraPackages)
+      self.__addSoftwarePackages(extraPackages)
 
     if firstEventNumber:
       gaudiStep.setValue('firstEventNumber',firstEventNumber)
@@ -294,9 +351,16 @@ class Production(LHCbJob):
       if not self.ioDict.has_key(self.gaudiStepCount-1):
         raise TypeError,'Expected previously defined Gaudi step for input data'
       gaudiStep.setLink('inputData',self.ioDict[self.gaudiStepCount-1],'outputData')
+    elif inputData=='firstStep':
+      self.log.verbose('Taking input data as output from first Gaudi step')
+      stepKeys = self.ioDict.keys()
+      stepKeys.sort()
+      gaudiStep.setLink('inputData',self.ioDict[stepKeys[0]],'outputData')
     else:
       self.log.verbose('Assume input data requirement should be added to job')
-      gaudiStep.setValue('inputData',string.join(inputData,';'))
+      if type(inputData)==type([]):
+        inputData = string.join(inputData,';')
+      gaudiStep.setValue('inputData',inputData)
       self.setInputData(inputData)
     if inputDataType != 'None':
       gaudiStep.setValue('inputDataType',string.upper(inputDataType))
@@ -316,7 +380,15 @@ class Production(LHCbJob):
 
     # now we have to tell DIRAC to install the necessary software
     self.__addSoftwarePackages('%s.%s' %(appName,appVersion))
-
+    dddbOpt = "@{DDDBTag}"
+    conddbOpt = "@{CondDBTag}"
+    #to construct the BK processing pass structure, starts from step '0'
+    stepID = 'Step%s' %(self.gaudiStepCount-1)
+    bkOptionsFile = optionsFile
+    if re.search('@{eventType}',optionsFile):
+      bkOptionsFile = string.replace(optionsFile,'@{eventType}',str(eventType))
+    self.bkSteps[stepID]={'ApplicationName':appName,'ApplicationVersion':appVersion,'OptionFiles':bkOptionsFile,'DDDb':dddbOpt,'CondDB':conddbOpt,'ExtraPackages':extraPackages}
+    self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
     self.ioDict[self.gaudiStepCount]=gaudiStep.getName()
     return gaudiStep
@@ -339,6 +411,14 @@ class Production(LHCbJob):
           tmp.append(app)
       apps = string.join(tmp,';')
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+
+  #############################################################################
+  def __addBKPassStep(self):
+    """ Internal method to accumulate software packages.
+    """
+    bkPass = 'BKProcessingPass'
+    description='BKProcessingPassInfo'
+    self._addParameter(self.workflow,bkPass,'dict',self.bkSteps,description)
 
   #############################################################################
   def __getGaudiApplicationStep(self,name):
@@ -453,16 +533,141 @@ class Production(LHCbJob):
 
   #############################################################################
   def createWorkflow(self):
-    """ Create XML for local test e.g. configname test and version <year> etc.
+    """ Create XML for local testing.
     """
-    self.workflow.toXMLFile('%s.xml' %self.name)
+    name = '%s.xml' %self.name
+    if os.path.exists(name):
+      shutil.move(name,'%s.backup' %name)
+    self.workflow.toXMLFile(name)
 
   #############################################################################
-  def createProduction(self):
+  def create(self,publish=True,fileMask='',groupSize=0,bkScript=True):
     """ Will create the production and subsequently publish to the BK, this
-        currently relies on the conditions information being present there.
+        currently relies on the conditions information being present in the
+        worklow.  Production parameters are also added at this point.
+
+        publish = True - will add production to the production management system
+                  False - does not publish the production, allows to check the BK publishing
+
+        bkScript = True - will write a script that can be checked first before
+                          adding to BK
+                   False - will print BK parameters
+        The workflow XML is created regardless of the flags.
     """
-    return True
+    fileName = '%s.xml' %self.name
+    prodID = self.defaultProdID
+
+    try:
+      self.createWorkflow()
+    except Exception,x:
+      self.log.error(x)
+      return S_ERROR('Could not create workflow')
+
+    bkConditions = self.workflow.findParameter('conditions').getValue()
+
+    bkDict = {}
+    bkDict['Steps']=self.workflow.findParameter('BKProcessingPass').getValue()
+    bkDict['GroupDescription']=self.workflow.findParameter('groupDescription').getValue()
+
+    bkClient = BookkeepingClient()
+    #Add the BK conditions metadata / name
+    simConds = bkClient.getSimConditions()
+    if not simConds['OK']:
+      self.log.error('Could not retrieve onditions data from BK:\n%s' %simConds)
+      return simConds
+    simulationDescriptions = []
+    for record in simConds['Value']:
+      simulationDescriptions.append(str(record[1]))
+
+    if not bkConditions in simulationDescriptions:
+      self.log.info('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
+      bkDict['DataTakingConditions']=bkConditions
+    else:
+      self.log.info('Found simulation conditions for %s' %bkConditions)
+      sim = {}
+      for record in simConds['Value']:
+        if bkConditions==str(record[1]):
+          simDesc = bkConditions
+          beamcond = str(record[2])
+          energy = str(record[3])
+          gen = str(record[4])
+          mag = str(record[5])
+          detcond = str(record[6])
+          lumi = str(record[7])
+          sim = {'BeamEnergy':energy,'Generator': gen,'Luminosity': lumi,'MagneticField':mag,'BeamCond': beamcond,'DetectorCond':detcond,'SimDescription':simDesc}
+
+      if not sim:
+        raise TypeError,'Could not determine simulation conditions from BK'
+
+      bkDict['SimulationConditions']=sim
+
+    #Now update the DB tags to be correct for the bookkeeping
+    stepKeys = bkDict['Steps'].keys()
+    for step in stepKeys:
+      bkDict['Steps'][step]['DDDb']=self.workflow.findParameter('DDDBTag').getValue()
+      bkDict['Steps'][step]['CondDB']=self.workflow.findParameter('CondDBTag').getValue()
+
+    if publish:
+      dirac = DiracProduction()
+      result = dirac.createProduction(fileName,fileMask,groupSize)
+      if not result['OK']:
+        self.log.error('Problem creating production:\n%s' %result)
+        return result
+      prodID = result['Value']
+    else:
+      self.log.info('Publish flag is disabled, using default production ID')
+
+    bkDict['Production']=int(prodID)
+
+    if bkScript:
+      self.log.info('Writing BK publish script...')
+      self._writeBKScript(bkDict,prodID)
+    else:
+      self.log.info('Production BK parameters are:')
+      for n,v in bkDict.items():
+        print n,v
+
+    if publish:
+      self.log.info('Attempting to publish production to the BK')
+      result = bkClient.addProduction(bkDict)
+      if not result['OK']:
+        self.log.error(result)
+      return result
+
+    return S_OK()
+
+  #############################################################################
+  def _writeBKScript(self,bkDict,prodID):
+    """Writes the production publishing script for the BK.
+    """
+    bkName = 'insertBKPass%s.py' %(prodID)
+    if os.path.exists(bkName):
+      shutil.move(bkName,'%s.backup' %bkName)
+    fopen = open(bkName,'w')
+    bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
+    bkLines.append('# by %s' %self.prodVersion)
+    bkLines.append('from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
+    bkLines.append('bkClient = BookkeepingClient()')
+    bkLines.append('bkDict = %s' %bkDict)
+    bkLines.append('print bkClient.addProduction(bkDict)')
+    fopen.write(string.join(bkLines,'\n')+'\n')
+    fopen.close()
+
+  #############################################################################
+  def getOutputLFNs(self,prodID=None,prodJobID=None,inputDataLFN=None):
+    """ Will construct the output LFNs for the production for visual inspection.
+    """
+    self.workflow.toXMLFile('%s.xml' %self.name)
+    dirac = DiracProduction()
+    if not prodID:
+      prodID = self.defaultProdID
+    if not prodJobID:
+      prodJobID = self.defaultProdJobID
+    result = dirac._getOutputLFNs('%s.xml' %self.name,productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
+    if not result['OK']:
+      return result
+    lfns = result['Value']
+    print lfns
 
   #############################################################################
   def setWorkflowLib(self,tag):
@@ -521,12 +726,6 @@ class Production(LHCbJob):
     self._setParameter('groupDescription','string',groupDescription,'GroupDescription')
     self._setParameter('conditions','string',conditions,'SimOrDataTakingCondsString')
     self._setParameter('simDescription','string',conditions,'SimDescription')
-
-  #############################################################################
-  def getBKProcessingPass(self,xmlFile=''):
-    """
-    """
-    return True
 
   #############################################################################
   def setDBTags(self,conditions='sim-20090112',detector='head-20090112'):
