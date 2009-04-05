@@ -1,8 +1,9 @@
-$Id: release.notes,v 1.18 2009/03/21 10:18:44 paterson Exp $
+$Id: release.notes,v 1.19 2009/04/05 15:06:51 paterson Exp $
 
 
 =========
-wkf-v9r9 : SKP : 20 March 2009
+wkf-v9r9 : SKP : 5 April 2009
+ - Fixes to AnalyseLogFile and BookkeepingReport for saving of debug LFNs and local running
  - UploadOutputData.py Fix for problem setting failover registration requests spotted by Nick.
  - GaudiApplication.py Rely on <PROJECT>OPTS rather than <PROJECT>ROOT
    obtained from the install_project check for options files not already
