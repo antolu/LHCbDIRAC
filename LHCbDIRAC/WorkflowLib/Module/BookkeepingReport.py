@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.33 2009/03/10 23:43:52 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.34 2009/04/05 14:44:42 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.33 2009/03/10 23:43:52 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.34 2009/04/05 14:44:42 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -278,7 +278,7 @@ class BookkeepingReport(ModuleBase):
       # find the constructed lfn
       lfn = ''
       if not re.search('.log$',output):
-        for outputLFN in self.prodOutputLFNs:
+        for outputLFN in self.bkLFNs:
           if os.path.basename(outputLFN)==output:
             lfn=outputLFN
         if not lfn:
