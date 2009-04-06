@@ -2,10 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.2 2009/02/11 19:20:00 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.3 2009/04/06 10:48:53 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.2 2009/02/11 19:20:00 acsmith Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.3 2009/04/06 10:48:53 acsmith Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
@@ -32,14 +32,24 @@ if not res['Value']:
   print 'No output files were found for production %s' % (prodID)
   sys.exit()
 
+incorrectlyRegisteredSize = []
+incorrectlyRegisteredReplicas = []
 filesWithReplicas = []
 filesWithoutReplicas = []
 totalBKSize = 0
 fileInfo = {}
 for lfn,lfnDict in res['Value'].items():
-  size = lfnDict['FilesSize']
+  if not lfnDict['FilesSize']:
+    size = 0
+    incorrectlyRegisteredSize.append(lfn)
+  else:
+    size = lfnDict['FilesSize']
+  if not lfnDict['GotReplica']:
+    incorrectlyRegisteredReplicas.append(lfn)
+    hasReplica = 'No'  
+  else:
+    hasReplica = lfnDict['GotReplica']
   guid = lfnDict['GUID']
-  hasReplica = lfnDict['GotReplica']
   if hasReplica == 'Yes':
     filesWithReplicas.append(lfn)
     totalBKSize+=size
@@ -50,6 +60,18 @@ print '\n################### %s ########################\n' % 'Bookkeeping conte
 print '%s : %s' % ('Total files'.ljust(20),str(len(filesWithoutReplicas)+len(filesWithReplicas)).ljust(20))
 print '%s : %s' % ('With replicas'.ljust(20),str(len(filesWithReplicas)).ljust(20))
 print '%s : %s' % ('Total size (bytes)'.ljust(20),str(totalBKSize).ljust(20))
+print '%s : %s' % ('Incorrectly registered size in BK'.ljust(20),str(len(incorrectlyRegisteredSize)).ljust(20))
+print '%s : %s' % ('Incorrectly registered replica in BK'.ljust(20),str(len(incorrectlyRegisteredReplicas)).ljust(20))
+
+if incorrectlyRegisteredSize:
+  print '\nThe following %s files has incorrectly registered size in the BK.\n' % len(incorrectlyRegisteredSize)
+  for lfn in sortList(incorrectlyRegisteredSize):
+    print lfn
+
+if incorrectlyRegisteredReplicas:
+  print '\nThe following %s files has incorrectly registered replicas in the BK.\n' % len(incorrectlyRegisteredReplicas)
+  for lfn in sortList(incorrectlyRegisteredReplicas):
+    print lfn
 
 #########################################################################
 # Check the files exist in the LFC
