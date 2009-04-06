@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.11 2009/02/02 15:33:56 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.12 2009/04/06 10:55:03 acsmith Exp $
 # File :   install_store02.sh
 # Author : Andrew C. Smith
 ########################################################################
@@ -16,8 +16,8 @@ DESTDIR=/sw/dirac
 #
 SiteName=DIRAC.ONLINE.ch
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r4
-EXTVERSION=v4r4
+DIRACVERSION=v4r10
+EXTVERSION=HEAD
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit requestDB"
@@ -98,6 +98,38 @@ DIRAC
 }
 Systems
 {
+  Accounting
+  {
+    $DIRACINSTANCE
+    {
+      URLs
+      {
+        DataStore = dips://lhcb-wms-dirac.cern.ch:9300/Accounting/DataStore
+        ReportGenerator = dips://lhcb-wms-dirac.cern.ch:9300/Accounting/ReportGenerator
+      }
+    }
+  }
+  Logging
+  {
+    $DIRACINSTANCE
+    {
+      URLs
+      {   
+        SystemLogging = dips://lhcb-wms-dirac.cern.ch:9300/Logging/SystemLogging
+        SystemLoggingReport = dips://lhcb-wms-dirac.cern.ch:9300/Logging/SystemLoggingReport
+      }
+    }
+  }
+  Monitoring
+  {
+    $DIRACINSTANCE
+    {
+      URLs
+      {
+        Server = dips://lhcb-wms-dirac.cern.ch:9300/Monitoring/Server
+      }
+    }
+  }
   Bookkeeping
   {
     $DIRACINSTANCE
@@ -287,7 +319,7 @@ Systems
           Status = Active
           ControlDirectory = $DESTDIR/runit/DataManagement/TransferAgent
           NumberOfThreads = 4
-          ThreadPoolDepth = 0
+          ThreadPoolDepth = 4
           UseProxies = False
         }
       }
@@ -314,7 +346,7 @@ Systems
           Status = Active
           ControlDirectory = $DESTDIR/runit/DataManagement/RemovalAgent
           NumberOfThreads = 4
-          ThreadPoolDepth = 0
+          ThreadPoolDepth = 4
           UseProxies = False
         }
       }
