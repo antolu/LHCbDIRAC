@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.81 2009/04/01 17:00:55 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.82 2009/04/07 15:16:07 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.81 2009/04/01 17:00:55 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.82 2009/04/07 15:16:07 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -868,31 +868,49 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
-    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
-                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    condition = ' and bview.configname=\''+configName+'\' and \
+                bview.configversion=\''+configVersion+'\''
+    
+    if simcond !='ALL':
+      condition += ' and bview.DAQPeriodId='+str(simcond)
     
     if eventType != 'ALL':
-      condition += ' and bookkeepingview.EventTypeId='+str(eventType)
+      condition += ' and bview.EventTypeId='+str(eventType)
     
-    if  simcond != 'ALL':
-      condition += ' and bookkeepingview.DAQPeriodId='+str(simcond)
-  
-    command = 'select distinct productions.TOTALPROCPASS, pass_index.step0, pass_index.step1, pass_index.step2, pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6 \
-       from bookkeepingview,productions,pass_index where \
-            bookkeepingview.production=productions.production and \
-            productions.passid=pass_index.passid'+ condition
+    command = ' select distinct prod.passid, prod.TOTALPROCPASS,   \
+     a0.applicationname s0, a0.applicationversion v0, a0.optionfiles op0, a0.dddb d0, a0.conddb c0, a0.EXTRAPACKAGES e0, \
+     a1.applicationname s1, a1.applicationversion v1, a1.optionfiles op1, a1.dddb d1, a1.conddb c1, a1.EXTRAPACKAGES e1, \
+     a2.applicationname s2, a2.applicationversion v2, a2.optionfiles op2, a2.dddb d2, a2.conddb c2, a2.EXTRAPACKAGES e2, \
+     a3.applicationname s3, a3.applicationversion v3, a3.optionfiles op3, a3.dddb d3, a3.conddb c3, a3.EXTRAPACKAGES e3, \
+     a4.applicationname s4, a4.applicationversion v4, a4.optionfiles op4, a4.dddb d4, a4.conddb c4, a4.EXTRAPACKAGES e4, \
+     a5.applicationname s5, a5.applicationversion v5, a5.optionfiles op5, a5.dddb d5, a5.conddb c5, a5.EXTRAPACKAGES e5, \
+     a6.applicationname s6, a6.applicationversion v6, a6.optionfiles op6, a6.dddb d6, a6.conddb c6, a6.EXTRAPACKAGES e6  \
+   from bookkeepingview bview, productions prod,pass_index pi , \
+        applications a0, applications a1, applications a2, applications a3, applications a4, applications a5, applications a6 \
+   where  \
+      bview.production=prod.production and \
+      prod.passid=pi.passid and \
+      pi.step0=a0.applicationid(+) and \
+      pi.step1=a1.applicationid(+) and \
+      pi.step2=a2.applicationid(+) and \
+      pi.step3=a3.applicationid(+) and \
+      pi.step4=a4.applicationid(+) and \
+      pi.step5=a5.applicationid(+) and \
+      pi.step6=a6.applicationid(+) ' + condition
+      
     res = self.dbR_._query(command)
     value = res['Value']
     retvalue = []
     description = ''
     for one in value:
       tmp = list(one)
-      groups = tmp[0].split('<')
+      groups = tmp[1].split('<')
       description = ''
       for group in groups:
         result = self.getDescription(group)['Value'][0][0]
         description += result +' + '
-      tmp[0]=description[:-3] 
+      tmp[1]=description[:-3] 
       retvalue += [tuple(tmp)]
     return S_OK(retvalue)
   

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.87 2009/04/01 15:44:53 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.88 2009/04/07 15:16:07 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.87 2009/04/01 15:44:53 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.88 2009/04/07 15:16:07 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -761,8 +761,8 @@ class LHCB_BKKDBManager(BaseESManager):
         if add:
           entityList += [add]        
       for record in dbResult:
-        proc = str(record[0])
-        value = {'Total ProcessingPass':proc, 'Step 0':record[1], 'Step 1':record[2],'Step 3':record[3],'Step 4':record[4],'Step 5':record[5],'Step 6':record[6]}
+        proc = str(record[1])
+        value = {'passid':record[0],'Total ProcessingPass':proc}
         entityList += [self._getSpecificEntityFromPath(path, value, proc, levels, None, 'Processing Pass')]
       self._cacheIt(entityList)
     else:
