@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/ProductionTemplates.py,v 1.2 2009/04/05 15:20:41 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/ProductionTemplates.py,v 1.3 2009/04/07 14:10:11 paterson Exp $
 # File :   ProductionTemplates.py
 # Author : Stuart Paterson
 ########################################################################
@@ -26,7 +26,7 @@
     31/3/9 - Initial iteration supporting MC simulation workflows
 """
 
-__RCSID__ = "$Id: ProductionTemplates.py,v 1.2 2009/04/05 15:20:41 paterson Exp $"
+__RCSID__ = "$Id: ProductionTemplates.py,v 1.3 2009/04/07 14:10:11 paterson Exp $"
 
 import os
 
@@ -153,6 +153,51 @@ fullStream.setWorkflowLib('v9r9')
 fullStream.setFileMask('rdst;root')
 fullStream.setProdPriority('8')
 fullStream.createWorkflow()
+
+#############################################################################
+#Examples - overriding the standard options lines
+#
+#Notes - In this case there was a request for a production with 'old' versions
+#        of the projects that don't support LHCbApp().  The standard options
+#        are printed by the Production.py API and it was sufficient to remove
+#        traces of the LHCbApp() module (relying on the defaults). Note that
+#        the create() function here is used just to write a script for BK
+#        publishing, this allows to check that the production is ok before
+#        making it visible and will only generate the workflow XML e.g. this
+#        can be tested locally before entering to the production system by
+#        hand.
+#############################################################################
+
+gaussBoole = Production()
+gaussBoole.setProdType('MCSimulation')
+gaussBoole.setWorkflowName('GaussBoole_500evt_inclusiveB_1')
+gaussBoole.setWorkflowDescription('Gauss + Boole, saving sim + digi, 500 events, 800k requested.')
+gaussBoole.setBKParameters('MC','2008','MC08-v1','Beam7TeV-VeloClosed-MagDown')
+gaussBoole.setDBTags('head-20081002','head-20081002')
+gaussOpts = 'Gauss-2008.py;$APPCONFIGROOT/options/Gauss/RICHmirrorMisalignments.py;$DECFILESROOT/options/@{eventType}.opts'
+
+opts = "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC';"
+opts += """OutputStream("GaussTape").Output = "DATAFILE='PFN:@{outputData}' TYP='POOL_ROOTTREE' OPT='RECREATE'";"""
+opts += 'from Configurables import SimInit;'
+opts += 'GaussSim = SimInit("GaussSim");'
+opts += 'GaussSim.OutputLevel = 2;'
+opts += 'HistogramPersistencySvc().OutputFile = "@{applicationName}_@{STEP_ID}_Hist.root"'
+
+gaussBoole.addGaussStep('v35r1','Pythia','500',gaussOpts,eventType='10000000',extraPackages='AppConfig.v1r1',overrideOpts=opts)
+
+opts2 = """OutputStream("DigiWriter").Output = "DATAFILE='PFN:@{outputData}' TYP='POOL_ROOTTREE' OPT='RECREATE'";"""
+opts2 += "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC';"
+opts2 += 'HistogramPersistencySvc().OutputFile = "@{applicationName}_@{STEP_ID}_Hist.root"'
+
+gaussBoole.addBooleStep('v16r3','digi','Boole-2008.py',overrideOpts=opts2)
+
+gaussBoole.addFinalizationStep(sendBookkeeping=True,uploadData=True,uploadLogs=True,sendFailover=True)
+gaussBoole.banTier1s()
+gaussBoole.setWorkflowLib('v9r9')
+gaussBoole.setFileMask('sim;digi')
+gaussBoole.setProdPriority('5')
+#gaussBoole.createWorkflow()
+gaussBoole.create(publish=False)
 
 #############################################################################
 #Local testing script
