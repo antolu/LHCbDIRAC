@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.2 2009/04/05 15:19:55 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.3 2009/04/07 15:10:29 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.2 2009/04/05 15:19:55 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.3 2009/04/07 15:10:29 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -161,6 +161,8 @@ class Production(LHCbJob):
       options.append('from Configurables import InputCopyStream')
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
       options.append('DaVinci().MoniSequence.append(InputCopyStream())')
+    elif appName.lower()=='merge':
+      options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
     else:
       self.log.warn('No specific options found for project %s' %appName)
 
@@ -200,7 +202,9 @@ class Production(LHCbJob):
       optionsLine = overrideOpts
 
     if not outputSE:
-      outputSE='CERN-RDST'
+      outputSE='Tier1-RDST'
+      self.log.info('Setting default outputSE to %s' %(outputSE))
+
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
     gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,'','')
     self.gaussList.append(gaussStep.getName())
@@ -229,6 +233,7 @@ class Production(LHCbJob):
 
     if not outputSE:
       outputSE='Tier1-RDST'
+      self.log.info('Setting default outputSE to %s' %(outputSE))
 
     spilloverValue=''
     pileupValue=''
@@ -265,10 +270,12 @@ class Production(LHCbJob):
         dataType='MC'
         if not outputSE:
           outputSE='Tier1_MC_M-DST' #for simulated master dst
+          self.log.info('Setting default outputSE to %s' %(outputSE))
       elif inputDataType.lower()=='fetc': #TODO: stripping case - to review
         dataType='DATA'
         if not outputSE:
           outputSE='Tier1_M-DST' #for real data master dst
+          self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = self._getOptions('Brunel',appType,extraOpts=None,spillOver=False,pileUp=False)
@@ -299,6 +306,7 @@ class Production(LHCbJob):
     dataType='DATA'
     if not outputSE:
       outputSE='Tier1_M-DST'
+      self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = self._getOptions('DaVinci',appType,extraOpts=None,spillOver=False,pileUp=False)
@@ -309,6 +317,30 @@ class Production(LHCbJob):
 
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
+
+  #############################################################################
+  def addMergeStep(self,optionsFile='$STDOPTS/PoolCopy.opts',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
+    """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
+       any available LHCb project as the application.
+    """
+    firstEventNumber=0
+    histograms=False
+    appName = 'LHCb'
+    appVersion =''
+    optionsFile = ''
+    if not outputSE:
+      outputSE='Tier1_MC_M-DST'
+      self.log.info('Setting default outputSE to %s' %(outputSE))
+
+    if not overrideOpts:
+      optionsLine = self._getOptions('Merge',appType,extraOpts=None,spillOver=False,pileUp=False)
+      self.log.info('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
+      optionsLine = string.join(optionsLine,';')
+    else:
+      optionsLine = overrideOpts
+
+    self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed, doesn't look like this is used anywhere...
+    self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
 
   #############################################################################
   def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup=''):
@@ -387,7 +419,7 @@ class Production(LHCbJob):
     bkOptionsFile = optionsFile
     if re.search('@{eventType}',optionsFile):
       bkOptionsFile = string.replace(optionsFile,'@{eventType}',str(eventType))
-    self.bkSteps[stepID]={'ApplicationName':appName,'ApplicationVersion':appVersion,'OptionFiles':bkOptionsFile,'DDDb':dddbOpt,'CondDB':conddbOpt,'ExtraPackages':extraPackages}
+    self.bkSteps[stepID]={'ApplicationName':appName,'ApplicationVersion':appVersion,'OptionFiles':bkOptionsFile,'DDDb':dddbOpt,'CondDb':conddbOpt,'ExtraPackages':extraPackages}
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
     self.ioDict[self.gaudiStepCount]=gaudiStep.getName()
@@ -475,7 +507,7 @@ class Production(LHCbJob):
     return self.workflow.createStepInstance('Gaudi_App_Step',name)
 
   #############################################################################
-  def addFinalizationStep(self,sendBookkeeping=True,uploadData=True,uploadLogs=True,sendFailover=True):
+  def addFinalizationStep(self,sendBookkeeping=True,uploadData=True,uploadLogs=True,sendFailover=True,removeInputData=False):
     """ Adds the finalization step with enable flags for each module.
     """
     for param in [sendBookkeeping,uploadData,uploadLogs,sendFailover]:
@@ -491,6 +523,9 @@ class Production(LHCbJob):
     dataUpload.setDescription('Uploads the output data')
     self._addParameter(dataUpload,'Enable','bool','True','EnableFlag')
     dataUpload.setBody('from WorkflowLib.Module.UploadOutputData import UploadOutputData \n')
+
+    if removeInputData:
+      print 'to add remove input data module'
 
     logUpload = ModuleDefinition('UploadLogFile')
     logUpload.setDescription('Uploads the log files')
@@ -518,6 +553,9 @@ class Production(LHCbJob):
     finalization.addModule(logUpload)
     finalization.createModuleInstance('UploadLogFile','logUpload')
     self._addParameter(finalization,'LogEnable','bool','True','EnableFlag')
+
+    if removeInputData:
+      print 'to create and add input data module...'
 
     failoverRequest.setLink('Enable','self','FailoverEnable')
     finalization.addModule(failoverRequest)
@@ -605,7 +643,7 @@ class Production(LHCbJob):
     stepKeys = bkDict['Steps'].keys()
     for step in stepKeys:
       bkDict['Steps'][step]['DDDb']=self.workflow.findParameter('DDDBTag').getValue()
-      bkDict['Steps'][step]['CondDB']=self.workflow.findParameter('CondDBTag').getValue()
+      bkDict['Steps'][step]['CondDb']=self.workflow.findParameter('CondDBTag').getValue()
 
     if publish:
       dirac = DiracProduction()
