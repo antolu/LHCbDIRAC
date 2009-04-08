@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.3 2009/04/07 15:10:29 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.4 2009/04/08 13:54:10 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.3 2009/04/07 15:10:29 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.4 2009/04/08 13:54:10 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -163,6 +163,7 @@ class Production(LHCbJob):
       options.append('DaVinci().MoniSequence.append(InputCopyStream())')
     elif appName.lower()=='merge':
       options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
+      return options
     else:
       self.log.warn('No specific options found for project %s' %appName)
 
@@ -319,15 +320,16 @@ class Production(LHCbJob):
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
 
   #############################################################################
-  def addMergeStep(self,optionsFile='$STDOPTS/PoolCopy.opts',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
     firstEventNumber=0
     histograms=False
     appName = 'LHCb'
-    appVersion =''
-    optionsFile = ''
+    #appVersion =''
+    #optionsFile = ''
+    appType = inputDataType
     if not outputSE:
       outputSE='Tier1_MC_M-DST'
       self.log.info('Setting default outputSE to %s' %(outputSE))
@@ -351,6 +353,10 @@ class Production(LHCbJob):
 
     self.gaudiStepCount +=1
     gaudiStep =  self.__getGaudiApplicationStep('%s_%s' %(appName,self.gaudiStepCount))
+
+    #lower the appType
+    if appType:
+      appType = string.lower(appType)
 
     if spillover:
       gaudiStep.setLink('spilloverData',spillover,'outputData')
@@ -390,10 +396,17 @@ class Production(LHCbJob):
       gaudiStep.setLink('inputData',self.ioDict[stepKeys[0]],'outputData')
     else:
       self.log.verbose('Assume input data requirement should be added to job')
-      if type(inputData)==type([]):
-        inputData = string.join(inputData,';')
-      gaudiStep.setValue('inputData',inputData)
       self.setInputData(inputData)
+      if not type(inputData)==type([]):
+        inputData = string.split(inputData,';')
+      finalData = []
+      for data in inputData:
+        if not re.search('^LFN:',data):
+          finalData.append('LFN:%s' %data)
+        else:
+          finalData.append(data)
+
+      gaudiStep.setValue('inputData',string.join(finalData,';'))
     if inputDataType != 'None':
       gaudiStep.setValue('inputDataType',string.upper(inputDataType))
 
@@ -525,7 +538,10 @@ class Production(LHCbJob):
     dataUpload.setBody('from WorkflowLib.Module.UploadOutputData import UploadOutputData \n')
 
     if removeInputData:
-      print 'to add remove input data module'
+      removeInputs = ModuleDefinition('RemoveInputData')
+      removeInputs.setDescription('Removes input data after merged output data uploaded to an SE')
+      self._addParameter(removeInputs,'Enable','bool','True','EnableFlag')
+      removeInputs.setBody('from WorkflowLib.Module.RemoveInputData import RemoveInputData \n')
 
     logUpload = ModuleDefinition('UploadLogFile')
     logUpload.setDescription('Uploads the log files')
@@ -542,25 +558,28 @@ class Production(LHCbJob):
     sendBK.setLink('Enable','self','BKEnable')
     finalization.addModule(sendBK)
     finalization.createModuleInstance('SendBookkeeping','sendBK')
-    self._addParameter(finalization,'BKEnable','bool','True','EnableFlag')
+    self._addParameter(finalization,'BKEnable','bool',str(sendBookkeeping),'EnableFlag')
 
     dataUpload.setLink('Enable','self','UploadEnable')
     finalization.addModule(dataUpload)
     finalization.createModuleInstance('UploadOutputData','dataUpload')
-    self._addParameter(finalization,'UploadEnable','bool','True','EnableFlag')
+    self._addParameter(finalization,'UploadEnable','bool',str(uploadData),'EnableFlag')
 
     logUpload.setLink('Enable','self','LogEnable')
     finalization.addModule(logUpload)
     finalization.createModuleInstance('UploadLogFile','logUpload')
-    self._addParameter(finalization,'LogEnable','bool','True','EnableFlag')
+    self._addParameter(finalization,'LogEnable','bool',str(uploadLogs),'EnableFlag')
 
     if removeInputData:
-      print 'to create and add input data module...'
+      removeInputs.setLink('Enable','self','DataRemovalEnable')
+      finalization.addModule(removeInputs)
+      finalization.createModuleInstance('RemoveInputData','removeInputs')
+      self._addParameter(finalization,'DataRemovalEnable','bool',str(removeInputData),'EnableFlag') #always true in this case
 
     failoverRequest.setLink('Enable','self','FailoverEnable')
     finalization.addModule(failoverRequest)
     finalization.createModuleInstance('FailoverRequest','failoverRequest')
-    self._addParameter(finalization,'FailoverEnable','bool','True','EnableFlag')
+    self._addParameter(finalization,'FailoverEnable','bool',str(sendFailover),'EnableFlag')
 
     self.workflow.addStep(finalization)
     finalizeStep = self.workflow.createStepInstance('Job_Finalization', 'finalization')
@@ -585,11 +604,12 @@ class Production(LHCbJob):
         worklow.  Production parameters are also added at this point.
 
         publish = True - will add production to the production management system
-                  False - does not publish the production, allows to check the BK publishing
+                  False - does not publish the production, allows to check the BK script
 
         bkScript = True - will write a script that can be checked first before
                           adding to BK
-                   False - will print BK parameters
+                   False - will print BK parameters but publish the production
+
         The workflow XML is created regardless of the flags.
     """
     fileName = '%s.xml' %self.name
@@ -652,6 +672,7 @@ class Production(LHCbJob):
         self.log.error('Problem creating production:\n%s' %result)
         return result
       prodID = result['Value']
+      self.log.info('Production %s successfully created' %prodID)
     else:
       self.log.info('Publish flag is disabled, using default production ID')
 
@@ -665,11 +686,12 @@ class Production(LHCbJob):
       for n,v in bkDict.items():
         print n,v
 
-    if publish:
+    if publish and not bkScript:
       self.log.info('Attempting to publish production to the BK')
       result = bkClient.addProduction(bkDict)
       if not result['OK']:
         self.log.error(result)
+      self.log.info('BK publishing result: %s' %result)
       return result
 
     return S_OK()
