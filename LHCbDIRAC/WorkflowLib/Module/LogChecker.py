@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.19 2008/10/22 11:47:57 joel Exp $
+# $Id: LogChecker.py,v 1.20 2009/04/08 13:53:20 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.19 2008/10/22 11:47:57 joel Exp $"
+__RCSID__ = "$Id: LogChecker.py,v 1.20 2009/04/08 13:53:20 paterson Exp $"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -59,7 +59,7 @@ class LogChecker(ModuleBase):
 
   def execute(self):
     self.resolveInputVariables()
-    if self.applicationName in ('Boole', 'Gauss','Brunel', 'DaVinci'):
+    if self.applicationName in ('Boole', 'Gauss','Brunel', 'DaVinci','LHCb'):
         self.logChecker = AnalyseLogFile()
     else:
         self.log.error('applicationName is not defined or known %s' %(self.applicationName))
