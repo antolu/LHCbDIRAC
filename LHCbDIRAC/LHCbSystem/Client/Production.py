@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.4 2009/04/08 13:54:10 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.5 2009/04/08 18:03:16 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.4 2009/04/08 13:54:10 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.5 2009/04/08 18:03:16 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -370,12 +370,17 @@ class Production(LHCbJob):
     gaudiStep.setValue('applicationName',appName)
     gaudiStep.setValue('applicationVersion',appVersion)
     gaudiStep.setValue('applicationType',appType)
+    if type(optionsFile)==type([]):
+      optionsFile = string.join(optionsFile,';')
+
     gaudiStep.setValue('optionsFile',optionsFile)
     gaudiStep.setValue('optionsLine',optionsLine)
     gaudiStep.setValue('optionsLinePrev','None')
     gaudiStep.setValue('numberOfEvents', numberOfEvents)
     gaudiStep.setValue('eventType',eventType)
     if extraPackages:
+      if type(extraPackages)==type([]):
+        extraPackages = string.join(extraPackages,';')
       gaudiStep.setValue('extraPackages',extraPackages)
       self.__addSoftwarePackages(extraPackages)
 
@@ -742,6 +747,8 @@ class Production(LHCbJob):
   def setFileMask(self,fileMask):
     """Output data related parameters.
     """
+    if type(fileMask)==type([]):
+      fileMask = string.join(fileMask,';')
     self._setParameter('outputDataFileMask','string',fileMask,'outputDataFileMask')
 
   #############################################################################
