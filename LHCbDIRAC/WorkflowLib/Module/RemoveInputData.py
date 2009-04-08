@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: RemoveInputData.py,v 1.2 2009/04/08 14:28:04 paterson Exp $
+# $Id: RemoveInputData.py,v 1.3 2009/04/08 15:32:53 paterson Exp $
 ########################################################################
 """ Module to remove input data files for given workflow. Initially written
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
-__RCSID__ = "$Id: RemoveInputData.py,v 1.2 2009/04/08 14:28:04 paterson Exp $"
+__RCSID__ = "$Id: RemoveInputData.py,v 1.3 2009/04/08 15:32:53 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -45,7 +45,7 @@ class RemoveInputData(ModuleBase):
         self.enable=False
 
     if self.step_commons.has_key('TestFailover'):
-      self.enable=self.step_commons['TestFailover']
+      self.failoverTest=self.step_commons['TestFailover']
       if not type(self.failoverTest)==type(True):
         self.log.warn('Test failover flag set to non-boolean value %s, setting to False' %self.failoverTest)
         self.failoverTest=False
