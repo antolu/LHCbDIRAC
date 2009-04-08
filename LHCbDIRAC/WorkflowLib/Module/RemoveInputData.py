@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: RemoveInputData.py,v 1.1 2009/04/07 15:55:38 paterson Exp $
+# $Id: RemoveInputData.py,v 1.2 2009/04/08 14:28:04 paterson Exp $
 ########################################################################
 """ Module to remove input data files for given workflow. Initially written
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
-__RCSID__ = "$Id: RemoveInputData.py,v 1.1 2009/04/07 15:55:38 paterson Exp $"
+__RCSID__ = "$Id: RemoveInputData.py,v 1.2 2009/04/08 14:28:04 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -93,7 +93,7 @@ class RemoveInputData(ModuleBase):
     #At this point can exit and see exactly what the module will try to remove
     #for testing purposes.
     if not self.enable:
-      self.log.info('Module is disabled by control flag, would have attempted to remove the following files %s' %string.join(final.keys(),', '))
+      self.log.info('Module is disabled by control flag, would have attempted to remove the following files:\n%s' %(string.join(self.inputData,'\n')))
       for fileName in self.inputData:
         self.log.info('Remove - %s' %fileName)
 
