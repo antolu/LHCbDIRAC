@@ -1,7 +1,7 @@
-$Id: release.notes,v 1.22 2009/04/09 16:28:00 paterson Exp $
+$Id: release.notes,v 1.23 2009/04/09 20:33:54 paterson Exp $
 
 =========
-wkf-v9r10,wkf-v9r11,wkf-v9r12 : SKP : 9 April 2009
+wkf-v9r10,wkf-v9r11,wkf-v9r12,wkf-v9r13 : SKP : 9 April 2009
  - Changed misleading status in AnalyseLogFile
  - Added RemoveInputData module
  - Fix for null input data in FailoverRequest
