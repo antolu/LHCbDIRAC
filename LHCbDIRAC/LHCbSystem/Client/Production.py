@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.8 2009/04/09 13:46:12 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.9 2009/04/09 14:41:11 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,12 +17,14 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.8 2009/04/09 13:46:12 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.9 2009/04/09 14:41:11 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
-from DIRAC.Interfaces.API.DiracProduction import DiracProduction
+from DIRAC.Interfaces.API.DiracProduction             import DiracProduction
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC.Core.Workflow.Workflow                     import *
+from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 try:
   from LHCbSystem.Client.LHCbJob import *
@@ -320,10 +322,16 @@ class Production(LHCbJob):
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','')
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
+    if inputProduction:
+      result = self._setInputProductionBKStepInfo(inputProduction)
+      if not result['OK']:
+        self.log.error(result)
+        raise TypeError,'inputProduction must exist and have BK parameters'
+
     firstEventNumber=0
     histograms=False
     appName = 'LHCb'
@@ -731,6 +739,37 @@ class Production(LHCbJob):
       return result
     lfns = result['Value']
     print lfns
+
+  #############################################################################
+  def _setInputProductionBKStepInfo(self,prodID):
+    """ This private method will attempt to retrieve the input production XML file
+        in order to construct the BK XML
+    """
+    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    result = prodClient.getProductionBody(int(prodID))
+    if not result['OK']:
+      return S_ERROR("Error during command execution: %s" % result['Message'])
+    if not result['Value']:
+      return S_ERROR("No body of production %s was found" % prodID)
+
+    prodXMLFile = 'InputProduction%s.xml' %prodID
+    body = result['Value']
+    fd = open( prodXMLFile, 'wb' )
+    fd.write(body)
+    fd.close()
+
+    prodWorkflow = Workflow(prodXMLFile)
+    passDict = prodWorkflow.findParameter('BKProcessingPass').getValue()
+    if not passDict:
+      return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
+
+    for stepID in passDict.keys():
+      self.log.info('Adding processing pass %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
+      self.bkSteps[stepID]=passDict[stepID]
+    self.__addBKPassStep()
+    self.gaudiStepCount+=len(passDict.keys())
+    #note that the merging production step number will follow on from the previous production
+    return S_OK()
 
   #############################################################################
   def setWorkflowLib(self,tag):
