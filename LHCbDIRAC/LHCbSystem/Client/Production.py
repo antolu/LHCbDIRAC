@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.5 2009/04/08 18:03:16 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.6 2009/04/09 10:50:43 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.5 2009/04/08 18:03:16 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.6 2009/04/09 10:50:43 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -738,9 +738,12 @@ class Production(LHCbJob):
   def setWorkflowLib(self,tag):
     """Set workflow lib version for the production.
     """
-    tag = gConfig.getValue('%s/WorkflowLibVersion' %(self.csSection),'v9r9')
+    if not tag:
+      tag = gConfig.getValue('%s/WorkflowLibVersion' %(self.csSection),'v9r9')
+      self.log.verbose('Setting workflow library tag to %s' %tag)
+
     lfn = 'LFN:/lhcb/applications/WorkflowLib-wkf-TAG.tar.gz'.replace('TAG',tag)
-    self.log.debug('Setting workflow library LFN to %s' %lfn)
+    self.log.info('Setting workflow library LFN to %s' %lfn)
     self._setParameter('InputSandbox','JDL',lfn,'WorkflowLibVersion')
 
   #############################################################################
