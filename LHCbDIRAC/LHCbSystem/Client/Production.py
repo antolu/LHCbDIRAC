@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.6 2009/04/09 10:50:43 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.7 2009/04/09 12:05:45 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.6 2009/04/09 10:50:43 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.7 2009/04/09 12:05:45 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -388,7 +388,8 @@ class Production(LHCbJob):
       gaudiStep.setValue('firstEventNumber',firstEventNumber)
 
     if not inputData:
-      self.log.verbose('Assume %s step has no input data requirement' %appName)
+      self.log.verbose('Assume %s step has no input data requirement or is linked to the overall input data' %appName)
+      gaudiStep.setLink('inputData','self','InputData')
     elif inputData=='previousStep':
       self.log.verbose('Taking input data as output from previous Gaudi step')
       if not self.ioDict.has_key(self.gaudiStepCount-1):
@@ -402,16 +403,10 @@ class Production(LHCbJob):
     else:
       self.log.verbose('Assume input data requirement should be added to job')
       self.setInputData(inputData)
-      if not type(inputData)==type([]):
-        inputData = string.split(inputData,';')
-      finalData = []
-      for data in inputData:
-        if not re.search('^LFN:',data):
-          finalData.append('LFN:%s' %data)
-        else:
-          finalData.append(data)
+      gaudiStep.setLink('inputData','self','InputData')
+      #such that it can be overwritten during submission
+      #but also the template value can be used for testing
 
-      gaudiStep.setValue('inputData',string.join(finalData,';'))
     if inputDataType != 'None':
       gaudiStep.setValue('inputDataType',string.upper(inputDataType))
 
