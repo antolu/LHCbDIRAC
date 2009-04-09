@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.35 2009/04/09 13:17:58 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.36 2009/04/09 16:27:07 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.35 2009/04/09 13:17:58 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.36 2009/04/09 16:27:07 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -201,15 +201,14 @@ class BookkeepingReport(ModuleBase):
       s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
 
     if self.inputData:
+      intermediateInputs=False
       for inputname in self.inputData.split(';'):
-        lfn = ''
         for bkLFN in self.bkLFNs:
           if os.path.basename(bkLFN)==os.path.basename(inputname):
-            lfn = bkLFN
-        if not lfn:
-          return S_ERROR('Could not construct LFN for %s' %inputname)
-        s = s+'  <InputFile    Name="'+lfn+'"/>\n'
-
+            s = s+'  <InputFile    Name="'+bkLFN+'"/>\n'
+            intermediateInputs=True
+        if not intermediateInputs:
+          s = s+'  <InputFile    Name="'+inputname+'"/>\n'
 
     ####################################################################
     # Output files
