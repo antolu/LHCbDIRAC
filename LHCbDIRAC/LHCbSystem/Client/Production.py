@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.7 2009/04/09 12:05:45 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.8 2009/04/09 13:46:12 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.7 2009/04/09 12:05:45 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.8 2009/04/09 13:46:12 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -612,7 +612,6 @@ class Production(LHCbJob):
 
         The workflow XML is created regardless of the flags.
     """
-    fileName = '%s.xml' %self.name
     prodID = self.defaultProdID
 
     try:
@@ -620,6 +619,10 @@ class Production(LHCbJob):
     except Exception,x:
       self.log.error(x)
       return S_ERROR('Could not create workflow')
+
+    workflowName = self.workflow.getName()
+    fileName = '%s.xml' %workflowName
+    self.log.info('Workflow XML file name is: %s' %fileName)
 
     bkConditions = self.workflow.findParameter('conditions').getValue()
 
@@ -631,7 +634,7 @@ class Production(LHCbJob):
     #Add the BK conditions metadata / name
     simConds = bkClient.getSimConditions()
     if not simConds['OK']:
-      self.log.error('Could not retrieve onditions data from BK:\n%s' %simConds)
+      self.log.error('Could not retrieve conditions data from BK:\n%s' %simConds)
       return simConds
     simulationDescriptions = []
     for record in simConds['Value']:
