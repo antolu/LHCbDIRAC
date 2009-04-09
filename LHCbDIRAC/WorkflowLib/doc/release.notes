@@ -1,6 +1,10 @@
-$Id: release.notes,v 1.19 2009/04/05 15:06:51 paterson Exp $
+$Id: release.notes,v 1.20 2009/04/09 08:39:11 paterson Exp $
 
-
+=========
+wkf-v9r10 : SKP : 5 April 2009
+ - Changed misleading status in AnalyseLogFile
+ - Added RemoveInputData module
+ 
 =========
 wkf-v9r9 : SKP : 5 April 2009
  - Fixes to AnalyseLogFile and BookkeepingReport for saving of debug LFNs and local running
