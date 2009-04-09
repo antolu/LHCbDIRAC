@@ -1,10 +1,15 @@
-$Id: release.notes,v 1.20 2009/04/09 08:39:11 paterson Exp $
+$Id: release.notes,v 1.21 2009/04/09 13:18:23 paterson Exp $
 
 =========
-wkf-v9r10 : SKP : 5 April 2009
+wkf-v9r11 : SKP : 9 April 2009
+ - Fix for null input data in FailoverRequest
+ - Fix to BK report module
+
+=========
+wkf-v9r10 : SKP : 9 April 2009
  - Changed misleading status in AnalyseLogFile
  - Added RemoveInputData module
- 
+
 =========
 wkf-v9r9 : SKP : 5 April 2009
  - Fixes to AnalyseLogFile and BookkeepingReport for saving of debug LFNs and local running
