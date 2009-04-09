@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: FailoverRequest.py,v 1.8 2009/04/09 09:25:01 paterson Exp $
+# $Id: FailoverRequest.py,v 1.9 2009/04/09 11:36:00 paterson Exp $
 ########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job.
 """
 
-__RCSID__ = "$Id: FailoverRequest.py,v 1.8 2009/04/09 09:25:01 paterson Exp $"
+__RCSID__ = "$Id: FailoverRequest.py,v 1.9 2009/04/09 11:36:00 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -62,13 +62,13 @@ class FailoverRequest(ModuleBase):
 
     if self.workflow_commons.has_key('InputData'):
       self.inputData = self.workflow_commons['InputData']
-      if not type(self.inputData)==type([]):
-        if self.inputData:
-          self.inputData=[self.inputData]
-        else:
-          self.inputData=[]
+      if self.inputData:
+        if type(self.inputData) != type([]):
+          self.inputData = self.inputData.split(';')
+      else:
+        self.inputData=[]
 
-      self.inputData = [i.replace('LFN:','') for i in self.inputData]
+      self.inputData = [x.replace('LFN:','') for x in self.inputData]
 
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
