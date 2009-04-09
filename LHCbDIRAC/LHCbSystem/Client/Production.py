@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.9 2009/04/09 14:41:11 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.10 2009/04/09 14:43:43 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.9 2009/04/09 14:41:11 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.10 2009/04/09 14:43:43 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -738,7 +738,8 @@ class Production(LHCbJob):
     if not result['OK']:
       return result
     lfns = result['Value']
-    print lfns
+    self.log.info(lfns)
+    return result
 
   #############################################################################
   def _setInputProductionBKStepInfo(self,prodID):
@@ -764,7 +765,7 @@ class Production(LHCbJob):
       return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
 
     for stepID in passDict.keys():
-      self.log.info('Adding processing pass %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
+      self.log.info('Adding BK processing step %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
       self.bkSteps[stepID]=passDict[stepID]
     self.__addBKPassStep()
     self.gaudiStepCount+=len(passDict.keys())
