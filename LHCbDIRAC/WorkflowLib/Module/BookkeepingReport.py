@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.36 2009/04/09 16:27:07 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.37 2009/04/09 20:33:28 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.36 2009/04/09 16:27:07 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.37 2009/04/09 20:33:28 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -208,7 +208,7 @@ class BookkeepingReport(ModuleBase):
             s = s+'  <InputFile    Name="'+bkLFN+'"/>\n'
             intermediateInputs=True
         if not intermediateInputs:
-          s = s+'  <InputFile    Name="'+inputname+'"/>\n'
+          s = s+'  <InputFile    Name="'+inputname.replace('LFN:','')+'"/>\n'
 
     ####################################################################
     # Output files
