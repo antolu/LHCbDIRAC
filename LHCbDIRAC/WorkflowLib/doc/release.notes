@@ -1,4 +1,8 @@
-$Id: release.notes,v 1.23 2009/04/09 20:33:54 paterson Exp $
+$Id: release.notes,v 1.24 2009/04/10 10:39:38 paterson Exp $
+
+=========
+wkf-v9r14 : SKP : 9 April 2009
+ - Minor bug fix to AnalyseLogFile
 
 =========
 wkf-v9r10,wkf-v9r11,wkf-v9r12,wkf-v9r13 : SKP : 9 April 2009
