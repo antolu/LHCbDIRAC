@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.42 2009/04/09 08:35:39 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.43 2009/04/10 09:17:21 paterson Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.42 2009/04/09 08:35:39 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.43 2009/04/10 09:17:21 paterson Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -346,7 +346,7 @@ class AnalyseLogFile(ModuleBase):
       if n == 0:
         if self.applicationName:
             mailto = self.applicationName.upper()+'_EMAIL'
-        return S_ERROR('%s Finalization Error')
+        return S_ERROR('%s Finalization Error' %self.applicationName)
 
 # trap POOL error to open a file through POOL
       if not self.poolXMLCatName:
