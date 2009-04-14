@@ -1,17 +1,144 @@
-# $Id: ProductionRequestDB.py,v 1.2 2009/03/06 17:01:34 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.3 2009/04/14 14:14:02 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.2 $"
+__RCSID__ = "$Revision: 1.3 $"
+
+# Defined states:
+#'New'
+#'BK OK'
+#'Rejected'
+#'BK Check'
+#'Submitted'
+#'PPG OK'
+#'Tech OK'
+#'Accepted'
+#'Active'
+#'Done'
+#'Cancelled'
+
 
 import string
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
-from DIRAC  import gLogger, S_OK, S_ERROR
+from DIRAC  import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities import Time
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 import threading
+import types
+
+def _getMailAddress(user):
+  res = gConfig.getOptionsDict('/Security/Users/%s' % user)
+  if not res['OK']:
+    gLogger.error('_inform_people: User %s not found in the CS.' % user)
+    return ''
+  userProp = res['Value']
+  if not 'email' in userProp:
+    gLogger.error('_inform_people: User %s has no EMail set in CS.' % user)
+    return ''
+  return userProp['email']
+
+def _getMemberMails(group):
+  res = gConfig.getOptionsDict('/Security/Groups/%s' % group)
+  if not res['OK']:
+    gLogger.error('_inform_people: group %s is not founf in CS.' % group)
+    return []
+  groupProp = res['Value']
+  members = groupProp.get('Users','')
+  if type(members) == types.StringType:
+    members = [members]
+  if not members:
+    gLogger.error('_inform_people: group %s has no members.' % group)
+    return []
+  emails = []
+  for user in members:
+    email = _getMailAddress(user)
+    if email:
+      emails.append(email)
+  return emails
+
+def _inform_people(id,state,author):
+  if not state or state == 'New':
+    return # was no state change or resurrect
+  
+  csS=PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
+  if not csS:
+    gLogger.error('No ProductionRequest section in configuration')
+    return
+
+  fromAddress = gConfig.getValue('%s/fromAddress' % csS,'')
+  if not fromAddress:
+    gLogger.error('No fromAddress is defined in CS path %s/fromAddress'%csS)
+    return
+
+  footer = "\n\nNOTE: that is automated notification request."
+  footer+= " Don't replay please.\n"
+  footer+= "DIRAC Web portal: https://lhcbtest.pic.es/DIRAC/%s/" % \
+           PathFinder.getDIRACSetup()
+  ppath = '/production/ProductionRequest/display\n'
+  
+  authorMail = _getMailAddress(author)
+  if authorMail:
+    if not state in ['BK Check','Submitted']:
+      if state == 'BK OK':
+        subj = 'DIRAC: please resign your Production Request %s' % id
+        body =  '\n'.join(
+          ['Customized Simulation Conditions in your request was registered.',
+           'Since Bookkeeping expert could make changes in your request,',
+           'you are asked to confirm it.'])
+      else:
+        subj = "DIRAC: the state of Production Request %s is changed to '%s'"%\
+               (id,state)
+        body = '\n'.join(
+          ['The state of your requests is changed.',
+           'This mail is for information only.'])
+      notification = NotificationClient()
+      res = notification.sendMail(authorMail,subj,
+                                  body+footer+'lhcb_user'+ppath,
+                                  fromAddress,True)
+      if not res['OK']:
+        gLogger.error("_inform_people: can't send email: %s" % res['Message'])
+  if state == 'Accepted':
+    subj = "DIRAC: the Production Request %s is accepted." % id
+    body = '\n'.join(["The Production Request is signed and ready to process",
+                      "You are informed as member of %s group"])
+    groups = [ 'lhcb_tech' ]
+  elif state == 'BK Check':
+    subj = "DIRAC: new Pruduction Request %s" %id
+    body = '\n'.join(["New Production is requested and it has",
+                      "customized Simulation Conditions.",
+                      "As member of %s group, your are asked either",
+                      "register new Simulation conditions",
+                      "or reject the request","",
+                      "In case some other member of the group has already",
+                      "done that, please ignore this mail."])
+    groups = [ 'lhcb_bk' ]
+    
+  elif state == 'Submitted':
+    subj = "DIRAC: new Pruduction Request %s" %id
+    body = '\n'.join(["New Production is requested",
+                      "As member of %s group, your are asked either sign",
+                      "or reject it.","",
+                      "In case some other member of the group has already",
+                      "done that, please ignore this mail."])
+    groups = [ 'lhcb_ppg','lhcb_tech' ]
+  else:
+    return
+  for group in groups:
+    for man in _getMemberMails(group):
+      notification = NotificationClient()
+      res = notification.sendMail(authorMail,subj,
+                                  body%group+footer+group+ppath,
+                                  fromAddress,True)
+      if not res['OK']:
+        gLogger.error("_inform_people: can't send email: %s" % res['Message'])
+  return
+
+
 
 class ProductionRequestDB(DB):
   def __init__( self, maxQueueSize=10 ):
@@ -28,7 +155,8 @@ class ProductionRequestDB(DB):
                     'SimCondition', 'SimCondID', 'SimCondDetail',
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
-                    'HasSubrequest', 'bk', 'bkTotal', 'rqTotal' ] # runtime
+                    'HasSubrequest', 'bk', 'bkTotal', 'rqTotal',  # runtime
+                    'crTime', 'upTime' ] # runtime
 
   historyFields = [ 'RequestID', 'RequestState', 'RequestUser', 'TimeStamp' ]
 
@@ -104,7 +232,7 @@ class ProductionRequestDB(DB):
     """ Create new Production Request
         TODO: Complete check of content
     """
-    rec = dict.fromkeys(self.requestFields[1:-4],None)
+    rec = dict.fromkeys(self.requestFields[1:-6],None)
     for x in requestDict:
       if x in rec and str(requestDict[x]) != '':
         rec[x] = requestDict[x] # set only known not empty fields
@@ -125,7 +253,7 @@ class ProductionRequestDB(DB):
         if not rec['EventType']:
           return S_ERROR("Please specify Event type/number or add subrequest(s)")
 
-    recl = [ rec[x] for x in self.requestFields[1:-4] ]
+    recl = [ rec[x] for x in self.requestFields[1:-6] ]
     result = self._fixedEscapeValues(recl)
     if not result['OK']:
       return result
@@ -175,7 +303,7 @@ class ProductionRequestDB(DB):
       if not result['OK']:
         return result
 
-    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-4])
+    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-6])
     req+= " ) VALUES ( %s );" % ','.join(recls)
     result = self._update(req,connection)
     if not result['OK']:
@@ -206,7 +334,10 @@ class ProductionRequestDB(DB):
     """
     r ="SELECT t.*,CAST(COALESCE(SUM(sr.NumberOfEvents),0)+"
     r+="                COALESCE(t.NumberOfEvents,0) AS SIGNED)"
-    r+="           AS rqTotal FROM "
+    r+="           AS rqTotal, "
+    r+="           MIN(rh.TimeStamp) AS crTime,"
+    r+="           MAX(rh.TimeStamp) AS upTime "
+    r+=" FROM "
     r+=" (SELECT t.*,CAST(COALESCE(SUM(pp.BkEvents),0)+"
     r+="                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
     r+="  (SELECT t.*, CAST(SUM(pp.BkEvents) AS SIGNED)"
@@ -217,6 +348,7 @@ class ProductionRequestDB(DB):
     r+="  LEFT JOIN ProductionProgress AS pp ON sr.RequestID=pp.RequestID "
     r+="  WHERE COALESCE(pp.Used,1) GROUP BY t.RequestID) AS t "
     r+=" LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
+    r+=" LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
     r+=" GROUP BY t.RequestID"
     return r+order
 
@@ -236,12 +368,12 @@ class ProductionRequestDB(DB):
     except:
       return S_ERROR("Bad parameters (all request IDs must be numbers)")
     if sortBy:
-      if not sortBy in self.requestFields[:-4]:
+      if not sortBy in self.requestFields[:-6]:
         return S_ERROR("sortBy field does not exist")
       if sortOrder != 'ASC':
         sortOrder = 'DESC'
 
-    fields = ','.join(['t.'+x for x in self.requestFields[:-4]])
+    fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
     req = "SELECT %s,COUNT(sr.RequestID) AS HasSubrequest " % fields
     req+= "FROM ProductionRequests as t "
     req+= "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
@@ -279,6 +411,8 @@ class ProductionRequestDB(DB):
 
   def __checkUpdate(self,update,old,creds,connection):
     """ Check that update is possible.
+        Return dict with values for _inform_people (with
+        state=='' in  case notification is not required)
         NOTE: unlock in case of errors
     """
     requestID = old['RequestID']
@@ -286,7 +420,7 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       return result
     requestState,requestAuthor = result['Value']
-
+    inform = { 'id':str(requestID), 'state':'', 'author': str(requestAuthor) }
 
     hasSubreq = False
     if not old['MasterID']:
@@ -346,11 +480,11 @@ class ProductionRequestDB(DB):
         if len(update)!=1 or not 'Comments' in update:
           self.lock.release()
           return S_ERROR("Only comments can be changed for subrequest in progress")
-      return S_OK("")
+      return S_OK(inform)
     # for masters it is more complicated...
     if requestState == 'New':
       if not 'RequestState' in update:
-        return S_OK("")
+        return S_OK(inform)
       if update['RequestState'] in ['BK Check','Submitted']:
         # !!! full information check must be here, but currently in the JS...
         # so we only check EventType consistency
@@ -377,7 +511,7 @@ class ProductionRequestDB(DB):
           self.lock.release()
           return S_ERROR("%s can't be modified during BK check" % x)
       if not 'RequestState' in update:
-        return S_OK('')
+        return S_OK(inform)
       if not update['RequestState'] in ['BK OK','Rejected']:
         self.lock.release()
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
@@ -388,9 +522,9 @@ class ProductionRequestDB(DB):
       for x in update:
         if not x in ['RequestState','Comments']:
           self.lock.release()
-          return S_ERROR("%s can't be modified in after BK check" % x)
+          return S_ERROR("%s can't be modified after BK check" % x)
       if not 'RequestState' in update:
-        return S_OK('')
+        return S_OK(inform)
       if not update['RequestState'] in ['Submitted','Rejected']:
         self.lock.release()
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
@@ -401,7 +535,7 @@ class ProductionRequestDB(DB):
             self.lock.release()
             return S_ERROR("%s can't be modified during PPG signing" % x)
         if not 'RequestState' in update:
-          return S_OK('')
+          return S_OK(inform)
         if update['RequestState'] == 'Accepted':
           update['RequestState'] = 'PPG OK';
         if not update['RequestState'] in ['PPG OK','Rejected']:
@@ -413,7 +547,7 @@ class ProductionRequestDB(DB):
             self.lock.release()
             return S_ERROR("%s can't be modified during Tech signing" % x)
         if not 'RequestState' in update:
-          return S_OK('')
+          return S_OK(inform)
         if update['RequestState'] == 'Accepted':
           update['RequestState'] = 'Tech OK';
         if not update['RequestState'] in ['Tech OK','Rejected']:
@@ -428,7 +562,7 @@ class ProductionRequestDB(DB):
           self.lock.release()
           return S_ERROR("%s can't be modified during Tech signing" % x)
       if not 'RequestState' in update:
-        return S_OK('')
+        return S_OK(inform)
       if update['RequestState'] == 'Tech OK':
         update['RequestState'] = 'Accepted'
       if not update['RequestState'] in ['Accepted','Rejected']:
@@ -443,7 +577,7 @@ class ProductionRequestDB(DB):
           self.lock.release()
           return S_ERROR("%s can't be modified during PPG signing" % x)
       if not 'RequestState' in update:
-        return S_OK('')
+        return S_OK(inform)
       if update['RequestState'] == 'PPG OK':
         update['RequestState'] = 'Accepted'
       if not update['RequestState'] in ['Accepted','Rejected']:
@@ -455,7 +589,7 @@ class ProductionRequestDB(DB):
           self.lock.release()
           return S_ERROR("%s can't be modified during the progress" % x)
       if not 'RequestState' in update:
-        return S_OK('')
+        return S_OK(inform)
       if requestState == 'Accepted':
         if not update['RequestState'] in ['Active','Cancelled']:
           self.lock.release()
@@ -464,7 +598,8 @@ class ProductionRequestDB(DB):
         if not update['RequestState'] in ['Done','Cancelled']:
           self.lock.release()
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
-    return S_OK("")
+    inform['state'] = update['RequestState']
+    return S_OK(inform)
 
   def updateProductionRequest(self,requestID,requestDict,creds):
     """ Update existing production request
@@ -474,7 +609,7 @@ class ProductionRequestDB(DB):
         TODO: RequestPDG change in ??? state
               Protect fields in subrequests
     """
-    fdict = dict.fromkeys(self.requestFields[4:-4],None)
+    fdict = dict.fromkeys(self.requestFields[4:-6],None)
     rec = {}
     for x in requestDict:
       if x in fdict:
@@ -491,7 +626,7 @@ class ProductionRequestDB(DB):
     connection = result['Value']
 
 
-    fields = ','.join(['t.'+x for x in self.requestFields[:-4]])
+    fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
     req = "SELECT %s " % fields
     req+= "FROM ProductionRequests as t "
     req+= "WHERE t.RequestID=%s" % requestID
@@ -503,7 +638,7 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return S_ERROR('The request is no longer exist')
 
-    old = dict(zip(self.requestFields[:-4],result['Value'][0]))
+    old = dict(zip(self.requestFields[:-6],result['Value'][0]))
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
@@ -518,6 +653,7 @@ class ProductionRequestDB(DB):
     result = self.__checkUpdate(update,old,creds,connection)
     if not result['OK']:
       return result
+    inform = result['Value']
 
     recl_fields = update.keys() # we have to escape values... tricky way
     recl = [ update[x] for x in recl_fields ]
@@ -545,6 +681,7 @@ class ProductionRequestDB(DB):
         gLogger.error(result['Message'])
 
     self.lock.release()
+    _inform_people(**inform)
     return S_OK(requestID)
 
   def __getSubrequestsList(self,id,master,connection):
@@ -671,7 +808,7 @@ class ProductionRequestDB(DB):
         NOTE: unlock in case of errors
     """
     
-    fields = ','.join(['t.'+x for x in self.requestFields[:-4]])
+    fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
     req = "SELECT %s " % fields
     req+= "FROM ProductionRequests as t "
     req+= "WHERE t.RequestID=%s" % requestID
@@ -682,7 +819,7 @@ class ProductionRequestDB(DB):
     if not result['Value']:
       self.lock.release()
       return S_ERROR('The request is no longer exist')
-    rec = dict(zip(self.requestFields[:-4],result['Value'][0]))
+    rec = dict(zip(self.requestFields[:-6],result['Value'][0]))
 
     if masterID and not rec['MasterID']:
       return S_OK("") # substructured request
@@ -696,14 +833,14 @@ class ProductionRequestDB(DB):
     if rec['RequestState']:
       rec['RequestState'] = 'New'
     
-    recl = [ rec[x] for x in self.requestFields[1:-4] ]
+    recl = [ rec[x] for x in self.requestFields[1:-6] ]
     result = self._fixedEscapeValues(recl)
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
     
-    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-4])
+    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-6])
     req+= " ) VALUES ( %s );" % ','.join(recls)
     result = self._update(req,connection)
     if not result['OK']:
