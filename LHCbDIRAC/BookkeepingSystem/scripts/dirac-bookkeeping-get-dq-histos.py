@@ -6,22 +6,23 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 import os
 from DIRAC import gLogger
+from DIRAC.Interfaces.API.Dirac import Dirac
 
 
-def getExpressStreamRAW():
-  """ This performs a bookkeeping query to obtain the EXPRESS stream RAW files that are in the DataQuality status 'UNCHECKED'.
+def getStreamRAW(ID):
+  """ This performs a bookkeeping query to obtain the EXPRESS/FULL stream RAW files that are in the DataQuality status 'UNCHECKED'.
       This will get you the files for the runs that have not yet been checked.
 
       returns a list of RAW files.
   """
-  bkDict = {'ProcessingPass':'Real Data','FileType':'RAW', 'EventType':91000000,'ConfigName':'Fest', 'ConfigVersion':'Fest','DataQualityFlag':'UNCHECKED'}
+  bkDict = {'ProcessingPass':'Real Data','FileType':'RAW', 'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','DataQualityFlag':'UNCHECKED'}
   res = bkClient.getFilesWithGivenDataSets(bkDict)
   if not res['OK']:
     gLogger.error(res['Message'])
     DIRAC.exit(2)
   lfns = res['Value']
   if not lfns:
-    gLogger.info("There were no UNCHECKED EXPRESS stream files found.")
+    gLogger.info("There were no UNCHECKED '+str(ID)+' files found.")
     DIRAC.exit(0)
   return lfns
 
@@ -83,17 +84,94 @@ def getFilesOfInterest(rawDescendants):
           gLogger.info("The RAW file is UNCHECKED but the histgrams are not: %s" % lfn)
   return raw2Reco
 
+def getInfo(lfn,info):
+  """
+  get info from file
+  """
+  l = [ lfn ]
+  res = bkClient.getFilesInformations(l)
+  if ( res.has_key('Value')):
+    res2 = res['Value']
+    if ( res2.has_key(lfn)):
+      res3 = res2[lfn]
+      if ( res3.has_key(info)):
+        ft = res3[info]
+        if (debug): print '##', info, ' ::', ft
+        return ft
+  return 'UNDEFINED'
+  
+def getCERNpfn(lfn):
+  """
+  Download file if it is a root file
+  """
+  res = dirac.getFile(lfn,False)
+  return res['OK']
+
+def makeNiceName(lfn,run):
+  """
+  Give the file a clearer name
+  """
+  et = getInfo(lfn,'EventTypeId')
+  if ( et==expressID): ex = 'EX'
+  else: ex = 'FULL'
+  name = lfn.split('/')[-1]
+  names = name.split('_')
+  names.insert(1, str(run))
+  names.insert(1, ex)
+  nn = '_'.join(names)
+  return nn
+  
+def download(lfn,run):
+  """
+  Download file if it is a root file
+  """
+  ft = getInfo(lfn,'FileType')
+  if ( ft.find('HIST')>0 ):
+    name = makeNiceName(lfn,run)
+    if (not os.path.isfile(name)):
+      if ( getCERNpfn(lfn) ):
+        realname = lfn.split('/')[-1]
+        if (os.path.isfile(realname)):
+          os.rename(realname,name)
+          print '## downloaded', lfn, 'as', name
+        else:
+          print '## downloaded somehow failed for', lfn, 'as', name
+          
+      else :
+        print '## download failed for', lfn, run, ft
+    if (debug): print 'No need to download again', name
+  
+############################################################################
+"""
+Main program : get all files
+"""
+
+gLogger.setLevel("WARNING")
+expressID = 91000000
+fullID = 90000000
+debug = False
 bkClient = BookkeepingClient()
+dirac = Dirac()
 if args:
   runID = int(args[0])
   rawLfns = getRunRAWFiles(runID)
 else:
-  rawLfns = getExpressStreamRAW()
+  rawLfns = getStreamRAW(expressID)
+  rawLfns2 = getStreamRAW(fullID)
+  for l in rawLfns2 : rawLfns.append(l)
+  
 gLogger.info("Obtained %s RAW files for consideration." %len(rawLfns))
 rawDescendants = getRAWDescendants(rawLfns)
 raw2Reco = getFilesOfInterest(rawDescendants)
 
 for lfn in sortList(raw2Reco.keys()):
+  run = getInfo(lfn,'RunNumber')
+  if raw2Reco[lfn]:
+    for dec in sortList(raw2Reco[lfn]):
+      download(dec,run)
+
+for lfn in sortList(raw2Reco.keys()):
+  run = getInfo(lfn,'RunNumber')
   if raw2Reco[lfn]:
     print "\n%s produced:" % lfn
     for dec in sortList(raw2Reco[lfn]):
