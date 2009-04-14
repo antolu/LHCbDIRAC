@@ -149,8 +149,9 @@ Main program : get all files
 gLogger.setLevel("WARNING")
 expressID = 91000000
 fullID = 90000000
-debug = False
 bkClient = BookkeepingClient()
+debug = False
+if (debug): print 'Hello'
 dirac = Dirac()
 if args:
   runID = int(args[0])
@@ -164,7 +165,10 @@ gLogger.info("Obtained %s RAW files for consideration." %len(rawLfns))
 rawDescendants = getRAWDescendants(rawLfns)
 raw2Reco = getFilesOfInterest(rawDescendants)
 
+if (debug): print 'Hello', raw2Reco
+
 for lfn in sortList(raw2Reco.keys()):
+  if (debug): print 'Looking at', lfn
   run = getInfo(lfn,'RunNumber')
   if raw2Reco[lfn]:
     for dec in sortList(raw2Reco[lfn]):
