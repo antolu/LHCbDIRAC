@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.82 2009/04/07 15:16:07 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.83 2009/04/14 10:16:46 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.82 2009/04/07 15:16:07 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.83 2009/04/14 10:16:46 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1632,6 +1632,50 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  jobsId +=[record[1]]
                  if record[2] != 'No':
                    files += [record[0]]
+           depth-=1 
+        
+        ancestorList[fileName]=files    
+      else:
+        logicalFileNames['Failed']+=[fileName]
+      logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
+  
+  #############################################################################  
+  def getAllAncestors(self, lfn, depth):
+    logicalFileNames={}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
+    jobsId = []
+    job_id = -1
+    if depth < 1:
+      depth = 1
+    odepth = depth 
+    gLogger.debug('original',lfn)
+    for fileName in lfn:
+      depth = odepth
+      jobsId = []
+      gLogger.debug('filename',fileName)
+      jobsId = []
+      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
+      if not result["OK"]:
+        gLogger.error('Ancestor',result['Message'])
+      else:
+        job_id = int(result['Value'])
+      if job_id != 0:
+        jobsId = [job_id]
+        files = []
+        while (depth-1) and jobsId:
+           for job_id in jobsId:
+             command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+             jobsId=[]
+             res = self.dbR_._query(command)
+             if not res['OK']:
+               gLogger.error('Ancestor',result["Message"])
+             else:
+               dbResult = res['Value']
+               for record in dbResult:
+                 jobsId +=[record[1]]
+                 files += [record[0]]
            depth-=1 
         
         ancestorList[fileName]=files    
