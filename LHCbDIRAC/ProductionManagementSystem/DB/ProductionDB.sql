@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.15 2009/02/02 11:40:57 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.16 2009/04/15 10:32:53 atsareg Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -52,7 +52,7 @@ CREATE TABLE Workflows (
 DROP TABLE IF EXISTS ProductionParameters;
 CREATE TABLE ProductionParameters (
     TransformationID INTEGER NOT NULL,
-    GroupSize INT NOT NULL DEFAULT 0,
+    GroupSize INT NOT NULL DEFAULT 1,
     Parent VARCHAR(255) DEFAULT '',
     InheritedFrom INTEGER DEFAULT 0,
     Body BLOB,
