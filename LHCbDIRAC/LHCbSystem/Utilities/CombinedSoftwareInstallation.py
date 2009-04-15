@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.28 2009/04/15 07:41:31 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.29 2009/04/15 08:00:59 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.28 2009/04/15 07:41:31 rgracian Exp $"
-__VERSION__ = "$Revision: 1.28 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.29 2009/04/15 08:00:59 rgracian Exp $"
+__VERSION__ = "$Revision: 1.29 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -96,7 +96,7 @@ class CombinedSoftwareInstallation:
       result = CheckInstallSoftware(app,self.jobConfig,self.mySiteRoot)
       if not result:
         DIRAC.gLogger.error('Failed to install software','%s_%s' %(app))
-        return DIRAC.S_ERROR()
+        return DIRAC.S_ERROR('Failed to install software')
       else:
         DIRAC.gLogger.info('%s was successfully installed for %s' %(app,self.jobConfig))
 
