@@ -96,7 +96,6 @@ def getInfo(lfn,info):
       res3 = res2[lfn]
       if ( res3.has_key(info)):
         ft = res3[info]
-        if (debug): print '##', info, ' ::', ft
         return ft
   return 'UNDEFINED'
   
