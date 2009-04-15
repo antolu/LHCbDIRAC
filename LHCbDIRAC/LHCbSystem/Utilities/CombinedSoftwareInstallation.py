@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.27 2009/03/31 12:33:45 paterson Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.28 2009/04/15 07:41:31 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,13 +21,13 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.27 2009/03/31 12:33:45 paterson Exp $"
-__VERSION__ = "$Revision: 1.27 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.28 2009/04/15 07:41:31 rgracian Exp $"
+__VERSION__ = "$Revision: 1.28 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
 
-InstallProject = 'install_project'
+InstallProject = 'install_project.py'
 InstallProjectURL = 'http://cern.ch/lhcbproject/dist/'
 
 class CombinedSoftwareInstallation:
