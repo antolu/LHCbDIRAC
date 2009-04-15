@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.87 2009/04/14 10:16:45 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.88 2009/04/15 11:04:15 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.87 2009/04/14 10:16:45 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.88 2009/04/15 11:04:15 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -198,6 +198,12 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def getProPassWithSimCondNew(self, configName, configVersion, simcondid):
+    server = self.__getServer()
+    result = server.getProPassWithSimCondNew(configName, configVersion, simcondid)
+    return result
+
+  #############################################################################
   def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
     server = self.__getServer()
     result = server.getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
@@ -299,6 +305,12 @@ class BookkeepingClient:
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     server = self.__getServer()
     result = server.getProPassWithEventType(configName, configVersion, eventType, simcond)
+    return result
+
+  #############################################################################
+  def getProPassWithEventTypeNew(self, configName, configVersion, eventType, simcond):
+    server = self.__getServer()
+    result = server.getProPassWithEventTypeNew(configName, configVersion, eventType, simcond)
     return result
 
   #############################################################################

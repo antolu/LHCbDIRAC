@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.83 2009/04/14 10:16:46 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.84 2009/04/15 11:04:15 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.83 2009/04/14 10:16:46 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.84 2009/04/15 11:04:15 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -112,7 +112,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
    #nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnneeeeeeeeeeeeeeeeeeewwwwwwwwwwwwwwwwwwwwwww
   #############################################################################
-  def getProPassWithSimCond(self, configName, configVersion, simcondid):
+  def getProPassWithSimCondNew(self, configName, configVersion, simcondid):
     
     condition = ' and bview.configname=\''+configName+'\' and \
                 bview.configversion=\''+configVersion+'\''
@@ -157,6 +157,48 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tmp[1]=description[:-3] 
       retvalue += [tuple(tmp)]
     return S_OK(retvalue)
+  
+  #############################################################################
+  def getProPassWithSimCond(self, configName, configVersion, simcondid):
+    
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if simcondid !='ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
+                
+    command = 'select distinct productions.TOTALPROCPASS,  \
+               pass_index.step0,pass_index.step1,pass_index.step2,pass_index.step3,pass_index.step4,pass_index.step5,pass_index.step6 from bookkeepingview,productions,pass_index,applications where \
+               bookkeepingview.production=productions.production and \
+               productions.passid=pass_index.passid'+condition
+    res = self.dbR_._query(command)
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[0].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[0]=description[:-3] 
+      for appid in range(1,7):
+        appname = ''
+        if tmp[appid]!= None:
+          retVal = self._getApplication(tmp[appid])
+          if retVal['OK']:
+            value = retVal['Value']
+            appname = value[0][1]+' '+value[0][2]
+            gLogger.info('Application name:',appname)
+            infos = '/'+str(value[0][3])+'/'+str(value[0][4])+'/'+str(value[0][5])+'/'+str(value[0][6])
+            tmp[appid]=appname+infos
+          else:
+            return S_ERROR(retVal['Message'])
+      
+      retvalue += [tuple(tmp)]
+    return S_OK(retvalue)
+
   
   #############################################################################
   def getMoreProductionInformations(self, prodid):
@@ -865,9 +907,39 @@ class OracleBookkeepingDB(IBookkeepingDB):
                    productions.totalprocpass=\''+totalproc+'\')'
     res = self.dbR_._query(command)
     return res
-    
+  
   #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
+    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
+                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    if eventType != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(eventType)
+    
+    if  simcond != 'ALL':
+      condition += ' and bookkeepingview.DAQPeriodId='+str(simcond)
+  
+    command = 'select distinct productions.TOTALPROCPASS, pass_index.step0, pass_index.step1, pass_index.step2, pass_index.step3, pass_index.step4,pass_index.step5, pass_index.step6 \
+       from bookkeepingview,productions,pass_index where \
+            bookkeepingview.production=productions.production and \
+            productions.passid=pass_index.passid'+ condition
+    res = self.dbR_._query(command)
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[0].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[0]=description[:-3] 
+      retvalue += [tuple(tmp)]
+    return S_OK(retvalue)
+
+  #############################################################################
+  def getProPassWithEventTypeNew(self, configName, configVersion, eventType, simcond):
     
     condition = ' and bview.configname=\''+configName+'\' and \
                 bview.configversion=\''+configVersion+'\''

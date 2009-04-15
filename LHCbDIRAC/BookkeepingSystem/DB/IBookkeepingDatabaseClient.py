@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.46 2009/04/14 10:16:46 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.47 2009/04/15 11:04:15 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.46 2009/04/14 10:16:46 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.47 2009/04/15 11:04:15 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -171,6 +171,9 @@ class IBookkeepingDatabaseClient(object):
   def getProPassWithSimCond(self, configName, configVersion, simcondid):
     return self.getManager().getProPassWithSimCond(configName, configVersion, simcondid)
   
+  def getProPassWithSimCondNew(self, configName, configVersion, simcondid):
+    return self.getManager().getProPassWithSimCondNew(configName, configVersion, simcondid)
+  
   #############################################################################
   def getEventTypeWithSimcond(self,configName, configVersion, simcondid, procPass):
     return self.getManager().getEventTypeWithSimcond(configName, configVersion, simcondid, procPass)
@@ -239,6 +242,9 @@ class IBookkeepingDatabaseClient(object):
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     return self.getManager().getProPassWithEventType(configName, configVersion, eventType, simcond)
   
+  #############################################################################
+  def getProPassWithEventTypeNew(self, configName, configVersion, eventType, simcond):
+    return self.getManager().getProPassWithEventTypeNew(configName, configVersion, eventType, simcond)
   
   #############################################################################
   def insert_procressing_pass(self, programs, groupdesc, simcond, inputProdTotalProcessingPass, production):

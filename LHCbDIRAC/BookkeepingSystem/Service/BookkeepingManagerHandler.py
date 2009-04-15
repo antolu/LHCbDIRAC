@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.104 2009/04/14 10:16:46 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.105 2009/04/15 11:04:15 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.104 2009/04/14 10:16:46 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.105 2009/04/15 11:04:15 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -196,6 +196,11 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getSimulationConditions(configName, configVersion, realdata)
   
   #############################################################################
+  types_getProPassWithSimCondNew = [StringType, StringType, StringType]
+  def export_getProPassWithSimCondNew(self, configName, configVersion, simcondid):
+    return dataMGMT_.getProPassWithSimCondNew(configName, configVersion, simcondid)
+  
+  #############################################################################
   types_getProPassWithSimCond = [StringType, StringType, StringType]
   def export_getProPassWithSimCond(self, configName, configVersion, simcondid):
     return dataMGMT_.getProPassWithSimCond(configName, configVersion, simcondid)
@@ -306,6 +311,10 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     return dataMGMT_.getProPassWithEventType(configName, configVersion, eventType, simcond)
   
+  #############################################################################
+  types_getProPassWithEventTypeNew = [StringType, StringType, StringType, StringType]
+  def export_getProPassWithEventTypeNew(self, configName, configVersion, eventType, simcond):
+    return dataMGMT_.getProPassWithEventTypeNew(configName, configVersion, eventType, simcond)
   
   #############################################################################
   types_getAncestors = [ListType, IntType]

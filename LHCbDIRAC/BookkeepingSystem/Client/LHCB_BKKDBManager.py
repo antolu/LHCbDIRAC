@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.88 2009/04/07 15:16:07 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.89 2009/04/15 11:04:15 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.88 2009/04/07 15:16:07 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.89 2009/04/15 11:04:15 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -361,7 +361,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_3(self, path, levels, configName, configVersion, simid):
     entityList = list()
-    result = self.db_.getProPassWithSimCond(configName, configVersion, simid)
+    result = self.db_.getProPassWithSimCondNew(configName, configVersion, simid)
     if result['OK']:
       dbResult = result['Value']
       if len(dbResult) > 1:
@@ -753,7 +753,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def elevelBody_4(self, path, levels, configName, configVersion, eventtype, simcond):
     entityList = list()
-    result = self.db_.getProPassWithEventType(configName, configVersion, eventtype, simcond)
+    result = self.db_.getProPassWithEventTypeNew(configName, configVersion, eventtype, simcond)
     if result['OK']:
       dbResult = result['Value']
       if len(dbResult) > 1:
