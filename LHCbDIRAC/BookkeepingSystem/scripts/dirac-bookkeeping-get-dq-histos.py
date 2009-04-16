@@ -8,21 +8,20 @@ import os
 from DIRAC import gLogger
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-
-def getStreamRAW(ID):
+def getStreamHIST(ID,fileType):
   """ This performs a bookkeeping query to obtain the EXPRESS/FULL stream RAW files that are in the DataQuality status 'UNCHECKED'.
       This will get you the files for the runs that have not yet been checked.
 
       returns a list of RAW files.
   """
-  bkDict = {'ProcessingPass':'Real Data','FileType':'RAW', 'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','DataQualityFlag':'UNCHECKED'}
+  bkDict = {'ProcessingPass':'FEST-Reco-v1', 'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','FileType':fileType,'DataQualityFlag':'UNCHECKED'}
   res = bkClient.getFilesWithGivenDataSets(bkDict)
   if not res['OK']:
     gLogger.error(res['Message'])
     DIRAC.exit(2)
   lfns = res['Value']
   if not lfns:
-    gLogger.info("There were no UNCHECKED '+str(ID)+' files found.")
+    gLogger.info("There were no UNCHECKED %s files from %s stream found." % (fileType,ID))
     DIRAC.exit(0)
   return lfns
 
@@ -40,6 +39,26 @@ def getRunRAWFiles(runID):
     gLogger.info("There were no files associated to this run.")
     DIRAC.exit(0)
   return lfns.keys()
+
+def getHistoAncestors(histograms):
+  """ This queries the BKK to get the ancestors for the files supplied. The depth is set to 3 to ensure that the rDST and the RAW are obtained.
+     
+      returns a dictionary of format: {'rawFile':['decendant1','decendant2']}
+  """
+  res = bkClient.getAncestors(histograms,3)
+  raw2Histos = {}
+  if not res['OK']:
+    gLogger.error("Failed to get ancestors for files.",res['Message'])
+    DIRAC.exit(2)
+  for lfn in sortList(res['Value']['Successful'].keys()):
+    ancestors = res['Value']['Successful'][lfn]
+    rawFile = ancestors[-1]
+    rDSTFile = ancestors[:-1]
+    if not raw2Histos.has_key(rawFile):
+      raw2Histos[rawFile] = []
+    raw2Histos[rawFile].append(lfn)
+    raw2Histos[rawFile] = raw2Histos[rawFile] +rDSTFile
+  return raw2Histos
 
 def getRAWDescendants(rawLfns):
   """ This queries the BKK to get the files produced with the supplied files as input. The depth is set to two because two steps are needed to perform Brunel then DaVinci. 
@@ -143,36 +162,29 @@ def download(lfn,run):
 """
 Main program : get all files
 """
-
 gLogger.setLevel("WARNING")
-expressID = 91000000
-fullID = 90000000
 bkClient = BookkeepingClient()
 dirac = Dirac()
-if args:
-  runID = int(args[0])
-  rawLfns = getRunRAWFiles(runID)
-else:
-  rawLfns = getStreamRAW(expressID)
-  rawLfns2 = getStreamRAW(fullID)
-  for l in rawLfns2 : rawLfns.append(l)
-  
-gLogger.info("Obtained %s RAW files for consideration." %len(rawLfns))
-rawDescendants = getRAWDescendants(rawLfns)
-raw2Reco = getFilesOfInterest(rawDescendants)
+expressID = 91000000
+fullID = 90000000
 
-for lfn in sortList(raw2Reco.keys()):
+expressHistos = getStreamHIST(expressID,'BRUNELHIST')+getStreamHIST(expressID,'DAVINCIHIST')
+gLogger.info("Obtained %s UNCHECKED express stream histograms." % (len(expressHistos))) 
+fullHistos = getStreamHIST(fullID,'BRUNELHIST') + getStreamHIST(fullID,'DAVINCIHIST')
+gLogger.info("Obtained %s UNCHECKED full stream histograms." % (len(fullHistos)))
+
+raw2Histos = getHistoAncestors(expressHistos+fullHistos)
+for lfn in sortList(raw2Histos.keys()):
   run = getInfo(lfn,'RunNumber')
-  if raw2Reco[lfn]:
-    for dec in sortList(raw2Reco[lfn]):
+  if raw2Histos[lfn]:
+    for dec in sortList(raw2Histos[lfn]):
+      print dec
       download(dec,run)
 
-for lfn in sortList(raw2Reco.keys()):
-  run = getInfo(lfn,'RunNumber')
-  if raw2Reco[lfn]:
+for lfn in sortList(raw2Histos.keys()):
+  if raw2Histos[lfn]:
     print "\n%s produced:" % lfn
-    for dec in sortList(raw2Reco[lfn]):
+    for dec in sortList(raw2Histos[lfn]):
       print "\t%s" % dec
 
 DIRAC.exit(0)
-
