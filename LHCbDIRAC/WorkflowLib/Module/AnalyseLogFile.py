@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.43 2009/04/10 09:17:21 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.44 2009/04/16 18:04:44 acsmith Exp $
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.43 2009/04/10 09:17:21 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.44 2009/04/16 18:04:44 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -190,23 +190,6 @@ class AnalyseLogFile(ModuleBase):
 #
 #-----------------------------------------------------------------------
 #
-  def find_lastfile(self):
-      # find out which was the latest open file
-      # For most recent Gaudi
-      line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector.DataStream', '-cl')
-      if n == 0:
-         # For old Gaudi (ex Brunel v30)
-         line,n = self.grep(self.applicationLog,'INFO Stream:EventSelector_1', '-cl')
-      if n:
-         lastfile = line.split("'")[1].replace("LFN:","")
-      else:
-         lastfile = ""
-
-      return lastfile
-
-#
-#-----------------------------------------------------------------------
-#
   def grep(self,filename,string,opt=''):
       fd = open(filename)
       file = fd.readlines()
@@ -232,41 +215,171 @@ class AnalyseLogFile(ModuleBase):
 #
 #-----------------------------------------------------------------------
 #
+  def getLastFile(self):
+    """ Determine the last input file opened from the application log.
+    """
+    files = self.getInputFiles(self.logString)['Value']
+    if files:
+      return S_OK(files[-1])
+    return S_ERROR("No input files opened")
+
+  def getInputFiles(self):
+    """ Determine the list of input files accessed from the application log. The log should contain a string like:
+
+        Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
+
+        In the event that the file name contains LFN: this is removed.
+    """
+    exp = re.compile(r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'")
+    files = re.findall(exp,self.logString)
+    strippedFiles = []
+    for file in files: strippedFiles.append(files.replace('LFN:',''))
+    return S_OK(strippedFiles)
+
+  def getOutputFiles(self):
+    """ Determine the list of output files opened from the application log. The log should contain a string like:
+
+        Data source: EventDataSvc output: DATAFILE='filename'
+    """
+    exp = re.compile(r"Data source: EventDataSvc output: DATAFILE='(\S+)'")
+    files = re.findall(exp,self.logString)
+    strippedFiles = []
+    for file in files: strippedFiles.append(files.replace('PFN:',''))
+    return S_OK(strippedFiles)
+
+  def getRequestedEvents(self):
+    """ Determine the number of requested events from the application log. The log should contain one of two strings:
+      
+        Requested to process all events on input file   or
+        Requested to process x events
+    
+        If neither of these strings are found an error is returned
+    """
+    exp = re.compile(r"Requested to process ([0-9]+|all)")
+    findline = re.search(exp,self.logString)
+    if not findline:
+      self.log.error("Could not determine requested events.")
+      return S_ERROR(" Could not determine requested events")
+    events = findline.group(1)
+    if events == 'all':   
+      requestedEvents = -1
+    else:
+      requestedEvents = int(events)
+    self.log.info("Determined the number of requested events to be %s." % requestedEvents)
+    return S_OK(requestedEvents)
+
+  def getLastEvent(self):
+    """ Determine the last event handled from the application log. The log should contain the string:
+
+       	Nr. in job = x
+
+        If this string is not found then 0 is returned
+    """
+    exp = re.compile(r"Nr. in job = ([0-9]+)") 
+    list = re.findall(exp,self.logString)
+    if not list:
+      lastEvent = 0 
+    else:
+      lastEvent = int(list[-1])
+    self.log.info("Determined the number of events handled to be %s." % lastEvent)
+    return S_OK(lastEvent)
+
+  def getLastEventSummary(self):
+    """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
+
+        Reading Event record
+
+        If this string is not found then 0 is returned
+    """
+    exp = re.compile(r"Reading Event record ([0-9]+)") 
+    list = re.findall(exp,self.logString)
+    if not list:
+      readEvents = 0
+    else:
+      readEvents = int(list[-1])
+    self.log.info("Determined the number of events read to be %s." % readEvents)
+    return S_OK(readEvents)
+
+  def getEventsOutput(self,writer):
+    """  Determine the number of events written out by the supplied writer. The log should contain the string:
+
+         Writer            INFO Events output: x
+
+         If the string is not found an error is returned
+    """
+    possibleWriters = ['FSRWriter','DigiWriter','GaussTape','DstWriter','InputCopyStream']
+    if not writer in possibleWriters:
+      self.log.error("Requested writer not available.",writer)
+      return S_ERROR("Requested writer not available")
+    exp = re.compile(r"%s\s+INFO Events output: (\d+)" % writer)
+    findline = re.search(exp,self.logString)
+    if not findline:
+      self.log.error("Could not determine events output.")
+      return S_ERROR("Could not determine events output")
+    writtenEvents = int(findline.group(1))
+    self.log.info("Determined the number of written events to be %s." % writtenEvents)
+    return S_OK(writtenEvents)
+
+  def getEventsProcessed(self,service):
+    """ Determine the number of events reported processed by the supplied service. The log should contain the string:
+
+        Service          SUCCESS x events processed
+  
+        If the string is not found an error is returned
+    """ 
+    possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim']
+    if not service in possibleServices:
+      self.log.error("Requested service not available.",service)
+      return S_ERROR("Requested service not available")
+    exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)   
+    findline = re.search(exp,self.logString)
+    if not findline:
+      self.log.error("Could not determine events processed.")
+      return S_ERROR("Could not determine events processed")
+    eventsProcessed = int(findline.group(1))
+    self.log.info("Determined the number of events processed to be %s." % eventsProcessed)
+    return S_OK(eventsProcessed)
+
+  def noMoreEvents(self):
+    """ Determine whether all the events were processed. The log should contain the string:
+     
+        No more events in event selection
+    """
+    found = re.search('No more events in event selection',self.logString)
+    if found:
+      return S_OK(True)
+    return S_OK(False)    
+
+#
+#-----------------------------------------------------------------------
+#
   def nbEvent(self):
-      lastev = 0
-      mailto = self.applicationName.upper()+'_EMAIL'
+    mailto = self.applicationName.upper()+'_EMAIL'
 
-      lEvtMax,n = self.grep(self.applicationLog,'Requested to process','-cl')
-      if n == 0:
-          if self.applicationName != 'Gauss':
-              EvtMax = -1
-          else:
-              result = S_ERROR(mailto + ' missing job options')
-              return result
-      else:
-#         EvtMax = int(string.split(string.replace(lEvtMax,';',' '))[2])
-         exp = re.compile(r"Requested to process ([0-9]+|all)")
-         findline = re.search(exp,lEvtMax)
-         if findline.group(1) == 'all':
-             EvtMax = -1
-         else:
-             EvtMax = int(findline.group(1))
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']  
 
-      self.log.info('EvtMax = %s' % (str(EvtMax)))
+    noMoreEvents = noMoreEvents()['Value']
 
-      line,nev = self.grep(self.applicationLog,'Reading Event record','-cl')
-      if nev == 0:
-         line,nev = self.grep(self.applicationLog,'Nr. in job =','-cl')
-         if nev == 0:
-            result = S_ERROR(mailto + ' no event')
-            return result
-         else:
-            lastev = string.split(line,'=')[1]
-      else:
-         lastev = string.split(line)[5]
+    lastEvent = self.getLastEvent()['Value']
+    if not lastEvent:
+      lastEvent = getLastEventSummary()['Value']
 
-      lastfile = self.find_lastfile()
-      result = S_OK()
+    res = self.getLastFile()
+    if res['OK']:
+      lastFile = res['Value']
+
+    res = getEventsOutput('')
+
+    res = getEventsProcessed()
+    if res['OK']:
+      processedEvents = res['Value']
+
+
+
+
 
       line,nomore = self.grep(self.applicationLog,'No more events')
       lprocessed,n =self.grep(self.applicationLog,'events processed')
@@ -291,7 +404,6 @@ class AnalyseLogFile(ModuleBase):
       self.numberOfEventsInput = str(nprocessed)
 
       #report job parameter with timestamp
-      curTime = time.asctime(time.gmtime())
       report = 'Events processed by %s' %(self.applicationName)
       self.setJobParameter(report,nprocessed)
 
