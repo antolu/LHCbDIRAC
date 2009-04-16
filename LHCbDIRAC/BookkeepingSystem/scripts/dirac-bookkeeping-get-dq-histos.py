@@ -151,7 +151,7 @@ def download(lfn,run):
         realname = lfn.split('/')[-1]
         if (os.path.isfile(realname)):
           os.rename(realname,name)
-          print '## downloaded', lfn, 'as', name
+#          print '## downloaded', lfn, 'as', name
         else:
           print '## downloaded somehow failed for', lfn, 'as', name
           
