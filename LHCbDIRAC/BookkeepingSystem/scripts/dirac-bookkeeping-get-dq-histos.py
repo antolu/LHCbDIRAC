@@ -173,7 +173,15 @@ gLogger.info("Obtained %s UNCHECKED express stream histograms." % (len(expressHi
 fullHistos = getStreamHIST(fullID,'BRUNELHIST') + getStreamHIST(fullID,'DAVINCIHIST')
 gLogger.info("Obtained %s UNCHECKED full stream histograms." % (len(fullHistos)))
 
-raw2Histos = getHistoAncestors(expressHistos+fullHistos)
+raw2Histos = {}
+for lfn in expressHistos+fullHistos:
+  lfn2Histo = getHistoAncestors(lfn)
+  if lfn2Histo:
+    rawFile = lfn2Histo.keys()[0]
+    if not raw2Histos.has_key(rawFile):
+      raw2Histos[rawFile] = []
+    raw2Histos[rawFile].extend(lfn2Histo[rawFile])
+
 for lfn in sortList(raw2Histos.keys()):
   run = getInfo(lfn,'RunNumber')
   if raw2Histos[lfn]:
