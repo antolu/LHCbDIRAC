@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.128 2009/04/16 12:08:15 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.129 2009/04/17 05:11:27 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.128 2009/04/16 12:08:15 rgracian Exp $"
-__VERSION__ = "$Revision: 1.128 $"
+__RCSID__   = "$Id: dirac-install,v 1.129 2009/04/17 05:11:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.129 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -140,13 +140,14 @@ python = {'python24':'external/Python-2.4.4',
 
 siteName = None
 ceName   = None
+voName   = "lhcb"
 uploadFlag = False
 
 def parse_options_install():
   """
    parse command line options:
   """
-  global siteName, ceName, uploadFlag
+  global siteName, ceName, uploadFlag, voName
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
@@ -163,6 +164,7 @@ def parse_options_install():
    -P --path=<root>            Install under <root>
    -S --server                 Make a full server installation
    -U --Upload                 Upload compiled distribution to lhcbweb (if -b)
+      --vo=<voname>            Run vo specific configuration (default=lhcb)
 
   from DIRAC framework:
 
@@ -174,7 +176,7 @@ def parse_options_install():
   shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:SU'
   longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name=',
                   'platform=', 'repository=', 'url=', 'version=',
-                  'cvs', 'Name=', 'path=', 'server', 'Upload',
+                  'cvs', 'Name=', 'path=', 'server', 'Upload', 'vo='
                   'option=', 'section=', 'cert=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
@@ -218,6 +220,8 @@ def parse_options_install():
       dirac.requireServer()
     elif o == '-U' or o == '--Upload':
       uploadFlag = True
+    elif o == '--vo':
+      voName = v
 
   dirac.createScripts()
 
@@ -2287,7 +2291,6 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
 
   if dirac.checkInterpreter():
     dirac.logINFO( 'DIRAC-platform = %s' % dirac.localPlatform )
-    dirac.lhcbPlatform()
 
     # dirac.checkDirac( )
     from DIRACEnvironment import DIRAC
@@ -2311,29 +2314,37 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "P:", "path=",     "Install under <root>" )
     Script.registerSwitch( "S",  "server",    "Make a full server installation" )
     Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
+    Script.registerSwitch( "",   "vo=",       "Run vo specific configuration (default=lhcb)" )
 
     from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
     localCfg = LocalConfiguration()
-    localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Production' )
-    localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
-                              'dips://lhcbprod.pic.es:9135/Configuration/Server, '
-                              'dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server' )
-    if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
-      if DIRAC.platformTuple[1] == 'i686':
-        arch = 'ia32'
-      elif DIRAC.platformTuple[1] == 'x86_64':
-        arch = 'amd64'
+
+    # before any other default it goes the VO specific configuration add as many vo's cases as necessary.
+    if voName == 'lhcb':
+      dirac.lhcbPlatform()
+      localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Production' )
+      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
+                                'dips://lhcbprod.pic.es:9135/Configuration/Server, '
+                                'dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server' )
+      if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
+        if DIRAC.platformTuple[1] == 'i686':
+          arch = 'ia32'
+        elif DIRAC.platformTuple[1] == 'x86_64':
+          arch = 'amd64'
+        else:
+          arch = DIRAC.platformTuple[1]
+        if DIRAC.platformTuple[2] >= '2.3.4':
+          arch = 'slc4_'+arch+'_gcc34'
+        elif DIRAC.platformTuple[2] >= '2.3.3':
+          arch = 'slc3_'+arch+'_gcc323'
+        else:
+          arch = 'rh73_'+arch+'_gcc296'
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
-        arch = DIRAC.platformTuple[1]
-      if DIRAC.platformTuple[2] >= '2.3.4':
-        arch = 'slc4_'+arch+'_gcc34'
-      elif DIRAC.platformTuple[2] >= '2.3.3':
-        arch = 'slc3_'+arch+'_gcc323'
-      else:
-        arch = 'rh73_'+arch+'_gcc296'
-      localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
     else:
-      localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
+      pass
+
     localCfg.addDefaultEntry( '/LocalSite/CPUScalingFactor', '0.0' )
     localCfg.addDefaultEntry( '/LocalSite/Root', dirac.root() )
     if not dirac.serverFlag:
