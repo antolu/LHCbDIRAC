@@ -22,7 +22,6 @@ def getStreamHIST(ID,fileType):
   lfns = res['Value']
   if not lfns:
     gLogger.info("There were no UNCHECKED %s files from %s stream found." % (fileType,ID))
-    DIRAC.exit(0)
   return lfns
 
 def getRunRAWFiles(runID):
@@ -37,7 +36,6 @@ def getRunRAWFiles(runID):
   lfns = res['Value']
   if not lfns:
     gLogger.info("There were no files associated to this run.")
-    DIRAC.exit(0)
   return lfns.keys()
 
 def getHistoAncestors(histograms):
@@ -73,7 +71,7 @@ def getRAWDescendants(rawLfns):
     DIRAC.exit(2)
   if not res['Value']['Successful']:
     gLogger.info("No data output from supplied RAW files.")
-    DIRAC.exit(0)
+#    DIRAC.exit(0)
   return res['Value']['Successful']
 
 def getFilesOfInterest(rawDescendants):
@@ -151,7 +149,7 @@ def download(lfn,run):
         realname = lfn.split('/')[-1]
         if (os.path.isfile(realname)):
           os.rename(realname,name)
-#          print '## downloaded', lfn, 'as', name
+          print '##        downloaded', lfn, 'as', name
         else:
           print '## downloaded somehow failed for', lfn, 'as', name
           
