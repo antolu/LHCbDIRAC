@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.45 2009/04/16 23:35:47 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.46 2009/04/17 08:15:21 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.45 2009/04/16 23:35:47 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.46 2009/04/17 08:15:21 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -384,7 +384,7 @@ class AnalyseLogFile(ModuleBase):
     return S_OK()
 
   def checkBooleEvents(self):
-    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """ Obtain event information from the application log and determine whether the Boole job processed the correct number of events.
     """
     mailto = self.applicationName.upper()+'_EMAIL'
     # Get the number of requested events
@@ -429,107 +429,104 @@ class AnalyseLogFile(ModuleBase):
     if outputEvents != processedEvents:
       pass # TODO: Find out whethere there is a way to find failed events
     return S_OK()
-  
+
+  def checkBrunelEvents(self):
+    """ Obtain event information from the application log and determine whether the Brunel job processed the correct number of events.
+    """
+    mailto = self.applicationName.upper()+'_EMAIL'
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return S_ERROR("%s %s" % (mailto,res['Message']))
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEvent()['Value']
+    # Get the number of events processed by Brunel
+    res = self.getEventsProcessed('BrunelInit')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+    processedEvents = res['Value']
+    # Get the number of events output by Brunel
+     res = getEventsOutput('DstWriter')
+    if not res['OK']:
+      return S_ERROR('%s No events output' % mailto)
+    outputEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = noMoreEvents()['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("%s Not all input events processed" % mailto)
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR('%s Too few events processed' % mailto)
+    # Check that the final reported processed events match those logged as processed during execution
+    if lastEvent != processedEvents:
+      return S_ERROR("%s Processed events do not match" % mailto)
+    # If the output events are not equal to the processed events be sure there were no failed events
+    if outputEvents != processedEvents:
+      return S_ERROR("%s Processed events not all output" % mailto)
+    return S_OK()
+
+  def checkDaVinciEvents(self):
+    """ Obtain event information from the application log and determine whether the DaVinci job processed the correct number of events.
+    """
+    mailto = self.applicationName.upper()+'_EMAIL'
+    # Get the number of requested events  
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return S_ERROR("%s %s" % (mailto,res['Message']))
+    requestedEvents = res['Value']
+    
+    # Get the last event processed
+    lastEvent = getLastEventSummary()['Value']
+    # Get the number of events processed by DaVinci
+    res = self.getEventsProcessed('DaVinciInit')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+    processedEvents = res['Value']
+    # Get the number of events output by DaVinci
+    res = getEventsOutput('InputCopyStream')
+    if not res['OK']:
+      return S_ERROR('%s No events output' % mailto)
+    outputEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = noMoreEvents()['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("%s Not all input events processed" % mailto)
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR("%s Too few events processed" % mailto)
+    return S_OK()
+
 #
 #-----------------------------------------------------------------------
 #
   def nbEvent(self):
-    mailto = self.applicationName.upper()+'_EMAIL'
-
     if self.applicationName.lower() == 'gauss':
       return self.checkGaussEvents()
     if self.applicationName.lower() == 'boole':
       return self.checkBooleEvents()
-     
-
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']  
-
-    noMoreEvents = noMoreEvents()['Value']
-
-    lastEvent = self.getLastEvent()['Value']
-    if not lastEvent:
-      lastEvent = getLastEventSummary()['Value']
-
-    res = self.getLastFile()
-    if res['OK']:
-      lastFile = res['Value']
-
-    res = getEventsOutput('')
-
-    res = getEventsProcessed()
-    if res['OK']:
-      processedEvents = res['Value']
-
-
-
-
-
-      line,nomore = self.grep(self.applicationLog,'No more events')
-      lprocessed,n =self.grep(self.applicationLog,'events processed')
-      if n == 0:
-          if self.applicationName == 'Gauss' or nomore == 0:
-            errmsg = mailto + ' crash in event %d' % lastev
-            if lastfile != "":
-                errmsg += " - File " + lastfile
-                if self.inputFiles.has_key(lastfile):
-                   self.inputFiles[lastfile] = "ApplicationCrash"
-            result = S_ERROR(errmsg)
-            self.log.info('nbEvent - result = ',result['Message'])
-            return result
-          else:
-            nprocessed = lastev
-      else:
-         exp = re.compile(r"([0-9]+) events processed")
-         findline = re.search(exp,lprocessed)
-         nprocessed = int(findline.group(1))
-
-      self.log.info(" %s events processed " % str(nprocessed))
-      self.numberOfEventsInput = str(nprocessed)
-
-      #report job parameter with timestamp
-      report = 'Events processed by %s' %(self.applicationName)
-      self.setJobParameter(report,nprocessed)
-
-# find number of events written
-      noutput = 0
-      loutput,n = self.grep(self.applicationLog,'Events output:')
-      if n == 0:
-         if self.applicationName == 'Gauss ' or self.applicationName == 'Brunel':
-            result = S_ERROR('no events written')
-      else:
-         exp = re.compile(r"Events output: ([0-9]+)")
-         findline = re.search(exp,loutput)
-         noutput = int(findline.group(1))
-         self.log.info(" %s events written " % str(noutput))
-         self.numberOfEventsOutput = str(noutput)
-
-      if nprocessed == EvtMax or nomore == 1:
-        if noutput != nprocessed:
-          if self.applicationName == 'Gauss' or self.applicationName == 'Brunel':
-             result = S_ERROR(mailto + ' too few events on output')
-             if self.applicationName == 'Gauss' and (nprocessed-noutput) < EvtMax/10:
-               result = S_OK()
-      else:
-        if EvtMax != -1 and nprocessed != EvtMax:
-          self.log.error("Number of events processed "+str(nprocessed)+" is less than requested "+str(EvtMax))
-          result = S_ERROR('Too few events processed')
-        elif nomore != 1 and EvtMax == -1:
-          self.log.error("Number of events processed "+str(nprocessed)+", the end of input not reached")
-          file_end = False
-          linenextevt,n = self.grep(self.applicationLog,'Failed to receieve the next event')
-          self.log.info('failed next event %s' %( str(n)))
-          if n == 0:
-            file_end = True
-          if file_end == False:
-            result = S_ERROR('All INPUT events have not been processed')
-          else:
-            result = S_OK('All INPUT events have been processed')
-
-      return result
-
+    if self.applicationName.lower() == 'brunel':
+      return self.checkBrunelEvents()
+    if self.applicationName.lower() == 'davinci':
+      return self.checkDaVinciEvents()
+    return S_ERROR() 
 
 #
 #-----------------------------------------------------------------------
