@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.47 2009/04/17 10:37:29 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.48 2009/04/17 18:37:05 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.47 2009/04/17 10:37:29 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.48 2009/04/17 18:37:05 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -386,7 +386,8 @@ class AnalyseLogFile(ModuleBase):
       self.log.info("The self.jobID varible is not defined, not sending mail")
     else:
       notifyClient = NotificationClient()
-      self.log.info("Sending crash mail for job to %s" mailadress)
+      mailadress = 'a.smith@cern.ch'
+      self.log.info("Sending crash mail for job to %s" % mailadress)
       res = notifyClient.sendMail(mailadress,subject,msg,'a.smith@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
@@ -478,12 +479,12 @@ class AnalyseLogFile(ModuleBase):
     # Get the number of events output by Boole
     res = getEventsOutput('DigiWriter')
     if not res['OK']:
-      res = getEventsOutput('RawWriter')
+      res = self.getEventsOutput('RawWriter')
       if not res['OK']:
         return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = noMoreEvents()['Value']
+    noMoreEvents = self.noMoreEvents()['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -523,12 +524,12 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
     processedEvents = res['Value']
     # Get the number of events output by Brunel
-     res = getEventsOutput('DstWriter')
+    res = self.getEventsOutput('DstWriter')
     if not res['OK']:
       return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = noMoreEvents()['Value']
+    noMoreEvents = self.noMoreEvents()['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -556,7 +557,7 @@ class AnalyseLogFile(ModuleBase):
     requestedEvents = res['Value']
     
     # Get the last event processed
-    lastEvent = getLastEventSummary()['Value']
+    lastEvent = self.getLastEventSummary()['Value']
     # Get the number of events processed by DaVinci
     res = self.getEventsProcessed('DaVinciInit')
     if not res['OK']:
@@ -568,12 +569,12 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
     processedEvents = res['Value']
     # Get the number of events output by DaVinci
-    res = getEventsOutput('InputCopyStream')
+    res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:
       return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = noMoreEvents()['Value']
+    noMoreEvents = self.noMoreEvents()['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -688,7 +689,7 @@ class AnalyseLogFile(ModuleBase):
       self.log.error("Could not determine events output.")
       return S_ERROR("Could not determine events output")
     writtenEvents = int(findline.group(1))
-    self.log.info("Determined the number of written events to be %s." % writtenEvents)
+    self.log.info("Determined the number of events written to be %s." % writtenEvents)
     return S_OK(writtenEvents)
 
   def getEventsProcessed(self,service):
