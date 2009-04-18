@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.6 2008/07/24 11:38:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.6 2008/07/24 11:38:53 paterson Exp $"
+__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
@@ -141,4 +141,4 @@ class SoftwareManagementAgent(Agent):
     result['AgentResult']=failed
     return result
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

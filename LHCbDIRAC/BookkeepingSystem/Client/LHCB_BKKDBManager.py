@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.89 2009/04/15 11:04:15 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.90 2009/04/18 18:26:57 rgracian Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.89 2009/04/15 11:04:15 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.90 2009/04/18 18:26:57 rgracian Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -125,7 +125,7 @@ class LHCB_BKKDBManager(BaseESManager):
       self.parameter_ = name
       self.treeLevels_ = -1
       if name == 'Configuration':
-      	self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
+        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
       elif name == 'Productions':
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PRODUCTION
       elif name == 'Event type':

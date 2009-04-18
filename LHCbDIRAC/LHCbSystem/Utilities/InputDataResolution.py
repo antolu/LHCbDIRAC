@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.4 2009/03/18 14:20:42 paterson Exp $
+# $Id: InputDataResolution.py,v 1.5 2009/04/18 18:26:57 rgracian Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.4 2009/03/18 14:20:42 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.5 2009/04/18 18:26:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -169,4 +169,4 @@ class InputDataResolution:
     result = module.execute(remainingReplicas)
     return result
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.112 2009/04/03 13:13:35 joel Exp $
+# $Id: GaudiApplication.py,v 1.113 2009/04/18 18:26:57 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.112 2009/04/03 13:13:35 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.113 2009/04/18 18:26:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -441,4 +441,4 @@ done
       else:
         self.log.error("Application Log file not defined")
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

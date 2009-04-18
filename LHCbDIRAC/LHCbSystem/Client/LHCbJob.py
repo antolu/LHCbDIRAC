@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.13 2009/03/05 22:23:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.14 2009/04/18 18:26:59 rgracian Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.13 2009/03/05 22:23:53 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.14 2009/04/18 18:26:59 rgracian Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -778,4 +778,4 @@ class LHCbJob(Job):
     description = 'List of CondDB tags'
     self._addParameter(self.workflow,'CondDBTags','JDL',condStr,description)
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

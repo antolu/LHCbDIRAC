@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: RemoveInputData.py,v 1.3 2009/04/08 15:32:53 paterson Exp $
+# $Id: RemoveInputData.py,v 1.4 2009/04/18 18:26:56 rgracian Exp $
 ########################################################################
 """ Module to remove input data files for given workflow. Initially written
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
-__RCSID__ = "$Id: RemoveInputData.py,v 1.3 2009/04/08 15:32:53 paterson Exp $"
+__RCSID__ = "$Id: RemoveInputData.py,v 1.4 2009/04/18 18:26:56 rgracian Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -135,4 +135,4 @@ class RemoveInputData(ModuleBase):
     result = self.request.setSubRequestFiles(index,'removal',[fileDict])
     return S_OK()
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/RunTestScript.py,v 1.1 2008/10/16 07:57:08 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/RunTestScript.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb RunTestScript SAM Test Module
 """
 
-__RCSID__ = "$Id: RunTestScript.py,v 1.1 2008/10/16 07:57:08 paterson Exp $"
+__RCSID__ = "$Id: RunTestScript.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -100,4 +100,4 @@ class RunTestScript(ModuleBaseSAM):
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.8 2008/10/29 16:43:29 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.8 2008/10/29 16:43:29 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -266,4 +266,4 @@ class RootApplication(object):
     return S_OK(pythondir)
 
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

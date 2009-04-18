@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: Dummy.py,v 1.1 2008/05/07 05:36:35 joel Exp $
+# $Id: Dummy.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: Dummy.py,v 1.1 2008/05/07 05:36:35 joel Exp $"
+__RCSID__ = "$Id: Dummy.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $"
 from DIRAC import *
 
 import shutil, re, string, os, sys
@@ -19,4 +19,4 @@ class Dummy(object):
     print cwd
     return S_OK
 
-   #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

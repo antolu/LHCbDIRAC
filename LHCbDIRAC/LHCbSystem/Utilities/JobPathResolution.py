@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobPathResolution.py,v 1.2 2009/03/13 11:06:40 acsmith Exp $
+# $Id: JobPathResolution.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $
 # File :   JobPathResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
     of JDL parameters.
 """
 
-__RCSID__ = "$Id: JobPathResolution.py,v 1.2 2009/03/13 11:06:40 acsmith Exp $"
+__RCSID__ = "$Id: JobPathResolution.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger
@@ -76,4 +76,4 @@ class JobPathResolution:
 
     return S_OK(lhcbPath)
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

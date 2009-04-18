@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SoftwareDistribution.py,v 1.1 2008/06/03 12:49:25 paterson Exp $
+# $Id: SoftwareDistribution.py,v 1.2 2009/04/18 18:26:57 rgracian Exp $
 # File :   SoftwareDistribution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     as required.
 """
 
-__RCSID__ = "$Id: SoftwareDistribution.py,v 1.1 2008/06/03 12:49:25 paterson Exp $"
+__RCSID__ = "$Id: SoftwareDistribution.py,v 1.2 2009/04/18 18:26:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -92,4 +92,4 @@ class SoftwareDistribution:
     else:
       return S_ERROR('No VO_LHCB_SW_DIR defined')
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

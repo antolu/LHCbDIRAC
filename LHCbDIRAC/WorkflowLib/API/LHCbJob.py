@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.8 2008/07/31 10:42:07 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/LHCbJob.py,v 1.9 2009/04/18 18:27:00 rgracian Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -56,7 +56,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.8 2008/07/31 10:42:07 rgracian Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.9 2009/04/18 18:27:00 rgracian Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -538,4 +538,4 @@ class LHCbJob(Job):
     else:
       raise TypeError,'Expected string for Job Options line'
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

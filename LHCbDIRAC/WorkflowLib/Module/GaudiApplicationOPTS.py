@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplicationOPTS.py,v 1.2 2008/11/27 10:21:56 joel Exp $
+# $Id: GaudiApplicationOPTS.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.2 2008/11/27 10:21:56 joel Exp $"
+__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -480,4 +480,4 @@ rm -f scrtmp.py
       else:
         self.log.error("Application Log file not defined")
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
