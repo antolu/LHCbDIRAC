@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: MergeMDF.py,v 1.1 2008/11/10 12:46:37 paterson Exp $
+# $Id: MergeMDF.py,v 1.2 2009/04/18 17:34:26 rgracian Exp $
 ########################################################################
 """ Simple merging module for MDF files. """
 
-__RCSID__ = "$Id: MergeMDF.py,v 1.1 2008/11/10 12:46:37 paterson Exp $"
+__RCSID__ = "$Id: MergeMDF.py,v 1.2 2009/04/18 17:34:26 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
@@ -122,4 +122,4 @@ class MergeMDF(ModuleBase):
 
     return S_OK('Produced merged MDF file')
 
-  #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
