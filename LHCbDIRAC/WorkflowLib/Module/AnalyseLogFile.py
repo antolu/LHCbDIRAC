@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.48 2009/04/17 18:37:05 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.49 2009/04/18 13:27:24 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.48 2009/04/17 18:37:05 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.49 2009/04/18 13:27:24 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -96,14 +96,14 @@ class AnalyseLogFile(ModuleBase):
       res = self.getLogString()
       if not res['OK']:
         self.log.error(result['Message'])
-        self.update_status(self.inputs, "Unused")
+        self.updateFileStatus(self.inputs, "Unused")
         return res
 
       ########## DO SOMETHING HERE ###############
       if self.step_commons.has_key('inputData'):
          self.inputData = self.step_commons['inputData']
-      print self.inputData,'!!!!!!!!!!!!!!!!'
-      print self.InputData,'????????????????'
+      print self.inputData,'!!!!!!!!!!!!!!!! step input data'
+      print self.InputData,'???????????????? job input data'
       self.inputs = {}
       if self.InputData:
         for f in self.InputData.split(';'):
@@ -114,18 +114,17 @@ class AnalyseLogFile(ModuleBase):
       if not res['OK']:
         self.sendErrorMail(res['Message'])
         self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-        return self.update_status(self.inputs, "Unused")
+        return self.updateFileStatus(self.inputs, "Unused")
       # Check that the number of events handled is correct
       res = self.nbEvent()
       if not res['OK']:
         self.sendErrorMail(res['Message'])
         self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-        return self.update_status(self.inputs, "Unused")
+        return self.updateFileStatus(self.inputs, "Unused")
       # If the job was successful Update the status of the files to processed
       self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
       self.setApplicationStatus('%s Step OK' % (self.applicationName))
-      return self.update_status(self.inputs, "Processed")
-
+      return self.updateFileStatus(self.inputs, "Processed")
 #
 #-----------------------------------------------------------------------
 #
@@ -150,52 +149,8 @@ class AnalyseLogFile(ModuleBase):
        else :
           return line,n
 
-  def update_status(self,inputs,fileStatus):
-      result = S_OK()
-      for f in inputs.keys():
-         stat = inputs[f]
-         if stat == 'Problematic':
-           self.log.info(f+' is problematic at '+self.site+' - reset as Unused')
-           try:
-             result = self.setReplicaProblematic(f,self.site,'Problematic')
-           except:
-             self.log.info('LFC not accessible')
-             result = S_ERROR('LFC not accessible')
-
-         elif stat == 'Unused':
-           self.log.info(f+' was not processed - reset as Unused')
-
-         elif stat == 'AncestorProblem':
-           self.log.info(f+' should not be reprocessed - set to '+stat)
-
-         elif stat == 'ApplicationCrash':
-           self.log.info(f+' crashed the application - set to '+stat)
-
-         else:
-           if fileStatus == "Processed":
-             self.log.info(f+" status set as "+fileStatus)
-           else:
-             self.log.info(f+" status set as "+fileStatus)
-           stat = fileStatus
-         try:
-           result = self.setFileStatus(int(self.PRODUCTION_ID),f,stat)
-         except:
-           self.log.info('processing DB not accessible')
-           result = S_ERROR('processing DB not accessible')
-      return result
-
-  def goodJob(self):
-      mailto = 'DIRAC_EMAIL'
-      result = S_OK()
-# check if the application finish successfully
-      self.log.info('Check application ended successfully')
-      line,n = self.grep(self.applicationLog,'Application Manager Finalized successfully')
-      if n == 0:
-        if self.applicationName:
-            mailto = self.applicationName.upper()+'_EMAIL'
-        return S_ERROR('%s Finalization Error' %self.applicationName)
-
-# trap POOL error to open a file through POOL
+  def catchPoolIOError(self):
+      # trap POOL error to open a file through POOL
       if self.poolXMLCatName:
         catalogfile = self.poolXMLCatName
       else:
@@ -247,13 +202,10 @@ class AnalyseLogFile(ModuleBase):
                            for f in files:
                               if f['LFN'] == lfn:
                                  # Check the status of the file in the processingDB
-                                 status = f['Status']
-                                 break
-                           if status == 'Processed':
-                              self.inputs[lfn] = 'AncestorProblem'
-                           else:
-                              self.inputs[lfn] = 'Unused'
-#                     self.update_status('Bad',cat_lfn['Logical'])
+                                 if f['Status'] == 'Processed':
+                                   self.inputs[lfn] = 'AncestorProblem'
+                                 else:
+                                   self.inputs[lfn] = 'Unused'
 
                poolroot = poolroot-1
          for lfn in self.inputs.keys():
@@ -262,47 +214,7 @@ class AnalyseLogFile(ModuleBase):
              self.inputs[lfn] = 'Unused'
 
          return S_ERROR(mailto + ' error to connectDatabase')
-
-#  error where you need to find the last open file to mark it as crash...
-      dict_app_error = {'Terminating event processing loop due to errors':'Event loop not terminated'}
-
-      for type_error in dict_app_error.keys():
-          self.log.info('Check %s' %(dict_app_error[type_error]))
-          line,founderror = self.grep(self.applicationLog,type_error)
-          if founderror >= 1:
-              lastfile = self.find_lastfile()
-              if lastfile != "":
-#                 errmsg += " - File " + lastfile
-                 if self.inputs.has_key(lastfile):
-                    self.inputs[lastfile] = "ApplicationCrash"
-
-              return S_ERROR(mailto +' '+type_error)
-
-      dict_app_error = {'Cannot connect to database':'error database connection',\
-                        'Could not connect':'CASTOR error connection',\
-                        'SysError in <TDCacheFile::ReadBuffer>: error reading from file':'DCACHE connection error',\
-                        'Failed to resolve':'IODataManager error',\
-                        'Error: connectDataIO':'connectDataIO error',\
-                        'Error:connectDataIO':'connectDataIO error',\
-                        ' glibc ':'Problem with glibc'}
-
-#      if self.applicationName == 'Gauss':
-#          dict_app_error['G4Exception'] = 'Geant4 Exception'
-
-      for type_error in dict_app_error.keys():
-          self.log.info('Check %s' %(dict_app_error[type_error]))
-          line,founderror = self.grep(self.applicationLog,type_error)
-          if founderror >= 1:
-              return S_ERROR(mailto +' '+type_error)
-
-      writer_error_list = ['G4Exception','GaussTape failed','Writer failed','Bus error','User defined signal 1','Not found DLL']
-      for writer_error in writer_error_list:
-         line,n = self.grep(self.applicationLog,writer_error)
-         if n == 1:
-            result = S_ERROR(mailto +' '+writer_error)
-            break
-
-      return result
+      return S_OK()
 
   def sendErrorMail(self,message):
     genmail = message.split()[0]
@@ -391,7 +303,6 @@ class AnalyseLogFile(ModuleBase):
       res = notifyClient.sendMail(mailadress,subject,msg,'a.smith@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
-
 #
 #-----------------------------------------------------------------------
 #
@@ -404,6 +315,57 @@ class AnalyseLogFile(ModuleBase):
     fd = open(self.applicationLog,'r')
     self.logString = fd.read()
     return S_OK()
+#   
+#-----------------------------------------------------------------------
+#
+  def goodJob(self):
+    mailto = self.applicationName.upper()+'_EMAIL'
+    # Check if the application finish successfully
+    self.log.info('Check application ended successfully')
+    okay = self.findString('Application Manager Finalized successfully')['Value']
+    if not okay:
+      return S_ERROR('%s Finalization Error' % mailto)
+
+    # Check whether there were errors completing the event loop
+    dict_app_error = {\
+    'Terminating event processing loop due to errors'                 :     'Event loop not terminated'}
+    for errString,description in dict_app_error.items():
+      self.log.info('Check %s' % description)
+      found = self.findString(errString)['Value']
+      if found:
+        res = self.getLastFile()
+        if res['OK']:
+          lastFile = res['Value']
+          if self.inputs.has_key(lastFile):
+            self.inputs[lastFile] = "ApplicationCrash"
+            return S_ERROR("%s %s" % (mailto,description))
+
+    # Check for a known list of problems in the application logs
+    dict_app_error = {\
+    'Cannot connect to database'                                      :     'error database connection',
+    'Could not connect'                                               :     'CASTOR error connection',
+    'SysError in <TDCacheFile::ReadBuffer>: error reading from file'  :     'DCACHE connection error',
+    'Failed to resolve'                                               :     'IODataManager error',
+    'Error: connectDataIO'                                            :     'connectDataIO error',
+    'Error:connectDataIO'                                             :     'connectDataIO error',
+    ' glibc '                                                         :     'Problem with glibc',
+    'G4Exception'                                                     :     'G4Exception',
+    'GaussTape failed'                                                :     'GaussTape failed',
+    'Writer failed'                                                   :     'Writer failed',
+    'Bus error'                                                       :     'Bus error',
+    'User defined signal 1'                                           :     'User defined signal 1',
+    'Not found DLL'                                                   :     'Not found DLL'}
+    failed = False
+    for errString,description in dict_app_error.items():
+      self.log.info('Check %s' % description)
+      found = self.findString(errString)['Value']
+      if found:
+        failed = True
+        self.log.error("Detected problem with '%s'" % description)
+    if failed: return S_ERROR("%s Error in application detected" % mailto)
+
+    res = self.catchPoolIOError()
+    return res
 #
 #-----------------------------------------------------------------------
 #
@@ -484,7 +446,7 @@ class AnalyseLogFile(ModuleBase):
         return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = self.noMoreEvents()['Value']
+    noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -529,7 +491,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = self.noMoreEvents()['Value']
+    noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -574,7 +536,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
-    noMoreEvents = self.noMoreEvents()['Value']
+    noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
@@ -583,6 +545,25 @@ class AnalyseLogFile(ModuleBase):
     if requestedEvents:
       if requestedEvents != processedEvents:
         return S_ERROR("%s Too few events processed" % mailto)
+    return S_OK()
+#
+#-----------------------------------------------------------------------
+#
+  def updateFileStatus(self,inputs,defaultStatus):
+    for fileName in inputs.keys():
+      stat = inputs[fileName]
+      if stat == "Problematic":
+        res = self.setReplicaProblematic(fileName,self.site,'Problematic')
+        if not res['OK']:
+          gLogger.error("Failed to update replica status to problematic",res['Message'])
+        self.log.info('%s is problematic at %s - reset as Unused' % (fileName,self.site))
+        stat = "Unused"
+      elif stat in ['Unused','AncestorProblem','ApplicationCrash']:
+        self.log.info("%s will be updated to status '%s'" % (fileName,stat))
+      else:
+        stat = defaultStatus
+        self.log.info("%s will be updated to default status '%s'" % (fileName,defaultStatus))
+      self.setFileStatus(int(self.PRODUCTION_ID),fileName,stat)
     return S_OK()
 #
 #-----------------------------------------------------------------------
@@ -712,13 +693,8 @@ class AnalyseLogFile(ModuleBase):
     self.log.info("Determined the number of events processed to be %s." % eventsProcessed)
     return S_OK(eventsProcessed)
 
-  def noMoreEvents(self):
-    """ Determine whether all the events were processed. The log should contain the string:
-     
-        No more events in event selection
+  def findString(self,string):
+    """ Determine whether the supplied string exists in the log
     """
-    found = re.search('No more events in event selection',self.logString)
-    if found:
-      return S_OK(True)
-    return S_OK(False)
-
+    found = re.findall(string,self.logString)
+    return S_OK(found)
