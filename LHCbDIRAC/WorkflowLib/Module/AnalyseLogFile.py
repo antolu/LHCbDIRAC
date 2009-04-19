@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.53 2009/04/19 14:10:12 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.54 2009/04/19 14:17:31 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.53 2009/04/19 14:10:12 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.54 2009/04/19 14:17:31 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -293,13 +293,15 @@ class AnalyseLogFile(ModuleBase):
     if not res['OK']:
       self.sendErrorMail(res['Message'])
       self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-      return self.updateFileStatus(jobInputData, "Unused")
+      self.updateFileStatus(jobInputData, "Unused")
+      return res
     # Check that the number of events handled is correct
     res = self.nbEvent()
     if not res['OK']:
       self.sendErrorMail(res['Message'])
       self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-      return self.updateFileStatus(self.jobInputData, "Unused")
+      self.updateFileStatus(self.jobInputData, "Unused")
+      return res
     # If the job was successful Update the status of the files to processed
     self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
     self.setApplicationStatus('%s Step OK' % (self.applicationName))
@@ -596,7 +598,7 @@ class AnalyseLogFile(ModuleBase):
   def getLastFile(self):
     """ Determine the last input file opened from the application log.
     """
-    files = self.getInputFiles(self.logString)['Value']
+    files = self.getInputFiles()['Value']
     if files:
       return S_OK(files[-1])
     return S_ERROR("No input files opened")
@@ -672,6 +674,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("Could not determine events output")
     writtenEvents = int(findline.group(1))
     self.log.info("Determined the number of events written to be %s." % writtenEvents)
+    self.numberOfEventsOutput = str(writtenEvents)
     return S_OK(writtenEvents)
 
   def getEventsProcessed(self,service):
