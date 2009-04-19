@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.52 2009/04/19 10:10:18 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.53 2009/04/19 14:10:12 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.52 2009/04/19 10:10:18 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.53 2009/04/19 14:10:12 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -404,7 +404,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
     generatedEvents = res['Value']
     # Get the number of events processed by Gauss
-    res = getEventsOutput('GaussTape')
+    res = self.getEventsOutput('GaussTape')
     if not res['OK']:
       result = S_ERROR('%s No events output' % mailto)
     outputEvents = res['Value']
@@ -440,7 +440,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
     processedEvents = res['Value']
     # Get the number of events output by Boole
-    res = getEventsOutput('DigiWriter')
+    res = self.getEventsOutput('DigiWriter')
     if not res['OK']:
       res = self.getEventsOutput('RawWriter')
       if not res['OK']:
