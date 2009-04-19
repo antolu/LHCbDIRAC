@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.54 2009/04/19 14:17:31 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.55 2009/04/19 23:16:38 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.54 2009/04/19 14:17:31 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.55 2009/04/19 23:16:38 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -29,6 +29,11 @@ class AnalyseLogFile(ModuleBase):
 #
 #-----------------------------------------------------------------------
 #
+
+  def checkApplicationLog(self,error):
+    self.log.debug(' applicationLog - from %s'%(self.applicationLog))
+    self.log.info(error)
+
   def grep(self,filename,string,opt=''):
        fd = open(filename)
        file = fd.readlines()
@@ -293,7 +298,7 @@ class AnalyseLogFile(ModuleBase):
     if not res['OK']:
       self.sendErrorMail(res['Message'])
       self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-      self.updateFileStatus(jobInputData, "Unused")
+      self.updateFileStatus(self.jobInputData, "Unused")
       return res
     # Check that the number of events handled is correct
     res = self.nbEvent()
@@ -581,7 +586,7 @@ class AnalyseLogFile(ModuleBase):
     exp = re.compile(r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'")
     files = re.findall(exp,self.logString)
     strippedFiles = []
-    for file in files: strippedFiles.append(files.replace('LFN:',''))
+    for file in files: strippedFiles.append(file.replace('LFN:',''))
     return S_OK(strippedFiles)
 
   def getOutputFiles(self):
@@ -695,6 +700,7 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("Could not determine events processed")
     eventsProcessed = int(findline.group(1))
     self.log.info("Determined the number of events processed to be %s." % eventsProcessed)
+    self.numberOfEventsInput = str(eventsProcessed)
     return S_OK(eventsProcessed)
 
   def findString(self,string):
