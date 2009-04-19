@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.50 2009/04/19 09:27:22 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.51 2009/04/19 09:57:37 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.50 2009/04/19 09:27:22 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.51 2009/04/19 09:57:37 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -18,14 +18,11 @@ try:
 except Exception,x:
   from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
 
-#from DIRAC.Core.Utilities                                import Mail, List
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from WorkflowLib.Utilities.Tools                         import *
-from WorkflowLib.Module.ModuleBase                       import *
+from WorkflowLib.Module.ModuleBase                       import ModuleBase
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
-
 
 class AnalyseLogFile(ModuleBase):
 
@@ -131,7 +128,6 @@ class AnalyseLogFile(ModuleBase):
         self.log.error('No EMAIL adress supplied')
         return
 
-    self.mode = gConfig.getValue('/LocalSite/Setup','Setup')
     if self.workflow_commons.has_key('configName'):
        configName = self.workflow_commons['configName']
        configVersion = self.workflow_commons['configVersion']
@@ -286,7 +282,7 @@ class AnalyseLogFile(ModuleBase):
     if self.InputData:
       for f in self.InputData.split(';'):
         self.jobInputData[f.replace("LFN:","")] = 'OK'
-    self.log.info("Resolved the job input data to be %s" % str(self.jobInputData.keys())  
+    self.log.info("Resolved the job input data to be %s" % str(self.jobInputData.keys()))
 
     # Check the log file exists and get the contents
     res = self.getLogString()
