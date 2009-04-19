@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.49 2009/04/18 13:27:24 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.50 2009/04/19 09:27:22 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.49 2009/04/18 13:27:24 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.50 2009/04/19 09:27:22 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -29,102 +29,6 @@ from DIRAC import                                        S_OK, S_ERROR, gLogger,
 
 class AnalyseLogFile(ModuleBase):
 
-  def __init__(self):
-      self.log = gLogger.getSubLogger("AnalyseLogFile")
-      self.version = __RCSID__
-      self.site = gConfig.getValue('/LocalSite/Site','localSite')
-      self.systemConfig = ''
-      self.result = S_ERROR()
-      self.mailadress = ''
-      self.numberOfEventsInput = ''
-      self.numberOfEventsOutput = ''
-      self.numberOfEvents = ''
-      self.applicationName = ''
-      self.inputData = ''
-      self.InputData = ''
-      self.sourceData = ''
-      self.JOB_ID = ''
-      self.jobID = ''
-      if os.environ.has_key('JOBID'):
-        self.jobID = os.environ['JOBID']
-      self.poolXMLCatName = 'pool_xml_catalog.xml'
-      self.applicationLog = ''
-      self.applicationVersion = ''
-      self.logFilePath = ''
-
-  def resolveInputVariables(self):
-    """ By convention any workflow parameters are resolved here.
-    """
-    self.log.verbose(self.workflow_commons)
-    self.log.verbose(self.step_commons)
-    #Use LHCb utility for local running via jobexec
-    if self.workflow_commons.has_key('LogFilePath'):
-      self.logFilePath = self.workflow_commons['LogFilePath']
-    else:
-      self.log.info('LogFilePath parameter not found, creating on the fly')
-      result = getLogPath(self.workflow_commons)
-      if not result['OK']:
-        self.log.error('Could not create LogFilePath',result['Message'])
-        return result
-      self.logFilePath=result['Value']['LogFilePath'][0]
-    return S_OK()
-
-  def execute(self):
-      self.log.info('Initializing '+self.version)
-      result = self.resolveInputVariables()
-      if not result['OK']:
-        self.log.error(result['Message'])
-        return result
-
-      if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-        if self.stepStatus.has_key('Message'):
-          if not self.stepStatus['Message'] == 'Application not found':
-            self.log.info('Skip this module, failure detected in a previous step :')
-            self.log.info('Workflow status : %s' %(self.workflowStatus))
-            self.log.info('Step Status %s' %(self.stepStatus))
-            return S_OK()
-        if self.workflowStatus.has_key('Message'):
-          if not self.workflowStatus['Message'] == 'Application not found':
-            self.log.info('Skip this module, failure detected in a previous step :')
-            self.log.info('Workflow status : %s' %(self.workflowStatus))
-            self.log.info('Step Status %s' %(self.stepStatus))
-            return S_OK()
-      self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
-      self.site = gConfig.getValue('/LocalSite/Site','Site')
-
-      # Check the log file exists and get the contents
-      res = self.getLogString()
-      if not res['OK']:
-        self.log.error(result['Message'])
-        self.updateFileStatus(self.inputs, "Unused")
-        return res
-
-      ########## DO SOMETHING HERE ###############
-      if self.step_commons.has_key('inputData'):
-         self.inputData = self.step_commons['inputData']
-      print self.inputData,'!!!!!!!!!!!!!!!! step input data'
-      print self.InputData,'???????????????? job input data'
-      self.inputs = {}
-      if self.InputData:
-        for f in self.InputData.split(';'):
-          self.inputs[f.replace("LFN:","")] = 'OK'
-
-      # Check that no errors were seen in the log
-      res = self.goodJob()
-      if not res['OK']:
-        self.sendErrorMail(res['Message'])
-        self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-        return self.updateFileStatus(self.inputs, "Unused")
-      # Check that the number of events handled is correct
-      res = self.nbEvent()
-      if not res['OK']:
-        self.sendErrorMail(res['Message'])
-        self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-        return self.updateFileStatus(self.inputs, "Unused")
-      # If the job was successful Update the status of the files to processed
-      self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
-      self.setApplicationStatus('%s Step OK' % (self.applicationName))
-      return self.updateFileStatus(self.inputs, "Processed")
 #
 #-----------------------------------------------------------------------
 #
@@ -175,8 +79,8 @@ class AnalyseLogFile(ModuleBase):
                      cat_lfn = catalog.getLfnsByGuid(cat_guid)
                      lfn = cat_lfn['Logical'].replace("LFN:","")
                      # Set the the file as problematic in the input list
-                     if self.inputs.has_key(lfn):
-                        self.inputs[lfn] = 'Problematic'
+                     if self.jobInputData.has_key(lfn):
+                        self.jobInputData[lfn] = 'Problematic'
                      else:
                         # The problematic file is not an input but a derived file
                         ##### Should put here something for setting replica as problematic in the LFC
@@ -197,21 +101,21 @@ class AnalyseLogFile(ModuleBase):
                         else:
                            files = []
                            self.log.warn("    Couldn't get input files from procDB")
-                        for lfn in self.inputs.keys():
+                        for lfn in self.jobInputData.keys():
                            status = 'Processed'
                            for f in files:
                               if f['LFN'] == lfn:
                                  # Check the status of the file in the processingDB
                                  if f['Status'] == 'Processed':
-                                   self.inputs[lfn] = 'AncestorProblem'
+                                   self.jobInputData[lfn] = 'AncestorProblem'
                                  else:
-                                   self.inputs[lfn] = 'Unused'
+                                   self.jobInputData[lfn] = 'Unused'
 
                poolroot = poolroot-1
-         for lfn in self.inputs.keys():
+         for lfn in self.jobInputData.keys():
            pfn = catalog.getPfnsByLfn(lfn)
-           if not pfn['OK'] and self.inputs[lfn] == 'OK':
-             self.inputs[lfn] = 'Unused'
+           if not pfn['OK'] and self.jobInputData[lfn] == 'OK':
+             self.jobInputData[lfn] = 'Unused'
 
          return S_ERROR(mailto + ' error to connectDatabase')
       return S_OK()
@@ -247,7 +151,7 @@ class AnalyseLogFile(ModuleBase):
     msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
     msg = msg +'JobID is '+str(self.jobID)+'\n'
     msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
-    if self.inputData:
+    if self.stepInputData:
       msg = msg + '\n\nInput Data:\n'
       result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
@@ -255,8 +159,8 @@ class AnalyseLogFile(ModuleBase):
         return result
 
       debugLFNs = result['Value']['DebugLFNs']
-      for inputname in self.inputData.split(';'):
-        if not self.InputData:
+      for inputname in self.stepInputData:
+        if not self.jobInputData:
           lfninput = ''
           for lfn in debugLFNs:
             if os.path.basename(lfn)==inputname:
@@ -298,11 +202,115 @@ class AnalyseLogFile(ModuleBase):
       self.log.info("The self.jobID varible is not defined, not sending mail")
     else:
       notifyClient = NotificationClient()
-      mailadress = 'a.smith@cern.ch'
       self.log.info("Sending crash mail for job to %s" % mailadress)
       res = notifyClient.sendMail(mailadress,subject,msg,'a.smith@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
+     
+    # REMOVE AFTER TESTING
+    notifyClient = NotificationClient()
+    res = notifyClient.sendMail('a.smith@cern.ch',subject,msg,'a.smith@cern.ch')
+#   
+#-----------------------------------------------------------------------
+#
+  def __init__(self):
+      self.log = gLogger.getSubLogger("AnalyseLogFile")
+      self.version = __RCSID__
+      self.site = gConfig.getValue('/LocalSite/Site','localSite')
+      self.systemConfig = ''
+      self.result = S_ERROR()
+      self.mailadress = ''
+      self.numberOfEventsInput = ''
+      self.numberOfEventsOutput = ''
+      self.numberOfEvents = ''
+      self.applicationName = ''
+      self.stepInputData = ''
+      self.InputData = ''
+      self.sourceData = ''
+      self.JOB_ID = ''
+      self.jobID = ''
+      if os.environ.has_key('JOBID'):
+        self.jobID = os.environ['JOBID']
+      self.poolXMLCatName = 'pool_xml_catalog.xml'
+      self.applicationLog = ''
+      self.applicationVersion = ''
+      self.logFilePath = ''
+
+  def resolveInputVariables(self):
+    """ By convention any workflow parameters are resolved here.
+    """
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
+    #Use LHCb utility for local running via jobexec
+    if self.workflow_commons.has_key('LogFilePath'):
+      self.logFilePath = self.workflow_commons['LogFilePath']
+    else:
+      self.log.info('LogFilePath parameter not found, creating on the fly')
+      result = getLogPath(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create LogFilePath',result['Message'])
+        return result
+      self.logFilePath=result['Value']['LogFilePath'][0]
+    return S_OK()
+
+  def execute(self):
+    self.log.info('Initializing '+self.version)
+    result = self.resolveInputVariables()
+    if not result['OK']:
+      self.log.error(result['Message'])
+      return result
+
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+      if self.stepStatus.has_key('Message'):
+        if not self.stepStatus['Message'] == 'Application not found':
+          self.log.info('Skip this module, failure detected in a previous step :')
+          self.log.info('Workflow status : %s' %(self.workflowStatus))
+          self.log.info('Step Status %s' %(self.stepStatus))
+          return S_OK()
+      if self.workflowStatus.has_key('Message'):
+        if not self.workflowStatus['Message'] == 'Application not found':
+          self.log.info('Skip this module, failure detected in a previous step :')
+          self.log.info('Workflow status : %s' %(self.workflowStatus))
+          self.log.info('Step Status %s' %(self.stepStatus))
+          return S_OK()
+    self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
+    self.site = gConfig.getValue('/LocalSite/Site','Site')
+
+    # Resolve the step and job input data
+    self.stepInputData = []
+    if self.step_commons.has_key('inputData'):
+      for f in self.step_commons['inputData'].split(';'):
+        self.stepInputData.append(f.replace("LFN:",""))
+    self.log.info("Resolved the step input data to be %s" % str(self.stepInputData))
+    self.jobInputData = {}
+    if self.InputData:
+      for f in self.InputData.split(';'):
+        self.jobInputData[f.replace("LFN:","")] = 'OK'
+    self.log.info("Resolved the job input data to be %s" % str(self.jobInputData.keys())  
+
+    # Check the log file exists and get the contents
+    res = self.getLogString()
+    if not res['OK']:
+      self.log.error(result['Message'])
+      self.updateFileStatus(self.jobInputData, "Unused")
+      return res
+
+    # Check that no errors were seen in the log
+    res = self.goodJob()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+      return self.updateFileStatus(jobInputData, "Unused")
+    # Check that the number of events handled is correct
+    res = self.nbEvent()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+      return self.updateFileStatus(self.jobInputData, "Unused")
+    # If the job was successful Update the status of the files to processed
+    self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
+    self.setApplicationStatus('%s Step OK' % (self.applicationName))
+    return self.updateFileStatus(self.jobInputData, "Processed")
 #
 #-----------------------------------------------------------------------
 #
@@ -336,8 +344,8 @@ class AnalyseLogFile(ModuleBase):
         res = self.getLastFile()
         if res['OK']:
           lastFile = res['Value']
-          if self.inputs.has_key(lastFile):
-            self.inputs[lastFile] = "ApplicationCrash"
+          if self.jobInputData.has_key(lastFile):
+            self.jobInputData[lastFile] = "ApplicationCrash"
             return S_ERROR("%s %s" % (mailto,description))
 
     # Check for a known list of problems in the application logs
