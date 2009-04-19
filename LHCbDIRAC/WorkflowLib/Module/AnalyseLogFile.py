@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.51 2009/04/19 09:57:37 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.52 2009/04/19 10:10:18 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.51 2009/04/19 09:57:37 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.52 2009/04/19 10:10:18 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -153,7 +153,7 @@ class AnalyseLogFile(ModuleBase):
       if not result['OK']:
         self.log.error('Could not create production LFNs',result['Message'])
         return result
-
+     
       debugLFNs = result['Value']['DebugLFNs']
       for inputname in self.stepInputData:
         if not self.jobInputData:
@@ -203,9 +203,6 @@ class AnalyseLogFile(ModuleBase):
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
      
-    # REMOVE AFTER TESTING
-    notifyClient = NotificationClient()
-    res = notifyClient.sendMail('a.smith@cern.ch',subject,msg,'a.smith@cern.ch')
 #   
 #-----------------------------------------------------------------------
 #
@@ -220,7 +217,7 @@ class AnalyseLogFile(ModuleBase):
       self.numberOfEventsOutput = ''
       self.numberOfEvents = ''
       self.applicationName = ''
-      self.stepInputData = ''
+      self.inputData = ''
       self.InputData = ''
       self.sourceData = ''
       self.JOB_ID = ''
