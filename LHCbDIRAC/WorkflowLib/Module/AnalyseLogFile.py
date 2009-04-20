@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.55 2009/04/19 23:16:38 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.56 2009/04/20 17:30:47 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.55 2009/04/19 23:16:38 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.56 2009/04/20 17:30:47 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -357,12 +357,12 @@ class AnalyseLogFile(ModuleBase):
     'Error: connectDataIO'                                            :     'connectDataIO error',
     'Error:connectDataIO'                                             :     'connectDataIO error',
     ' glibc '                                                         :     'Problem with glibc',
-    'G4Exception'                                                     :     'G4Exception',
     'GaussTape failed'                                                :     'GaussTape failed',
     'Writer failed'                                                   :     'Writer failed',
     'Bus error'                                                       :     'Bus error',
     'User defined signal 1'                                           :     'User defined signal 1',
     'Not found DLL'                                                   :     'Not found DLL'}
+    #'G4Exception'                                                     :     'G4Exception',
     failed = False
     for errString,description in dict_app_error.items():
       self.log.info('Check %s' % description)
