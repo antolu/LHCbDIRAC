@@ -175,7 +175,7 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
