@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.15 2009/01/21 11:27:59 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.16 2009/04/20 15:24:17 acasajus Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -161,7 +161,7 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
 # Missing in CS
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
 # $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
@@ -175,7 +175,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 
-$DESTDIR/pro/scripts/install_service.sh Monitoring SiteMapping 
+$DESTDIR/pro/scripts/install_service.sh Monitoring SiteMapping
 $DESTDIR/pro/scripts/install_agent.sh   Monitoring SiteMappingAgent
 
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
