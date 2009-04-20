@@ -1,9 +1,10 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.26 2009/01/30 13:18:52 joel Exp $
-__RCSID__ = "$Id: Tools.py,v 1.26 2009/01/30 13:18:52 joel Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.27 2009/04/20 06:24:23 rgracian Exp $
+__RCSID__ = "$Id: Tools.py,v 1.27 2009/04/20 06:24:23 rgracian Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC import gLogger
 
 
 def makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
@@ -240,7 +241,8 @@ def getPFNFromPoolXMLCatalog(poolXMLCatName,output):
       pfnName = poolcat.getPfnsByLfn(output)
       return pfnName
     except Exception,x :
-      self.log.error( "Failed to get PFN from PoolXMLCatalog ! %s" % str( x ) )
+      gLogger.error( "Failed to get PFN from PoolXMLCatalog" )
+      gLogger.exception( )
       return ''
 
 
@@ -286,7 +288,8 @@ def getGuidFromPoolXMLCatalog(poolXMLCatName,output):
       guid = poolcat.getGuidByPfn(output)
       return guid
     except Exception,x :
-      self.log.error( "Failed to get GUID from PoolXMLCatalog ! %s" % str( x ) )
+      gLogger.error( "Failed to get GUID from PoolXMLCatalog" )
+      gLogger.exception( )
       return ''
 
 def getLFNRoot(lfn,namespace='',mcYear=0):
