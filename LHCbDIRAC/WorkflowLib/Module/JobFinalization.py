@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.133 2009/01/30 11:13:32 paterson Exp $
+# $Id: JobFinalization.py,v 1.134 2009/04/20 06:41:50 rgracian Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.133 2009/01/30 11:13:32 paterson Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.134 2009/04/20 06:41:50 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -74,7 +74,7 @@ class JobFinalization(ModuleBase):
 
     self.LFN_ROOT = ''
     self.logdir = '.'
-    self.mode = ''
+    self.mode = 'test'
     self.InputData = ''
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
@@ -120,6 +120,7 @@ class JobFinalization(ModuleBase):
       self.configName = self.workflow_commons['configName']
       self.configVersion = self.workflow_commons['configVersion']
     else:
+      # FIXME: This will crash if it ever enters here.
       self.configName = self.workflow_commons['configName']
       self.configVersion = self.applicationVersion
 
@@ -142,8 +143,6 @@ class JobFinalization(ModuleBase):
 
     if self.workflow_commons.has_key('dataType'):
       self.mode = self.workflow_commons['dataType'].lower()
-    else:
-      self.mode = 'test'
 
     if self.workflow_commons.has_key('outputList'):
        self.listoutput = self.workflow_commons['outputList']
@@ -154,21 +153,24 @@ class JobFinalization(ModuleBase):
 
 ######################################################################
   def execute(self):
-    """ Main executon method
+    """ Main execution method
     """
 
     # Add global reporting tool
     self.resolveInputVariables()
 
+    # FIXME: What if JOBID is not defined in ENVIRON and this self.jobID=""
     self.request.setRequestName('job_%s_request.xml' % self.jobID)
     self.request.setJobID(self.jobID)
     self.request.setSourceComponent("Job_%s" % self.jobID)
 
-    result = self.setApplicationStatus('Job Finalization')
+    result = self.setApplicationStatus('Job Finalization', sendFlag = False )
     self.log.info('Initializing '+self.version)
 
+    # FIXME: why not use python here?
     res = shellCall(0,'ls -al')
     if res['OK'] == True:
+      # even if the command fails to execute it will return S_OK
       self.log.info("final listing : %s" % (str(res['Value'][1])))
     else:
       self.log.info("final listing with error: %s" % (str(res['Value'][2])))
@@ -194,6 +196,7 @@ class JobFinalization(ModuleBase):
         self.log.error('Failed to report file status to ProductionDB',result['Message'])
       self.log.info('Job finished with errors. Reduced finalization will be done')
 
+    # FIXME: why is the fileReport.commit call twice?
     result = self.fileReport.commit()
     if not result['OK']:
         self.log.error('Failed to report file status to ProductionDB',result['Message'])
@@ -207,6 +210,9 @@ class JobFinalization(ModuleBase):
       self.LFN_ROOT=getLFNRoot(self.InputData,self.configName,self.configVersion)
 
     result = self.finalize(error)
+
+    self.sendStoredStatusInfo()
+    self.sendStoredJobParameters()
 
     return result
 
@@ -235,7 +241,7 @@ class JobFinalization(ModuleBase):
     if not self.workflowStatus['OK']:
        self.log.info('Stop this module before uploading data, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
-       self.setApplicationStatus('Job Completed With Errors')
+       self.setApplicationStatus('Job Completed With Errors', sendFlag = False )
        error = 1
 
     if not error:
@@ -285,14 +291,15 @@ class JobFinalization(ModuleBase):
     except Exception,x:
       self.log.error("Exception while log files uploading:")
       self.log.error(str(x))
+      logs_done = False
 
     if not data_done:
-      self.setApplicationStatus('Failed to save output data')
+      self.setApplicationStatus('Failed to save output data', sendFlag = False )
       result = S_ERROR('Failed to save output data')
 
     if data_done and not error:
       # All the other operations will be accomplished through the failover mechanism
-      self.setApplicationStatus('Job Finished Successfully')
+      self.setApplicationStatus('Job Finished Successfully', sendFlag = False )
 
     if not logs_done:
       error_message = "failed to save logs, "
@@ -301,7 +308,7 @@ class JobFinalization(ModuleBase):
 
     if error_message:
       error_message = error_message[:-2]
-      self.setJobParameter('FinalizationError',error_message)
+      self.setJobParameter('FinalizationError',error_message, sendFlag = False)
 
     ##################################################################
     # Create failover request if necessary
@@ -309,7 +316,6 @@ class JobFinalization(ModuleBase):
     if not resultRequest['OK']:
       self.log.error('Failed to create overall job request for job %s' % self.jobID)
       result = S_ERROR('Failed to create overall job request')
-
 
     return result
 
@@ -413,6 +419,7 @@ class JobFinalization(ModuleBase):
     """
 
     fcname = []
+    # FIXME: this makes no sense
     if not self.poolXMLCatName:
       fcn = self.poolXMLCatName
       if os.path.isfile(fcn+'.gz'):
@@ -532,7 +539,7 @@ class JobFinalization(ModuleBase):
     else:
       logref = '<a href="http://lhcb-logs.cern.ch/storage%s/%s/log.tar.gz">Log file directory</a>' % (target_path, str(self.JOB_ID))
     self.log.info(logref)
-    self.setJobParameter('Log URL',logref)
+    self.setJobParameter('Log URL',logref,sendFlag=False)
 
     # set the asynchronous log upload request
     self.log.info('Setting asynchronous sandbox log upload request')

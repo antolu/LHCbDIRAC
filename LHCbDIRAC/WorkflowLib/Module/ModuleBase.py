@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.6 2009/03/11 11:41:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.7 2009/04/20 06:41:50 rgracian Exp $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,7 +7,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.6 2009/03/11 11:41:20 paterson Exp $"
+__RCSID__ = "$Id: ModuleBase.py,v 1.7 2009/04/20 06:41:50 rgracian Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -32,27 +32,46 @@ class ModuleBase(object):
         self.log.info('Payload proxy information:\n%s' %result['Value'])
 
   #############################################################################
-  def setApplicationStatus(self,status):
+  def setApplicationStatus(self,status, sendFlag=True):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not self.jobID:
       return S_OK('JobID not defined') # e.g. running locally prior to submission
 
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'JobFinalization'))
+    self.log.verbose('setJobApplicationStatus(%s,%s)' %(self.jobID,status))
 
     if self.workflow_commons.has_key('JobReport'):
       self.jobReport  = self.workflow_commons['JobReport']
 
     if not self.jobReport:
       return S_OK('No reporting tool given')
-    jobStatus = self.jobReport.setApplicationStatus(status)
+    jobStatus = self.jobReport.setApplicationStatus(status,sendFlag)
     if not jobStatus['OK']:
       self.log.warn(jobStatus['Message'])
 
     return jobStatus
 
   #############################################################################
-  def setJobParameter(self,name,value):
+  def sendStoredStatusInfo(self):
+    """Wraps around sendStoredStatusInfo of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport  = self.workflow_commons['JobReport']
+
+    if not self.jobReport:
+      return S_OK('No reporting tool given')
+
+    sendStatus = self.jobReport.sendStoredStatusInfo()
+    if not sendStatus['OK']:
+      self.log.error(sendStatus['Message'])
+
+    return sendStatus
+
+  #############################################################################
+  def setJobParameter(self,name,value, sendFlag = True):
     """Wraps around setJobParameter of state update client
     """
     if not self.jobID:
@@ -65,11 +84,30 @@ class ModuleBase(object):
 
     if not self.jobReport:
       return S_OK('No reporting tool given')
-    jobParam = self.jobReport.setJobParameter(str(name),str(value))
+    jobParam = self.jobReport.setJobParameter(str(name),str(value),sendFlag)
     if not jobParam['OK']:
       self.log.warn(jobParam['Message'])
 
     return jobParam
+
+  #############################################################################
+  def sendStoredJobParameters(self):
+    """Wraps around sendStoredJobParameters of state update client
+    """
+    if not self.jobID:
+      return S_OK('JobID not defined') # e.g. running locally prior to submission
+
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport  = self.workflow_commons['JobReport']
+
+    if not self.jobReport:
+      return S_OK('No reporting tool given')
+
+    sendStatus = self.jobReport.sendStoredJobParameters()
+    if not sendStatus['OK']:
+      self.log.error(sendStatus['Message'])
+
+    return sendStatus
 
   #############################################################################
   def setFileStatus(self,production,lfn,status):

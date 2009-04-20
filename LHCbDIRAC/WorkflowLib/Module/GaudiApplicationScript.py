@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.19 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.20 2009/04/20 06:41:50 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.19 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.20 2009/04/20 06:41:50 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -132,13 +132,13 @@ class GaudiApplicationScript(object):
       self.setApplicationStatus( 'Application Not Found' )
       self.result = S_ERROR( 'Application Not Found' )
 
+    if not self.result['OK']:
+      return self.result
+
     localArea = sharedArea
     if re.search(':',sharedArea):
       localArea = string.split(sharedArea,':')[0]
     self.log.info('Setting local software area to %s' %localArea)
-
-    if not self.result['OK']:
-      return self.result
 
     #self.__report( 'Application Found' )
     self.log.info( 'Application Root Found:', appRoot )

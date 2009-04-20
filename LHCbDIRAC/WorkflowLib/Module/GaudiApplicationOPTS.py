@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplicationOPTS.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $
+# $Id: GaudiApplicationOPTS.py,v 1.4 2009/04/20 06:41:50 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.4 2009/04/20 06:41:50 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -199,16 +199,17 @@ class GaudiApplication(ModuleBase):
 
     self.result = S_OK()
 
-    self.setApplicationStatus( 'Initializing GaudiApplication' )
+    self.setApplicationStatus( 'Initializing GaudiApplication', sendFlag = False )
 
     if not self.applicationName or not self.applicationName:
-      self.resul = S_ERROR( 'No Gaudi Application defined' )
+      self.result = S_ERROR( 'No Gaudi Application defined' )
     elif not self.systemConfig:
       self.result = S_ERROR( 'No LHCb platform selected' )
     elif not self.applicationLog:
       self.result = S_ERROR( 'No Log file provided' )
 
     if not self.result['OK']:
+      self.sendStoredStatusInfo()
       return self.result
 
     if not self.optionsFile and not self.optionsLine:
@@ -234,13 +235,13 @@ class GaudiApplication(ModuleBase):
       self.setApplicationStatus( 'Application not Found' )
       self.result = S_ERROR( 'Application not Found' )
 
+    if not self.result['OK']:
+      return self.result
+
     localArea = sharedArea
     if re.search(':',sharedArea):
       localArea = string.split(sharedArea,':')[0]
     self.log.info('Setting local software area to %s' %localArea)
-
-    if not self.result['OK']:
-      return self.result
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
