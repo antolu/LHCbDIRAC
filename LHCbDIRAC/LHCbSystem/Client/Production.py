@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.11 2009/04/18 18:26:59 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.12 2009/04/20 16:26:43 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.11 2009/04/18 18:26:59 rgracian Exp $"
+__RCSID__ = "$Id: Production.py,v 1.12 2009/04/20 16:26:43 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -129,9 +129,9 @@ class Production(LHCbJob):
       options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append("OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       #Below 3 lines added to replace evt/evt printout
-      options.append('from Configurables import SimInit')
-      options.append('GaussSim = SimInit("GaussSim")')
-      options.append('GaussSim.OutputLevel = 2')
+      #options.append('from Configurables import SimInit')
+      #options.append('GaussSim = SimInit("GaussSim")')
+      #options.append('GaussSim.OutputLevel = 2')
       options.append("HistogramPersistencySvc().OutputFile = \"%s\"" %(self.histogramName))
     elif appName.lower()=='boole':
       if appType.lower()=='mdf':
