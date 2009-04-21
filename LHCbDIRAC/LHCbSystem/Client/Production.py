@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.13 2009/04/21 12:31:07 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.14 2009/04/21 13:52:22 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.13 2009/04/21 12:31:07 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.14 2009/04/21 13:52:22 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -61,6 +61,7 @@ class Production(LHCbJob):
     self.prodGroup = ''
     self.plugin = ''
     self.inputBKSelection = {}
+    self.ancestorProduction = ''
     if not script:
       self.__setDefaults()
 
@@ -609,7 +610,7 @@ class Production(LHCbJob):
     self.workflow.toXMLFile(name)
 
   #############################################################################
-  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,bkScript=True,derivedProduction=0):
+  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -683,7 +684,9 @@ class Production(LHCbJob):
       dirac = DiracProduction()
       if self.inputBKSelection:
         bkQuery=self.inputBKSelection
-      result = dirac.createProduction(fileName,fileMask,groupSize,bkQuery,self.plugin,self.prodGroup,self.type)
+      if self.ancestorProduction:
+        derivedProduction = self.ancestorProduction
+      result = dirac.createProduction(fileName,fileMask,groupSize,bkQuery,self.plugin,self.prodGroup,self.type,derivedProduction)
       if not result['OK']:
         self.log.error('Problem creating production:\n%s' %result)
         return result
@@ -874,3 +877,10 @@ class Production(LHCbJob):
     """ Sets the input data selection mechanism for the production.
     """
     self.inputBKSelection = bkQuery
+
+  #############################################################################
+  def setAncestorProduction(self,prod):
+    """ Sets the original production from which this is to be derived
+    """
+    self.ancestorProduction = prod
+
