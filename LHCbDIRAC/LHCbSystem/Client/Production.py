@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.12 2009/04/20 16:26:43 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.13 2009/04/21 12:31:07 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.12 2009/04/20 16:26:43 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.13 2009/04/21 12:31:07 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -58,6 +58,9 @@ class Production(LHCbJob):
     self.name='unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
+    self.prodGroup = ''
+    self.plugin = ''
+    self.inputBKSelection = {}
     if not script:
       self.__setDefaults()
 
@@ -606,7 +609,7 @@ class Production(LHCbJob):
     self.workflow.toXMLFile(name)
 
   #############################################################################
-  def create(self,publish=True,fileMask='',groupSize=0,bkScript=True):
+  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,bkScript=True,derivedProduction=0):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -678,7 +681,9 @@ class Production(LHCbJob):
 
     if publish:
       dirac = DiracProduction()
-      result = dirac.createProduction(fileName,fileMask,groupSize)
+      if self.inputBKSelection:
+        bkQuery=self.inputBKSelection
+      result = dirac.createProduction(fileName,fileMask,groupSize,bkQuery,self.plugin,self.prodGroup,self.type)
       if not result['OK']:
         self.log.error('Problem creating production:\n%s' %result)
         return result
@@ -848,4 +853,24 @@ class Production(LHCbJob):
     """
     self._setParameter('Priority','JDL',str(priority),'UserPriority')
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+  #############################################################################
+  def setProdGroup(self,group):
+    """ Sets a user defined tag for the production as appears on the monitoring page
+    """
+    self.prodGroup = group
+
+  #############################################################################
+  def setProdPlugin(self,plugin):
+    """ Sets the plugin to be used to creating the production jobs
+    """
+    available_plugins = ['CCRC_RAW']
+    if plugin in available_plugins:
+      self.plugin = plugin
+    else:
+      self.plugin = 'Standard'
+
+  #############################################################################
+  def setInputBKSelection(self,bkQuery):
+    """ Sets the input data selection mechanism for the production.
+    """
+    self.inputBKSelection = bkQuery
