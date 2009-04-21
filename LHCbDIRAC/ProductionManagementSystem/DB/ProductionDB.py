@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.50 2009/02/11 23:08:19 atsareg Exp $
+# $Id: ProductionDB.py,v 1.51 2009/04/21 12:34:12 acsmith Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.50 $"
+__RCSID__ = "$Revision: 1.51 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -126,7 +126,7 @@ class ProductionDB(TransformationDB):
 
   def addProduction(self, name, parent, description, long_description, body, 
                     fileMask, groupsize, authorDN, authorGroup, update=False, 
-                    inheritedFrom=0L, bkQuery = {}, productionType='', productionGroup='',
+                    inheritedFrom=0L, bkQuery = {}, plugin='',productionType='', productionGroup='',
                     maxJobs=0,addFiles=True):
 
     prod_type = productionType
@@ -136,8 +136,8 @@ class ProductionDB(TransformationDB):
         prod_type = "Simulation"
       else:
         prod_type = "Processing"
-        
-    plugin = "None"
+    if not plugin:
+      plugin = "None"
     agentType = "Manual"
 
     #status = "NEW" # alwais NEW when created
@@ -179,7 +179,7 @@ class ProductionDB(TransformationDB):
     return S_OK(TransformationID)
 
   def addDerivedProduction(self, name, parent, description, long_description, body, fileMask, groupsize, 
-                           authorDN, authorGroup, originaProdIDOrName,bkQuery = {}, 
+                           authorDN, authorGroup, originaProdIDOrName,bkQuery = {}, plugin='', 
                            productionType='', productionGroup='',maxJobs=0):
     """ Create a new production derived from a previous one
     """
@@ -199,7 +199,7 @@ class ProductionDB(TransformationDB):
 
     result = self.addProduction(name, parent, description, long_description, body, fileMask, 
                                 groupsize, authorDN, authorGroup, False, originalProdID,
-                                bkQuery=bkQuery, productionType=productionType,
+                                bkQuery=bkQuery, plugin=plugin,productionType=productionType,
                                 productionGroup=productionGroup,addFiles=False)
     if not result['OK']:
       return result
