@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.56 2009/04/20 17:30:47 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.57 2009/04/21 09:51:57 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.56 2009/04/20 17:30:47 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.57 2009/04/21 09:51:57 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -21,6 +21,7 @@ except Exception,x:
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from WorkflowLib.Utilities.Tools                         import getGuidFromPoolXMLCatalog
 from WorkflowLib.Module.ModuleBase                       import ModuleBase
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 
@@ -204,7 +205,7 @@ class AnalyseLogFile(ModuleBase):
     else:
       notifyClient = NotificationClient()
       self.log.info("Sending crash mail for job to %s" % mailadress)
-      res = notifyClient.sendMail(mailadress,subject,msg,'a.smith@cern.ch')
+      res = notifyClient.sendMail(mailadress,subject,msg,'j.closier@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
      
