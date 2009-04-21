@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.51 2009/04/21 12:34:12 acsmith Exp $
+# $Id: ProductionDB.py,v 1.52 2009/04/21 13:55:15 acsmith Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.51 $"
+__RCSID__ = "$Revision: 1.52 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -213,11 +213,11 @@ class ProductionDB(TransformationDB):
     if result['OK']:
       if result['Value']:
         for fileID,status,jobID,targetSE,usedSE in result['Value']:
-          jobName = str(int(originalProdID)).zfill(8)+'_'+str(int(jobID)).zfill(8)
           if jobID:
+            jobName = str(int(originalProdID)).zfill(8)+'_'+str(int(jobID)).zfill(8)
             req = "INSERT INTO T_%s (Status,JobID,FileID,TargetSE,UsedSE,LastUpdate) VALUES ('%s','%s',%d,'%s','%s',UTC_TIMESTAMP())" % (newProdID,status,jobName,int(fileID),targetSE,usedSE)
           else:
-            req = "INSERT INTO T_%s (Status,FileID,FileID,TargetSE,LastUpdate) VALUES ('%s',%d,'%s','%s',UTC_TIMESTAMP())" % (newProdID,status,fileID,targetSE,usedSE)
+            req = "INSERT INTO T_%s (Status,FileID,TargetSE,LastUpdate) VALUES ('%s',%d,'%s',UTC_TIMESTAMP())" % (newProdID,status,int(fileID),targetSE)
           result = self._update(req)
           if not result['OK']:
             # rollback the operation
