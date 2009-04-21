@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.47 2009/04/21 12:35:52 acsmith Exp $
+# $Id: ProductionManagerHandler.py,v 1.48 2009/04/21 13:57:12 acsmith Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.47 $"
+__RCSID__ = "$Revision: 1.48 $"
 
 from types import *
 import threading
@@ -160,8 +160,8 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.exception(errKey, errExpl)
       return S_ERROR(errKey + str(x))
 
-  types_publishDerivedProduction = [ [LongType, IntType, StringType], StringType, StringType, IntType, BooleanType ]
-  def export_publishDerivedProduction( self, originaProdIDOrName, body, filemask='', groupsize=0, update=False):
+  types_publishDerivedProduction = [ [LongType, IntType, StringType], StringType, StringType, IntType, DictType, StringType, StringType, StringType, IntType, BooleanType]
+  def export_publishDerivedProduction( self, originaProdIDOrName, body, filemask='', groupsize=0, bkQuery = {}, plugin='',productionType='', productionGroup='',maxJobs=0,update=False):
     """ Publish new transformation in the ProductionDB
     """
     originalTransID = productionDB.getTransformationID(originaProdIDOrName)
@@ -180,7 +180,7 @@ class ProductionManagerHandler( TransformationHandler ):
     long_description = wf.getDescription()
 
     try:
-      result = productionDB.addDerivedProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup, originalTransID)
+      result = productionDB.addDerivedProduction(name, parent, description, long_description, body, filemask, groupsize, authorDN, authorGroup, originalTransID, bkQuery, plugin, productionType, productionGroup, maxJobs)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
