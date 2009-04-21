@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.57 2009/04/21 09:51:57 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.58 2009/04/21 09:53:09 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.57 2009/04/21 09:51:57 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.58 2009/04/21 09:53:09 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -205,7 +205,7 @@ class AnalyseLogFile(ModuleBase):
     else:
       notifyClient = NotificationClient()
       self.log.info("Sending crash mail for job to %s" % mailadress)
-      res = notifyClient.sendMail(mailadress,subject,msg,'j.closier@cern.ch')
+      res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
      
