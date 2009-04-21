@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.14 2009/04/21 13:52:22 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.15 2009/04/21 14:26:55 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.14 2009/04/21 13:52:22 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.15 2009/04/21 14:26:55 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -60,7 +60,9 @@ class Production(LHCbJob):
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''
+    self.inputFileMask = ''
     self.inputBKSelection = {}
+    self.jobFileGroupSize = 0
     self.ancestorProduction = ''
     if not script:
       self.__setDefaults()
@@ -682,6 +684,10 @@ class Production(LHCbJob):
 
     if publish:
       dirac = DiracProduction()
+      if self.inputFileMask:
+        fileMask = self.inputFileMask
+      if self.jobFileGroupSize:
+        groupSize = self.jobFileGroupSize 
       if self.inputBKSelection:
         bkQuery=self.inputBKSelection
       if self.ancestorProduction:
@@ -873,10 +879,22 @@ class Production(LHCbJob):
       self.plugin = 'Standard'
 
   #############################################################################
+  def setInputFileMask(self,fileMask):
+    """ Sets the input data selection when using file mask.
+    """
+    self.inputFileMask = fileMask
+
+  #############################################################################
   def setInputBKSelection(self,bkQuery):
-    """ Sets the input data selection mechanism for the production.
+    """ Sets the input data selection when using the bookkeeping.
     """
     self.inputBKSelection = bkQuery
+
+  #############################################################################
+  def setJobFileGroupSize(self,files):
+    """ Sets the number of files to be input to each job created.
+    """
+    self.jobFileGroupSize = files
 
   #############################################################################
   def setAncestorProduction(self,prod):
