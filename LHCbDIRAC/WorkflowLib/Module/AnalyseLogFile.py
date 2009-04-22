@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.58 2009/04/21 09:53:09 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.59 2009/04/22 21:12:54 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.58 2009/04/21 09:53:09 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.59 2009/04/22 21:12:54 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -39,7 +39,7 @@ class AnalyseLogFile(ModuleBase):
        fd = open(filename)
        file = fd.readlines()
        if opt == '-l': return file[-1]
- 
+
        n=0
        thisline = ''
        for line in file:
@@ -75,8 +75,7 @@ class AnalyseLogFile(ModuleBase):
                if (file.count('PFN=')>0):
                   file_input = file.split('PFN=')[1]
                   if (file_input.count('gfal:guid:')>0):
-                     result = S_ERROR('Navigation error from guid via LFC for input file')
-                     return result
+                     return S_ERROR('Navigation error from guid via LFC for input file')
                   else:
                      cat_guid = catalog.getGuidByPfn(file_input)
                      cat_lfn = catalog.getLfnsByGuid(cat_guid)
@@ -120,26 +119,25 @@ class AnalyseLogFile(ModuleBase):
            if not pfn['OK'] and self.jobInputData[lfn] == 'OK':
              self.jobInputData[lfn] = 'Unused'
 
-         return S_ERROR(mailto + ' error to connectDatabase')
+         return S_ERROR('Error to connectDatabase')
       return S_OK()
 
-  def sendErrorMail(self,message):
-    genmail = message.split()[0]
-    subj = message.replace(genmail,'')
+  def sendErrorMail(self,subj):
     rm = ReplicaManager()
     try:
-        if self.workflow_commons.has_key('emailAddress'):
-            mailadress = self.workflow_commons['emailAddress']
+      if self.workflow_commons.has_key('emailAddress'):
+        mailadress = self.workflow_commons['emailAddress']
     except:
-        self.log.error('No EMAIL adress supplied')
-        return
+      self.log.error('No EMAIL address supplied')
+      return
 
+    # FIXME: why are this variables defined? they are not used
     if self.workflow_commons.has_key('configName'):
-       configName = self.workflow_commons['configName']
-       configVersion = self.workflow_commons['configVersion']
+      configName = self.workflow_commons['configName']
+      configVersion = self.workflow_commons['configVersion']
     else:
-       configName = self.applicationName
-       configVersion = self.applicationVersion
+      configName = self.applicationName
+      configVersion = self.applicationVersion
 
     if self.workflow_commons.has_key('dataType'):
       job_mode = self.workflow_commons['dataType'].lower()
@@ -158,29 +156,33 @@ class AnalyseLogFile(ModuleBase):
       result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
         self.log.error('Could not create production LFNs',result['Message'])
-        return result
-     
-      debugLFNs = result['Value']['DebugLFNs']
-      for inputname in self.stepInputData:
-        if not self.jobInputData:
-          lfninput = ''
-          for lfn in debugLFNs:
-            if os.path.basename(lfn)==inputname:
-              lfninput = lfn
-          if not lfninput:
-            return S_ERROR('Could not construct LFN for %s' %inputname)
+        msg += 'Could not create production LFNs:\n%s\n' % result['Message']
 
-          if self.jobID:
-            guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
-            result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput,catalog='LcgFileCatalogCombined')
-            if not result['OK']:
-                self.log.error('could not save the INPUT data file')
+      else:
+        debugLFNs = result['Value']['DebugLFNs']
+        for inputname in self.stepInputData:
+          if not self.jobInputData:
+            lfninput = ''
+            for lfn in debugLFNs:
+              if os.path.basename(lfn)==inputname:
+                lfninput = lfn
+            if not lfninput:
+              self.log.error('Could not construct LFN for',inputname)
+              msg += 'Could not construct LFN for %s\n' %inputname
+              continue
+
+            if self.jobID:
+              guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
+              result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput,catalog='LcgFileCatalogCombined')
+              if not result['OK']:
+                  self.log.error('Could not save INPUT data file',result['Message'])
+                  msg += 'Could not save INPUT data file for %s\n' %inputname
+              else:
+                  msg = msg +lfninput+'\n'
             else:
-                msg = msg +lfninput+'\n'
+              self.log.info('No WMS JOBID environment variable found, not uploading debug outputs')
           else:
-            self.log.info('No WMS JOBID environment variable found, not uploading debug outputs')
-        else:
-          msg = msg +inputname+'\n'
+            msg = msg +inputname+'\n'
 
     if self.applicationLog:
       logurl = 'http://lhcb-logs.cern.ch/storage'+self.logFilePath
@@ -208,8 +210,8 @@ class AnalyseLogFile(ModuleBase):
       res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
-     
-#   
+
+#
 #-----------------------------------------------------------------------
 #
   def __init__(self):
@@ -324,16 +326,15 @@ class AnalyseLogFile(ModuleBase):
     fd = open(self.applicationLog,'r')
     self.logString = fd.read()
     return S_OK()
-#   
+#
 #-----------------------------------------------------------------------
 #
   def goodJob(self):
-    mailto = self.applicationName.upper()+'_EMAIL'
     # Check if the application finish successfully
     self.log.info('Check application ended successfully')
     okay = self.findString('Application Manager Finalized successfully')['Value']
     if not okay:
-      return S_ERROR('%s Finalization Error' % mailto)
+      return S_ERROR('Finalization Error')
 
     # Check whether there were errors completing the event loop
     dict_app_error = {\
@@ -347,7 +348,7 @@ class AnalyseLogFile(ModuleBase):
           lastFile = res['Value']
           if self.jobInputData.has_key(lastFile):
             self.jobInputData[lastFile] = "ApplicationCrash"
-            return S_ERROR("%s %s" % (mailto,description))
+            return S_ERROR(description)
 
     # Check for a known list of problems in the application logs
     dict_app_error = {\
@@ -365,16 +366,19 @@ class AnalyseLogFile(ModuleBase):
     'Not found DLL'                                                   :     'Not found DLL'}
     #'G4Exception'                                                     :     'G4Exception',
     failed = False
+    errorList = []
     for errString,description in dict_app_error.items():
       self.log.info('Check %s' % description)
       found = self.findString(errString)['Value']
       if found:
         failed = True
+        errorList.append(description)
         self.log.error("Detected problem with '%s'" % description)
-    if failed: return S_ERROR("%s Error in application detected" % mailto)
+    if failed:
+      description = 'Error in application detected: %s' % ', '.join(errorList)
+      return S_ERROR(description)
 
-    res = self.catchPoolIOError()
-    return res
+    return self.catchPoolIOError()
 #
 #-----------------------------------------------------------------------
 #
@@ -387,52 +391,50 @@ class AnalyseLogFile(ModuleBase):
       return self.checkBrunelEvents()
     if self.applicationName.lower() == 'davinci':
       return self.checkDaVinciEvents()
-    return S_ERROR("Application not known") 
+    return S_ERROR("Application not known")
 #
 #-----------------------------------------------------------------------
 #
   def checkGaussEvents(self):
     """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
     """
-    mailto = self.applicationName.upper()+'_EMAIL'
     # Get the number of requested events
     res = self.getRequestedEvents()
     if not res['OK']:
-      return S_ERROR("%s %s" % (mailto,res['Message']))
+      return res
     requestedEvents = res['Value']
     # You must give a requested number of events for Gauss (this is pointless as the job will run forever)
     if not requestedEvents:
-      return S_ERROR("%s Missing requested events option for job" % mailto)
+      return S_ERROR("Missing requested events option for job")
 
     # Get the last event processed
     lastEvent = self.getLastEvent()['Value']
     # Get the number of events generated by Gauss
     res = self.getEventsProcessed('GaussGen')
     if not res['OK']:
-      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+      return S_ERROR("Crash in event %s" % lastEvent)
     generatedEvents = res['Value']
     # Get the number of events processed by Gauss
     res = self.getEventsOutput('GaussTape')
     if not res['OK']:
-      result = S_ERROR('%s No events output' % mailto)
+      result = S_ERROR('No events output')
     outputEvents = res['Value']
 
     # Check that the correct number of events were generated
     if generatedEvents != requestedEvents:
-      return S_ERROR('%s Too few events generated' % mailto)
+      return S_ERROR('Too few events generated')
     # Check that more than 90% of generated events are output
     if outputEvents < 0.9*requestedEvents:
-      return S_ERROR('%s Too few events output' % mailto)
+      return S_ERROR('Too few events output')
     return S_OK()
 
   def checkBooleEvents(self):
     """ Obtain event information from the application log and determine whether the Boole job processed the correct number of events.
     """
-    mailto = self.applicationName.upper()+'_EMAIL'
     # Get the number of requested events
     res = self.getRequestedEvents()
     if not res['OK']:
-      return S_ERROR("%s %s" % (mailto,res['Message']))
+      return res
     requestedEvents = res['Value']
 
     # Get the last event processed
@@ -445,41 +447,40 @@ class AnalyseLogFile(ModuleBase):
         lastFile = res['Value']
         if self.inputFiles.has_key(lastFile):
           self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+      return S_ERROR("Crash in event %s" % lastEvent)
     processedEvents = res['Value']
     # Get the number of events output by Boole
     res = self.getEventsOutput('DigiWriter')
     if not res['OK']:
       res = self.getEventsOutput('RawWriter')
       if not res['OK']:
-        return S_ERROR('%s No events output' % mailto)
+        return S_ERROR('No events output')
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
     noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("%s Not all input events processed" % mailto)
+      return S_ERROR("Not all input events processed")
     # If we are to process a given number of events ensure the target was met
     if requestedEvents:
       if requestedEvents != processedEvents:
-        return S_ERROR('%s Too few events processed' % mailto)
+        return S_ERROR('Too few events processed')
     # Check that the final reported processed events match those logged as processed during execution
     if lastEvent != processedEvents:
-      return S_ERROR("%s Processed events do not match" % mailto)
+      return S_ERROR("Processed events do not match")
     # If the output events are not equal to the processed events be sure there were no failed events
     if outputEvents != processedEvents:
-      pass # TODO: Find out whethere there is a way to find failed events
+      pass # TODO: Find out whether there is a way to find failed events
     return S_OK()
 
   def checkBrunelEvents(self):
     """ Obtain event information from the application log and determine whether the Brunel job processed the correct number of events.
     """
-    mailto = self.applicationName.upper()+'_EMAIL'
     # Get the number of requested events
     res = self.getRequestedEvents()
     if not res['OK']:
-      return S_ERROR("%s %s" % (mailto,res['Message']))
+      return res
     requestedEvents = res['Value']
 
     # Get the last event processed
@@ -492,41 +493,40 @@ class AnalyseLogFile(ModuleBase):
         lastFile = res['Value']
         if self.inputFiles.has_key(lastFile):
           self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+      return S_ERROR("Crash in event %s" % lastEvent)
     processedEvents = res['Value']
     # Get the number of events output by Brunel
     res = self.getEventsOutput('DstWriter')
     if not res['OK']:
-      return S_ERROR('%s No events output' % mailto)
+      return S_ERROR('No events output')
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
     noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("%s Not all input events processed" % mailto)
+      return S_ERROR("Not all input events processed")
     # If we are to process a given number of events ensure the target was met
     if requestedEvents:
       if requestedEvents != processedEvents:
-        return S_ERROR('%s Too few events processed' % mailto)
+        return S_ERROR('Too few events processed')
     # Check that the final reported processed events match those logged as processed during execution
     if lastEvent != processedEvents:
-      return S_ERROR("%s Processed events do not match" % mailto)
+      return S_ERROR("Processed events do not match")
     # If the output events are not equal to the processed events be sure there were no failed events
     if outputEvents != processedEvents:
-      return S_ERROR("%s Processed events not all output" % mailto)
+      return S_ERROR("Processed events not all output")
     return S_OK()
 
   def checkDaVinciEvents(self):
     """ Obtain event information from the application log and determine whether the DaVinci job processed the correct number of events.
     """
-    mailto = self.applicationName.upper()+'_EMAIL'
-    # Get the number of requested events  
+    # Get the number of requested events
     res = self.getRequestedEvents()
     if not res['OK']:
-      return S_ERROR("%s %s" % (mailto,res['Message']))
+      return res
     requestedEvents = res['Value']
-    
+
     # Get the last event processed
     lastEvent = self.getLastEventSummary()['Value']
     # Get the number of events processed by DaVinci
@@ -537,23 +537,23 @@ class AnalyseLogFile(ModuleBase):
         lastFile = res['Value']
         if self.inputFiles.has_key(lastFile):
           self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("%s Crash in event %s" % (mailto,lastEvent))
+      return S_ERROR("Crash in event %s" % lastEvent)
     processedEvents = res['Value']
     # Get the number of events output by DaVinci
     res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:
-      return S_ERROR('%s No events output' % mailto)
+      return S_ERROR('No events output')
     outputEvents = res['Value']
     # Get whether all events in the input file were processed
     noMoreEvents = self.findString('No more events in event selection')['Value']
 
     # If were are to process all the files in the input then ensure that all were read
     if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("%s Not all input events processed" % mailto)
+      return S_ERROR("Not all input events processed")
     # If we are to process a given number of events ensure the target was met
     if requestedEvents:
       if requestedEvents != processedEvents:
-        return S_ERROR("%s Too few events processed" % mailto)
+        return S_ERROR("Too few events processed")
     return S_OK()
 #
 #-----------------------------------------------------------------------
@@ -611,10 +611,10 @@ class AnalyseLogFile(ModuleBase):
 
   def getRequestedEvents(self):
     """ Determine the number of requested events from the application log. The log should contain one of two strings:
-      
+
         Requested to process all events on input file   or
         Requested to process x events
-    
+
         If neither of these strings are found an error is returned
     """
     exp = re.compile(r"Requested to process ([0-9]+|all)")
@@ -633,14 +633,14 @@ class AnalyseLogFile(ModuleBase):
   def getLastEvent(self):
     """ Determine the last event handled from the application log. The log should contain the string:
 
-       	Nr. in job = x
+         Nr. in job = x
 
         If this string is not found then 0 is returned
     """
-    exp = re.compile(r"Nr. in job = ([0-9]+)") 
+    exp = re.compile(r"Nr. in job = ([0-9]+)")
     list = re.findall(exp,self.logString)
     if not list:
-      lastEvent = 0 
+      lastEvent = 0
     else:
       lastEvent = int(list[-1])
     self.log.info("Determined the number of events handled to be %s." % lastEvent)
@@ -653,7 +653,7 @@ class AnalyseLogFile(ModuleBase):
 
         If this string is not found then 0 is returned
     """
-    exp = re.compile(r"Reading Event record ([0-9]+)") 
+    exp = re.compile(r"Reading Event record ([0-9]+)")
     list = re.findall(exp,self.logString)
     if not list:
       readEvents = 0
@@ -687,14 +687,14 @@ class AnalyseLogFile(ModuleBase):
     """ Determine the number of events reported processed by the supplied service. The log should contain the string:
 
         Service          SUCCESS x events processed
-  
+
         If the string is not found an error is returned
-    """ 
+    """
     possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim']
     if not service in possibleServices:
       self.log.error("Requested service not available.",service)
       return S_ERROR("Requested service '%s' not available" % service)
-    exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)   
+    exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
     findline = re.search(exp,self.logString)
     if not findline:
       self.log.error("Could not determine events processed.")
