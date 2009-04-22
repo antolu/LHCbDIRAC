@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.52 2009/04/21 13:55:15 acsmith Exp $
+# $Id: ProductionDB.py,v 1.53 2009/04/22 09:47:33 acsmith Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.52 $"
+__RCSID__ = "$Revision: 1.53 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -538,7 +538,7 @@ INDEX(WmsStatus)
       return result
 
     ttype = result['Value']['Type']
-    if ttype.lower() != 'simulation':
+    if ttype.lower() not in ['simulation','mcsimulation']:
       return S_ERROR('Can not extend non-SIMULATION type production')
 
     jobIDs = []
