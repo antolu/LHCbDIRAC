@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.9 2008/10/08 12:33:22 rgracian Exp $
+# $Id: StepFinalization.py,v 1.10 2009/04/22 16:07:44 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.9 2008/10/08 12:33:22 rgracian Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.10 2009/04/22 16:07:44 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -56,6 +56,7 @@ class StepFinalization(object):
       self.log.info("final listing with error: %s" % (str(res['Value'][2])))
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
+    # FIXME: Why do we need to load any .cfg file here????
     self.__loadLocalCFGFiles(self.root)
     self.mode = gConfig.getValue('LocalSite/Setup','test')
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))

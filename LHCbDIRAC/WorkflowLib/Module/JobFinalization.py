@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.134 2009/04/20 06:41:50 rgracian Exp $
+# $Id: JobFinalization.py,v 1.135 2009/04/22 16:12:30 rgracian Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.134 2009/04/20 06:41:50 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.135 2009/04/22 16:12:30 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -177,6 +177,7 @@ class JobFinalization(ModuleBase):
 
     self.log.info('Site root is found to be %s' %(self.root))
     self.log.info('Updating local configuration with available CFG files')
+    # FIXME: Why do we need to load any .cfg file here????
     self.__loadLocalCFGFiles(self.root)
     self.log.info('PRODUTION_ID = %s, JOB_ID = %s ' %(self.PRODUCTION_ID,self.JOB_ID))
     self.logdir = os.path.realpath('./job/log/'+self.PRODUCTION_ID+'/'+self.JOB_ID)
