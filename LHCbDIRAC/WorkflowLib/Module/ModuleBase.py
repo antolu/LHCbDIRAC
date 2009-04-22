@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.7 2009/04/20 06:41:50 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.8 2009/04/22 19:55:00 rgracian Exp $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,7 +7,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.7 2009/04/20 06:41:50 rgracian Exp $"
+__RCSID__ = "$Id: ModuleBase.py,v 1.8 2009/04/22 19:55:00 rgracian Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -22,14 +22,12 @@ class ModuleBase(object):
     """ Initialization of module base.
     """
     self.log = gLogger.getSubLogger('ModuleBase')
+    # FIXME: do we need to do this for every module?
     result = getProxyInfoAsString()
-    if not result:
-      self.log.error('Could not obtain proxy information in module environment with result:\n' %result)
+    if not result['OK']:
+      self.log.error('Could not obtain proxy information in module environment with message:\n', result['Message'])
     else:
-      if not result['OK']:
-        self.log.error('Could not obtain proxy information in module environment with message:\n%s' %result['Message'])
-      else:
-        self.log.info('Payload proxy information:\n%s' %result['Value'])
+      self.log.info('Payload proxy information:\n', result['Value'])
 
   #############################################################################
   def setApplicationStatus(self,status, sendFlag=True):
