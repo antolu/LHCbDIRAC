@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.105 2009/04/15 11:04:15 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.106 2009/04/23 12:21:41 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.105 2009/04/15 11:04:15 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.106 2009/04/23 12:21:41 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -375,17 +375,18 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets(self, values):
     
-    simdesc = 'S*ALL'
+    simdesc = 'ALL'
     if values.has_key('SimulationConditions'):
-      simdesc = 'S*'+str(values['SimulationConditions']) 
+      simdesc = str(values['SimulationConditions'])   
     
+    datataking = 'ALL'
     if values.has_key('DataTakingConditions'):
-      simdesc = 'D*'+str(values['DataTakingConditions'])
+      datataking = str(values['DataTakingConditions'])
     
     if values.has_key('ProcessingPass'):
       procPass = values['ProcessingPass']
     else:
-      return S_ERROR('Missing processing pass!')
+      procPass = 'ALL'
     
     if values.has_key('FileType'):
       ftype = values['FileType']
@@ -417,7 +418,7 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       flag = 'ALL'
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, procPass, ftype, evt, configname, configversion, prod, flag)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.84 2009/04/15 11:04:15 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.85 2009/04/23 12:21:41 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.84 2009/04/15 11:04:15 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.85 2009/04/23 12:21:41 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -828,7 +828,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL'):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL'):
     
     configid = None
     condition = ''
@@ -851,17 +851,25 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if production != 'ALL':
       condition += ' and jobs.production='+str(production)
     
-    descriptions = procPass.split('+')
-    totalproc = ''
-    for desc in descriptions:
-      result = self.getGroupId(desc.strip())
-      if not result['OK']:
-        return S_ERROR(result['Message'])
-      elif len(result['Value']) == 0:
-        return S_ERROR('Data taking or Simulation Conditions is missing in the BKK database!')
-      val = result['Value'][0][0]
-      totalproc += str(val)+"<"
-    totalproc = totalproc[:-1]
+    tables = ' files,jobs '
+    pcondition = ''
+    jcondition = ''
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data taking or Simulation Conditions is missing in the BKK database!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+    
+      pcondition +=' and productions.totalprocpass=\''+totalproc+'\''
+      jcondition = ' and jobs.production=productions.production '
+      tables += ',productions'
     
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
@@ -874,7 +882,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
     
-    condition +=  ' and files.eventtypeid='+str(evt)
+    if evt != 'ALL':
+      condition +=  ' and files.eventtypeid='+str(evt)
+    
     if flag != 'ALL':
       quality = None
       command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
@@ -888,24 +898,26 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
       condition += ' and files.qualityid='+str(quality)
     
-    cond = simdesc.split('*')
-    if cond[1] == 'ALL':
-        command = ' select filename from files,jobs,productions where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
-                   and jobs.production=productions.production and \
-                   productions.totalprocpass=\''+totalproc+'\''
-    elif cond[0] == 'S':
-      command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
-                   and jobs.production in ( select production from  productions, simulationconditions where  \
-                   simulationconditions.simdescription=\''+cond[1]+'\' and \
-                   productions.simcondid= simulationconditions.simid and \
-                   productions.totalprocpass=\''+totalproc+'\')'
-    else:
-        command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
-                   and jobs.production in ( select production from  productions, data_Taking_conditions where  \
-                   data_Taking_conditions.description=\''+cond[1]+'\' and \
-                   productions.simcondid= data_Taking_conditions.Daqperiodid and \
-                   productions.totalprocpass=\''+totalproc+'\')'
+    simcondition = ''
+    daqcondition = ''
+    if simdesc == 'ALL' and datataking =='ALL':
+      command = ' select filename from '+tables+' where files.jobid= jobs.jobid and files.gotreplica=\'Yes\'' +condition + jcondition + pcondition
+      res = self.dbR_._query(command)
+      return res
+    elif simdesc != 'ALL':
+      simcondition = ' select production from  productions, simulationconditions where  \
+                   simulationconditions.simdescription=\''+simdesc+'\' and \
+                   productions.simcondid= simulationconditions.simid '+ pcondition
+    elif datataking != 'ALL':
+      daqcondition = ' select production from  productions, data_Taking_conditions where  \
+                   data_Taking_conditions.description=\''+datataking+'\' and \
+                   productions.simcondid= data_Taking_conditions.Daqperiodid '+ pcondition
+    
+    command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production in (' + simcondition + daqcondition+')'
+                   
     res = self.dbR_._query(command)
+    
     return res
   
   #############################################################################
