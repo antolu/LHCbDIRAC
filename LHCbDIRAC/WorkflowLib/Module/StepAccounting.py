@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: StepAccounting.py,v 1.3 2008/07/22 14:41:22 acasajus Exp $
+# $Id: StepAccounting.py,v 1.4 2009/04/23 04:19:39 rgracian Exp $
 ########################################################################
 
 """ StepAccounting module performs several common operations at the end of
@@ -7,7 +7,7 @@
     data
 """
 
-__RCSID__ = "$Id: StepAccounting.py,v 1.3 2008/07/22 14:41:22 acasajus Exp $"
+__RCSID__ = "$Id: StepAccounting.py,v 1.4 2009/04/23 04:19:39 rgracian Exp $"
 
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
@@ -101,9 +101,9 @@ class StepAccounting(object):
       stats = os.times()
       cputime = stats[0]+stats[2]-self.step_commons['StartStats'][0]-self.step_commons['StartStats'][2]
     normcpu = cputime
-    if os.environ.has_key('CPU_NORMALIZATION_FACTOR'):
-      norm = float(os.environ['CPU_NORMALIZATION_FACTOR'])
-      normcpu = cputime*norm
+    cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNomalizationFactor", 0.0 )
+    if cpuNormFactor:
+      normcpu = cputime*cpuNormFactor
 
     parameters.append((jobID,sname+' CPUTime',cputime))
     parameters.append((jobID,sname+' NormCPUTime',normcpu))
