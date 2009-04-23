@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.13 2009/04/18 18:26:56 rgracian Exp $
+# $Id: UploadOutputData.py,v 1.14 2009/04/23 04:28:37 rgracian Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.13 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.14 2009/04/23 04:28:37 rgracian Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -185,7 +185,6 @@ class UploadOutputData(ModuleBase):
 
       result = self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
-      self.setApplicationStatus('Failed To Upload Output Data')
       return S_ERROR('Failed to upload output data')
 
     self.workflow_commons['Request']=self.request
