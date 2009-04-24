@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.59 2009/04/22 21:12:54 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.60 2009/04/24 11:01:19 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.59 2009/04/22 21:12:54 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.60 2009/04/24 11:01:19 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -383,6 +383,8 @@ class AnalyseLogFile(ModuleBase):
 #-----------------------------------------------------------------------
 #
   def nbEvent(self):
+    if self.applicationName.lower() == 'lhcb':
+      return self.checkLHCbEvents()
     if self.applicationName.lower() == 'gauss':
       return self.checkGaussEvents()
     if self.applicationName.lower() == 'boole':
@@ -395,6 +397,25 @@ class AnalyseLogFile(ModuleBase):
 #
 #-----------------------------------------------------------------------
 #
+  def checkLHCbEvents(self):
+    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """
+    mailto = self.applicationName.upper()+'_EMAIL'
+
+    # Get the last event processed
+    lastEvent = self.getLastEventSummary()['Value']
+    if not lastEvent:
+      return S_ERROR('%s No events read' % mailto)
+    self.numberOfEventsInput = str(lastEvent) 
+    # Get the number of events output by LHCb
+    res = self.getEventsOutput('InputCopyStream')
+    if not res['OK']:
+      return S_ERROR('%s No events output' % mailto)
+    outputEvents = res['Value']
+    if outputEvents != lastEvent:
+      return S_ERROR("%s Processed events do not match" % mailto)
+    return S_OK()
+
   def checkGaussEvents(self):
     """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
     """
