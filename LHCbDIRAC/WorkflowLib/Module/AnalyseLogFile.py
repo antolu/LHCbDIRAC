@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.63 2009/04/29 13:28:07 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.64 2009/04/29 15:57:58 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.63 2009/04/29 13:28:07 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.64 2009/04/29 15:57:58 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -154,7 +154,13 @@ class AnalyseLogFile(ModuleBase):
 
     if self.coreFile:
       msg += '\n\nCore file found:\n'
-      result = constructProductionLFNs(self.workflow_commons)
+      if 'outputList' not in self.workflow_commons:
+        # if there is no output data defined we need some default
+        paramDict = dict(self.workflow_commons)
+        paramDict['outputList'] = []
+        result = constructProductionLFNs(paramDict)
+      else:
+        result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
         self.log.error('Could not create production LFNs',result['Message'])
         msg += 'Could not create production LFNs:\n%s\n' % result['Message']
