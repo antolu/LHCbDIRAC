@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.8 2009/04/29 12:39:15 acasajus Exp $
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,41 +18,28 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $"
+__RCSID__ = "$Id: CondDBAgent.py,v 1.8 2009/04/29 12:39:15 acasajus Exp $"
 
-from DIRAC.WorkloadManagementSystem.Agent.Optimizer        import Optimizer
+from DIRAC.WorkloadManagementSystem.Agent.OptimizerMopdule import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Time                             import fromString,toEpoch
 from DIRAC.Core.Utilities.SiteSEMapping                    import getSitesForSE
-from DIRAC.Core.Utilities.Shifter                          import setupShifterProxyInEnv
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
 
 import os, re, time, string
 
-OPTIMIZER_NAME = 'CondDB'
-
-class CondDBAgent(Optimizer):
+class CondDBAgent(OptimizerModule):
 
   #############################################################################
-  def __init__(self):
-    """ Constructor, takes system flag as argument.
-    """
-    Optimizer.__init__(self,OPTIMIZER_NAME,enableFlag=True,system='LHCb')
-
-  #############################################################################
-  def initialize(self):
+  def initializeOptimizer(self):
     """Initialize specific parameters for CondDBAgent.
     """
-    result = Optimizer.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',5*60) #seconds
-    self.proxyLength = gConfig.getValue(self.section+'/DefaultProxyLength',24) # hours
-    self.minProxyValidity = gConfig.getValue(self.section+'/MinimumProxyValidity',30*60) # seconds
-    self.proxyLocation = gConfig.getValue(self.section+'/ProxyLocation','/opt/dirac/work/CondDBAgent/shiftProdProxy')
-    self.tagWaitTime = gConfig.getValue(self.section+'/MaxTagWaitTime',12) #hours
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
+    #Define the shifter proxy needed
+    self.am_setModuleParam( "shifterProxy", "ProductionManager" )
+
+    self.tagWaitTime = self.am_getOption( 'MaxTagWaitTime', 12  )
+
     try:
       from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
       self.fileCatalog = LcgFileCatalogCombinedClient()
@@ -64,38 +51,17 @@ class CondDBAgent(Optimizer):
     return result
 
   #############################################################################
-  def checkJob(self,job):
+  def checkJob( self, job, classAdJob ):
     """This method controls the checking of the job.
     """
-    prodDN = gConfig.getValue('Operations/Production/ShiftManager','')
-    if not prodDN:
-      self.log.warn('Production shift manager DN not defined (/Operations/Production/ShiftManager)')
-      return S_OK('Production shift manager DN is not defined')
-
-    result = setupShifterProxyInEnv( "ProductionManager", self.proxyLocation )
-    if not result[ 'OK' ]:
-      self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-      return result
-
-    self.log.verbose("Checking JDL for job: %s" %(job))
-    retVal = self.jobDB.getJobJDL(job)
-    if not retVal['OK']:
-      self.log.warn("Missing JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('JDL not found in JobDB')
-
-    jdl = retVal['Value']
-    if not jdl:
-      self.log.warn("Null JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('Null JDL returned from JobDB')
-
-    result = self.__checkCondDBTags(job,jdl)
+    result = self.__checkCondDBTags( job, classAdJob )
     if not result['OK']:
       param = result['Message']
       self.log.info('CondDB tags not yet available for job %s with message -  %s' %(job,param))
       result = self.__checkLastUpdate(job)
       if not result['OK']:
         self.log.warn(result['Message'])
-        report = self.setJobParam(job,self.optimizerName,param)
+        report = self.setJobParam( job, self.optimizerName, param )
         if not report['OK']:
           self.log.warn(report['Message'])
         return S_ERROR('CondDB Tag Not Available')
@@ -135,22 +101,16 @@ class CondDBAgent(Optimizer):
     return S_OK()
 
   #############################################################################
-  def __checkCondDBTags(self,job,jdl):
+  def __checkCondDBTags( self, job, classAdJob ):
     """This method establishes the LFNs for CondDB tags according to the convention and
        determines any site candidates already specified.
     """
-    lfnConvention = gConfig.getValue(self.section+'/LFNConvention','/lhcb/database/tags/<NAME>/<TAG>')
-    classadJob = ClassAd(jdl)
-    if not classadJob.isOK():
-      self.log.warn("Illegal JDL for job %s, will be marked problematic" % (job))
-      return S_ERROR('Illegal Job JDL')
-
-    if not classadJob.lookupAttribute('CondDBTags'):
+    if not classAdJob.lookupAttribute('CondDBTags'):
       self.log.warn('No CondDB tag requirement found for job %s' %(job))
       return S_ERROR('Illegal Job Path')
 
     lfns = []
-    condDBtagsList = classadJob.get_expression('CondDBTags').replace('{','').replace('}','').replace('"','').replace(',','').split()
+    condDBtagsList = classAdJob.get_expression('CondDBTags').replace('{','').replace('}','').replace('"','').replace(',','').split()
     for tag in condDBtagsList:
       tmp = tag.split('.')
       if not len(tmp)==2:
@@ -160,9 +120,9 @@ class CondDBAgent(Optimizer):
     if not lfns:
       return S_ERROR('Illegal CondDB Tag Requirement')
 
-    self.log.info('CondDB LFNs to check for job %s are:\n%s' %(job,string.join(lfns,',\n')))
-    destinationSite = classadJob.get_expression('Site').replace('"','')
-    result = self.__getSitesForTags(job,lfns,destinationSite)
+    self.log.info( 'CondDB LFNs to check for job %s are:\n%s' % ( job, "\n".join( lfns ) ) )
+    destinationSite = classAdJob.get_expression('Site').replace('"','')
+    result = self.__getSitesForTags( job, lfns, destinationSite )
     return result
 
   #############################################################################
