@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.60 2009/04/24 11:01:19 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.61 2009/04/29 09:06:17 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.60 2009/04/24 11:01:19 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.61 2009/04/29 09:06:17 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string
 
@@ -151,6 +151,30 @@ class AnalyseLogFile(ModuleBase):
     msg = msg + 'at site '+self.site+' for platform '+self.systemConfig+'\n'
     msg = msg +'JobID is '+str(self.jobID)+'\n'
     msg = msg +'JobName is '+self.PRODUCTION_ID+'_'+self.JOB_ID+'\n'
+
+    if self.coreFile:
+      msg += '\n\nCore file found:\n'
+      result = constructProductionLFNs(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        msg += 'Could not create production LFNs:\n%s\n' % result['Message']
+
+      else:
+        debugLFNs = result['Value']['DebugLFNs']
+        coreLFN = ''
+        for lfn in debugLFNs:
+          if os.path.basename(lfn)=='core':
+            coreLFN = lfn
+        if coreLFN:
+          if self.jobID:
+            result = rm.putAndRegister(coreLFN,self.coreFile,'CERN-DEBUG',catalog='LcgFileCatalogCombined')
+            if not result['OK']:
+              self.log.error('Could not save core dump file',result['Message'])
+              msg += 'Could not save dump file for %s\n' % result['Message']
+            else:
+              msg += coreLFN+'\n'
+
+
     if self.stepInputData:
       msg = msg + '\n\nInput Data:\n'
       result = constructProductionLFNs(self.workflow_commons)
@@ -236,6 +260,7 @@ class AnalyseLogFile(ModuleBase):
       self.applicationLog = ''
       self.applicationVersion = ''
       self.logFilePath = ''
+      self.coreFile = ''
 
   def resolveInputVariables(self):
     """ By convention any workflow parameters are resolved here.
@@ -330,6 +355,12 @@ class AnalyseLogFile(ModuleBase):
 #-----------------------------------------------------------------------
 #
   def goodJob(self):
+    # Check for a core file
+    for file in os.listdir('.'):
+      if re.search('^core.[0-9]+$', file):
+        self.coreFile = file
+        return S_ERROR('Core dump found')
+
     # Check if the application finish successfully
     self.log.info('Check application ended successfully')
     okay = self.findString('Application Manager Finalized successfully')['Value']
@@ -406,7 +437,7 @@ class AnalyseLogFile(ModuleBase):
     lastEvent = self.getLastEventSummary()['Value']
     if not lastEvent:
       return S_ERROR('%s No events read' % mailto)
-    self.numberOfEventsInput = str(lastEvent) 
+    self.numberOfEventsInput = str(lastEvent)
     # Get the number of events output by LHCb
     res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:

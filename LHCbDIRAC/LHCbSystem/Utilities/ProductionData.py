@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.4 2009/03/11 12:08:55 paterson Exp $
+# $Id: ProductionData.py,v 1.5 2009/04/29 09:06:47 rgracian Exp $
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.4 2009/03/11 12:08:55 paterson Exp $"
+__RCSID__ = "$Id: ProductionData.py,v 1.5 2009/04/29 09:06:47 rgracian Exp $"
 
 import string,re
 
@@ -74,6 +74,9 @@ def constructProductionLFNs(paramDict):
     bkLFNs.append(lfn)
     if debugRoot:
       debugLFNs.append(makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfMode,str(productionID).zfill(8)))
+
+  if debugRoot:
+    debugLFNs.append(makeProductionLfn(str(jobID).zfill(8),debugRoot,('core','core'),wfMode,str(productionID).zfill(8)))
 
   #Get log file path - unique for all modules
   logPath = makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
