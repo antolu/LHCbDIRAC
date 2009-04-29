@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.64 2009/04/29 15:57:58 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.65 2009/04/29 17:47:39 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.64 2009/04/29 15:57:58 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.65 2009/04/29 17:47:39 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -169,7 +169,7 @@ class AnalyseLogFile(ModuleBase):
         debugLFNs = result['Value']['DebugLFNs']
         coreLFN = ''
         for lfn in debugLFNs:
-          if os.path.basename(lfn)=='core':
+          if re.search('[0-9]+_core',os.path.basename(lfn)):
             coreLFN = lfn
         if coreLFN:
           if self.jobID:
@@ -239,7 +239,7 @@ class AnalyseLogFile(ModuleBase):
     else:
       notifyClient = NotificationClient()
       self.log.info("Sending crash mail for job to %s" % mailadress)
-      res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch')
+      res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch',localAttempt=False)
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
 
