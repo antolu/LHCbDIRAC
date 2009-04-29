@@ -1,10 +1,10 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.61 2009/04/29 09:06:17 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.62 2009/04/29 10:25:52 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.61 2009/04/29 09:06:17 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.62 2009/04/29 10:25:52 rgracian Exp $"
 
-import commands, os, time, smtplib, re, string
+import commands, os, time, smtplib, re, string, shutil
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 
@@ -173,6 +173,8 @@ class AnalyseLogFile(ModuleBase):
               msg += 'Could not save dump file for %s\n' % result['Message']
             else:
               msg += coreLFN+'\n'
+              #rename core file so that subsequent steps do not find it
+              shutil.move(self.coreFile,'_'.join([self.applicationName,self.coreFile]))
 
 
     if self.stepInputData:
@@ -286,6 +288,11 @@ class AnalyseLogFile(ModuleBase):
       self.log.error(result['Message'])
       return result
 
+    # Search for core dumps in any case.
+    res = self.checkCoreDump()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       if self.stepStatus.has_key('Message'):
         if not self.stepStatus['Message'] == 'Application not found':
@@ -354,13 +361,15 @@ class AnalyseLogFile(ModuleBase):
 #
 #-----------------------------------------------------------------------
 #
-  def goodJob(self):
+  def checkCoreDump(self):
     # Check for a core file
     for file in os.listdir('.'):
       if re.search('^core.[0-9]+$', file):
         self.coreFile = file
         return S_ERROR('Core dump found')
+    return S_OK()
 
+  def goodJob(self):
     # Check if the application finish successfully
     self.log.info('Check application ended successfully')
     okay = self.findString('Application Manager Finalized successfully')['Value']
