@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.62 2009/04/29 10:25:52 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.63 2009/04/29 13:28:07 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.62 2009/04/29 10:25:52 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.63 2009/04/29 13:28:07 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -263,6 +263,8 @@ class AnalyseLogFile(ModuleBase):
       self.applicationVersion = ''
       self.logFilePath = ''
       self.coreFile = ''
+      self.stepInputData = []
+
 
   def resolveInputVariables(self):
     """ By convention any workflow parameters are resolved here.
