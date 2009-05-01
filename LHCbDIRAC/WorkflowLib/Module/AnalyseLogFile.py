@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.66 2009/05/01 15:46:21 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.67 2009/05/01 18:49:40 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.66 2009/05/01 15:46:21 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.67 2009/05/01 18:49:40 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -335,22 +335,32 @@ class AnalyseLogFile(ModuleBase):
     if not res['OK']:
       self.log.error(result['Message'])
       self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
       return res
 
     # Check that no errors were seen in the log
     res = self.goodJob()
     if not res['OK']:
       self.sendErrorMail(res['Message'])
-      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
       self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
       return res
     # Check that the number of events handled is correct
     res = self.nbEvent()
     if not res['OK']:
       self.sendErrorMail(res['Message'])
-      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
       self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
       return res
+    # return S_OK if the Step already failed to avoid overwriting the error
+    if not self.stepStatus['OK']:
+      self.updateFileStatus(self.jobInputData, "Unused")
+      return S_OK()
     # If the job was successful Update the status of the files to processed
     self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
     self.setApplicationStatus('%s Step OK' % (self.applicationName))
