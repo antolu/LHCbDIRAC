@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.22 2009/03/05 15:21:55 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.23 2009/05/01 14:46:27 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.22 2009/03/05 15:21:55 rgracian Exp $"
-__VERSION__ = "$Revision: 1.22 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.23 2009/05/01 14:46:27 rgracian Exp $"
+__VERSION__ = "$Revision: 1.23 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -55,6 +55,10 @@ class UsersAndGroups(Agent):
     if not ret['OK']:
       self.log.fatal('Could not create Proxy',ret['Message'])
       return ret
+    if ret['Value'][0]:
+      self.log.fatal('Could not create Proxy',ret['Value'][2])
+      return ret
+
 
     os.environ[ 'X509_USER_PROXY' ] = proxyFile
 
@@ -78,6 +82,9 @@ class UsersAndGroups(Agent):
     if not ret['OK']:
       self.log.fatal('Can not get Role List', ret['Message'])
       return ret
+    if ret['Value'][0]:
+      self.log.fatal('Can not get Role List', ret['Value'][2])
+      return ret
 
     roles = {}
     vomsRoles = []
@@ -94,6 +101,9 @@ class UsersAndGroups(Agent):
     if not ret['OK']:
       self.log.fatal('Can not get User List', ret['Message'])
       return ret
+    if ret['Value'][0]:
+      self.log.fatal('Can not get User List', ret['Value'][2])
+      return ret
 
     users = {}
     newUsers = []
@@ -105,7 +115,10 @@ class UsersAndGroups(Agent):
       dn,ca = List.fromChar(item,',')
       ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-attributes', dn, ca))
       if not ret['OK']:
-        self.log.error('Can not not get User Alias',dn)
+        self.log.error('Can not get User Alias',dn)
+        continue
+      if ret['Value'][0]:
+        self.log.error('Can not get User Alias', ret['Value'][2])
         continue
       # the output has the format nickname=<nickname>
       if ret['Value'][0] <> 0:
@@ -133,7 +146,10 @@ class UsersAndGroups(Agent):
 
       ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-roles', dn, ca) )
       if not ret['OK']:
-        self.log.error('Can not not get User Roles', user)
+        self.log.error('Can not get User Roles', user)
+        continue
+      if ret['Value'][0]:
+        self.log.error('Can not get User Roles', ret['Value'][2])
         continue
 
       users[user]['Groups'] = ['lhcb', 'private_pilot', 'user']
@@ -187,7 +203,7 @@ class UsersAndGroups(Agent):
       self.log.info( subject, duplicateUsers )
       body = ', '.join( duplicateUsers )
       NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
-      
+
     if multiDNUsers:
       subject = 'Users with multiple DN found'
       self.log.info( subject, multiDNUsers )
