@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.11 2009/05/01 07:17:02 rgracian Exp $
+# $Id: StepFinalization.py,v 1.12 2009/05/01 11:23:04 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.11 2009/05/01 07:17:02 rgracian Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.12 2009/05/01 11:23:04 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -50,7 +50,7 @@ class StepFinalization(object):
     self.__report('Starting Step Finalization')
     return S_OK()
     res = shellCall(0,'ls -al')
-    if res['OK'] == True:
+    if res['OK'] == True and res['Value'] == 0:
       self.log.info("final listing : %s" % (str(res['Value'][1])))
     else:
       self.log.info("final listing with error: %s" % (str(res['Value'][2])))

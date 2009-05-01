@@ -25,8 +25,6 @@ class Script(object):
     print cmd
     outputDict = shellCall(0,cmd)
     print '---------------------------------------------------------------'
-    if not outputDict:
-      print 'ERROR: Could not execute script %s' %(self.Executable)
     if not outputDict['OK']:
       print 'ERROR: Shell call execution failed:'
       print outputDict['Message']

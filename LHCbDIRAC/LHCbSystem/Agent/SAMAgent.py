@@ -16,11 +16,11 @@ import os,time
 AGENT_NAME = "LHCb/SAMAgent"
 
 class SAMPublisher:
-  
+
   def __init__(self):
     self.Script = None
     self.samPublishClient = os.getenv('DIRAC','/opt/dirac/pro')+'/DIRAC/LHCbSystem/Testing/SAM/Distribution/sam.tar.gz'
-    
+
   def install(self, dest=None):
     cmd = 'tar -zxvf %s' %(self.samPublishClient)
     if dest:
@@ -31,11 +31,13 @@ class SAMPublisher:
     res = shellCall(0,cmd)
     if not res['OK']:
       return res
+    if res['Value'][0]:
+      return S_ERROR(res['Value'][2])
     if dest:
       dirname = dest
     else:
       dirname = os.getcwd()
-    self.Script = os.path.join(dirname,"sam/bin/same-publish-tuples") 
+    self.Script = os.path.join(dirname,"sam/bin/same-publish-tuples")
     return S_OK()
 
   def publish(self,testName,ce,status,detailedData=None):
@@ -45,7 +47,7 @@ class SAMPublisher:
 
     if not detailedData:
       detailedData = 'EOT\n<br>\nEOT'
-    
+
     timeStr = time.strftime("%Y-%m-%d-%H-%M-%S",time.gmtime())
 
     defFile = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n" %{'TestName':testName}
@@ -64,8 +66,12 @@ class SAMPublisher:
       if not result['OK']:
         gLogger.warn("Publishing %s"%(test),result['Message'])
         publishFlag = False
+      elif result['Value'][0]:
+        gLogger.warn("Publishing %s"%(test),result['Value'][2])
+        publishFlag = False
+
       os.remove(fname)
-      
+
     if publishFlag:
       return S_OK()
     else:
@@ -120,11 +126,11 @@ class SAMAgent(Agent):
     result = diracSAM.submitAllSAMJobs(False) # Forbidden software installation
     if not result['OK']:
       gLogger.error(result['Message'])
-   
+
     return result
 
   def _siteAccount(self):
-  
+
     gLogger.debug("Executing %s"%(self.name))
 
     wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
@@ -141,16 +147,16 @@ class SAMAgent(Agent):
       return result
     sites = result['Value']
     numsites = len(sites)
-    
+
     gMonitor.addMark("TotalSites", numsites)
     gMonitor.addMark("ActiveSites", numsitesmask)
     gMonitor.addMark("BannedSites", numsites - numsitesmask)
     gMonitor.addMark("DeletedJobs", self.deletedJobs)
 
     self.log.verbose("Site Account finished")
-   
+
     return S_OK()
-  
+
   def _clearSAMjobs(self,days=2):
 
     gLogger.info("Clear SAM jobs for last %d day(s)"%days)
@@ -168,7 +174,7 @@ class SAMAgent(Agent):
     conditions['JobGroup'] = 'SAM'
 
     days_ago = time.gmtime(time.time()-60*60*24*days)
-    Date = '%s-%s-%s' %(days_ago[0],str(days_ago[1]).zfill(2),str(days_ago[2]).zfill(2))  
+    Date = '%s-%s-%s' %(days_ago[0],str(days_ago[1]).zfill(2),str(days_ago[2]).zfill(2))
 
     for site in sites:
 
@@ -193,12 +199,12 @@ class SAMAgent(Agent):
     startedStatus = ("Done","Failed","Completed","Running")
 
     for j in jobIDs:
-  
+
       result = monitoring.getJobAttributes(int(j))
       if not result['OK']:
         gLogger.warn("getJobAttributes", result['Message'])
         continue
-    
+
       attr = result['Value']
       ce = attr["JobName"].replace("SAM-","")
       submitTime = time.strptime(attr["SubmissionTime"]+"[UTC]", "%Y-%m-%d %H:%M:%S[%Z]")
@@ -209,7 +215,7 @@ class SAMAgent(Agent):
 
       if dayAndNight and status=='Waiting':
         ceOldWaitingJobs.setdefault(ce,[]).append(j)
-  
+
       if not dayAndNight and status in startedStatus:
         ceNewStartedJobs.setdefault(ce,[]).append(j)
 
@@ -221,7 +227,7 @@ class SAMAgent(Agent):
       dirac.delete(int(job))
     gLogger.info("%s:"%(self.name)," %d SAM jobs were deleted"%(len(oldWaitingJobs)))
     self.deletedJobs = len(oldWaitingJobs)
-          
+
     ceOldWaitingJobs = ceOldWaitingJobs.keys()
     ceNewStartedJobs = ceNewStartedJobs.keys()
     gLogger.info("ceOldWaitingJobs",repr(ceOldWaitingJobs))
@@ -241,7 +247,7 @@ class SAMAgent(Agent):
       res = samPub.publish(testName,ce,status)
       if not res['OK']:
         gLogger.warn("SAM publisher error for CE %s"%testCE, res['Message'])
-    
+
 
 
     return S_OK()

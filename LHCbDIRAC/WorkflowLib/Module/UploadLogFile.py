@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.14 2009/04/19 14:23:22 rgracian Exp $
+# $Id: UploadLogFile.py,v 1.15 2009/05/01 11:24:46 rgracian Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.14 2009/04/19 14:23:22 rgracian Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.15 2009/05/01 11:24:46 rgracian Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -100,7 +100,7 @@ class UploadLogFile(ModuleBase):
     self.resolveInputVariables()
 
     res = shellCall(0,'ls -al')
-    if res['OK']:
+    if res['OK'] and res['Value'][0] == 0:
       self.log.info('The contents of the working directory...')
       self.log.info(str(res['Value'][1]))
     else:
@@ -194,6 +194,10 @@ class UploadLogFile(ModuleBase):
     os.chdir(start)
     if not res['OK']:
       self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Message']))
+      self.setApplicationStatus('Failed To Create Log Tar Dir')
+      return S_OK()
+    if res['Value']:
+      self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Value'][2]))
       self.setApplicationStatus('Failed To Create Log Tar Dir')
       return S_OK()
 

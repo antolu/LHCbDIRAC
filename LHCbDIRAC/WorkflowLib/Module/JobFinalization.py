@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.135 2009/04/22 16:12:30 rgracian Exp $
+# $Id: JobFinalization.py,v 1.136 2009/05/01 11:20:33 rgracian Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.135 2009/04/22 16:12:30 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.136 2009/05/01 11:20:33 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -169,7 +169,7 @@ class JobFinalization(ModuleBase):
 
     # FIXME: why not use python here?
     res = shellCall(0,'ls -al')
-    if res['OK'] == True:
+    if res['OK'] and res['Value'][0] == 0:
       # even if the command fails to execute it will return S_OK
       self.log.info("final listing : %s" % (str(res['Value'][1])))
     else:
@@ -564,7 +564,7 @@ class JobFinalization(ModuleBase):
       ltarname = lbasename+'.tar.gz'
       comm = 'tar czvf '+ltarname+' -C '+ldirname+' '+lbasename
       result = shellCall(0,comm)
-      if result['OK']:
+      if result['OK'] and result['Value'][0] == 0:
         lfn = target_path+'/'+ltarname
         result = self.uploadDataFileFailover(ltarname,lfn)
         if result['OK']:

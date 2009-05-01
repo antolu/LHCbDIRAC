@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SoftwareDistribution.py,v 1.2 2009/04/18 18:26:57 rgracian Exp $
+# $Id: SoftwareDistribution.py,v 1.3 2009/05/01 11:17:11 rgracian Exp $
 # File :   SoftwareDistribution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     as required.
 """
 
-__RCSID__ = "$Id: SoftwareDistribution.py,v 1.2 2009/04/18 18:26:57 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareDistribution.py,v 1.3 2009/05/01 11:17:11 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
@@ -42,6 +42,8 @@ class SoftwareDistribution:
     cmd = 'ln -s %s %s' %(source,target)
     self.log.debug(cmd)
     outputDict = shellCall(0,cmd)
+    if outputDict['OK'] and outputDict['Value'][0]:
+      return S_ERROR(outputDict['Value'][2])
     return outputDict
 
   #############################################################################

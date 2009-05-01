@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.10 2009/05/01 11:21:14 rgracian Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.10 2009/05/01 11:21:14 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -193,7 +193,7 @@ class RootApplication(object):
 
     self.log.info( "Status after %s execution is %s" %(self.rootScript,str(status)) )
     failed = False
-    if status > 0:
+    if status != 0:
       self.log.info( "%s execution completed with non-zero status:" % self.rootScript )
       failed = True
     elif len(stdError) > 0:

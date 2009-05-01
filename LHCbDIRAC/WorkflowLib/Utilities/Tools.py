@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.27 2009/04/20 06:24:23 rgracian Exp $
-__RCSID__ = "$Id: Tools.py,v 1.27 2009/04/20 06:24:23 rgracian Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.28 2009/05/01 11:25:58 rgracian Exp $
+__RCSID__ = "$Id: Tools.py,v 1.28 2009/05/01 11:25:58 rgracian Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -53,7 +53,7 @@ def tar(fname,file):
   result = shellCall(0,'tar cf '+fname+' '+file)
   status = result['Value'][0]
   output = result['Value'][1]
-  if status > 0 :
+  if status != 0 :
     print "tar failed for file ",fname
     print output
     return status
@@ -69,7 +69,7 @@ def gzip(fname):
   result = shellCall(0,'gzip -f '+fname)
   status = result['Value'][0]
   output = result['Value'][1]
-  if status > 0 :
+  if status != 0 :
     print "gzip failed for file ",fname
     print output
     return status
