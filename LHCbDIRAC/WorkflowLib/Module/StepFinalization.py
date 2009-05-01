@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.10 2009/04/22 16:07:44 rgracian Exp $
+# $Id: StepFinalization.py,v 1.11 2009/05/01 07:17:02 rgracian Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.10 2009/04/22 16:07:44 rgracian Exp $"
+__RCSID__ = "$Id: StepFinalization.py,v 1.11 2009/05/01 07:17:02 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -20,7 +20,6 @@ class StepFinalization(object):
 
   def __init__(self):
     self.STEP_ID = None
-    gLogger.setLevel('debug')
     self.CONFIG_NAME = None
     self.RUN_NUMBER = None
     self.FIRST_EVENT_NUMBER = None
@@ -38,6 +37,7 @@ class StepFinalization(object):
     self.poolXMLCatName = None
     self.TmpCacheSE = 'CERN-Failover'
     self.log = gLogger.getSubLogger("StepFinalization")
+    self.log.setLevel('debug')
     self.nb_events_input = None
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
