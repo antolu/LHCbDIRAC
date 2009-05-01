@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.65 2009/04/29 17:47:39 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.66 2009/05/01 15:46:21 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.65 2009/04/29 17:47:39 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.66 2009/05/01 15:46:21 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -303,7 +303,8 @@ class AnalyseLogFile(ModuleBase):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       if self.stepStatus.has_key('Message'):
-        if not self.stepStatus['Message'] == 'Application not found':
+        # This seems to be wrong, since analysis of errors is not done and mails for crashes are not sent
+        if self.stepStatus['Message'] == 'Application not found':
           self.log.info('Skip this module, failure detected in a previous step :')
           self.log.info('Workflow status : %s' %(self.workflowStatus))
           self.log.info('Step Status %s' %(self.stepStatus))
