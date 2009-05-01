@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.28 2009/05/01 11:25:58 rgracian Exp $
-__RCSID__ = "$Id: Tools.py,v 1.28 2009/05/01 11:25:58 rgracian Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.29 2009/05/01 11:26:24 rgracian Exp $
+__RCSID__ = "$Id: Tools.py,v 1.29 2009/05/01 11:26:24 rgracian Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -89,7 +89,7 @@ def gunzip(fname):
   result = shellCall(0,'gunzip '+fname)
   status = result['Value'][0]
   output = result['Value'][1]
-  if status > 0 :
+  if status != 0 :
     print "gunzip failed for file ",fname
     print output
     return status
