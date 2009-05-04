@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.8 2009/04/29 12:39:15 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.9 2009/05/04 17:30:06 atsareg Exp $
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,9 +18,9 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.8 2009/04/29 12:39:15 acasajus Exp $"
+__RCSID__ = "$Id: CondDBAgent.py,v 1.9 2009/05/04 17:30:06 atsareg Exp $"
 
-from DIRAC.WorkloadManagementSystem.Agent.OptimizerMopdule import OptimizerModule
+from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Time                             import fromString,toEpoch
@@ -40,6 +40,7 @@ class CondDBAgent(OptimizerModule):
 
     self.tagWaitTime = self.am_getOption( 'MaxTagWaitTime', 12  )
 
+    result = S_OK()
     try:
       from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
       self.fileCatalog = LcgFileCatalogCombinedClient()
