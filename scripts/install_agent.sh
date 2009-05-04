@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.15 2008/10/20 08:16:39 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_agent.sh,v 1.16 2009/05/04 17:46:02 atsareg Exp $
 # File :   install_agent.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -27,7 +27,7 @@ mkdir -p $AgentDir/log
 #
 cat > $AgentDir/log/config << EOF
 s10000000
-n100
+n20
 EOF
 cat > $AgentDir/log/run << EOF
 #!/bin/bash

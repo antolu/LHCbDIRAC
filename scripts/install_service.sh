@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.11 2008/10/20 08:16:11 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.12 2009/05/04 17:46:12 atsareg Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -27,7 +27,7 @@ mkdir -p $ServiceDir/log
 #
 cat > $ServiceDir/log/config << EOF
 s10000000
-n100
+n20
 EOF
 cat > $ServiceDir/log/run << EOF
 #!/bin/bash
