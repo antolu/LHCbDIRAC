@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.15 2009/05/05 15:38:26 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.16 2009/05/05 21:41:20 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.15 2009/05/05 15:38:26 rgracian Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.16 2009/05/05 21:41:20 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -150,29 +150,29 @@ class TestApplications(ModuleBaseSAM):
     extraOpts = ''
     if appName=='Gauss':
       extraOpts = """ApplicationMgr().EvtMax = 2;
-OutputStream("GaussTape").Output = "DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='RECREATE'";
-""" %(self.appSystemConfig)
+OutputStream("GaussTape").Output = "DATAFILE='PFN:%s/%s.sim' TYP='POOL_ROOTTREE' OPT='RECREATE'";
+""" %(os.getcwd(),self.appSystemConfig)
     elif appName=='Boole':
       if self.enable:
         if not os.path.exists('%s.sim' %self.appSystemConfig):
           return S_ERROR('No input file %s.sim found for Boole' %(self.appSystemConfig))
       extraOpts = """Boole().useSpillover=False;
-EventSelector().Input = ["DATAFILE='PFN:%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];
-OutputStream("DigiWriter").Output = "DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
-""" %(self.appSystemConfig,self.appSystemConfig)
+EventSelector().Input = ["DATAFILE='PFN:%s/%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];
+OutputStream("DigiWriter").Output = "DATAFILE='PFN:%s/%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
+""" %(os.getcwd(),self.appSystemConfig,os.getcwd(),self.appSystemConfig)
     elif appName=='Brunel':
       if self.enable:
         if not os.path.exists('%s.digi' %self.appSystemConfig):
           return S_ERROR('No input file %s.digi found for Brunel' %(self.appSystemConfig))
-      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s.digi' TYP='POOL_ROOTTREE' OPT='READ'"];
-OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";
-"""  %(self.appSystemConfig,self.appSystemConfig)
+      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s/%s.digi' TYP='POOL_ROOTTREE' OPT='READ'"];
+OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";
+"""  %(os.getcwd(),self.appSystemConfig,os.getcwd(),self.appSystemConfig)
     elif appName=='DaVinci':
       if self.enable:
         if not os.path.exists('%s.dst' %self.appSystemConfig):
           return S_ERROR('No input file %s.dst found for DaVinci' %(self.appSystemConfig))
-      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OPT='READ'"];
-""" %(self.appSystemConfig)
+      extraOpts = """EventSelector().Input = ["DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE' OPT='READ'"];
+""" %(os.getcwd(),self.appSystemConfig)
 
     newOpts = '%s-Extra.py' %(appName)
     self.log.verbose('Adding extra options for %s %s:\n%s' %(appName,appVersion,extraOpts))
@@ -200,7 +200,7 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OP
       self.log.verbose('Job JDL is:\n%s' %(j._toJDL()))
       dirac = Dirac()
       if self.enable:
-        result = dirac.submit(j,mode='local',path=os.getcwd())
+        result = dirac.submit(j,mode='local')
       if os.path.exists('Step1_%s' %self.logFile):
         shutil.move('Step1_%s' %self.logFile,self.logFile)
       else:
