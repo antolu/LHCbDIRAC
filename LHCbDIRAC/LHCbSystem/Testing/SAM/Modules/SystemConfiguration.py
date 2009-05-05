@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.22 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.23 2009/05/05 21:39:54 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.22 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.23 2009/05/05 21:39:54 rgracian Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -143,8 +143,10 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %self.site)
 
+    # FIXME: this prints lots of errors if not running with write privileges
+    # R.G I have removed the -R to reduce the amount of errors.
     if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
-      cmd = 'chmod -R 775 %s/lcg/external/dcache_client' %sharedArea
+      cmd = 'chmod 775 %s/lcg/external/dcache_client' %sharedArea
       result = self.runCommand('Changing dCache client permissions',cmd)
       if not result['OK']:
         self.setApplicationStatus('Shared Area Permissions Problem')
