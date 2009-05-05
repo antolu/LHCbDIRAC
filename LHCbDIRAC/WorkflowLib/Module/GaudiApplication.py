@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.116 2009/04/25 14:08:32 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.117 2009/05/05 14:56:25 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.116 2009/04/25 14:08:32 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.117 2009/05/05 14:56:25 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -314,7 +314,7 @@ class GaudiApplication(ModuleBase):
 #      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
 #                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
       script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+'--use-grid\n')
     else:
 #      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
 #                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
