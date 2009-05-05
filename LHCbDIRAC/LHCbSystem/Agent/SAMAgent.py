@@ -246,7 +246,7 @@ class SAMAgent(Agent):
 
       res = samPub.publish(testName,ce,status)
       if not res['OK']:
-        gLogger.warn("SAM publisher error for CE %s"%testCE, res['Message'])
+        gLogger.warn("SAM publisher error for CE %s"%ce, res['Message'])
 
 
 
