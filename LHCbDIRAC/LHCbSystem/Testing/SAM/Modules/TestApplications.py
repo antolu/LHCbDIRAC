@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.13 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.14 2009/05/05 13:46:09 atsareg Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.13 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.14 2009/05/05 13:46:09 atsareg Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -200,7 +200,7 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s.dst' TYP='POOL_ROOTTREE' OP
       self.log.verbose('Job JDL is:\n%s' %(j._toJDL()))
       dirac = Dirac()
       if self.enable:
-        result = dirac.submit(j,mode='Local')
+        result = dirac.submit(j,mode='SAM')
       if os.path.exists('Step1_%s' %self.logFile):
         shutil.move('Step1_%s' %self.logFile,self.logFile)
       else:
