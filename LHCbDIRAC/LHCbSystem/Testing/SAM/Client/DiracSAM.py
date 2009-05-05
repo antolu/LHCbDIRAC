@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.7 2009/04/18 17:32:54 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.8 2009/05/05 12:55:38 joel Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.7 2009/04/18 17:32:54 rgracian Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.8 2009/05/05 12:55:38 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -53,7 +53,7 @@ class DiracSAM(Dirac):
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode=None,enable=True,softwareEnable=True,install_project=None,script=''):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,install_project=None,script=''):
     """Submit a SAM test job to an individual CE.
     """
     job = None
