@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.13 2009/01/12 15:44:15 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.14 2009/05/08 06:26:37 joel Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.13 2009/01/12 15:44:15 acasajus Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.14 2009/05/08 06:26:37 joel Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 
 import sys
 import os
@@ -22,6 +22,14 @@ cliParams.registerCLISwitches()
 
 Script.disableCS()
 Script.parseCommandLine()
+
+if 'X509_CERT_DIR' not in os.environ:
+  print >> sys.stderr, "missing variable X509_CERT_DIR"
+  sys.exit(-1)
+
+if 'X509_VOMS_DIR' not in os.environ:
+  print >> sys.stderr, "missing variable X509_VOMS_DIR"
+  sys.exit(-1)
 
 diracGroup = cliParams.getDIRACGroup()
 time = cliParams.getProxyLifeTime()
