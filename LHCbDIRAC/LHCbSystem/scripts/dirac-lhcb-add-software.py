@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-add-software.py,v 1.2 2009/05/08 07:17:40 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-add-software.py,v 1.3 2009/05/08 07:20:47 joel Exp $
 # File :   dirac-lhcb-add-software
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-add-software.py,v 1.2 2009/05/08 07:17:40 joel Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-lhcb-add-software.py,v 1.3 2009/05/08 07:20:47 joel Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 try:
   from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 except Exception,x:
@@ -46,7 +46,7 @@ osSection = '/Resources/Computing/OSCompatibility'
 deprecatedSection = '/Operations/SoftwareDistribution/Deprecated'
 
 packageNameVersion = '%s.%s' %(args[0],args[1])
-subject = '%s %s' %(args[0],args[1])
+subject = '%s %s add to DIRAC CS' %(args[0],args[1])
 msg = 'Grid installation required for %s %s' %(args[0],args[1])
 #First check the Active list
 activeList = gConfig.getValue(activeSection,[])
@@ -100,7 +100,7 @@ if modifiedCS:
   else:
     print 'Successfully committed changes to CS'
     notifyClient = NotificationClient()
-    print 'Sending mail for software %s' %(mailadress)
+    print 'Sending mail for software installation %s' %(mailadress)
     res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch',localAttempt=False)
     if not res[ 'OK' ]:
         print 'The mail could not be sent'
