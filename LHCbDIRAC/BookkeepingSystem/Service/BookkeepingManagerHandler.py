@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.106 2009/04/23 12:21:41 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.107 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.106 2009/04/23 12:21:41 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.107 2009/05/08 15:23:25 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -478,6 +478,10 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getJobInfo(self, lfn):
     return dataMGMT_.getJobInfo(lfn)
   
+  #############################################################################
+  types_getAvailableRuns = []
+  def export_getAvailableRuns(self):
+    return dataMGMT_.getAvailableRuns()
   
   #############################################################################
   types_checkAddProduction = [DictType]

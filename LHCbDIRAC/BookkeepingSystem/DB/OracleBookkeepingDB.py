@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.85 2009/04/23 12:21:41 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.86 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.85 2009/04/23 12:21:41 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.86 2009/05/08 15:23:25 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -71,7 +71,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getAvailableProductions(self):
-    command = ' select distinct production from bookkeepingview'
+    command = ' select distinct production from bookkeepingview where production > 0'
+    res = self.dbR_._query(command)
+    return res
+  
+  def getAvailableRuns(self):
+    command = ' select distinct production from bookkeepingview where production < 0'
     res = self.dbR_._query(command)
     return res
   
@@ -1534,6 +1539,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def setQuality(self, lfns, flag):
+    result = {}
     command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
@@ -1541,13 +1547,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
     elif len(retVal['Value']) == 0:
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
-  
+    
+    failed = []
+    succ = []
     for lfn in lfns:
       retVal = self.__updateQualityFlag(lfn, qid)
       if not retVal['OK']:
-        return S_ERROR(retVal['Message'])
-          
-    return S_OK('Quality flag updated!')
+        failed += [lfn] 
+        gLogger.error(retVal['Message'])
+      else:
+        succ += [lfn]
+    result['Successful'] = succ
+    result['Failed'] = failed
+    return S_OK(result)
   
   #############################################################################  
   def getAvailableDataQuality(self):

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-informations.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-informations.py,v 1.5 2009/05/08 15:23:25 zmathe Exp $
 # File :   dirac-bookkeeping-production-informations
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-production-informations.py,v 1.4 2009/01/26 17:38:00 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-production-informations.py,v 1.5 2009/05/08 15:23:25 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -79,7 +79,7 @@ if res['OK']:
         print '      ConDDb: '+str(step[34])
         
 
-    print "Number of jobs  ",val["Number of jobs"][0][0]
+    print "Number of Steps  ",val["Number of jobs"][0][0]
     files = val["Number of files"]
     if len(files) != 0:
       print "Total number of files:",files[0][2]

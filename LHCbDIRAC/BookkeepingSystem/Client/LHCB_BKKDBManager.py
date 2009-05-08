@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.91 2009/05/04 20:17:33 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.92 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.91 2009/05/04 20:17:33 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.92 2009/05/08 15:23:25 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -49,6 +49,12 @@ class LHCB_BKKDBManager(BaseESManager):
                                    ''
                                   ]
   
+  LHCB_BKDB_PREFIXES_RUN =     ['RUN',
+                                   'EVT',
+                                   'FTY',
+                                   ''
+                                  ]
+  
   LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFGN',
                                   'CFGV',
                                   'EVT',
@@ -61,7 +67,7 @@ class LHCB_BKKDBManager(BaseESManager):
                                   ]
   LHCB_BKDB_PREFIXES=[]
 
-  LHCB_BKDB_PARAMETERS = ['Configuration', 'Event type' ,'Productions' ]
+  LHCB_BKDB_PARAMETERS = ['Configuration', 'Event type' ,'Productions', 'Runlookup' ]
     
   LHCB_BKDB_PREFIX_SEPARATOR = "_"
   
@@ -130,6 +136,8 @@ class LHCB_BKKDBManager(BaseESManager):
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PRODUCTION
       elif name == 'Event type':
         self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_EVENTTYPE
+      elif name == 'Runlookup':
+        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_RUN
    
     else:
       gLogger.error("Wrong Parameter!")
@@ -145,13 +153,17 @@ class LHCB_BKKDBManager(BaseESManager):
     return res
   
   ############################################################################# 
-  def list(self, path="/"):
+  def list(self, path="/", SelectionDict = {}, SortDict={}, StartItem=0, Maxitems=0):
+    gLogger.debug(path)
+
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
-      return self._listConfigs(path) 
+      return self._listConfigs(path, SelectionDict, SortDict, StartItem, Maxitems) 
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
-      return self._listEventTypes(path)
+      return self._listEventTypes(path, SelectionDict, SortDict, StartItem, Maxitems)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
-      return self._listProduction(path)
+      return self._listProduction(path, SelectionDict, SortDict, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+      return self._listRuns(path, SelectionDict, SortDict, StartItem, Maxitems)
   
   ############################################################################# 
   def getLevel(self, path):
@@ -168,13 +180,12 @@ class LHCB_BKKDBManager(BaseESManager):
   
     
   ############################################################################# 
-  def _listConfigs(self, path):
+  def _listConfigs(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
     levels, processedPath = self.getLevel(path)
-  
     if levels == 0:
-       self.clevelHeader_0(path, levels, processedPath)
-       entityList += self.clevelBody_0(path, levels,)
+      self.clevelHeader_0(path, levels, processedPath)
+      entityList += self.clevelBody_0(path, levels,)
     if levels == 1: 
       configName = self.clevelHeader_1(path, levels, processedPath) 
       entityList += self.clevelBody_1(path, levels, configName)  
@@ -210,10 +221,13 @@ class LHCB_BKKDBManager(BaseESManager):
       v,processedPath = self._processPath(path)
       levels = 8
 
-    if levels == 8: 
+    if levels == 8 and StartItem == 0 and Maxitems == 0: 
       configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_8(path, levels, processedPath) 
       entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-
+    elif levels == 8 and (StartItem != 0 or Maxitems != 0): 
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_8(path, levels, processedPath) 
+      entityList += self.clevelBodyLimited_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems)
+    
     return entityList
   
   ############################################################################# 
@@ -573,6 +587,7 @@ class LHCB_BKKDBManager(BaseESManager):
     gLogger.debug("File list:\n")
     return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
   
+  ############################################################################# 
   def clevelBody_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
     entityList = list()
     result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
@@ -599,12 +614,38 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
 
+  ############################################################################# 
+  def clevelBodyLimited_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems):
+    entityList = list()
+    result = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, None)
+    
+    params = result['ParameterNames']
+    records = result['Records']
+    
+    selection = {"Configuration Name":configName, \
+                 "Configuration Version":configVersion, \
+                 "Simulation Condition":str(simid), \
+                 "Processing Pass":str(processing), \
+                 "Event type":str(evtType), \
+                 "Production":str(prod), \
+                 "File Type":str(ftype), \
+                 "Program name":pname, \
+                 "Program version":pversion}
+    
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat']
+    
+    for record in records:
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'Selection':selection}
+      self.files_ += [record[0]]
+      entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
+    self._cacheIt(entityList)    
+    
+    return entityList
 
-  
   
 
   ############################################################################# 
-  def _listEventTypes(self, path):
+  def _listEventTypes(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
     levels, processedPath = self.getLevel(path)
   
@@ -650,9 +691,13 @@ class LHCB_BKKDBManager(BaseESManager):
       v,processedPath = self._processPath(path)
       levels = 8
       
-    if levels == 8: 
+    if levels == 8 and StartItem == 0 and Maxitems == 0:
       configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_8(path, levels, processedPath) 
       entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+    elif levels == 8 and (StartItem != 0 or Maxitems != 0):  
+      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_8(path, levels, processedPath) 
+      entityList += self.clevelBodyLimited_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems)
+    
     return entityList
   
    ############################################################################# 
@@ -873,8 +918,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
   
   ############################################################################# 
-  def _listProduction(self, path):    
-  
+  def _listProduction(self, path, SelectionDict, SortDict, StartItem, Maxitems):    
+    
     entityList = list()
     levels, processedPath = self.getLevel(path)
     
@@ -896,6 +941,30 @@ class LHCB_BKKDBManager(BaseESManager):
     
     return entityList
   
+  ############################################################################# 
+  def _listRuns(self, path, SelectionDict, SortDict, StartItem, Maxitems):
+    entityList = list()
+    levels, processedPath = self.getLevel(path)
+    
+    if levels == 0:
+       self.plevelHeader_0(path, levels, processedPath)
+       entityList += self.rlevelBody_0(path, levels, None)
+       
+    if levels == 1: 
+      production = self.plevelHeader_2(path, levels, processedPath) 
+      entityList += self.plevelBody_2(path, levels, production)
+    
+    if levels == 2:
+      production, evt = self.plevelHeader_3(path, levels, processedPath) 
+      entityList += self.plevelBody_3(path, levels, production, evt)
+    
+    if levels == 3:
+      production, evt, ftype = self.plevelHeader_4(path, levels, processedPath) 
+      entityList += self.plevelBody_4(path, levels, production, evt, ftype)
+    
+    return entityList
+  
+  ############################################################################# 
   def plevelHeader_0(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("-----------------------------------------------------------")
@@ -1021,6 +1090,21 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
+  def rlevelBody_0(self, path, levels, processedPath):
+    entityList = list()
+    result = self.db_.getAvailableRuns()
+  
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        prod = str(record[0])
+        entityList += [self._getEntityFromPath(path, str(prod), levels, 'Production(s)/Run(s)')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None):
      
     if isinstance(newPathElement, types.DictType):
@@ -1055,6 +1139,8 @@ class LHCB_BKKDBManager(BaseESManager):
       elif  self.advancedQuery_ and level==7:
         entity.update({'showFiles':0})
       elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2] and level == 2:
+        entity.update({'showFiles':0})
+      elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3] and level == 2:
         entity.update({'showFiles':0})
     return entity
   
@@ -1227,6 +1313,9 @@ class LHCB_BKKDBManager(BaseESManager):
       return self._getLimitedFilesEventTypeParams(SelectionDict, SortDict, StartItem, Maxitems)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
       return self._getLimitedFilesProductions(SelectionDict, SortDict, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+      return self._getLimitedFilesProductions(SelectionDict, SortDict, StartItem, Maxitems)
+  
   #############################################################################       
   def _getLimitedFilesConfigParams(self, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()

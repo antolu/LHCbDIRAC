@@ -1,11 +1,12 @@
 ########################################################################
-# $Id: ProductionListModel.py,v 1.1 2009/03/31 16:26:44 zmathe Exp $
+# $Id: ProductionListModel.py,v 1.2 2009/05/08 15:23:24 zmathe Exp $
 ########################################################################
 from PyQt4.QtGui                                                          import *
 from PyQt4.QtCore                                                         import *
 
+import types
 
-__RCSID__ = "$Id: ProductionListModel.py,v 1.1 2009/03/31 16:26:44 zmathe Exp $"
+__RCSID__ = "$Id: ProductionListModel.py,v 1.2 2009/05/08 15:23:24 zmathe Exp $"
 
 class ProductionListModel(QAbstractListModel):
   #############################################################################  
@@ -36,3 +37,4 @@ class ProductionListModel(QAbstractListModel):
   #############################################################################  
   def setData(self, data):
     self.__listdata = data
+    self.reset()

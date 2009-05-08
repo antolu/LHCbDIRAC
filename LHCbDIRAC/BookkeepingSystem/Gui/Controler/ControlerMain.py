@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.18 2009/04/01 15:44:53 zmathe Exp $
+# $Id: ControlerMain.py,v 1.19 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.18 2009/04/01 15:44:53 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.19 2009/05/08 15:23:25 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -24,6 +24,10 @@ class ControlerMain(ControlerAbstract):
 
     self.__fileName = ''
     self.__pathfilename = ''
+    self.__SelectionDict = {}
+    self.__SortDict = {} 
+    self.__StartItem = 0
+    self.__Maxitems = 0
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
 
   #############################################################################  
@@ -49,7 +53,11 @@ class ControlerMain(ControlerAbstract):
         self.getWidget().waitCursor()
         path = message['node']
         items=Item({'fullpath':path},None)
-        for entity in self.__bkClient.list(str(path)):
+        #, self.__SelectionDict, self.__SortDict, self.__StartItem, self.__Maxitems
+        if message.has_key('StartItem') and message.has_key('MaxItem'):
+          self.__StartItem = message['StartItem']
+          self.__Maxitems = message['MaxItem']
+        for entity in self.__bkClient.list(str(path), self.__SelectionDict, self.__SortDict, self.__StartItem, self.__Maxitems):
           childItem = Item(entity,items)
           items.addItem(childItem)
         #self.__progressBar.stop()
@@ -77,6 +85,15 @@ class ControlerMain(ControlerAbstract):
         
       elif message['action'] == 'productionButtonChanged':
         self.__bkClient.setParameter('Productions')
+        controlers = self.getChildren()
+        ct = controlers['TreeWidget']
+        items = self.root()
+        ctProd = controlers['ProductionLookup']
+        message = Message({'action':'list','items':items})
+        ctProd.messageFromParent(message)
+      
+      elif message['action'] == 'runLookup':
+        self.__bkClient.setParameter('Runlookup')
         controlers = self.getChildren()
         ct = controlers['TreeWidget']
         items = self.root()

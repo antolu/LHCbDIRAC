@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'TreeWidget.ui'
+# Form implementation generated from reading ui file 'workspace/DIRAC3/DIRAC/BookkeepingSystem/Gui/Widget/TreeWidget.ui'
 #
-# Created: Mon Mar 30 18:34:02 2009
+# Created: Fri May  8 16:21:12 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 class Ui_TreeWidget(object):
     def setupUi(self, TreeWidget):
         TreeWidget.setObjectName("TreeWidget")
-        TreeWidget.resize(QtCore.QSize(QtCore.QRect(0,0,534,736).size()).expandedTo(TreeWidget.minimumSizeHint()))
+        TreeWidget.resize(QtCore.QSize(QtCore.QRect(0,0,456,736).size()).expandedTo(TreeWidget.minimumSizeHint()))
 
         self.gridlayout = QtGui.QGridLayout(TreeWidget)
         self.gridlayout.setObjectName("gridlayout")
@@ -27,7 +27,6 @@ class Ui_TreeWidget(object):
         self.gridlayout.addWidget(self.advancedQuery,0,1,1,1)
 
         self.tree = TreePanel(TreeWidget)
-        self.tree.setWindowModality(QtCore.Qt.WindowModal)
         self.tree.setEnabled(True)
         self.tree.setProperty("cursor",QtCore.QVariant(QtCore.Qt.ArrowCursor))
         self.tree.setLineWidth(1)
@@ -57,6 +56,10 @@ class Ui_TreeWidget(object):
         self.productionRadioButton = QtGui.QRadioButton(self.selection)
         self.productionRadioButton.setObjectName("productionRadioButton")
         self.gridlayout1.addWidget(self.productionRadioButton,2,0,1,1)
+
+        self.runLookup = QtGui.QRadioButton(self.selection)
+        self.runLookup.setObjectName("runLookup")
+        self.gridlayout1.addWidget(self.runLookup,3,0,1,1)
         self.gridlayout.addWidget(self.selection,2,0,1,2)
 
         self.configNameRadioButton1 = QtGui.QAction(TreeWidget)
@@ -75,5 +78,6 @@ class Ui_TreeWidget(object):
         self.configNameRadioButton.setText(QtGui.QApplication.translate("TreeWidget", "SimCond/ProcessingPass/Eventtype/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
         self.radioButton_2.setText(QtGui.QApplication.translate("TreeWidget", "Event type/SimCond/ProcessingPass/Production/FileType/Program/Files", None, QtGui.QApplication.UnicodeUTF8))
         self.productionRadioButton.setText(QtGui.QApplication.translate("TreeWidget", "Production lookup", None, QtGui.QApplication.UnicodeUTF8))
+        self.runLookup.setText(QtGui.QApplication.translate("TreeWidget", "Run lookup", None, QtGui.QApplication.UnicodeUTF8))
         self.configNameRadioButton1.setText(QtGui.QApplication.translate("TreeWidget", "config_click", None, QtGui.QApplication.UnicodeUTF8))
 

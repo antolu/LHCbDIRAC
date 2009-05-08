@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'FileDialog.ui'
+# Form implementation generated from reading ui file 'workspace/DIRAC3/DIRAC/BookkeepingSystem/Gui/Widget/FileDialog.ui'
 #
-# Created: Tue Mar 31 14:14:57 2009
+# Created: Fri May  8 14:31:48 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -192,15 +192,19 @@ class Ui_FileDialog(object):
 
         self.advancedSave = QtGui.QPushButton(FileDialog)
         self.advancedSave.setObjectName("advancedSave")
-        self.gridlayout.addWidget(self.advancedSave,3,1,1,1)
+        self.gridlayout.addWidget(self.advancedSave,4,1,1,1)
 
         self.saveButton = QtGui.QPushButton(FileDialog)
         self.saveButton.setObjectName("saveButton")
-        self.gridlayout.addWidget(self.saveButton,3,2,1,1)
+        self.gridlayout.addWidget(self.saveButton,4,2,1,1)
 
         self.closeButton = QtGui.QPushButton(FileDialog)
         self.closeButton.setObjectName("closeButton")
-        self.gridlayout.addWidget(self.closeButton,3,3,1,1)
+        self.gridlayout.addWidget(self.closeButton,4,3,1,1)
+
+        self.nextButton = QtGui.QPushButton(FileDialog)
+        self.nextButton.setObjectName("nextButton")
+        self.gridlayout.addWidget(self.nextButton,4,0,1,1)
 
         self.retranslateUi(FileDialog)
         QtCore.QMetaObject.connectSlotsByName(FileDialog)
@@ -226,4 +230,5 @@ class Ui_FileDialog(object):
         self.advancedSave.setText(QtGui.QApplication.translate("FileDialog", "Advanced Save..", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
+        self.nextButton.setText(QtGui.QApplication.translate("FileDialog", "Next Page", None, QtGui.QApplication.UnicodeUTF8))
 

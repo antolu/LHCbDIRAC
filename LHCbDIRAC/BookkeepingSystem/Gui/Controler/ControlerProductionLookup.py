@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerProductionLookup.py,v 1.1 2009/03/31 16:26:45 zmathe Exp $
+# $Id: ControlerProductionLookup.py,v 1.2 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 
-__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.1 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.2 2009/05/08 15:23:25 zmathe Exp $"
 
 #############################################################################  
 class ControlerProductionLookup(ControlerAbstract):
@@ -21,6 +21,7 @@ class ControlerProductionLookup(ControlerAbstract):
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
+      self.__list = []
       self.__model = message['items']
       widget = self.getWidget()
       for i in self.__model.getChildren().keys():

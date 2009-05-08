@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.15 2009/03/31 16:26:44 zmathe Exp $
+# $Id: FileDialog.py,v 1.16 2009/05/08 15:23:24 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedS
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.15 2009/03/31 16:26:44 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.16 2009/05/08 15:23:24 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -24,6 +24,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     self.connect(self.saveButton, SIGNAL("clicked()"), self.__controler.save)   
     self.connect(self.advancedSave, SIGNAL("clicked()"), self.__controler.advancedSave)
+    self.connect(self.nextButton, SIGNAL("clicked()"), self.__controler.next)
     
     picturesPath = DIRAC.rootPath+'/DIRAC/BookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
@@ -32,7 +33,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
-    self.__model = None
+    self.__model = {}
     self.__path = None
     self.__fileExtension = None
     self.__popUp = QMenu(self.tableView)
@@ -64,7 +65,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################  
   def setModel(self, model):
-    self.__model = model
+    self.__model.update(model)
   
   #############################################################################  
   def getModel(self):
@@ -111,6 +112,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId']
     tabledata =[]
     header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat','Generator']
+    data.update(self.__model)
     keys = data.keys()
     keys.sort()
     for item in keys:
@@ -235,4 +237,8 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.filetype.setText(dict["File Type"])
     self.production.setText(dict["Production"])
     self.progrnameandversion.setText(dict["Program name"] + ' - '+dict["Program version"])
+  
+  def clearTable(self):
+    #self.tableView().clear()
+    self.__model = {}
     

@@ -1,13 +1,15 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.13 2009/04/18 18:27:00 rgracian Exp $
+# $Id: ControlerTree.py,v 1.14 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from DIRAC.BookkeepingSystem.Gui.Widget.FileDialogOptions            import FileDialogOptions
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
+
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.13 2009/04/18 18:27:00 rgracian Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.14 2009/05/08 15:23:25 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -15,7 +17,9 @@ class ControlerTree(ControlerAbstract):
   #############################################################################  
   def __init__(self, widget, parent):
     super(ControlerTree, self).__init__(widget, parent)
-  
+    self.__pagesize = 0
+    self.__option = None
+    self.__offset = 0
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
@@ -36,15 +40,34 @@ class ControlerTree(ControlerAbstract):
   
   #############################################################################  
   def messageFromChild(self, sender, message):
-    return self.getParent().messageFromChild(self, message) # send to main controler!
+    if message.action() == 'getLimitedFiles':    
+      message = Message({'action':'expande','node':message['path'], 'StartItem':self.__pagesize,'MaxItem':(self.__pagesize+self.__offset)})
+
+      self.__pagesize += self.__offset
+      feedback = self.getParent().messageFromChild(self, message)
+      
+      if feedback.action()=='showNode':
+          controlers = self.getChildren()
+          ct = controlers['FileDialog']  
+          message = Message({'action':'list','items':feedback['items']})
+          ct.messageFromParent(message)
+    elif message.action() =='PageSizeIsNull':
+      self.__pagesize = 0
+    else:
+      return self.getParent().messageFromChild(self, message) # send to main controler!
   
   #############################################################################  
   def configButton(self):
     message = Message({'action':'configbuttonChanged'})
     self.getParent().messageFromChild(self, message)
-  
+   
   def productionRadioButton(self):
     message = Message({'action':'productionButtonChanged'})
+    self.getParent().messageFromChild(self, message)
+  
+  #############################################################################  
+  def runRadioButton(self):
+    message = Message({'action':'runLookup'})
     self.getParent().messageFromChild(self, message)
     
   #############################################################################  
@@ -102,7 +125,7 @@ class ControlerTree(ControlerAbstract):
                 
                 controlers = self.getChildren()
                 ct = controlers['FileDialog']  
-                message = Message({'action':'list','items':feedback['items']})
+                message = Message({'action':'list','items':feedback['items'], 'StartItem':0,'MaxItem':self.getPageSize()})
                 #res = ct.messageFromParent(message)
                 res = True
                 if res :
@@ -122,7 +145,8 @@ class ControlerTree(ControlerAbstract):
       controlers = self.getChildren()
       if parent.has_key('level') and parent.has_key('showFiles'):
         path = parent['fullpath']
-        message = Message({'action':'expande','node':path})
+        message = Message({'action':'expande','node':path, 'StartItem':0,'MaxItem':self.getPageSize()})
+        self.__pagesize += self.__offset
         feedback = self.getParent().messageFromChild(self, message)
         if feedback.action()=='showNode':
           ct = controlers['FileDialog']  
@@ -156,4 +180,26 @@ class ControlerTree(ControlerAbstract):
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)
 
-#############################################################################  
+  #############################################################################  
+  def setPagesize(self):
+    self.__option = FileDialogOptions(self.getWidget())
+    self.__option.show()
+    
+  #############################################################################  
+  def ok(self):
+    value = self.__option.pageSize.text()
+    if type(str(value)) == types.StringType:
+      if value == 'ALL':
+        self.__offset = 0
+      elif type(int(value)) == types.IntType:
+        self.__offset = int(value)
+    self.__option.close()
+  
+  #############################################################################  
+  def cancel(self):
+    self.__offset = 0
+    self.__option.close()
+    
+  #############################################################################  
+  def getPageSize(self):
+    return self.__offset

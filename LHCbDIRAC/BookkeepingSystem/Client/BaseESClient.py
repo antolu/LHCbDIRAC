@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESClient.py,v 1.5 2008/06/09 10:49:35 zmathe Exp $
+# $Id: BaseESClient.py,v 1.6 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py,v 1.5 2008/06/09 10:49:35 zmathe Exp $"
+__RCSID__ = "$Id: BaseESClient.py,v 1.6 2009/05/08 15:23:25 zmathe Exp $"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):
@@ -24,10 +24,10 @@ class BaseESClient(IEntitySystemClient):
       self.__currentDirectory = result['Value']
 
   #############################################################################
-  def list(self, path=""):
+  def list(self, path="", SelectionDict = {}, SortDict={}, StartItem=0, Maxitems=0):
     res = self.getManager().mergePaths(self.__currentDirectory, path)
     if res['OK']:
-      return self.getManager().list(res['Value'])
+      return self.getManager().list(res['Value'], SelectionDict, SortDict, StartItem, Maxitems)
     else:
       return S_ERROR(res['Message'])
   

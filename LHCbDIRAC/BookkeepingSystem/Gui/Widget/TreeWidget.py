@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.8 2009/03/31 16:26:45 zmathe Exp $
+# $Id: TreeWidget.py,v 1.9 2009/05/08 15:23:24 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import Proces
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.8 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.9 2009/05/08 15:23:24 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -35,6 +35,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.configNameRadioButton, SIGNAL("clicked()"), self.__controler.configButton)
     self.connect(self.radioButton_2, SIGNAL("clicked()"), self.__controler.eventTypeButton)
     self.connect(self.productionRadioButton, SIGNAL("clicked()"), self.__controler.productionRadioButton)
+    self.connect(self.runLookup, SIGNAL("clicked()"), self.__controler.runRadioButton)
     self.tree.setupControler()
     
     

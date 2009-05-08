@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.14 2009/04/01 13:06:36 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.15 2009/05/08 15:23:25 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.14 2009/04/01 13:06:36 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.15 2009/05/08 15:23:25 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -18,18 +18,10 @@ class ControlerFileDialog(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerFileDialog, self).__init__(widget, parent)
     self.__selectedFiles = []
-    #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
   
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
-      '''
-      if self.__progressBar.isRunning():
-          gLogger.info('2')
-          self.__progressBar.stop()
-          self.__progressBar.wait()
-      self.__progressBar.start()  
-      '''
       items = message['items'].getChildren()
       self.getWidget().setModel(items) # I have to save files.
       self.getWidget().setPath(message['items']['fullpath'])
@@ -50,8 +42,6 @@ class ControlerFileDialog(ControlerAbstract):
         filesize = self.getSizeOfFiles(items)
         self.getWidget().showFilesSize(filesize)
         
-        #self.__progressBar.stop()
-        #self.__progressBar.wait()
         
         self.getWidget().show()
     return True  
@@ -81,6 +71,10 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################  
   def close(self):
     #self.getWidget().hide()
+    message = Message({'action':'PageSizeIsNull'})
+    self.getParent().messageFromChild(self, message)
+    self.getWidget().clearTable()
+    
     self.getWidget().showSelectedFileSize(0)
     self.getWidget().showSelectedNumberOfEvents(0)
     self.getWidget().showSelectedNumberOfFiles(0)
@@ -279,4 +273,9 @@ class ControlerFileDialog(ControlerAbstract):
     message = Message({'action':'showWidget'})
     controlers = self.getChildren()
     controlers['AdvancedSave'].messageFromParent(message)
-    
+  
+  #############################################################################  
+  def next(self):
+    path = self.getWidget().getPath()
+    message = Message({'action':'getLimitedFiles','path':path})
+    feedback = self.getParent().messageFromChild(self, message)
