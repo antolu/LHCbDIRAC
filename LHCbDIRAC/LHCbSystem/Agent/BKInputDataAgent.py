@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.5 2009/03/13 17:34:28 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.6 2009/05/10 19:45:51 atsareg Exp $
 # File :   InputDataAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py,v 1.5 2009/03/13 17:34:28 acsmith Exp $"
+__RCSID__ = "$Id: BKInputDataAgent.py,v 1.6 2009/05/10 19:45:51 atsareg Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
@@ -112,13 +112,13 @@ class BKInputDataAgent(OptimizerModule):
     for lfn,lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
       bkMeta = bkFileMetadata[lfn]
       badFile=False
-      if lfcMeta['GUID'].upper() != bkMeta['GUID'].upper(): 
+      if lfcMeta.has_key('GUID') and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper(): 
         badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK GUID Mismatch'))
         badFile=True
-      if int(lfcMeta['Size']) != int(bkMeta['FileSize']):
+      if lfcMeta.has_key('Size') and int(lfcMeta['Size']) != int(bkMeta['FileSize']):
         badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK File Size Mismatch'))
         badFile=True
-      if (lfcMeta['CheckSumType'] == 'AD') and bkMeta['ADLER32']:
+      if lfcMeta.has_key('CheckSumType') and (lfcMeta['CheckSumType'] == 'AD') and bkMeta['ADLER32']:
         if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
           badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK Checksum Mismatch'))
           badFile=True
