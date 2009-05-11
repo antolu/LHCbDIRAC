@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-setdataquality-run.py,v 1.1 2009/02/27 14:35:17 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-setdataquality-run.py,v 1.2 2009/05/11 11:21:52 zmathe Exp $
 # File :   dirac-bookkeeping-setdataquality-run
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-setdataquality-run.py,v 1.1 2009/02/27 14:35:17 zmathe Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-bookkeeping-setdataquality-run.py,v 1.2 2009/05/11 11:21:52 zmathe Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -42,5 +42,15 @@ if not result['OK']:
   print 'ERROR %s' %(result['Message'])
   exitCode = 2
 else:
-  print result['Value']
+  succ = result['Value']['Successful']
+  failed = result['Value']['Failed']
+  print 'The data quality seted to the following files:'
+  for i in succ:
+    print i
+  
+  if len(failed) != 0:
+    print 'The data quality has been not seted to the following files:'
+    for i in failed:
+      print i
+
 DIRAC.exit(exitCode)

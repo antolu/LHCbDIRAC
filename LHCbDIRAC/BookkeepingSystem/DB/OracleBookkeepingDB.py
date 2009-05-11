@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.86 2009/05/08 15:23:25 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.87 2009/05/11 11:21:52 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.86 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.87 2009/05/11 11:21:52 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1600,7 +1600,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     
-    return S_OK('Quality flag has been updated!')
+    command = 'select files.filename from jobs, files where jobs.jobid=files.jobid and \
+      jobs.runnumber='+str(runNb)
+    
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    
+    succ = []
+    records = retVal['Value']
+    for record in records:
+      succ += [record[0]]
+    ressult = {}
+    result['Successful'] = succ
+    result['Failed'] = []
+    return S_OK(result)
     
   #############################################################################  
   def __updateQualityFlag(self, lfn, qid):
