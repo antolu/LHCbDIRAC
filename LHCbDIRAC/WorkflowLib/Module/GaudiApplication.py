@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.120 2009/05/07 15:30:39 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.121 2009/05/11 12:22:42 joel Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.120 2009/05/07 15:30:39 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.121 2009/05/11 12:22:42 joel Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -205,16 +205,10 @@ class GaudiApplication(ModuleBase):
     self.log.info("Root directory for job is %s" % ( self.root ) )
 
     sharedArea = MySiteRoot()
-#    app_dir_path = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-#    if app_dir_path:
-#      mySiteRoot = sharedArea
-#    else:
-#      self.log.error( 'Application Not Found' )
-      #self.setApplicationStatus( 'Application Not Found' )
-#      self.result = S_ERROR( 'Application Not Found' )
-
-    if not self.result['OK']:
-      return self.result
+    if sharedArea == '':
+      self.log.error( 'MySiteRoot Not found' )
+      self.setApplicationStatus( 'MySieRoot Not Found' )
+      return S_ERROR(' MySiteRoot Not Found')
 
     mySiteRoot=sharedArea
     self.log.info('MYSITEROOT is %s' %mySiteRoot)
