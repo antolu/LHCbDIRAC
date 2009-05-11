@@ -140,6 +140,7 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 #
 
 $CURDIR/install_mysql.sh $DIRACHOST
+sed -i 's/^log-bin=/# log-bin=/' $DESTDIR/pro/mysql/etc/my.cnf
 /opt/dirac/pro/mysql/share/mysql/mysql.server start
 
 # The request db
