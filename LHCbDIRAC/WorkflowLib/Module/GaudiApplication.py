@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.121 2009/05/11 12:22:42 joel Exp $
+# $Id: GaudiApplication.py,v 1.122 2009/05/12 06:54:21 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.121 2009/05/11 12:22:42 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.122 2009/05/12 06:54:21 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -391,6 +391,13 @@ done
       print 'Command = ',comm
       script.write(comm)
       script.write('declare -x appstatus=$?\n')
+      script.write('# check for core dumps and analyze it if present|n')
+      script.write('if [ -e core.* ] ; then\n')
+      script.write('  gdb python core.* >> %s_coredump.log << EOF\n' % self.applicationName )
+      script.write('where')
+      script.write('quit')
+      script.write('EOF')
+      script.write('fi')
 
     script.write('exit $appstatus\n')
     script.close()
