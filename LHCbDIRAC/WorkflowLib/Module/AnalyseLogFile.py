@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.67 2009/05/01 18:49:40 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.68 2009/05/12 06:57:16 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.67 2009/05/01 18:49:40 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.68 2009/05/12 06:57:16 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -227,8 +227,9 @@ class AnalyseLogFile(ModuleBase):
       msg = msg +'\n\nJob StdErr:\n'
       msg = msg+logurl+'/std.err\n'
 
-    if os.path.exists('corecomm.log'):
-      fd = open('corecomm.log')
+    coreDumpLog = '%s_coredump.log' % self.applicationName
+    if os.path.exists(coreDumpLog):
+      fd = open(coreDumpLog)
       msgtmp = fd.readlines()
       msg = msg + '\n\nCore dump:\n\n'
       for j in msgtmp:
