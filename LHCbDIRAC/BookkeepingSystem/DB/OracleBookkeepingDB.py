@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.89 2009/05/13 10:52:42 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.90 2009/05/13 11:25:16 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.89 2009/05/13 10:52:42 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.90 2009/05/13 11:25:16 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -867,7 +867,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         if not result['OK']:
           return S_ERROR(result['Message'])
         elif len(result['Value']) == 0:
-          return S_ERROR('Data taking or Simulation Conditions is missing in the BKK database!')
+          return S_ERROR('Processing pass is missing'+str(procPass))
         val = result['Value'][0][0]
         totalproc += str(val)+"<"
       totalproc = totalproc[:-1]

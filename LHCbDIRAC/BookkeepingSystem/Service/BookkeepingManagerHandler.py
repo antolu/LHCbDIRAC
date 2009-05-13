@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.109 2009/05/13 10:52:43 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.110 2009/05/13 11:25:16 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.109 2009/05/13 10:52:43 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.110 2009/05/13 11:25:16 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -410,6 +410,8 @@ class BookkeepingManagerHandler(RequestHandler):
     
     if values.has_key('ProductionID'):
       prod = values['ProductionID']
+      if prod == 0:
+        prod = 'ALL'
     else:
       prod = 'ALL'
     
