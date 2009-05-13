@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.90 2009/05/13 11:25:16 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.91 2009/05/13 11:34:35 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.90 2009/05/13 11:25:16 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.91 2009/05/13 11:34:35 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -895,7 +895,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if endDate != None:
       condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
-    else:
+    elif startDate != None and endDate == None:
       condition += ' and files.inserttimestamp <= current_timestamp '
       
     if flag != 'ALL':
