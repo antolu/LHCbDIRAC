@@ -155,6 +155,8 @@ def download(lfn,run):
           
       else :
         print '## download failed for', lfn, run, ft
+    else :
+      print '## already downloaded ', lfn, 'as', name
   
 ############################################################################
 """
