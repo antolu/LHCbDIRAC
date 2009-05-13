@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.88 2009/05/13 09:40:39 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.89 2009/05/13 10:52:42 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.88 2009/05/13 09:40:39 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.89 2009/05/13 10:52:42 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -887,7 +887,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         ftypeId = res['Value'][0][0]
         condition += ' and files.FileTypeId='+str(ftypeId)
     
-    if evt != 'ALL':
+    if evt != 0:
       condition +=  ' and files.eventtypeid='+str(evt)
     
     if startDate != None:

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.108 2009/05/13 09:40:39 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.109 2009/05/13 10:52:43 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.108 2009/05/13 09:40:39 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.109 2009/05/13 10:52:43 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -396,7 +396,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if values.has_key('EventType'):
       evt = values['EventType']
     else:
-      return S_ERROR('Event Type is missing!')
+      evt = 0
       
     if values.has_key('ConfigName'):
       configname = values['ConfigName']
