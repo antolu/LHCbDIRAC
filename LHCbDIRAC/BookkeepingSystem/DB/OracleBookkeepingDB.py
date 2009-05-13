@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.87 2009/05/11 11:21:52 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.88 2009/05/13 09:40:39 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.87 2009/05/11 11:21:52 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.88 2009/05/13 09:40:39 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -833,7 +833,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL'):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None):
     
     configid = None
     condition = ''
@@ -890,6 +890,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if evt != 'ALL':
       condition +=  ' and files.eventtypeid='+str(evt)
     
+    if startDate != None:
+      condition += ' and files.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    
+    if endDate != None:
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    else:
+      condition += ' and files.inserttimestamp <= current_timestamp '
+      
     if flag != 'ALL':
       quality = None
       command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''

@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.49 2009/05/08 15:23:25 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.50 2009/05/13 09:40:39 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.49 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.50 2009/05/13 09:40:39 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -439,8 +439,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().checkProcessingPassAndSimCond(production)
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag):
-    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag)
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate)
   
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):

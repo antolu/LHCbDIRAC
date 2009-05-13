@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.107 2009/05/08 15:23:25 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.108 2009/05/13 09:40:39 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.107 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.108 2009/05/13 09:40:39 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -417,8 +417,19 @@ class BookkeepingManagerHandler(RequestHandler):
       flag = values['DataQualityFlag']
     else:
       flag = 'ALL'
+    
+    if values.has_key('StartDate'):
+      startd = values['StartDate']
+    else:
+      startd = None
+    
+    if values.has_key('EndDate'):
+      endd = values['EndDate']
+    else:
+      endd = None
+    
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.19 2009/05/08 15:23:25 zmathe Exp $
+# $Id: ControlerMain.py,v 1.20 2009/05/13 09:40:39 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.19 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.20 2009/05/13 09:40:39 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -286,20 +286,25 @@ class ControlerMain(ControlerAbstract):
     item = self.__bkClient.get()
     items=Item(item,None)
     path = item['Value']['fullpath']
-    for entity in self.__bkClient.list(path):
-      childItem = Item(entity,items)
-      items.addItem(childItem)
-    return items
+    retVal = self.__bkClient.list(path)
+    if len(retVal) == 0:
+      return None
+    else:
+      for entity in retVal:
+        childItem = Item(entity,items)
+        items.addItem(childItem)
+      return items
   
   #############################################################################  
   def start(self):
     items = self.root()  
-    message = Message({'action':'list','items':items})
-    controlers = self.getChildren()
-    for controler in controlers:
-      if controler == 'TreeWidget':
-        ct = controlers[controler]
-        ct.messageFromParent(message)
+    if items != None:
+      message = Message({'action':'list','items':items})
+      controlers = self.getChildren()
+      for controler in controlers:
+        if controler == 'TreeWidget':
+          ct = controlers[controler]
+          ct.messageFromParent(message)
     #message = Message({'action':'list','items':items})
     #self.getControler().messageFromParent(message)
   #############################################################################  
