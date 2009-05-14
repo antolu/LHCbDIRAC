@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.92 2009/05/14 12:48:33 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.93 2009/05/14 13:03:11 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.92 2009/05/14 12:48:33 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.93 2009/05/14 13:03:11 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1619,7 +1619,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     records = retVal['Value']
     for record in records:
       succ += [record[0]]
-    ressult = {}
+    result = {}
     result['Successful'] = succ
     result['Failed'] = []
     return S_OK(result)
