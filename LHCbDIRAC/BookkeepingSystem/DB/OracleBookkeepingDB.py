@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.91 2009/05/13 11:34:35 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.92 2009/05/14 12:48:33 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.91 2009/05/13 11:34:35 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.92 2009/05/14 12:48:33 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2220,19 +2220,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getProductionsWithPrgAndEvt(self, programName='ALL', programversion='ALL', evt='ALL'):
     condition = ''
     if programName != 'ALL':
-      condition = ' bookkeepingview.PROGRAMNAME=\''+str(programName)+'\'' 
+      condition = ' and jobs.PROGRAMNAME=\''+str(programName)+'\'' 
     
     if programversion!='ALL':
-      if condition !='':
-        condition += ' and '
-      condition += ' bookkeepingview.PROGRAMVERSION=\''+str(programversion)+'\''
+      condition += ' and jobs.PROGRAMVERSION=\''+str(programversion)+'\''
     
     if evt != 'ALL':
-      if condition !='':
-        condition += ' and '
-      condition += ' bookkeepingview.EVENTTYPEID='+str(evt)
+      condition += ' and eventtypes.EVENTTYPEID='+str(evt)
     
-    command = 'select EVENTTYPEID, DESCRIPTION,PRODUCTION from bookkeepingview where '+condition
+    command = 'select distinct eventtypes.EVENTTYPEID, eventtypes.DESCRIPTION, jobs.PRODUCTION from jobs,eventtypes, files where jobs.jobid=files.jobid and files.eventtypeid=eventtypes.eventtypeid '+condition
     res = self.dbR_._query(command)
     if not res['OK']:
       return S_ERROR(res['Message'])
@@ -2467,7 +2463,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(retVal['Message'])
     value = retVal['Value']
     if len(value) == 0:
-      return S_ERROR('Missing the informations!')
+      return S_ERROR('Replica flag is not set!')
     result['Number of file']=value[0][0]
     result['Number of events']=value[0][1]
     result['File size']=value[0][2]
