@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.15 2009/04/21 14:26:55 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.16 2009/05/15 10:07:29 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.15 2009/04/21 14:26:55 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.16 2009/05/15 10:07:29 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -719,7 +719,7 @@ class Production(LHCbJob):
       self.log.info('BK publishing result: %s' %result)
       return result
 
-    return S_OK()
+    return S_OK(prodID)
 
   #############################################################################
   def _writeBKScript(self,bkDict,prodID):
