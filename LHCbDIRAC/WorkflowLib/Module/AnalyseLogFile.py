@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.68 2009/05/12 06:57:16 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.69 2009/05/15 14:37:53 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.68 2009/05/12 06:57:16 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.69 2009/05/15 14:37:53 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -470,10 +470,13 @@ class AnalyseLogFile(ModuleBase):
     # Get the number of events output by LHCb
     res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:
-      return S_ERROR('%s No events output' % mailto)
+      return S_ERROR('No events output')
     outputEvents = res['Value']
     if outputEvents != lastEvent:
       return S_ERROR("%s Processed events do not match" % mailto)
+    # If there were no events processed
+    if outputEvents == 0:
+      return S_ERROR("No events processed")
     return S_OK()
 
   def checkGaussEvents(self):
@@ -550,6 +553,9 @@ class AnalyseLogFile(ModuleBase):
     # Check that the final reported processed events match those logged as processed during execution
     if lastEvent != processedEvents:
       return S_ERROR("Processed events do not match")
+    # If there were no events processed
+    if processedEvents == 0:
+      return S_ERROR("No events processed")
     # If the output events are not equal to the processed events be sure there were no failed events
     if outputEvents != processedEvents:
       pass # TODO: Find out whether there is a way to find failed events
@@ -594,6 +600,9 @@ class AnalyseLogFile(ModuleBase):
     # Check that the final reported processed events match those logged as processed during execution
     if lastEvent != processedEvents:
       return S_ERROR("Processed events do not match")
+    # If there were no events processed
+    if processedEvents == 0:
+      return S_ERROR("No events processed")
     # If the output events are not equal to the processed events be sure there were no failed events
     if outputEvents != processedEvents:
       return S_ERROR("Processed events not all output")
