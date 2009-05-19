@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.3 2009/04/14 14:14:02 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.4 2009/05/19 10:25:12 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.3 $"
+__RCSID__ = "$Revision: 1.4 $"
 
 # Defined states:
 #'New'
@@ -726,7 +726,7 @@ class ProductionRequestDB(DB):
       return result
     requestState,requestAuthor = result['Value']
     if creds['Group'] != 'diracAdmin':
-      if requedtAuthor != creds['User']:
+      if requestAuthor != creds['User']:
         self.lock.release()
         return S_ERROR('Only author can remove a request')
       if requestState != 'New' and requestState != 'Rejected':
