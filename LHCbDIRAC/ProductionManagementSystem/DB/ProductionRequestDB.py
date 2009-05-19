@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.4 2009/05/19 10:25:12 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.5 2009/05/19 13:16:50 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision: 1.5 $"
 
 # Defined states:
 #'New'
@@ -24,6 +24,7 @@ from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities import List
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -45,15 +46,14 @@ def _getMailAddress(user):
 def _getMemberMails(group):
   res = gConfig.getOptionsDict('/Security/Groups/%s' % group)
   if not res['OK']:
-    gLogger.error('_inform_people: group %s is not founf in CS.' % group)
+    gLogger.error('_inform_people: group %s is not found in CS.' % group)
     return []
   groupProp = res['Value']
   members = groupProp.get('Users','')
-  if type(members) == types.StringType:
-    members = [members]
   if not members:
     gLogger.error('_inform_people: group %s has no members.' % group)
     return []
+  members = List.fromChar(members)
   emails = []
   for user in members:
     email = _getMailAddress(user)
