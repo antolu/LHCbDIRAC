@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.2 2009/05/19 06:51:27 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.3 2009/05/19 15:17:46 acsmith Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.2 2009/05/19 06:51:27 acsmith Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.3 2009/05/19 15:17:46 acsmith Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 import DIRAC
 from DIRAC.Core.Base import Script
 import os, sys
@@ -37,11 +37,11 @@ eventTypeID = str(args[0])
 mcTruth = False
 numberOfEvents = '1000'
 gaussVersion = 'v37r0'
-booleVersion = 'v18r0'
-brunelVersion = 'v35r0p1'
+booleVersion = 'v18r1'
+brunelVersion = 'v34r6'
 lhcbVersion = 'v26r3'
-appConfigVersion = 'v2r4'
-fileGroup = 20
+appConfigVersion = 'v2r5'
+fileGroup = 40
 debug = False
 inputProd = 0
 dstOutputSE = 'Tier1_MC-DST'
@@ -72,14 +72,16 @@ for switch in Script.getUnprocessedSwitches():
 
 from DIRAC.LHCbSystem.Client.Production import Production
 
-prodGroup = 'MC09-NoTruth'
-gaussOpts = '$APPCONFIGOPTS/Gauss/MC09-b5TeV-md100.py;$APPCONFIGOPTS/Conditions/MC09-20090402-vc-md100.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.opts'
-booleOpts = '$APPCONFIGOPTS/Boole/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090402-vc-md100.py'
-brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090402-vc-md100.py'
+prodGroup = 'MC09-Sim01Reco01-withoutTruth'
+gaussOpts = '$APPCONFIGOPTS/Gauss/MC09-b5TeV-md100.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py;$DECFILESROOT/options/@{eventType}.opts'
+booleOpts = '$APPCONFIGOPTS/Boole/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
+brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
+saveBrunelHistos=False
 if mcTruth:
-  prodGroup = 'MC09-WithTruth'
-  booleOpts = '$APPCONFIGOPTS/Boole/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090402-vc-md100.py'
-  brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090402-vc-md100.py'
+  prodGroup = 'MC09-Sim01Reco01-withTruth'
+  booleOpts = '$APPCONFIGOPTS/Boole/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
+  brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
+  saveBrunelHistos=True
 
 if not inputProd:
   production = Production()
@@ -87,12 +89,12 @@ if not inputProd:
 
   production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (prodGroup,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
   production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,prodGroup,numberOfEvents,eventTypeID))
-  production.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown')
-  production.setDBTags("sim-20090402-vc-md100","head-20090330")
+  production.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown-Nu1')
+  production.setDBTags("sim-20090402-vc-md100","MC09-20090519")
 
   production.addGaussStep(gaussVersion,'Pythia',numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages='AppConfig.%s' % appConfigVersion)
   production.addBooleStep(booleVersion,'digi',booleOpts,extraPackages='AppConfig.%s' % appConfigVersion)
-  production.addBrunelStep(brunelVersion,'dst',brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE)
+  production.addBrunelStep(brunelVersion,'dst',brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE,histograms=saveBrunelHistos)
 
   production.addFinalizationStep()
   production.setFileMask('dst')
@@ -118,8 +120,8 @@ merge = Production()
 merge.setProdType('Merge')
 merge.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s' % (prodGroup,eventTypeID,lhcbVersion,inputProd,fileGroup))
 merge.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).' % (prodGroup,lhcbVersion,fileGroup,inputProd,eventTypeID))
-merge.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown')
-merge.setDBTags("sim-20090402-vc-md100","head-20090330")
+merge.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown-Nu1')
+merge.setDBTags("sim-20090402-vc-md100","MC09-20090519")
 
 mergeDataType='DST'
 mergedOutputSE='Tier1_MC_M-DST'
