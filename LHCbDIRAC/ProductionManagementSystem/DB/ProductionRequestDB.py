@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.7 2009/05/20 09:25:31 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.8 2009/05/20 09:45:16 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.7 $"
+__RCSID__ = "$Revision: 1.8 $"
 
 # Defined states:
 #'New'
@@ -131,11 +131,11 @@ def _inform_people(id,state,author):
   for group in groups:
     for man in _getMemberMails(group):
       notification = NotificationClient()
-      res = notification.sendMail(authorMail,subj,
+      res = notification.sendMail(man,subj,
                                   body%group+footer+group+ppath,
                                   fromAddress,True)
       if not res['OK']:
-        gLogger.error("_inform_people: can't send email: %s" % res['Message'])
+        gLogger.error("_inform_people: can't send email: %s"%res['Message'])
   return
 
 
