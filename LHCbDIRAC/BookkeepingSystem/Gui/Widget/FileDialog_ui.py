@@ -13,7 +13,7 @@ class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
         FileDialog.setWindowModality(QtCore.Qt.WindowModal)
-        FileDialog.resize(QtCore.QSize(QtCore.QRect(0,0,1234,737).size()).expandedTo(FileDialog.minimumSizeHint()))
+        FileDialog.resize(QtCore.QSize(QtCore.QRect(0,0,800,600).size()).expandedTo(FileDialog.minimumSizeHint()))
         FileDialog.setModal(False)
 
         self.gridlayout = QtGui.QGridLayout(FileDialog)

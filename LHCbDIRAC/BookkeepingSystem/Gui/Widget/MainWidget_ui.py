@@ -15,7 +15,7 @@ class Ui_MainWidget(object):
         MainWidget.setObjectName("MainWidget")
         MainWidget.setWindowModality(QtCore.Qt.ApplicationModal)
         MainWidget.setEnabled(True)
-        MainWidget.resize(QtCore.QSize(QtCore.QRect(0,0,585,841).size()).expandedTo(MainWidget.minimumSizeHint()))
+        MainWidget.resize(QtCore.QSize(QtCore.QRect(0,0,400,500).size()).expandedTo(MainWidget.minimumSizeHint()))
         MainWidget.setCursor(QtCore.Qt.ArrowCursor)
 
         self.centralwidget = QtGui.QWidget(MainWidget)

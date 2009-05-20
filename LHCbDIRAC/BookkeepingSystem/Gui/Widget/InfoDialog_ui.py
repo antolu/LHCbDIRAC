@@ -13,7 +13,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.setWindowModality(QtCore.Qt.WindowModal)
-        Dialog.resize(QtCore.QSize(QtCore.QRect(0,0,664,365).size()).expandedTo(Dialog.minimumSizeHint()))
+        Dialog.resize(QtCore.QSize(QtCore.QRect(0,0,500,365).size()).expandedTo(Dialog.minimumSizeHint()))
 
         self.hboxlayout = QtGui.QHBoxLayout(Dialog)
         self.hboxlayout.setObjectName("hboxlayout")
