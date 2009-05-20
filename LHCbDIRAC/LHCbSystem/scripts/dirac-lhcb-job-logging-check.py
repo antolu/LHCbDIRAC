@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.5 2009/03/09 18:29:45 gcowan Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.6 2009/05/20 10:55:01 acsmith Exp $
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.5 2009/03/09 18:29:45 gcowan Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.6 2009/05/20 10:55:01 acsmith Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -24,7 +24,7 @@ Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
-
+from DIRAC.Core.Utilities.List import sortList
 args = Script.getPositionalArgs()
 
 wmsStatus=None
@@ -183,35 +183,44 @@ for jobID in jobIDs:
   except Exception, e:
     print e
 
-
 print
 print '##################################'
 print '# Error-Node summary information #'
 print '##################################'
-for error, nodes in error2Nodes.iteritems():
-  print error, '\toccurred on', len(nodes), 'nodes, of which', len(set(nodes)), 'were unique'
+print "%s %s %s" % ("Error".ljust(50),"Occurences".ljust(12),"Unique nodes".ljust(15))
+for error in sortList(error2Nodes.keys()):
+  nodes = error2Nodes[error]
+  print "%s %s %s" % (error.ljust(50),str(len(nodes)).ljust(12),str(len(set(nodes))).ljust(15))
 
 print
 print '##################################'
 print '# Error-User summary information #'
 print '##################################'
-for error, users in error2Users.iteritems():
-  print error, '\toccurred for', len(users), 'users, of which', len(set(users)), 'were unique'
-
+print "%s %s %s" % ("Error".ljust(50),"Occurences".ljust(12),"Unique users".ljust(15))
+for error in sortList(error2Users.keys()):
+  users = error2Users[error]
+  print "%s %s %s" % (error.ljust(50),str(len(users)).ljust(12),str(len(set(users))).ljust(15))
 
 print
 print '###################################'
 print '# Node-Error summary information  #'
 print '###################################'
-for node, errors in node2Errors.iteritems():
-  print node, '\thad', len(errors), 'errors, of which', len(set(errors)), 'were unique'
+print "%s %s %s" % ("Node".ljust(50),"Errors".ljust(12),"Unique errors".ljust(15))
+for node in sortList(node2Errors.keys()):
+  errors = node2Errors[node]
+  if node:
+    print "%s %s %s" % (node.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
+  else:
+    print "%s %s %s" % (''.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
 
 print
 print '###################################'
 print '# User-Error summary information  #'
 print '###################################'
-for user, errors in user2Errors.iteritems():
-  print user, '\t\thad', len(errors), 'errors, of which', len(set(errors)), 'were unique'
+print "%s %s %s" % ("User".ljust(50),"Errors".ljust(12),"Unique errors".ljust(15))
+for user in sortList(user2Errors.keys()):
+  errors = user2Errors[user]
+  print "%s %s %s" % (user.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
 
 n = len(efficiencies)
 if n != 0:
