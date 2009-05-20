@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.20 2009/05/13 09:40:39 zmathe Exp $
+# $Id: ControlerMain.py,v 1.21 2009/05/20 09:37:54 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.20 2009/05/13 09:40:39 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.21 2009/05/20 09:37:54 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -199,7 +199,10 @@ class ControlerMain(ControlerAbstract):
                 logfile += '/'+str(f[i])
             
             name = f[len(f)-1].split('_')
-            logfile += '/'+str(name[2])
+            
+            if logfile.find('/'+str(name[2])) < 0:
+              logfile += '/'+str(name[2])
+            
             message = Message({'action':'showLog','fileName':logfile})
             return message
       elif message.action() == 'procDescription':
