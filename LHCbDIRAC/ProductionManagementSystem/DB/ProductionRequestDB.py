@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.6 2009/05/20 09:21:56 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.7 2009/05/20 09:25:31 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 # Defined states:
 #'New'
@@ -327,7 +327,7 @@ class ProductionRequestDB(DB):
         gLogger.error(result['Message'])
     self.lock.release()
     if rec['RequestState'] in ['BK Check','Submitted']:
-      _inform_people(requestID,rec['RequestState'],creds['User']):
+      _inform_people(requestID,rec['RequestState'],creds['User'])
     return S_OK(requestID)
 
   def __addMonitoring(self,req,order):
