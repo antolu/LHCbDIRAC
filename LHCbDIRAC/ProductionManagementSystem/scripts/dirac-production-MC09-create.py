@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.3 2009/05/19 15:17:46 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.4 2009/05/22 12:09:31 acsmith Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.3 2009/05/19 15:17:46 acsmith Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.4 2009/05/22 12:09:31 acsmith Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 import DIRAC
 from DIRAC.Core.Base import Script
 import os, sys
@@ -46,7 +46,7 @@ debug = False
 inputProd = 0
 dstOutputSE = 'Tier1_MC-DST'
 if eventTypeID != '30000000':
-  dstOutputSE = 'CERN_MC_M-DST'  
+  dstOutputSE = 'CERN_MC_M-DST'
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower()=="gauss":
@@ -129,9 +129,9 @@ mergedOutputSE='Tier1_MC_M-DST'
 inputData=['/lhcb/MC/2009/DST/00004672/0000/00004672_00000242_3.dst']
 merge.addMergeStep(lhcbVersion,optionsFile='$STDOPTS/PoolCopy.opts',eventType=eventTypeID,inputData=inputData,inputDataType=mergeDataType,outputSE=mergedOutputSE,inputProduction=inputProd)
 
-merge.addFinalizationStep(removeInputData=False)
+merge.addFinalizationStep(removeInputData=True)
 merge.setFileMask('dst') 
-merge.setProdPriority('10')
+merge.setProdPriority('9')
 merge.setProdGroup(prodGroup)
 inputBKQuery = { 'ProductionID'   : inputProd,
                  'FileType'       : mergeDataType,
