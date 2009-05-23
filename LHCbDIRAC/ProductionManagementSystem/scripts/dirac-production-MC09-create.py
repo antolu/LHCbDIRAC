@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.5 2009/05/23 11:41:00 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.6 2009/05/23 12:35:52 acsmith Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.5 2009/05/23 11:41:00 acsmith Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.6 2009/05/23 12:35:52 acsmith Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -25,6 +25,7 @@ lhcbVersion = 'v26r3'
 lhcbOpts = '$STDOPTS/PoolCopy.opts'
 conditions = 'MC09-20090519-vc-md100.py'
 appConfigVersion = 'v2r5'
+dstOutputSE = 'Tier1_MC-DST'
 fileGroup = 40
 debug = False
 inputProd = 0
@@ -42,6 +43,7 @@ Script.registerSwitch( "lh", "LHCb=","              LHCb version to use         
 Script.registerSwitch( "lO", "LHCbOpts=","          LHCb options to use           [%s]" % lhcbOpts )
 Script.registerSwitch( "co", "Conditions=","        Conditions file to use        [%s]" % conditions )
 Script.registerSwitch( "ap", "AppConfig=","         AppConfig version to use      [%s]" % appConfigVersion )
+Script.registerSwitch( "se", "OutputSE=","          OututSE to save temp dsts     [%s]" % dstOutputSE)
 Script.registerSwitch( "mc", "MCTruth=","           Save event MC truth           [%s]" % mcTruth)
 Script.registerSwitch( "ev", "JobEvents=","         Events to produce per job     [%s]" % numberOfEvents )
 Script.registerSwitch( "me", "MergeFiles=","        Number of DSTs to merge       [%s]" % fileGroup )
@@ -63,9 +65,6 @@ if len(args) != 1:
   usage()
 
 eventTypeID = str(args[0])
-dstOutputSE = 'Tier1_MC-DST'
-if eventTypeID != '30000000':
-  dstOutputSE = 'CERN_MC_M-DST'
 elogStr = ""
 
 for switch in Script.getUnprocessedSwitches():
@@ -91,6 +90,8 @@ for switch in Script.getUnprocessedSwitches():
     conditions=switch[1]
   elif switch[0].lower()=="appconfig":
     appConfigVersion=switch[1]
+  elif switch[0].lower()=="outputse":
+    dstOutputSE=switch[1]
   elif switch[0].lower()=="mctruth":
     mcTruth=switch[1]
   elif switch[0].lower()=="jobevents":
@@ -249,7 +250,7 @@ if fileGroup:
   merge.setJobFileGroupSize(fileGroup)
   res = merge.create(bkScript=False)
   if not res['OK']:
-    gLogger.error('Failed to create mergin production.',res['Message'])
+    gLogger.error('Failed to create merging production.',res['Message'])
     DIRAC.exit(2)
   if not res['Value']:
     gLogger.error('No production ID returned')
