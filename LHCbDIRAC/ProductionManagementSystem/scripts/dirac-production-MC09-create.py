@@ -1,27 +1,58 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.4 2009/05/22 12:09:31 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.5 2009/05/23 11:41:00 acsmith Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.4 2009/05/22 12:09:31 acsmith Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.5 2009/05/23 11:41:00 acsmith Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 import DIRAC
+from DIRAC import gLogger
 from DIRAC.Core.Base import Script
-import os, sys
+import os, re
 
-Script.registerSwitch( "ga", "Gauss=", "Gauss version to use" )
-Script.registerSwitch( "bo", "Boole=", "Boole version to use" )
-Script.registerSwitch( "br", "Brunel=", "Brunel version to use" )
-Script.registerSwitch( "lh", "LHCb=", "LHCb version to use" )
-Script.registerSwitch( "ap", "AppConfig=", "AppConfig version to use" )
-Script.registerSwitch( "mc", "MCTruth=", "Save event MC truth information" )
-Script.registerSwitch( "ev", "JobEvents=", "Events to produce per job" )
-Script.registerSwitch( "me", "MergeFiles=", "Number of DST files to merge" )
-Script.registerSwitch( "de", "InputProd=", "Perform the merging of the input production only")
-Script.registerSwitch( "de", "Debug=", "Only create workflow XML")
-Script.parseCommandLine( ignoreErrors = True )
+# Default values of options
+mcTruth = False
+numberOfEvents = '1000'
+gaussVersion = 'v37r0'
+gaussOpts = '$APPCONFIGOPTS/Gauss/MC09-b5TeV-md100.py'
+gaussGen = 'Pythia'
+booleVersion = 'v18r1'
+booleOpts = ''
+brunelVersion = 'v34r6'
+brunelOpts = ''
+lhcbVersion = 'v26r3'
+lhcbOpts = '$STDOPTS/PoolCopy.opts'
+conditions = 'MC09-20090519-vc-md100.py'
+appConfigVersion = 'v2r5'
+fileGroup = 40
+debug = False
+inputProd = 0
+bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
+bkProcessingPass = 'MC09-Sim01Reco01'
+
+Script.registerSwitch( "ga", "Gauss=","             Gauss version to use          [%s]" % gaussVersion  )
+Script.registerSwitch( "gO", "GaussOpts=","         Gauss options to use          [%s]" % gaussOpts )
+Script.registerSwitch( "gG", "GaussGen=","          Gauss generator to use        [%s]" % gaussGen )
+Script.registerSwitch( "bo", "Boole=","             Boole version to use          [%s]" % booleVersion )
+Script.registerSwitch( "bO", "BooleOpts=","         Boole options to use          [%s]" % booleOpts )
+Script.registerSwitch( "br", "Brunel=","            Brunel version to use         [%s]" % brunelVersion  )
+Script.registerSwitch( "bO", "BrunelOpts=","        Brunel options to use         [%s]" % brunelOpts )
+Script.registerSwitch( "lh", "LHCb=","              LHCb version to use           [%s]" % lhcbVersion )
+Script.registerSwitch( "lO", "LHCbOpts=","          LHCb options to use           [%s]" % lhcbOpts )
+Script.registerSwitch( "co", "Conditions=","        Conditions file to use        [%s]" % conditions )
+Script.registerSwitch( "ap", "AppConfig=","         AppConfig version to use      [%s]" % appConfigVersion )
+Script.registerSwitch( "mc", "MCTruth=","           Save event MC truth           [%s]" % mcTruth)
+Script.registerSwitch( "ev", "JobEvents=","         Events to produce per job     [%s]" % numberOfEvents )
+Script.registerSwitch( "me", "MergeFiles=","        Number of DSTs to merge       [%s]" % fileGroup )
+Script.registerSwitch( "ip", "InputProd=","         Merge given input prod        [%s]" % inputProd )
+Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
+Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
+Script.registerSwitch( "de", "Debug=","             Only create workflow XML      [%s]" % debug)
+Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
+
+from DIRAC.LHCbSystem.Client.Production import Production
 
 def usage():
   print 'Usage: %s [<options>] <EventType>' %(Script.scriptName)
@@ -32,31 +63,32 @@ if len(args) != 1:
   usage()
 
 eventTypeID = str(args[0])
-
-# Default values of options
-mcTruth = False
-numberOfEvents = '1000'
-gaussVersion = 'v37r0'
-booleVersion = 'v18r1'
-brunelVersion = 'v34r6'
-lhcbVersion = 'v26r3'
-appConfigVersion = 'v2r5'
-fileGroup = 40
-debug = False
-inputProd = 0
 dstOutputSE = 'Tier1_MC-DST'
 if eventTypeID != '30000000':
   dstOutputSE = 'CERN_MC_M-DST'
+elogStr = ""
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower()=="gauss":
     gaussVersion=switch[1]
+  elif switch[0].lower()=="gaussopts":
+    gaussOpts=switch[1]
+  elif switch[0].lower()=="gaussgen":
+    gaussGen=switch[1]
   elif switch[0].lower()=="boole":
     booleVersion=switch[1]
+  elif switch[0].lower()=="booleopts":
+    booleOpts=switch[1]
   elif switch[0].lower()=="brunel":
     brunelVersion=switch[1]
+  elif switch[0].lower()=="brunelopts":
+    brunelOpts=switch[1]
   elif switch[0].lower()=="lhcb":
     lhcbVersion=switch[1]
+  elif switch[0].lower()=="lhcbopts":
+    lhcbOpts=switch[1]
+  elif switch[0].lower()=="conditions":
+    conditions=switch[1]
   elif switch[0].lower()=="appconfig":
     appConfigVersion=switch[1]
   elif switch[0].lower()=="mctruth":
@@ -67,43 +99,103 @@ for switch in Script.getUnprocessedSwitches():
     fileGroup=int(switch[1])
   elif switch[0].lower()=='inputprod':
     inputProd = int(switch[1])
+  elif switch[0].lower()=='simcond':
+    bkSimulationCondition=switch[1]
+  elif switch[0].lower()=='procpass':
+    bkProcessingPass=switch[1]
   elif switch[0].lower()=='debug':
     debug = True
 
-from DIRAC.LHCbSystem.Client.Production import Production
+#########################################################
+# There must be an easier way to retrieving the tags
+#########################################################
+appConfigConditions = '/afs/cern.ch/lhcb/software/releases/DBASE/AppConfig/%s/options/Conditions/%s' % (appConfigVersion,conditions)
+conditionsFile = '$APPCONFIGOPTS/Conditions/%s' % conditions
+if not os.path.exists(appConfigConditions):
+  gLogger.warn('The supplied conditions file does not exist',appConfigConditions)
+  conditionsFile = '$APPCONFIGOPTS/Conditions/%s.py' % conditions
+  appConfigConditions = '%s.py' % appConfigConditions
+  if not os.path.exists(appConfigConditions):
+    gLogger.error('The supplied conditions file does not exist',appConfigConditions)
+    DIRAC.exit(2)
+oFile = open(appConfigConditions)
+oFileStr = oFile.read()
+exp = re.compile(r'LHCbApp\(\).DDDBtag\s+=\s+"(\S+)"')
+match = re.search(exp,oFileStr)
+if not match:
+  gLogger.error('Failed to determine the DDDB tag')
+  DIRAC.exit(2)
+dddbTag = match.group(1)
+gLogger.info('Determined the DDDB tag to be %s' % dddbTag)
+exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
+match = re.search(exp,oFileStr)
+if not match:
+  gLogger.error('Failed to determine the ConbDB tag')
+  DIRAC.exit(2)
+condbTag = match.group(1)
+gLogger.info('Determined the CondDB tag to be %s' % condbTag)
+#########################################################
 
-prodGroup = 'MC09-Sim01Reco01-withoutTruth'
-gaussOpts = '$APPCONFIGOPTS/Gauss/MC09-b5TeV-md100.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py;$DECFILESROOT/options/@{eventType}.opts'
-booleOpts = '$APPCONFIGOPTS/Boole/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
-brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-NoTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
-saveBrunelHistos=False
+#########################################################
+# Prepare the options files for all the applications
+#########################################################
+gaussOpts = gaussOpts.replace(' ',';')
+gaussOpts = '%s;%s;$DECFILESROOT/options/@{eventType}.opts;$LB%sROOT/options/%s.opts' % (gaussOpts,conditionsFile,gaussGen.upper(),gaussGen)
+gLogger.info("Gauss options: %s" % gaussOpts)
+# Prepare the truth options
 if mcTruth:
-  prodGroup = 'MC09-Sim01Reco01-withTruth'
-  booleOpts = '$APPCONFIGOPTS/Boole/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
-  brunelOpts = '$APPCONFIGOPTS/Brunel/MC09-WithTruth.py;$APPCONFIGOPTS/Conditions/MC09-20090519-vc-md100.py'
+  bkProcessingPass = '%s-withTruth' % bkProcessingPass
+  booleTruth = '$APPCONFIGOPTS/Boole/MC09-WithTruth.py'
+  brunelTruth = '$APPCONFIGOPTS/Brunel/MC09-WithTruth.py'
   saveBrunelHistos=True
+else:
+  bkProcessingPass = '%s-withoutTruth' % bkProcessingPass
+  booleTruth = '$APPCONFIGOPTS/Boole/MC09-NoTruth.py'
+  brunelTruth = '$APPCONFIGOPTS/Brunel/MC09-NoTruth.py'
+  saveBrunelHistos=False
+# Boole
+if booleOpts:
+  booleOpts = booleOpts.replace(' ',';')
+  booleOpts = '%s;%s;%s' % (booleTruth,booleOpts,conditionsFile)
+else:
+  booleOpts = '%s;%s' % (booleTruth,conditionsFile)
+gLogger.info("Boole options: %s" % booleOpts)
+# Brunel
+if brunelOpts:
+  brunelOpts = brunelOpts.replace(' ',';')
+  brunelOpts = '%s;%s;%s' % (brunelTruth,brunelOpts,conditionsFile)
+else:
+  brunelOpts = '%s;%s' % (brunelTruth,conditionsFile)
+gLogger.info("Brunel options: %s" % brunelOpts)
+# LHCb
+lhcbOpts = lhcbOpts.replace(' ',';')
+gLogger.info("LHCb options: %s" % lhcbOpts)
+#########################################################
 
+#########################################################
+# Create the MC production
+#########################################################
 if not inputProd:
   production = Production()
   production.setProdType('MCSimulation')
 
-  production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (prodGroup,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
-  production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,prodGroup,numberOfEvents,eventTypeID))
-  production.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown-Nu1')
-  production.setDBTags("sim-20090402-vc-md100","MC09-20090519")
+  production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
+  production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
+  production.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
+  production.setDBTags(condbTag,dddbTag)
 
-  production.addGaussStep(gaussVersion,'Pythia',numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages='AppConfig.%s' % appConfigVersion)
+  production.addGaussStep(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages='AppConfig.%s' % appConfigVersion)
   production.addBooleStep(booleVersion,'digi',booleOpts,extraPackages='AppConfig.%s' % appConfigVersion)
   production.addBrunelStep(brunelVersion,'dst',brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE,histograms=saveBrunelHistos)
 
   production.addFinalizationStep()
   production.setFileMask('dst')
-  production.setProdGroup(prodGroup)
-  production.setProdPriority('0')
+  production.setProdGroup(bkProcessingPass)
+  production.setProdPriority('1')
 
   if debug:
     production.createWorkflow()
-    sys.exit(0)
+    DIRAC.exit(0)
   res = production.create()
   if not res['OK']:
     gLogger.error('Failed to create production.',res['Message'])
@@ -113,31 +205,66 @@ if not inputProd:
     DIRAC.exit(2)
   inputProd = int(res['Value'])
 
-if not fileGroup:
-  sys.exit(0)
+  elogStr = """I have created a MC09 production (%s) with the following parameters:
+\nConditions tag: "%s"
+DDDB tag:       "%s"
+AppConfig Version %s
+\nGauss Version %s 
+Gauss Opts %s
+Event type '%s'
+Event gen '%s'
+No Events  %s
+\nBoole Version %s
+Boole Opts = %s
+\nBrunel Version %s
+Brunel Opts = %s
+\nSaving MC truth = %s""" % (inputProd,condbTag,dddbTag,appConfigVersion,gaussVersion,gaussOpts,eventTypeID,gaussGen,numberOfEvents,booleVersion,booleOpts,brunelVersion,brunelOpts,mcTruth)
+#########################################################
 
-merge = Production()
-merge.setProdType('Merge')
-merge.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s' % (prodGroup,eventTypeID,lhcbVersion,inputProd,fileGroup))
-merge.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).' % (prodGroup,lhcbVersion,fileGroup,inputProd,eventTypeID))
-merge.setBKParameters('MC','MC09',prodGroup,'Beam5TeV-VeloClosed-MagDown-Nu1')
-merge.setDBTags("sim-20090402-vc-md100","MC09-20090519")
+#########################################################
+# Create the merging production
+#########################################################
+if fileGroup:
+  merge = Production()
+  merge.setProdType('Merge')
+  merge.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s' % (bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
+  merge.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).' % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
+  merge.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
+  merge.setDBTags(condbTag,dddbTag)
 
-mergeDataType='DST'
-mergedOutputSE='Tier1_MC_M-DST'
+  mergeDataType='DST'
+  mergedOutputSE='Tier1_MC_M-DST'
+  inputData=['/lhcb/MC/2009/DST/00004672/0000/00004672_00000242_3.dst']
+  merge.addMergeStep(lhcbVersion,optionsFile=lhcbOpts,eventType=eventTypeID,inputData=inputData,inputDataType=mergeDataType,outputSE=mergedOutputSE,inputProduction=inputProd)
 
-inputData=['/lhcb/MC/2009/DST/00004672/0000/00004672_00000242_3.dst']
-merge.addMergeStep(lhcbVersion,optionsFile='$STDOPTS/PoolCopy.opts',eventType=eventTypeID,inputData=inputData,inputDataType=mergeDataType,outputSE=mergedOutputSE,inputProduction=inputProd)
-
-merge.addFinalizationStep(removeInputData=True)
-merge.setFileMask('dst') 
-merge.setProdPriority('9')
-merge.setProdGroup(prodGroup)
-inputBKQuery = { 'ProductionID'   : inputProd,
+  merge.addFinalizationStep(removeInputData=True)
+  merge.setFileMask('dst') 
+  merge.setProdPriority('9')
+  merge.setProdGroup(bkProcessingPass)
+  inputBKQuery = { 'ProductionID'   : inputProd,
                  'FileType'       : mergeDataType,
                  'EventType'      : int(eventTypeID),
                  'DataQualityFlag': 'UNCHECKED'}
-merge.setInputBKSelection(inputBKQuery)
-merge.setJobFileGroupSize(fileGroup)
-merge.create(bkScript=False)
+  merge.setInputBKSelection(inputBKQuery)
+  merge.setJobFileGroupSize(fileGroup)
+  res = merge.create(bkScript=False)
+  if not res['OK']:
+    gLogger.error('Failed to create mergin production.',res['Message'])
+    DIRAC.exit(2)
+  if not res['Value']:
+    gLogger.error('No production ID returned')
+    DIRAC.exit(2)
+  meringProd = int(res['Value'])
+
+  elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
+\nLHCb Version %s
+LHCb Opts %s
+Input files %s 
+\nThe events for this production will appear in the bookkeeping under
+MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
+#########################################################
+
+print '###################################################\n'
+print elogStr
+print '###################################################\n'
 DIRAC.exit(0)
