@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.12 2009/05/04 17:46:12 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_service.sh,v 1.13 2009/05/25 07:15:37 rgracian Exp $
 # File :   install_service.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -43,7 +43,7 @@ source $DESTDIR/bashrc
 #
 exec 2>&1
 #
-exec python \$DIRAC/DIRAC/Core/scripts/dirac-service.py $System/$Service \$DIRAC/etc/${System}_${Service}.cfg -o LogLevel=$LOGLEVEL
+exec python \$DIRAC/DIRAC/Core/scripts/dirac-service.py $System/$Service \$DIRAC/etc/${System}_${Service}.cfg -o LogLevel=$LOGLEVEL < /dev/null
 EOF
 chmod +x $ServiceDir/log/run $ServiceDir/run
 
