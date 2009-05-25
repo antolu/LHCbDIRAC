@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.40 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.41 2009/05/25 13:45:34 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.40 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.41 2009/05/25 13:45:34 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -213,9 +213,9 @@ class LockSharedArea(ModuleBaseSAM):
         self.setApplicationStatus('Could Not Create Lock File')
         return self.finalize('Could not create lock file','%s/%s' %(sharedArea,self.lockFile),'critical')
 
-    if os.path.exists('%s/install_project' %(sharedArea)):
+    if os.path.exists('%s/install_project.py' %(sharedArea)):
       self.log.info('Removing install_project from SharedArea')
-      cmd = 'rm -fv %s/install_project' %(sharedArea)
+      cmd = 'rm -fv %s/install_project.py' %(sharedArea)
       result = self.runCommand('Removing install_project from SharedArea',cmd,check=True)
       if not result['OK']:
         self.setApplicationStatus('Could Not Remove File')

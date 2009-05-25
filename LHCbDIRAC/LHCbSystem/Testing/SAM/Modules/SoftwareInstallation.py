@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.36 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.37 2009/05/25 13:45:42 paterson Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.36 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.37 2009/05/25 13:45:42 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -120,7 +120,7 @@ class SoftwareInstallation(ModuleBaseSAM):
     #Check for optional install project URL
     if self.installProjectURL:
       self.writeToLog('Found specified install_project URL %s' %(self.installProjectURL))
-      installProjectName = 'install_project'
+      installProjectName = 'install_project.py'
       if os.path.exists('%s/%s' %(os.getcwd(),installProjectName)):
         self.writeToLog('Removing previous install project script from local area')
         os.remove('%s/%s' %(os.getcwd(),installProjectName))
