@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.14 2009/04/18 18:26:58 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.15 2009/05/26 08:40:32 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.14 2009/04/18 18:26:58 rgracian Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.15 2009/05/26 08:40:32 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -63,7 +63,7 @@ class LHCbSAMJob(Job):
     self.samPlatform = gConfig.getValue('/Operations/SAM/Platform','gLite-SAM')
     self.samGroup = gConfig.getValue('/Operations/SAM/JobGroup','SAM')
     self.samType = gConfig.getValue('/Operations/SAM/JobType','SAM')
-    self.samOwnerGroup = gConfig.getValue('/Operations/SAM/OwnerGroup','lhcb_admin')
+    #self.samOwnerGroup = gConfig.getValue('/Operations/SAM/OwnerGroup','lhcb_admin')
     self.samOutputFiles = gConfig.getValue('/Operations/SAM/OutputSandbox',['*.log'])
     self.appTestPath = '/Operations/SAM/TestApplications'
     self.__setDefaults()
@@ -77,7 +77,7 @@ class LHCbSAMJob(Job):
     self.setPlatform(self.samPlatform)
     self.setOutputSandbox(self.samOutputFiles)
     self.setJobGroup(self.samGroup)
-    self.setOwnerGroup(self.samOwnerGroup)
+    #self.setOwnerGroup(self.samOwnerGroup)
     self.setType(self.samType)
     self._addJDLParameter('PilotTypes','private')
     self._addJDLParameter('SubmitPools','SAM')
