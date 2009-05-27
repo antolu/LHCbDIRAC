@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.125 2009/05/12 14:07:23 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.126 2009/05/27 09:32:02 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.125 2009/05/12 14:07:23 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.126 2009/05/27 09:32:02 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -308,15 +308,15 @@ class GaudiApplication(ModuleBase):
     setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
 
     if self.generator_name == '':
-#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
-#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+' --use-grid\n')
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+#      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+' --use-grid\n')
     else:
-#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
-      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+' --use-grid\n')
+      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+#      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+' --use-grid\n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
