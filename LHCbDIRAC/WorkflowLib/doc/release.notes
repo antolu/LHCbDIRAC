@@ -1,7 +1,7 @@
-$Id: release.notes,v 1.26 2009/05/27 09:42:09 paterson Exp $
+$Id: release.notes,v 1.27 2009/05/28 08:34:15 paterson Exp $
 
 =========
-wkf-v9r17 : SKP : 9 April 2009
+wkf-v9r17,wkf-v9r18 : SKP : 9 April 2009
  - Minor change to GaudiApplication.py removed --use-grid from the SetupProject command.
    Can be added  in the /Operations/ExternalsPolicy in the CS without a subsequent release.
 
