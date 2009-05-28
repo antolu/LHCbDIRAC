@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.6 2009/05/23 12:35:52 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.7 2009/05/28 16:19:07 acsmith Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.6 2009/05/23 12:35:52 acsmith Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.7 2009/05/28 16:19:07 acsmith Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -180,7 +180,7 @@ if not inputProd:
   production = Production()
   production.setProdType('MCSimulation')
 
-  production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
+  production.setWorkflowName('%s-%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (bkSimulationCondition,bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
   production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
   production.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
   production.setDBTags(condbTag,dddbTag)
