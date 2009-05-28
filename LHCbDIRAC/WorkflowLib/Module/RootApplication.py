@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.11 2009/05/28 12:10:06 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.12 2009/05/28 13:54:53 roma Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.11 2009/05/28 12:10:06 roma Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.12 2009/05/28 13:54:53 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -111,7 +111,7 @@ class RootApplication(object):
       testdir = os.path.join(path,"lcg/external/root", self.rootVersion, self.systemConfig, "root")
       if os.path.exists(testdir):
         rootdir = testdir
-      testdir = os.path.join(path,"lcg/app/releases/ROOT", self.rootVersion, self.systemConfig, "root")
+      testdir = os.path.join(path,"lcg/external/ROOT", self.rootVersion, self.systemConfig, "root")
       if os.path.exists(testdir):
         rootdir = testdir
 
