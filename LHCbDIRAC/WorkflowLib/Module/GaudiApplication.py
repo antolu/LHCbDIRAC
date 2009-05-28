@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.127 2009/05/28 08:01:09 joel Exp $
+# $Id: GaudiApplication.py,v 1.128 2009/05/28 09:32:42 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.127 2009/05/28 08:01:09 joel Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.128 2009/05/28 09:32:42 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -306,12 +306,18 @@ class GaudiApplication(ModuleBase):
         self.log.info('Using default externals policy for %s = %s' %(site,externals))
 
 
+    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
+
     if self.generator_name == '':
-      script.write('SetupProject --debug --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+' \n')
     else:
-      script.write('SetupProject --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+#      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+#                 +self.applicationName+' '+self.applicationVersion+' '+externals+'\n')
+      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
+                 +self.applicationName+' '+self.applicationVersion+' '+externals+' \n')
 
     script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
     script.write('   exit 1\nfi\n')
