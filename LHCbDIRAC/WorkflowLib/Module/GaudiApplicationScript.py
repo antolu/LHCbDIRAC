@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.22 2009/05/09 07:53:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.23 2009/05/29 14:45:51 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.22 2009/05/09 07:53:28 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.23 2009/05/29 14:45:51 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -265,6 +265,7 @@ class GaudiApplicationScript(ModuleBase):
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
     #self.__report('%s %s' %(self.applicationName,self.applicationVersion))
     self.writeGaudiRun(gaudiCmd, gaudiEnv)
+    self.stdError = ''
     ret = shellCall(0,'which python',env=gaudiEnv,callbackFunction=self.redirectLogOutput)
     self.log.info( 'Running:', ' '.join(gaudiCmd)  )
     ret = shellCall(0,' '.join(gaudiCmd),env=gaudiEnv,callbackFunction=self.redirectLogOutput)
@@ -281,8 +282,8 @@ class GaudiApplicationScript(ModuleBase):
     resultTuple = ret['Value']
 
     status = resultTuple[0]
-    stdOutput = resultTuple[1]
-    stdError = resultTuple[2]
+    # stdOutput = resultTuple[1]
+    # stdError = resultTuple[2]
 
     self.log.info( "Status after %s execution is %s" %(os.path.basename(self.script),str(status)) )
 
@@ -292,13 +293,13 @@ class GaudiApplicationScript(ModuleBase):
       failed = True
     elif len(stdError) > 0:
       self.log.info( "%s execution completed with application warning:" % os.path.basename(self.script) )
-      self.log.info(stdError)
+      self.log.info(self.stdError)
     else:
       self.log.info( "%s execution completed succesfully:" % os.path.basename(self.script) )
 
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
-      self.log.error( stdError )
+      self.log.error( self.stdError )
       #self.__report('%s Exited With Status %s' %(os.path.basename(self.script),status))
       return S_ERROR('%s Exited With Status %s' %(os.path.basename(self.script),status))
 
@@ -355,6 +356,9 @@ exit $?
         log.close()
       else:
         self.log.error("Application Log file not defined")
+      if fd == 1:
+        self.stdError += message
+      
 
   #############################################################################
   def __report(self,status):
