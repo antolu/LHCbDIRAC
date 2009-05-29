@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-fix-file-guid.py,v 1.1 2009/01/26 13:04:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-fix-file-guid.py,v 1.2 2009/05/29 12:22:39 paterson Exp $
 # File :   dirac-dms-fix-file-guid
 # Author : Stuart Paterson, Philippe Charpentier
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-fix-file-guid.py,v 1.1 2009/01/26 13:04:00 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-fix-file-guid.py,v 1.2 2009/05/29 12:22:39 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import os,string
 
@@ -136,7 +136,7 @@ if newGUID==oldGUID:
   DIRAC.exit(0)
 
 if safe:
-  gLogger.info('Safe mode - found old GUID = %s and new GUID = %s, exiting without changes' %(newGUID,oldGUID))
+  gLogger.info('Safe mode - found file GUID = %s and existing GUID = %s, exiting without changes' %(newGUID,oldGUID))
   DIRAC.exit(0)
 
 gLogger.verbose('Will set old GUID to %s from %s' %(newGUID,oldGUID))
