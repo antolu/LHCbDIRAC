@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.129 2009/05/29 10:04:21 acsmith Exp $
+# $Id: GaudiApplication.py,v 1.130 2009/05/29 14:06:59 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.129 2009/05/29 10:04:21 acsmith Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.130 2009/05/29 14:06:59 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -406,12 +406,13 @@ done
     os.chmod(self.applicationName+'Run.sh',0755)
     comm = 'sh -c "./'+self.applicationName+'Run.sh"'
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
+    self.stdError = ''
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     resultTuple = self.result['Value']
 
     status = resultTuple[0]
-    stdOutput = resultTuple[1]
-    stdError = resultTuple[2]
+    # stdOutput = resultTuple[1]
+    # stdError = resultTuple[2]
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
@@ -425,7 +426,7 @@ done
 
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
-      self.log.error( stdError )
+      self.log.error( self.stdError )
       #self.setApplicationStatus('%s Exited With Status %s' %(self.applicationName,status))
       self.log.error('%s Exited With Status %s' %(self.applicationName,status))
       return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))
@@ -445,5 +446,7 @@ done
         log.close()
       else:
         self.log.error("Application Log file not defined")
+      if fd == 1:
+        self.stdError += message
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
