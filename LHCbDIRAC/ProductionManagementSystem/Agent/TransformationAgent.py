@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.27 2009/05/11 12:17:24 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.28 2009/05/29 07:47:06 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.27 2009/05/11 12:17:24 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.28 2009/05/29 07:47:06 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -95,6 +95,11 @@ class TransformationAgent(Agent):
             nJobs = result['Value']
             if nJobs > 0:
               gLogger.info('%d job(s) generated' % nJobs)
+            result = server.setTransformationStatus(transID, 'Active') 	 
+            if not result['OK']: 	 
+              gLogger.error(self.name+".execute: Failed to update transformation status to 'Active'.", res['Message']) 	 
+            else: 	 
+              gLogger.info(self.name+".execute: Updated transformation status to 'Active'.")
 
         # skip the transformations of other statuses
         else:
