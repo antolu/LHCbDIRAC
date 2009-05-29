@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.8 2009/05/29 13:04:46 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.9 2009/05/29 16:18:17 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.8 2009/05/29 13:04:46 paterson Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.9 2009/05/29 16:18:17 paterson Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -313,6 +313,7 @@ if fileGroup:
   prodScript.append("#production.createWorkflow()")
   prodScript.append("production.create(bkScript=False)")
 
+  meringProd=12345
   elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
 \nLHCb Version %s
 LHCb Opts %s
