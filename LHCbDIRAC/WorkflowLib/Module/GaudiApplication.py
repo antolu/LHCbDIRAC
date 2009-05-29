@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.128 2009/05/28 09:32:42 paterson Exp $
+# $Id: GaudiApplication.py,v 1.129 2009/05/29 10:04:21 acsmith Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.128 2009/05/28 09:32:42 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.129 2009/05/29 10:04:21 acsmith Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -97,15 +97,14 @@ class GaudiApplication(ModuleBase):
         options = open(self.optfile_extra,'w')
         options.write('\n\n#//////////////////////////////////////////////////////\n')
         options.write('# Dynamically generated options in a production or analysis job\n\n')
-        # Always download the SQLite DDDB file locally to the job
-        # options.write("""from Gaudi.Configuration import *\n""")
-        # options.write("""from Configurables import CondDB\n""")
-        # options.write("""CondDB(SQLiteLocalCopiesDir = \".\")\n""")
         #TEMPORARY HACK because DaVinci doesn't yet have a configuration package.
         if self.applicationName.lower()=='davinci' or self.applicationName.lower()=='lhcb':
           options.write('from Gaudi.Configuration import *\n')
         else:
           options.write('from '+self.applicationName+'.Configuration import *\n')
+        # Always download the SQLite DDDB file locally to the job
+        options.write("""from Configurables import CondDB\n""")
+        options.write("""CondDB(SQLiteLocalCopiesDir = \".\")\n""")
 
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
