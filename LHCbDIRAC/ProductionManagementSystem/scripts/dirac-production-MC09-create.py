@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.7 2009/05/28 16:19:07 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.8 2009/05/29 13:04:46 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.7 2009/05/28 16:19:07 acsmith Exp $"
-__VERSION__ = "$Revision: 1.7 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.8 2009/05/29 13:04:46 paterson Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
-import os, re
+import os, re, shutil,string
 
 # Default values of options
 mcTruth = False
@@ -31,6 +31,7 @@ debug = False
 inputProd = 0
 bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
 bkProcessingPass = 'MC09-Sim01Reco01'
+generateScripts = 0
 
 Script.registerSwitch( "ga", "Gauss=","             Gauss version to use          [%s]" % gaussVersion  )
 Script.registerSwitch( "gO", "GaussOpts=","         Gauss options to use          [%s]" % gaussOpts )
@@ -51,15 +52,35 @@ Script.registerSwitch( "ip", "InputProd=","         Merge given input prod      
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
 Script.registerSwitch( "de", "Debug=","             Only create workflow XML      [%s]" % debug)
+Script.registerSwitch( "g" , "Generate=","          Only create production script [%s]" % generateScripts)
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
+prodScript = []
+
 from DIRAC.LHCbSystem.Client.Production import Production
+
+prodScript.append('# Production API script generated using:\n#%s' %(__RCSID__))
+prodScript.append('from DIRAC.LHCbSystem.Client.Production import Production')
+prodScript.append('production = Production()')
 
 def usage():
   print 'Usage: %s [<options>] <EventType>' %(Script.scriptName)
   print ' Generate an MC09 production for the supplied event type <EventType>'
   DIRAC.exit(2)
+
+def saveProdScript(fileName,elogEntry,prodList):
+  if os.path.exists(fileName):
+    gLogger.info('%s already exists, creating backup file' %fileName)
+    shutil.copy(fileName,'%s.backup' %(fileName))
+  fopen = open(fileName,'w')
+  fopen.write(string.join(prodList,'\n')+'\n')
+  fopen.close()
+  print '###################################################\n'
+  print 'Production script written to %s\n' %(fileName)
+  print 'Retain the below for an appropriate ELOG entry:\n'
+  print elogEntry
+  print '###################################################\n'
 
 if len(args) != 1:
   usage()
@@ -106,6 +127,11 @@ for switch in Script.getUnprocessedSwitches():
     bkProcessingPass=switch[1]
   elif switch[0].lower()=='debug':
     debug = True
+  elif switch[0].lower()=='generate':
+    generateScripts=1
+
+if generateScripts:
+  gLogger.info('Generate flag is enabled, will create Production API script')
 
 #########################################################
 # There must be an easier way to retrieving the tags
@@ -194,6 +220,42 @@ if not inputProd:
   production.setProdGroup(bkProcessingPass)
   production.setProdPriority('1')
 
+  prodScript.append("production.setProdType('MCSimulation')")
+  prodScript.append("production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents')" % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
+  prodScript.append("production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.')" % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
+  prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
+  prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
+  prodScript.append("production.addGaussStep('%s','%s','%s','%s',eventType='%s',extraPackages='AppConfig.%s')" %(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventTypeID,appConfigVersion))
+  prodScript.append("production.addBooleStep('%s','digi','%s',extraPackages='AppConfig.%s')" %(booleVersion,booleOpts,appConfigVersion))
+  prodScript.append("production.addBrunelStep('%s','dst','%s',extraPackages='AppConfig.%s',inputDataType='digi',outputSE='%s',histograms=%s)" %(brunelVersion,brunelOpts,appConfigVersion,dstOutputSE,saveBrunelHistos))
+  prodScript.append("production.addFinalizationStep()")
+  prodScript.append("production.setFileMask('dst')")
+  prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
+  prodScript.append("production.setProdPriority('1')")
+  prodScript.append("#production.createWorkflow()")
+  prodScript.append("production.create()")
+
+  elogStr = """I have created a MC09 production (%s) with the following parameters:
+\nConditions tag: "%s"
+DDDB tag:       "%s"
+AppConfig Version %s
+\nGauss Version %s
+Gauss Opts %s
+Event type '%s'
+Event gen '%s'
+No Events  %s
+\nBoole Version %s
+Boole Opts = %s
+\nBrunel Version %s
+Brunel Opts = %s
+\nSaving MC truth = %s""" % (inputProd,condbTag,dddbTag,appConfigVersion,gaussVersion,gaussOpts,eventTypeID,gaussGen,numberOfEvents,booleVersion,booleOpts,brunelVersion,brunelOpts,mcTruth)
+
+  if generateScripts:
+    #fileName = '%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents.py' % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents)
+    fileName = '%s-EventType%s-%sEvents.py' % (bkProcessingPass,eventTypeID,numberOfEvents)
+    saveProdScript(fileName,elogStr,prodScript)
+    DIRAC.exit(0)
+
   if debug:
     production.createWorkflow()
     DIRAC.exit(0)
@@ -206,20 +268,6 @@ if not inputProd:
     DIRAC.exit(2)
   inputProd = int(res['Value'])
 
-  elogStr = """I have created a MC09 production (%s) with the following parameters:
-\nConditions tag: "%s"
-DDDB tag:       "%s"
-AppConfig Version %s
-\nGauss Version %s 
-Gauss Opts %s
-Event type '%s'
-Event gen '%s'
-No Events  %s
-\nBoole Version %s
-Boole Opts = %s
-\nBrunel Version %s
-Brunel Opts = %s
-\nSaving MC truth = %s""" % (inputProd,condbTag,dddbTag,appConfigVersion,gaussVersion,gaussOpts,eventTypeID,gaussGen,numberOfEvents,booleVersion,booleOpts,brunelVersion,brunelOpts,mcTruth)
 #########################################################
 
 #########################################################
@@ -239,7 +287,7 @@ if fileGroup:
   merge.addMergeStep(lhcbVersion,optionsFile=lhcbOpts,eventType=eventTypeID,inputData=inputData,inputDataType=mergeDataType,outputSE=mergedOutputSE,inputProduction=inputProd)
 
   merge.addFinalizationStep(removeInputData=True)
-  merge.setFileMask('dst') 
+  merge.setFileMask('dst')
   merge.setProdPriority('9')
   merge.setProdGroup(bkProcessingPass)
   inputBKQuery = { 'ProductionID'   : inputProd,
@@ -249,6 +297,34 @@ if fileGroup:
   merge.setInputBKSelection(inputBKQuery)
   merge.setJobFileGroupSize(fileGroup)
   res = merge.create(bkScript=False)
+
+  prodScript.append("production.setProdType('Merge')")
+  prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
+  prodScript.append("prodcution.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).')" % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
+  prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
+  prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
+  prodScript.append("production.addMergeStep(%s,optionsFile='%s',eventType='%s',inputData='%s',inputDataType='%s',outputSE='%s',inputProduction='%s')" %(lhcbVersion,lhcbOpts,eventTypeID,inputData,mergeDataType,mergedOutputSE,inputProd))
+  prodScript.append("production.addFinalizationStep(removeInputData=True)")
+  prodScript.append("production.setFileMask('dst')")
+  prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
+  prodScript.append("production.setInputBKSelection(%s)" %inputBKQuery)
+  prodScript.append("production.setJobFileGroupSize(%s)" %fileGroup)
+  prodScript.append("production.setProdPriority('9')")
+  prodScript.append("#production.createWorkflow()")
+  prodScript.append("production.create(bkScript=False)")
+
+  elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
+\nLHCb Version %s
+LHCb Opts %s
+Input files %s
+\nThe events for this production will appear in the bookkeeping under
+MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
+
+  if generateScripts:
+    fileName = '%s-EventType%s-Merging-LHCb%s-prod%s-files%s.py' %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup)
+    saveProdScript(fileName,elogStr,prodScript)
+    DIRAC.exit(0)
+
   if not res['OK']:
     gLogger.error('Failed to create merging production.',res['Message'])
     DIRAC.exit(2)
@@ -257,12 +333,6 @@ if fileGroup:
     DIRAC.exit(2)
   meringProd = int(res['Value'])
 
-  elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
-\nLHCb Version %s
-LHCb Opts %s
-Input files %s 
-\nThe events for this production will appear in the bookkeeping under
-MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
 #########################################################
 
 print '###################################################\n'
