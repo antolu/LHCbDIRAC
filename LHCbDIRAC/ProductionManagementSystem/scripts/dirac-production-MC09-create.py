@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.9 2009/05/29 16:18:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.10 2009/06/01 15:43:09 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.9 2009/05/29 16:18:17 paterson Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.10 2009/06/01 15:43:09 paterson Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -296,7 +296,6 @@ if fileGroup:
                  'DataQualityFlag': 'UNCHECKED'}
   merge.setInputBKSelection(inputBKQuery)
   merge.setJobFileGroupSize(fileGroup)
-  res = merge.create(bkScript=False)
 
   prodScript.append("production.setProdType('Merge')")
   prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
@@ -326,6 +325,7 @@ MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkS
     saveProdScript(fileName,elogStr,prodScript)
     DIRAC.exit(0)
 
+  res = merge.create(bkScript=False)
   if not res['OK']:
     gLogger.error('Failed to create merging production.',res['Message'])
     DIRAC.exit(2)
