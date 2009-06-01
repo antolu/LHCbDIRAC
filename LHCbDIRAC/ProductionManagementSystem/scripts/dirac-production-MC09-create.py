@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.10 2009/06/01 15:43:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.11 2009/06/01 15:48:25 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.10 2009/06/01 15:43:09 paterson Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.11 2009/06/01 15:48:25 paterson Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -299,10 +299,10 @@ if fileGroup:
 
   prodScript.append("production.setProdType('Merge')")
   prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
-  prodScript.append("prodcution.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).')" % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
+  prodScript.append("production.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).')" % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
   prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
-  prodScript.append("production.addMergeStep(%s,optionsFile='%s',eventType='%s',inputData='%s',inputDataType='%s',outputSE='%s',inputProduction='%s')" %(lhcbVersion,lhcbOpts,eventTypeID,inputData,mergeDataType,mergedOutputSE,inputProd))
+  prodScript.append("production.addMergeStep('%s',optionsFile='%s',eventType='%s',inputData=%s,inputDataType='%s',outputSE='%s',inputProduction='%s')" %(lhcbVersion,lhcbOpts,eventTypeID,inputData,mergeDataType,mergedOutputSE,inputProd))
   prodScript.append("production.addFinalizationStep(removeInputData=True)")
   prodScript.append("production.setFileMask('dst')")
   prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
