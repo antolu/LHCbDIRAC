@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.18 2009/05/29 13:33:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.19 2009/06/02 13:57:33 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.18 2009/05/29 13:33:15 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.19 2009/06/02 13:57:33 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -334,6 +334,8 @@ class Production(LHCbJob):
   def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
+
+       Note: for MDF merging case must not add a finalization step.
     """
     if inputProduction:
       result = self._setInputProductionBKStepInfo(inputProduction)
@@ -359,7 +361,39 @@ class Production(LHCbJob):
       optionsLine = overrideOpts
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed, doesn't look like this is used anywhere...
-    self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
+    if inputDataType.lower()=='mdf':
+      self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
+    else:
+      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
+
+  #############################################################################
+  def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup='',extraOutput={}):
+    """Helper function.
+    """
+    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
+      raise TypeError,'Expected strings for application name and version'
+
+    self.gaudiStepCount +=1
+    MergeMDFModule = ModuleDefinition('MergeMDF')
+    MergeMDFModule.setDescription('Merge MDF Files Module')
+    MergeMDFModule.setBody('from WorkflowLib.Module.MergeMDF import MergeMDF\n')
+
+    MergeMDFStep = StepDefinition('Merge_MDF_Step')
+    MergeMDFStep.addModule(MergeMDFModule)
+    moduleInstance = MergeMDFStep.createModuleInstance('MergeMDF', 'MergeMDFModule')
+    MergeMDFStep.addParameterLinked(MergeMDFModule.parameters)
+    MergeMDFStep.addParameter(Parameter("outputDataSE","","string","","",True, False, "Output data SE."))
+    MergeMDFStep.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+
+    self.workflow.addStep(MergeMDFStep)
+
+    stepInstance = self.workflow.createStepInstance('Merge_MDF_Step', 'MergeMDF')
+
+    stepInstance.setValue("outputDataSE", outputSE)
+    outputFile=[{"outputDataName":"@{STEP_ID}.mdf","outputDataType":"MDF","outputDataSE":outputSE}]
+    stepInstance.setValue("listoutput",outputFile)
+    self.setInputData(inputData)
+    return stepInstance
 
   #############################################################################
   def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup='',extraOutput={}):
@@ -782,6 +816,18 @@ class Production(LHCbJob):
     if not passDict:
       return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
 
+    #for e.g. MDF case must remove some info
+#    if stepBKCutOff:
+#      tmpPassDict = passDict
+#      stepKeys = passDict.keys()
+#      stepKeys.sort()
+#      for step in stepKeys:
+#        if int(step.replace('Step',''))>stepBKCutOff:
+#          self.log.info('Removing %s from BK processing pass' %step)
+#          del tmpPassDict[step]
+#      passDict=tmpPassDict
+
+    #add merge step...
     for stepID in passDict.keys():
       self.log.info('Adding BK processing step %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
       self.bkSteps[stepID]=passDict[stepID]
