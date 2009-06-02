@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.6 2009/05/10 19:45:51 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BKInputDataAgent.py,v 1.7 2009/06/02 21:28:26 paterson Exp $
 # File :   InputDataAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py,v 1.6 2009/05/10 19:45:51 atsareg Exp $"
+__RCSID__ = "$Id: BKInputDataAgent.py,v 1.7 2009/06/02 21:28:26 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
@@ -27,7 +27,7 @@ class BKInputDataAgent(OptimizerModule):
 
     #Define the shifter proxy needed
     self.am_setModuleParam( "shifterProxy", "ProductionManager" )
-    
+
     self.bkClient = RPCClient('Bookkeeping/BookkeepingManager')
     return S_OK()
 
@@ -72,7 +72,7 @@ class BKInputDataAgent(OptimizerModule):
 
     # Obtain the metadata stored in the BK
     start = time.time()
-    res = self.bkClient.getFileMetadata(productionFiles) 
+    res = self.bkClient.getFileMetadata(productionFiles)
     timing = time.time() - start
     self.log.info('BK Lookup Time: %.2f seconds ' % (timing) )
     if not res['OK']:
@@ -107,14 +107,16 @@ class BKInputDataAgent(OptimizerModule):
       return S_ERROR(errStr)
     lfcMetadata = res['Value']
 
-    # Verify the consistency of the LFC and BK metadata    
+    # Verify the consistency of the LFC and BK metadata
     badFileCount = 0
     for lfn,lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
       bkMeta = bkFileMetadata[lfn]
       badFile=False
-      if lfcMeta.has_key('GUID') and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper(): 
+      if lfcMeta.has_key('GUID') and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper():
         badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK GUID Mismatch'))
         badFile=True
+      if not bkMeta['FileSize']:
+        bkMeta['FileSize']=0
       if lfcMeta.has_key('Size') and int(lfcMeta['Size']) != int(bkMeta['FileSize']):
         badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK File Size Mismatch'))
         badFile=True
@@ -124,7 +126,7 @@ class BKInputDataAgent(OptimizerModule):
           badFile=True
       if badFile:
         badFileCount +=1
- 
+
     # Failed the job if there are any inconsistencies
     if badLFNs:
       self.log.info('Found %s problematic LFN(s) for job %s' % (badFileCount,job) )
