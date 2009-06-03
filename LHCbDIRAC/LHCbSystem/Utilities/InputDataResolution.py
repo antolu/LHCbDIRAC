@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.6 2009/06/03 20:38:04 paterson Exp $
+# $Id: InputDataResolution.py,v 1.7 2009/06/03 21:02:59 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.6 2009/06/03 20:38:04 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.7 2009/06/03 21:02:59 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -83,8 +83,9 @@ class InputDataResolution:
       tmpDict[lfn]=mdata
       if re.search('.raw$',lfn):
         #correctedTURL = 'root:%s' %(val)
-        #tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
-        self.log.verbose('Would have been prepending root: to TURL for %s (DISABLED)' %lfn)
+        tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
+        self.log.verbose('Prepending root: to TURL for %s' %lfn)
+        #self.log.verbose('Would have been prepending root: to TURL for %s (DISABLED)' %lfn)
 
     resolvedData = tmpDict
     catalogName = 'pool_xml_catalog.xml'
