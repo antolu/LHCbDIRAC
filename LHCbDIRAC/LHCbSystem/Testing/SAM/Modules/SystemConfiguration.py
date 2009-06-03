@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.25 2009/06/03 14:11:58 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.26 2009/06/03 14:13:27 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.25 2009/06/03 14:11:58 joel Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.26 2009/06/03 14:13:27 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -209,7 +209,6 @@ class SystemConfiguration(ModuleBaseSAM):
 
     self.log.info(' Check mapping')
     if proxy.find('lcgadmin') != -1:
-      self.log.info("my username2 is %s" % (map_name))
       if map_name.find('s') != -1 or map_name.find('g') != -1 or map_name.find('m') != -1:
         self.log.info('correct mapping')
         return S_OK()
@@ -223,7 +222,7 @@ class SystemConfiguration(ModuleBaseSAM):
       else:
         self.log.warn('potentiel problem in the mapping')
         return S_ERROR('potentiel problem in the mapping')
-      
+
 
   #############################################################################
   def __deleteSharedAreaFiles(self,sharedArea,filePattern):
