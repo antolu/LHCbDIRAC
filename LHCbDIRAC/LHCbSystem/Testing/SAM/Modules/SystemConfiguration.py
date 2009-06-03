@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.23 2009/05/05 21:39:54 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.24 2009/06/03 05:40:40 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.23 2009/05/05 21:39:54 rgracian Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.24 2009/06/03 05:40:40 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -76,6 +76,7 @@ class SystemConfiguration(ModuleBaseSAM):
 
     self.runinfo = self.getRunInfo()
     self.setApplicationStatus('Starting %s Test' %self.testName)
+    self.__checkMapping(self.runinfo['Proxy'],self.runinfo['identityShort'])
 
     self.cwd  = os.getcwd()
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
@@ -198,6 +199,25 @@ class SystemConfiguration(ModuleBaseSAM):
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+
+  #############################################################################
+  def checkMapping(self,proxy,map_name):
+    """Return warning if the mapping is not the one expected..
+    """
+    if proxy.lower().find('lcgadmin') != -1:
+      if map_name.find('s') != -1 or map_name.find('g') != -1 or map_name.find('m') != -1:
+        self.log.info('correct mapping')
+        return S_OK()
+      else:
+        self.log.warn('potentiel problem in the mapping')
+        return self.finalize('Potentiel problem in the mapping',map_name,'warning')
+    elif proxy.lower().find('production') != -1:
+      if map_name.find('p') != -1 or map_name.find('r') != -1 or map_name.find('d') != -1:
+        self.log.info('correct mapping')
+        return S_OK()
+      else:
+        self.log.warn('potentiel problem in the mapping')
+        return self.finalize('Potentiel problem in the mapping',map_name,'warning')
 
   #############################################################################
   def __deleteSharedAreaFiles(self,sharedArea,filePattern):
