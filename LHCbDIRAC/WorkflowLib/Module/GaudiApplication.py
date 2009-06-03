@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.130 2009/05/29 14:06:59 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.131 2009/06/03 14:54:38 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.130 2009/05/29 14:06:59 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.131 2009/06/03 14:54:38 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -102,9 +102,10 @@ class GaudiApplication(ModuleBase):
           options.write('from Gaudi.Configuration import *\n')
         else:
           options.write('from '+self.applicationName+'.Configuration import *\n')
+
         # Always download the SQLite DDDB file locally to the job
-        options.write("""from Configurables import CondDB\n""")
-        options.write("""CondDB(SQLiteLocalCopiesDir = \".\")\n""")
+        #options.write("""from Configurables import CondDB\n""")
+        #options.write("""CondDB(SQLiteLocalCopiesDir = \".\")\n""")
 
         if self.optionsLine:
           for opt in self.optionsLine.split(';'):
