@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.15 2009/05/26 08:40:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.16 2009/06/03 07:45:16 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.15 2009/05/26 08:40:32 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.16 2009/06/03 07:45:16 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -66,6 +66,12 @@ class LHCbSAMJob(Job):
     #self.samOwnerGroup = gConfig.getValue('/Operations/SAM/OwnerGroup','lhcb_admin')
     self.samOutputFiles = gConfig.getValue('/Operations/SAM/OutputSandbox',['*.log'])
     self.appTestPath = '/Operations/SAM/TestApplications'
+    self.importLine = """
+try:
+  from LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
+except Exception,x:
+  from DIRAC.LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
+"""
     self.__setDefaults()
 
   #############################################################################
@@ -131,7 +137,8 @@ class LHCbSAMJob(Job):
     moduleName = 'LockSharedArea'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to manage the lock in the shared area of a Grid site for LHCb')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.LockSharedArea import LockSharedArea\n'
+    body = string.replace(self.importLine,'<MODULE>','LockSharedArea')
+    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.LockSharedArea import LockSharedArea\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -188,7 +195,8 @@ class LHCbSAMJob(Job):
     moduleName = 'SystemConfiguration'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the system configuration of a Grid site for LHCb')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SystemConfiguration import SystemConfiguration\n'
+    body = string.replace(self.importLine,'<MODULE>','SystemConfiguration')
+    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SystemConfiguration import SystemConfiguration\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -242,7 +250,8 @@ class LHCbSAMJob(Job):
     moduleName = 'SiteQueues'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SiteQueues import SiteQueues\n'
+    body = string.replace(self.importLine,'<MODULE>','SiteQueues')
+    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SiteQueues import SiteQueues\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -307,7 +316,8 @@ class LHCbSAMJob(Job):
     moduleName = 'SoftwareInstallation'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to install LHCb software')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SoftwareInstallation import SoftwareInstallation\n'
+    body = string.replace(self.importLine,'<MODULE>','SoftwareInstallation')
+    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SoftwareInstallation import SoftwareInstallation\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -375,7 +385,8 @@ class LHCbSAMJob(Job):
     moduleName = 'TestApplications'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    body = string.replace(self.importLine,'<MODULE>','TestApplications')
+    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -436,7 +447,8 @@ class LHCbSAMJob(Job):
     moduleName = 'SAMFinalization'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SAMFinalization import SAMFinalization\n'
+    body = string.replace(self.importLine,'<MODULE>','SAMFinalization')
+    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SAMFinalization import SAMFinalization\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -502,7 +514,8 @@ class LHCbSAMJob(Job):
     moduleName = 'RunTestScript'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
-    body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
+    body = string.replace(self.importLine,'<MODULE>','RunTestScript')
+    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
