@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.10 2009/06/04 07:56:06 paterson Exp $
+# $Id: InputDataResolution.py,v 1.11 2009/06/04 08:37:34 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.10 2009/06/04 07:56:06 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.11 2009/06/04 08:37:34 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -82,11 +82,11 @@ class InputDataResolution:
     for lfn,mdata in resolvedData.items():
       tmpDict[lfn]=mdata
       if re.search('.raw$',lfn):
-        #tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
-        #self.log.verbose('Prepending root: to TURL for %s' %lfn)
+        tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
+        self.log.verbose('Prepending root: to TURL for %s' %lfn)
         #self.log.verbose('Would have been prepending root: to TURL for %s (DISABLED)' %lfn)
-        self.log.verbose('Manually appending ?filetype=raw: to TURL for %s' %lfn)
-        tmpDict[lfn].update({'turl':'%s?filetype=raw' %(resolvedData[lfn]['turl'])})
+        #self.log.verbose('Manually appending ?filetype=raw: to TURL for %s' %lfn)
+        #tmpDict[lfn].update({'turl':'%s?filetype=raw' %(resolvedData[lfn]['turl'])})
 
     resolvedData = tmpDict
     catalogName = 'pool_xml_catalog.xml'
