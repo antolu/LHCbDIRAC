@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.14 2009/05/08 06:26:37 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.15 2009/06/04 06:55:40 joel Exp $
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.14 2009/05/08 06:26:37 joel Exp $"
-__VERSION__ = "$Revision: 1.14 $"
+__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.15 2009/06/04 06:55:40 joel Exp $"
+__VERSION__ = "$Revision: 1.15 $"
 
 import sys
 import os
@@ -22,14 +22,6 @@ cliParams.registerCLISwitches()
 
 Script.disableCS()
 Script.parseCommandLine()
-
-if 'X509_CERT_DIR' not in os.environ:
-  print >> sys.stderr, "missing variable X509_CERT_DIR"
-  sys.exit(-1)
-
-if 'X509_VOMS_DIR' not in os.environ:
-  print >> sys.stderr, "missing variable X509_VOMS_DIR"
-  sys.exit(-1)
 
 diracGroup = cliParams.getDIRACGroup()
 time = cliParams.getProxyLifeTime()
@@ -136,7 +128,9 @@ if vomsMapping:
   retVal = voms.setVOMSAttributes( finalChain, vomsMapping )
   if not retVal[ 'OK' ]:
     #print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
-    print "Cannot add voms attribute %s to proxy" % ( vomsMapping )
+    print "Warning : Cannot add voms attribute %s to proxy" % ( vomsMapping )
+    print "          Accessing data in the grid storage from the user interface will not be possible."
+    print "          The grid jobs will not be affected."
     if cliParams.strict:
       sys.exit(1)
   else:
