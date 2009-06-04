@@ -31,3 +31,8 @@ use FrameworkSystem  		 v* DIRAC
 use Interfaces    		 v* DIRAC
 use MonitoringSystem  		 v* DIRAC
 use Resources			 v* DIRAC
+
+private
+action DiracMake "$(DIRACSYSROOT)/dirac-make"
+macro_append constituents " DiracMake "
+macro_remove cmt_actions_constituents 'DiracMake'
