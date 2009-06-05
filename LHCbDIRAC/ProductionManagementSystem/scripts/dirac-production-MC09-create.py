@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.11 2009/06/01 15:48:25 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.12 2009/06/05 14:01:21 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.11 2009/06/01 15:48:25 paterson Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.12 2009/06/05 14:01:21 paterson Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -14,24 +14,25 @@ import os, re, shutil,string
 # Default values of options
 mcTruth = False
 numberOfEvents = '1000'
-gaussVersion = 'v37r0'
+gaussVersion = 'v37r2'
 gaussOpts = '$APPCONFIGOPTS/Gauss/MC09-b5TeV-md100.py'
 gaussGen = 'Pythia'
 booleVersion = 'v18r1'
 booleOpts = ''
-brunelVersion = 'v34r6'
+brunelVersion = 'v34r7'
 brunelOpts = ''
 lhcbVersion = 'v26r3'
 lhcbOpts = '$STDOPTS/PoolCopy.opts'
-conditions = 'MC09-20090519-vc-md100.py'
-appConfigVersion = 'v2r5'
+conditions = 'MC09-20090602-vc-md100.py'
+appConfigVersion = 'v2r7'
 dstOutputSE = 'Tier1_MC-DST'
 fileGroup = 40
 debug = False
 inputProd = 0
 bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
-bkProcessingPass = 'MC09-Sim01Reco01'
+bkProcessingPass = 'MC09-Sim03Reco02'
 generateScripts = 0
+mergeType = 'DST'
 
 Script.registerSwitch( "ga", "Gauss=","             Gauss version to use          [%s]" % gaussVersion  )
 Script.registerSwitch( "gO", "GaussOpts=","         Gauss options to use          [%s]" % gaussOpts )
@@ -47,12 +48,13 @@ Script.registerSwitch( "ap", "AppConfig=","         AppConfig version to use    
 Script.registerSwitch( "se", "OutputSE=","          OututSE to save temp dsts     [%s]" % dstOutputSE)
 Script.registerSwitch( "mc", "MCTruth=","           Save event MC truth           [%s]" % mcTruth)
 Script.registerSwitch( "ev", "JobEvents=","         Events to produce per job     [%s]" % numberOfEvents )
-Script.registerSwitch( "me", "MergeFiles=","        Number of DSTs to merge       [%s]" % fileGroup )
+Script.registerSwitch( "me", "MergeFiles=","        Number of files to merge      [%s]" % fileGroup )
 Script.registerSwitch( "ip", "InputProd=","         Merge given input prod        [%s]" % inputProd )
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
 Script.registerSwitch( "de", "Debug=","             Only create workflow XML      [%s]" % debug)
 Script.registerSwitch( "g" , "Generate=","          Only create production script [%s]" % generateScripts)
+Script.registerSwitch( "m" , "MergeType=","         Type of files to merge        [%s]" % mergeType)
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
@@ -129,6 +131,8 @@ for switch in Script.getUnprocessedSwitches():
     debug = True
   elif switch[0].lower()=='generate':
     generateScripts=1
+  elif switch[0].lower()=='mergetype':
+    mergeType = switch[1].upper()
 
 if generateScripts:
   gLogger.info('Generate flag is enabled, will create Production API script')
@@ -161,6 +165,10 @@ if not match:
   DIRAC.exit(2)
 condbTag = match.group(1)
 gLogger.info('Determined the CondDB tag to be %s' % condbTag)
+if not mergeType in ['DST','MDF']:
+  gLogger.error('MergeType must be MDF or DST, not %s' %mergeType)
+  DIRAC.exit(2)
+
 #########################################################
 
 #########################################################
@@ -274,20 +282,23 @@ Brunel Opts = %s
 # Create the merging production
 #########################################################
 if fileGroup:
+  mergeDataType=mergeType
+  appString='LHCb%s' %(lhcbVersion)
+  if mergeDataType=='MDF':
+    appString='MergeMDF'
   merge = Production()
   merge.setProdType('Merge')
-  merge.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s' % (bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
-  merge.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).' % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
+  merge.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s' % (bkProcessingPass,eventTypeID,appString,inputProd,fileGroup))
+  merge.setWorkflowDescription('MC09 workflow for merging %ss %s using %s with %s input files from production %s (event type %s ).' % (mergeDataType,bkProcessingPass,appString,fileGroup,inputProd,eventTypeID))
   merge.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
   merge.setDBTags(condbTag,dddbTag)
 
-  mergeDataType='DST'
   mergedOutputSE='Tier1_MC_M-DST'
   inputData=['/lhcb/MC/2009/DST/00004672/0000/00004672_00000242_3.dst']
   merge.addMergeStep(lhcbVersion,optionsFile=lhcbOpts,eventType=eventTypeID,inputData=inputData,inputDataType=mergeDataType,outputSE=mergedOutputSE,inputProduction=inputProd)
 
-  merge.addFinalizationStep(removeInputData=True)
-  merge.setFileMask('dst')
+  merge.addFinalizationStep(sendBookkeeping=False,removeInputData=True)
+  merge.setFileMask(mergeDataType.lower())
   merge.setProdPriority('9')
   merge.setProdGroup(bkProcessingPass)
   inputBKQuery = { 'ProductionID'   : inputProd,
@@ -298,34 +309,43 @@ if fileGroup:
   merge.setJobFileGroupSize(fileGroup)
 
   prodScript.append("production.setProdType('Merge')")
-  prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-LHCb%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup))
-  prodScript.append("production.setWorkflowDescription('MC09 workflow for merging for DSTs %s using LHCb %s with %s input files from production %s (event type %s ).')" % (bkProcessingPass,lhcbVersion,fileGroup,inputProd,eventTypeID))
+  prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup))
+  prodScript.append("production.setWorkflowDescription('MC09 workflow for merging for %ss %s using %s with %s input files from production %s (event type %s ).')" % (mergeDataType,bkProcessingPass,appString,fileGroup,inputProd,eventTypeID))
   prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
   prodScript.append("production.addMergeStep('%s',optionsFile='%s',eventType='%s',inputData=%s,inputDataType='%s',outputSE='%s',inputProduction='%s')" %(lhcbVersion,lhcbOpts,eventTypeID,inputData,mergeDataType,mergedOutputSE,inputProd))
-  prodScript.append("production.addFinalizationStep(removeInputData=True)")
-  prodScript.append("production.setFileMask('dst')")
+  prodScript.append("production.addFinalizationStep(sendBookkeeping=False,removeInputData=True)")
+  prodScript.append("production.setFileMask('%s')" %(mergeDataType.lower()))
   prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
   prodScript.append("production.setInputBKSelection(%s)" %inputBKQuery)
   prodScript.append("production.setJobFileGroupSize(%s)" %fileGroup)
   prodScript.append("production.setProdPriority('9')")
   prodScript.append("#production.createWorkflow()")
-  prodScript.append("production.create(bkScript=False)")
+  if mergeDataType=='MDF':
+    prodScript.append("production.create(bkScript=True)")
+  else:
+    prodScript.append("production.create(bkScript=False)")
 
   meringProd=12345
+  if mergeDataType=='MDF':
+    lhcbOpts='NA'
+
   elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
-\nLHCb Version %s
+\nMerging with %s
 LHCb Opts %s
 Input files %s
 \nThe events for this production will appear in the bookkeeping under
-MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
+MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,appString,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
 
   if generateScripts:
-    fileName = '%s-EventType%s-Merging-LHCb%s-prod%s-files%s.py' %(bkProcessingPass,eventTypeID,lhcbVersion,inputProd,fileGroup)
+    fileName = '%s-%s-Merging-%s-p%s-%sf.py' %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup)
     saveProdScript(fileName,elogStr,prodScript)
     DIRAC.exit(0)
 
-  res = merge.create(bkScript=False)
+  bk=False
+  if mergeDataType=='MDF':
+    bk=True
+  res = merge.create(bkScript=bk)
   if not res['OK']:
     gLogger.error('Failed to create merging production.',res['Message'])
     DIRAC.exit(2)
@@ -337,6 +357,6 @@ MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,lhcbVersion,lhcbOpts,fileGroup,bkS
 #########################################################
 
 print '###################################################\n'
-print elogStr
+print string.replace(elogStr,'12345',str(meringProd))
 print '###################################################\n'
 DIRAC.exit(0)
