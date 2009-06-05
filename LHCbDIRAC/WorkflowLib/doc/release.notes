@@ -1,4 +1,10 @@
-$Id: release.notes,v 1.29 2009/05/28 13:59:57 paterson Exp $
+$Id: release.notes,v 1.30 2009/06/05 11:21:50 paterson Exp $
+
+=========
+wkf-v9r21 : SKP : 5 June 2009
+- GaudiApplication.py commented SQLDDDB copy local options until fixed LHCb version is tested and deployed
+- GaudiApplicationScript.py retrieve stdError from the call back
+- MergeMDF.py - reworked to fit with standard finalization step and added log file creation
 
 =========
 wkf-v9r20 : SKP : 28 May 2009
