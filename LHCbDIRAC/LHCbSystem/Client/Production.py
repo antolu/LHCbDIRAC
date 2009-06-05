@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.19 2009/06/02 13:57:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.20 2009/06/05 09:07:34 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.19 2009/06/02 13:57:33 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.20 2009/06/05 09:07:34 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -380,18 +380,17 @@ class Production(LHCbJob):
 
     MergeMDFStep = StepDefinition('Merge_MDF_Step')
     MergeMDFStep.addModule(MergeMDFModule)
-    moduleInstance = MergeMDFStep.createModuleInstance('MergeMDF', 'MergeMDFModule')
+    MergeMDFStep.createModuleInstance('MergeMDF', 'MergeMDFModule')
     MergeMDFStep.addParameterLinked(MergeMDFModule.parameters)
-    MergeMDFStep.addParameter(Parameter("outputDataSE","","string","","",True, False, "Output data SE."))
-    MergeMDFStep.addParameter(Parameter("listoutput",[],"list","","",True,False,"list of output data"))
+    self._addParameter(MergeMDFStep,'applicationLog','string','','ApplicationLogFile')
+    self._addParameter(MergeMDFStep,'listoutput','list',[],'StepOutputList')
 
     self.workflow.addStep(MergeMDFStep)
 
-    stepInstance = self.workflow.createStepInstance('Merge_MDF_Step', 'MergeMDF')
-
-    stepInstance.setValue("outputDataSE", outputSE)
-    outputFile=[{"outputDataName":"@{STEP_ID}.mdf","outputDataType":"MDF","outputDataSE":outputSE}]
-    stepInstance.setValue("listoutput",outputFile)
+    stepInstance = self.workflow.createStepInstance('Merge_MDF_Step', 'MergeMDF_%s' %eventType)
+    outputList =[{"outputDataName":"@{STEP_ID}.mdf","outputDataType":"MDF","outputDataSE":outputSE}]
+    stepInstance.setValue('listoutput',(outputList))
+    stepInstance.setValue('applicationLog', 'Merge_@{STEP_ID}.log')
     self.setInputData(inputData)
     return stepInstance
 
@@ -552,7 +551,7 @@ class Production(LHCbJob):
     self._addParameter(gaudiAppDefn,'inputData','string','','StepInputData')
     self._addParameter(gaudiAppDefn,'inputDataType','string','','InputDataType')
     self._addParameter(gaudiAppDefn,'eventType','string','','EventType')
-    self._addParameter(gaudiAppDefn,'outputData','string','','InputData')
+    self._addParameter(gaudiAppDefn,'outputData','string','','OutputData')
     self._addParameter(gaudiAppDefn,'generatorName','string','','GeneratorName')
     self._addParameter(gaudiAppDefn,'applicationName','string','','ApplicationName')
     self._addParameter(gaudiAppDefn,'applicationVersion','string','','ApplicationVersion')
