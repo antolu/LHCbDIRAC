@@ -1,15 +1,20 @@
 ########################################################################
-# $Id: MergeMDF.py,v 1.2 2009/04/18 17:34:26 rgracian Exp $
+# $Id: MergeMDF.py,v 1.3 2009/06/05 09:09:35 paterson Exp $
 ########################################################################
 """ Simple merging module for MDF files. """
 
-__RCSID__ = "$Id: MergeMDF.py,v 1.2 2009/04/18 17:34:26 rgracian Exp $"
+__RCSID__ = "$Id: MergeMDF.py,v 1.3 2009/06/05 09:09:35 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Module.ModuleBase                       import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
+
+try:
+  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
 
 import string,os
 
@@ -20,14 +25,13 @@ class MergeMDF(ModuleBase):
     """Module initialization.
     """
     self.log = gLogger.getSubLogger( "MergeMDF" )
+    self.version = __RCSID__
     self.commandTimeOut = 10*60
     self.rm = ReplicaManager()
     self.outputDataName = ''
     self.outputLFN = ''
-
     #List all input parameters here
     self.inputData = ''
-    self.outputDataSE = ''
 
   #############################################################################
   def resolveInputVariables(self):
@@ -44,17 +48,43 @@ class MergeMDF(ModuleBase):
     else:
       result = S_ERROR('No Input Data Defined')
 
-    if self.step_commons.has_key('outputDataSE'):
-      self.outputDataSE = self.step_commons['outputDataSE']
+#    if self.step_commons.has_key('outputDataSE'):
+#      self.outputDataSE = self.step_commons['outputDataSE']
+#    else:
+#      result = S_ERROR('No Output SE Defined')
+
+    if self.step_commons.has_key('applicationLog'):
+      self.applicationLog = self.step_commons['applicationLog']
     else:
-      result = S_ERROR('No Output SE Defined')
+      self.applicationLog='mergingMDF.log'
+
+    if self.step_commons.has_key('listoutput'):
+       self.listoutput = self.step_commons['listoutput']
+    else:
+      return S_ERROR('Could not find listoutput')
+
+    if self.workflow_commons.has_key('outputList'):
+        self.workflow_commons['outputList'] = self.workflow_commons['outputList'] + self.listoutput
+    else:
+        self.workflow_commons['outputList'] = self.listoutput
 
     if self.workflow_commons.has_key('ProductionOutputData'):
-      self.outputLFN = self.workflow_commons['ProductionOutputData']
-      self.outputDataName = os.path.basename(self.outputLFN)
+        self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
+        if not type(self.prodOutputLFNs)==type([]):
+          self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split(';')]
     else:
-      result = S_ERROR('Could Not Find Output LFN')
+      self.log.info('ProductionOutputData parameter not found, creating on the fly')
+      result = constructProductionLFNs(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        return result
+      self.prodOutputLFNs=result['Value']['ProductionOutputData']
 
+    if len(self.prodOutputLFNs) > 1:
+      return S_ERROR('MergeMDF module can only have one output LFN')
+
+    self.outputLFN = self.prodOutputLFNs[0]
+    self.outputDataName = os.path.basename(self.outputLFN)
     return result
 
   #############################################################################
@@ -66,27 +96,38 @@ class MergeMDF(ModuleBase):
       self.log.error(result['Message'])
       return result
 
+    logLines = ['#'*len(self.version),self.version,'#'*len(self.version)]
+    logLines.append('The following files will be downloaded for merging:\n%s' %(string.join(self.inputData,'\n')))
     #Now use the RM to obtain all input data sets locally
     for lfn in self.inputData:
       if os.path.exists(os.path.basename(lfn)):
         self.log.info('File %s already in local directory' %lfn)
       else:
-        self.log.info('Attempting to download replica of %s' %lfn)
+        logLines.append('#'*len(lfn))
+        msg = 'Attempting to download replica of:\n%s' %lfn
+        self.log.info(msg)
+        logLines.append(msg)
+        logLines.append('#'*len(lfn))
         result = self.rm.getFile(lfn)
         self.log.info(result)
+        logLines.append(result)
         if not result['OK']:
-          return result
+          logLines.append('\nFailed to download %s' %(lfn))
+          return self.finalize(logLines,error='Failed To Download LFN')
         if not os.path.exists('%s/%s' %(os.getcwd(),os.path.basename(lfn))):
-          self.log.warn('File does not exist in local directory after download')
-          return S_ERROR('Downloaded File Not Found')
+          logLines.append('\nFile does not exist in local directory after download')
+          return self.finalize(logLines,error='Downloaded File Not Found')
 
     #Now all MDF files are local, merge is a 'cat'
     cmd = 'cat %s > %s' %(string.join([os.path.basename(x) for x in self.inputData],' '),self.outputDataName)
+    logLines.append('\nExecuting merge operation...')
     self.log.info('Executing "%s"' %cmd)
     result = shellCall(self.commandTimeOut,cmd)
     if not result['OK']:
       self.log.error(result)
-      return result
+      logLines.append('Merge operation failed with result:\n%s' %result)
+      return self.finalize(logLines,error='shellCall Failed')
+
     status = result['Value'][0]
     stdout = result['Value'][1]
     stderr = result['Value'][2]
@@ -95,31 +136,37 @@ class MergeMDF(ModuleBase):
       self.log.error(stderr)
 
     if status:
-      self.log.info('Non-zero status %s while executing "%s"' %(status,cmd))
-      return S_ERROR('Non-zero Status During Merge')
+      msg = 'Non-zero status %s while executing "%s"' %(status,cmd)
+      self.log.info(msg)
+      logLines.append(msg)
+      return self.finalize(logLines,error='Non-zero Status During Merge')
 
     outputFilePath = '%s/%s' %(os.getcwd(),self.outputDataName)
     if not os.path.exists(outputFilePath):
-      self.log.info('%s does not exist locally' %outputFlePath)
+      logLines.append('Merged file not found in local directory after merging operation')
+      return self.finalize(logLines,error='Merged File Not Created')
 
-    self.log.info('All input files downloaded and merged to produce %s' %self.outputDataName)
+    msg = 'SUCCESS: All input files downloaded and merged to produce %s' %(self.outputDataName)
+    self.log.info(msg)
+    logLines.append(msg)
+    return self.finalize(logLines,msg='Produced merged MDF file')
 
-    #Now upload the file and register in the LFC
-    self.log.info('Attempting putAndRegister("%s","%s","%s",catalog="LcgFileCatalogCombined")' %(self.outputLFN,outputFilePath,self.outputDataSE))
-    upload = self.rm.putAndRegister(self.outputLFN,outputFilePath,self.outputDataSE,catalog='LcgFileCatalogCombined')
-    self.log.info(upload)
-    if not upload['OK']:
-      self.log.error('putAndRegister() operation failed')
-      return result
-
-    #Now can remove the input files from the LFC
-#    for lfn in self.inputData:
-#      self.log.info('Attempting removal of %s' %lfn)
-#      result = self.rm.removeFile(lfn)
-#      if not result['OK']:
-#        self.log.error('File removal failed',lfn)
-#        self.log.error(result)
-
-    return S_OK('Produced merged MDF file')
+  #############################################################################
+  def finalize(self,logLines,msg='',error=''):
+    """ Return appropriate message and write to log file.
+    """
+    self.log.info(msg)
+    logLines.append(msg)
+    logLines = [ str(i) for i in logLines]
+    logLines.append('#EOF')
+    fopen = open(self.applicationLog,'w')
+    fopen.write(string.join(logLines,'\n')+'\n')
+    fopen.close()
+    if msg:
+      return S_OK(msg)
+    elif error:
+      return S_ERROR(error)
+    else:
+      return S_ERROR('MergeMDF: no msg or error defined')
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
