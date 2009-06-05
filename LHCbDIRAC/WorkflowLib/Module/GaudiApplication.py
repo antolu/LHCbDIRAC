@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.131 2009/06/03 14:54:38 paterson Exp $
+# $Id: GaudiApplication.py,v 1.132 2009/06/05 15:40:47 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.131 2009/06/03 14:54:38 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.132 2009/06/05 15:40:47 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -383,10 +383,11 @@ done
     if os.path.exists(comp_path):
       self.log.info('Compiler libraries found...')
       # Use the application loader shipped with the application if any (ALWAYS will be here)
-      if self.generator_name == '':
-        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
-      else:
-        comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
+      comm = 'gaudirun.py  '+self.optfile+' '+self.optfile_extra+'\n'
+#      if self.generator_name == '':
+#        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
+#      else:
+#        comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
 
       print 'Command = ',comm
       script.write(comm)
