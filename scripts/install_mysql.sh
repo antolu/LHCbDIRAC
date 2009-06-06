@@ -23,7 +23,7 @@ mkdir -p /opt/dirac/mysql/log
 mysql_install_db --datadir=/opt/dirac/mysql/db/ 2>&1 > /opt/dirac/mysql/log/mysql_install_db.log
 /opt/dirac/pro/mysql/share/mysql/mysql.server start
 
-cd /opt/DIRAC3
+cd /opt/dirac/pro
 
 for DB in ` find DIRAC/*/DB -name "*DB.sql" -exec basename {} .sql \;` ; do
 
