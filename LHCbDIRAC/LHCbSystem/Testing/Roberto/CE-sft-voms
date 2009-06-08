@@ -1,0 +1,71 @@
+#!/bin/bash
+#****** CE/CE-sft-voms
+# NAME
+# CE-sft-voms - Try to create and execute a very simple CSH script which checks several basic commands and tries to retrieves voms proxy extensions. 
+# Fails if voms-proxy-info --all returns non zero code.
+#
+# AUTHOR
+#
+# R.Santinelli@cern.ch
+#
+# LAST UPDATED
+#
+# 2009-04-20
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+
+echo "<h2>Checking if VOMS works</h2>"
+rm -f env-voms.txt voms-test.csh
+cat <<EOF > voms-test.csh
+#!/bin/csh
+
+echo "running on WN" > env-voms.txt
+hostname >> env-voms.txt
+id >> env-voms.txt
+whoami >> env-voms.txt
+voms-proxy-info --all >> & env-voms.txt
+echo "Result=$?" >> env-voms.txt
+EOF
+
+chmod +x voms-test.csh
+echo "VOMS script:"
+echo "<pre>"
+cat voms-test.csh
+echo "</pre>"
+echo "Testing if VOMS script works:"
+echo "<pre>"
+export TERM=dumb
+set -x
+./voms-test.csh
+set +x
+echo "</pre>"
+echo "VOMS script generated the following output:"
+echo "<pre>"
+cat env-voms.txt
+echo "</pre>"
+
+if ( grep 'Error: Cannot find certificate of AC issuer for vo lhcb' env-voms.txt > /dev/null ) ; then
+    rm -f env-voms.txt voms-test.csh
+    exit $SAME_ERROR
+fi
+
+if ( grep 'Error: Cannot verify AC signature' env-voms.txt > /dev/null ) ; then
+    rm -f env-voms.txt voms-test.csh
+    exit $SAME_ERROR
+fi
+
+if ( grep 'Result=0' env-voms.txt > /dev/null ) ; then
+  rm -f env-voms.txt voms-test.csh
+  exit $SAME_OK
+else
+  rm -f env-voms.txt voms-test.csh
+  exit $SAME_ERROR 
+fi
+
+
+#****
