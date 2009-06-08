@@ -1,15 +1,15 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.23 2009/05/01 14:46:27 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.24 2009/06/08 16:39:19 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.23 2009/05/01 14:46:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.23 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.24 2009/06/08 16:39:19 acasajus Exp $"
+__VERSION__ = "$Revision: 1.24 $"
 """
   Update Users and Groups from VOMS on CS
 """
 import os
-from DIRAC.Core.Base.Agent                    import Agent
+from DIRAC.Core.Base.AgentModule              import AgentModule
 from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC                                    import S_OK, S_ERROR, gConfig
@@ -17,24 +17,15 @@ from DIRAC                                    import S_OK, S_ERROR, gConfig
 from DIRAC                                    import systemCall
 from DIRAC                                    import List
 
-AGENT_NAME = "LHCb/UsersAndGroups"
-
 VO_NAME     = 'lhcb'
 VOMS_SERVER = 'voms.cern.ch'
 
-class UsersAndGroups(Agent):
-
-  def __init__( self ):
-
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
-    self.vomsServer = VOMS_SERVER
+class UsersAndGroups(AgentModule):
 
   def initialize(self):
-    result = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',3600*6) # Every 6 hours
-    return result
+    self.vomsServer = VOMS_SERVER
+    self.am_setOption( "PollingTime", 3600*6 ) # Every 6 hours
+    return S_OK()
 
   def execute(self):
 
