@@ -1,0 +1,53 @@
+#!/bin/bash
+#****** CE/CE-sft-csh
+# NAME
+# CE-sft-csh - Try to create and execute a very simple CSH script which dumps environment variable to a file. 
+# Fails if CSH script is unable to execute and the dump file is missing.
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2007-02-06
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+echo "<h2>Checking if CSH works</h2>"
+rm -f env-csh.txt csh-test.csh
+cat <<EOF > csh-test.csh
+#!/bin/csh
+env | sort > env-csh.txt
+EOF
+chmod +x csh-test.csh
+echo "CSH script:"
+echo "<pre>"
+cat csh-test.csh
+echo "</pre>"
+echo "Testing if CSH script works:"
+echo "<pre>"
+set -x
+./csh-test.csh
+set +x
+echo "</pre>"
+
+echo "CSH script generated the following output:"
+echo "<pre>"
+cat env-csh.txt
+echo "</pre>"
+
+if ( grep PATH env-csh.txt > /dev/null ) ; then
+    rm -f env-csh.txt csh-test.csh
+    exit $SAME_OK
+else
+    rm -f env-csh.txt csh-test.csh
+    exit $SAME_ERROR
+fi
+
+
+#****
