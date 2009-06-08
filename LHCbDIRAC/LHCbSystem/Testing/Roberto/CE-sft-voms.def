@@ -1,0 +1,4 @@
+testName: CE-sft-voms
+testTitle: VOMS proxy test
+testAbbr: voms
+testHelp: https://santinel.web.cern.ch/santinel/SAM/CE-sft-voms
