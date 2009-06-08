@@ -1,0 +1,28 @@
+#!/bin/bash
+
+###############################################################################################################
+# LHCb SAM wrapper for CE sensors. 
+# This is a generic wrapper that can be used for whichever tests 
+# we want to run against our SRM/SE endpoints. It inherits the SAM structure and then its flexibility to 
+# replace add/remove tests by simply changing/adding or removing test scripts located under well defined location
+#
+# Authors: Santinelli Roberto 25-01-2008
+#
+################################################################################################################
+
+#export SAM_HOME=/afs/cern.ch/user/s/santinel/scratch0/grid/same/client
+#export SAM_HOME=/afs/cern.ch/user/s/santinel/scratch0/SAM/same/client
+export SAM_HOME=/home/santinel/same/client
+#creating the environment
+source /afs/cern.ch/project/gd/LCG-share/sl4/etc/profile.d/grid-env.sh #(GridENV?)
+export SAM_PYTHON=$PYTHONPATH
+export PATH=$PATH:/afs/cern.ch/user/s/santinel/scratch0/grid/same/utility/
+
+cat /afs/cern.ch/user/s/santinel/private/pas | voms-proxy-init --voms lhcb:/lhcb/Role=production -valid 36:00 -pwstdin
+
+cd $SAM_HOME
+export PYTHONPATH=$SAM_PYTHON #restoring old environment for SAM submission
+bin/same-exec --publish CE
+bin/same-exec CE
+
+
