@@ -1,0 +1,45 @@
+#!/bin/bash
+#****** CE/CE-sft-vo-swdir
+# NAME
+# CE-sft-vo-swdir - Detect the software directory for selected VO. If variable is set and directory VO_${VO}_SW_DIR exist test is successful.
+#
+# AUTHOR
+#
+# SAM Team  sam-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# unknown
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+VO=`echo $SAME_VO | tr [:lower:] [:upper:]`
+
+echo "<h2>Checking software directory for $VO VO</h2>"
+vo_var=VO_${VO}_SW_DIR
+eval vo_dir=\$$vo_var
+echo "Checking variable: $vo_var=$vo_dir" 
+
+    #check software directory
+echo "<pre>"
+set -x
+ls -dl $vo_dir
+result=$?
+ls -l $vo_dir
+set +x
+echo "</pre>"
+echo ""
+
+if [ $result == 0 ]
+    then
+    exit $SAME_OK
+else
+    exit $SAME_ERROR
+fi
+
+
+#****    
