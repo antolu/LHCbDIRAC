@@ -1,0 +1,137 @@
+#!/bin/bash
+#****** CE/CE-sft-job
+# NAME
+# CE-sft-job - This is a pseudo-test executed by SAM on the submission UI to submit 
+# the actual tests to CEs and publish the results of the test job submission and 
+# output retrieval. Succeeds only if the job finished successfully and the output 
+# was retrieved.
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2008-28-04
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+
+. $SAME_SENSOR_HOME/config.sh
+test $SAME_CE_CONFIG && test -e $SAME_CE_CONFIG && . $SAME_CE_CONFIG
+
+log="CE-sft-job.log"
+envName=`cat envName`
+centralSE=`cat centralSE`
+LFC_HOST=`cat LFC_HOST`
+inMaintenance=`cat inMaintenance`
+
+# Test timeout. We have to die gracefully while "reporting" as much as we've collected.
+test_timeout_trap() {
+    # signaled at submission time
+    if [ ! -e testjob.jid ] ; then
+        exec 1>&- 1>&3 2>&4 3>&- 4>&-    
+	echo "Job submission failed!" >> $log
+	echo "summary: RBError" >> $log
+    else # signaled at getting job status
+	echo "Getting job status failed!" >> $log
+	echo "summary: LBError" >> $log
+    fi
+    echo "</pre>" >> $log
+    cat $log
+    exit $SAME_WARNING
+}
+trap 'set +x; test_timeout_trap' ALRM
+
+if [ "x$1" == "x--publish" ] ; then
+    if [ ! -e testjob.jid ] ; then
+	exit 0
+    fi
+
+    RETCODE=$SAME_OK
+
+    if [ -e testjob.out ] ; then
+	cat $log
+	echo "<h2>Job output:</h2>"
+	echo "<pre>"
+	cat testjob.out
+	echo "</pre>"
+	grep -q "Problem unpacking SAM Framework" testjob.out
+	if [ $? -eq 0 ] ; then
+	    echo "summary: Problem unpacking SAM Framework on WN"
+            RETCODE=$SAME_ERROR
+        fi
+	rm -f testjob.out testjob.jid
+	exit $RETCODE
+    fi
+
+    jobStatus=`$JOB_STATUS_CMD -i testjob.jid | grep "^Current Status:" | sed -e "s/Current Status:\s*//" -e "s/\s*$//"`
+
+    if [ "$jobStatus" == "Aborted" ] ; then
+	cat $log
+	echo "<h2>Job failed with logging info:</h2>"
+	echo "<pre>"
+	$JOB_LOGGING_INFO_CMD -i testjob.jid > testjob.log
+	cat testjob.log
+	echo "</pre>"
+	if grep "BrokerHelper: no compatible resources" testjob.log > /dev/null 2>&1 ; then
+	    echo "summary: LISTMATCHFAILED"
+	else
+	    echo "summary: FAILED"
+	fi
+	rm -f testjob.jid
+	exit $SAME_ERROR
+    fi
+    
+    exit 0
+else
+    if [ -e testjob.jid ] ; then
+	# job exists, do nothing
+	exit 0
+    fi
+
+    siteName=$1
+    nodeName=$2
+    rm -f $log testjob.jid
+    
+    echo "<pre>" >> $log
+    date --utc >> $log
+    echo "Submitting from host: $(hostname -f)" >> $log
+    echo "DN: $(voms-proxy-info -identity)"  >> $log
+    echo "</pre>"  >> $log
+    
+    echo "<h2>Generating JDL file:</h2>" >> $log
+    sed -e "s/<nodeName>/$nodeName/g" -e "s/<centralSE>/$centralSE/g" \
+        -e "s/<LFC_HOST>/$LFC_HOST/g" -e "s/<envName>/$envName/g" \
+        $SAME_SENSOR_HOME/testjob.sh > testjob.sh
+    cp -f $SAME_SENSOR_HOME/testjob.jdl testjob.jdl
+    sed -i -e "s/<nodeName>/$nodeName/g" testjob.jdl
+    echo "<pre>" >> $log
+    cat testjob.jdl >> $log
+    echo "</pre>" >> $log
+    echo "<b>content of <i>testjob.sh</i></b>" >> $log
+    echo "<pre>" >> $log
+    cat testjob.sh >> $log
+    echo "</pre>" >> $log
+
+    echo "<h2>Submitting a job</h2>" >> $log
+    echo "<pre>" >> $log
+    exec 3>&1 4>&2 1>>$log 2>&1
+    set -x
+    $JOB_SUBMIT_CMD -o testjob.jid testjob.jdl
+    set +x
+    exec 1>&- 1>&3 2>&4 3>&- 4>&-
+    echo "</pre>" >> $log
+    if [ ! -e testjob.jid ] ; then
+	echo "Job submission failed! Check the Resource Broker" >> $log
+	echo "summary: RBError" >> $log
+	cat $log
+	exit $SAME_WARNING
+    fi
+    exit 0
+fi
+#****
