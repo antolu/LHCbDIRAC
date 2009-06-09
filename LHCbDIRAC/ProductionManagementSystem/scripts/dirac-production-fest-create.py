@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.1 2009/06/08 17:28:58 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.2 2009/06/09 08:19:13 paterson Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.1 2009/06/08 17:28:58 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.2 2009/06/09 08:19:13 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -22,13 +22,14 @@ reprocessingEventType = fullEventType
 brunelInputDataType = 'mdf'
 brunelOutputDataType = 'rdst'
 davinciOutputDataType = 'dst'
+bkFileType = 'RAW'
 saveHistos = True
 fileMask = 'rdst;root'
 wfDescription = ''
 prodPriority='8'
 prodTypeList = ['full','express','reprocessing']
 useOracle=False
-debug=True
+debug=False
 generateScript=False
 dqFlag = 'OK'
 
@@ -42,8 +43,8 @@ bkProcessingPass = 'FEST-%s' %bkGroupDescription
 bkDataTakingConditions = 'DataTaking6153'
 #############################################################################
 conditions = 'MC09-20090602-vc-md100.py'
-condDBTag = 'head-20090112' #'sim-20090402-vc-md100'
-ddDBTag = 'head-20090112' #'MC09-20090602'
+condDBTag = 'head-20090508' #'sim-20090402-vc-md100'
+ddDBTag = 'head-20090508' #'MC09-20090602'
 #############################################################################
 brunelVersion = 'v34r7'
 brunelOpts = '$APPCONFIGOPTS/Brunel/FEST-200903.py' #;$APPCONFIGOPTS/UseOracle.py'
@@ -71,9 +72,9 @@ Script.registerSwitch( "b:", "BKConfigName=","    Config Name [%s]"   % bkConfig
 Script.registerSwitch( "k:", "BKConfigVersion="," Config Version [%s]"   % bkConfigVersion  )
 Script.registerSwitch( "m:", "GroupDesc=","       Group Description [%s]" % bkGroupDescription  )
 Script.registerSwitch( "t:", "DataTakingConds="," Data Taking Conditions [%s]"   % bkDataTakingConditions  )
-Script.registerSwitch( "n:", "Conditions=","      DB Conditions File To Use [%s]"   % conditions  )
-#Script.registerSwitch( "n:", "CondDBTag=", "Conditions DB Tag [%s]"   % condDBTag  )
-#Script.registerSwitch( "a:", "ddDBTag=", "Det Desc DB Tag [%s]"   % ddDBTag  )
+#Script.registerSwitch( "n:", "Conditions=","      DB Conditions File To Use [%s]"   % conditions  )
+Script.registerSwitch( "n:", "CondDBTag=","       Conditions DB Tag [%s]"   % condDBTag  )
+Script.registerSwitch( "a:", "DDDBTag=","         Det Desc DB Tag [%s]"   % ddDBTag  )
 #Script.registerSwitch( "v:", "EventType=","Event Type [%s]"   % brunelEventType )
 Script.registerSwitch( "v:", "BrunelVersion=","   Brunel Version [%s]"   % brunelVersion  )
 Script.registerSwitch( "u:", "BrunelOpts=","      Brunel Options [%s]"   % brunelOpts )
@@ -145,10 +146,10 @@ for switch in Script.getUnprocessedSwitches():
     bkGroupDescription=switch[1]
   elif switch[0].lower() in ('t','datatakingconds'):
     bkDataTakingConditions=switch[1]
-  elif switch[0].lower() in ('n','conditions'):
-    conditions=switch[1]
-#  elif switch[0].lower() in ('a','dddbtag'):
-#    ddDBTag=switch[1]
+  elif switch[0].lower() in ('n','conddbtag'):
+    condDBTag=switch[1]
+  elif switch[0].lower() in ('a','dddbtag'):
+    ddDBTag=switch[1]
 #  elif switch[0].lower() in ('v','eventtype'):
 #    brunelEventType=switch[1]
   elif switch[0].lower() in ('v','brunelversion'):
@@ -169,7 +170,10 @@ for switch in Script.getUnprocessedSwitches():
     appConfigVersion=switch[1]
   elif switch[0].lower() in ('p','deriveprod'):
     deriveProdFrom=switch[1]
+  elif switch[0].lower() in ('r','useoracle'):
+    useOracle=True
   elif switch[0].lower() in ('d','debug'):
+    gLogger.info('Debug flag enabled, setting log level to debug')
     debug = True
     gLogger.setLevel('debug')
   elif switch[0].lower() in ('g','generate'):
@@ -196,7 +200,7 @@ else:
 inputBKQuery = { 'SimulationConditions'     : 'All',
             'DataTakingConditions'     : bkDataTakingConditions,
             'ProcessingPass'           : 'All',
-            'FileType'                 : brunelInputDataType,
+            'FileType'                 : bkFileType,
             'EventType'                : brunelEventType,
             'ConfigName'               : bkConfigName,
             'ConfigVersion'            : bkConfigVersion,
@@ -211,6 +215,43 @@ for n,v in inputBKQuery.items():
 
 wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s' %(wfName,brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription)
 wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
+
+#############################################################################
+#Treat the options
+#############################################################################
+#appConfigConditions = '/afs/cern.ch/lhcb/software/releases/DBASE/AppConfig/%s/options/Conditions/%s' % (appConfigVersion,conditions)
+#conditionsFile = '$APPCONFIGOPTS/Conditions/%s' % conditions
+#if not os.path.exists(appConfigConditions):
+#  gLogger.warn('The supplied conditions file does not exist',appConfigConditions)
+#  conditionsFile = '$APPCONFIGOPTS/Conditions/%s.py' % conditions
+#  appConfigConditions = '%s.py' % appConfigConditions
+#  if not os.path.exists(appConfigConditions):
+#    gLogger.error('The supplied conditions file does not exist',appConfigConditions)
+#    DIRAC.exit(2)
+#oFile = open(appConfigConditions)
+#oFileStr = oFile.read()
+#exp = re.compile(r'LHCbApp\(\).DDDBtag\s+=\s+"(\S+)"')
+#match = re.search(exp,oFileStr)
+#if not match:
+#  gLogger.error('Failed to determine the DDDB tag')
+#  DIRAC.exit(2)
+#ddDBTag = match.group(1)
+gLogger.info('The DDDB tag is set to %s' % ddDBTag)
+#exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
+#match = re.search(exp,oFileStr)
+#if not match:
+#  gLogger.error('Failed to determine the CondDB tag')
+#  DIRAC.exit(2)
+#condDBTag = match.group(1)
+gLogger.info('The CondDB tag is set to %s' % condDBTag)
+
+brunelOpts = brunelOpts.replace(' ',';')
+#brunelOpts = '%s;%s' % (brunelOpts,conditionsFile)
+if useOracle:
+  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py' %brunelOpts
+  wfName += '_UseOracle'
+
+gLogger.info('Brunel options are: %s' %brunelOpts)
 
 elogStr = ' has been created with the following parameters:'
 elogStr += '\nBK Config Name Version: %s %s' %(bkConfigName,bkConfigVersion)
@@ -228,42 +269,6 @@ elogStr += '\nDaVinci Options: %s' %davinciOpts
 elogStr += '\nBK Input Data Query:'
 for n,v in inputBKQuery.items():
   elogStr+=('\n   %s = %s' %(n,v))
-
-#############################################################################
-#Treat the options
-#############################################################################
-appConfigConditions = '/afs/cern.ch/lhcb/software/releases/DBASE/AppConfig/%s/options/Conditions/%s' % (appConfigVersion,conditions)
-conditionsFile = '$APPCONFIGOPTS/Conditions/%s' % conditions
-if not os.path.exists(appConfigConditions):
-  gLogger.warn('The supplied conditions file does not exist',appConfigConditions)
-  conditionsFile = '$APPCONFIGOPTS/Conditions/%s.py' % conditions
-  appConfigConditions = '%s.py' % appConfigConditions
-  if not os.path.exists(appConfigConditions):
-    gLogger.error('The supplied conditions file does not exist',appConfigConditions)
-    DIRAC.exit(2)
-oFile = open(appConfigConditions)
-oFileStr = oFile.read()
-exp = re.compile(r'LHCbApp\(\).DDDBtag\s+=\s+"(\S+)"')
-match = re.search(exp,oFileStr)
-if not match:
-  gLogger.error('Failed to determine the DDDB tag')
-  DIRAC.exit(2)
-ddDBTag = match.group(1)
-gLogger.info('Determined the DDDB tag to be %s' % ddDBTag)
-exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
-match = re.search(exp,oFileStr)
-if not match:
-  gLogger.error('Failed to determine the CondDB tag')
-  DIRAC.exit(2)
-condDBTag = match.group(1)
-gLogger.info('Determined the CondDB tag to be %s' % condDBTag)
-
-
-if brunelOpts:
-  brunelOpts = brunelOpts.replace(' ',';')
-  brunelOpts = '%s;%s' % (brunelOpts,conditionsFile)
-else:
-  brunelOpts = '%s;%s' % (brunelTruth,conditionsFile)
 
 #############################################################################
 #Create production
