@@ -1,0 +1,37 @@
+#!/bin/bash
+
+source /afs/cern.ch/project/gd/LCG-share/sl4/etc/profile.d/grid-env.sh
+
+TOPDIR=/afs/cern.ch/user/s/santinel/private/
+dir_result=/afs/cern.ch/user/s/santinel/private/log/
+SAMHOME=/afs/cern.ch/user/s/santinel/scratch0/SAM/same/client
+
+$TOPDIR/MyProxy_test.sh
+
+export nodename=`cat $dir_result/events.log |grep NODENAME|cut -d ":" -f2`
+export samresult=`cat $dir_result/events.log |grep SAMRESULT|cut -d ":" -f2`
+echo "testName: MyProxy-lhcb-Full" > $TOPDIR/sam/MyProxy-lhcb-Full.def
+echo "testAbbr: Myoproxy-lhcb" >> $TOPDIR/sam/MyProxy-lhcb-Full.def
+echo "testTitle: MyProxy full functionality test" >> $TOPDIR/sam/MyProxy-lhcb-Full.def
+echo "testHelp: https://santinel.web.cern.ch/santinel/MyProxy/Myproxy_test" >> $TOPDIR/sam/MyProxy-lhcb-Full.def
+echo "EOT" >> $TOPDIR/sam/MyProxy-lhcb-Full.def 
+echo "envName: MyProxy.$$" > $TOPDIR/sam/MyProxy-lhcb-Full.env
+echo "name: dummy" >>  $TOPDIR/sam/MyProxy-lhcb-Full.env
+echo "value: none" >>  $TOPDIR/sam/MyProxy-lhcb-Full.env
+echo "nodename: $nodename" >  $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "testname: MyProxy-lhcb-Full" >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "envName: MyProxy.$$" >>  $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "voname: lhcb" >>  $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "status: $samresult" >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "detaileddata: EOT" >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "<br>" >>  $TOPDIR/sam/MyProxy-lhcb-Full.result
+sed 's/$/<br>/g' $dir_result/events.log >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+#	 cat $dir_result/SAMOUT >>  $TOPDIR/sam/$i/SRM-lhcb-FileAccess.result
+echo "<br>" >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+echo "EOT" >> $TOPDIR/sam/MyProxy-lhcb-Full.result
+$SAMHOME/bin/same-publish-tuples  TestDef $TOPDIR/sam/MyProxy-lhcb-Full.def
+$SAMHOME/bin/same-publish-tuples TestEnvVars $TOPDIR/sam/MyProxy-lhcb-Full.env
+$SAMHOME/bin/same-publish-tuples TestData $TOPDIR/sam/MyProxy-lhcb-Full.result
+
+
+
