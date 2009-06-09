@@ -1,0 +1,12 @@
+#!/bin/bash
+export SAM_HOME=/afs/cern.ch/user/s/santinel/scratch0/SAM/same/client
+source /afs/cern.ch/project/gd/LCG-share/sl4/etc/profile.d/grid_env.sh 
+cat /afs/cern.ch/user/s/santinel/private/pas | voms-proxy-init --voms lhcb:/lhcb/Role=pilot -pwstdin
+cd $SAM_HOME
+for i in `cat /afs/cern.ch/user/s/santinel/scratch0/grid/lfc/gRB-HOSTs`;
+do echo $i;
+  bin/same-exec --publish gRB nodename=$i
+  bin/same-exec gRB nodename=$i
+done
+
+ 
