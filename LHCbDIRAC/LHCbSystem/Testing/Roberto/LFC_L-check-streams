@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#********** LFC-check-streams *************************************************
+# Author: Roberto Santinelli
+# Checks the propagation of a new directory created on the master instance at CERN
+###############################################################################
+
+nodeName=$1
+export LFC_HOST=lfc-lhcb.cern.ch 
+echo "<pre>"
+echo "Creating probe directory on Master LFC"
+lfc-mkdir /grid/lhcb/replication_tests/streams
+RETVAL=$?
+if [ $RETVAL -eq 0 ] ; then
+    echo "going to sleep 2 minutes(to be sure  the the information is propagated) "
+    sleep 120
+    export LFC_HOST=$nodeName
+    lfc-ls /grid/lhcb/replication_tests/streams
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ] ; then
+	echo "Probe directory replicated correctly" 
+	exit $SAME_OK
+    else
+	echo "Data not replicated after 2 minutes"
+	exit $SAME_ERROR
+    fi
+    export LFC_HOST=lfc-lhcb.cern.ch 
+    lfc-rm -r /grid/lhcb/replication_tests/streams
+else
+    echo "Failed to create probe directory on the Master...checking the other way round"
+    echo "Removing probe directory on Master LFC"
+    lfc-rm -r /grid/lhcb/replication_tests/streams
+    echo "going to sleep 2 minutes (to be sure  the the information is propagated)"
+    sleep 120
+    export LFC_HOST=$nodeName
+    lfc-ls /grid/lhcb/replication_tests/streams
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ] ; then
+	echo "Probe directory removal not replicated correctly" 
+	exit $SAME_ERROR
+    else
+	echo "Probe directory removal correctly replicated after 2 minutes"
+	exit $SAME_OK
+    fi
+fi
+echo "</pre>"
+

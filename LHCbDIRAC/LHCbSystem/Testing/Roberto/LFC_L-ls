@@ -1,0 +1,57 @@
+#!/bin/bash
+#****** LFC_L/LFC_L-ls
+# NAME
+# LFC_L-ls - Does an lfc-ls command. This sensors returns OK if: 
+# * The lfc-mkdir returns successfuly.
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2008-07-24
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+nodeName=$1
+. $SAME_SENSOR_HOME/config.sh
+rm -f $SAME_WORK/LFC_L/no_vodir.$nodeName
+
+echo_config
+
+echo "Executing lfc-ls on /grid/$SAME_VO for LFC node $nodeName:"
+if [ -s $LFCPING_STAT ] ; then
+    echo "<pre>"
+	echo "<b>ERROR</b>: Previous <i>LFC_L-ping</i> test failed. Bailing out with error."
+	echo "</pre>"
+	echo "summary: ERROR - masked by LFC_L-ping"
+	exit $SAME_ERROR
+fi
+echo "<pre>"
+export LFC_HOST=$nodeName
+listing=`lfc-ls /grid/$SAME_VO 2>&1`
+RETVAL=$?
+if [ $RETVAL -eq 0 ] ; then
+    summary=`echo "$listing" | wc -l`
+    echo "number of entries: $summary"
+    echo "</pre>"
+    echo "summary: $summary"
+    exit $SAME_OK
+elif ( echo "${listing}" | egrep -q ' No such file' > /dev/null ); then
+    echo "$listing" 
+    echo "</pre>"
+    echo "summary: VO Not Supported : $SAME_VO"
+    touch $SAME_WORK/LFC_L/no_vodir.$nodeName
+    exit $SAME_INFO
+else
+    echo "$listing" 
+    echo "</pre>"
+    exit $SAME_ERROR
+fi
+
+#****
