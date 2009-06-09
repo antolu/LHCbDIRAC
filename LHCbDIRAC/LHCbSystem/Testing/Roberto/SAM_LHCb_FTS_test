@@ -1,0 +1,11 @@
+#!/bin/bash
+export SAM_HOME=/afs/cern.ch/user/s/santinel/scratch0/SAM/same/client
+source /afs/cern.ch/project/gd/LCG-share/sl4/etc/profile.d/grid_env.sh 
+cat /afs/cern.ch/user/s/santinel/private/pas | voms-proxy-init --voms lhcb:/lhcb/Role=production -pwstdin
+cd $SAM_HOME
+for i in `cat /afs/cern.ch/user/s/santinel/scratch0/grid/lfc/FTS-HOSTs`;
+do echo $i;
+  bin/same-exec FTS nodename=$i
+done
+
+ 
