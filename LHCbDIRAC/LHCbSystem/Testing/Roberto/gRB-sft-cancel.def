@@ -1,0 +1,4 @@
+testName: gRB-sft-cancel
+testTitle: Job cancel
+testAbbr: jc
+testHelp: http://grid.cyfronet.pl/sam-doc/gRB/gRB-sft-cancel.html
