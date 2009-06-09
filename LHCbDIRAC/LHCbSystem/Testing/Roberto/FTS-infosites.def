@@ -1,0 +1,5 @@
+testName: FTS-infosites
+testAbbr: ftsinfo
+testTitle: FTS in BDII according to lcg-infosites
+testHelp: http://grid.cyfronet.pl/sam-doc/FTS/FTS-infosites.html
+EOT

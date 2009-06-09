@@ -1,0 +1,5 @@
+testName: FTS-channels
+testAbbr: ftschn
+testTitle: List FTS channels
+testHelp: http://grid.cyfronet.pl/sam-doc/FTS/FTS-channels.html
+EOT

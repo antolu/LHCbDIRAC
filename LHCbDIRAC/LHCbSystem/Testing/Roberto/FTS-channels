@@ -1,0 +1,47 @@
+#!/bin/bash
+#****** FTS/FTS-channels
+# NAME
+# FTS-channels - This sensors returns OK if: 
+# * The listing of the channels dont't give error
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2007-02-06
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+ftsURL=`sed -e "s/FileTransfer$/ChannelManagement/" ftsURL`
+if [ "$ftsURL" == "" ] ; then
+    exit 0
+fi
+
+nodeName=$1
+echo "Checking channel management"
+echo "<pre>"
+echo "FTS ChannelManagement URL: $ftsURL"
+echo "Getting information about channels"
+
+set -x
+glite-transfer-channel-list -s $ftsURL > ftsChannels
+result=$?
+set +x
+nChannels=`cat ftsChannels | wc -l`
+echo "Channels found: $nChannels"
+cat ftsChannels
+echo "</pre>"
+echo "summary: $nChannels"
+if [ "$result" == "0" ] ; then
+    exit $SAME_OK
+else
+    exit $SAME_ERROR
+fi
+
+#****

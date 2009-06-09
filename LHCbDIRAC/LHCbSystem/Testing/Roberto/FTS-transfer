@@ -1,0 +1,261 @@
+#!/bin/bash
+#****** FTS/FTS-transfer
+# NAME
+# FTS-transfer -
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2007-02-06
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+export LFC_HOME=/grid/$SAME_VO/SAM
+export LCG_CATALOG_TYPE=lfc
+export myproxy=myproxy-fts.cern.ch
+
+maxJobAge=10800
+log="FTS-transfer-submit.log"
+envName=`cat envName`
+
+function publishTransfer
+{
+    local pt_site=$1
+    local pt_status=$2
+    cat  <<EOF > FTS-transfer-$pt_site.result
+voName: $SAME_VO
+nodeName: $nodeName
+testName: FTS-transfer-$pt_site
+envName: $envName
+status: $pt_status
+detailedData: EOT
+EOF
+    cat FTS-transfer-$pt_site.submit FTS-transfer-$pt_site.status >> FTS-transfer-$pt_site.result
+    echo EOT >> FTS-transfer-$pt_site.result
+}
+
+function removeJob
+{
+    local rj_jid=$1
+    grep -v $rj_jid fts-jobs.jid > rj_tmp
+    mv rj_tmp fts-jobs.jid
+}
+
+if [ "x$1" == "x--publish" ] ; then
+
+########## PUBLISH OPERATION
+    if [ ! -e fts-jobs.jid ] ; then
+	exit 0
+    fi
+    nodeName=$2
+    ftsURL=`cat ftsURL`
+    sstatus=`cat status`
+    tier=`cat tier`
+
+    for jid in `cat fts-jobs.jid` ; do
+	glite-transfer-status --verbose -l -s $ftsURL $jid > job-status.out 2>&1
+	jobStatus=`grep "^Status:" job-status.out | sed -e "s/Status:\s*//"`
+	srcSite=`grep "^$jid" fts-jobs-sites.map | cut -f 2 -d " "`
+	jobAge=$[`date +%s` - `grep "^$jid" fts-jobs-sites.map | cut -f 3 -d " "`]
+	out=FTS-transfer-$srcSite.status
+
+	if [ "$jobStatus" == "Done" -o "$jobStatus" == "Failed" ] ; then
+	    timestamp=`date -u`
+	    if [ $tier == 0 ] ; then
+		echo "<p>Transfer to: $srcSite finished at $timestamp" >> $out
+	    else
+		echo "<p>Transfer from: $srcSite finished at $timestamp" >> $out
+	    fi
+	    echo "<pre>" >> $out
+	    cat job-status.out >> $out
+	    echo "</pre>" >> $out
+	    if [ "$jobStatus" == "Done" ] ; then
+		status=$SAME_OK
+	    else
+		status=$SAME_ERROR
+	    fi
+
+	    publishTransfer $srcSite $status
+	    removeJob $jid
+	elif (( jobAge > maxJobAge )) ; then
+	    echo "<p>Transfer from: $srcSite expired! Job was pending for $jobAge seconds (max=$maxJobAge)" >> $out
+	    status=$SAME_ERROR
+	    sstatus=$SAME_ERROR
+	    echo $sstatus > status
+	    publishTransfer $srcSite $status
+	    removeJob $jid
+	fi
+	
+    done
+
+    if [ ! -s fts-jobs.jid ] ; then 
+	cat $log
+	echo "<h2>Checking submitted jobs</h2>" 
+	cat *.status
+	echo "<h2>Removing transfered files</h2>"
+	for surl in `cat dest-surls.lst` ; do
+	    echo "Removing $surl:"
+	    echo "<pre>"
+	    set -x
+	    lcg-rf --vo $SAME_VO -l lfn:FTS-transfer-test-file-copy.dat $surl
+	    lcg-del --vo $SAME_VO $surl
+	    set +x
+	    echo "</pre>"
+	done
+	rm *.submit *.status $log fts-jobs.jid dest-surls.lst
+	exit $sstatus
+    fi
+elif [ "x$1" == "x--status" ] ; then
+
+########## STATUS OPERATION
+    if [ ! -e fts-jobs.jid ] ; then
+	exit 0
+    fi
+    ftsURL=`cat ftsURL`
+    tmp=`mktemp -p .`
+    for jid in `cat fts-jobs.jid` ; do
+	glite-transfer-status  -s $ftsURL $jid >> $tmp 
+    done
+    perl -e 'foreach $a (<STDIN>) { chop($a); $d{" $a:"}+=1 }; print %d,"\n"' < $tmp
+    rm $tmp
+else
+
+############ SUBMIT OPERATION
+    siteName=`cat siteName`
+    tier=`cat tier`
+    nodeName=$1
+    
+    if [ $tier = 0 ] ; then
+	m_remote="Source"
+	m_local="Destination"
+	m_dir="to"
+	m_rdir="from"
+    else
+	m_remote="Destination"
+	m_local="Source"
+	m_dir="from"
+	m_rdir="to"
+    fi
+
+    if [ -e fts-jobs.jid ] ; then
+	exit 0
+    fi
+
+    ftsURL=`cat ftsURL`
+
+    if [ "$ftsURL" == "" ] ; then
+	exit 0
+    fi
+
+    rm -f dest-surls.lst fts-jobs-sites.map $log
+
+    srcSites=`same-query sitename tier=1 type=Production status=Certified | grep -v ^$siteName`
+    if [ $? -gt 0 ] ; then 
+	exit 0
+    fi
+
+    destSURL=`grep ^$siteName $SAME_SENSOR_HOME/${SAME_VO}-surls.map | cut -f 2`
+    if [ "$destSURL" == "" ] ; then
+	echo "$m_remote file location on SRM $destSRM not found! Please check if SRM is working correctly."
+	exit $SAME_ERROR
+    fi
+
+    echo "<h2>Submitting transfer $m_dir all Tier1 sites $m_rdir site $siteName</h2>" >> $log
+
+    sstatus=$SAME_OK
+    status=$SAME_OK
+
+    for srcSite in $srcSites ; do
+	if ((status>sstatus)) ; then
+	    sstatus=$status
+	fi
+	status=$SAME_OK
+	echo ""
+	echo "Submitting transfer $m_dir $srcSite" >> $log
+
+	exec 3>&1 4>&2 1>FTS-transfer-$srcSite.submit 2>&1
+	echo "<pre>"
+#	srcSRM=`grep ^$srcSite srcSRMs.map | cut -f 2 | head -n 1`
+#	if [ "$srcSRM" == "" ] ; then
+#	    echo "Good SRM for site $srcSite not found!"
+#	    status=$SAME_WARNING
+#	    echo "</pre>"
+#	    exec 1>&- 1>&3 2>&4 3>&- 4>&-
+#	    cat FTS-transfer-$srcSite.submit >> $log
+#	    publishTransfer $srcSite $SAME_ERROR
+#	    continue 
+#	fi
+
+#	srcSURL=`grep $srcSRM $SAME_SENSOR_WORK/FTS-transfer-test-file.replicas | head -n 1`
+	srcSURL=`grep ^$srcSite $SAME_SENSOR_HOME/${SAME_VO}-surls.map | cut -f 2`
+	if [ "$srcSURL" == "" ] ; then
+	    echo "$m_local file in $srcSite not found! Please check if SRM is working correctly."
+	    status=$SAME_WARNING
+	    echo "</pre>"
+	    exec 1>&- 1>&3 2>&4 3>&- 4>&-
+	    cat FTS-transfer-$srcSite.submit >> $log
+	    publishTransfer $srcSite $SAME_ERROR
+	    continue 
+	fi
+	
+
+	timestamp=`date +%s`
+	if [ $tier = 0 ] ; then
+	    dest="$srcSURL-$USER-$HOST-from-$siteName-$timestamp"
+	    src=$destSURL
+	else
+	    dest="$destSURL-$USER-$HOST-from-$srcSite-$timestamp"
+	    src=$srcSURL
+	fi
+
+	echo "srcSURL: $srcSURL"
+	echo "destSURL: $dest"
+	
+	echo "+ glite-transfer-submit -m $myproxy -p ******* -s $ftsURL $src $dest"
+	jid=`glite-transfer-submit -m $myproxy -p \`cat $HOME/.myproxy_passphrase\` -s $ftsURL $src $dest` 
+	result=$?
+	echo "job ID: $jid"
+	echo "+ glite-transfer-setpriority -s $ftsURL $jid 5"
+	glite-transfer-setpriority -s $ftsURL $jid 5
+
+	if [ ! "$result" == "0" ] ; then
+	    status=$SAME_ERROR
+	else
+	    echo $dest >> dest-surls.lst
+	fi
+
+	if [ ! "$jid" == "" ] ; then
+	    echo $jid >> fts-jobs.jid
+	    timestamp=`date +%s`
+	    echo "$jid $srcSite $timestamp" >> fts-jobs-sites.map
+	fi
+	echo "</pre>"
+	exec 1>&- 1>&3 2>&4 3>&- 4>&-
+
+	cat FTS-transfer-$srcSite.submit >> $log
+
+	if ((status>SAME_OK)) ; then
+	    publishTransfer $srcSite $status
+	fi
+ 
+    done
+    if ((status>sstatus)) ; then
+	sstatus=$status
+    fi
+
+    if [ ! -e fts-jobs.jid ] ; then
+	cat $log
+	exit $sstatus
+    else
+	echo $sstatus > status
+    fi
+fi
+
+#****
