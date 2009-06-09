@@ -1,0 +1,4 @@
+testName: LFC_L-check-streams
+testAbbr: lfcstreams
+testTitle: Check the streams replication
+testHelp: https://santinel.web.cern.ch/santinel/SAM/LFC-check-streams.def

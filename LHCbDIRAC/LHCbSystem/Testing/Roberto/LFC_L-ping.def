@@ -1,0 +1,4 @@
+testName: LFC_L-ping
+testAbbr: lfcping
+testTitle: Check if we can ping LFC with lfc-ping
+testHelp: http://grid.cyfronet.pl/sam-doc/LFC_L/LFC_L-ping.html
