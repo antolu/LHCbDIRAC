@@ -1,0 +1,4 @@
+testName: LFC_C-ls
+testAbbr: lfcls
+testTitle: Check if we can do lfc-ls on /grid/<SAME_VO>
+testHelp: http://grid.cyfronet.pl/sam-doc/LFC_C/LFC_C-ls.html

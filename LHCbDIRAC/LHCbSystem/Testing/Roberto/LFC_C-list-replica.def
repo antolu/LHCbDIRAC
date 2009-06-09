@@ -1,0 +1,4 @@
+testName: LFC_C-list-replica
+testAbbr: lfclr
+testTitle: Check we can query for a SURL  /grid/<SAME_VO>
+testHelp: https://santinel.web.cern.ch/santinel/SAM/LFC-list-replica

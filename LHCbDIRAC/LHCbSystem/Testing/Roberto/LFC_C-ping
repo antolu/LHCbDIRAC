@@ -1,0 +1,53 @@
+#!/bin/bash
+#****** LFC_C/LFC_C-ping
+# NAME
+# LFC_C-ping - High level ping of LFC (lfc-ping).
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2008-10-08
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+nodeName=$1
+. $SAME_SENSOR_HOME/config.sh
+rm -f $LFCPING_STAT
+
+echo_config
+
+RETCODE=$SAME_OK
+
+echo "Executing lfc-ping on LFC node $nodeName:"
+echo "<pre>"
+ERR_FN=error.file
+pingres=`lfc-ping -h $nodeName 2>$ERR_FN`
+RETVAL=$?
+if [ $RETVAL -eq 0 ] ; then
+    echo "server version: $pingres"
+    echo "</pre>"	
+    echo "summary: $pingres"
+else
+    cat $ERR_FN
+    echo "</pre>"
+    if [ ! `grep -q "Bad credentials" $ERR_FN` ]; then 
+        RETCODE=$SAME_NOTICE
+    	echo "summary: Bad credentials"
+    else
+        RETCODE=$SAME_ERROR
+    	echo "summary: FAILED"
+    fi
+    echo 1 > $LFCPING_STAT
+fi
+
+rm -f $ERR_FN
+exit $RETCODE
+
+#****

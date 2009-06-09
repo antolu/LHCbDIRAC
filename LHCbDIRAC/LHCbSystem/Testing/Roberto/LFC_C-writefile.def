@@ -1,0 +1,4 @@
+testName: LFC_C-writefile
+testAbbr: lfcwf
+testTitle: Check if we can create a file in the LFC for <SAME_VO> VO
+testHelp: http://grid.cyfronet.pl/sam-doc/LFC_C/LFC_C-writefile.html

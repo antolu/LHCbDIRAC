@@ -1,0 +1,64 @@
+#!/bin/bash
+#****** LFC_C/LFC_C-writefile
+# NAME
+# LFC_C-writefile - Checks that we can create a file in the LFC for this VO. This sensors returns OK if: 
+# * The lfc-mkdir returns successfuly.
+# In addition the test prepares /grid/<VO>/SAM directory for use by other sensors (CE, SE, SRM)
+#
+# AUTHOR
+#
+# SAM Team same-devel[at]cern.ch
+#
+# LAST UPDATED
+#
+# 2008-09-17
+#
+# LANGUAGE
+#
+# bash
+#
+# SOURCE
+
+nodeName=$1
+. $SAME_SENSOR_HOME/config.sh
+if [ -f $SAME_WORK/LFC_C/no_vodir.$nodeName ]; then
+    echo "summary: VO Not Supported : $SAME_VO"
+    exit $SAME_INFO
+fi
+export LFC_HOST=$nodeName
+export LFC_HOME=/grid/$SAME_VO/SAM
+echo "<pre>"
+
+echo_config
+
+echo "Make sure that LFC_HOME=$LFC_HOME directory exists on LFC node $nodeName"
+if [ -s $LFCPING_STAT ] ; then
+    echo "<pre>"
+	echo "<b>ERROR</b>: Previous <i>LFC_C-ping</i> test failed. Bailing out with error."
+	echo "</pre>"
+	echo "summary: ERROR - masked by LFC_C-ping"
+	exit $SAME_ERROR
+fi
+echo "<pre>"
+set -x
+lfc-mkdir -p $LFC_HOME
+set +x
+echo "</pre>"
+filename=$LFC_HOME/sft-sensor-$nodeName
+lfc-rm -rf $filename 2>&1 >/dev/null
+echo "Creating file on LFC node $nodeName: $filename"
+echo "<pre>"
+set -x
+lfc-mkdir $filename
+RETVAL=$?
+set +x
+echo "</pre>"
+if [ $RETVAL -eq 0 ] ; then
+    lfc-rm -rf $filename 2>&1 >/dev/null
+    echo "summary: $filename"
+    exit $SAME_OK
+else
+    exit $SAME_ERROR
+fi
+
+#****
