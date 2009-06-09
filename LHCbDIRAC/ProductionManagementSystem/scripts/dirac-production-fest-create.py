@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.2 2009/06/09 08:19:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.3 2009/06/09 10:34:31 paterson Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.2 2009/06/09 08:19:13 paterson Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.3 2009/06/09 10:34:31 paterson Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -23,6 +23,7 @@ brunelInputDataType = 'mdf'
 brunelOutputDataType = 'rdst'
 davinciOutputDataType = 'dst'
 bkFileType = 'RAW'
+bkProcPass = 'Real Data'
 saveHistos = True
 fileMask = 'rdst;root'
 wfDescription = ''
@@ -191,15 +192,17 @@ if prodType=='express':
   brunelEventType=expressEventType
   dqFlag = 'UNCHECKED'
 elif prodType=='full':
+  prodPriority='7'
   brunelEventType=fullEventType
   dqFlag = 'OK'
 else:
+  prodPriority='6'
   brunelEventType=reprocessingEventType
-  dqFlag = 'UNCHECKED'
+  dqFlag = 'MAYBE' #to allow separation of reconstruction / reprocessing activities
 
 inputBKQuery = { 'SimulationConditions'     : 'All',
             'DataTakingConditions'     : bkDataTakingConditions,
-            'ProcessingPass'           : 'All',
+            'ProcessingPass'           : bkProcPass,
             'FileType'                 : bkFileType,
             'EventType'                : brunelEventType,
             'ConfigName'               : bkConfigName,
@@ -237,6 +240,7 @@ wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaV
 #  DIRAC.exit(2)
 #ddDBTag = match.group(1)
 gLogger.info('The DDDB tag is set to %s' % ddDBTag)
+wfName += '_DDDB%s' %ddDBTag
 #exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
 #match = re.search(exp,oFileStr)
 #if not match:
@@ -244,7 +248,7 @@ gLogger.info('The DDDB tag is set to %s' % ddDBTag)
 #  DIRAC.exit(2)
 #condDBTag = match.group(1)
 gLogger.info('The CondDB tag is set to %s' % condDBTag)
-
+wfName += '_CondDB%s' %condDBTag
 brunelOpts = brunelOpts.replace(' ',';')
 #brunelOpts = '%s;%s' % (brunelOpts,conditionsFile)
 if useOracle:
