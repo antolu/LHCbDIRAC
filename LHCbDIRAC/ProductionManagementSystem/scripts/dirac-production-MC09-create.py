@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.12 2009/06/05 14:01:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.13 2009/06/10 17:10:46 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.12 2009/06/05 14:01:21 paterson Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.13 2009/06/10 17:10:46 paterson Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -33,6 +33,9 @@ bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
 bkProcessingPass = 'MC09-Sim03Reco02'
 generateScripts = 0
 mergeType = 'DST'
+#merge priority is fixed but MC priority can be useful
+mcPriority = 1
+appendName=''
 
 Script.registerSwitch( "ga", "Gauss=","             Gauss version to use          [%s]" % gaussVersion  )
 Script.registerSwitch( "gO", "GaussOpts=","         Gauss options to use          [%s]" % gaussOpts )
@@ -53,8 +56,10 @@ Script.registerSwitch( "ip", "InputProd=","         Merge given input prod      
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
 Script.registerSwitch( "de", "Debug=","             Only create workflow XML      [%s]" % debug)
-Script.registerSwitch( "g" , "Generate=","          Only create production script [%s]" % generateScripts)
 Script.registerSwitch( "m" , "MergeType=","         Type of files to merge        [%s]" % mergeType)
+Script.registerSwitch( "p" , "MCPriority=","        Priority of the MC production [%s]" % mcPriority)
+Script.registerSwitch( "n" , "AppendName=","        String to append to prod name [%s]" % appendName)
+Script.registerSwitch( "g" , "Generate","   Flag to only create production script [%s]" % generateScripts)
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
@@ -133,6 +138,10 @@ for switch in Script.getUnprocessedSwitches():
     generateScripts=1
   elif switch[0].lower()=='mergetype':
     mergeType = switch[1].upper()
+  elif switch[0].lower()=='mcpriority':
+    mcPriority=int(switch[1])
+  elif switch[0].lower()=='appendname':
+    appendName=str(switch[1])
 
 if generateScripts:
   gLogger.info('Generate flag is enabled, will create Production API script')
@@ -214,7 +223,7 @@ if not inputProd:
   production = Production()
   production.setProdType('MCSimulation')
 
-  production.setWorkflowName('%s-%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents' % (bkSimulationCondition,bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
+  production.setWorkflowName('%s-%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents%s' % (bkSimulationCondition,bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents,appendName))
   production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
   production.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
   production.setDBTags(condbTag,dddbTag)
@@ -226,10 +235,10 @@ if not inputProd:
   production.addFinalizationStep()
   production.setFileMask('dst')
   production.setProdGroup(bkProcessingPass)
-  production.setProdPriority('1')
+  production.setProdPriority(mcPriority)
 
   prodScript.append("production.setProdType('MCSimulation')")
-  prodScript.append("production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents')" % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents))
+  prodScript.append("production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents%s')" % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents,appendName))
   prodScript.append("production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.')" % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
   prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
@@ -239,10 +248,10 @@ if not inputProd:
   prodScript.append("production.addFinalizationStep()")
   prodScript.append("production.setFileMask('dst')")
   prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
-  prodScript.append("production.setProdPriority('1')")
+  prodScript.append("production.setProdPriority(%s)" %mcPriority)
   prodScript.append("#production.createWorkflow()")
   prodScript.append("production.create()")
-
+  inputProd=12345
   elogStr = """I have created a MC09 production (%s) with the following parameters:
 \nConditions tag: "%s"
 DDDB tag:       "%s"
@@ -275,7 +284,7 @@ Brunel Opts = %s
     gLogger.error('No production ID returned')
     DIRAC.exit(2)
   inputProd = int(res['Value'])
-
+  elogStr = string.replace(elogStr,'12345',str(inputProd))
 #########################################################
 
 #########################################################
@@ -288,7 +297,7 @@ if fileGroup:
     appString='MergeMDF'
   merge = Production()
   merge.setProdType('Merge')
-  merge.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s' % (bkProcessingPass,eventTypeID,appString,inputProd,fileGroup))
+  merge.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s%s' % (bkProcessingPass,eventTypeID,appString,inputProd,fileGroup,appendName))
   merge.setWorkflowDescription('MC09 workflow for merging %ss %s using %s with %s input files from production %s (event type %s ).' % (mergeDataType,bkProcessingPass,appString,fileGroup,inputProd,eventTypeID))
   merge.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
   merge.setDBTags(condbTag,dddbTag)
@@ -309,7 +318,7 @@ if fileGroup:
   merge.setJobFileGroupSize(fileGroup)
 
   prodScript.append("production.setProdType('Merge')")
-  prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s')" %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup))
+  prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s%s')" %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup,appendName))
   prodScript.append("production.setWorkflowDescription('MC09 workflow for merging for %ss %s using %s with %s input files from production %s (event type %s ).')" % (mergeDataType,bkProcessingPass,appString,fileGroup,inputProd,eventTypeID))
   prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
