@@ -14,7 +14,7 @@ def getStreamHIST(ID,fileType):
 
       returns a list of RAW files.
   """
-  bkDict = {'ProcessingPass':'FEST-Reco-v1', 'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','FileType':fileType,'DataQualityFlag':'UNCHECKED'}
+  bkDict = {'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','FileType':fileType,'DataQualityFlag':'UNCHECKED'}
   res = bkClient.getFilesWithGivenDataSets(bkDict)
   if not res['OK']:
     gLogger.error(res['Message'])
@@ -50,12 +50,15 @@ def getHistoAncestors(histograms):
     DIRAC.exit(2)
   for lfn in sortList(res['Value']['Successful'].keys()):
     ancestors = res['Value']['Successful'][lfn]
-    rawFile = ancestors[-1]
-    rDSTFile = ancestors[:-1]
-    if not raw2Histos.has_key(rawFile):
-      raw2Histos[rawFile] = []
-    raw2Histos[rawFile].append(lfn)
-    raw2Histos[rawFile] = raw2Histos[rawFile] +rDSTFile
+    if not ancestors:
+      print 'Not good:', lfn
+    else:  
+      rawFile = ancestors[-1]
+      rDSTFile = ancestors[:-1]
+      if not raw2Histos.has_key(rawFile):
+        raw2Histos[rawFile] = []
+      raw2Histos[rawFile].append(lfn)
+      raw2Histos[rawFile] = raw2Histos[rawFile] +rDSTFile
   return raw2Histos
 
 def getRAWDescendants(rawLfns):
