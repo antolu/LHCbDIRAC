@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.28 2009/05/29 07:47:06 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.29 2009/06/11 13:16:30 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.28 2009/05/29 07:47:06 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.29 2009/06/11 13:16:30 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -124,18 +124,19 @@ class TransformationAgent(Agent):
     if not plugin in available_plugins:
       plugin = 'Standard'
     server = RPCClient('ProductionManagement/ProductionManager')
-    result = server.getInputData(prodName,'')
 
-    if result['OK']:
-      data = result['Value']
-    else:
-      print "Failed to get data for transformation", prodID, result['Message']
-      return S_ERROR("Failed to get data for transformation %d %s"%(prodID,result['Message']))
-
-    if self.checkLFC == 'yes' and data:
-      result = self.checkDataWithLFC(prodID,data)
-      if result['OK']:
-        data = result['Value']
+    res = server.getTransformationLFNs(prodName)
+    if not res['OK']:
+      gLogger.error("Failed to get data for transformation","%s %s" % (prodName,res['Message']))
+      return res
+    lfns = res['Value']
+    if not lfns:
+      return S_OK(0)
+    res = self.getDataReplicas(prodID,lfns)
+    if not res['OK']:
+      gLogger.error("Failed to obtain data replicas for transformation","%s %s" % (prodName,res['Message']))
+      return res
+    data = res['Value']
 
     ancestorDepth = 0
     if transDict.has_key('Additional'):
@@ -369,6 +370,45 @@ class TransformationAgent(Agent):
     return result
 
   ######################################################################################
+
+  def getDataReplicas(self,production,lfns):
+    """ Get the replicas for the LFNs and check their statuses
+    """
+    fileCatalog = FileCatalog()
+    start = time.time()
+    res = fileCatalog.getReplicas(lfns)
+    delta = time.time() - start
+    gLogger.verbose('Replica results for %d files obtained in %.2f seconds' % (len(lfns),delta))
+    lfc_datadict = {}
+    lfc_data = []
+    if not result['OK']:
+      return result
+    failover_lfns = []
+    replicas = result['Value']['Successful']
+    for lfn, replicaDict in replicas.items():
+      lfc_datadict[lfn] = []
+      for se,pfn in replicaDict.items():
+        # Do not consider replicas in FAILOVER type storage
+        if se.lower().find('failover') == -1:
+          lfc_datadict[lfn].append(se)
+          lfc_data.append((lfn,se))
+        else:
+          failover_lfns.append(lfn)
+    lfc_lfns = lfc_datadict.keys()
+    # Check the input files if they are known by LFC
+    missing_lfns = []
+    for lfn in lfns:   
+      if lfn not in lfc_lfns:
+        missing_lfns.append(lfn)
+        gLogger.warn('LFN: %s not found in the LFC' % lfn)
+    if missing_lfns: 
+      # Mark this file in the transformation
+      server = RPCClient('ProductionManagement/ProductionManager')
+      result = server.setFileStatusForTransformation(production,[('MissingLFC',missing_lfns)])
+      if not result['OK']:
+        gLogger.warn(result['Message'])
+    return S_OK(lfc_data)
+
   def checkDataWithLFC(self,production,data):
     """ Check the lfns and replicas with the LFC catalog
     """
