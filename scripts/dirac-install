@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.135 2009/05/06 20:11:12 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.136 2009/06/12 06:34:18 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.135 2009/05/06 20:11:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.135 $"
+__RCSID__   = "$Id: dirac-install,v 1.136 2009/06/12 06:34:18 rgracian Exp $"
+__VERSION__ = "$Revision: 1.136 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -147,11 +147,12 @@ def parse_options_install():
   """
    parse command line options:
   """
-  global siteName, ceName, uploadFlag, voName
+  global siteName, ceName, uploadFlag, voName, lcgVer
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
    -e --external=<version>     DIRAC-external <version> to install (overwrites -v)
+   -g --grid=<version>         lcg tools package version
    -h --help                   Print this
    -i --python=<24|25>         Use python<24|25> interpreter
    -n --name=<Site>            Set <Site> as Site Name
@@ -173,8 +174,8 @@ def parse_options_install():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:hi:n:p:r:u:v:o:s:CN:P:SUV:'
-  longOptions  = ['build', 'debug', 'external=', 'help', 'python=', 'name=',
+  shortOptions = 'bde:g:hi:n:p:r:u:v:o:s:CN:P:SUV:'
+  longOptions  = ['build', 'debug', 'external=', 'grid=', 'help', 'python=', 'name=',
                   'platform=', 'repository=', 'url=', 'version=',
                   'cvs', 'Name=', 'path=', 'server', 'Upload', 'vo=',
                   'option=', 'section=', 'cert=']
@@ -197,6 +198,8 @@ def parse_options_install():
       dirac.debug()
     elif o == '-e' or o == '--external':
       ext = v
+    elif o == '-g' or o == '--grid':
+      lcgVer = v
     elif o == '-i' or o == '--python':
       dirac.setPython(v)
     elif o == '-n' or o == '--name':
@@ -2304,6 +2307,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "b",  "build",     "Allow compilation if platform not available" )
     Script.registerSwitch( "d",  "debug",     "Set debug flag" )
     Script.registerSwitch( "e:", "external=", "DIRAC-external <version> to install" )
+    Script.registerSwitch( "g:", "grid=",     "lcg tools package version" )
     Script.registerSwitch( "i:", "python=",   "Use python<24|25> interpreter" )
     Script.registerSwitch( "n:", "name=",     "Set <Site> as Site Name" )
     Script.registerSwitch( "p:", "platform=", "Use <platform> instead of local one" )
