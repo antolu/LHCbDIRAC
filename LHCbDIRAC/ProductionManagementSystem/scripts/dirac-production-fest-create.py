@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.3 2009/06/09 10:34:31 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.4 2009/06/12 08:36:21 paterson Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.3 2009/06/09 10:34:31 paterson Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.4 2009/06/12 08:36:21 paterson Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -335,7 +335,7 @@ if not result['Value']:
   gLogger.error('No production ID returned')
   DIRAC.exit(2)
 
-prodID = int(res['Value'])
+prodID = int(result['Value'])
 elogStr = 'FEST %s ProductionID %s %s' %(prodType,prodID,elogStr)
 print '###################################################\n'
 print elogStr
