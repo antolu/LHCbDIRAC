@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.13 2009/06/10 17:10:46 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.14 2009/06/12 14:14:33 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.13 2009/06/10 17:10:46 paterson Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.14 2009/06/12 14:14:33 paterson Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -55,7 +55,7 @@ Script.registerSwitch( "me", "MergeFiles=","        Number of files to merge    
 Script.registerSwitch( "ip", "InputProd=","         Merge given input prod        [%s]" % inputProd )
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
-Script.registerSwitch( "de", "Debug=","             Only create workflow XML      [%s]" % debug)
+Script.registerSwitch( "d", "Debug=","             Only create workflow XML      [%s]" % debug)
 Script.registerSwitch( "m" , "MergeType=","         Type of files to merge        [%s]" % mergeType)
 Script.registerSwitch( "p" , "MCPriority=","        Priority of the MC production [%s]" % mcPriority)
 Script.registerSwitch( "n" , "AppendName=","        String to append to prod name [%s]" % appendName)
@@ -132,13 +132,13 @@ for switch in Script.getUnprocessedSwitches():
     bkSimulationCondition=switch[1]
   elif switch[0].lower()=='procpass':
     bkProcessingPass=switch[1]
-  elif switch[0].lower()=='debug':
+  elif switch[0].lower() in ('d','debug'):
     debug = True
-  elif switch[0].lower()=='generate':
+  elif switch[0].lower() in ('g','generate'):
     generateScripts=1
   elif switch[0].lower()=='mergetype':
     mergeType = switch[1].upper()
-  elif switch[0].lower()=='mcpriority':
+  elif switch[0].lower() in ('p','mcpriority'):
     mcPriority=int(switch[1])
   elif switch[0].lower()=='appendname':
     appendName=str(switch[1])
