@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.4 2009/06/12 08:36:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.5 2009/06/12 13:07:43 paterson Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.4 2009/06/12 08:36:21 paterson Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.5 2009/06/12 13:07:43 paterson Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -23,7 +23,7 @@ brunelInputDataType = 'mdf'
 brunelOutputDataType = 'rdst'
 davinciOutputDataType = 'dst'
 bkFileType = 'RAW'
-bkProcPass = 'Real Data'
+bkInputProcPass = 'Real Data'
 saveHistos = True
 fileMask = 'rdst;root'
 wfDescription = ''
@@ -202,7 +202,7 @@ else:
 
 inputBKQuery = { 'SimulationConditions'     : 'All',
             'DataTakingConditions'     : bkDataTakingConditions,
-            'ProcessingPass'           : bkProcPass,
+            'ProcessingPass'           : bkInputProcPass,
             'FileType'                 : bkFileType,
             'EventType'                : brunelEventType,
             'ConfigName'               : bkConfigName,
@@ -284,7 +284,7 @@ production = Production()
 production.setProdType(permanentType)
 production.setWorkflowName(wfName)
 production.setWorkflowDescription(wfDescription)
-production.setBKParameters(bkConfigName,bkConfigVersion,bkGroupDescription,bkDataTakingConditions)
+production.setBKParameters(bkConfigName,bkConfigVersion,bkProcessingPass,bkDataTakingConditions)
 production.setDBTags(condDBTag,ddDBTag)
 production.setInputBKSelection(inputBKQuery)
 
