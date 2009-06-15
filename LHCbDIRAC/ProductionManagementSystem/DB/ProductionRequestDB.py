@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.8 2009/05/20 09:45:16 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.9 2009/06/15 11:38:41 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.8 $"
+__RCSID__ = "$Revision: 1.9 $"
 
 # Defined states:
 #'New'
@@ -61,7 +61,7 @@ def _getMemberMails(group):
       emails.append(email)
   return emails
 
-def _inform_people(id,state,author):
+def _inform_people(id,oldstate,state,author):
   if not state or state == 'New':
     return # was no state change or resurrect
   
@@ -73,6 +73,10 @@ def _inform_people(id,state,author):
   fromAddress = gConfig.getValue('%s/fromAddress' % csS,'')
   if not fromAddress:
     gLogger.error('No fromAddress is defined in CS path %s/fromAddress'%csS)
+    return
+  sendNotifications = gConfig.getValue('%s/sendNotifications' % csS,'Yes')
+  if sendNotifications != 'Yes':
+    gLogger.info('No notifications will be send')
     return
 
   footer = "\n\nNOTE: that is automated notification request."
@@ -106,7 +110,7 @@ def _inform_people(id,state,author):
     subj = "DIRAC: the Production Request %s is accepted." % id
     body = '\n'.join(["The Production Request is signed and ready to process",
                       "You are informed as member of %s group"])
-    groups = [ 'lhcb_tech' ]
+    groups = [ 'lhcb_prmgr' ]
   elif state == 'BK Check':
     subj = "DIRAC: new Pruduction Request %s" %id
     body = '\n'.join(["New Production is requested and it has",
@@ -126,6 +130,14 @@ def _inform_people(id,state,author):
                       "In case some other member of the group has already",
                       "done that, please ignore this mail."])
     groups = [ 'lhcb_ppg','lhcb_tech' ]
+  elif state == 'PPG OK' and oldstate == 'Accepted':
+    subj = "DIRAC: returned Pruduction Request %s" %id
+    body = '\n'.join(["Production Request is returned by Production Manager.",
+                      "As member of %s group, your are asked to correct and sign",
+                      "or reject it.","",
+                      "In case some other member of the group has already",
+                      "done that, please ignore this mail."])
+    groups = [ 'lhcb_tech' ]    
   else:
     return
   for group in groups:
@@ -327,7 +339,7 @@ class ProductionRequestDB(DB):
         gLogger.error(result['Message'])
     self.lock.release()
     if rec['RequestState'] in ['BK Check','Submitted']:
-      _inform_people(requestID,rec['RequestState'],creds['User'])
+      _inform_people(requestID,'',rec['RequestState'],creds['User'])
     return S_OK(requestID)
 
   def __addMonitoring(self,req,order):
@@ -422,7 +434,8 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       return result
     requestState,requestAuthor = result['Value']
-    inform = { 'id':str(requestID), 'state':'', 'author': str(requestAuthor) }
+    inform = { 'id':str(requestID), 'state':'', 'author': str(requestAuthor),
+               'oldstate': requestState }
 
     hasSubreq = False
     if not old['MasterID']:
@@ -462,7 +475,7 @@ class ProductionRequestDB(DB):
         self.lock.release()
         return S_ERROR("Only PPG members are alowed to sign this request")
     elif requestState in ['Accepted','Active']:
-      if creds['Group'] != 'lhcb_tech':
+      if creds['Group'] != 'lhcb_prmgr':
         self.lock.release()
         return S_ERROR("Only Tech. expers are alowed to comment active request")  
     else:
@@ -555,9 +568,10 @@ class ProductionRequestDB(DB):
         if not update['RequestState'] in ['Tech OK','Rejected']:
           self.lock.release()
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
-        if update['RequestState'] == 'Tech OK' and not update.get('ProID',old['ProID']):
-          self.lock.release()
-          return S_ERROR("Registered processing pass is required to sign for Tech OK")
+# AZ: removed from logic
+#        if update['RequestState'] == 'Tech OK' and not update.get('ProID',old['ProID']):
+#          self.lock.release()
+#          return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'PPG OK':
       for x in update:
         if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
@@ -570,9 +584,10 @@ class ProductionRequestDB(DB):
       if not update['RequestState'] in ['Accepted','Rejected']:
         self.lock.release()
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
-      if update['RequestState'] == 'Accepted' and not update.get('ProID',old['ProID']):
-        self.lock.release()
-        return S_ERROR("Registered processing pass is required to sign for Tech OK")
+# AZ: removed from logic
+#      if update['RequestState'] == 'Accepted' and not update.get('ProID',old['ProID']):
+#        self.lock.release()
+#        return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'Tech OK':
       for x in update:
         if not x in ['RequestState','Comments','RequestPriority']:
@@ -587,13 +602,13 @@ class ProductionRequestDB(DB):
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
     elif requestState in ['Accepted','Active']:
       for x in update:
-        if not x in ['RequestState','Comments']:
+        if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
           self.lock.release()
           return S_ERROR("%s can't be modified during the progress" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if requestState == 'Accepted':
-        if not update['RequestState'] in ['Active','Cancelled']:
+        if not update['RequestState'] in ['Active','Cancelled','PPG OK']:
           self.lock.release()
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
       else:
