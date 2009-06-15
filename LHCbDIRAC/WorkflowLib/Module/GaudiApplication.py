@@ -1,17 +1,20 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.132 2009/06/05 15:40:47 paterson Exp $
+# $Id: GaudiApplication.py,v 1.133 2009/06/15 12:19:08 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.132 2009/06/05 15:40:47 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.133 2009/06/15 12:19:08 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
-except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+  from LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+  from DIRAC.LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
+
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
@@ -238,7 +241,16 @@ class GaudiApplication(ModuleBase):
 #          else:
 #            self.optfile += ' '+fileopt
 
-    print 'final ',self.optfile
+    print 'Final options files:',self.optfile
+    if re.search('disablelfc',self.optfile.lower()):
+      self.log.info('CORAL LFC Access is disabled, obtaining XML files...')
+      result = getCondDBFiles()
+      if not result['OK']:
+        self.log.error('Could not obtain CondDB XML files with message:\n%s' %(result['Message']))
+        return result
+      else:
+        self.log.info('Successfully obtained Oracle CondDB XML access files')
+
     self.optfile_extra = 'gaudi_extra_options.py'
     self.managePy()
 
