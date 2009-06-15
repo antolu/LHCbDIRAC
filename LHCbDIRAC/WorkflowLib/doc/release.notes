@@ -1,4 +1,10 @@
-$Id: release.notes,v 1.30 2009/06/05 11:21:50 paterson Exp $
+$Id: release.notes,v 1.31 2009/06/15 12:57:58 paterson Exp $
+
+=========
+wkf-v9r22 : SKP : 5 June 2009
+- BookkeepingReport.py added XDST file type
+- GaudiApplication.py now use CondDBAccess utility to get CondDB access strings
+- *NB* shipping CondDBAccess utility as part of this release
 
 =========
 wkf-v9r21 : SKP : 5 June 2009
