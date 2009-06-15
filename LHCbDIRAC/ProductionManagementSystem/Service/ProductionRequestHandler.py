@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.4 2009/06/15 11:43:23 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.5 2009/06/15 11:46:17 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision: 1.5 $"
 
 import os
 import re
@@ -184,7 +184,7 @@ class ProductionRequestHandler( RequestHandler ):
       if not result['OK']:
         return result
       body = result['Value']
-      m = re.search("\$Id: ProductionRequestHandler.py,v 1.4 2009/06/15 11:43:23 azhelezo Exp $]*) \$",body)
+      m = re.search("\$\Id: ([^$]*) \$",body)
       ptime = ''
       author = ''
       ver = ''
