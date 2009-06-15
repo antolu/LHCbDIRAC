@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.93 2009/05/14 13:03:11 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.94 2009/06/15 10:09:06 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.93 2009/05/14 13:03:11 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.94 2009/06/15 10:09:06 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1623,7 +1623,45 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['Successful'] = succ
     result['Failed'] = []
     return S_OK(result)
+  
+  def setQualityProduction(self, prod, flag):
+    command = 'select distinct jobs.production  from jobs where jobs.production='+str(prod)
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    value = retVal['Value']
+    if len(value) == 0:
+      return S_ERROR('This '+str(prod)+' production is missing in the BKK DB!')
+    command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    elif len(retVal['Value']) == 0:
+      return S_ERROR('Data quality flag is missing in the DB')
+    qid = retVal['Value'][0][0]
     
+    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
+      jobs.production='+str(prod)+')'
+    retVal = self.dbW_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    
+    command = 'select files.filename from jobs, files where jobs.jobid=files.jobid and \
+      jobs.production='+str(prod)
+    
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    
+    succ = []
+    records = retVal['Value']
+    for record in records:
+      succ += [record[0]]
+    result = {}
+    result['Successful'] = succ
+    result['Failed'] = []
+    return S_OK(result)
+  
   #############################################################################  
   def __updateQualityFlag(self, lfn, qid):
     command = 'update files set qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''

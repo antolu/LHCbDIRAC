@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.50 2009/05/13 09:40:39 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.51 2009/06/15 10:09:07 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.50 2009/05/13 09:40:39 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.51 2009/06/15 10:09:07 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -465,6 +465,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def setQualityRun(self, runNb, flag):
     return self.getManager().setQualityRun(runNb, flag)
+  
+  #############################################################################
+  def setQualityProduction(self, prod, flag):
+    return self.getManager().setQualityProduction(prod, flag)
   
   #############################################################################
   def getAvailableDataQuality(self):
