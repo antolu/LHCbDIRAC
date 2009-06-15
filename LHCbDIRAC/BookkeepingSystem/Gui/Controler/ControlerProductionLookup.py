@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerProductionLookup.py,v 1.3 2009/06/15 12:50:26 zmathe Exp $
+# $Id: ControlerProductionLookup.py,v 1.4 2009/06/15 13:06:02 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 
-__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.3 2009/06/15 12:50:26 zmathe Exp $"
+__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.4 2009/06/15 13:06:02 zmathe Exp $"
 
 #############################################################################  
 class ControlerProductionLookup(ControlerAbstract):
@@ -25,9 +25,14 @@ class ControlerProductionLookup(ControlerAbstract):
       self.__model = message['items']
       widget = self.getWidget()
       keys = self.__model.getChildren().keys()
-      keys.sort()
+      newkeys = []
       for i in keys:
-        self.__list += [str(abs(int(i)))]
+        newkeys += [abs(int(i))]
+      
+      newkeys.sort()
+      newkeys.reverse()
+      for i in newkeys:
+        self.__list += [str(i)]
       widget.setModel(self.__list)
       widget.show()
     else:
