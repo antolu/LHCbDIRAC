@@ -1,16 +1,21 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/CondDBAccess.py,v 1.1 2009/06/15 12:18:03 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/CondDBAccess.py,v 1.2 2009/06/15 16:22:59 paterson Exp $
 # Author: Stuart Paterson
 ########################################################################
 
 """  The CondDB access module allows.
 """
 
-__RCSID__ = "$Id: CondDBAccess.py,v 1.1 2009/06/15 12:18:03 paterson Exp $"
+__RCSID__ = "$Id: CondDBAccess.py,v 1.2 2009/06/15 16:22:59 paterson Exp $"
 
-import string,os,shutil
+import string,os,shutil,re
 
 import DIRAC
+
+try:
+  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 
@@ -35,13 +40,27 @@ def getCondDBFiles():
   condDBSite = localSite.split('.')[1]
   gLogger.verbose('Running at site: %s, CondDB site is: %s' %(localSite,condDBSite))
 
-  if os.environ.has_key('VO_LHCB_SW_DIR'):
-    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
-    gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-  elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
-    sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
-    gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
-  lbLogin = '%s/LbLogin' %sharedArea
+  softwareArea = ''
+  sharedArea = MySiteRoot()
+  if sharedArea == '':
+    gLogger.error( 'MySiteRoot Not found' )
+    return S_ERROR(' MySiteRoot Not Found')
+
+  if re.search(':',sharedArea):
+    localArea = string.split(sharedArea,':')[0]
+    if os.path.exists('%s/LbLogin.sh' %localArea):
+      softwareArea = localArea
+    else:
+      softwareArea =  string.split(sharedArea,':')[1]
+  else:
+    softwareArea = sharedArea
+
+  if not softwareArea:
+    return S_ERROR('Could not find software area')
+
+  gLogger.info('Using software area at %s' %softwareArea)
+
+  lbLogin = '%s/LbLogin' %softwareArea
   ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.error('Error during lbLogin\n%s' %ret)
