@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.133 2009/06/15 12:19:08 paterson Exp $
+# $Id: GaudiApplication.py,v 1.134 2009/06/15 12:52:20 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.133 2009/06/15 12:19:08 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.134 2009/06/15 12:52:20 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -242,6 +242,7 @@ class GaudiApplication(ModuleBase):
 #            self.optfile += ' '+fileopt
 
     print 'Final options files:',self.optfile
+    toClean = []
     if re.search('disablelfc',self.optfile.lower()):
       self.log.info('CORAL LFC Access is disabled, obtaining XML files...')
       result = getCondDBFiles()
@@ -250,10 +251,11 @@ class GaudiApplication(ModuleBase):
         return result
       else:
         self.log.info('Successfully obtained Oracle CondDB XML access files')
+        self.log.verbose(result)
+        for f in result['Value']: toClean.append(f)
 
     self.optfile_extra = 'gaudi_extra_options.py'
     self.managePy()
-
 
     if os.path.exists(self.applicationName+'Run.sh'): os.remove(self.applicationName+'Run.sh')
     script = open(self.applicationName+'Run.sh','w')
@@ -428,6 +430,11 @@ done
     # stdOutput = resultTuple[1]
     # stdError = resultTuple[2]
 
+    for f in toClean:
+      self.log.verbose('Removing temporary file: %s' %f)
+      if os.path.exists(f):
+        os.remove(f)
+
     self.log.info( "Status after the application execution is %s" % str( status ) )
 
     failed = False
@@ -436,7 +443,6 @@ done
       failed = True
     else:
       self.log.info( "%s execution completed succesfully:" % self.applicationName )
-
 
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
