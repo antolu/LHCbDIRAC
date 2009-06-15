@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerProductionLookup.py,v 1.2 2009/05/08 15:23:25 zmathe Exp $
+# $Id: ControlerProductionLookup.py,v 1.3 2009/06/15 12:50:26 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 
-__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.2 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.3 2009/06/15 12:50:26 zmathe Exp $"
 
 #############################################################################  
 class ControlerProductionLookup(ControlerAbstract):
@@ -24,7 +24,9 @@ class ControlerProductionLookup(ControlerAbstract):
       self.__list = []
       self.__model = message['items']
       widget = self.getWidget()
-      for i in self.__model.getChildren().keys():
+      keys = self.__model.getChildren().keys()
+      keys.sort()
+      for i in keys:
         self.__list += [str(abs(int(i)))]
       widget.setModel(self.__list)
       widget.show()
@@ -58,10 +60,13 @@ class ControlerProductionLookup(ControlerAbstract):
    
   #############################################################################  
   def cancel(self): 
+    self.getWidget().close()
+  
+  def all(self):
     message = Message({'action':'showAllProduction','items':self.__model})
     self.getParent().messageFromChild(self, message)
     self.getWidget().close()
-  
+    
   #############################################################################  
   def textChanged(self):
     widget = self.getWidget()
