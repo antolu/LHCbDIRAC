@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.20 2009/06/05 09:07:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.21 2009/06/15 08:53:20 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.20 2009/06/05 09:07:34 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.21 2009/06/15 08:53:20 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -158,6 +158,9 @@ class Production(LHCbJob):
       options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       options.append("HistogramPersistencySvc().OutputFile = \"%s\"" %(self.histogramName))
+      if appType.lower()=='xdst':
+        options.append("from Configurables import Brunel")
+        options.append("Brunel().OutputType = 'XDST'")
     elif appName.lower()=='davinci':
       options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append('from DaVinci.Configuration import *')
@@ -265,7 +268,7 @@ class Production(LHCbJob):
   #############################################################################
   def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1'):
     """ Wraps around addGaudiStep and getOptions.
-        appType is rdst / dst
+        appType is rdst / dst / xdst
         inputDataType is mdf / digi
         enough to set one of the above
         TODO: stripping case - to review
@@ -276,7 +279,7 @@ class Production(LHCbJob):
       if not outputSE:
         outputSE='Tier1-RDST'
     else:
-      if not appType.lower()=='dst':
+      if not appType.lower()=='dst' and not appType.lower()=='xdst':
         raise TypeError,'Application type not recognised'
       if inputDataType.lower()=='digi':
         dataType='MC'
