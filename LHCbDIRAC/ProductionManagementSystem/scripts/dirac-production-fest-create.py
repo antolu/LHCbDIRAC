@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.5 2009/06/12 13:07:43 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.6 2009/06/15 16:32:54 paterson Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.5 2009/06/12 13:07:43 paterson Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.6 2009/06/15 16:32:54 paterson Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -29,7 +29,7 @@ fileMask = 'rdst;root'
 wfDescription = ''
 prodPriority='8'
 prodTypeList = ['full','express','reprocessing']
-useOracle=False
+useOracle=True
 debug=False
 generateScript=False
 dqFlag = 'OK'
@@ -50,15 +50,15 @@ ddDBTag = 'head-20090508' #'MC09-20090602'
 brunelVersion = 'v34r7'
 brunelOpts = '$APPCONFIGOPTS/Brunel/FEST-200903.py' #;$APPCONFIGOPTS/UseOracle.py'
 brunelEventType = '90000000'
-brunelData = 'LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw'
+brunelData = 'LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/50606/050606_0000000002.raw'
 brunelSE = 'CERN-RDST'
 brunelEvents = '-1'
 #############################################################################
-davinciVersion = 'v23r0p1'
+davinciVersion = 'v23r1'
 davinciOpts = '$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'
 davinciEvents = '-1'
 #############################################################################
-appConfigVersion = 'v2r7'
+appConfigVersion = 'v2r7p2'
 prodType = 'full'
 deriveProdFrom = 0
 #############################################################################
@@ -87,9 +87,9 @@ Script.registerSwitch( "j:", "DaVinciEvents=","   Events To Process (DaVinci) [%
 Script.registerSwitch( "k:", "AppConfig=","       App Config Version [%s]"   % appConfigVersion  )
 Script.registerSwitch( "p:", "DeriveProd=","      Input Prod To Derive From [%s]"   % deriveProdFrom  )
 #And pure flags:
-Script.registerSwitch( "r", "UseOracle","         Use Oracle CondDB [%s]"   % useOracle)
-Script.registerSwitch( "d", "Debug","             Only create workflow XML [%s]"   % debug)
-Script.registerSwitch( "g" ,"Generate","          Only create production script [%s]" % generateScript)
+Script.registerSwitch( "r", "UseOracle","         To disable Oracle CondDB access (default is enabled)" )
+Script.registerSwitch( "d", "Debug","             Only create workflow XML (default is disabled)")
+Script.registerSwitch( "g" ,"Generate","          Only create production script (default is disabled)")
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
@@ -172,7 +172,8 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ('p','deriveprod'):
     deriveProdFrom=switch[1]
   elif switch[0].lower() in ('r','useoracle'):
-    useOracle=True
+    gLogger.info('UseOracle flag set, disabling Oracle access (default is True)')
+    useOracle=False
   elif switch[0].lower() in ('d','debug'):
     gLogger.info('Debug flag enabled, setting log level to debug')
     debug = True
@@ -252,8 +253,9 @@ wfName += '_CondDB%s' %condDBTag
 brunelOpts = brunelOpts.replace(' ',';')
 #brunelOpts = '%s;%s' % (brunelOpts,conditionsFile)
 if useOracle:
-  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py' %brunelOpts
-  wfName += '_UseOracle'
+  #only allow to use Oracle with LFC disabled via CORAL
+  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' %brunelOpts
+  wfName += '_UseOracle_LFCDisabled'
 
 gLogger.info('Brunel options are: %s' %brunelOpts)
 
