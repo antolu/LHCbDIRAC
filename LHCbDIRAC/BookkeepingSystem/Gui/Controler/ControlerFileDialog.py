@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.16 2009/06/15 16:44:27 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.17 2009/06/15 17:06:20 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.16 2009/06/15 16:44:27 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.17 2009/06/15 17:06:20 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -231,7 +231,7 @@ class ControlerFileDialog(ControlerAbstract):
     size = 0;
     for item in items:
       value = items[item]
-      if value['FileSize'] != None:
+      if str(value['FileSize']) != 'None':
         size += int(value['FileSize'])
     return size/1000000000.
   

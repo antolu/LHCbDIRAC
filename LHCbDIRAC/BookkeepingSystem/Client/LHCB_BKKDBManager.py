@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.92 2009/05/08 15:23:25 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.93 2009/06/15 17:06:20 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.92 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.93 2009/06/15 17:06:20 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1487,12 +1487,12 @@ class LHCB_BKKDBManager(BaseESManager):
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
     
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality']
       
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat']
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13]]
+          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14]]
           records += [value]
       else:
         gLogger.error(result['Message'])
