@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.138 2009/06/16 16:19:07 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.139 2009/06/16 16:32:49 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.138 2009/06/16 16:19:07 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.139 2009/06/16 16:32:49 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -477,6 +477,7 @@ done
   def onlineExecute( self ):
     """Use for the Online Farm."""
     import xmlrpclib
+    from operator import itemgetter
     xmlrpcerror = "Cannot connect to RecoManager"
     matcherror = "Cannot find slice in RecoManager"
     inputoutputerror = "Input/Output data error"
