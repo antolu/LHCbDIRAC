@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.14 2009/04/23 04:28:37 rgracian Exp $
+# $Id: UploadOutputData.py,v 1.15 2009/06/16 17:36:46 rgracian Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.14 2009/04/23 04:28:37 rgracian Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.15 2009/06/16 17:36:46 rgracian Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -115,6 +115,8 @@ class UploadOutputData(ModuleBase):
     """ Main execution function.
     """
     self.log.info('Initializing %s' %self.version)
+    if gConfig.getValue( '/LocalSite/Site', 'Unknown' ) == 'DIRAC.ONLINE-FARM.ch':
+      return S_OK()
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error(result['Message'])
