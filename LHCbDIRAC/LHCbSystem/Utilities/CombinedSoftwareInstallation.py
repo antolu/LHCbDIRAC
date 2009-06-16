@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.29 2009/04/15 08:00:59 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.30 2009/06/16 11:22:33 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.29 2009/04/15 08:00:59 rgracian Exp $"
-__VERSION__ = "$Revision: 1.29 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.30 2009/06/16 11:22:33 rgracian Exp $"
+__VERSION__ = "$Revision: 1.30 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -83,6 +83,10 @@ class CombinedSoftwareInstallation:
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
       return DIRAC.S_ERROR( 'No architecture requested' )
+      
+    if self.ce == 'DIRAC.ONLINE-FARM.ch':
+      return onlineExecute( self.workflow_commons )
+    
     if not self.jobConfig in self.ceConfigs:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
         DIRAC.gLogger.info( 'Assume locally running job' )
@@ -101,7 +105,7 @@ class CombinedSoftwareInstallation:
         DIRAC.gLogger.info('%s was successfully installed for %s' %(app,self.jobConfig))
 
     return DIRAC.S_OK()
-
+    
 def log( n, line ):
   DIRAC.gLogger.info( line )
 
@@ -491,3 +495,61 @@ def RemoveApplication(app, config, area ):
     return False
 
   return True
+
+def onlineExecute( workflow_commons ):
+  """Alternative CombinedSoftwareInstallation for the Online Farm."""
+  import xmlrpclib
+  # First: Get the full requirements for the job.
+  bkProcessingPass = dict( workflow_commons[ 'BKProcessingPass' ] )
+  for step in bkProcessingPass:
+    bkProcessingPass[ step ][ 'ExtraPackages' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
+    bkProcessingPass[ step ][ 'OptionFiles' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'OptionFiles' ] , ';' )
+  # Second: Get slice information from the Online Farm
+  server_url = 'http://storeio01.lbdaq.cern.ch:8889';
+  # recoManager = xmlrpclib.Server(server_url);
+  recoManager = DummyRPC()    
+  connectionError = "Cannot connect to Reconstruction Manager"
+  try:
+    result = recoManager.globalStatus()
+  except Exception:
+    DIRAC.gLogger.exception()
+    return DIRAC.S_ERROR( connectionError )
+  if not result[ 'OK' ]:
+    DIRAC.gLogger.error( result[ 'Message' ] )
+    return DIRAC.S_ERROR( connectionError )
+  # Third: Match configs (each step must have at least one match in the OnlineFarm)
+  matcherror = "Cannot match job"
+  for step in bkProcessingPass:
+    valid = False
+    for sliceNumber in result[ 'Value' ]:
+      sliceConfig = result[ 'Value' ][ sliceNumber ][ 'config' ]
+      if compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
+        valid = True
+        break
+    if not valid:
+      return S_ERROR( matcherror )
+  return DIRAC.S_OK()
+  
+class DummyRPC:
+  def globalStatus( self ):
+    return { 'OK' : True ,'Value' :
+    { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 },
+    '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 } ,
+    '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
+    } 
+    }
+  
+def compareConfigs( self , config1 , config2 ):
+  if len(config1.keys()) != len(config2.keys()):
+    return False
+  for key in config1:
+    if not key in config2:
+      return False
+    else:
+      if key == 'ExtraPackages':
+        if not sorted( config2[ 'ExtraPackages' ] ) == sorted( config1[ 'ExtraPackages' ] ):
+          return False
+      elif config1[ key ] != config2[ key ]:
+        return False
+  return True
+      
