@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.69 2009/05/15 14:37:53 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.70 2009/06/16 10:05:15 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.69 2009/05/15 14:37:53 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.70 2009/06/16 10:05:15 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -296,6 +296,8 @@ class AnalyseLogFile(ModuleBase):
     if not result['OK']:
       self.log.error(result['Message'])
       return result
+    if gConfig.getValue( '/LocalSite/Site', 'Unknown' ) == 'DIRAC.ONLINE-FARM.ch':
+      return S_OK()
 
     # Search for core dumps in any case.
     res = self.checkCoreDump()
