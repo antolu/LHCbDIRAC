@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.93 2009/06/15 17:06:20 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.94 2009/06/16 10:45:04 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.93 2009/06/15 17:06:20 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.94 2009/06/16 10:45:04 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -632,10 +632,9 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program name":pname, \
                  "Program version":pversion}
     
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat']
-    
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality']
     for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'Selection':selection}
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'DataQuality':record[14],'Selection':selection}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
     self._cacheIt(entityList)    
