@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.38 2009/06/12 13:58:23 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.39 2009/06/16 10:46:05 rgracian Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.38 2009/06/12 13:58:23 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.39 2009/06/16 10:46:05 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -244,21 +244,30 @@ class BookkeepingReport(ModuleBase):
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
     self.log.info(outputs)
-    for output,outputse,outputtype in outputs:
+    for output,outputse,outputtype in list(outputs):
       self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
       typeName = outputtype.upper()
       typeVersion = '1'
-
+      if not os.path.exists( output ):
+        self.log.error( 'File does not exist:' , output )
+        continue
       # Output file size
-      try:
-        outputsize = str(os.path.getsize(output))
-      except:
-        outputsize = '0'
+      if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
+        try:
+          outputsize = str(os.path.getsize(output))
+        except:
+          outputsize = '0'
+      else:
+        outputsize = self.step_commons[ 'size' ][ output ]
 
-      comm = 'md5sum '+str(output)
-      resultTuple = shellCall(0,comm)
-      status = resultTuple['Value'][0]
-      out = resultTuple['Value'][1]
+      if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
+        comm = 'md5sum '+str(output)
+        resultTuple = shellCall(0,comm)
+        status = resultTuple['Value'][0]
+        out = resultTuple['Value'][1]
+      else:
+        status = 0
+        out = self.step_commons[ 'md5' ][ output ]
 
       if status:
         self.log.info( "Failed to get md5sum of %s" % str( output ) )
@@ -267,12 +276,15 @@ class BookkeepingReport(ModuleBase):
       else:
         md5sum = out.split()[0]
 
-      guid = getGuidFromPoolXMLCatalog(self.poolXMLCatName,output)
-      if guid == '':
-        if md5sum != '000000000000000000000000000000000000':
-          guid = makeGuid(output)
-        else:
-          guid = makeGuid()
+      if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
+        guid = getGuidFromPoolXMLCatalog(self.poolXMLCatName,output)
+        if guid == '':
+          if md5sum != '000000000000000000000000000000000000':
+            guid = makeGuid(output)
+          else:
+            guid = makeGuid()
+      else:
+        guid = self.step_commons[ 'guid' ][ output ]
 
       # find the constructed lfn
       lfn = ''
