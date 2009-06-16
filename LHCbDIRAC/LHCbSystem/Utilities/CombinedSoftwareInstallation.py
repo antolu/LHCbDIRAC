@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.33 2009/06/16 11:41:09 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.34 2009/06/16 11:50:03 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.33 2009/06/16 11:41:09 rgracian Exp $"
-__VERSION__ = "$Revision: 1.33 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.34 2009/06/16 11:50:03 rgracian Exp $"
+__VERSION__ = "$Revision: 1.34 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -85,9 +85,10 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_ERROR( 'No architecture requested' )
       
     if self.ce['Site'] == 'DIRAC.ONLINE-FARM.ch':
+      return DIRAC.S_OK()
       print dir(self)
       print self.job
-      return onlineExecute( self.workflow_commons )
+      return onlineExecute( self.job['SoftwarePackages'] )
     
     if not self.jobConfig in self.ceConfigs:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
@@ -498,7 +499,7 @@ def RemoveApplication(app, config, area ):
 
   return True
 
-def onlineExecute( workflow_commons ):
+def onlineExecute( softwarePackages ):
   """Alternative CombinedSoftwareInstallation for the Online Farm."""
   import xmlrpclib
   # First: Get the full requirements for the job.
