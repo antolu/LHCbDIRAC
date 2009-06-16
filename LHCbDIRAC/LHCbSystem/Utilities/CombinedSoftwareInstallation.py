@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.32 2009/06/16 11:35:52 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.33 2009/06/16 11:41:09 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.32 2009/06/16 11:35:52 rgracian Exp $"
-__VERSION__ = "$Revision: 1.32 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.33 2009/06/16 11:41:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.33 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -85,6 +85,8 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_ERROR( 'No architecture requested' )
       
     if self.ce['Site'] == 'DIRAC.ONLINE-FARM.ch':
+      print dir(self)
+      print self.job
       return onlineExecute( self.workflow_commons )
     
     if not self.jobConfig in self.ceConfigs:
