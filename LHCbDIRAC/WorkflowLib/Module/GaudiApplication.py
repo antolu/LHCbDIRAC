@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.135 2009/06/16 10:19:31 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.136 2009/06/16 11:59:20 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.135 2009/06/16 10:19:31 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.136 2009/06/16 11:59:20 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -601,10 +601,11 @@ class DummyRPC:
   cache = {}
   def globalStatus( self ):
     return { 'OK' : True ,'Value' :
-    { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 },
-    '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 } ,
-    '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
-    } 
+    { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.25 },
+    '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.25 } ,
+    '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.25 }
+    } ,
+    '3' : { 'config' :  {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v34r7', 'ExtraPackages': ['AppConfig.v2r7p1'], 'DDDb': 'head-20090508', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py'], 'CondDb': 'head-20090508' } , 'availability' : 0.25 }
     }
     
   def jobStatus( self , jobID ):
