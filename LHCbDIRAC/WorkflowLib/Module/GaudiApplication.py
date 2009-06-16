@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.136 2009/06/16 11:59:20 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.137 2009/06/16 12:14:41 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.136 2009/06/16 11:59:20 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.137 2009/06/16 12:14:41 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -526,6 +526,8 @@ done
     validSlices = {}
     for sliceNumber in result[ 'Value' ]:
       sliceConfig = result[ 'Value' ][ sliceNumber ][ 'config' ]
+      print 'Comparing:',bkProcessingPass[ step ]
+      print '      and:',sliceConfig
       if self.compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
         validSlices[ int( sliceNumber ) ] = result[ 'Value' ][ sliceNumber ][ 'availability' ]
     if len( validSlices ) == 0:
