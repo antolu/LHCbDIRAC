@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.14 2009/06/12 14:14:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.15 2009/06/16 07:59:30 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.14 2009/06/12 14:14:33 paterson Exp $"
-__VERSION__ = "$Revision: 1.14 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.15 2009/06/16 07:59:30 paterson Exp $"
+__VERSION__ = "$Revision: 1.15 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -33,6 +33,7 @@ bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
 bkProcessingPass = 'MC09-Sim03Reco02'
 generateScripts = 0
 mergeType = 'DST'
+gaussDecFiles = ''
 #merge priority is fixed but MC priority can be useful
 mcPriority = 1
 appendName=''
@@ -40,6 +41,7 @@ appendName=''
 Script.registerSwitch( "ga", "Gauss=","             Gauss version to use          [%s]" % gaussVersion  )
 Script.registerSwitch( "gO", "GaussOpts=","         Gauss options to use          [%s]" % gaussOpts )
 Script.registerSwitch( "gG", "GaussGen=","          Gauss generator to use        [%s]" % gaussGen )
+Script.registerSwitch( "gD", "GaussDecFiles=","     Specific Gauss DecFiles vers  [%s]" % gaussDecFiles )
 Script.registerSwitch( "bo", "Boole=","             Boole version to use          [%s]" % booleVersion )
 Script.registerSwitch( "bO", "BooleOpts=","         Boole options to use          [%s]" % booleOpts )
 Script.registerSwitch( "br", "Brunel=","            Brunel version to use         [%s]" % brunelVersion  )
@@ -55,7 +57,7 @@ Script.registerSwitch( "me", "MergeFiles=","        Number of files to merge    
 Script.registerSwitch( "ip", "InputProd=","         Merge given input prod        [%s]" % inputProd )
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
-Script.registerSwitch( "d", "Debug=","             Only create workflow XML      [%s]" % debug)
+Script.registerSwitch( "d",  "Debug=","             Only create workflow XML      [%s]" % debug)
 Script.registerSwitch( "m" , "MergeType=","         Type of files to merge        [%s]" % mergeType)
 Script.registerSwitch( "p" , "MCPriority=","        Priority of the MC production [%s]" % mcPriority)
 Script.registerSwitch( "n" , "AppendName=","        String to append to prod name [%s]" % appendName)
@@ -142,6 +144,8 @@ for switch in Script.getUnprocessedSwitches():
     mcPriority=int(switch[1])
   elif switch[0].lower()=='appendname':
     appendName=str(switch[1])
+  elif switch[0].lower()=='gaussdecfiles':
+    gaussDecFiles = str(switch[1])
 
 if generateScripts:
   gLogger.info('Generate flag is enabled, will create Production API script')
@@ -227,8 +231,11 @@ if not inputProd:
   production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.' % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
   production.setBKParameters('MC','MC09',bkProcessingPass,bkSimulationCondition)
   production.setDBTags(condbTag,dddbTag)
+  extraSoftware = 'AppConfig.%s' % appConfigVersion
+  if gaussDecFiles:
+    extraSoftware = '%s;DecFiles.%s' %(extraSoftware,gaussDecFiles)
 
-  production.addGaussStep(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages='AppConfig.%s' % appConfigVersion)
+  production.addGaussStep(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages=extraSoftware)
   production.addBooleStep(booleVersion,'digi',booleOpts,extraPackages='AppConfig.%s' % appConfigVersion)
   production.addBrunelStep(brunelVersion,'dst',brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE,histograms=saveBrunelHistos)
 
@@ -242,7 +249,7 @@ if not inputProd:
   prodScript.append("production.setWorkflowDescription('MC09 workflow with Gauss %s, Boole %s and Brunel %s (AppConfig %s) %s generating %s events of type %s.')" % (gaussVersion,booleVersion,brunelVersion,appConfigVersion,bkProcessingPass,numberOfEvents,eventTypeID))
   prodScript.append("production.setBKParameters('MC','MC09','%s','%s')" %(bkProcessingPass,bkSimulationCondition))
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
-  prodScript.append("production.addGaussStep('%s','%s','%s','%s',eventType='%s',extraPackages='AppConfig.%s')" %(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventTypeID,appConfigVersion))
+  prodScript.append("production.addGaussStep('%s','%s','%s','%s',eventType='%s',extraPackages='%s')" %(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventTypeID,extraSoftware))
   prodScript.append("production.addBooleStep('%s','digi','%s',extraPackages='AppConfig.%s')" %(booleVersion,booleOpts,appConfigVersion))
   prodScript.append("production.addBrunelStep('%s','dst','%s',extraPackages='AppConfig.%s',inputDataType='digi',outputSE='%s',histograms=%s)" %(brunelVersion,brunelOpts,appConfigVersion,dstOutputSE,saveBrunelHistos))
   prodScript.append("production.addFinalizationStep()")
