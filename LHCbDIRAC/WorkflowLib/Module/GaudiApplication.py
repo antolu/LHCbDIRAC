@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.139 2009/06/16 16:32:49 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.140 2009/06/16 16:41:55 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.139 2009/06/16 16:32:49 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.140 2009/06/16 16:41:55 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -539,7 +539,7 @@ done
     # Fifth: submit the file and wait.
     lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
     outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
-    result = recoManager.submitJob( selectedSlice, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
+    result = recoManager.submitJob( sliceNumber, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
     if not result[ 'OK' ]:
       self.log.error( "Error running job" , sc[ 'Message' ] ) 
       return S_ERROR( "Error submiting job" )
