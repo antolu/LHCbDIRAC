@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.134 2009/06/15 12:52:20 paterson Exp $
+# $Id: GaudiApplication.py,v 1.135 2009/06/16 10:19:31 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.134 2009/06/15 12:52:20 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.135 2009/06/16 10:19:31 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -17,9 +17,9 @@ except Exception,x:
 
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
-from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, List
 
-import shutil, re, string, os, sys
+import shutil, re, string, os, sys, time
 
 class GaudiApplication(ModuleBase):
 
@@ -206,6 +206,10 @@ class GaudiApplication(ModuleBase):
     self.log.info( "Executing application %s %s" % ( self.applicationName, self.applicationVersion ) )
     self.log.info("Platform for job is %s" % ( self.systemConfig ) )
     self.log.info("Root directory for job is %s" % ( self.root ) )
+
+    ## FIXME: need to agree what the name of the Online Farm is
+    if gConfig.getValue( '/LocalSite/Site', 'Unknown' ) == 'DIRAC.ONLINE-FARM.ch':
+      return self.onlineExecute()
 
     sharedArea = MySiteRoot()
     if sharedArea == '':
@@ -468,5 +472,153 @@ done
         self.log.error("Application Log file not defined")
       if fd == 1:
         self.stdError += message
+  #############################################################################
+
+  def onlineExecute( self ):
+    """Use for the Online Farm."""
+    import xmlrpclib
+    xmlrpcerror = "Cannot connect to RecoManager"
+    matcherror = "Cannot find slice in RecoManager"
+    inputoutputerror = "Input/Output data error"
+    # 0: checks
+    if not self.workflow_commons.has_key( 'dataType' ):
+      return S_ERROR( inputoutputerror )
+    dataType = self.workflow_commons[ 'dataType' ].lower()
+    if not self.workflow_commons.has_key('configName'): 
+      return S_ERROR( inputoutputerror )
+    configName = self.workflow_commons['configName']
+    if self.workflow_commons.has_key('configVersion'): 
+      configVersion = self.workflow_commons['configVersion']
+    else:
+      configVersion = self.applicationVersion
+    if not self.step_commons.has_key( 'outputData' ):
+      return S_ERROR( inputoutputerror )
+    if not self.step_commons.has_key( 'listoutput' ):
+      return S_ERROR( inputoutputerror )
+    outputDataName = None
+    outputDataType = None
+    for output in self.step_commons[ 'listoutput' ]:
+      if output[ 'outputDataName' ] == self.step_commons[ 'outputData' ]:
+        outputDataName = output[ 'outputDataName' ]
+        outputDataType = output[ 'outputDataType' ]
+        break
+    if not ( outputDataType and outputDataName ):
+      return S_ERROR( inputoutputerror )
+    if not 'applicationLog' in self.step_commons:
+      return S_ERROR( "No log file specified" )
+    # First: Get the full requirements for the job.
+    bkProcessingPass = self.workflow_commons[ 'BKProcessingPass' ]
+    step = 'Step%d' %( int(self.STEP_NUMBER) - 1 )
+    bkProcessingPass[ step ][ 'ExtraPackages' ] = List.fromChar( bkProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
+    bkProcessingPass[ step ][ 'OptionFiles' ] = List.fromChar( bkProcessingPass[ step ][ 'OptionFiles' ] , ';' )
+    # Second: get the application configuration from the RecoManager XMLRPC
+    # recoManager = xmlrpclib.ServerProxy( 'http://storeio01.lbdaq.cern.ch:8889' )
+    recoManager = DummyRPC()
+    try:
+      result = recoManager.globalStatus()
+    except:
+      self.log.exception()
+      return S_ERROR( xmlrpcerror )      
+    if not result[ 'OK' ]:
+      self.log.error( result[ 'Message' ] )
+      return S_ERROR( matcherror )
+    # Third: find slices which match the given configuration options
+    validSlices = {}
+    for sliceNumber in result[ 'Value' ]:
+      sliceConfig = result[ 'Value' ][ sliceNumber ][ 'config' ]
+      if self.compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
+        validSlices[ int( sliceNumber ) ] = result[ 'Value' ][ sliceNumber ][ 'availability' ]
+    if len( validSlices ) == 0:
+      self.log.error( "No slice found matching configuration" )
+      return S_ERROR( matcherror )
+    # Fourth: find which of the matching slices is better for job sending
+    sliceNumber = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][1]
+    # Fifth: submit the file and wait.
+    lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
+    outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
+    result = recoManager.submitJob( selectedSlice, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
+    if not result[ 'OK' ]:
+      self.log.error( "Error running job" , sc[ 'Message' ] ) 
+      return S_ERROR( "Error submiting job" )
+    # The submission went well
+    if os.path.exists( self.applicationLog ):
+      os.remove( self.applicationLog )
+    self.setApplicationStatus( '%s %s step %s' %( self.applicationName, self.applicationVersion, self.STEP_NUMBER ) )
+    jobID = result[ 'Value' ]
+    retrycount = 0
+    while True:
+      time.sleep(10)
+      ret = recoManager.jobStatus( jobID )
+      if not ret[ 'OK' ]:
+        retrycount = retrycount + 1
+        self.log.error( "Cannot get status of jobID:" , "%s: %s" %( ret[ 'Message' ] , str( jobID ) ) )
+        if retrycount > 5:
+          return S_ERROR( "Connection lost to the Reco Manager" )
+        continue
+      retrycount = 0
+      jobInfo = ret[ 'Value' ][ str(jobID) ] # ( status , inputevents , outputevents , logfile )
+      jobstatus = jobInfo[ 'status' ]
+      if jobstatus in [ 'DONE' , 'ERROR' ]:
+        self.numberOfEventsInput = str( jobInfo[ 'eventsRead' ] )
+        self.numberOfEventsOutput = str( jobInfo[ 'eventsWritten' ] )
+        self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
+        self.step_commons[ 'guid' ] = jobInfo[ 'guid' ]
+        loglines = jobInfo[ 'log' ]
+        log = open( self.step_commons[ 'applicationLog' ] , 'w' )
+        for line in loglines:
+          log.write( "%s\n" %line )
+        log.close()
+        self.log.info( "Status after the application execution is %s" %jobstatus )
+        failed = False
+        if jobstatus == 'ERROR':
+          self.log.error( "%s execution completed with errors:" % self.applicationName )
+          failed = True
+        else:
+          self.log.info( "%s execution completed succesfully:" % self.applicationName )
+        if failed:
+          self.log.error('%s Exited With Status %s' %(self.applicationName,jobstatus))
+          return S_ERROR('%s Exited With Status %s' %(self.applicationName,jobstatus))
+        self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
+        return S_OK('%s %s Successful' %(self.applicationName,self.applicationVersion))
+      
+  def compareConfigs( self , config1 , config2 ): # FIXME
+    if len(config1.keys()) != len(config2.keys()):
+      return False
+    for key in config1:
+      if not key in config2:
+        return False
+      else:
+        if key == 'ExtraPackages':
+          if not sorted( config2[ 'ExtraPackages' ] ) == sorted( config1[ 'ExtraPackages' ] ):
+            return False
+        elif config1[ key ] != config2[ key ]:
+          return False
+    return True
+    
+from random import random,seed
+seed()
+class DummyRPC:
+  cache = {}
+  def globalStatus( self ):
+    return { 'OK' : True ,'Value' :
+    { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 },
+    '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 } ,
+    '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
+    } 
+    }
+    
+  def jobStatus( self , jobID ):
+    status = int(random()*3)
+    statusdict = { 0 : 'DONE' , 1 : 'RUNNING' , 2: 'ERROR' }
+    jobstatus = statusdict[ status ]
+    jobstatus = 'DONE'
+    print '++++++++++++++++++++++++++++++'
+    from DIRAC.Core.Utilities.File import makeGuid
+    return { 'OK' : True , 'Value' : { str(jobID) : { 'status' : jobstatus , 'eventsRead' : 500 , 'eventsWritten' : 500-status , 'log' : ['This is line 1' , 'This is line 2'] , 'md5': { self.outputFile : '52b21a147c8018240f12bf286b79b9a5' } , 'guid': { self.outputFile : makeGuid() } , 'size': { self.outputFile : '12234' } } } }
+    
+  def submitJob( self , selectedSlice, inputFile , outputFile ):
+    import os
+    self.outputFile = os.path.basename( outputFile )
+    return { 'OK' : True , 'Value' : int(random()*1000) }
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
