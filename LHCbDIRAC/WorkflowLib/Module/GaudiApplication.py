@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.140 2009/06/16 16:41:55 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.141 2009/06/16 17:21:21 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.140 2009/06/16 16:41:55 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.141 2009/06/16 17:21:21 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -582,6 +582,7 @@ done
           self.log.error('%s Exited With Status %s' %(self.applicationName,jobstatus))
           return S_ERROR('%s Exited With Status %s' %(self.applicationName,jobstatus))
         self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
+        print self.step_commons
         return S_OK('%s %s Successful' %(self.applicationName,self.applicationVersion))
       
   def compareConfigs( self , config1 , config2 ): # FIXME
@@ -630,6 +631,9 @@ class DummyRPC:
   def submitJob( self , selectedSlice, inputFile , outputFile ):
     import os
     self.outputFile = os.path.basename( outputFile )
+    out = open( self.outputFile , 'w' )
+    out.write( '%s\n' %self.outputFile )
+    out.close()
     return { 'OK' : True , 'Value' : int(random()*1000) }
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
