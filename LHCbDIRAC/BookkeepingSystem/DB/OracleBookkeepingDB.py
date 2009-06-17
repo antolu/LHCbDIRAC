@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.94 2009/06/15 10:09:06 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.95 2009/06/17 14:27:16 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.94 2009/06/15 10:09:06 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.95 2009/06/17 14:27:16 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -14,6 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                         import gCon
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 import datetime
+import types
 global ALLOWED_ALL 
 ALLOWED_ALL = 2
 class OracleBookkeepingDB(IBookkeepingDB):
@@ -2151,7 +2152,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getDataTakingCondId(self, condition):
     command = 'select DaqPeriodId from data_taking_conditions where ' 
     for param in condition:
-      command +=  str(param)+'=\''+condition[param]+'\' and '
+      if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+        command += str(param)+' is NULL and '
+      elif condition[param] != None:
+        command +=  str(param)+'=\''+condition[param]+'\' and '
+      else:
+        command += str(param)+' is NULL and '
+    
     command = command[:-4]
     res = self.dbR_._query(command)
     return res
