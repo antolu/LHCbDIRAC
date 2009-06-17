@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.4 2009/03/05 22:44:03 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.5 2009/06/17 14:59:20 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.4 2009/03/05 22:44:03 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.5 2009/06/17 14:59:20 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -229,13 +229,18 @@ def getRootFileGUID(fileName,cleanUp=True):
   setupProject = ['SetupProject']
   setupProject.append( '--ignore-missing' )
   setupProject.append( 'DaVinci' )
-
+  sharedArea = ''
   if os.environ.has_key('VO_LHCB_SW_DIR'):
     sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
     gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
   elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
     gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
+
+  if not sharedArea:
+    gLogger.error('Could not find VO_LHCB_SW_DIR or /LocalSite/SharedArea in local configuration')
+    return S_ERROR('Could not find local shared software area')
+
   lbLogin = '%s/LbLogin' %sharedArea
   ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
   if not ret['OK']:
