@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id: dirac-lhcb-production-check.py,v 1.1 2009/01/29 13:11:45 szczypka Exp $
+# $Id: dirac-lhcb-production-check.py,v 1.2 2009/06/18 13:24:54 szczypka Exp $
 # File :   dirac-lhcb-production-check.py
 # Author : Paul Szczypka
 ########################################################################
@@ -13,8 +13,9 @@ It lists the numbe rof jobs in each major state with an example jobID.
 It also lists the base locations of the files produced, the number of events produced and then number of files in the bookkeeping.
 """
 
-from DIRACEnvironment                                       import DIRAC
-from DIRAC.Core.Base                                        import Script
+from DIRAC.Core.Base import Script
+Script.parseCommandLine()
+import DIRAC
 
 from random import choice
 import sys,time,commands,string,re
@@ -112,7 +113,9 @@ def loopOverProds(prodID, fromDate, status):
       status = status.ljust(10)
       print "Number of %.10s Jobs: %.7d    Example JobID: %s" %(status, len(jobIDS), exampleJob)
 
-  fileTypes = {'LogFilePath':'Log Files', 'BookkeeepingLFNs':'LFNs', 'ProductionOutputData':'Output Data'}
+  fileTypes = {'LogFilePath':'Log Files', 'BookkeepingLFNs':'LFNs', 'ProductionOutputData':'Output Data'}
+
+
 
   print "Looking at jobs with status %s from date: %s" %(optionJobStatus, fromDate)
   jobs = dp.selectProductionJobs(long(prodID),Status=optionJobStatus, Date=fromDate)
@@ -125,11 +128,16 @@ def loopOverProds(prodID, fromDate, status):
       jobJDL = dirac.getJobJDL(choice(jobIDS))
     else:
       jobJDL = dirac.getJobJDL(jobIDS[0])
-    for type in fileTypes:
-      if jobJDL['Value'].has_key(type):
-        s = regExp.search(jobJDL['Value'][type])
+    for myType in fileTypes:
+      print "type: %s" %(myType)
+
+      if jobJDL['Value'].has_key(myType):
+        if type(jobJDL['Value'][myType]) is list:
+          s = regExp.search(jobJDL['Value'][myType][1])
+        else:
+          s = regExp.search(jobJDL['Value'][myType])
         if s:
-          myFileType = fileTypes[type].ljust(11)
+          myFileType = fileTypes[myType].ljust(11)
           print "Loc. of %.11s: %s" %(myFileType, s.group(1))
           if fileExample:
             print "%s %s" %('     Example: ', s.group(0))
@@ -153,9 +161,9 @@ def loopOverProds(prodID, fromDate, status):
             print "Step %s: %s %s" %(i, info[j], info[j+1])
     events = val['Number of events']
     print ""
-    for type in events:
-      myType = type[0].ljust(4)
-      print "Number of Events of type %.4s: %.7d" %(myType, type[1])
+    for event in events:
+      myType = event[0].ljust(4)
+      print "Number of Events of type %.4s: %.7d" %(myType, event[1])
 
     files = val['Number of files']
     for file in files:
