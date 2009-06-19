@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.48 2009/04/21 13:57:12 acsmith Exp $
+# $Id: ProductionManagerHandler.py,v 1.49 2009/06/19 07:47:39 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.48 $"
+__RCSID__ = "$Revision: 1.49 $"
 
 from types import *
 import threading
@@ -465,10 +465,19 @@ class ProductionManagerHandler( TransformationHandler ):
     bkClient = BookkeepingClient()
 
     resultDict = {}
-    last_update = None
-    if selectDict.has_key('CreationDate'):
-      last_update = selectDict['CreationDate']
+    last_update = selectDict.get('CreationDate',None)    
+    if last_update:
       del selectDict['CreationDate']
+
+    fromDate = selectDict.get('FromDate',None)    
+    if fromDate:
+      del selectDict['FromDate']
+    if not fromDate:
+      fromDate = last_update  
+    toDate = selectDict.get('ToDate',None)    
+    if toDate:
+      del selectDict['ToDate']  
+      
 
     # Sorting instructions. Only one for the moment.
     if sortList:
@@ -477,7 +486,7 @@ class ProductionManagerHandler( TransformationHandler ):
       orderAttribute = None
 
     # Select production for the summary
-    result = productionDB.selectTransformations(selectDict, orderAttribute=orderAttribute, newer=last_update)
+    result = productionDB.selectTransformations(selectDict, orderAttribute=orderAttribute, newer=fromDate, older=toDate)
     if not result['OK']:
       return S_ERROR('Failed to select productions: '+result['Message'])
 
