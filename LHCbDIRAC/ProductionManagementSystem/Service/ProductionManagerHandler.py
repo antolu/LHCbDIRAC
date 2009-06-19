@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.49 2009/06/19 07:47:39 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.50 2009/06/19 08:37:21 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.49 $"
+__RCSID__ = "$Revision: 1.50 $"
 
 from types import *
 import threading
@@ -462,7 +462,7 @@ class ProductionManagerHandler( TransformationHandler ):
         production monitor in a generic format
     """
 
-    bkClient = BookkeepingClient()
+    #bkClient = BookkeepingClient()
 
     resultDict = {}
     last_update = selectDict.get('CreationDate',None)    
@@ -504,7 +504,6 @@ class ProductionManagerHandler( TransformationHandler ):
       last = nTrans
     summaryList = trList[ini:last]
 
-    print summaryList
     # Get all the data for selected productions
     result = productionDB.getTransformations(summaryList)
     if not result['OK']:
@@ -525,12 +524,15 @@ class ProductionManagerHandler( TransformationHandler ):
     # Add specific information for each selected production
     for prodList in summaryDict['Records']:
       # Job statistics
-      prodID = prodList[0]
+      prodDict = dict(zip(paramNames,prodList))
+      prodID = prodDict['TransformationID']
+      prodType = prodDict['Type']
+      
       result = productionDB.getJobStats(prodID)
-
+      jobDict = {}
       if not result['OK']:
-        gLogger.warn('Failed to get job statistics for production %d' % prodID)
-        jobDict = {}
+        if not result['Message'] == "No records found":
+          gLogger.warn('Failed to get job statistics for production %d' % prodID)
       else:
         jobDict = result['Value']
 
@@ -541,12 +543,14 @@ class ProductionManagerHandler( TransformationHandler ):
           prodList.append(0)
 
       # Get input files stats
-      result = productionDB.getTransformationStats(prodID)
-      if not result['OK']:
-        gLogger.warn('Failed to get file statistics for production %d' % prodID)
-        fileDict = {}
-      else:
-        fileDict = result['Value']
+      fileDict = {}
+      if prodType.lower().find('simulation') == -1:      
+        result = productionDB.getTransformationStats(prodID)
+        if not result['OK']:
+          if not result['Message'] == "No records found":
+            gLogger.warn('Failed to get file statistics for production %d' % prodID)
+        else:
+          fileDict = result['Value']
 
       for state in fileStateNames:
         if fileDict and fileDict.has_key(state):
