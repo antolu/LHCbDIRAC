@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.54 2009/06/19 07:20:19 atsareg Exp $
+# $Id: ProductionDB.py,v 1.55 2009/06/19 07:40:27 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.54 $"
+__RCSID__ = "$Revision: 1.55 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -718,23 +718,24 @@ INDEX(WmsStatus)
     return S_OK(statusList)
 
   def getJobWmsStats(self,productionID):
-    """ Returns dictionary with number of jobs per status in the given production.
+    """ Returns dictionary with number of jobs per status for the given production.
     """
 
-    req = "SELECT DISTINCT WmsStatus FROM Jobs_%d;" % int(productionID)
-    result1 = self._query(req)
-    if not result1['OK']:
-      return result1
+    productionID = self.getTransformationID(productionID)
 
+    resultStats = self.getCounters('Jobs_%d' % productionID,['WmsStatus'],{}) 
+    if not resultStats['OK']:
+      return resultStats
+    if not resultStats['Value']:
+      return S_ERROR('No records found')
+    
     statusList = {}
-    for status_ in result1["Value"]:
-      status = status_[0]
-      statusList[status]=0
-      req = "SELECT count(JobID) FROM Jobs_%d WHERE WmsStatus='%s';" % (productionID, status)
-      result2 = self._query(req)
-      if not result2['OK']:
-        return result2
-      statusList[status]=result2['Value'][0][0]
+
+    total = 0;
+    for attrDict,count in resultStats['Value']:
+      status = attrDict['WmsStatus']
+      statusList[status] = count
+
     return S_OK(statusList)
 
   def setJobStatus(self,productionID,jobID,status):
