@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.15 2009/06/16 07:59:30 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.16 2009/06/19 12:16:03 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.15 2009/06/16 07:59:30 paterson Exp $"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.16 2009/06/19 12:16:03 paterson Exp $"
+__VERSION__ = "$Revision: 1.16 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -24,7 +24,7 @@ brunelOpts = ''
 lhcbVersion = 'v26r3'
 lhcbOpts = '$STDOPTS/PoolCopy.opts'
 conditions = 'MC09-20090602-vc-md100.py'
-appConfigVersion = 'v2r7'
+appConfigVersion = 'v2r7p2'
 dstOutputSE = 'Tier1_MC-DST'
 fileGroup = 40
 debug = False
@@ -32,7 +32,8 @@ inputProd = 0
 bkSimulationCondition = 'Beam5TeV-VeloClosed-MagDown-Nu1'
 bkProcessingPass = 'MC09-Sim03Reco02'
 generateScripts = 0
-mergeType = 'DST'
+brunelOutputType = 'DST'
+mergeType = brunelOutputType
 gaussDecFiles = ''
 #merge priority is fixed but MC priority can be useful
 mcPriority = 1
@@ -46,6 +47,7 @@ Script.registerSwitch( "bo", "Boole=","             Boole version to use        
 Script.registerSwitch( "bO", "BooleOpts=","         Boole options to use          [%s]" % booleOpts )
 Script.registerSwitch( "br", "Brunel=","            Brunel version to use         [%s]" % brunelVersion  )
 Script.registerSwitch( "bO", "BrunelOpts=","        Brunel options to use         [%s]" % brunelOpts )
+Script.registerSwitch( "bu", "BrunelOutput=","      Brunel output file type       [%s]" % brunelOutputType )
 Script.registerSwitch( "lh", "LHCb=","              LHCb version to use           [%s]" % lhcbVersion )
 Script.registerSwitch( "lO", "LHCbOpts=","          LHCb options to use           [%s]" % lhcbOpts )
 Script.registerSwitch( "co", "Conditions=","        Conditions file to use        [%s]" % conditions )
@@ -57,11 +59,11 @@ Script.registerSwitch( "me", "MergeFiles=","        Number of files to merge    
 Script.registerSwitch( "ip", "InputProd=","         Merge given input prod        [%s]" % inputProd )
 Script.registerSwitch( "sc", "SimCond=","           BK simulation condition       [%s]" % bkSimulationCondition)
 Script.registerSwitch( "pp", "ProcPass=","          BK processing pass            [%s]" % bkProcessingPass)
-Script.registerSwitch( "d",  "Debug=","             Only create workflow XML      [%s]" % debug)
-Script.registerSwitch( "m" , "MergeType=","         Type of files to merge        [%s]" % mergeType)
-Script.registerSwitch( "p" , "MCPriority=","        Priority of the MC production [%s]" % mcPriority)
-Script.registerSwitch( "n" , "AppendName=","        String to append to prod name [%s]" % appendName)
-Script.registerSwitch( "g" , "Generate","   Flag to only create production script [%s]" % generateScripts)
+Script.registerSwitch( "d",  "Debug=","              Only create workflow XML      [%s]" % debug)
+Script.registerSwitch( "m" , "MergeType=","          Type of files to merge        [%s]" % mergeType)
+Script.registerSwitch( "p" , "MCPriority=","         Priority of the MC production [%s]" % mcPriority)
+Script.registerSwitch( "n" , "AppendName=","         String to append to prod name [%s]" % appendName)
+Script.registerSwitch( "g" , "Generate","            Only create production script [%s]" % generateScripts)
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
@@ -112,6 +114,8 @@ for switch in Script.getUnprocessedSwitches():
     brunelVersion=switch[1]
   elif switch[0].lower()=="brunelopts":
     brunelOpts=switch[1]
+  elif switch[0].lower()=="bruneloutput":
+    brunelOutputType=switch[1]
   elif switch[0].lower()=="lhcb":
     lhcbVersion=switch[1]
   elif switch[0].lower()=="lhcbopts":
@@ -178,8 +182,8 @@ if not match:
   DIRAC.exit(2)
 condbTag = match.group(1)
 gLogger.info('Determined the CondDB tag to be %s' % condbTag)
-if not mergeType in ['DST','MDF']:
-  gLogger.error('MergeType must be MDF or DST, not %s' %mergeType)
+if not mergeType in ['DST','MDF','XDST']:
+  gLogger.error('MergeType must be MDF, XDST or DST, not %s' %mergeType)
   DIRAC.exit(2)
 
 #########################################################
@@ -237,10 +241,10 @@ if not inputProd:
 
   production.addGaussStep(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventType=eventTypeID,extraPackages=extraSoftware)
   production.addBooleStep(booleVersion,'digi',booleOpts,extraPackages='AppConfig.%s' % appConfigVersion)
-  production.addBrunelStep(brunelVersion,'dst',brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE,histograms=saveBrunelHistos)
+  production.addBrunelStep(brunelVersion,brunelOutputType.lower(),brunelOpts,extraPackages='AppConfig.%s' % appConfigVersion,inputDataType='digi',outputSE=dstOutputSE,histograms=saveBrunelHistos)
 
   production.addFinalizationStep()
-  production.setFileMask('dst')
+  production.setFileMask(brunelOutputType.lower())
   production.setProdGroup(bkProcessingPass)
   production.setProdPriority(mcPriority)
 
@@ -251,9 +255,9 @@ if not inputProd:
   prodScript.append("production.setDBTags('%s','%s')" %(condbTag,dddbTag))
   prodScript.append("production.addGaussStep('%s','%s','%s','%s',eventType='%s',extraPackages='%s')" %(gaussVersion,gaussGen,numberOfEvents,gaussOpts,eventTypeID,extraSoftware))
   prodScript.append("production.addBooleStep('%s','digi','%s',extraPackages='AppConfig.%s')" %(booleVersion,booleOpts,appConfigVersion))
-  prodScript.append("production.addBrunelStep('%s','dst','%s',extraPackages='AppConfig.%s',inputDataType='digi',outputSE='%s',histograms=%s)" %(brunelVersion,brunelOpts,appConfigVersion,dstOutputSE,saveBrunelHistos))
+  prodScript.append("production.addBrunelStep('%s','%s','%s',extraPackages='AppConfig.%s',inputDataType='digi',outputSE='%s',histograms=%s)" %(brunelVersion,brunelOutputType.lower(),brunelOpts,appConfigVersion,dstOutputSE,saveBrunelHistos))
   prodScript.append("production.addFinalizationStep()")
-  prodScript.append("production.setFileMask('dst')")
+  prodScript.append("production.setFileMask('%s')" %brunelOutputType.lower())
   prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
   prodScript.append("production.setProdPriority(%s)" %mcPriority)
   prodScript.append("#production.createWorkflow()")
@@ -346,12 +350,12 @@ if fileGroup:
   if mergeDataType=='MDF':
     lhcbOpts='NA'
 
-  elogStr = """%s\nTo merge the DSTs produced production (%s) has been created with the following parameters:
+  elogStr = """%s\nTo merge the %ss produced production (%s) has been created with the following parameters:
 \nMerging with %s
 LHCb Opts %s
 Input files %s
 \nThe events for this production will appear in the bookkeeping under
-MC/MC09/%s/%s/%s/DST""" % (elogStr,meringProd,appString,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID)
+MC/MC09/%s/%s/%s/%s""" % (elogStr,mergeDataType.upper(),meringProd,appString,lhcbOpts,fileGroup,bkSimulationCondition,bkProcessingPass,eventTypeID,mergeDataType.upper())
 
   if generateScripts:
     fileName = '%s-%s-Merging-%s-p%s-%sf.py' %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup)
