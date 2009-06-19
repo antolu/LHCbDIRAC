@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.15 2009/05/01 11:24:46 rgracian Exp $
+# $Id: UploadLogFile.py,v 1.16 2009/06/19 10:48:15 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.15 2009/05/01 11:24:46 rgracian Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.16 2009/06/19 10:48:15 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -224,7 +224,7 @@ class UploadLogFile(ModuleBase):
     """ The files which are below a configurable size will be stored in the logs.
         This will typically pick up everything in the working directory minus the output data files.
     """
-    logFileExtensions = ['*.txt','*.log','*.root','*.out','*.output','*.xml','*.sh', '*.info', '*.err']
+    logFileExtensions = ['*.txt','*.log','*.out','*.output','*.xml','*.sh', '*.info', '*.err'] #'*.root',
     if self.logExtensions:
       self.log.info('Using list of log extensions from CS:\n%s' %(string.join(self.logExtensions,', ')))
       logFileExtensions = self.logExtensions
