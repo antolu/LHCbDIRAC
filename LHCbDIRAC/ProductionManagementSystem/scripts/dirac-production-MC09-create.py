@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.16 2009/06/19 12:16:03 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.17 2009/06/19 14:06:46 paterson Exp $
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.16 2009/06/19 12:16:03 paterson Exp $"
-__VERSION__ = "$Revision: 1.16 $"
+__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.17 2009/06/19 14:06:46 paterson Exp $"
+__VERSION__ = "$Revision: 1.17 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -35,6 +35,7 @@ generateScripts = 0
 brunelOutputType = 'DST'
 mergeType = brunelOutputType
 gaussDecFiles = ''
+wfLib = ''
 #merge priority is fixed but MC priority can be useful
 mcPriority = 1
 appendName=''
@@ -63,6 +64,7 @@ Script.registerSwitch( "d",  "Debug=","              Only create workflow XML   
 Script.registerSwitch( "m" , "MergeType=","          Type of files to merge        [%s]" % mergeType)
 Script.registerSwitch( "p" , "MCPriority=","         Priority of the MC production [%s]" % mcPriority)
 Script.registerSwitch( "n" , "AppendName=","         String to append to prod name [%s]" % appendName)
+Script.registerSwitch( "w" , "WorkflowLib=","        WorkflowLib version to use    [%s]" % wfLib)
 Script.registerSwitch( "g" , "Generate","            Only create production script [%s]" % generateScripts)
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
@@ -150,6 +152,8 @@ for switch in Script.getUnprocessedSwitches():
     appendName=str(switch[1])
   elif switch[0].lower()=='gaussdecfiles':
     gaussDecFiles = str(switch[1])
+  elif switch[0].lower()=='workflowlib':
+    wfLib = str(switch[1])
 
 if generateScripts:
   gLogger.info('Generate flag is enabled, will create Production API script')
@@ -247,6 +251,8 @@ if not inputProd:
   production.setFileMask(brunelOutputType.lower())
   production.setProdGroup(bkProcessingPass)
   production.setProdPriority(mcPriority)
+  if wfLib:
+    production.setWorkflowLib(wfLib)
 
   prodScript.append("production.setProdType('MCSimulation')")
   prodScript.append("production.setWorkflowName('%s-EventType%s-Gauss%s_Boole%s_Brunel%s_AppConfig%s-%sEvents%s')" % (bkProcessingPass,eventTypeID,gaussVersion,booleVersion,brunelVersion,appConfigVersion,numberOfEvents,appendName))
@@ -260,6 +266,8 @@ if not inputProd:
   prodScript.append("production.setFileMask('%s')" %brunelOutputType.lower())
   prodScript.append("production.setProdGroup('%s')" %(bkProcessingPass))
   prodScript.append("production.setProdPriority(%s)" %mcPriority)
+  if wfLib:
+    prodScript.append("production.setWorkflowLib('%s')" %wfLib)
   prodScript.append("#production.createWorkflow()")
   prodScript.append("production.create()")
   inputProd=12345
@@ -328,6 +336,9 @@ if fileGroup:
   merge.setInputBKSelection(inputBKQuery)
   merge.setJobFileGroupSize(fileGroup)
 
+  if wfLib:
+    merge.setWorkflowLib(wfLib)
+
   prodScript.append("production.setProdType('Merge')")
   prodScript.append("production.setWorkflowName('%s-EventType%s-Merging-%s-prod%s-files%s%s')" %(bkProcessingPass,eventTypeID,appString,inputProd,fileGroup,appendName))
   prodScript.append("production.setWorkflowDescription('MC09 workflow for merging for %ss %s using %s with %s input files from production %s (event type %s ).')" % (mergeDataType,bkProcessingPass,appString,fileGroup,inputProd,eventTypeID))
@@ -340,6 +351,8 @@ if fileGroup:
   prodScript.append("production.setInputBKSelection(%s)" %inputBKQuery)
   prodScript.append("production.setJobFileGroupSize(%s)" %fileGroup)
   prodScript.append("production.setProdPriority('9')")
+  if wfLib:
+    prodScript.append("production.setWorkflowLib('%s')" %wfLib)
   prodScript.append("#production.createWorkflow()")
   if mergeDataType=='MDF':
     prodScript.append("production.create(bkScript=True)")
