@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.53 2009/04/22 09:47:33 acsmith Exp $
+# $Id: ProductionDB.py,v 1.54 2009/06/19 07:20:19 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.53 $"
+__RCSID__ = "$Revision: 1.54 $"
 
 import string
 from DIRAC.Core.Base.DB import DB
@@ -671,34 +671,33 @@ INDEX(WmsStatus)
     return S_OK(resultDict)
 
   def getJobStats(self,productionID):
-    """ Returns dictionary with number of jobs per status in the given production. The status
-        is one of the following:
+    """ Returns dictionary with number of jobs per status in the given production. 
+        The status is one of the following:
         Created - this counter returns the total number of jobs already created;
         Submitted - jobs submitted to the WMS;
-        Running;
-        Done;
-        Failed;
+        Waiting - jobs being checked or waiting for execution in the WMS;
+        Running - jobs being executed in the WMS;
+        Stalled - jobs stalled in the WMS;
+        Done - jobs completed in the WMS;
+        Failed - jobs completed with errors in the WMS;
     """
     productionID = self.getTransformationID(productionID)
-    req = "SELECT DISTINCT WmsStatus FROM Jobs_%s;" % productionID
-    result1 = self._query(req)
-    if not result1['OK']:
-      return result1
+
+    resultStats = self.getCounters('Jobs_%d' % productionID,['WmsStatus'],{}) 
+    if not resultStats['OK']:
+      return resultStats
+    if not resultStats['Value']:
+      return S_ERROR('No records found')
+    
 
     statusList = {}
     for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
       statusList[s] = 0
 
     total = 0;
-    for stat in result1["Value"]:
+    for attrDict,count in resultStats['Value']:
+      status = attrDict['WmsStatus']
       stList = ['Created']
-      status = stat[0]
-      req = "SELECT count(JobID) FROM Jobs_%d WHERE WmsStatus='%s';" % (productionID, status)
-      result2 = self._query(req)
-      if not result2['OK']:
-        return result2
-      count = int(result2['Value'][0][0])
-
       # Choose the status to report
       if not status == "Created" and not status == "Reserved":
         if not "Submitted" in stList:
