@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.21 2009/06/15 08:53:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.22 2009/06/19 12:47:53 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.21 2009/06/15 08:53:20 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.22 2009/06/19 12:47:53 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -173,6 +173,7 @@ class Production(LHCbJob):
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
       options.append('DaVinci().MoniSequence.append(InputCopyStream())')
     elif appName.lower()=='merge':
+      options.append('EventSelector.PrintFreq = 200')
       options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
       return options
     else:
@@ -653,6 +654,78 @@ class Production(LHCbJob):
     self.workflow.toXMLFile(name)
 
   #############################################################################
+  def getDetailedInfo(self,productionID):
+    """ Return detailed information for a given production.
+    """
+    return self.getParameter(int(productionID),'DetailedInfo')
+
+  #############################################################################
+  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProduction='',prodXMLFile='',printOutput=False):
+    """ Under development.
+        Return detailed information for a given production.
+    """
+    if not prodXMLFile: #e.g. setting parameters for old productions
+      prodXMLFile = 'Production%s.xml' %prodID
+      if os.path.exists(prodXMLFile):
+        self.log.info('Using %s for production body' %prodXMLFile)
+      else:
+        prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+        result = prodClient.getProductionBody(int(prodID))
+        if not result['OK']:
+          return S_ERROR("Error during command execution: %s" % result['Message'])
+        if not result['Value']:
+          return S_ERROR("No body of production %s was found" % prodID)
+
+        body = result['Value']
+        fd = open( prodXMLFile, 'wb' )
+        fd.write(body)
+        fd.close()
+
+    if not bkPassInfo:
+      bkPassInfo = self.workflow.findParameter('BKProcessingPass').getValue()
+    if not groupDescription:
+      groupDescription = self.workflow.findParameter('groupDescription').getValue()
+
+    prodWorkflow = Workflow(prodXMLFile)
+    parameters = {}
+    parameters['CondDBTag']=self.workflow.findParameter('CondDBTag').getValue()
+    parameters['DDDBTag']=self.workflow.findParameter('DDDBTag').getValue()
+    parameters['ConfigName']=self.workflow.findParameter('configName').getValue()
+    parameters['ConfigVersion']=self.workflow.findParameter('configVersion').getValue()
+    #now have to go through the BK steps to construct info string
+
+    info = 'Production %s is created with the following parameters:\n' %prodID
+#(,appConfigVersion,gaussVersion,gaussOpts,eventTypeID,gaussGen,numberOfEvents,booleVersion,booleOpts,brunelVersion,brunelOpts,mcTruth)
+
+    prodWorkflow
+
+    if printOutput:
+      print '='*20+'>BKPassInfo'
+      print bkPassInfo
+      print '='*20+'>BKInputQuery'
+      print bkPassInfo
+      print '='*20+'>BKGroupDescription'
+      print bkPassInfo
+      print '='*20+'>ProductionInfo'
+      print bkPassInfo
+      return S_OK()
+
+    result = self.setParameter(int(prodID),'BKProcessingPass',bkPassInfo)
+    if not result['OK']:
+      self.log.error(result['Message'])
+    result = self.setParameter(int(prodID),'BKInputQuery',bkInputQuery)
+    if not result['OK']:
+      self.log.error(result['Message'])
+    result = self.setParameter(int(prodID),'BKGroupDescription',groupDescription)
+    if not result['OK']:
+      self.log.error(result['Message'])
+    result = self.setParameter(int(prodID),'DetailedInfo',info)
+    if not result['OK']:
+      self.log.error(result['Message'])
+
+    return S_OK()
+
+  #############################################################################
   def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
@@ -759,6 +832,7 @@ class Production(LHCbJob):
         self.log.error(result)
       self.log.info('BK publishing result: %s' %result)
 
+    #self._setProductionParameters(prodID,fileName,bkDict['GroupDescription'],bkDict,bkQuery,derivedProduction)
     return S_OK(prodID)
 
   #############################################################################
@@ -837,6 +911,28 @@ class Production(LHCbJob):
     self.gaudiStepCount+=len(passDict.keys())
     #note that the merging production step number will follow on from the previous production
     return S_OK()
+
+  #############################################################################
+  def setParameter(self,prodID,pname,pvalue):
+    """Set a production parameter.
+    """
+    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    result = prodClient.addTransformationParameter(int(prodID),pname,pvalue)
+    return result
+
+  #############################################################################
+  def getParameter(self,prodID,pname=''):
+    """Get a production parameter.
+    """
+    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    result = prodClient.getTransformation(int(prodID))
+    if pname:
+      if result['Value'].has_key(pname):
+        return S_OK(result['Value'][pname])
+      else:
+        return S_ERROR('Production %s does not have parameter %s' %(prodID,pname))
+
+    return result
 
   #############################################################################
   def setWorkflowLib(self,tag):
