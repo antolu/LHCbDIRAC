@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.29 2009/05/01 11:26:24 rgracian Exp $
-__RCSID__ = "$Id: Tools.py,v 1.29 2009/05/01 11:26:24 rgracian Exp $"
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.30 2009/06/20 18:20:05 atsareg Exp $
+__RCSID__ = "$Id: Tools.py,v 1.30 2009/06/20 18:20:05 atsareg Exp $"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -299,7 +299,7 @@ def getLFNRoot(lfn,namespace='',mcYear=0):
     eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
     eg : /lhcb/MC/<year>/  = getLFNRoot(None)
     """
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF']
+    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','XDST']
     if lfn:
         for inputname in lfn.split(';'):
           LFN_ROOT = ''
