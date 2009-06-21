@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.55 2009/06/19 07:40:27 atsareg Exp $
+# $Id: ProductionDB.py,v 1.56 2009/06/21 00:21:51 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,9 +6,9 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.55 $"
+__RCSID__ = "$Revision: 1.56 $"
 
-import string
+import string, types
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR
@@ -694,7 +694,6 @@ INDEX(WmsStatus)
     for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
       statusList[s] = 0
 
-    total = 0;
     for attrDict,count in resultStats['Value']:
       status = attrDict['WmsStatus']
       stList = ['Created']
@@ -731,7 +730,6 @@ INDEX(WmsStatus)
     
     statusList = {}
 
-    total = 0;
     for attrDict,count in resultStats['Value']:
       status = attrDict['WmsStatus']
       statusList[status] = count
@@ -742,7 +740,13 @@ INDEX(WmsStatus)
     """ Set status for job with jobID in production with productionID
     """
 
-    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID=%d;" % (productionID,status,jobID)
+    if type(jobID) != types.ListType:
+      jobIDList = [jobID]
+    else:
+      jobIDList = list(jobID)  
+      
+    jobString = ','.join([ str(x) for x in jobIDList ])  
+    req = "UPDATE Jobs_%d SET WmsStatus='%s', LastUpdateTime=UTC_TIMESTAMP() WHERE JobID in (%s)" % (productionID,status,jobString)
     result = self._update(req)
     return result
 
@@ -913,3 +917,16 @@ INDEX(WmsStatus)
     req = 'UPDATE ProductionRequests SET %s WHERE RequestID=%d' % (setString,int(requestID))
     result = self._update(req)
     return result
+
+  def addBookkeepingQuery(self,queryDict):
+    """ 
+    """
+    
+    queryFields = ['SimulationConditions','ProcessingPass','FileType',
+                   'ConfigName','ConfigVersion','ProductionID']
+    
+    defaults = {}
+    for field in queryFields:
+      defaults[field] = "All"
+      if field == 'ProductionID':
+        defaults[field] = 0
