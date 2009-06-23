@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.111 2009/06/15 10:09:09 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.112 2009/06/23 07:34:51 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.111 2009/06/15 10:09:09 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.112 2009/06/23 07:34:51 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -841,8 +841,25 @@ class BookkeepingManagerHandler(RequestHandler):
     value = dataMGMT_.getConfigsAndEvtType(prodid)
     if value['OK']==True:
       prodinfos = value['Value']
-      
-    result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents}
+    
+    path = ''
+    
+    cname = prodinfos[0][0]
+    cversion = prodinfos[0][1]
+    eventType = prodinfos[0][2]
+    path += cname+'/'+cversion+'/'
+    res = dataMGMT_.getProductionSimulationCond(prodid)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      path += res['Value']
+    res = dataMGMT_.getProductionProcessing(prodid)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      path += '/'+res['Value']
+    path += '/'+str(eventType)
+    result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
   #############################################################################
@@ -874,7 +891,7 @@ class BookkeepingManagerHandler(RequestHandler):
     value = dataMGMT_.getProductionInformation(prodid)
     if value['OK']==True:
       prodinfo = value['Value']
-  
+    
     result = {"Production Info":prodinfo,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents}
     return S_OK(result)
   

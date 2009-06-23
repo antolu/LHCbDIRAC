@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.9 2009/05/08 15:23:24 zmathe Exp $
+# $Id: TreeWidget.py,v 1.10 2009/06/23 07:34:50 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import Proces
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.9 2009/05/08 15:23:24 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.10 2009/06/23 07:34:50 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -88,3 +88,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
       self.standardQuery.setChecked(False)
     else:
       self.standardQuery.setChecked(True)
+  
+  #############################################################################
+  def getPageSize(self):
+    return self.pageSize.text()

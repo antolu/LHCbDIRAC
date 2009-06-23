@@ -1,15 +1,14 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.14 2009/05/08 15:23:25 zmathe Exp $
+# $Id: ControlerTree.py,v 1.15 2009/06/23 07:34:51 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from DIRAC.BookkeepingSystem.Gui.Widget.FileDialogOptions            import FileDialogOptions
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.14 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.15 2009/06/23 07:34:51 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -51,8 +50,6 @@ class ControlerTree(ControlerAbstract):
           ct = controlers['FileDialog']  
           message = Message({'action':'list','items':feedback['items']})
           ct.messageFromParent(message)
-    elif message.action() =='PageSizeIsNull':
-      self.__pagesize = 0
     else:
       return self.getParent().messageFromChild(self, message) # send to main controler!
   
@@ -179,27 +176,14 @@ class ControlerTree(ControlerAbstract):
       elif type(node) != types.DictType and node.expandable() :
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)
-
   #############################################################################  
-  def setPagesize(self):
-    self.__option = FileDialogOptions(self.getWidget())
-    self.__option.show()
-    
-  #############################################################################  
-  def ok(self):
-    value = self.__option.pageSize.text()
+  def getPageSize(self):
+    value = self.getWidget().getPageSize()
     if type(str(value)) == types.StringType:
       if value == 'ALL':
         self.__offset = 0
       elif type(int(value)) == types.IntType:
         self.__offset = int(value)
-    self.__option.close()
-  
-  #############################################################################  
-  def cancel(self):
-    self.__offset = 0
-    self.__option.close()
-    
-  #############################################################################  
-  def getPageSize(self):
     return self.__offset
+  
+ 

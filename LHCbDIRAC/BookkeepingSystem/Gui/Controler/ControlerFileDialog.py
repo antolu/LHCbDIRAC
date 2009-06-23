@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.17 2009/06/15 17:06:20 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.18 2009/06/23 07:34:51 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.17 2009/06/15 17:06:20 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.18 2009/06/23 07:34:51 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -71,8 +71,6 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################  
   def close(self):
     #self.getWidget().hide()
-    message = Message({'action':'PageSizeIsNull'})
-    self.getParent().messageFromChild(self, message)
     self.getWidget().clearTable()
     
     self.getWidget().showSelectedFileSize(0)

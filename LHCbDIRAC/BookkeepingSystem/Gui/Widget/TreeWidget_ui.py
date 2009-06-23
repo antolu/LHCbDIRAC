@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'workspace/DIRAC3/DIRAC/BookkeepingSystem/Gui/Widget/TreeWidget.ui'
+# Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Fri May  8 16:21:12 2009
+# Created: Mon Jun 22 18:01:07 2009
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,13 +18,31 @@ class Ui_TreeWidget(object):
         self.gridlayout = QtGui.QGridLayout(TreeWidget)
         self.gridlayout.setObjectName("gridlayout")
 
-        self.standardQuery = QtGui.QCheckBox(TreeWidget)
-        self.standardQuery.setObjectName("standardQuery")
-        self.gridlayout.addWidget(self.standardQuery,0,0,1,1)
+        self.groupBox = QtGui.QGroupBox(TreeWidget)
+        self.groupBox.setObjectName("groupBox")
 
-        self.advancedQuery = QtGui.QCheckBox(TreeWidget)
+        self.gridlayout1 = QtGui.QGridLayout(self.groupBox)
+        self.gridlayout1.setObjectName("gridlayout1")
+
+        self.standardQuery = QtGui.QCheckBox(self.groupBox)
+        self.standardQuery.setObjectName("standardQuery")
+        self.gridlayout1.addWidget(self.standardQuery,0,0,1,1)
+
+        self.advancedQuery = QtGui.QCheckBox(self.groupBox)
         self.advancedQuery.setObjectName("advancedQuery")
-        self.gridlayout.addWidget(self.advancedQuery,0,1,1,1)
+        self.gridlayout1.addWidget(self.advancedQuery,0,1,1,1)
+
+        self.pageSize = QtGui.QLineEdit(self.groupBox)
+        self.pageSize.setObjectName("pageSize")
+        self.gridlayout1.addWidget(self.pageSize,2,1,1,1)
+
+        self.label = QtGui.QLabel(self.groupBox)
+        self.label.setObjectName("label")
+        self.gridlayout1.addWidget(self.label,2,0,1,1)
+
+        spacerItem = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
+        self.gridlayout1.addItem(spacerItem,2,2,1,1)
+        self.gridlayout.addWidget(self.groupBox,0,0,1,1)
 
         self.tree = TreePanel(TreeWidget)
         self.tree.setEnabled(True)
@@ -37,30 +55,30 @@ class Ui_TreeWidget(object):
         self.tree.setSortingEnabled(False)
         self.tree.setAnimated(False)
         self.tree.setObjectName("tree")
-        self.gridlayout.addWidget(self.tree,1,0,1,2)
+        self.gridlayout.addWidget(self.tree,1,0,1,1)
 
         self.selection = QtGui.QGroupBox(TreeWidget)
         self.selection.setObjectName("selection")
 
-        self.gridlayout1 = QtGui.QGridLayout(self.selection)
-        self.gridlayout1.setObjectName("gridlayout1")
+        self.gridlayout2 = QtGui.QGridLayout(self.selection)
+        self.gridlayout2.setObjectName("gridlayout2")
 
         self.configNameRadioButton = QtGui.QRadioButton(self.selection)
         self.configNameRadioButton.setObjectName("configNameRadioButton")
-        self.gridlayout1.addWidget(self.configNameRadioButton,0,0,1,1)
+        self.gridlayout2.addWidget(self.configNameRadioButton,0,0,1,1)
 
         self.radioButton_2 = QtGui.QRadioButton(self.selection)
         self.radioButton_2.setObjectName("radioButton_2")
-        self.gridlayout1.addWidget(self.radioButton_2,1,0,1,1)
+        self.gridlayout2.addWidget(self.radioButton_2,1,0,1,1)
 
         self.productionRadioButton = QtGui.QRadioButton(self.selection)
         self.productionRadioButton.setObjectName("productionRadioButton")
-        self.gridlayout1.addWidget(self.productionRadioButton,2,0,1,1)
+        self.gridlayout2.addWidget(self.productionRadioButton,2,0,1,1)
 
         self.runLookup = QtGui.QRadioButton(self.selection)
         self.runLookup.setObjectName("runLookup")
-        self.gridlayout1.addWidget(self.runLookup,3,0,1,1)
-        self.gridlayout.addWidget(self.selection,2,0,1,2)
+        self.gridlayout2.addWidget(self.runLookup,3,0,1,1)
+        self.gridlayout.addWidget(self.selection,2,0,1,1)
 
         self.configNameRadioButton1 = QtGui.QAction(TreeWidget)
         self.configNameRadioButton1.setObjectName("configNameRadioButton1")
@@ -72,6 +90,8 @@ class Ui_TreeWidget(object):
         TreeWidget.setWindowTitle(QtGui.QApplication.translate("TreeWidget", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.standardQuery.setText(QtGui.QApplication.translate("TreeWidget", "Standard", None, QtGui.QApplication.UnicodeUTF8))
         self.advancedQuery.setText(QtGui.QApplication.translate("TreeWidget", "Advanced Queries", None, QtGui.QApplication.UnicodeUTF8))
+        self.pageSize.setText(QtGui.QApplication.translate("TreeWidget", "ALL", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("TreeWidget", "Page Size:", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(0,QtGui.QApplication.translate("TreeWidget", "                                Tree                                                     ", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(1,QtGui.QApplication.translate("TreeWidget", "Description", None, QtGui.QApplication.UnicodeUTF8))
         self.selection.setTitle(QtGui.QApplication.translate("TreeWidget", "Queries", None, QtGui.QApplication.UnicodeUTF8))

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.7 2009/05/08 15:23:24 zmathe Exp $
+# $Id: MainWidget.py,v 1.8 2009/06/23 07:34:50 zmathe Exp $
 ########################################################################
 
 
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 from DIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
-__RCSID__ = "$Id: MainWidget.py,v 1.7 2009/05/08 15:23:24 zmathe Exp $"
+__RCSID__ = "$Id: MainWidget.py,v 1.8 2009/06/23 07:34:50 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
@@ -37,8 +37,6 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.__controler.addChild('TreeWidget', self.tree.getControler())
     self.connect(self.actionExit, SIGNAL("triggered()"),
                      self, SLOT("close()"))
-    
-    self.connect(self.actionFile_dialog_paging_size, SIGNAL("triggered()"), self.tree.getControler().setPagesize)
       
     self.__productionLookup = ProductionLookup(data = None, parent = self)
     self.__controler.addChild('ProductionLookup', self.__productionLookup.getControler())

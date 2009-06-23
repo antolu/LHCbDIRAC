@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.51 2009/06/15 10:09:07 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.52 2009/06/23 07:34:51 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.51 2009/06/15 10:09:07 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.52 2009/06/23 07:34:51 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -201,6 +201,14 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################  
   def getSimConditions(self):
     return self.getManager().getSimConditions()
+  
+  #############################################################################
+  def getProductionSimulationCond(self, prod):
+    return self.getManager().getProductionSimulationCond(prod)
+  
+  #############################################################################
+  def getProductionProcessing(self, prod):
+    return self.getManager().getProductionProcessing(prod)
   
   #############################################################################
   def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):

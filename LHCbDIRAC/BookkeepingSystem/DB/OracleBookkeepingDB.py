@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.95 2009/06/17 14:27:16 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.96 2009/06/23 07:34:51 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.95 2009/06/17 14:27:16 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.96 2009/06/23 07:34:51 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2632,6 +2632,33 @@ class OracleBookkeepingDB(IBookkeepingDB):
     command = ' select count(*) from productions where production='+ str(production)
     res = self.dbR_._query(command)
     return res
+  
+  #############################################################################
+  def getProductionSimulationCond(self, prod):
+    command ='select simulationconditions.simdescription  FROM simulationconditions, productions where \
+         productions.simcondid= simulationconditions.simid and productions.production='+str(prod)
+     
+    res = self.dbR_._query(command)
+    simcond = ''
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      value = res['Value']
+      simcond = value[0][0]
+    return S_OK(simcond)
+  
+  #############################################################################
+  def getProductionProcessing(self, prod):
+    command = 'select pass_group.groupdescription from pass_index, pass_group, productions where \
+               productions.passid= pass_index.passid and pass_index.groupid= pass_group.groupid and productions.production='+str(prod)
+    res = self.dbR_._query(command)
+    procpass = ''
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      value = res['Value']
+      procpass = value[0][0]
+    return S_OK(procpass)
   
   #############################################################################
   #
