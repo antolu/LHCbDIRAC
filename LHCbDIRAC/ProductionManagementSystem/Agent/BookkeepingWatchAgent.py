@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/BookkeepingWatchAgent.py,v 1.5 2009/06/23 13:25:56 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/BookkeepingWatchAgent.py,v 1.6 2009/06/23 13:31:09 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.5 2009/06/23 13:25:56 atsareg Exp $"
+__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.6 2009/06/23 13:31:09 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -34,7 +34,7 @@ class BookkeepingWatchAgent(Agent):
     """
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-
+    self.fullUpdatePeriod = gConfig.getValue(self.section+'/FullUpdatePeriod',86400)
     self.prodDB = ProductionDB()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return result
@@ -83,7 +83,7 @@ class BookkeepingWatchAgent(Agent):
         if self.timeLog.has_key(transID):
           if self.fullTimeLog.has_key(transID):
             # If it is more than a day since the last reduced query, make a full query just in case
-            if (datetime.datetime.utcnow() - self.fullTimeLog[transID]) < datetime.timedelta(days=1):
+            if (datetime.datetime.utcnow() - self.fullTimeLog[transID]) < datetime.timedelta(seconds=self.fullUpdatePeriod):
               timeStamp = self.timeLog[transID]
               bkDict['StartDate'] = (timeStamp - datetime.timedelta(seconds=10)).strftime('%Y-%m-%d %H:%M:%S')
             else:
