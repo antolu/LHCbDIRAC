@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.96 2009/06/23 07:34:51 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.97 2009/06/23 13:02:44 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.96 2009/06/23 07:34:51 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.97 2009/06/23 13:02:44 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1147,7 +1147,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def updateFileMetaData(self, filename, filesAttr):
-    command = 'update files Set '
+    command = 'update files Set inserttimestamp=current_timestamp ,'
     for attribute in filesAttr.keys():
       command += str(attribute)+'='+str(filesAttr[attribute])+' ,'
     
@@ -1159,7 +1159,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def renameFile(self, oldLFN, newLFN):
-    command = ' update files Set  fileName = \''+newLFN+'\' where filename=\''+oldLFN+'\''
+    command = ' update files Set inserttimestamp=current_timestamp, fileName = \''+newLFN+'\' where filename=\''+oldLFN+'\''
     res = self.dbW_._query(command)
     return res
   
@@ -1603,7 +1603,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
     
-    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
+    command = ' update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.runnumber='+str(runNb)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
@@ -1641,7 +1641,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
     
-    command = ' update files set qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
+    command = ' update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.production='+str(prod)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
@@ -1665,7 +1665,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def __updateQualityFlag(self, lfn, qid):
-    command = 'update files set qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''
+    command = 'update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
