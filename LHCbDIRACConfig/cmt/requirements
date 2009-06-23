@@ -15,7 +15,8 @@ set X509_VOMS_DIR "$(X509_VOMS_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/cu
 
 use pyqt     v* LCG_Interfaces
 
-macro        Python_config_version               2.4.2
+macro        Python_config_version               2.4.2 \
+             "target-x86_64"&"target-slc5"       2.5
 macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
 macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
 macro        Python_config_version_twodigit   `$(pyth_maj)`.`$(pyth_min)`
@@ -26,11 +27,13 @@ macro        sip_config_version                  4.7.9
 
 #----------------------------------------------------------------------------------------
 # define specific version which are not in LHCBGRID package if needed: examples here
-#macro       lcgutils_config_version             1.6.17-2
-#macro       gfal_config_version                 1.11.0-1
+#macro       lcgutils_config_version             1.7.4-1
+#macro       gfal_config_version                 1.11.6-2
 
-#macro       lfc_dpm_version                     1.6.11
-#macro       lfc_config_version                  $(lfc_dpm_version)
-#macro       dpm_config_version                  $(lfc_dpm_version)
-#macro       lcgdmcommon_config_version          $(lfc_dpm_version)
+#macro       lfc_dpm_version                     1.7.2-1sec
+
+#macro       voms_version                        1.9.2-1
+#macro       vomsapic_config_version             $(voms_version)
+#macro       vomsapicpp_config_version           $(voms_version)
+#macro       vomsclients_config_version          $(voms_version)
 
