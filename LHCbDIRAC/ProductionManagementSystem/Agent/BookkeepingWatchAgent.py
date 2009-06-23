@@ -1,18 +1,18 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/BookkeepingWatchAgent.py,v 1.4 2009/04/20 17:05:22 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/BookkeepingWatchAgent.py,v 1.5 2009/06/23 13:25:56 atsareg Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.4 2009/04/20 17:05:22 atsareg Exp $"
+__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.5 2009/06/23 13:25:56 atsareg Exp $"
 
 from DIRAC.Core.Base.Agent    import Agent
 from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
-import os, time
+import os, time, datetime
 
 
 AGENT_NAME = 'ProductionManagement/BookkeepingWatchAgent'
@@ -25,6 +25,8 @@ class BookkeepingWatchAgent(Agent):
     """
     Agent.__init__(self,AGENT_NAME)
     self.fileLog = {}
+    self.timeLog = {}
+    self.fullTimeLog = {}
 
   #############################################################################
   def initialize(self):
@@ -78,6 +80,19 @@ class BookkeepingWatchAgent(Agent):
               del bkDict[name]
               
         start = time.time()              
+        if self.timeLog.has_key(transID):
+          if self.fullTimeLog.has_key(transID):
+            # If it is more than a day since the last reduced query, make a full query just in case
+            if (datetime.datetime.utcnow() - self.fullTimeLog[transID]) < datetime.timedelta(days=1):
+              timeStamp = self.timeLog[transID]
+              bkDict['StartDate'] = (timeStamp - datetime.timedelta(seconds=10)).strftime('%Y-%m-%d %H:%M:%S')
+            else:
+              self.fullTimeLog[transID] = datetime.datetime.utcnow()    
+                 
+        self.timeLog[transID] = datetime.datetime.utcnow()
+        if not self.fullTimeLog.has_key(transID):
+          self.fullTimeLog[transID] = datetime.datetime.utcnow()     
+            
         result = bkserver.getFilesWithGivenDataSets(bkDict)    
         rtime = time.time()-start    
         gLogger.verbose('Bk query time: %.2f sec for query %d, transformation %d' % (rtime,bkQueryID,transID) )
@@ -87,13 +102,13 @@ class BookkeepingWatchAgent(Agent):
           
         lfnList = result['Value']   
         
-        # Check of the number of files has changed since the last cycle
+        # Check if the number of files has changed since the last cycle
         nlfns = len(lfnList)
-        gLogger.verbose('%d files available for production %d in BK DB' % (nlfns,int(transID)) )
+        gLogger.info('%d files returned for production %d from the BK DB' % (nlfns,int(transID)) )
         if self.fileLog.has_key(transID):
           if nlfns == self.fileLog[transID]:
-            gLogger.verbose('No new files in BK DB since last check, skipping ...')
-            continue
+            gLogger.verbose('No new files in BK DB since last check')
+        #    continue
         self.fileLog[transID] = nlfns       
              
         if lfnList:
