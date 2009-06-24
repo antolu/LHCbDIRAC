@@ -43,6 +43,7 @@ cmtpath_pattern \
 macro dplat "" \
       "slc4-ia32" "Linux_i686_glibc-2.3.4" \
       "slc4-amd64" "Linux_x86_64_glibc-2.3.4" \
-      "target-x86_64"&"target-slc5" "Linux_x86_64_glibc-2.5"
+      "target-x86_64"&"target-slc5" "Linux_x86_64_glibc-2.5" \
+      "target-i686"&"target-slc5" "Linux_i686_glibc-2.5"
 set DIRACPLAT $(dplat)
 
