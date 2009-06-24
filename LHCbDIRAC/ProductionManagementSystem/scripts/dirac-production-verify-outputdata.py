@@ -2,10 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.3 2009/04/06 10:48:53 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.4 2009/06/24 09:37:42 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.3 2009/04/06 10:48:53 acsmith Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.4 2009/06/24 09:37:42 acsmith Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
@@ -161,11 +161,13 @@ if zeroReplicaFiles:
     print lfn
 
 if sePfns:
+  totalReplicas = 0
   print '%s %s' % ('Site'.ljust(20), 'Files'.rjust(20))
   for site in sortList(sePfns.keys()):
     files = len(sePfns[site])
+    totalReplicas += files
     print '%s %s' % (site.ljust(20), str(files).rjust(20))
-
+print '%s %s' % ('Total'.ljust(20), str(totalReplicas).rjust(20))
 #########################################################################
 # Check the physical files exist for all the replicas
 #########################################################################
