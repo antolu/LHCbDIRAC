@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.8 2009/05/05 12:55:38 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.9 2009/06/24 15:00:35 joel Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.8 2009/05/05 12:55:38 joel Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.9 2009/06/24 15:00:35 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -65,9 +65,9 @@ class DiracSAM(Dirac):
       job.checkSystemConfiguration(enableFlag=enable)
       job.checkSiteQueues(enableFlag=enable)
       self.log.verbose('Flag to force deletion of shared area is %s' %(deleteSharedArea))
-      if not enable and softwareEnable:
-        self.log.verbose('Software distribution flag cannot be True if enableFlag is disabled')
-        return S_ERROR('Enable flag is disabled but software flag is enabled')
+#      if not enable and softwareEnable:
+#        self.log.verbose('Software distribution flag cannot be True if enableFlag is disabled')
+#        return S_ERROR('Enable flag is disabled but software flag is enabled')
       if install_project:
         self.log.verbose('Optional install_project URL is set to %s' %(install_project))
       job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable,installProjectURL=install_project)
