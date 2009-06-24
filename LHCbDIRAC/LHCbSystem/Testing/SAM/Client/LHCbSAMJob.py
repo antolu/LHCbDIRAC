@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.16 2009/06/03 07:45:16 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.17 2009/06/24 14:56:24 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.16 2009/06/03 07:45:16 paterson Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.17 2009/06/24 14:56:24 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -107,25 +107,26 @@ except Exception,x:
     if not enableFlag in [True,False] or not forceDeletion in [True,False]:
       raise TypeError,'Expected boolean value for SAM lock test flags'
 
-    self.gaudiStepCount +=1
-    stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %('SAM',stepNumber)
-    step =  self.__getSAMLockStep(stepDefn)
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getSAMLockStep(stepDefn)
 
-    self._addJDLParameter('SAMLockTest',str(enableFlag))
-    stepName = 'Run%sStep%s' %('SAM',stepNumber)
-    self.addToOutputSandbox.append('*.log')
-    self.workflow.addStep(step)
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
+      self._addJDLParameter('SAMLockTest',str(enableFlag))
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self.addToOutputSandbox.append('*.log')
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
 
-    if forceDeletion:
-      self._addJDLParameter('LockRemovalFlag','True')
+      if forceDeletion:
+        self._addJDLParameter('LockRemovalFlag','True')
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("enable",enableFlag)
-    stepInstance.setValue("forceLockRemoval",forceDeletion)
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
+      stepInstance.setValue("forceLockRemoval",forceDeletion)
 
   #############################################################################
   def __getSAMLockStep(self,name='LockSharedArea'):
@@ -166,24 +167,25 @@ except Exception,x:
     if not enableFlag in [True,False]:
       raise TypeError,'Expected boolean value for enableFlag'
 
-    self.gaudiStepCount +=1
-    stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %('SAM',stepNumber)
-    step =  self.__getSystemConfigStep(stepDefn)
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getSystemConfigStep(stepDefn)
 
-    self._addJDLParameter('SystemConfigurationTest',str(enableFlag))
-    stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self._addJDLParameter('SystemConfigurationTest',str(enableFlag))
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
 #    logPrefix = 'Step%s_' %(stepNumber)
 #    logName = '%s%s' %(logPrefix,'SystemConfiguration')
-    self.addToOutputSandbox.append('*.log')
+      self.addToOutputSandbox.append('*.log')
 
-    self.workflow.addStep(step)
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("enable",enableFlag)
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
 
   #############################################################################
   def __getSystemConfigStep(self,name='SystemConfiguration'):
@@ -224,21 +226,22 @@ except Exception,x:
     if not enableFlag in [True,False]:
       raise TypeError,'Expected boolean value for enableFlag'
 
-    self.gaudiStepCount +=1
-    stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %('SAM',stepNumber)
-    step =  self.__getSiteQueuesStep(stepDefn)
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getSiteQueuesStep(stepDefn)
 
-    self._addJDLParameter('SiteQueuesTest',str(enableFlag))
-    stepName = 'Run%sStep%s' %('SAM',stepNumber)
-    self.addToOutputSandbox.append('*.log')
-    self.workflow.addStep(step)
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
+      self._addJDLParameter('SiteQueuesTest',str(enableFlag))
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self.addToOutputSandbox.append('*.log')
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("enable",enableFlag)
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
 
   #############################################################################
   def __getSiteQueuesStep(self,name='SiteQueues'):
@@ -284,27 +287,28 @@ except Exception,x:
       if not type(installProjectURL)==type(" "):
         raise TypeError,'Expected string for install_project URL'
 
-    self.gaudiStepCount +=1
-    stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %('SAM',stepNumber)
-    step =  self.__getSoftwareInstallationStep(stepDefn)
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getSoftwareInstallationStep(stepDefn)
 
-    self._addJDLParameter('SoftwareInstallationTest',str(enableFlag))
-    stepName = 'Run%sStep%s' %('SAM',stepNumber)
-    self.addToOutputSandbox.append('*.log')
-    self.workflow.addStep(step)
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
-    self._addJDLParameter('DeleteSharedArea',str(forceDeletion))
+      self._addJDLParameter('SoftwareInstallationTest',str(enableFlag))
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self.addToOutputSandbox.append('*.log')
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
+      self._addJDLParameter('DeleteSharedArea',str(forceDeletion))
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("enable",enableFlag)
-    stepInstance.setValue("purgeSharedAreaFlag",forceDeletion)
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
+      stepInstance.setValue("purgeSharedAreaFlag",forceDeletion)
 
-    if installProjectURL:
-      self._addJDLParameter('installProjectURL',str(installProjectURL))
-      stepInstance.setValue("installProjectURL",installProjectURL)
+      if installProjectURL:
+        self._addJDLParameter('installProjectURL',str(installProjectURL))
+        stepInstance.setValue("installProjectURL",installProjectURL)
 
   #############################################################################
   def __getSoftwareInstallationStep(self,name='SoftwareInstallation'):
@@ -347,33 +351,34 @@ except Exception,x:
     if not enableFlag in [True,False]:
       raise TypeError,'Expected boolean value for enableFlag'
 
-    result = gConfig.getOptionsDict(self.appTestPath)
-    if not result['OK']:
-      raise TypeError,'Section %s is not defined or could not be retrieved' %self.appTestPath
-    testList = gConfig.getValue('/Operations/SAM/ApplicationTestList',[])
-    if not testList:
-      raise TypeError,'Could not get list of tests from /Operations/SAM/ApplicationTestList'
+    if enableFlag:
+      result = gConfig.getOptionsDict(self.appTestPath)
+      if not result['OK']:
+        raise TypeError,'Section %s is not defined or could not be retrieved' %self.appTestPath
+      testList = gConfig.getValue('/Operations/SAM/ApplicationTestList',[])
+      if not testList:
+        raise TypeError,'Could not get list of tests from /Operations/SAM/ApplicationTestList'
 
-    self.log.verbose('Will generate tests for: %s' %(string.join(testList,', ')))
-    for testName in testList:
-      appNameVersion = result['Value'][testName]
-      self.gaudiStepCount +=1
-      stepNumber = self.gaudiStepCount
-      stepDefn = '%sStep%s' %('SAM',stepNumber)
-      step =  self.__getTestApplicationsStep(stepDefn)
+      self.log.verbose('Will generate tests for: %s' %(string.join(testList,', ')))
+      for testName in testList:
+        appNameVersion = result['Value'][testName]
+        self.gaudiStepCount +=1
+        stepNumber = self.gaudiStepCount
+        stepDefn = '%sStep%s' %('SAM',stepNumber)
+        step =  self.__getTestApplicationsStep(stepDefn)
 
-      self._addJDLParameter('TestApplication%s' %(appNameVersion.replace('.','')),str(enableFlag))
-      stepName = 'Run%sStep%s' %('SAM',stepNumber)
-      self.addToOutputSandbox.append('*.log')
-      self.workflow.addStep(step)
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
+        self._addJDLParameter('TestApplication%s' %(appNameVersion.replace('.','')),str(enableFlag))
+        stepName = 'Run%sStep%s' %('SAM',stepNumber)
+        self.addToOutputSandbox.append('*.log')
+        self.workflow.addStep(step)
+        stepPrefix = '%s_' % stepName
+        self.currentStepPrefix = stepPrefix
 
       # Define Step and its variables
-      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-      stepInstance.setValue("enable",enableFlag)
-      stepInstance.setValue("samTestName",testName)
-      stepInstance.setValue("appNameVersion",appNameVersion)
+        stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+        stepInstance.setValue("enable",enableFlag)
+        stepInstance.setValue("samTestName",testName)
+        stepInstance.setValue("appNameVersion",appNameVersion)
 
   #############################################################################
   def __getTestApplicationsStep(self,name='TestApplications'):
