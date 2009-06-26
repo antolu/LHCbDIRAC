@@ -26,7 +26,7 @@ mysql_install_db --datadir=/opt/dirac/mysql/db/ 2>&1 > /opt/dirac/mysql/log/mysq
 cd /opt/dirac/pro
 
 for file in ` find DIRAC/*/DB -name "*DB.sql" ` ; do
-		DB
+		DB=`basename $file .sql`
         echo $DB
         grep -qi "use $DB;" $file || echo ERROR $file
         grep -qi "use $DB;" $file || continue
