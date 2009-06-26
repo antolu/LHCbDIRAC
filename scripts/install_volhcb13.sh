@@ -171,7 +171,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement NewTaskQueueDirector
+$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueDirector
 
 # If any special CS entried required modify and uncomment the following:
 
