@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.17 2009/06/24 14:56:24 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.18 2009/06/26 10:14:34 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.17 2009/06/24 14:56:24 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.18 2009/06/26 10:14:34 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -107,26 +107,25 @@ except Exception,x:
     if not enableFlag in [True,False] or not forceDeletion in [True,False]:
       raise TypeError,'Expected boolean value for SAM lock test flags'
 
-    if enableFlag:
-      self.gaudiStepCount +=1
-      stepNumber = self.gaudiStepCount
-      stepDefn = '%sStep%s' %('SAM',stepNumber)
-      step =  self.__getSAMLockStep(stepDefn)
+    self.gaudiStepCount +=1
+    stepNumber = self.gaudiStepCount
+    stepDefn = '%sStep%s' %('SAM',stepNumber)
+    step =  self.__getSAMLockStep(stepDefn)
 
-      self._addJDLParameter('SAMLockTest',str(enableFlag))
-      stepName = 'Run%sStep%s' %('SAM',stepNumber)
-      self.addToOutputSandbox.append('*.log')
-      self.workflow.addStep(step)
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
+    self._addJDLParameter('SAMLockTest',str(enableFlag))
+    stepName = 'Run%sStep%s' %('SAM',stepNumber)
+    self.addToOutputSandbox.append('*.log')
+    self.workflow.addStep(step)
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
 
-      if forceDeletion:
-        self._addJDLParameter('LockRemovalFlag','True')
+    if forceDeletion:
+      self._addJDLParameter('LockRemovalFlag','True')
 
-    # Define Step and its variables
-      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-      stepInstance.setValue("enable",enableFlag)
-      stepInstance.setValue("forceLockRemoval",forceDeletion)
+# Define Step and its variables
+    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance.setValue("enable",enableFlag)
+    stepInstance.setValue("forceLockRemoval",forceDeletion)
 
   #############################################################################
   def __getSAMLockStep(self,name='LockSharedArea'):
