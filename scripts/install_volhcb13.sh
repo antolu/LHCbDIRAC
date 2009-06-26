@@ -154,40 +154,7 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement SandboxStore
 
-# ProductionManagement
-$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
-$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionRequest
-
-# Framework
-$DESTDIR/pro/scripts/install_service.sh Framework Notification
-$DESTDIR/pro/scripts/install_service.sh Framework Gateway
-
-# Stager
-$DESTDIR/pro/scripts/install_service.sh Stager Stager
-
-# RequestManagement
-$DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
-
 # If any special CS entried required modify and uncomment the following:
-
-#cat > $DESTDIR/etc/SystemName_ServiceName.cfg <<EOF
-#Systems
-#{
-#  SystemName
-#  {
-#    $DIRACINSTANCE
-#    {
-#      Services
-#      {
-#        ServiceName
-#        {
-#          Option = Value
-#        }
-#      }
-#    }
-#  }
-#}
-#EOF
 
 ##############################################################
 # INSTALL AGENTS
@@ -196,7 +163,7 @@ $DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
 
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
 # To be run elsewhere
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
+#$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement MightyOptimizer
 
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
@@ -206,47 +173,7 @@ $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement NewTaskQueueDirector
 
-# ProductionManagement
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
-
-# Stager
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMSAgent
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
-
-# RequestManagement
-$DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
-
-# LHCb specific agents
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteMonitoringAgent
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteWMSMonitoringAgent
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   SrmSpaceTokenAgent
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   SAMAgent
-
 # If any special CS entried required modify and uncomment the following:
-#cat > $DESTDIR/etc/SystemName_AgentName.cfg <<EOF
-#Systems
-#{
-#  SystemName
-#  {
-#    $DIRACINSTANCE
-#    {
-#      Agents
-#      {
-#        AgentName
-#        {
-#          Option = Value
-#        }
-#      }
-#    }
-#  }
-#}
-#EOF
 
 ######################################################################
 
