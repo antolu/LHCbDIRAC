@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.97 2009/06/23 13:02:44 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.98 2009/06/26 13:12:01 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.97 2009/06/23 13:02:44 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.98 2009/06/26 13:12:01 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -897,7 +897,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if endDate != None:
       condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
     elif startDate != None and endDate == None:
-      condition += ' and files.inserttimestamp <= current_timestamp '
+      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       
     if flag != 'ALL':
       quality = None
@@ -2066,7 +2067,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           attrList[param]=timestamp
         else:
           attrList[param] = file[param]
-      
+ 
       result = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',LongType, [  attrList['Adler32'], \
                     attrList['CreationDate'], \
                     attrList['EventStat'], \
@@ -2077,7 +2078,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['Guid'],  \
                     attrList['JobId'], \
                     attrList['MD5Sum'], \
-                    attrList['FileSize'],
+                    attrList['FileSize'], \
                     attrList['PhysicStat'] ] ) 
       return result
       
