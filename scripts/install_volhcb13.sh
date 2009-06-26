@@ -20,8 +20,8 @@ DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=25
 DIRACDIRS="startup runit data work control requestDB"
 
-export DIRACINSTANCE=Certification
-export LOGLEVEL=VERBOSE
+export DIRACINSTANCE=Production
+export LOGLEVEL=INFO
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
