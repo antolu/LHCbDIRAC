@@ -21,6 +21,10 @@ mkdir -p /opt/dirac/mysql/log
 
 
 mysql_install_db --datadir=/opt/dirac/mysql/db/ 2>&1 > /opt/dirac/mysql/log/mysql_install_db.log
+
+mycnf=/opt/dirac/pro/mysql/etc/my.cnf
+sed -i 's/\[mysqld\]/\[mysqld\]\ninnodb_file_per_table\g' $mycnf
+
 /opt/dirac/pro/mysql/share/mysql/mysql.server start
 
 cd /opt/dirac/pro
