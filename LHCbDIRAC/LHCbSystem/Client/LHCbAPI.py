@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbAPI.py,v 1.1 2009/06/29 18:52:42 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbAPI.py,v 1.2 2009/06/29 19:26:13 acsmith Exp $
 # Author: Andrew C. Smith
 ########################################################################
 
@@ -13,12 +13,12 @@
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-__RCSID__ = "$Id: LHCbAPI.py,v 1.1 2009/06/29 18:52:42 acsmith Exp $"
+__RCSID__ = "$Id: LHCbAPI.py,v 1.2 2009/06/29 19:26:13 acsmith Exp $"
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList
 from DIRAC.Interfaces.API.Dirac                     import Dirac
-from DIRAC.LHCbSystem.Utilities.ClientTools         import mergeRootFiles
+from DIRAC.LHCbSystem.Utilities.ClientTools         import mergeRootFiles,getRootFileGUID
 
 import os, glob, fnmatch
 
@@ -31,6 +31,13 @@ class LHCbAPI(Dirac):
     """Internal initialization of the DIRAC API.
     """
     Dirac.__init__(self,WithRepo=WithRepo, RepoLocation=RepoLocation)
+
+  def addRootFile(self,lfn,fullPath,diracSE,printOutput=False):
+    res = getRootFileGUID(fullPath)
+    if not res['OK']:
+      return self.__errorReport(res['Message'],"Failed to obtain root file GUID.")
+    res = self.addFile(lfn,fullPath,diracSE,fileGuid=res['Value'],printOutput=printOutput)
+    return res
 
   def rootMergeRepository(self,outputFileName,inputFileMask='*.root',location='Sandbox',requestedStates=['Done']):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
@@ -81,3 +88,12 @@ class LHCbAPI(Dirac):
     if not res['OK']:
       return self.__errorReport(res['Message'],"Failed to perform final ROOT merger")
     return S_OK()
+
+  #############################################################################
+  def __errorReport(self,error,message=None):
+    """Internal function to return errors and exit with an S_ERROR()
+    """
+    if not message:
+      message = error
+    self.log.warn(error)
+    return S_ERROR(message)
