@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.6 2009/06/29 18:16:30 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.7 2009/06/29 19:11:19 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.6 2009/06/29 18:16:30 acsmith Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.7 2009/06/29 19:11:19 acsmith Exp $"
 
 import string,re,os,shutil,types
 
@@ -242,7 +242,7 @@ def getRootFileGUID(fileName,cleanUp=True):
     gLogger.error('Could not find VO_LHCB_SW_DIR or /LocalSite/SharedArea in local configuration')
     return S_ERROR('Could not find local shared software area')
 
-  lbLogin = '%s/LbLogin' %sharedArea
+  lbLogin = '%s/lib/LbLogin' %sharedArea
   ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
