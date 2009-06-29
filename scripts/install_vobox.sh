@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.9 2008/11/11 14:48:05 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.10 2009/06/29 09:45:29 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -13,7 +13,7 @@ SiteName=$1
 #
 DESTDIR=/opt/vobox/lhcb/dirac
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r0
+DIRACVERSION=v4r15
 EXTVERSION=v4r0
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
