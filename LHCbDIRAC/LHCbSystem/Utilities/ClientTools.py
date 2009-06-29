@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.7 2009/06/29 19:11:19 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.8 2009/06/29 19:24:19 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.7 2009/06/29 19:11:19 acsmith Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.8 2009/06/29 19:24:19 acsmith Exp $"
 
 import string,re,os,shutil,types
 
@@ -284,7 +284,7 @@ def getRootFileGUID(fileName,cleanUp=True):
     guid = stdout.split('GUID')[1]
   except Exception,x:
     gLogger.error('Could not obtain GUID from file')
-    return ret
+    return S_ERROR('Failed to get GUID from file')
 
   gLogger.verbose('GUID found to be %s' %guid)
   return S_OK(guid)
