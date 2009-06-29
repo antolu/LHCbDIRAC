@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.25 2009/06/08 16:52:10 acasajus Exp $
+# $Id: UsersAndGroups.py,v 1.26 2009/06/29 13:23:19 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.25 2009/06/08 16:52:10 acasajus Exp $"
-__VERSION__ = "$Revision: 1.25 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.26 2009/06/29 13:23:19 acasajus Exp $"
+__VERSION__ = "$Revision: 1.26 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -181,8 +181,8 @@ class UsersAndGroups(AgentModule):
         self.log.error('Obsolete User', user )
         obsoleteUsers.append(user)
 
-    address = gConfig.getValue(self.section+'/mailTo', 'lhcb-vo-admin@cern.ch' )
-    fromAddress = gConfig.getValue(self.section+'/mailFrom', 'Joel.Closier@cern.ch' )
+    address = self.am_getOption( 'mailTo', 'lhcb-vo-admin@cern.ch' )
+    fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
     if newUsers:
       subject = 'New Users found'
       self.log.info( subject, newUsers )
