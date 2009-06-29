@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.14 2009/06/29 16:06:15 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.15 2009/06/29 16:21:54 acasajus Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.14 2009/06/29 16:06:15 acasajus Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.15 2009/06/29 16:21:54 acasajus Exp $"
 
 from DIRAC.Core.Base.Agent                                import Agent
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -65,9 +65,6 @@ class ProductionJobAgent(Agent):
       self.log.info('No active productions discovered, no work to do')
       return S_OK('Loop completed')
 
-    #Start using the user's proxy
-    gConfig.setOptionValue( "/DIRAC/Security/UseServerCertificate", "False" )
-
     for production,status in activeProductions.items():
       if status.lower()==self.productionStatus:
         self.log.info('Attempting to submit %s jobs for production %s' %(self.jobsToSubmitPerProduction,production))
@@ -88,9 +85,7 @@ class ProductionJobAgent(Agent):
               self.log.info('No jobs to submit for production %s' %(production))
       else:
         self.log.verbose('Nothing to do for productionID %s with status %s' %(production,status))
-        
-    #Revert back to service cert
-    gConfig.setOptionValue( "/DIRAC/Security/UseServerCertificate", "True" )
+
     return S_OK('Productions submitted')
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
