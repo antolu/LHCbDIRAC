@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB09.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r3p2
+DIRACVERSION=v4r15
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -72,7 +72,7 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers += dips://volhcb13.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -167,32 +167,7 @@ sed -i 's/^log-bin=/# log-bin=/' $DESTDIR/pro/mysql/etc/my.cnf
 
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
 
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobManager
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobMonitoring
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
-# Missing in CS
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StatesAccountingAgent
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
-# $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement MightyOptimizer
-
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobCleaningAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueDirector
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement SandboxCleaningAgent
 
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
@@ -207,9 +182,7 @@ $DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteWMSMonitoringAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   SrmSpaceTokenAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   SAMAgent
 
-$DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_service.sh Framework Notification
-$DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
 $DESTDIR/pro/scripts/install_service.sh Stager Stager
 $DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
