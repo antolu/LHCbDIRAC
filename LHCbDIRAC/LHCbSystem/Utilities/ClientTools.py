@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.5 2009/06/17 14:59:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.6 2009/06/29 18:16:30 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,13 +7,14 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.5 2009/06/17 14:59:20 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.6 2009/06/29 18:16:30 acsmith Exp $"
 
 import string,re,os,shutil,types
 
 import DIRAC
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 #############################################################################
 def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True):
@@ -287,6 +288,62 @@ def getRootFileGUID(fileName,cleanUp=True):
 
   gLogger.verbose('GUID found to be %s' %guid)
   return S_OK(guid)
+
+#############################################################################
+def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
+  # Setup the root enviroment
+  res = _setupRootEnvironment(daVinciVersion)
+  if not res['OK']:
+    return _errorReport(res['Message'],"Failed to setup the ROOT environment")
+  rootEnv = res['Value']
+  # Perform the merging
+  lists = breakListIntoChunks(inputFiles,20)
+  tempFiles = []
+  counter = 0
+  for list in lists:
+    counter += 1
+    tempOutputFile = "/tmp/tempRootFile-%s.root" % counter
+    res = _mergeRootFiles(tempOutputFile,list,rootEnv)
+    if not res['OK']:
+      return _errorReport(res['Message'],"Failed to perform ROOT merger")
+    tempFiles.append(tempOutputFile)
+  res = _mergeRootFiles(outputFile,tempFiles,rootEnv)
+  if not res['OK']:
+    return _errorReport(res['Message'],"Failed to perform final ROOT merger")
+  if cleanUp:
+    for file in tempFiles: os.remove(file)
+  return S_OK(outputFile)
+
+def _mergeRootFiles(outputFile,inputFiles,rootEnv):
+  cmd = "hadd %s" % outputFile
+  for file in inputFiles:
+    cmd = "%s %s" % (cmd,file)
+  res = DIRAC.shellCall(1800, cmd, env=rootEnv)
+  return res
+
+def _setupRootEnvironment(daVinciVersion=''):
+  if os.environ.has_key('VO_LHCB_SW_DIR'):  
+    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
+    gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
+  elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
+    sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
+    gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
+  lbLogin = '%s/lib/LbLogin' %sharedArea
+  ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
+  if not ret['OK']:
+    gLogger.warn('Error during lbLogin\n%s' %ret)
+    return ret
+  setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
+  if daVinciVersion:
+    setupProject.append('DaVinci %s ROOT' % daVinciVersion)
+  else:
+    setupProject.append('DaVinci ROOT')
+  ret = DIRAC.Source( 60, setupProject, ret['outputEnv'])
+  if not ret['OK']:
+    gLogger.warn('Error during SetupProject\n%s' %ret)   
+    return ret
+  appEnv = ret['outputEnv']
+  return S_OK(appEnv)
 
 #############################################################################
 def log( n, line ):
