@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb04.sh,v 1.1 2009/06/25 15:34:22 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb04.sh,v 1.2 2009/06/30 19:31:32 atsareg Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB04.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r15
+DIRACVERSION=v4r15p2
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -167,13 +167,6 @@ $DESTDIR/pro/scripts/install_service.sh Framework SecurityLogging
 $DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
 $DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
 
-#Bookkeeping
-$DESTDIR/pro/scripts/install_service.sh Bookkeeping BookkeepingManager
-# System Logging
-$DESTDIR/pro/scripts/install_service.sh Logging   SystemLogging
-$DESTDIR/pro/scripts/install_service.sh Logging   SystemLoggingReport
-$DESTDIR/pro/scripts/install_agent.sh   Logging   SystemLoggingDBCleaner
-$DESTDIR/pro/scripts/install_agent.sh   Logging   ErrorMessageMonitor
 
 if [ ! -z "$DIRACCVS" ] ; then
 
