@@ -12,9 +12,9 @@ DIRACHOST=volhcb13.cern.ch
 # Location of the installation
 DESTDIR=/opt/dirac
 #
-SiteName=VOLHC13.CERN.CH
+SiteName=VOLHCB13.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r15
+DIRACVERSION=v4r15p2
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=25

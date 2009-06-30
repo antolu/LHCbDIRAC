@@ -34,7 +34,7 @@ for file in ` find DIRAC/*/DB -name "*DB.sql" ` ; do
         echo $DB
         grep -qi "use $DB;" $file || echo ERROR $file
         grep -qi "use $DB;" $file || continue
-        mysqladmin create $DB
+        mysqladmin -u root create $DB
         echo "GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON $DB.* TO Dirac@localhost IDENTIFIED BY '"$diracpwd"'" | mysql -u root
         echo "GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON $DB.* TO Dirac@'%' IDENTIFIED BY '"$diracpwd"'" | mysql -u root
         export DB
@@ -80,7 +80,7 @@ EOF
 
 done
 
-mysqladmin flush-privileges
+mysqladmin -u root flush-privileges
 mysqladmin -u root password "$passwd"
 mysqladmin -u root -h $1 password "$passwd"
 
