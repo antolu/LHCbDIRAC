@@ -1,13 +1,12 @@
-# $Id: ProductionManagerHandler.py,v 1.50 2009/06/19 08:37:21 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.51 2009/06/30 18:55:16 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.50 $"
+__RCSID__ = "$Revision: 1.51 $"
 
 from types import *
-import threading
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
@@ -32,8 +31,6 @@ class ProductionManagerHandler( TransformationHandler ):
 
     self.setDatabase(productionDB)
     TransformationHandler.__init__(self, *args,**kargs)
-    self.lock = threading.Lock()
-
 
   types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, body, update=False):
@@ -307,7 +304,7 @@ class ProductionManagerHandler( TransformationHandler ):
       gLogger.error(result['Message'])
     return result
 
-  types_getJobsToSubmit = [ LongType, IntType, StringType ]
+  types_getJobsToSubmit = [ [IntType,LongType], IntType, StringType ]
   def export_getJobsToSubmit(self,production,numJobs,site=''):
     """ Get information necessary for submission for a given number of jobs
         for a given production
@@ -322,24 +319,24 @@ class ProductionManagerHandler( TransformationHandler ):
     jobDict={}
 
     if status_corrected == 'Active' or status_corrected == 'Flush':
-
-      self.lock.acquire()
       result = productionDB.selectJobs(production,['Created'],numJobs,site)
       if not result['OK']:
-        self.lock.release()
         return S_ERROR('Failed to get jobs for production %d with message %s'%(production,result["Message"]))
       jobDict = result['Value']
       # lets change jobs statuses
-      for jobid in jobDict:
-        result = productionDB.setJobStatus(production, long(jobid), "Reserved")
+      resultJobDict = {}
+      for jobID in jobDict:
+        result = productionDB.reserveJob(production, long(jobID))
         if not result['OK']:
-          gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobid, production,result["Message"]))
-          # we also have to remove job from the list
-          del jobDict[jobid]
+          gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobID, production,result["Message"]))
+        elif not result['Value']: 
+          # The Reserved status was not inserted
+          gLogger.warn('Job %s is already Reserved, skip it to avoid double execution' % jobID)
+        else:
+          # The job is Reserved, we can return it to the client
+          resultJobDict[jobID] = jobDict[jobID] 
 
-      self.lock.release()
-
-    resultDict['JobDictionary'] = jobDict # adding additional element
+    resultDict['JobDictionary'] = resultJobDict # adding additional element   
     return S_OK(resultDict)
 
   types_getJobsWithStatus = [ LongType, StringType, IntType, StringType]
@@ -352,11 +349,11 @@ class ProductionManagerHandler( TransformationHandler ):
       return S_ERROR('Failed to get jobs with the status %s site=%s for production=%d '%(status, site, production))
     return result
 
-  types_setJobStatus = [ LongType, LongType, StringType ]
+  types_setJobStatus = [ [IntType,LongType], [IntType,LongType], StringType ]
   def export_setJobStatus(self, productionID, jobID, status):
     """ Set status for a given Job
     """
-    result = productionDB.setJobStatus(productionID, jobID, status)
+    result = productionDB.setJobStatus(productionID, jobID, status)    
     if not result['OK']:
       error = 'Could not change job status=%s in TransformationID=%d JobID=%d because %s' % (status, productionID, jobID, result['Message'])
       gLogger.error( error )

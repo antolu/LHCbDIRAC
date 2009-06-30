@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.56 2009/06/21 00:21:51 atsareg Exp $
+# $Id: ProductionDB.py,v 1.57 2009/06/30 18:55:16 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.56 $"
+__RCSID__ = "$Revision: 1.57 $"
 
 import string, types
 from DIRAC.Core.Base.DB import DB
@@ -735,6 +735,14 @@ INDEX(WmsStatus)
       statusList[status] = count
 
     return S_OK(statusList)
+    
+  def reserveJob(self,productionID,jobID):
+    """ Reserve the job jobID from production productionID for submission to WMS
+    """   
+    
+    req = "UPDATE Jobs_%d SET WmsStatus='Reserved' WHERE JobID=%d;" % (productionID,jobID)
+    result = self._update(req)
+    return result
 
   def setJobStatus(self,productionID,jobID,status):
     """ Set status for job with jobID in production with productionID
