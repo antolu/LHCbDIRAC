@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbAPI.py,v 1.2 2009/06/29 19:26:13 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbAPI.py,v 1.3 2009/07/01 10:40:14 acsmith Exp $
 # Author: Andrew C. Smith
 ########################################################################
 
@@ -13,7 +13,7 @@
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-__RCSID__ = "$Id: LHCbAPI.py,v 1.2 2009/06/29 19:26:13 acsmith Exp $"
+__RCSID__ = "$Id: LHCbAPI.py,v 1.3 2009/07/01 10:40:14 acsmith Exp $"
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList
@@ -58,7 +58,7 @@ class LHCbAPI(Dirac):
        @return: S_OK,S_ERROR
     """
     if not self.jobRepo:
-      gLogger.warn("No repository is initialised") 
+      self.log.warn("No repository is initialised") 
       return S_OK()  
 
     # Get the input files to be used
