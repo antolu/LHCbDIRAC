@@ -26,9 +26,15 @@
 function exitonerr {
     grep -q "System load is too high" $log
     if [ "$?" == "0" ]; then
+    	if [ "$inMaintenance" == "Y" ] ; then
+        	exit $SAME_MAINTENANCE
+   	fi
 	exit $SAME_WARNING
     fi
     rm -f $log testjob-submit.jid glite_wms-submit.conf testjob-submit.jdl testjob.jid 
+    if [ "$inMaintenance" == "Y" ] ; then
+        exit $SAME_MAINTENANCE
+    fi
     exit $SAME_ERROR            
 }
 
@@ -74,36 +80,37 @@ if [ "$1" == "--publish" ] ; then
             exitonerr
         fi
 
-        echo "<h2>Glite-wms-job-output</h2>" >> $log
-        echo "<pre>" >> $log
-        exec 3>&1 4>&2 1>>$log 2>&1
-        set -x
-        $JOB_OUTPUT_CMD  -c glite_wms-submit.conf -i  testjob.jid
-        RESULT=$?
-        set +x
-        exec 1>&- 1>&3 2>&4 3>&- 4>&-
-        echo "</pre>" >> $log
+#removing job-get-output part
 
-        if [ "$RESULT" != "0" ]; then  # if failed :(
-            cat $log        
-            echo "Job get output failed! Check the Resource Broker"
-            exitonerr
-        fi
+#        echo "<h2>Glite-wms-job-output</h2>" >> $log
+#        echo "<pre>" >> $log
+#        exec 3>&1 4>&2 1>>$log 2>&1
+#        set -x
+#        $JOB_OUTPUT_CMD  -c glite_wms-submit.conf -i  testjob.jid
+#        RESULT=$?
+#        set +x
+#        exec 1>&- 1>&3 2>&4 3>&- 4>&-
+#        echo "</pre>" >> $log
 
+#        if [ "$RESULT" != "0" ]; then  # if failed :(
+#            cat $log        
+#            echo "Job get output failed! Check the Resource Broker"
+#            exitonerr
+#        fi
 
-        echo "<h2>Job output</h2>" >> $log
-	OUT=`cat ${USER}_*/testjob.out`
-       	echo "<pre>" >> $log
-       	echo "> cat ${USER}_*/testjob.out" >> $log
-       	echo $OUT >> $log
-       	echo "</pre>" >> $log
-       	if [ "$OUT" == "SAM" ]; then 
-        		echo "Job output correct" >> $log   
-         		exitonerr=0;
-       	else
-            		echo "Job output incorrect"
-            		exitonerr=1;
-       	fi 
+#        echo "<h2>Job output</h2>" >> $log
+#	OUT=`cat ${USER}_*/testjob.out`
+#       	echo "<pre>" >> $log
+#       	echo "> cat ${USER}_*/testjob.out" >> $log
+#       	echo $OUT >> $log
+#       	echo "</pre>" >> $log
+#       	if [ "$OUT" == "SAM" ]; then 
+#        		echo "Job output correct" >> $log   
+#         		exitonerr=0;
+#       	else
+#            		echo "Job output incorrect"
+#            		exitonerr=1;
+#       	fi 
 
         echo "<h2>Glite-wms-job-logging-info</h2>" >> $log
         echo "<pre>" >> $log
@@ -127,6 +134,9 @@ if [ "$1" == "--publish" ] ; then
 	   fi
 
         rm -f $log testjob.jid 
+	    if [ "$inMaintenance" == "Y" ] ; then
+	  	  exit $SAME_MAINTENANCE
+	    fi
         exit $SAME_OK                                                                                                                           
     fi
 
@@ -163,6 +173,9 @@ if [ "$1" == "--publish" ] ; then
         fi
         cat $log     
         rm -f $log testjob.jid 
+        if [ "$inMaintenance" == "Y" ] ; then
+          exit $SAME_MAINTENANCE
+        fi
         exit $SAME_OK
     fi
                                                                     
