@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.1 2009/07/01 16:38:47 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.2 2009/07/01 16:49:57 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.1 2009/07/01 16:38:47 acsmith Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.2 2009/07/01 16:49:57 acsmith Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import DIRAC
 from DIRAC import gLogger
@@ -21,6 +21,7 @@ strippingEventType = fullEventType
 davinci1InputDataType = 'rdst'
 davinci1OutputDataType = 'fetc'
 bkInputProcPass = 'Reco01'
+bkInputFileType = 'RDST'
 saveHistos = True
 fileMask = 'dst;root'
 prodPriority = '7'
@@ -120,7 +121,7 @@ for switch in Script.getUnprocessedSwitches():
 inputBKQuery = { 'SimulationConditions'     : 'All',
                  'DataTakingConditions'     : bkDataTakingConditions,
                  'ProcessingPass'           : bkInputProcPass,
-                 'FileType'                 : bkFileType,
+                 'FileType'                 : bkInputFileType,
                  'EventType'                : inputEventType,
                  'ConfigName'               : bkConfigName,
                  'ConfigVersion'            : bkConfigVersion,
