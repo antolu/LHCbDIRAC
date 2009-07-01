@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.18 2009/06/26 10:14:34 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.19 2009/07/01 08:59:08 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -33,7 +33,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.18 2009/06/26 10:14:34 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.19 2009/07/01 08:59:08 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -286,13 +286,13 @@ except Exception,x:
       if not type(installProjectURL)==type(" "):
         raise TypeError,'Expected string for install_project URL'
 
+    self._addJDLParameter('SoftwareInstallationTest',str(enableFlag))
     if enableFlag:
       self.gaudiStepCount +=1
       stepNumber = self.gaudiStepCount
       stepDefn = '%sStep%s' %('SAM',stepNumber)
       step =  self.__getSoftwareInstallationStep(stepDefn)
 
-      self._addJDLParameter('SoftwareInstallationTest',str(enableFlag))
       stepName = 'Run%sStep%s' %('SAM',stepNumber)
       self.addToOutputSandbox.append('*.log')
       self.workflow.addStep(step)
