@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.70 2009/06/16 10:05:15 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.71 2009/07/02 18:21:35 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.70 2009/06/16 10:05:15 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.71 2009/07/02 18:21:35 acsmith Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -631,11 +631,6 @@ class AnalyseLogFile(ModuleBase):
           self.inputFiles[lastFile] = "ApplicationCrash"
       return S_ERROR("Crash in event %s" % lastEvent)
     processedEvents = res['Value']
-    # Get the number of events output by DaVinci
-    res = self.getEventsOutput('InputCopyStream')
-    if not res['OK']:
-      return S_ERROR('No events output')
-    outputEvents = res['Value']
     # Get whether all events in the input file were processed
     noMoreEvents = self.findString('No more events in event selection')['Value']
 
