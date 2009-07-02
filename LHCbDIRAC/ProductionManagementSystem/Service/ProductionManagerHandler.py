@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.51 2009/06/30 18:55:16 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.52 2009/07/02 08:59:26 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.51 $"
+__RCSID__ = "$Revision: 1.52 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -316,15 +316,14 @@ class ProductionManagerHandler( TransformationHandler ):
 
     resultDict = result['Value']
     status_corrected = resultDict['Status'].lower().capitalize() # capitalize status
-    jobDict={}
 
+    resultJobDict = {}
     if status_corrected == 'Active' or status_corrected == 'Flush':
       result = productionDB.selectJobs(production,['Created'],numJobs,site)
       if not result['OK']:
         return S_ERROR('Failed to get jobs for production %d with message %s'%(production,result["Message"]))
       jobDict = result['Value']
       # lets change jobs statuses
-      resultJobDict = {}
       for jobID in jobDict:
         result = productionDB.reserveJob(production, long(jobID))
         if not result['OK']:
