@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.4 2009/07/02 18:38:02 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.5 2009/07/02 22:14:39 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.4 2009/07/02 18:38:02 acsmith Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.5 2009/07/02 22:14:39 acsmith Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 import DIRAC
 from DIRAC import gLogger
@@ -22,6 +22,8 @@ davinci1InputDataType = 'rdst'
 davinci1OutputDataType = 'fetc'
 brunelInputDataType = 'fetc'
 brunelOutputDataType = 'dst'
+davinci2InputDataType = 'dst'
+davinci2OutputDataType = 'dsts'
 bkInputProcPass = 'Reco01'
 bkInputFileType = 'RDST'
 saveHistos = True
@@ -46,10 +48,11 @@ condDBTag = 'head-20090508'
 ddDBTag = "MC09-20090602"
 #############################################################################
 davinciVersion = 'v23r2'
-davinci1Opts = '$APPCONFIGOPTS/DaVinci/DVStrippingEtc-FEST.py'
 inputEventType = '90000000'
 daVinciData = 'LFN:/lhcb/data/2009/RDST/00004867/0000/00004867_00000001_1.rdst'
 daVinciSE = 'Tier1_MC-DST'
+davinci1Opts = '$APPCONFIGOPTS/DaVinci/DVStrippingEtc-FEST.py'
+davinci2Opts = '$APPCONFIGOPTS/DaVinci/DVStrippingDst-FEST.py'
 daVinciEvents = '2000'
 #############################################################################
 brunelVersion = 'v35r2'
@@ -260,6 +263,19 @@ prodScript.append('production.addBrunelStep("%s","%s","%s",\n\
                           inputDataType=%s,\n\
                           histograms=%s,\n\
                           numberOfEvents="%s")'  %(brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelInputDataType,saveHistos,brunelEvents))
+
+# Add the second DaVinci step
+davinci1Opts = davinci2Opts.replace(' ',';')
+production.addDaVinciStep(davinciVersion,davinci2OutputDataType,davinci2Opts,
+                          extraPackages=appConfigStr,
+                          inputDataType=davinci2InputDataType,
+                          histograms=saveHistos,
+                          numberOfEvents=brunelEvents)
+prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
+                          extraPackages="%s",\n\
+                          inputDataType="%s",\n\
+                          histograms=%s,\n\
+                          numberOfEvents="%s")' %(davinciVersion,davinci2OutputDataType,davinci2Opts,appConfigStr,davinci2InputDataType,saveHistos,brunelEvents))
 
 # Configure the finalization step
 production.addFinalizationStep()
