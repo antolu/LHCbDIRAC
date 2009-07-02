@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.23 2009/07/02 08:51:28 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.24 2009/07/02 18:39:43 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.23 2009/07/02 08:51:28 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.24 2009/07/02 18:39:43 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -126,56 +126,65 @@ class Production(LHCbJob):
 
         Assumes CondDB tags and event max are required.
     """
+    #HACK# Is appType supposed to be input or output data type or just some flag to get the desired behaviour?
     options = []
     #General options
     dddbOpt = "LHCbApp().DDDBtag = \"@{DDDBTag}\""
     conddbOpt = "LHCbApp().CondDBtag = \"@{CondDBTag}\""
     evtOpt = "LHCbApp().EvtMax = @{numberOfEvents}"
+    options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
+    options.append("HistogramPersistencySvc().OutputFile = \"%s\"" % (self.histogramName))
     if appName.lower()=='gauss':
-      options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append("OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       #Below 3 lines added to replace evt/evt printout
       #options.append('from Configurables import SimInit')
       #options.append('GaussSim = SimInit("GaussSim")')
       #options.append('GaussSim.OutputLevel = 2')
-      options.append("HistogramPersistencySvc().OutputFile = \"%s\"" %(self.histogramName))
+
     elif appName.lower()=='boole':
       if appType.lower()=='mdf':
         options.append("OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\"")
         options.append("OutputStream(\"RawWriter\").OutputLevel = INFO")
       else:
         options.append("OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-        options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       if spillOver:
         options.append('Boole().UseSpillover = True')
         if pileUp:
           options.append("EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\",\"DATAFILE=\'@{pileupData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]")
         else:
           options.append("EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]")
-      options.append("HistogramPersistencySvc().OutputFile = \"%s\"" %(self.histogramName))
+
     elif appName.lower()=='brunel':
       options.append("#include \"$BRUNELOPTS/SuppressWarnings.opts\"")
-      options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      options.append("HistogramPersistencySvc().OutputFile = \"%s\"" %(self.histogramName))
+      options.append("from Configurables import Brunel")
       if appType.lower()=='xdst':
-        options.append("from Configurables import Brunel")
         options.append("Brunel().OutputType = 'XDST'")
+      elif appType.lower()=='dst':
+        options.append("Brunel().OutputType = 'DST'")
+
     elif appName.lower()=='davinci':
-      options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
-      options.append('from DaVinci.Configuration import *')
-      options.append("DaVinci().HistogramFile = \"%s\"" %(self.histogramName))
-      #options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
+      options.append('from DaVinci.Configuration import *') 
       options.append('DaVinci().EvtMax=@{numberOfEvents}')
-      #N.B. to be reviewed pending stripping case
-      #DV only supported for reco histograms, nevertheless write an output file to preserve i/o nature of the gaudi app step
-      options.append('from Configurables import InputCopyStream')
-      options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
-      options.append('DaVinci().MoniSequence.append(InputCopyStream())')
+      options.append("DaVinci().HistogramFile = \"%s\"" % (self.histogramName))
+      # If we want to generate an FETC for the first step of the stripping workflow
+      if appType.lower()=='fetc':
+        options.append("DaVinci().ETCFile = \"@{outputData}\"")
+      elif appType.lower() == 'dst':
+        options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
+      elif appType.lower() == 'dsts':
+        #in the case that we have multiple streams
+        pass
+      else:
+        options.append('from Configurables import InputCopyStream')
+        options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
+        options.append('DaVinci().MoniSequence.append(InputCopyStream())')
+
     elif appName.lower()=='merge':
       options.append('EventSelector.PrintFreq = 200')
       options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
       return options
+
     else:
       self.log.warn('No specific options found for project %s' %appName)
 
