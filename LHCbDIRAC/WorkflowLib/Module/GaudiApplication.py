@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.141 2009/06/16 17:21:21 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.142 2009/07/02 18:17:06 acsmith Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.141 2009/06/16 17:21:21 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.142 2009/07/02 18:17:06 acsmith Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -82,7 +82,7 @@ class GaudiApplication(ModuleBase):
         if self.inputDataType == "MDF":
           inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
         elif self.inputDataType in ("ETC","SETC","FETC"):
-          inputDataFiles.append(""" "COLLECTION='TagCreator/1' DATAFILE='%s' TYPE='POOL_ROOTTREE' SEL='(GlobalOr>=1)' OPT='READ'", """%(lfn))
+          inputDataFiles.append(""" "COLLECTION='TagCreator/EventTuple' DATAFILE='%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """%(lfn))
         else:
           inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
