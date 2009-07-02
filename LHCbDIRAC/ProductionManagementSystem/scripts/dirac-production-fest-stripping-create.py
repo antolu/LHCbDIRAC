@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.2 2009/07/01 16:49:57 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.3 2009/07/02 08:52:12 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.2 2009/07/01 16:49:57 acsmith Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.3 2009/07/02 08:52:12 acsmith Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 import DIRAC
 from DIRAC import gLogger
@@ -225,8 +225,6 @@ appConfigStr = 'AppConfig.%s' % appConfigVersion
 
 # Add the first davinci step
 davinci1Opts = davinci1Opts.replace(' ',';')
-#hack
-davinci1OutputDataType = 'dst'
 production.addDaVinciStep(davinciVersion,davinci1OutputDataType,davinci1Opts,
                           extraPackages=appConfigStr,
                           eventType=inputEventType,
@@ -234,7 +232,13 @@ production.addDaVinciStep(davinciVersion,davinci1OutputDataType,davinci1Opts,
                           inputDataType=davinci1InputDataType,
                           histograms=saveHistos,
                           numberOfEvents=daVinciEvents)
-prodScript.append('production.addDaVinciStep("%s","%s","%s",extraPackages="%s",eventType=%s,histograms=%s,numberOfEvents=%s)' %(davinciVersion,davinci1OutputDataType,davinci1Opts,appConfigStr,inputEventType,saveHistos,daVinciEvents))
+prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
+                          extraPackages="%s",\n\
+                          eventType="%s",\n\
+                          inputData="%s",\n\
+                          inputDataType="%s",\n\
+                          histograms=%s,\n\
+                          numberOfEvents="%s")'  %(davinciVersion,davinci1OutputDataType,davinci1Opts,appConfigStr,inputEventType,daVinciData,davinci1InputDataType,saveHistos,daVinciEvents))
 
 #############################################################################
 # Create the workflow for local testing
