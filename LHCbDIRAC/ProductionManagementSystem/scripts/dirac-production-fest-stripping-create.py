@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.3 2009/07/02 08:52:12 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.4 2009/07/02 18:38:02 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.3 2009/07/02 08:52:12 acsmith Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.4 2009/07/02 18:38:02 acsmith Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 import DIRAC
 from DIRAC import gLogger
@@ -20,10 +20,12 @@ fullEventType = '90000000'
 strippingEventType = fullEventType
 davinci1InputDataType = 'rdst'
 davinci1OutputDataType = 'fetc'
+brunelInputDataType = 'fetc'
+brunelOutputDataType = 'dst'
 bkInputProcPass = 'Reco01'
 bkInputFileType = 'RDST'
 saveHistos = True
-fileMask = 'dst;root'
+fileMask = 'fetc;dst'
 prodPriority = '7'
 useOracle = True
 debug = False
@@ -40,15 +42,19 @@ bkProcessingPass = 'FEST-%s' %bkGroupDescription
 bkDataTakingConditions = 'DataTaking6153'
 #############################################################################
 conditions = 'MC09-20090602-vc-md100.py'
-condDBTag = 'head-20090508' #'sim-20090402-vc-md100'
-ddDBTag = 'head-20090508' #'MC09-20090602'
+condDBTag = 'head-20090508'
+ddDBTag = "MC09-20090602"
 #############################################################################
 davinciVersion = 'v23r2'
 davinci1Opts = '$APPCONFIGOPTS/DaVinci/DVStrippingEtc-FEST.py'
 inputEventType = '90000000'
-daVinciData = 'LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/50913/050913_0000000002.raw'
+daVinciData = 'LFN:/lhcb/data/2009/RDST/00004867/0000/00004867_00000001_1.rdst'
 daVinciSE = 'Tier1_MC-DST'
-daVinciEvents = '-1'
+daVinciEvents = '2000'
+#############################################################################
+brunelVersion = 'v35r2'
+brunelOpts = '$APPCONFIGOPTS/Brunel/FEST-Stripping.py'
+brunelEvents = '-1'
 #############################################################################
 appConfigVersion = 'v2r8'
 deriveProdFrom = 0
@@ -66,7 +72,7 @@ Script.registerSwitch( "a:", "DDDBTag=","         Det Desc DB Tag [%s]"   % ddDB
 Script.registerSwitch( "v:", "EventType=","Event Type [%s]"   % inputEventType )
 Script.registerSwitch( "q:", "DaVinciVersion=","  DaVinci Version [%s]"   % davinciVersion  )
 Script.registerSwitch( "u:", "DaVinci1Opts=","    Step 1 DaVinci Options [%s]"   % davinci1Opts )
-Script.registerSwitch( "j:", "DaVinciEvents=","   Events To Process (DaVinci) [%s]"   % daVinciEvents )
+Script.registerSwitch( "j:", "DaVinciEvents=","          Events To Process (DaVinci) [%s]"   % daVinciEvents )
 Script.registerSwitch( "k:", "AppConfig=","       App Config Version [%s]"   % appConfigVersion  )
 Script.registerSwitch( "p:", "DeriveProd=","      Input Prod To Derive From [%s]"   % deriveProdFrom  )
 #And pure flags:
@@ -166,6 +172,12 @@ gLogger.info('The CondDB tag is set to %s' % condDBTag)
 #############################################################################
 # Generate the production
 #############################################################################
+#HACK
+useOracle = False
+if useOracle:
+  #only allow to use Oracle with LFC disabled via CORAL
+  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' % brunelOpts
+  wfName += '_UseOracle_LFCDisabled'
 
 wfName = 'Stripping'
 wfName = '%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(wfName,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
@@ -209,10 +221,6 @@ prodScript.append('production.setBKParameters("%s","%s","%s","%s")' %(bkConfigNa
 production.setFileMask(fileMask)
 prodScript.append('production.setFileMask("%s")' %fileMask)
 
-# Configure the finalization step
-production.addFinalizationStep()
-prodScript.append('production.addFinalizationStep()')
-
 # Set the production group for the produciton monitoring
 production.setProdGroup(bkProcessingPass)
 prodScript.append('production.setProdGroup("%s")' %(bkProcessingPass))
@@ -238,7 +246,24 @@ prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
                           inputData="%s",\n\
                           inputDataType="%s",\n\
                           histograms=%s,\n\
-                          numberOfEvents="%s")'  %(davinciVersion,davinci1OutputDataType,davinci1Opts,appConfigStr,inputEventType,daVinciData,davinci1InputDataType,saveHistos,daVinciEvents))
+                          numberOfEvents="%s")' %(davinciVersion,davinci1OutputDataType,davinci1Opts,appConfigStr,inputEventType,daVinciData,davinci1InputDataType,saveHistos,daVinciEvents))
+
+#Add the brunel step
+brunelOpts = brunelOpts.replace(' ',';')
+production.addBrunelStep(brunelVersion,brunelOutputDataType,brunelOpts,
+                          extraPackages=appConfigStr,
+                          histograms=saveHistos,
+                          inputDataType=brunelInputDataType,
+                          numberOfEvents=brunelEvents)
+prodScript.append('production.addBrunelStep("%s","%s","%s",\n\
+                          extraPackages="%s",\n\
+                          inputDataType=%s,\n\
+                          histograms=%s,\n\
+                          numberOfEvents="%s")'  %(brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelInputDataType,saveHistos,brunelEvents))
+
+# Configure the finalization step
+production.addFinalizationStep()
+prodScript.append('production.addFinalizationStep()')
 
 #############################################################################
 # Create the workflow for local testing
@@ -292,7 +317,7 @@ elogStr += '\nConditions Tag: "%s"' %condDBTag
 elogStr += '\nDDDB Tag: "%s"' %ddDBTag
 elogStr += '\nAppConfig Version: %s' %appConfigVersion
 elogStr += '\nEvent Type: %s' %brunelEventType
-elogStr += '\nNumber Of Events: %s' %brunelEvents
+elogStr += '\nNumber Of Events: %s' % numberOfEvents
 elogStr += '\nBrunel Version: %s' %brunelVersion
 elogStr += '\nBrunel Options: %s' %brunelOpts
 elogStr += '\nDaVinci Version: %s' %davinciVersion
@@ -304,35 +329,3 @@ print '###################################################\n'
 print elogStr
 print '###################################################\n'
 DIRAC.exit(0)
-
-
-"""
-brunelVersion = 'v34r7'
-brunelOpts = '$APPCONFIGOPTS/Brunel/FEST-200903.py' #;$APPCONFIGOPTS/UseOracle.py'
-brunelEventType = '90000000'
-brunelData = 'LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/50606/050606_0000000002.raw'
-brunelSE = 'CERN-RDST'
-brunelEvents = '-1'
-#############################################################################
-davinciVersion = 'v23r1'
-davinciOpts = '$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'
-davinciEvents = '-1'
-
-if useOracle:
-  #only allow to use Oracle with LFC disabled via CORAL
-  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' %brunelOpts
-  wfName += '_UseOracle_LFCDisabled'
-
-production.addBrunelStep(brunelVersion,brunelOutputDataType,brunelOpts,extraPackages=appConfigStr,
-                         eventType=brunelEventType,
-                         inputData=brunelData,
-                         inputDataType=brunelInputDataType,
-                         outputSE=brunelSE,
-                         histograms=saveHistos,
-                         numberOfEvents=brunelEvents)
-prodScript.append('production.addBrunelStep("%s","%s","%s",extraPackages="%s",eventType="%s",inputData="%s",inputDataType="%s",outputSE="%s",histograms=%s)' %(brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos))
-
-"""
-
-
-
