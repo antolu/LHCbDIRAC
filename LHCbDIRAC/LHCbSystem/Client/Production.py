@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.24 2009/07/02 18:39:43 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.25 2009/07/02 22:14:07 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.24 2009/07/02 18:39:43 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.25 2009/07/02 22:14:07 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -173,8 +173,9 @@ class Production(LHCbJob):
       elif appType.lower() == 'dst':
         options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       elif appType.lower() == 'dsts':
-        #in the case that we have multiple streams
-        pass
+        options.append("OutputStream(\"DSTBExclusive\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
+        # NEED TO DEAL WITH MULTIPLE STREAMS
+        #options.append("OutputStream(\"DSTTopological\").Output = \"DATAFILE=\'PFN:02@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
       else:
         options.append('from Configurables import InputCopyStream')
         options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
@@ -322,10 +323,10 @@ class Production(LHCbJob):
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    appTypes = ['dst','fetc']
+    appTypes = ['dst','fetc','dsts']
     if not appType in appTypes:
-      raise TypeError,'Application type not currently supported (%s)' % inputAppTypes
-    if not inputDataType=='rdst':
+      raise TypeError,'Application type not currently supported (%s)' % appTypes
+    if not inputDataType in ('rdst','dst'):
       raise TypeError,'Only RDST input data type currently supported'
 
     dataType='DATA'
