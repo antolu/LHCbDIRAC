@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.28 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.29 2009/07/02 12:32:37 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.28 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.29 2009/07/02 12:32:37 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -226,6 +226,10 @@ class SAMFinalization(ModuleBaseSAM):
       return failedLogs
 
     #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
+    if not samResults.has_key('CE-lhcb-install'):
+      self.log.info('Software install test was not run by this job.')
+      return 'Software installation test was disabled for this job (safe mode).'
+
     if int(samResults['CE-lhcb-install']) > int(self.samStatus['ok']):
       self.log.info('Software install test was not run by this job.')
       return 'Software installation test was disabled for this job by the SAM lock file.'
