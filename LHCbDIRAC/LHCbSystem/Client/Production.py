@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.22 2009/06/19 12:47:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.23 2009/07/02 08:51:28 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.22 2009/06/19 12:47:53 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.23 2009/07/02 08:51:28 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -310,12 +310,12 @@ class Production(LHCbJob):
         appType is  dst / dst /undefined at the moment ;)
         inputDataType is rdst / root
 
-        TODO: stripping case - to review
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    if not appType=='dst':
-      raise TypeError,'Only DST application type currently supported'
+    appTypes = ['dst','fetc']
+    if not appType in appTypes:
+      raise TypeError,'Application type not currently supported (%s)' % inputAppTypes
     if not inputDataType=='rdst':
       raise TypeError,'Only RDST input data type currently supported'
 
