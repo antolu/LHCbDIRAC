@@ -1,11 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.7 2009/07/03 13:38:27 acsmith Exp $
-# File :   dirac-production-fest-create.py
-# Author : Stuart Paterson
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.8 2009/07/03 16:16:52 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.7 2009/07/03 13:38:27 acsmith Exp $"
-__VERSION__ = "$Revision: 1.7 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.8 2009/07/03 16:16:52 acsmith Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -27,12 +25,13 @@ bkInputProcPass = 'Real Data'
 saveHistos = True
 fileMask = 'rdst;root'
 wfDescription = ''
-prodPriority='8'
+prodPriority='2'
 prodTypeList = ['full','express','align','reprocessing']
 useOracle=True
 debug=False
 generateScript=False
 dqFlag = 'OK'
+brunelExtraOpts = ''
 
 #############################################################################
 #Variables that can change
@@ -61,22 +60,19 @@ davinciEvents = '-1'
 appConfigVersion = 'v2r7p2'
 prodType = 'full'
 deriveProdFrom = 0
+runNumber = 0
+alignmentLFN = ''
 #############################################################################
-
-
 
 #############################################################################
 #Register switches & parse command line
 #############################################################################
-#Script.registerSwitch( "p", "ProdType=", "Production Type [%s]"   % prodType  )
 Script.registerSwitch( "b:", "BKConfigName=","    Config Name [%s]"   % bkConfigName  )
 Script.registerSwitch( "k:", "BKConfigVersion="," Config Version [%s]"   % bkConfigVersion  )
 Script.registerSwitch( "m:", "GroupDesc=","       Group Description [%s]" % bkGroupDescription  )
 Script.registerSwitch( "t:", "DataTakingConds="," Data Taking Conditions [%s]"   % bkDataTakingConditions  )
-#Script.registerSwitch( "n:", "Conditions=","      DB Conditions File To Use [%s]"   % conditions  )
 Script.registerSwitch( "n:", "CondDBTag=","       Conditions DB Tag [%s]"   % condDBTag  )
 Script.registerSwitch( "a:", "DDDBTag=","         Det Desc DB Tag [%s]"   % ddDBTag  )
-#Script.registerSwitch( "v:", "EventType=","Event Type [%s]"   % brunelEventType )
 Script.registerSwitch( "v:", "BrunelVersion=","   Brunel Version [%s]"   % brunelVersion  )
 Script.registerSwitch( "u:", "BrunelOpts=","      Brunel Options [%s]"   % brunelOpts )
 Script.registerSwitch( "y:", "BrunelEvents=","    Events To Process (Brunel) [%s]"   % brunelEvents )
@@ -86,53 +82,14 @@ Script.registerSwitch( "u:", "DaVinciOpts=","     DaVinci Options [%s]"   % davi
 Script.registerSwitch( "j:", "DaVinciEvents=","   Events To Process (DaVinci) [%s]"   % davinciEvents )
 Script.registerSwitch( "k:", "AppConfig=","       App Config Version [%s]"   % appConfigVersion  )
 Script.registerSwitch( "p:", "DeriveProd=","      Input Prod To Derive From [%s]"   % deriveProdFrom  )
+Script.registerSwitch( "x:", "RunNumber=","       Run Number of Input Data [%s]"   % runNumber  )
+Script.registerSwitch( "z:", "AlignmentLFN=","    AlignmentDB LFN [%s]"   % alignmentLFN)
 #And pure flags:
 Script.registerSwitch( "r", "UseOracle","         To disable Oracle CondDB access (default is enabled)" )
 Script.registerSwitch( "d", "Debug","             Only create workflow XML (default is disabled)")
 Script.registerSwitch( "g" ,"Generate","          Only create production script (default is disabled)")
 Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
-
-
-elogStr = ""
-
-#############################################################################
-#Import Production API
-#############################################################################
-
-from DIRAC.LHCbSystem.Client.Production import Production
-
-prodScript = ["#! /usr/bin/env python"]
-prodScript.append('# Production API script generated using:\n#%s' %(__RCSID__))
-prodScript.append('from DIRAC.LHCbSystem.Client.Production import Production')
-prodScript.append('production = Production()')
-
-def usage():
-  print 'Usage: %s [<options>] <ProductionType>' %(Script.scriptName)
-  print 'Generate a FEST production specifying one of the following production types:\n%s' %(string.join(prodTypeList,', '))
-  DIRAC.exit(2)
-
-def saveProdScript(fileName,elogEntry,prodList):
-  if os.path.exists(fileName):
-    gLogger.info('%s already exists, creating backup file' %fileName)
-    shutil.copy(fileName,'%s.backup' %(fileName))
-  fopen = open(fileName,'w')
-  fopen.write(string.join(prodList,'\n')+'\n')
-  fopen.close()
-  print '###################################################\n'
-  print 'Production script written to %s\n' %(fileName)
-  print 'Retain the below for an appropriate ELOG entry:\n'
-  print '###################################################\n'
-  print elogEntry
-  print '###################################################\n'
-
-if len(args) != 1:
-  usage()
-
-prodType = str(args[0]).lower()
-if not prodType in prodTypeList:
-  gLogger.error('Production type must be one of:\n%s' %(string.join(prodTypeList,', ')))
-  DIRAC.exit(2)
 
 #############################################################################
 #Process switches
@@ -151,8 +108,6 @@ for switch in Script.getUnprocessedSwitches():
     condDBTag=switch[1]
   elif switch[0].lower() in ('a','dddbtag'):
     ddDBTag=switch[1]
-#  elif switch[0].lower() in ('v','eventtype'):
-#    brunelEventType=switch[1]
   elif switch[0].lower() in ('v','brunelversion'):
     brunelVersion=switch[1]
   elif switch[0].lower() in ('u','brunelopts'):
@@ -171,6 +126,10 @@ for switch in Script.getUnprocessedSwitches():
     appConfigVersion=switch[1]
   elif switch[0].lower() in ('p','deriveprod'):
     deriveProdFrom=switch[1]
+  elif switch[0].lower() in ('x','runnumber'):
+    runNumber=switch[1]
+  elif switch[0].lower() in ('z','alignmentlfn'):
+    alignmentLFN=switch[1]
   elif switch[0].lower() in ('r','useoracle'):
     gLogger.info('UseOracle flag set, disabling Oracle access (default is True)')
     useOracle=False
@@ -181,85 +140,202 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ('g','generate'):
     generateScript=True
 
-if generateScript:
-  gLogger.info('Generate flag is enabled, will create Production API script')
+def usage():
+  print 'Usage: %s [<options>] <ProductionType>' % (Script.scriptName)
+  print 'Generate a FEST production specifying one of the following production types:\n%s' %(string.join(prodTypeList,', '))
+  print 'Use %s --help for all options' % Script.scriptName
+  DIRAC.exit(2)
 
+if len(args) != 1:
+  usage()
+
+prodType = str(args[0]).lower()
+if not prodType in prodTypeList:
+  gLogger.error('Production type must be one of:\n%s' %(string.join(prodTypeList,', ')))
+  DIRAC.exit(2)
+
+#############################################################################
+# Determine the DDDB and CondDB tags
+#############################################################################
+"""
+appConfigConditions = '/afs/cern.ch/lhcb/software/releases/DBASE/AppConfig/%s/options/Conditions/%s' % (appConfigVersion,conditions)
+conditionsFile = '$APPCONFIGOPTS/Conditions/%s' % conditions
+if not os.path.exists(appConfigConditions):
+  gLogger.warn('The supplied conditions file does not exist',appConfigConditions)
+  conditionsFile = '$APPCONFIGOPTS/Conditions/%s.py' % conditions
+  appConfigConditions = '%s.py' % appConfigConditions
+  if not os.path.exists(appConfigConditions):
+    gLogger.error('The supplied conditions file does not exist',appConfigConditions)
+    DIRAC.exit(2)
+oFile = open(appConfigConditions)
+oFileStr = oFile.read()
+exp = re.compile(r'LHCbApp\(\).DDDBtag\s+=\s+"(\S+)"')
+match = re.search(exp,oFileStr)
+if not match:
+  gLogger.error('Failed to determine the DDDB tag')
+  DIRAC.exit(2)
+ddDBTag = match.group(1)
+exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
+match = re.search(exp,oFileStr)
+if not match:
+  gLogger.error('Failed to determine the CondDB tag')
+  DIRAC.exit(2)
+condDBTag = match.group(1)
+"""
 #############################################################################
 #Production preamble
 #############################################################################
-
-wfName = '%s' %(prodType.upper())
 if prodType=='express':
   brunelEventType=expressEventType
-  dqFlag = 'UNCHECKED'
-elif prodType=='full':
+  dqFlag = 'UNCHECKED' 
+  prodPriority='8'
+elif prodType=='align':
+  brunelEventType=fullEventType
+  dqFlag = 'All'
   prodPriority='7'
+  if not runNumber:
+    gLogger.error('For alignment productions a run number should be supplied (using --RunNumber=)')
+    DIRAC.exit(2) 
+  runNumber = -int(runNumber) # The run number is stored as a negative number in the BK
+  if not alignmentLFN:
+    gLogger.error('For alignment productions an alignment DB input LFN should be supplied (using --AlignmentLFN=)')
+    DIRAC.exit(2)
+  brunelExtraOpts = """from Configurables import CondDB, CondDBAccessSvc;alignCond = CondDBAccessSvc('AlignCond');alignCond.ConnectionString = 'sqlite_file:%s/LHCBCOND';CondDB().addLayer(alignCond)""" % os.path.basename(alignmentLFN)
+elif prodType=='full':
   brunelEventType=fullEventType
   dqFlag = 'OK'
-else:
   prodPriority='6'
+elif prodType == 'reprocessing':
   brunelEventType=reprocessingEventType
-  dqFlag = 'MAYBE' #to allow separation of reconstruction / reprocessing activities
+  dqFlag = 'All'
+  prodPriority='5'
+
+#############################################################################
+# Determine the BK input data dictionary
+#############################################################################
 
 inputBKQuery = { 'SimulationConditions'     : 'All',
-            'DataTakingConditions'     : bkDataTakingConditions,
-            'ProcessingPass'           : bkInputProcPass,
-            'FileType'                 : bkFileType,
-            'EventType'                : brunelEventType,
-            'ConfigName'               : bkConfigName,
-            'ConfigVersion'            : bkConfigVersion,
-            'ProductionID'             : 0,
-            'DataQualityFlag'          : dqFlag}
+                   'DataTakingConditions'     : bkDataTakingConditions,
+                   'ProcessingPass'           : bkInputProcPass,
+                   'FileType'                 : bkFileType,
+                   'EventType'                : brunelEventType,
+                   'ConfigName'               : bkConfigName,
+                   'ConfigVersion'            : bkConfigVersion,
+                   'ProductionID'             : runNumber,
+                   'DataQualityFlag'          : dqFlag}
 
-gLogger.info('Set %s production event type to %s' %(prodType.upper(),brunelEventType))
+#############################################################################
+# Give some information about what will be done
+#############################################################################
 gLogger.info('==> BK Query Information:')
-adj  = 20
 for n,v in inputBKQuery.items():
-  gLogger.info(str(n).ljust(adj)+' = '+str(v))
+  gLogger.info(str(n).ljust(20)+' = '+str(v))
+gLogger.info('The DDDB tag is set to %s' % ddDBTag)
+gLogger.info('The CondDB tag is set to %s' % condDBTag)
 
-wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s' %(wfName,brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription)
+
+#############################################################################
+# Generate the production
+#############################################################################
+wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
 wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
 
-#############################################################################
-#Treat the options
-#############################################################################
-#appConfigConditions = '/afs/cern.ch/lhcb/software/releases/DBASE/AppConfig/%s/options/Conditions/%s' % (appConfigVersion,conditions)
-#conditionsFile = '$APPCONFIGOPTS/Conditions/%s' % conditions
-#if not os.path.exists(appConfigConditions):
-#  gLogger.warn('The supplied conditions file does not exist',appConfigConditions)
-#  conditionsFile = '$APPCONFIGOPTS/Conditions/%s.py' % conditions
-#  appConfigConditions = '%s.py' % appConfigConditions
-#  if not os.path.exists(appConfigConditions):
-#    gLogger.error('The supplied conditions file does not exist',appConfigConditions)
-#    DIRAC.exit(2)
-#oFile = open(appConfigConditions)
-#oFileStr = oFile.read()
-#exp = re.compile(r'LHCbApp\(\).DDDBtag\s+=\s+"(\S+)"')
-#match = re.search(exp,oFileStr)
-#if not match:
-#  gLogger.error('Failed to determine the DDDB tag')
-#  DIRAC.exit(2)
-#ddDBTag = match.group(1)
-gLogger.info('The DDDB tag is set to %s' % ddDBTag)
-wfName += '_DDDB%s' %ddDBTag
-#exp = re.compile(r'LHCbApp\(\).CondDBtag\s+=\s+"(\S+)"')
-#match = re.search(exp,oFileStr)
-#if not match:
-#  gLogger.error('Failed to determine the CondDB tag')
-#  DIRAC.exit(2)
-#condDBTag = match.group(1)
-gLogger.info('The CondDB tag is set to %s' % condDBTag)
-wfName += '_CondDB%s' %condDBTag
-brunelOpts = brunelOpts.replace(' ',';')
-#brunelOpts = '%s;%s' % (brunelOpts,conditionsFile)
 if useOracle:
   #only allow to use Oracle with LFC disabled via CORAL
-  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' %brunelOpts
+  brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' % brunelOpts
   wfName += '_UseOracle_LFCDisabled'
 
-gLogger.info('Brunel options are: %s' %brunelOpts)
+prodScript = ["#! /usr/bin/env python"]
+prodScript.append('# Production API script generated using:\n#%s' %(__RCSID__))
 
-elogStr = ' has been created with the following parameters:'
+# Import the production client
+from DIRAC.LHCbSystem.Client.Production import Production
+prodScript.append('from DIRAC.LHCbSystem.Client.Production import Production')
+
+# Create the production object
+production = Production()
+prodScript.append('production = Production()')
+
+# Set the production type
+production.setProdType(permanentType)
+prodScript.append('production.setProdType("%s")' %permanentType)
+
+# Set the workflow name
+production.setWorkflowName(wfName)
+prodScript.append('production.setWorkflowName("%s")' %wfName)
+
+# Set the workflow description
+production.setWorkflowDescription(wfDescription)
+prodScript.append('production.setWorkflowDescription("%s")' %wfDescription)
+
+# Set the input DB tags
+production.setDBTags(condDBTag,ddDBTag)
+prodScript.append('production.setDBTags("%s","%s")' %(condDBTag,ddDBTag))
+
+# Set the production to derive from
+production.setAncestorProduction(deriveProdFrom)
+prodScript.append('production.setAncestorProduction("%s")' % deriveProdFrom)
+
+# Set the input BK parameters
+production.setInputBKSelection(inputBKQuery)
+prodScript.append('production.setInputBKSelection(%s)' %inputBKQuery)
+
+# Set the output BK parameters
+production.setBKParameters(bkConfigName,bkConfigVersion,bkProcessingPass,bkDataTakingConditions)
+prodScript.append('production.setBKParameters("%s","%s","%s","%s")' %(bkConfigName,bkConfigVersion,bkGroupDescription,bkDataTakingConditions))
+
+# Configure the output file mask
+production.setFileMask(fileMask)
+prodScript.append('production.setFileMask("%s")' %fileMask)
+
+# Set the production group for the produciton monitoring
+production.setProdGroup(bkProcessingPass)
+prodScript.append('production.setProdGroup("%s")' %(bkProcessingPass))
+
+# If the alignment LFN is defined allow it to be downloaded
+if alignmentLFN:
+  production.setAlignmentDBLFN(alignmentLFN)
+  prodScript.append('production.setAlignmentDBLFN("%s")' % (alignmentLFN))
+
+appConfigStr = 'AppConfig.%s' % appConfigVersion
+# Add the Brunel step
+brunelOpts = brunelOpts.replace(' ',';')
+production.addBrunelStep(brunelVersion,brunelOutputDataType,brunelOpts,
+                         extraPackages=appConfigStr,
+                         eventType=brunelEventType,
+                         inputData=brunelData,
+                         inputDataType=brunelInputDataType,
+                         outputSE=brunelSE,
+                         histograms=saveHistos,
+                         extraOpts=brunelExtraOpts,
+                         numberOfEvents=brunelEvents)
+prodScript.append('production.addBrunelStep("%s","%s","%s",\n\
+                         extraPackages="%s",\n\
+                         eventType="%s",\n\
+                         inputData="%s",\n\
+                         inputDataType="%s",\n\
+                         outputSE="%s",\n\
+                         histograms=%s,\n\
+                         extraOpts="%s",\n\
+                         numberOfEvents="%s")' % (brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos,brunelExtraOpts,brunelEvents))
+
+# Add the davinci step
+davinciOpts = davinciOpts.replace(' ',';')
+production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,
+                         extraPackages=appConfigStr,
+                         histograms=saveHistos)
+prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
+                         extraPackages="%s",\n\
+                         histograms=%s)' % (davinciVersion,davinciOutputDataType,davinciOpts,appConfigStr,saveHistos))
+
+# Configure the finalization step
+production.addFinalizationStep()
+prodScript.append('production.addFinalizationStep()')
+
+#############################################################################
+# In case it is required create the eLog entry
+#############################################################################
+elogStr =  'FEST %s ProductionID XXXXX has been created with the following parameters:' % (prodType)
 elogStr += '\nBK Config Name Version: %s %s' %(bkConfigName,bkConfigVersion)
 elogStr += '\nBK Processing Pass: %s' %bkProcessingPass
 elogStr += '\nData Quality Flag: "%s"' %dqFlag
@@ -277,70 +353,49 @@ for n,v in inputBKQuery.items():
   elogStr+=('\n   %s = %s' %(n,v))
 
 #############################################################################
-#Create production
+# Create the workflow for local testing
 #############################################################################
-
-appConfigStr = 'AppConfig.%s' %appConfigVersion
-
-production = Production()
-production.setProdType(permanentType)
-production.setWorkflowName(wfName)
-production.setWorkflowDescription(wfDescription)
-production.setBKParameters(bkConfigName,bkConfigVersion,bkProcessingPass,bkDataTakingConditions)
-production.setDBTags(condDBTag,ddDBTag)
-production.setInputBKSelection(inputBKQuery)
-
-production.addBrunelStep(brunelVersion,brunelOutputDataType,brunelOpts,extraPackages=appConfigStr,
-                         eventType=brunelEventType,inputData=brunelData,inputDataType=brunelInputDataType,
-                         outputSE=brunelSE,histograms=saveHistos,numberOfEvents=brunelEvents)
-
-production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,extraPackages=appConfigStr,histograms=saveHistos)
-
-production.addBrunelStep
-production.addFinalizationStep()
-production.setFileMask(fileMask)
-production.setProdGroup(bkProcessingPass)
-production.setProdPriority(prodPriority)
-
-prodScript.append('production=Production()')
-prodScript.append('production.setProdType("%s")' %permanentType)
-prodScript.append('production.setWorkflowName("%s")' %wfName)
-prodScript.append('production.setWorkflowDescription("%s")' %wfDescription)
-prodScript.append('production.setBKParameters("%s","%s","%s","%s")' %(bkConfigName,bkConfigVersion,bkGroupDescription,bkDataTakingConditions))
-prodScript.append('production.setDBTags("%s","%s")' %(condDBTag,ddDBTag))
-prodScript.append('production.setInputBKSelection(%s)' %inputBKQuery)
-prodScript.append('production.addBrunelStep("%s","%s","%s",extraPackages="%s",eventType="%s",inputData="%s",inputDataType="%s",outputSE="%s",histograms=%s,numberOfEvents="%s")' % (brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos,brunelEvents))
-prodScript.append('production.addDaVinciStep("%s","%s","%s",extraPackages="%s",histograms=%s)' %(davinciVersion,davinciOutputDataType,davinciOpts,appConfigStr,saveHistos))
-prodScript.append('production.addFinalizationStep()')
-prodScript.append('production.setFileMask("%s")' %fileMask)
-prodScript.append('production.setProdGroup("%s")' %(bkProcessingPass))
-prodScript.append('production.setProdPriority(%s)' %(prodPriority))
-prodScript.append('production.createWorkflow()')
-prodScript.append('#production.create(bkQuery=%s,groupSize=1,derivedProduction=%s,bkScript=False)' %(inputBKQuery,deriveProdFrom))
-
-if generateScript:
-  gLogger.info('Creating production API script...')
-  saveProdScript('%s.py' %(wfName),'A FEST %s production %s' %(prodType,elogStr),prodScript)
-  DIRAC.exit(0)
-
 if debug:
   gLogger.info('Creating production workflow...')
   production.createWorkflow()
   DIRAC.exit(0)
 
+#############################################################################
+# Create the production script
+#############################################################################
+if generateScript:
+  gLogger.info('Creating production API script...')   
+  prodScript.append('production.createWorkflow()')
+  prodScript.append('#production.create(bkScript=False)')
+  outputFileName = '%s.py' %(wfName)
+  if os.path.exists(outputFileName):
+    gLogger.info('%s already exists, creating backup file' % outputFileName)
+    shutil.copy(outputFileName,'%s.backup' %(outputFileName))
+  fopen = open(outputFileName,'w')
+  fopen.write(string.join(prodScript,'\n')+'\n')
+  fopen.close()
+  print '###################################################\n'
+  print 'Production script written to %s\n' %(outputFileName)
+  print 'Retain the below for an appropriate ELOG entry:\n'
+  print '###################################################\n'
+  print elogStr
+  print '###################################################\n'
+  DIRAC.exit(0)
+
+#############################################################################
+#Create production
+#############################################################################
 gLogger.info('Creating production...')
-result = production.create(bkQuery=inputBKQuery,groupSize=1,derivedProduction=deriveProdFrom,bkScript=False)
+result = production.create(bkScript=False)
 if not result['OK']:
-  gLogger.error('Failed to create merging production.',res['Message'])
+  gLogger.error('Failed to create %s production.' % prodType,res['Message'])
   DIRAC.exit(2)
 if not result['Value']:
   gLogger.error('No production ID returned')
   DIRAC.exit(2)
 
 prodID = int(result['Value'])
-elogStr = 'FEST %s ProductionID %s %s' %(prodType,prodID,elogStr)
 print '###################################################\n'
-print elogStr
+print elogStr.replace('XXXXX',prodID)
 print '###################################################\n'
 DIRAC.exit(0)
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
