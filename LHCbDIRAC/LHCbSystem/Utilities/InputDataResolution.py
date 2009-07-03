@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.11 2009/06/04 08:37:34 paterson Exp $
+# $Id: InputDataResolution.py,v 1.12 2009/07/03 12:32:53 acsmith Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.11 2009/06/04 08:37:34 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.12 2009/07/03 12:32:53 acsmith Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -97,6 +97,8 @@ class InputDataResolution:
     resolvedData = tmpDict
     appCatalog = PoolXMLSlice(catalogName)
     check = appCatalog.execute(resolvedData)
+    if not check['OK']:
+      return check
     return result
 
   #############################################################################
