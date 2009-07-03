@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.5 2009/07/02 22:14:39 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.6 2009/07/03 14:42:29 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.5 2009/07/02 22:14:39 acsmith Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.6 2009/07/03 14:42:29 acsmith Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 import DIRAC
 from DIRAC import gLogger
@@ -175,16 +175,15 @@ gLogger.info('The CondDB tag is set to %s' % condDBTag)
 #############################################################################
 # Generate the production
 #############################################################################
+wfName = '%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %('Stripping'.upper(),davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
+wfDescription = '%s %s %s data stripping production using DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,davinciVersion,daVinciEvents)
+
 #HACK
 useOracle = False
 if useOracle:
   #only allow to use Oracle with LFC disabled via CORAL
   brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' % brunelOpts
   wfName += '_UseOracle_LFCDisabled'
-
-wfName = 'Stripping'
-wfName = '%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(wfName,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
-wfDescription = '%s %s %s data stripping production using DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,davinciVersion,daVinciEvents)
 
 prodScript= ['# Production API script generated using:\n#%s' %(__RCSID__)]
 
