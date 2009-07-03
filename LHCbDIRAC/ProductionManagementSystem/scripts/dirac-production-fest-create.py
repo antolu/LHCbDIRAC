@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.6 2009/06/15 16:32:54 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.7 2009/07/03 13:38:27 acsmith Exp $
 # File :   dirac-production-fest-create.py
 # Author : Stuart Paterson
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.6 2009/06/15 16:32:54 paterson Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.7 2009/07/03 13:38:27 acsmith Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -21,14 +21,14 @@ fullEventType = '90000000'
 reprocessingEventType = fullEventType
 brunelInputDataType = 'mdf'
 brunelOutputDataType = 'rdst'
-davinciOutputDataType = 'dst'
+davinciOutputDataType = 'root'
 bkFileType = 'RAW'
 bkInputProcPass = 'Real Data'
 saveHistos = True
 fileMask = 'rdst;root'
 wfDescription = ''
 prodPriority='8'
-prodTypeList = ['full','express','reprocessing']
+prodTypeList = ['full','express','align','reprocessing']
 useOracle=True
 debug=False
 generateScript=False
@@ -94,7 +94,6 @@ Script.parseCommandLine( ignoreErrors = False )
 args = Script.getPositionalArgs()
 
 
-prodScript = []
 elogStr = ""
 
 #############################################################################
@@ -103,6 +102,7 @@ elogStr = ""
 
 from DIRAC.LHCbSystem.Client.Production import Production
 
+prodScript = ["#! /usr/bin/env python"]
 prodScript.append('# Production API script generated using:\n#%s' %(__RCSID__))
 prodScript.append('from DIRAC.LHCbSystem.Client.Production import Production')
 prodScript.append('production = Production()')
@@ -309,14 +309,14 @@ prodScript.append('production.setWorkflowDescription("%s")' %wfDescription)
 prodScript.append('production.setBKParameters("%s","%s","%s","%s")' %(bkConfigName,bkConfigVersion,bkGroupDescription,bkDataTakingConditions))
 prodScript.append('production.setDBTags("%s","%s")' %(condDBTag,ddDBTag))
 prodScript.append('production.setInputBKSelection(%s)' %inputBKQuery)
-prodScript.append('production.addBrunelStep("%s","%s","%s",extraPackages="%s",eventType="%s",inputData="%s",inputDataType="%s",outputSE="%s",histograms=%s)' %(brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos))
+prodScript.append('production.addBrunelStep("%s","%s","%s",extraPackages="%s",eventType="%s",inputData="%s",inputDataType="%s",outputSE="%s",histograms=%s,numberOfEvents="%s")' % (brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos,brunelEvents))
 prodScript.append('production.addDaVinciStep("%s","%s","%s",extraPackages="%s",histograms=%s)' %(davinciVersion,davinciOutputDataType,davinciOpts,appConfigStr,saveHistos))
 prodScript.append('production.addFinalizationStep()')
 prodScript.append('production.setFileMask("%s")' %fileMask)
 prodScript.append('production.setProdGroup("%s")' %(bkProcessingPass))
 prodScript.append('production.setProdPriority(%s)' %(prodPriority))
-prodScript.append('#production.createWorkflow()')
-prodScript.append('production.create(bkQuery=%s,groupSize=1,derivedProduction=%s,bkScript=False)' %(inputBKQuery,deriveProdFrom))
+prodScript.append('production.createWorkflow()')
+prodScript.append('#production.create(bkQuery=%s,groupSize=1,derivedProduction=%s,bkScript=False)' %(inputBKQuery,deriveProdFrom))
 
 if generateScript:
   gLogger.info('Creating production API script...')
