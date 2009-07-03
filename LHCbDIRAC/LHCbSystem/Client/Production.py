@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.25 2009/07/02 22:14:07 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.26 2009/07/03 16:19:03 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.25 2009/07/02 22:14:07 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.26 2009/07/03 16:19:03 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -162,6 +162,8 @@ class Production(LHCbJob):
         options.append("Brunel().OutputType = 'XDST'")
       elif appType.lower()=='dst':
         options.append("Brunel().OutputType = 'DST'")
+      elif appType.lower()=='rdst':
+        options.append("Brunel().OutputType = 'RDST'")
 
     elif appName.lower()=='davinci':
       options.append('from DaVinci.Configuration import *') 
@@ -176,7 +178,8 @@ class Production(LHCbJob):
         options.append("OutputStream(\"DSTBExclusive\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
         # NEED TO DEAL WITH MULTIPLE STREAMS
         #options.append("OutputStream(\"DSTTopological\").Output = \"DATAFILE=\'PFN:02@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      else:
+      elif appType.lower() == 'root':
+        # if we just want the histograms we still need to create the dummy DSTs
         options.append('from Configurables import InputCopyStream')
         options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
         options.append('DaVinci().MoniSequence.append(InputCopyStream())')
@@ -277,7 +280,7 @@ class Production(LHCbJob):
     self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,spilloverValue,pileupValue,extraOutputFile)
 
   #############################################################################
-  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1'):
+  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1'):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst
         inputDataType is mdf / digi
@@ -309,7 +312,8 @@ class Production(LHCbJob):
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
-
+    if extraOpts:
+      optionsLine = "%s;%s" % (optionsLine,extraOpts.replace('\n',';'))
     firstEventNumber=0
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
@@ -323,7 +327,7 @@ class Production(LHCbJob):
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    appTypes = ['dst','fetc','dsts']
+    appTypes = ['dst','fetc','dsts','root']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
     if not inputDataType in ('rdst','dst'):
@@ -943,6 +947,13 @@ class Production(LHCbJob):
         return S_ERROR('Production %s does not have parameter %s' %(prodID,pname))
 
     return result
+
+  #############################################################################
+  def setAlignmentDBLFN(self,lfn):
+    """ Set the input LFN to be used for the alignment conditions database'
+    """
+    self.log.info('Setting alignment DB LFN to %s' %lfn)
+    self._setParameter('InputSandbox','JDL',lfn,'AlignmentDB')
 
   #############################################################################
   def setWorkflowLib(self,tag):
