@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.8 2009/07/03 16:16:52 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.9 2009/07/04 11:53:00 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.8 2009/07/03 16:16:52 acsmith Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.9 2009/07/04 11:53:00 acsmith Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -388,7 +388,7 @@ if generateScript:
 gLogger.info('Creating production...')
 result = production.create(bkScript=False)
 if not result['OK']:
-  gLogger.error('Failed to create %s production.' % prodType,res['Message'])
+  gLogger.error('Failed to create %s production.' % prodType,result['Message'])
   DIRAC.exit(2)
 if not result['Value']:
   gLogger.error('No production ID returned')
@@ -396,6 +396,6 @@ if not result['Value']:
 
 prodID = int(result['Value'])
 print '###################################################\n'
-print elogStr.replace('XXXXX',prodID)
+print elogStr.replace('XXXXX',str(prodID))
 print '###################################################\n'
 DIRAC.exit(0)
