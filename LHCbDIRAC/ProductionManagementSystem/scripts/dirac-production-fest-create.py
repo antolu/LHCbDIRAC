@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.9 2009/07/04 11:53:00 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.10 2009/07/04 12:04:04 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.9 2009/07/04 11:53:00 acsmith Exp $"
-__VERSION__ = "$Revision: 1.9 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.10 2009/07/04 12:04:04 acsmith Exp $"
+__VERSION__ = "$Revision: 1.10 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -201,6 +201,8 @@ elif prodType=='align':
     gLogger.error('For alignment productions an alignment DB input LFN should be supplied (using --AlignmentLFN=)')
     DIRAC.exit(2)
   brunelExtraOpts = """from Configurables import CondDB, CondDBAccessSvc;alignCond = CondDBAccessSvc('AlignCond');alignCond.ConnectionString = 'sqlite_file:%s/LHCBCOND';CondDB().addLayer(alignCond)""" % os.path.basename(alignmentLFN)
+  bkGroupDescription.replace('Reco','Align')
+  bkProcessingPass = 'FEST-%s' %bkGroupDescription 
 elif prodType=='full':
   brunelEventType=fullEventType
   dqFlag = 'OK'
