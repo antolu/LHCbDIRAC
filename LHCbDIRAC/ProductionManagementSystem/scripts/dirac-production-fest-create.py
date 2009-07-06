@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.10 2009/07/04 12:04:04 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.11 2009/07/06 10:51:33 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.10 2009/07/04 12:04:04 acsmith Exp $"
-__VERSION__ = "$Revision: 1.10 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.11 2009/07/06 10:51:33 acsmith Exp $"
+__VERSION__ = "$Revision: 1.11 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -32,6 +32,7 @@ debug=False
 generateScript=False
 dqFlag = 'OK'
 brunelExtraOpts = ''
+plugin = 'CCRC_RAW'
 
 #############################################################################
 #Variables that can change
@@ -239,9 +240,13 @@ gLogger.info('The CondDB tag is set to %s' % condDBTag)
 #############################################################################
 # Generate the production
 #############################################################################
-wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
-wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
-
+if prodType == 'align':
+  wfName = '%s_Brunel%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
+  wfDescription = '%s %s %s data reconstruction production using Brunel %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,brunelEvents)
+else:
+  wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
+  wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
+  
 if useOracle:
   #only allow to use Oracle with LFC disabled via CORAL
   brunelOpts = '%s;$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py' % brunelOpts
@@ -294,6 +299,10 @@ prodScript.append('production.setFileMask("%s")' %fileMask)
 production.setProdGroup(bkProcessingPass)
 prodScript.append('production.setProdGroup("%s")' %(bkProcessingPass))
 
+if prodType in ('reprocessing','full'): 
+  production.setProdPlugin(plugin)
+  prodScript.append('production.setProdPlugin("%s")' % plugin)
+
 # If the alignment LFN is defined allow it to be downloaded
 if alignmentLFN:
   production.setAlignmentDBLFN(alignmentLFN)
@@ -321,12 +330,13 @@ prodScript.append('production.addBrunelStep("%s","%s","%s",\n\
                          extraOpts="%s",\n\
                          numberOfEvents="%s")' % (brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos,brunelExtraOpts,brunelEvents))
 
-# Add the davinci step
-davinciOpts = davinciOpts.replace(' ',';')
-production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,
+if prodType !='align':
+  # Add the davinci step
+  davinciOpts = davinciOpts.replace(' ',';')
+  production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,
                          extraPackages=appConfigStr,
                          histograms=saveHistos)
-prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
+  prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
                          extraPackages="%s",\n\
                          histograms=%s)' % (davinciVersion,davinciOutputDataType,davinciOpts,appConfigStr,saveHistos))
 
