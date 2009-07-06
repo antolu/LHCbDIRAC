@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.98 2009/06/26 13:12:01 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.99 2009/07/06 13:43:49 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.98 2009/06/26 13:12:01 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.99 2009/07/06 13:43:49 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1148,7 +1148,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def updateFileMetaData(self, filename, filesAttr):
-    command = 'update files Set inserttimestamp=current_timestamp ,'
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = 'update files Set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\') ,'
     for attribute in filesAttr.keys():
       command += str(attribute)+'='+str(filesAttr[attribute])+' ,'
     
@@ -1160,7 +1161,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def renameFile(self, oldLFN, newLFN):
-    command = ' update files Set inserttimestamp=current_timestamp, fileName = \''+newLFN+'\' where filename=\''+oldLFN+'\''
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = ' update files Set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), fileName = \''+newLFN+'\' where filename=\''+oldLFN+'\''
     res = self.dbW_._query(command)
     return res
   
@@ -1604,7 +1606,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
     
-    command = ' update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = ' update files set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.runnumber='+str(runNb)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
@@ -1642,7 +1645,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
     
-    command = ' update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = ' update files set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.production='+str(prod)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
@@ -1666,7 +1670,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################  
   def __updateQualityFlag(self, lfn, qid):
-    command = 'update files set inserttimestamp=current_timestamp, qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = 'update files set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), qualityId='+str(qid)+' where filename=\''+str(lfn)+'\''
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
@@ -2067,7 +2072,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           attrList[param]=timestamp
         else:
           attrList[param] = file[param]
- 
+      utctime = datetime.datetime.utcnow()
       result = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertFilesRow',LongType, [  attrList['Adler32'], \
                     attrList['CreationDate'], \
                     attrList['EventStat'], \
@@ -2079,13 +2084,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['JobId'], \
                     attrList['MD5Sum'], \
                     attrList['FileSize'], \
-                    attrList['PhysicStat'] ] ) 
+                    attrList['PhysicStat'], utctime ] ) 
       return result
       
   #############################################################################
   def updateReplicaRow(self, fileID, replica): #, name, location):
-    result = self.dbW_.executeStoredProcedure('BKK_ORACLE.updateReplicaRow',[int(fileID), replica],False)
-    return result
+    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    command = 'update files set inserttimestamp = TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), GOTREPLICA=\''+str(replica)+'\' where fileid='+str(fileID)
+    res = self.dbW_._query(command)
+    return res
   
   #############################################################################
   def deleteJob(self, jobID):
