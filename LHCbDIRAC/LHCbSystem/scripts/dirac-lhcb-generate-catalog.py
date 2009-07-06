@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-generate-catalog.py,v 1.4 2009/03/18 14:21:15 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-generate-catalog.py,v 1.5 2009/07/06 14:40:11 phicharp Exp $
 # File :   dirac-lhcb-generate-catalog.py
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-generate-catalog.py,v 1.4 2009/03/18 14:21:15 paterson Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-lhcb-generate-catalog.py,v 1.5 2009/07/06 14:40:11 phicharp Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
@@ -54,14 +54,15 @@ if ancestorDepth:
   except Exception,x:
     print 'ERROR: ancestor depth must be an integer %s' %x
     DIRAC.exit(2)
-  result = getAncestorFiles(lfns,ancestorDepth)
-  if not result:
-    print 'ERROR: null result from getAncestorFiles() call'
-    DIRAC.exit(2)
-  if not result['OK']:
-    print 'ERROR: problem during getAncestorFiles() call\n%s' %result['Message']
-    DIRAC.exit(2)
-  lfns = result['Value']
+  if ancestorDepth:
+    result = getAncestorFiles(lfns,ancestorDepth)
+    if not result:
+      print 'ERROR: null result from getAncestorFiles() call'
+      DIRAC.exit(2)
+    if not result['OK']:
+      print 'ERROR: problem during getAncestorFiles() call\n%s' %result['Message']
+      DIRAC.exit(2)
+    lfns = result['Value']
 
 result = dirac.getInputDataCatalog(lfns,siteName,catalogName,ignoreMissing=ignore)
 if not result['OK']:
