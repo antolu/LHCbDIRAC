@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.99 2009/07/06 13:43:49 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.100 2009/07/06 15:24:48 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.99 2009/07/06 13:43:49 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.100 2009/07/06 15:24:48 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1766,7 +1766,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     jobsId = []
     job_id = -1
     if depth < 1:
-      depth = 1
+      return S_OK({'Failed:':lfn})
     odepth = depth 
     gLogger.debug('original',lfn)
     for fileName in lfn:
