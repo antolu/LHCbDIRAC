@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.12 2009/07/07 13:25:36 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.13 2009/07/07 13:27:47 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.12 2009/07/07 13:25:36 acsmith Exp $"
-__VERSION__ = "$Revision: 1.12 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.13 2009/07/07 13:27:47 acsmith Exp $"
+__VERSION__ = "$Revision: 1.13 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -18,12 +18,14 @@ expressEventType = '91000000'
 fullEventType = '90000000'
 reprocessingEventType = fullEventType
 brunelInputDataType = 'mdf'
-brunelOutputDataType = 'rdst'
+brunelOutputDataType = 'dst'
+#brunelOutputDataType = 'rdst'     # we SHOULD produce rdsts but we DaVinci can't run the monitoring on them
 davinciOutputDataType = 'root'
+#fileMask = 'rdst;root'            # and since we DONT produce rdsts we should save the DSTs
+fileMask= 'dst;root'
 bkFileType = 'RAW'
 bkInputProcPass = 'Real Data'
 saveHistos = True
-fileMask = 'rdst;root'
 wfDescription = ''
 prodPriority='2'
 prodTypeList = ['full','express','align','reprocessing']
