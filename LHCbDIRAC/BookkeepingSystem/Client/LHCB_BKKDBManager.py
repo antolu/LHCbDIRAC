@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.94 2009/06/16 10:45:04 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.95 2009/07/07 17:01:32 phicharp Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.94 2009/06/16 10:45:04 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.95 2009/07/07 17:01:32 phicharp Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1637,7 +1637,7 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
         s += "\nEventSelector.Input   = {\n"
     fileType = fileType.split()[0]
-    poolTypes = ["DST", "RDST", "DIGI", "SIM"]
+    poolTypes = ["DST", "RDST", "DIGI", "SIM", "XDST"]
     mdfTypes = ["RAW", "MDF"]
     etcTypes = ["SETC", "FETC", "ETC"]
     #lfns = [file['FileName'] for file in files]
