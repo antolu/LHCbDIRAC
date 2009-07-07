@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.11 2009/07/06 10:51:33 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.12 2009/07/07 13:25:36 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.11 2009/07/06 10:51:33 acsmith Exp $"
-__VERSION__ = "$Revision: 1.11 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.12 2009/07/07 13:25:36 acsmith Exp $"
+__VERSION__ = "$Revision: 1.12 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -47,18 +47,18 @@ conditions = 'MC09-20090602-vc-md100.py'
 condDBTag = 'head-20090508' #'sim-20090402-vc-md100'
 ddDBTag = 'head-20090508' #'MC09-20090602'
 #############################################################################
-brunelVersion = 'v34r7'
+brunelVersion = 'v35r3'
 brunelOpts = '$APPCONFIGOPTS/Brunel/FEST-200903.py' #;$APPCONFIGOPTS/UseOracle.py'
 brunelEventType = '90000000'
 brunelData = 'LFN:/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/50606/050606_0000000002.raw'
 brunelSE = 'CERN-RDST'
 brunelEvents = '-1'
 #############################################################################
-davinciVersion = 'v23r1'
+davinciVersion = 'v23r3'
 davinciOpts = '$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'
 davinciEvents = '-1'
 #############################################################################
-appConfigVersion = 'v2r7p2'
+appConfigVersion = 'v2r8'
 prodType = 'full'
 deriveProdFrom = 0
 runNumber = 0
@@ -240,12 +240,8 @@ gLogger.info('The CondDB tag is set to %s' % condDBTag)
 #############################################################################
 # Generate the production
 #############################################################################
-if prodType == 'align':
-  wfName = '%s_Brunel%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
-  wfDescription = '%s %s %s data reconstruction production using Brunel %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,brunelEvents)
-else:
-  wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
-  wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
+wfName = '%s_Brunel%s_DaVinci%s_AppConfig%s_%s_DDDB%s_CondDB%s' %(prodType.upper(),brunelVersion,davinciVersion,appConfigVersion,bkGroupDescription,ddDBTag,condDBTag)
+wfDescription = '%s %s %s data reconstruction production using Brunel %s and DaVinci %s selecting %s events.' %(bkConfigName,bkConfigVersion,bkGroupDescription,brunelVersion,davinciVersion,brunelEvents)
   
 if useOracle:
   #only allow to use Oracle with LFC disabled via CORAL
@@ -330,13 +326,12 @@ prodScript.append('production.addBrunelStep("%s","%s","%s",\n\
                          extraOpts="%s",\n\
                          numberOfEvents="%s")' % (brunelVersion,brunelOutputDataType,brunelOpts,appConfigStr,brunelEventType,brunelData,brunelInputDataType,brunelSE,saveHistos,brunelExtraOpts,brunelEvents))
 
-if prodType !='align':
-  # Add the davinci step
-  davinciOpts = davinciOpts.replace(' ',';')
-  production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,
+# Add the davinci step
+davinciOpts = davinciOpts.replace(' ',';')
+production.addDaVinciStep(davinciVersion,davinciOutputDataType,davinciOpts,
                          extraPackages=appConfigStr,
                          histograms=saveHistos)
-  prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
+prodScript.append('production.addDaVinciStep("%s","%s","%s",\n\
                          extraPackages="%s",\n\
                          histograms=%s)' % (davinciVersion,davinciOutputDataType,davinciOpts,appConfigStr,saveHistos))
 
