@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.26 2009/07/03 16:19:03 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.27 2009/07/07 08:17:21 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.26 2009/07/03 16:19:03 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.27 2009/07/07 08:17:21 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -952,6 +952,8 @@ class Production(LHCbJob):
   def setAlignmentDBLFN(self,lfn):
     """ Set the input LFN to be used for the alignment conditions database'
     """
+    if not re.search("LFN:",lfn):
+      lfn = "LFN:%s" % lfn
     self.log.info('Setting alignment DB LFN to %s' %lfn)
     self._setParameter('InputSandbox','JDL',lfn,'AlignmentDB')
 
