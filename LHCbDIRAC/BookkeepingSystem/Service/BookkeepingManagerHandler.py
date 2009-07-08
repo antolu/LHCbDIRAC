@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.112 2009/06/23 07:34:51 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.113 2009/07/08 12:37:35 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.112 2009/06/23 07:34:51 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.113 2009/07/08 12:37:35 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -21,15 +21,19 @@ import time,sys,os
 import cPickle
 
 
-global dataMGMT_
-dataMGMT_ = BookkeepingDatabaseClient()
+dataMGMT_ = None
 
-global reader_
-reader_ = XMLFilesReaderManager()
+reader_ = None
 
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
+  global dataMGMT_
+  dataMGMT_ = BookkeepingDatabaseClient()
+  
+  global reader_
+  reader_ = XMLFilesReaderManager()
+
   return S_OK()
 
 ToDoPath = gConfig.getValue("stuart","/opt/bookkeeping/XMLProcessing/ToDo")
@@ -968,4 +972,4 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       return result
     return S_OK()
-    #-----------------------------------END Event Types------------------------------------------------------------------
+#-----------------------------------END Event Types------------------------------------------------------------------
