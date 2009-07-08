@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.17 2009/07/08 08:13:06 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.18 2009/07/08 15:57:03 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.17 2009/07/08 08:13:06 joel Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.18 2009/07/08 15:57:03 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -53,6 +53,7 @@ class TestApplications(ModuleBaseSAM):
     self.enable = True
     self.samTestName = ''
     self.appNameVersion = ''
+    self.appNameOptions = ''
 
   #############################################################################
   def resolveInputVariables(self):
@@ -71,9 +72,13 @@ class TestApplications(ModuleBaseSAM):
       self.appNameVersion=self.step_commons['appNameVersion']
       self.logFile='sam-job-%s.log' %(self.appNameVersion.replace('.','-'))
 
+    if self.step_commons.has_key('appNameOptions'):
+      self.appNameOptions=self.step_commons['appNameOptions']
+
     self.log.verbose('Enable flag is set to %s' %self.enable)
     self.log.verbose('Test Name is: %s' %self.testName)
     self.log.verbose('Application name and version are: %s' %self.appNameVersion)
+    self.log.verbose('Application name and options are: %s' %self.appNameOptions)
     self.log.verbose('Log file name is: %s' %self.logFile)
     return S_OK()
 
@@ -85,7 +90,7 @@ class TestApplications(ModuleBaseSAM):
     self.resolveInputVariables()
     self.setSAMLogFile()
     self.result = S_OK()
-    if not self.testName or not self.appNameVersion or not self.logFile:
+    if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       self.result = S_ERROR( 'No application name / version defined' )
     if not self.result['OK']:
       return self.result
@@ -111,7 +116,7 @@ class TestApplications(ModuleBaseSAM):
       self.writeToLog('%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' %(self.appSystemConfig,string.join(localPlatforms,',')))
       return self.finalize('%s Test Disabled' %self.testName,'Status NOTICE (=30)','notice')
 
-    options = self.__getOptions(self.appNameVersion.split('.')[0], self.appNameVersion.split('.')[1])
+    options = self.__getOptions(self.appNameVersion.split('.')[0], self.appNameVersion.split('.')[1], self.appNameOptions)
     if not options['OK']:
       return self.finalize('Inputs for %s %s could not be found' %(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1]),options['Message'],'critical')
 
@@ -124,7 +129,7 @@ class TestApplications(ModuleBaseSAM):
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
 
   #############################################################################
-  def __getOptions(self,appName,appVersion):
+  def __getOptions(self,appName,appVersion,appOptions):
     """Method to set the correct options for the LHCb project that will be executed.
        By convention the inputs / outputs are the system configuration + file extension.
     """
@@ -135,16 +140,7 @@ class TestApplications(ModuleBaseSAM):
     else:
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
-    #Could override these settings using the CS.
-    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-MC09.py','Boole':'$BOOLEOPTS/Boole-MC09-NoTruth.py $APPCONFIGOPTS/Conditions/MC09-20090602-vc-md100.py','Brunel':'$APPCONFIGOPTS/Brunel/MC09-NoTruth.py  $APPCONFIGOPTS/Conditions/MC09-20090602-vc-md100.py','DaVinci':'$DAVINCIROOT/options/DaVinci.py'}
-
-    #Can update to the below after DaVinci v20r3
-    #appOpts = '$%sOPTS/%s-2008.py' %(appName.upper(),appName)
-
-    if not appName in appOpts.keys():
-      return S_ERROR('Application options not found')
-
-    localOpts = appOpts[appName]
+    localOpts = appOptions
 
     #Nasty but works:
     extraOpts = ''
