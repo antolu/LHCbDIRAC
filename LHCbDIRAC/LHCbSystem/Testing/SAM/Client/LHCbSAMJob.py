@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.19 2009/07/01 08:59:08 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.20 2009/07/08 15:56:27 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -25,6 +25,7 @@
     j.checkSystemConfiguration(enableFlag=False)
     j.checkSiteQueues(enableFlag=False)
     j.installSoftware(forceDeletion=False,enableFlag=False)
+    j.reportSoftware(enableFalg=False)
     j.testApplications(enableFlag=False)
     j.finalizeAndPublish(logUpload=False,publishResults=False,enableFlag=False)
     dirac = Dirac()
@@ -33,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.19 2009/07/01 08:59:08 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.20 2009/07/08 15:56:27 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -333,6 +334,67 @@ except Exception,x:
     return step
 
   #############################################################################
+  def reportSoftware(self,enableFlag=True):
+    """Helper function.
+
+       Add the reportSoftware step.
+
+       Example usage:
+
+       >>> job = LHCbSAMJob()
+       >>> job.reportSoftware('True')
+
+       @param enableFlag: Flag to enable / disable calls for testing purposes
+       @type enableFlag: boolean
+
+    """
+    if not enableFlag in [True,False]:
+      raise TypeError,'Expected boolean value for enableFlag'
+
+    self._addJDLParameter('ReportSoftwareTest',str(enableFlag))
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getReportSoftwareStep(stepDefn)
+
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self.addToOutputSandbox.append('*.log')
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
+
+    # Define Step and its variables
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
+
+      if installProjectURL:
+        self._addJDLParameter('installProjectURL',str(installProjectURL))
+        stepInstance.setValue("installProjectURL",installProjectURL)
+
+  #############################################################################
+  def __getReportSoftwareStep(self,name='ReportSoftware'):
+    """Internal function.
+
+        This method controls the definition for a TestApplications step.
+    """
+    # Create the GaudiApplication module first
+    moduleName = 'ReportSoftware'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A module to check the content of the SHARED area for the given CE')
+    body = string.replace(self.importLine,'<MODULE>','ReportSoftware')
+    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    module.setBody(body)
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    moduleInstance = step.createModuleInstance('ReportSoftware',name)
+    # Define step parameters
+    step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
+    step.addParameter(Parameter("samTestName","","string","","",False, False, "TestApplication SAM Test Name"))
+    return step
+
+  #############################################################################
   def testApplications(self,enableFlag=True):
     """Helper function.
 
@@ -361,6 +423,7 @@ except Exception,x:
       self.log.verbose('Will generate tests for: %s' %(string.join(testList,', ')))
       for testName in testList:
         appNameVersion = result['Value'][testName]
+        appNameOptions = result['Value'][testName+'-opts']
         self.gaudiStepCount +=1
         stepNumber = self.gaudiStepCount
         stepDefn = '%sStep%s' %('SAM',stepNumber)
@@ -378,6 +441,7 @@ except Exception,x:
         stepInstance.setValue("enable",enableFlag)
         stepInstance.setValue("samTestName",testName)
         stepInstance.setValue("appNameVersion",appNameVersion)
+        stepInstance.setValue("appNameOptions",appNameOptions)
 
   #############################################################################
   def __getTestApplicationsStep(self,name='TestApplications'):
@@ -400,6 +464,7 @@ except Exception,x:
     step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
     step.addParameter(Parameter("samTestName","","string","","",False, False, "TestApplication SAM Test Name"))
     step.addParameter(Parameter("appNameVersion","","string","","",False, False, "Appliciation name and version"))
+    step.addParameter(Parameter("appNameOptions","","string","","",False, False, "Appliciation Options"))
     return step
 
   #############################################################################
