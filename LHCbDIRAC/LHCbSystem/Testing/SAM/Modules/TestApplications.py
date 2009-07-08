@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.16 2009/05/05 21:41:20 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.17 2009/07/08 08:13:06 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.16 2009/05/05 21:41:20 rgracian Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.17 2009/07/08 08:13:06 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -136,7 +136,7 @@ class TestApplications(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
 
     #Could override these settings using the CS.
-    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-2008.py','Boole':'$BOOLEOPTS/Boole-2008.py','Brunel':'$BRUNELOPTS/Brunel-2008.py','DaVinci':'$DAVINCIROOT/options/DaVinci.py'}
+    appOpts = {'Gauss':'$GAUSSOPTS/Gauss-MC09.py','Boole':'$BOOLEOPTS/Boole-MC09-NoTruth.py $APPCONFIGOPTS/Conditions/MC09-20090602-vc-md100.py','Brunel':'$APPCONFIGOPTS/Brunel/MC09-NoTruth.py  $APPCONFIGOPTS/Conditions/MC09-20090602-vc-md100.py','DaVinci':'$DAVINCIROOT/options/DaVinci.py'}
 
     #Can update to the below after DaVinci v20r3
     #appOpts = '$%sOPTS/%s-2008.py' %(appName.upper(),appName)
@@ -156,7 +156,7 @@ OutputStream("GaussTape").Output = "DATAFILE='PFN:%s/%s.sim' TYP='POOL_ROOTTREE'
       if self.enable:
         if not os.path.exists('%s.sim' %self.appSystemConfig):
           return S_ERROR('No input file %s.sim found for Boole' %(self.appSystemConfig))
-      extraOpts = """Boole().useSpillover=False;
+      extraOpts = """#Boole().useSpillover=False;
 EventSelector().Input = ["DATAFILE='PFN:%s/%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];
 OutputStream("DigiWriter").Output = "DATAFILE='PFN:%s/%s.digi' TYP='POOL_ROOTTREE' OPT='REC'";
 """ %(os.getcwd(),self.appSystemConfig,os.getcwd(),self.appSystemConfig)
