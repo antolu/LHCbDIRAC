@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.29 2009/06/11 13:16:30 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.30 2009/07/09 20:59:55 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.29 2009/06/11 13:16:30 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.30 2009/07/09 20:59:55 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -14,6 +14,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
 from DIRAC.LHCbSystem.Utilities.AncestorFiles import getAncestorFiles
 from DIRAC.Core.Utilities.SiteSEMapping       import getSitesForSE
+from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 import os, time, random
 
 AGENT_NAME = 'ProductionManagement/TransformationAgent'
@@ -34,9 +35,12 @@ class TransformationAgent(Agent):
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','yes')
     self.lfc = LcgFileCatalogCombinedClient()
-    self.shifterDN = gConfig.getValue('/Operations/Production/ShiftManager','')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
+    res = setupShifterProxyInEnv("ProductionManager")
+    if not res['OK']:
+      self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
+      return res
     return result
 
   ##############################################################################
@@ -422,7 +426,7 @@ class TransformationAgent(Agent):
 
     lfns = datadict.keys()
     start = time.time()
-    result = self.lfc.getReplicas(lfns,self.shifterDN)
+    result = self.lfc.getReplicas(lfns)
     delta = time.time() - start
     gLogger.verbose('LFC results for %d files obtained in %.2f seconds' % (len(lfns),delta))
     lfc_datadict = {}
@@ -473,7 +477,7 @@ class TransformationAgent(Agent):
     numAncestors = len(fileList)
 
     # Determine common SEs now
-    result = self.lfc.getReplicas(fileList,self.shifterDN)
+    result = self.lfc.getReplicas(fileList)
     if not result['OK']:
       gLogger.warn(result['Message'])
       return S_ERROR('Failed to get results from LFC: %s' % result['Message'])
