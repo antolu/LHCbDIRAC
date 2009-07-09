@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.20 2009/07/08 15:56:27 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.21 2009/07/09 15:59:09 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.20 2009/07/08 15:56:27 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.21 2009/07/09 15:59:09 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -334,7 +334,7 @@ except Exception,x:
     return step
 
   #############################################################################
-  def reportSoftware(self,enableFlag=True):
+  def reportSoftware(self,enableFlag=True,installProjectURL=None):
     """Helper function.
 
        Add the reportSoftware step.
@@ -379,16 +379,16 @@ except Exception,x:
         This method controls the definition for a TestApplications step.
     """
     # Create the GaudiApplication module first
-    moduleName = 'ReportSoftware'
+    moduleName = 'SoftwareReport'
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the content of the SHARED area for the given CE')
-    body = string.replace(self.importLine,'<MODULE>','ReportSoftware')
+    body = string.replace(self.importLine,'<MODULE>','SoftwareReport')
     #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
     step.addModule(module)
-    moduleInstance = step.createModuleInstance('ReportSoftware',name)
+    moduleInstance = step.createModuleInstance('SoftwareReport',name)
     # Define step parameters
     step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
     step.addParameter(Parameter("samTestName","","string","","",False, False, "TestApplication SAM Test Name"))
