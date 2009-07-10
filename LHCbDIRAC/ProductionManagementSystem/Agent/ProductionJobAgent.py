@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.15 2009/06/29 16:21:54 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.16 2009/07/10 16:21:08 atsareg Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,43 +8,38 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.15 2009/06/29 16:21:54 acasajus Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.16 2009/07/10 16:21:08 atsareg Exp $"
 
-from DIRAC.Core.Base.Agent                                import Agent
+from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from DIRAC.Interfaces.API.DiracProduction                 import DiracProduction
 from DIRAC.Core.Utilities.Shifter                         import setupShifterProxyInEnv
 from DIRAC                                                import S_OK, S_ERROR, gConfig, gMonitor
 
-import os, time, string
+import os, time, string, datetime
 
 AGENT_NAME = 'ProductionManagement/ProductionJobAgent'
 
-class ProductionJobAgent(Agent):
-
-  #############################################################################
-  def __init__(self):
-    """ Standard constructor for Agent
-    """
-    Agent.__init__(self,AGENT_NAME)
+class ProductionJobAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
     """Sets defaults
     """
-    result = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-    self.jobsToSubmitPerProduction = gConfig.getValue(self.section+'/JobsToSubmitPerProduction',50)
-    self.productionStatus = gConfig.getValue(self.section+'/SubmitStatus','automatic')
+    self.check_reserved = self.am_getOption( 'CheckReservedJobs', 0 )
+    self.last_reserved_check = None
+    self.pollingTime = self.am_getOption('PollingTime',120)
+    self.jobsToSubmitPerProduction = self.am_getOption('JobsToSubmitPerProduction',50)
+    self.productionStatus = self.am_getOption('SubmitStatus','automatic')
     self.enableFlag = None
     gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
-    return result
+    return S_OK()
 
   #############################################################################
   def execute(self):
     """The ProductionJobAgent execution method.
     """
-    self.enableFlag = gConfig.getValue(self.section+'EnableFlag','True')
+    self.enableFlag = self.am_getOption('EnableFlag','True')
     if not self.enableFlag == 'True':
       self.log.info('ProductionJobAgent is disabled by configuration option %s/EnableFlag' %(self.section))
       return S_OK('Disabled via CS flag')
@@ -86,6 +81,73 @@ class ProductionJobAgent(Agent):
       else:
         self.log.verbose('Nothing to do for productionID %s with status %s' %(production,status))
 
+    if self.check_reserved:
+      if not self.last_reserved_check or \
+        (datetime.datetime.utcnow()-self.last_reserved_check)>datetime.timedelta(hours=1):
+        self.last_reserved_check = datetime.datetime.utcnow()
+        result = self.checkReservedJobs() 
+        if not result['OK']:
+          self.log.warn('Failed to chceck Reserved job: %s' % result['Message'])
+
     return S_OK('Productions submitted')
+    
+  def checkReservedJobs(self):
+    """ Check if there are jobs in Reserved state for more than an hour,
+        verify that there were not submitted and reset them to Created
+    """  
+    
+    self.log.info("Checking Reserved jobs")    
+    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    wmsClient = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
+    result = prodClient.getAllProductions()
+    if not result['OK']:
+      return result
+
+    if not result['Value']:
+      return S_OK()
+
+    for prod in result['Value']:
+      production = int(prod['TransID'])
+      time_stamp = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
+      # Get Reserved jobs - 100 at a time
+      result = prodClient.selectJobs(production,'Reserved',100,'',time_stamp)
+      if not result['OK']:
+        continue
+      jobNameList = []
+      jobIDs = result['Value'].keys()
+      for jobID in jobIDs:
+        jobNameList.append(str(production).zfill(8)+'_'+str(jobID).zfill(8))
+      if jobNameList:
+        result = wmsClient.getJobs({'JobName':jobNameList})
+        print result
+        if result['OK']:
+          if result['Value']:
+            # Some jobs have been submitted, let's get their status one by one
+            for jobWmsID in result['Value']:
+              result = wmsClient.getJobPrimarySummary(int(jobWmsID))
+              print result
+              if result['OK']:
+                status = result['Value']['Status']
+                jobName = result['Value']['JobName']
+                jobID = int(jobName.split('_')[1])
+                self.log.info('Restoring status for job %s of production %s from Reserved to %s/%s' % (jobID,production,status,jobWmsID))
+                result = prodClient.setJobStatusAndWmsID(long(production),long(jobID),status,jobWmsID)  
+                #print "AT >>>> setting job status",long(production),long(jobID),status,jobWmsID
+                #result = S_OK()
+                if not result['OK']:
+                  self.log.warn(result['Message'])
+          else:
+            # The jobs were not submitted
+            for jobID in jobIDs:
+              self.log.info('Resetting status for job %s of production %s from Reserved to %s' % (jobID,production,'Created'))
+              result = prodClient.setJobStatus(long(production),long(jobID),'Created')  
+              #print "AT >>>> resetting job status",long(production),long(jobID),'Created'
+              #result = S_OK()
+              if not result['OK']:
+                self.log.warn(result['Message'])
+        else:
+          continue       
+    
+    return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
