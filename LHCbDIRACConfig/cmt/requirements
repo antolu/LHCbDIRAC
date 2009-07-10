@@ -16,7 +16,9 @@ set X509_VOMS_DIR "$(X509_VOMS_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/cu
 use pyqt     v* LCG_Interfaces
 
 macro        Python_config_version               2.4.2 \
-             "target-slc5"       2.5
+             "target-slc5"                       2.5
+macro        globus_config_version               4.0.3-VDT-1.6.0 \
+             "target-slc5"                       4.0.7-VDT-1.10.1 
 macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
 macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
 macro        Python_config_version_twodigit   `$(pyth_maj)`.`$(pyth_min)`
@@ -32,7 +34,7 @@ macro       gfal_config_version                 1.11.6-2
 
 macro       lfc_dpm_version                     1.7.2-1sec
 
-macro       voms_version                        1.9.2-1
+macro       voms_version                        1.9.8-1
 macro       vomsapic_config_version             $(voms_version)
 macro       vomsapicpp_config_version           $(voms_version)
 macro       vomsclients_config_version          $(voms_version)
