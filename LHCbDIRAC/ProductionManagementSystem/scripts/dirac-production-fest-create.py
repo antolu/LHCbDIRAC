@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.13 2009/07/07 13:27:47 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.14 2009/07/10 12:48:00 acsmith Exp $
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.13 2009/07/07 13:27:47 acsmith Exp $"
-__VERSION__ = "$Revision: 1.13 $"
+__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.14 2009/07/10 12:48:00 acsmith Exp $"
+__VERSION__ = "$Revision: 1.14 $"
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
@@ -42,7 +42,6 @@ plugin = 'CCRC_RAW'
 bkConfigName = 'Fest'
 bkConfigVersion = 'Fest'
 bkGroupDescription = 'Reco01'
-bkProcessingPass = 'FEST-%s' %bkGroupDescription
 bkDataTakingConditions = 'DataTaking6153'
 #############################################################################
 conditions = 'MC09-20090602-vc-md100.py'
@@ -143,6 +142,8 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ('g','generate'):
     generateScript=True
 
+bkProcessingPass = 'FEST-%s' % bkGroupDescription
+
 def usage():
   print 'Usage: %s [<options>] <ProductionType>' % (Script.scriptName)
   print 'Generate a FEST production specifying one of the following production types:\n%s' %(string.join(prodTypeList,', '))
@@ -205,7 +206,6 @@ elif prodType=='align':
     DIRAC.exit(2)
   brunelExtraOpts = """from Configurables import CondDB, CondDBAccessSvc;alignCond = CondDBAccessSvc('AlignCond');alignCond.ConnectionString = 'sqlite_file:%s/LHCBCOND';CondDB().addLayer(alignCond)""" % os.path.basename(alignmentLFN)
   bkGroupDescription.replace('Reco','Align')
-  bkProcessingPass = 'FEST-%s' %bkGroupDescription 
 elif prodType=='full':
   brunelEventType=fullEventType
   dqFlag = 'OK'
