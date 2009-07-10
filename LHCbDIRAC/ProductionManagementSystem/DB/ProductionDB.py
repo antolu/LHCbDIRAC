@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.58 2009/07/04 11:49:54 acsmith Exp $
+# $Id: ProductionDB.py,v 1.59 2009/07/10 16:17:50 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.58 $"
+__RCSID__ = "$Revision: 1.59 $"
 
 import string, types
 from DIRAC.Core.Base.DB import DB
@@ -610,7 +610,7 @@ INDEX(WmsStatus)
 
     return S_OK(mappingDict)
 
-  def selectJobs(self,productionID,statusList = [],numJobs=1,site=''):
+  def selectJobs(self,productionID,statusList = [],numJobs=1,site='',older=None,newer=None):
     """ Select jobs with the given status from the given production
     """
 
@@ -621,13 +621,21 @@ INDEX(WmsStatus)
       site_se_mapping = result['Value']
 
     req = "SELECT JobID,InputVector,TargetSE,WmsStatus FROM Jobs_%d" % int(productionID)
+    conditions = []
     if statusList:
       statusString = ','.join(["'"+x+"'" for x in statusList])
-      req += " WHERE WmsStatus IN (%s)" % statusString
+      conditions.append(" WmsStatus IN (%s) " % statusString)
+    if older:
+      conditions.append(" LastUpdateTime < '%s' " % older)
+    if newer:
+      conditions.append(" LastUpdateTime > '%s' " % newer)    
+    if conditions:
+      req += " WHERE %s " % ' AND '.join(conditions)  
+      
     if not site:
       # do not uncomment this  req += " AND TargetSE='%s'" % site
       req += " LIMIT %d" % numJobs
-
+        
     result = self._query(req)
 
     if not result['OK']:
