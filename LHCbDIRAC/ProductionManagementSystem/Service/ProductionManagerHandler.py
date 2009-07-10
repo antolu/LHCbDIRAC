@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.52 2009/07/02 08:59:26 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.53 2009/07/10 16:18:33 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.52 $"
+__RCSID__ = "$Revision: 1.53 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -337,6 +337,16 @@ class ProductionManagerHandler( TransformationHandler ):
 
     resultDict['JobDictionary'] = resultJobDict # adding additional element   
     return S_OK(resultDict)
+
+  types_selectJobs = [ [LongType,IntType], StringType, IntType, StringType]
+  def export_selectJobs(self, production, status, numJobs, site, older=None, newer=None):
+    """ Get jobs with specified status limited by given number
+        for a given production
+    """
+    result = productionDB.selectJobs(production,[status],numJobs, site,older,newer)
+    if not result['OK']:
+      return S_ERROR('Failed to get jobs with the status %s site=%s for production=%d '%(status, site, production))
+    return result
 
   types_getJobsWithStatus = [ LongType, StringType, IntType, StringType]
   def export_getJobsWithStatus(self, production, status, numJobs, site):
