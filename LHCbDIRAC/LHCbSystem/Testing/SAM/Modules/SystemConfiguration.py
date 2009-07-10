@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.26 2009/06/03 14:13:27 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.27 2009/07/10 07:31:56 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +8,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.26 2009/06/03 14:13:27 joel Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.27 2009/07/10 07:31:56 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -204,7 +204,7 @@ class SystemConfiguration(ModuleBaseSAM):
 
   #############################################################################
   def __checkMapping(self,proxy,map_name):
-    """Return warning if the mapping is not the on expected..
+    """Return warning if the mapping is not the one expected..
     """
 
     self.log.info(' Check mapping')
@@ -222,6 +222,9 @@ class SystemConfiguration(ModuleBaseSAM):
       else:
         self.log.warn('potentiel problem in the mapping')
         return S_ERROR('potentiel problem in the mapping')
+    else:
+      self.log.warn('potentiel problem in the mapping')
+      return S_ERROR('potentiel problem in the mapping')
 
 
   #############################################################################
