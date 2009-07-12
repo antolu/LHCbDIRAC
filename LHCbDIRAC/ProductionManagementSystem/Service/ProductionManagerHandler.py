@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.53 2009/07/10 16:18:33 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.54 2009/07/12 14:47:56 atsareg Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.53 $"
+__RCSID__ = "$Revision: 1.54 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -328,9 +328,6 @@ class ProductionManagerHandler( TransformationHandler ):
         result = productionDB.reserveJob(production, long(jobID))
         if not result['OK']:
           gLogger.error('Failed to change status of the job %s to Reserved or production %d with message %s, Removing bad job'%(jobID, production,result["Message"]))
-        elif not result['Value']: 
-          # The Reserved status was not inserted
-          gLogger.warn('Job %s is already Reserved, skip it to avoid double execution' % jobID)
         else:
           # The job is Reserved, we can return it to the client
           resultJobDict[jobID] = jobDict[jobID] 
