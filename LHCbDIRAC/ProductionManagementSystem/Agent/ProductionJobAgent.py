@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.16 2009/07/10 16:21:08 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.17 2009/07/12 12:46:17 atsareg Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.16 2009/07/10 16:21:08 atsareg Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.17 2009/07/12 12:46:17 atsareg Exp $"
 
 from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -108,9 +108,10 @@ class ProductionJobAgent(AgentModule):
 
     for prod in result['Value']:
       production = int(prod['TransID'])
-      time_stamp = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
+      time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
+      time_stamp_newer = str(datetime.datetime.utcnow() - datetime.timedelta(days=7))
       # Get Reserved jobs - 100 at a time
-      result = prodClient.selectJobs(production,'Reserved',100,'',time_stamp)
+      result = prodClient.selectJobs(production,'Reserved',100,'',time_stamp_older,time_stamp_newer)
       if not result['OK']:
         continue
       jobNameList = []
