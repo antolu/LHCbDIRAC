@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.59 2009/07/10 16:17:50 atsareg Exp $
+# $Id: ProductionDB.py,v 1.60 2009/07/12 14:48:47 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.59 $"
+__RCSID__ = "$Revision: 1.60 $"
 
 import string, types
 from DIRAC.Core.Base.DB import DB
@@ -750,7 +750,16 @@ INDEX(WmsStatus)
     
     req = "UPDATE Jobs_%d SET WmsStatus='Reserved' WHERE JobID=%d;" % (productionID,jobID)
     result = self._update(req)
-    return result
+    if not result['OK']:
+      return S_ERROR('Failed to set Reserved status for job %d - MySQL error: '+result['Message'] % int(jobID))
+    if not result['Value']:
+      return S_ERROR('Failed to set Reserved status for job %d - already Reserved' % int(jobID) )
+    # The job is reserved, update the time stamp
+    result = self.setJobStatus(productionID,jobID,'Reserved')
+    if not result['OK']:
+      return S_ERROR('Failed to set Reserved status for job %d - failed to update the time stamp' % int(jobID))
+    
+    return S_OK()
 
   def setJobStatus(self,productionID,jobID,status):
     """ Set status for job with jobID in production with productionID
