@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.100 2009/07/06 15:24:48 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.101 2009/07/13 09:15:13 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.100 2009/07/06 15:24:48 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.101 2009/07/13 09:15:13 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1151,7 +1151,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     command = 'update files Set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\') ,'
     for attribute in filesAttr.keys():
-      command += str(attribute)+'='+str(filesAttr[attribute])+' ,'
+      if type(filesAttr[attribute]) == types.StringType:
+        command += str(attribute)+'=\''+str(filesAttr[attribute])+'\' ,'
+      else:
+        command += str(attribute)+'='+str(filesAttr[attribute])+' ,'
     
     command = command[:-1]
     command += ' where fileName=\''+filename+'\''
