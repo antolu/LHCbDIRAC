@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.27 2009/07/07 08:17:21 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.28 2009/07/13 12:40:37 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.27 2009/07/07 08:17:21 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.28 2009/07/13 12:40:37 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -178,8 +178,7 @@ class Production(LHCbJob):
         options.append("OutputStream(\"DSTBExclusive\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
         # NEED TO DEAL WITH MULTIPLE STREAMS
         #options.append("OutputStream(\"DSTTopological\").Output = \"DATAFILE=\'PFN:02@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      elif appType.lower() == 'root':
-        # if we just want the histograms we still need to create the dummy DSTs
+      elif appType.lower() == 'davincihist':
         options.append('from Configurables import InputCopyStream')
         options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
         options.append('DaVinci().MoniSequence.append(InputCopyStream())')
@@ -292,8 +291,15 @@ class Production(LHCbJob):
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1-RDST'
+    #HACK# We are explicitly producing DSTs until DaVinci is fixed to run DVMonitor on rDSTs.
+    elif appType.lower()=='dst':
+      dataType = 'DATA'
+      if not outputSE:
+        #outputSE='Tier1_M-DST' #for real data master dst 
+        outputSE='Tier1-RDST' #for real data DSTs from brunel
+        self.log.info('Setting default outputSE to %s' %(outputSE))
     else:
-      if not appType.lower()=='dst' and not appType.lower()=='xdst':
+      if not appType.lower() in ['dst','xdst']:
         raise TypeError,'Application type not recognised'
       if inputDataType.lower()=='digi':
         dataType='MC'
@@ -740,7 +746,7 @@ class Production(LHCbJob):
     return S_OK()
 
   #############################################################################
-  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True):
+  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString=''):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -756,6 +762,9 @@ class Production(LHCbJob):
     """
     prodID = self.defaultProdID
 
+    if wfString:
+      from DIRAC.Core.Workflow.Workflow import fromXMLString
+      self.workflow = fromXMLString(wfString)
     try:
       self.createWorkflow()
     except Exception,x:
