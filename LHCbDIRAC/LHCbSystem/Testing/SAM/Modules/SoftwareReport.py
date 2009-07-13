@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.1 2009/07/09 16:00:35 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.2 2009/07/13 15:59:33 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareReport.py,v 1.1 2009/07/09 16:00:35 joel Exp $"
+__RCSID__ = "$Id: SoftwareReport.py,v 1.2 2009/07/13 15:59:33 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -82,6 +82,10 @@ class SoftwareReport(ModuleBaseSAM):
     self.result = S_OK()
 
     soft_present = []
+    softwareDict = {}
+    soft_present_pb = []
+    softwareDictPb = {}
+
     if not self.result['OK']:
       return self.result
 
@@ -133,24 +137,22 @@ class SoftwareReport(ModuleBaseSAM):
       if not installList:
         return self.finalize('The active list of software could not be retreived from',activeSoftware,'error')
 
-      deprecatedSoftware = '/Operations/SoftwareDistribution/Deprecated'
-      removeList = gConfig.getValue(deprecatedSoftware,[])
-
       localArch = gConfig.getValue('/LocalSite/Architecture','')
       if not localArch:
         return self.finalize('/LocalSite/Architecture is not defined in the local configuration','Could not get /LocalSite/Architecture','error')
 
       #must get the list of compatible platforms for this architecture
-      localPlatforms = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %localArch,[])
+      localPlatforms = gConfig.getOptionsDict('/Resources/Computing/OSCompatibility')
       if not localPlatforms:
-        return self.finalize('Could not obtain compatible platforms for %s' %localArch,'/Resources/Computing/OSCompatibility/%s' %localArch,'error')
+        return self.finalize('Could not obtain compatible platforms for /Resources/Computing/OSCompatibility/','error')
 
 #
 #to be remove...
 #
       sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
-      for systemConfig in localPlatforms:
-        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
+      CheckSharedArea(self,sharedArea)
+      for systemConfig in localPlatforms['Value'].keys():
+#        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
         packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig),[])
 
         for installPackage in installList:
@@ -161,50 +163,99 @@ class SoftwareReport(ModuleBaseSAM):
 
           if installPackage in packageList:
             self.log.info('Attempting to check %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-#            orig = sys.stdout
-#            catch = open(self.logFile,'a')
-#            sys.stdout=catch
-            result = CheckPackage(self, appNameVersion, systemConfig, sharedArea )
-#            sys.stdout=orig
-#            catch.close()
-            #result = True
-            if not result: #or not result['OK']:
-              return self.finalize('Problem during execution, result is stopping.',result,'error')
-            else:
-#              self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
-              soft_present.append((appNameVersion[0], appNameVersion[1] , systemConfig))
-          else:
-            self.log.info('%s is not supported for system configuration %s, nothing to install.' %(installPackage,systemConfig))
-
-        self.log.info(soft_present)
-
-        for removePackage in removeList:
-          appNameVersion = string.split(removePackage,'.')
-          if not len(appNameVersion)==2:
-            return self.finalize('Could not determine name and version of package:',installPackage,'error')
-
-          if removePackage in packageList:
-            self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
             orig = sys.stdout
             catch = open(self.logFile,'a')
             sys.stdout=catch
-            result = CheckPackage(self,appNameVersion, systemConfig, sharedArea )
+            result = CheckPackage(self, appNameVersion, systemConfig, sharedArea )
             sys.stdout=orig
             catch.close()
-            result = True
-            if not result: # or not result['OK']:
-              return self.finalize('Problem during execution, stopping.',result,'error')
+            #result = True
+            if not result: #or not result['OK']:
+              soft_present_pb.append((appNameVersion[0], appNameVersion[1] , systemConfig))
+              if softwareDictPb.has_key(installPackage):
+                current = softwareDictPb[installPackage]
+                current.append(systemConfig)
+                softwareDictPb[installPackage]=current
+              else:
+                softwareDictPb[installPackage]=[systemConfig]
             else:
-              self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
-          else:
-            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
+#              self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+              if softwareDict.has_key(installPackage):
+                current = softwareDict[installPackage]
+                current.append(systemConfig)
+                softwareDict[installPackage]=current
+              else:
+                softwareDict[installPackage]=[systemConfig]
+              soft_present.append((appNameVersion[0], appNameVersion[1] , systemConfig))
+#          else:
+#            self.log.info('%s is not supported for system configuration %s, nothing to check.' %(installPackage,systemConfig))
+
+
     else:
       self.log.info('Software installation is disabled via enable flag')
 
 
+    fd = open('Soft_install.html','w')
+    self.log.info('Applications properly installed in the area')
+    fd.write('<H1>Applications properly installed in the area</H1>')
+#        self.log.info(soft_present)
+    self.log.info(softwareDict)
+    fd.write(self.getSoftwareReport(softwareDict))
+#        self.log.info(soft_present_pb)
+    self.log.info('Applications NOT properly installed in the area')
+    fd.write('<H1>Applications NOT properly installed in the area</H1>')
+    self.log.info(softwareDictPb)
+    fd.write(self.getSoftwareReport(softwareDictPb))
+    fd.close()
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
     return self.finalize('%s Test Successful' %self.testName,'Status OK (= 10)','ok')
+
+  #############################################################################
+  def getSoftwareReport(self,softwareDict):
+    """Returns the list of software installed at the site organized by platform.
+       If the test status is not successful, returns a link to the install test
+       log.  Creates an html table for the results.
+    """
+
+    #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
+
+    self.log.verbose(softwareDict)
+    rows = """
+    <br><br><br>
+    Software summary from job running on node with system configuration :
+    <br><br><br>
+    """
+    sortedKeys = softwareDict.keys()
+    sortedKeys.sort()
+    for appNameVersion in sortedKeys:
+      archList = softwareDict[appNameVersion]
+      name = appNameVersion.split('.')[0]
+      version = appNameVersion.split('.')[1]
+      sysConfigs = string.join(archList,', ')
+      rows += """
+
+<tr>
+<td> %s </td>
+<td> %s </td>
+<td> %s </td>
+</tr>
+      """ %(name,version,sysConfigs)
+
+    self.log.debug(rows)
+
+    table = """<table border="1" bordercolor="#000000" width="50%" bgcolor="#BCCDFE">
+<tr>
+<td>Project Name</td>
+<td>Project Version</td>
+<td>System Configurations</td>
+</tr>"""+rows+"""
+</table>
+"""
+    self.log.debug(table)
+    return table
+
+
 
 
 def CheckPackage(self, app, config, area):
@@ -268,6 +319,59 @@ def CheckPackage(self, app, config, area):
   if ret['Value'][2]:
     self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
 
+  return True
+
+def CheckSharedArea(self, area):
+  """
+   check if all application  in the  area are used or not
+  """
+  if not os.path.exists(os.environ['LBSCRIPTS_HOME']+'/InstallArea/scripts/usedProjects'):
+      self.log.error('UsedProjects is not in the path')
+      return False
+
+  if not area:
+    return False
+
+  localArea = area
+  if re.search(':',area):
+    localArea = string.split(area,':')[0]
+
+  # Now run the installation
+  curDir = os.getcwd()
+  #NOTE: must cd to LOCAL area directory (install_project requirement)
+  os.chdir(localArea)
+  software_remove = {}
+
+  cmdTuple = ['usedProjects']
+  cmdTuple += ['-r']
+  cmdTuple += ['-v']
+
+  self.log.info( 'Executing %s' % ' '.join(cmdTuple) )
+  timeout = 300
+  ret = systemCall( timeout, cmdTuple )
+#  self.log.info(ret)
+  os.chdir(curDir)
+  if not ret['OK']:
+#    self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return False
+  if ret['Value'][0]: # != 0
+#    self.log.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return False
+
+  if ret['Value'][2]:
+    self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
+
+  for line in ret['Value'][1].split('\n'):
+      if line.find('remove') != -1:
+          line = line.split()
+          if software_remove.has_key(line[1]):
+            current = software_remove[line[1]]
+            current.append(line[3])
+            software_remove[line[1]]=current
+          else:
+            software_remove[line[1]]=[line[3]]
+  self.log.info('Applications that could be remove')
+  self.log.info(software_remove)
   return True
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
