@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.12 2009/07/03 12:32:53 acsmith Exp $
+# $Id: InputDataResolution.py,v 1.13 2009/07/13 15:02:25 rgracian Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,11 +14,12 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.12 2009/07/03 12:32:53 acsmith Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.13 2009/07/13 15:02:25 rgracian Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
+import DIRAC
 
 import os,sys,re,string
 
@@ -39,6 +40,8 @@ class InputDataResolution:
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
+    if DIRAC.siteName == 'DIRAC.ONLINE-FARM.ch':
+      return self.__executeOnline()
     result = self.__resolveInputData()
     if not result['OK']:
       self.log.warn('InputData resolution failed with result:\n%s' %(result))
@@ -109,9 +112,7 @@ class InputDataResolution:
     if self.arguments['Configuration'].has_key('SiteName'):
       site = self.arguments['Configuration']['SiteName']
     else:
-      site = gConfig.getValue('/LocalSite/Site','')
-      if not site:
-        return S_ERROR('Could not resolve site from /LocalSite/Site')
+      site = DIRAC.siteName
 
     self.log.verbose('Attempting to resolve input data policy for site %s' %site)
     inputDataPolicy = gConfig.getOptionsDict('/Operations/InputDataPolicy')
@@ -172,5 +173,8 @@ class InputDataResolution:
     module = moduleInstance['Value']
     result = module.execute(remainingReplicas)
     return result
+
+  def __executeOnline(self):
+    return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
