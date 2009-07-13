@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.13 2009/07/13 15:02:25 rgracian Exp $
+# $Id: InputDataResolution.py,v 1.14 2009/07/13 15:15:58 rgracian Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.13 2009/07/13 15:02:25 rgracian Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.14 2009/07/13 15:15:58 rgracian Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -40,6 +40,7 @@ class InputDataResolution:
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
+    self.log.info( 'SiteName: %s' % DIRAC.siteName, str(DIRAC.siteName == 'DIRAC.ONLINE-FARM.ch') )
     if DIRAC.siteName == 'DIRAC.ONLINE-FARM.ch':
       return self.__executeOnline()
     result = self.__resolveInputData()
@@ -175,6 +176,7 @@ class InputDataResolution:
     return result
 
   def __executeOnline(self):
+    self.log.info('Executing __executeOnline')
     return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
