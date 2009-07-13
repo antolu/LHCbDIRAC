@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.28 2009/07/13 12:40:37 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.29 2009/07/13 13:11:55 acsmith Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.28 2009/07/13 12:40:37 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.29 2009/07/13 13:11:55 acsmith Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -668,7 +668,7 @@ class Production(LHCbJob):
   def createWorkflow(self):
     """ Create XML for local testing.
     """
-    name = '%s.xml' %self.name
+    name = '%s.xml' % self.name
     if os.path.exists(name):
       shutil.move(name,'%s.backup' %name)
     self.workflow.toXMLFile(name)
@@ -763,17 +763,18 @@ class Production(LHCbJob):
     prodID = self.defaultProdID
 
     if wfString:
-      from DIRAC.Core.Workflow.Workflow import fromXMLString
       self.workflow = fromXMLString(wfString)
+      self.name = self.workflow.getName()
+
+    workflowName = self.workflow.getName()
+    fileName = '%s.xml' %workflowName
+    self.log.info('Workflow XML file name is: %s' %fileName)
+
     try:
       self.createWorkflow()
     except Exception,x:
       self.log.error(x)
       return S_ERROR('Could not create workflow')
-
-    workflowName = self.workflow.getName()
-    fileName = '%s.xml' %workflowName
-    self.log.info('Workflow XML file name is: %s' %fileName)
 
     bkConditions = self.workflow.findParameter('conditions').getValue()
 
@@ -1081,4 +1082,11 @@ class Production(LHCbJob):
     """ Sets the original production from which this is to be derived
     """
     self.ancestorProduction = prod
+
+  #############################################################################
+  def setWorkflowString(self, wfString):
+    """ Uses the supplied string to create the workflow
+    """ 
+    self.workflow = fromXMLString(wfString)
+    self.name = self.workflow.getName()
 
