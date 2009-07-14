@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.18 2009/07/13 23:55:34 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.19 2009/07/14 00:12:51 atsareg Exp $
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.18 2009/07/13 23:55:34 atsareg Exp $"
+__RCSID__ = "$Id: ProductionJobAgent.py,v 1.19 2009/07/14 00:12:51 atsareg Exp $"
 
 from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
@@ -84,10 +84,12 @@ class ProductionJobAgent(AgentModule):
     if self.check_reserved:
       if not self.last_reserved_check or \
         (datetime.datetime.utcnow()-self.last_reserved_check)>datetime.timedelta(hours=1):
-        self.last_reserved_check = datetime.datetime.utcnow()
-        result = self.checkReservedJobs() 
+        result = self.checkReservedJobs()
         if not result['OK']:
           self.log.warn('Failed to chceck Reserved job: %s' % result['Message'])
+        else:
+          if not result['Value']:
+            self.last_reserved_check = datetime.datetime.utcnow()
 
     return S_OK('Productions submitted')
     
@@ -114,7 +116,7 @@ class ProductionJobAgent(AgentModule):
       time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
       time_stamp_newer = str(datetime.datetime.utcnow() - datetime.timedelta(days=7))
       # Get Reserved jobs - 100 at a time
-      result = prodClient.selectJobs(production,'Reserved',100,'',time_stamp_older,time_stamp_newer)
+      result = prodClient.selectJobs(production,'Reserved',250,'',time_stamp_older,time_stamp_newer)
       if not result['OK']:
         continue
       jobNameList = []
