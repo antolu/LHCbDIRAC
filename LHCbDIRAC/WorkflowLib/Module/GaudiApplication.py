@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.144 2009/07/15 08:55:29 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.145 2009/07/15 09:59:55 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.144 2009/07/15 08:55:29 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.145 2009/07/15 09:59:55 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -513,8 +513,8 @@ done
     bkProcessingPass[ step ][ 'ExtraPackages' ] = List.fromChar( bkProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
     bkProcessingPass[ step ][ 'OptionFiles' ] = List.fromChar( bkProcessingPass[ step ][ 'OptionFiles' ] , ';' )
     # Second: get the application configuration from the RecoManager XMLRPC
-    # recoManager = xmlrpclib.ServerProxy( 'http://storeio01.lbdaq.cern.ch:8889' )
-    recoManager = DummyRPC()
+    recoManager = xmlrpclib.ServerProxy( 'http://storeio01.lbdaq.cern.ch:8889' )
+    # recoManager = DummyRPC()
     try:
       result = recoManager.sliceStatus()
     except:
