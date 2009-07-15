@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.143 2009/07/14 08:56:33 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.144 2009/07/15 08:55:29 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.143 2009/07/14 08:56:33 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.144 2009/07/15 08:55:29 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -564,6 +564,8 @@ done
       if jobstatus in [ 'DONE' , 'ERROR' ]:
         self.numberOfEventsInput = str( jobInfo[ 'eventsRead' ] )
         self.numberOfEventsOutput = str( jobInfo[ 'eventsWritten' ] )
+        self.step_commons[ 'numberOfEventsInput' ] = str( jobInfo[ 'eventsRead' ] )
+        self.step_commons[ 'numberOfEventsOutput' ] = str( jobInfo[ 'eventsWritten' ] )
         self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
         self.step_commons[ 'guid' ] = jobInfo[ 'guid' ]
         loglines = jobInfo[ 'log' ]
