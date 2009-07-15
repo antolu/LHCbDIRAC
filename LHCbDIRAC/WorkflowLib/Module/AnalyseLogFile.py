@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.71 2009/07/02 18:21:35 acsmith Exp $
+# $Id: AnalyseLogFile.py,v 1.72 2009/07/15 07:42:50 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.71 2009/07/02 18:21:35 acsmith Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.72 2009/07/15 07:42:50 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -24,6 +24,7 @@ from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Utilities.Tools                         import getGuidFromPoolXMLCatalog
 from WorkflowLib.Module.ModuleBase                       import ModuleBase
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
+import DIRAC
 
 class AnalyseLogFile(ModuleBase):
 
@@ -296,7 +297,13 @@ class AnalyseLogFile(ModuleBase):
     if not result['OK']:
       self.log.error(result['Message'])
       return result
-    if gConfig.getValue( '/LocalSite/Site', 'Unknown' ) == 'DIRAC.ONLINE-FARM.ch':
+    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
+      if 'numberOfEventsInput' not in self.step_commons:
+        return S_ERROR()
+      if 'numberOfEventsOutput' not in self.step_commons:
+        return S_ERROR()
+      self.numberOfEventsInput = self.step_commons[ 'numberOfEventsInput' ]
+      self.numberOfEventsOutput = self.step_commons[ 'numberOfEventsOutput' ]
       return S_OK()
 
     # Search for core dumps in any case.
