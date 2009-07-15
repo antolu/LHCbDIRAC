@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.26 2009/06/29 13:23:19 acasajus Exp $
+# $Id: UsersAndGroups.py,v 1.27 2009/07/15 15:14:23 joel Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.26 2009/06/29 13:23:19 acasajus Exp $"
-__VERSION__ = "$Revision: 1.26 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.27 2009/07/15 15:14:23 joel Exp $"
+__VERSION__ = "$Revision: 1.27 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -96,6 +96,21 @@ class UsersAndGroups(AgentModule):
       self.log.fatal('Can not get User List', ret['Value'][2])
       return ret
 
+    os.environ['LFC_HOST'] ='lfc-lhcb.cern.ch'
+    lfcUsers = []
+    newLFCUsers = {}
+    retlfc = systemCall(0, ('lfc-listusrmap',) )
+    if not retlfc['OK']:
+      self.log.fatal('Can not get LFC User List', retlfc['Message'])
+      return retlfc
+    if retlfc['Value'][0]:
+      self.log.fatal('Can not get LFC User List', retlfc['Value'][2])
+      return retlfc
+    else:
+      for item in List.fromChar(retlfc['Value'][1],'\n'):
+          dn = item.split(' ',1)[1]
+          lfcUsers.append(dn)
+
     users = {}
     newUsers = []
     oldUsers = []
@@ -169,12 +184,31 @@ class UsersAndGroups(AgentModule):
       ret = csapi.modifyUser( user, users[user] )
       if not ret['OK']:
         self.log.error( 'Fail to modifyUser User:', '(%s) %s' % ( user, users[user] ) )
+      userDN =  False
+      for dn in lfcUsers:
+        if dn == users[user]['DN'] :
+          userDN = True
+          break
+
+      if not userDN:
+        self.log.info('========= DN %s need to be registered in LFC for user %s' % (users[user]['DN'], user))
+        newLFCUsers[user] = users[user]['DN']
 
     for user in newUsers:
       users[user]['Groups'].sort()
       ret = csapi.addUser( user, users[user])
       if not ret['OK']:
         self.log.error( 'Fail to add User:', '(%s) %s' % ( user, users[user] ) )
+
+      userDN =  False
+      for dn in lfcUsers:
+        if dn == users[user]['DN'] :
+          userDN = True
+          break
+
+      if not userDN:
+        self.log.info('========= DN %s need to be registered in LFC for user %s' % (users[user]['DN'], user))
+        newLFCUsers[user] = users[user]['DN']
 
     for user in currentUsers:
       if user not in users:
@@ -183,6 +217,15 @@ class UsersAndGroups(AgentModule):
 
     address = self.am_getOption( 'mailTo', 'lhcb-vo-admin@cern.ch' )
     fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
+    if newLFCUsers:
+      subject = 'New LFC Users found'
+      self.log.info( subject, newLFCUsers )
+      body = ''
+      for lfcuser in newLFCUsers.keys():
+          body += 'add_DN_LFC --userDN="'+newLFCUsers[lfcuser]+'" --nickname='+lfcuser+'\n'
+
+      NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
+
     if newUsers:
       subject = 'New Users found'
       self.log.info( subject, newUsers )
@@ -211,6 +254,6 @@ class UsersAndGroups(AgentModule):
 
     ret = systemCall( 0, ( 'voms-proxy-destroy', '-file', proxyFile ) )
 
-    # return S_OK()
+#    return S_OK()
     return csapi.commitChanges()
 
