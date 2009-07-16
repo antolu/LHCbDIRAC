@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: StepAccounting.py,v 1.4 2009/04/23 04:19:39 rgracian Exp $
+# $Id: StepAccounting.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 
 """ StepAccounting module performs several common operations at the end of
@@ -7,13 +7,14 @@
     data
 """
 
-__RCSID__ = "$Id: StepAccounting.py,v 1.4 2009/04/23 04:19:39 rgracian Exp $"
+__RCSID__ = "$Id: StepAccounting.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $"
 
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
 from DIRAC.Core.Security.Misc import getProxyInfo
+import DIRAC
 
 import os, time
 
@@ -52,7 +53,6 @@ class StepAccounting(object):
       else:
         user = 'unknown'
 
-    site = gConfig.getValue('/LocalSite/Site','localSite')
     status = 'Done'
     if self.step_commons.has_key('Status'):
       if step_commons['Status'] == "Failed":
@@ -86,7 +86,7 @@ class StepAccounting(object):
       stepDictionary['JobGroup'] = self.PRODUCTION_ID
       stepDictionary['User'] = user
       stepDictionary['Group'] = group
-      stepDictionary['Site'] = site
+      stepDictionary['Site'] = DIRAC.siteName()
 
     parameters.append((jobID,sname+' Status',status))
     parameters.append((jobID,sname+' Type',self.STEP_TYPE))

@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplicationOPTS.py,v 1.4 2009/04/20 06:41:50 rgracian Exp $
+# $Id: GaudiApplicationOPTS.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.4 2009/04/20 06:41:50 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -15,6 +15,7 @@ except Exception,x:
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
+import DIRAC
 
 import shutil, re, string, os, sys
 
@@ -310,21 +311,16 @@ class GaudiApplication(ModuleBase):
         cmtFlag += '--use="%s %s" ' %(package.split('.')[0],package.split('.')[1])
 
     externals = ''
-    site = gConfig.getValue('/LocalSite/Site','')
-    if not site:
-      externals = 'gfal CASTOR dcache_client lfc oracle' #should never happen, site is always defined
-      self.log.info('/LocalSite/Site undefined so setting externals to: %s' %externals)
+    if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName() )['OK']:
+      externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' %DIRAC.siteName(), [] )
+      externals = string.join( externals, ' ' )
+      self.log.info( 'Found externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
     else:
-      if gConfig.getOption('/Operations/ExternalsPolicy/%s' %site)['OK']:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/%s' %site,[])
-        externals = string.join(externals,' ')
-        self.log.info('Found externals policy for %s = %s' %(site,externals))
-      else:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
-        externals = string.join(externals,' ')
-        self.log.info('Using default externals policy for %s = %s' %(site,externals))
+      externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default',[])
+      externals = string.join( externals, ' ' )
+      self.log.info( 'Using default externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
 
-    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
+    setupProjectPath = os.path.dirname( os.path.realpath( '%s/LbLogin.sh' % localArea ) )
 
     if self.generator_name == '':
 #      script.write('. '+mySiteRoot+'/scripts/SetupProject.sh --debug --ignore-missing '+cmtFlag \

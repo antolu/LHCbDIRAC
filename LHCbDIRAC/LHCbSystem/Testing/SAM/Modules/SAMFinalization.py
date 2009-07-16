@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.29 2009/07/02 12:32:37 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.30 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,8 +11,9 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.29 2009/07/02 12:32:37 joel Exp $"
+__RCSID__ = "$Id: SAMFinalization.py,v 1.30 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -41,7 +42,6 @@ class SAMFinalization(ModuleBaseSAM):
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.diracSetup = gConfig.getValue('/DIRAC/Setup','None')
     self.log = gLogger.getSubLogger( "SAMFinalization" )
     self.result = S_ERROR()
@@ -98,10 +98,10 @@ class SAMFinalization(ModuleBaseSAM):
     self.runinfo = self.getRunInfo()
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
+      self.log.info('Could not determine sharedArea for site %s:\n%s' %(DIRAC.siteName(),sharedArea))
       return S_ERROR('Could not determine shared area for site')
     else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+      self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     failed = False
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
@@ -164,7 +164,7 @@ class SAMFinalization(ModuleBaseSAM):
     self.log.info('Checking SAM lock file: %s' %self.lockFile)
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if self.site=='LCG.CERN.ch':
+    if DIRAC.siteName()=='LCG.CERN.ch':
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
@@ -381,7 +381,7 @@ Link to log files: <br>
 %s
 <br>
 EOT
-""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,self.site,samNode,self.jobID,self.diracSetup,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO,softwareReport)
+""" %(samNode,testName,self.jobID,counter,testStatus,self.diracLogo,DIRAC.siteName(),samNode,self.jobID,self.diracSetup,time.strftime('%Y-%m-%d'),testSummary,self.logURL,lfnPath,self.logURL,self.samVO,samNode,samNode,self.logURL,self.samVO,softwareReport)
 
       files = {}
       files[defFile]='.def'

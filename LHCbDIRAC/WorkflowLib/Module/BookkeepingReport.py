@@ -1,14 +1,15 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.39 2009/06/16 10:46:05 rgracian Exp $
+# $Id: BookkeepingReport.py,v 1.40 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.39 2009/06/16 10:46:05 rgracian Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.40 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
 from WorkflowLib.Module.ModuleBase import ModuleBase
 from DIRAC import  *
+import DIRAC
 
 try:
   from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
@@ -135,7 +136,6 @@ class BookkeepingReport(ModuleBase):
   def makeBookkeepingXMLString(self):
 
     dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','HIST','XDST']
-    site = gConfig.getValue('/LocalSite/Site','Site')
     if self.workflow_commons.has_key('dataType'):
       job_mode = self.workflow_commons['dataType'].lower()
     else:
@@ -168,7 +168,7 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
     s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
     s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
-    s = s+self.__parameter_string("Location",site,'Info')
+    s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')
 
     host = None
     if os.environ.has_key("HOSTNAME"):

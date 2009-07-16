@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.23 2009/05/29 14:45:51 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.24 2009/07/16 11:32:57 rgracian Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.23 2009/05/29 14:45:51 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.24 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -22,6 +22,7 @@ from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from WorkflowLib.Module.ModuleBase                       import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
+import DIRAC
 
 try:
   from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
@@ -162,21 +163,16 @@ class GaudiApplicationScript(ModuleBase):
     setupProject.append( self.applicationVersion )
 
     externals = ''
-    site = gConfig.getValue('/LocalSite/Site','')
-    if not site:
-      externals = 'gfal CASTOR dcache_client lfc oracle' #should never happen, site is always defined
-      self.log.info('/LocalSite/Site undefined so setting externals to: %s' %externals)
+    if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName() )['OK']:
+      externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName(), [] )
+      externals = string.join( externals,' ')
+      self.log.info( 'Found externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
     else:
-      if gConfig.getOption('/Operations/ExternalsPolicy/%s' %site)['OK']:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/%s' %site,[])
-        externals = string.join(externals,' ')
-        self.log.info('Found externals policy for %s = %s' %(site,externals))
-      else:
-        externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
-        externals = string.join(externals,' ')
-        self.log.info('Using default externals policy for %s = %s' %(site,externals))
+      externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default', [] )
+      externals = string.join( externals, ' ' )
+      self.log.info( 'Using default externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
 
-    setupProject.append(externals)
+    setupProject.append( externals )
     timeout = 600
 
     # Run ExtCMT

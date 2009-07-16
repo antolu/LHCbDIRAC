@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.15 2009/06/16 17:36:46 rgracian Exp $
+# $Id: UploadOutputData.py,v 1.16 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.15 2009/06/16 17:36:46 rgracian Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.16 2009/07/16 11:32:57 rgracian Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -13,6 +13,7 @@ from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContain
 from DIRAC.DataManagementSystem.Client.PoolXMLFile         import getGUID
 from DIRAC.Core.Utilities.File                             import fileAdler
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+import DIRAC
 
 try:
   from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
@@ -37,7 +38,6 @@ class UploadOutputData(ModuleBase):
     self.jobID = ''
     self.enable=True
     self.failoverTest=False #flag to put file to failover SE by default
-    self.site = gConfig.getValue('/LocalSite/Site','localSite')
     self.failoverSEs = gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover',[])
     self.existingCatalogs = []
     result = gConfig.getSections('/Resources/FileCatalogs')
@@ -115,7 +115,7 @@ class UploadOutputData(ModuleBase):
     """ Main execution function.
     """
     self.log.info('Initializing %s' %self.version)
-    if gConfig.getValue( '/LocalSite/Site', 'Unknown' ) == 'DIRAC.ONLINE-FARM.ch':
+    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return S_OK()
     result = self.resolveInputVariables()
     if not result['OK']:
@@ -142,7 +142,7 @@ class UploadOutputData(ModuleBase):
     #Get final, resolved SE list for files
     final = {}
     for fileName,metadata in fileMetadata.items():
-      result = getDestinationSEList(metadata['workflowSE'],self.site,self.outputMode)
+      result = getDestinationSEList(metadata['workflowSE'],DIRAC.siteName(),self.outputMode)
       if not result['OK']:
         self.log.error('Could not resolve output data SE',result['Message'])
         self.setApplicationStatus('Failed To Resolve OutputSE')

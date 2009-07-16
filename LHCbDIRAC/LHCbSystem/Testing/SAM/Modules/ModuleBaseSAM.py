@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.23 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/ModuleBaseSAM.py,v 1.24 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,8 +8,9 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.23 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: ModuleBaseSAM.py,v 1.24 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -24,7 +25,6 @@ class ModuleBaseSAM(object):
     """ Initialize some common SAM parameters.
     """
     self.samStatus = {'ok':'10','info':'20','notice':'30','warning':'40','error':'50','critical':'60','maintenance':'100'}
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
 
   #############################################################################
   def setApplicationStatus(self,status):
@@ -162,7 +162,7 @@ class ModuleBaseSAM(object):
     gLogger.verbose(message)
     if not os.path.exists('%s' %(self.logFile)):
       fopen = open(self.logFile,'w')
-      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,DIRAC.siteName(),self.testName,self.version,time.asctime()),True)
       fopen.write(header)
       fopen.close()
 
@@ -246,7 +246,7 @@ class ModuleBaseSAM(object):
     """
     if not os.path.exists('%s' %(self.logFile)):
       fopen = open(self.logFile,'w')
-      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,DIRAC.siteName(),self.testName,self.version,time.asctime()),True)
       fopen.write(header)
       fopen.close()
 
@@ -274,7 +274,7 @@ class ModuleBaseSAM(object):
 
     if not os.path.exists('%s' %(self.logFile)):
       fopen = open(self.logFile,'w')
-      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,self.site,self.testName,self.version,time.asctime()),True)
+      header = self.getMessageString('DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' %(self.logFile,DIRAC.siteName(),self.testName,self.version,time.asctime()),True)
       fopen.write(header)
       fopen.close()
 

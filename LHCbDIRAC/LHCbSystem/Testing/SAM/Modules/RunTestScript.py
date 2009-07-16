@@ -1,13 +1,14 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/RunTestScript.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/RunTestScript.py,v 1.3 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb RunTestScript SAM Test Module
 """
 
-__RCSID__ = "$Id: RunTestScript.py,v 1.2 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: RunTestScript.py,v 1.3 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
@@ -33,7 +34,6 @@ class RunTestScript(ModuleBaseSAM):
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "RunTestScript" )
     self.result = S_ERROR()
 

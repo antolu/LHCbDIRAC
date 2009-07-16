@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.72 2009/07/15 07:42:50 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.73 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.72 2009/07/15 07:42:50 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.73 2009/07/16 11:32:57 rgracian Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -251,7 +251,7 @@ class AnalyseLogFile(ModuleBase):
   def __init__(self):
       self.log = gLogger.getSubLogger("AnalyseLogFile")
       self.version = __RCSID__
-      self.site = gConfig.getValue('/LocalSite/Site','localSite')
+      self.site = DIRAC.siteName()
       self.systemConfig = ''
       self.result = S_ERROR()
       self.mailadress = ''
@@ -326,7 +326,6 @@ class AnalyseLogFile(ModuleBase):
           self.log.info('Step Status %s' %(self.stepStatus))
           return S_OK()
     self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
-    self.site = gConfig.getValue('/LocalSite/Site','Site')
 
     # Resolve the step and job input data
     self.stepInputData = []

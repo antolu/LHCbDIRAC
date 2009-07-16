@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.8 2009/04/22 19:55:00 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.9 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,13 +7,14 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.8 2009/04/22 19:55:00 rgracian Exp $"
+__RCSID__ = "$Id: ModuleBase.py,v 1.9 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 from DIRAC.Core.Security.Misc import getProxyInfoAsString
+import DIRAC
 
 class ModuleBase(object):
 
@@ -132,8 +133,7 @@ class ModuleBase(object):
     """
 
     rm = ReplicaManager()
-    site = gConfig.getValue('/LocalSite/Site','Unknown')
-    source = "Job %d at %s" % (self.jobID,site)
+    source = "Job %d at %s" % (self.jobID,DIRAC.siteName())
     result = rm.setReplicaProblematic((lfn,pfn,se,reason),source)
     if not result['OK'] or result['Value']['Failed']:
       # We have failed the report, let's attempt the Integrity DB faiover

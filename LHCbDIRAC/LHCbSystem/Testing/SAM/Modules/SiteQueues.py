@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SiteQueues.py,v 1.10 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,8 +8,9 @@
     Corresponds to SAM test CE-lhcb-queues.
 """
 
-__RCSID__ = "$Id: SiteQueues.py,v 1.9 2009/04/18 18:26:56 rgracian Exp $"
+__RCSID__ = "$Id: SiteQueues.py,v 1.10 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
@@ -32,7 +33,6 @@ class SiteQueues(ModuleBaseSAM):
     self.version = __RCSID__
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "SiteQueues" )
     self.result = S_ERROR()
 

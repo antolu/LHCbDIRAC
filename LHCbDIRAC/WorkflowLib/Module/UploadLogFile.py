@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.16 2009/06/19 10:48:15 paterson Exp $
+# $Id: UploadLogFile.py,v 1.17 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.16 2009/06/19 10:48:15 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.17 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -13,6 +13,7 @@ from DIRAC.DataManagementSystem.Client.StorageElement      import StorageElement
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+import DIRAC
 
 try:
   from LHCbSystem.Utilities.ProductionData  import getLogPath
@@ -37,7 +38,6 @@ class UploadLogFile(ModuleBase):
 
     self.logSE = gConfig.getValue('/Resources/StorageElements/ProductionLogSE','LogSE')
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    self.site = gConfig.getValue('/LocalSite/Site','localSite')
     self.logSizeLimit = gConfig.getValue('/Operations/LogFiles/SizeLimit',20*1024*1024)
     self.logExtensions = gConfig.getValue('/Operations/LogFiles/Extensions',[])
     self.diracLogo = gConfig.getValue('/Operations/SAM/LogoURL','https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png')
@@ -392,7 +392,6 @@ class UploadLogFile(ModuleBase):
     prodJobID = self.JOB_ID
     wmsJobID = self.jobID
     logFilePath = self.logFilePath
-    site = self.site
 
     targetFile = '%s/index.html' %(self.logdir)
     fopen = open(targetFile,'w')
@@ -412,7 +411,7 @@ class UploadLogFile(ModuleBase):
     for fileName in selectedFiles:
       fopen.write('<a href="%s">%s</a><br> \n' %(fileName,fileName))
 
-    fopen.write("<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" %(productionID,prodJobID,wmsJobID,site))
+    fopen.write("<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" %(productionID,prodJobID,wmsJobID,DIRAC.siteName()))
     fopen.write("<h3>Parameter summary for job %s_%s</h3> \n"  %(prodJobID,productionID))
     check = ['SystemConfig','SoftwarePackages','BannedSites','LogLevel','JobType','MaxCPUTime','ProductionOutputData','LogFilePath','InputData','InputSandbox']
     params = {}

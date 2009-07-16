@@ -36,19 +36,13 @@ if [ $USER != $DIRACUSER ] ; then
   echo $0 should be run by $DIRACUSER
   exit
 fi
-# check if the mask is properly set
-if [ "`umask`" != "0002" ] ; then
-  echo umask should be set to 0002 at system level for users
-  exit
-fi
-#
 # make sure $DESTDIR is available
 mkdir -p $DESTDIR || exit 1
 
 CURDIR=`dirname $0`
 CURDIR=`cd $CURDIR; pwd -P`
 
-ROOT=`dirname $DESTDIR`/DIRAC3
+ROOT=`dirname $DESTDIR`/DIRAC
 
 echo
 echo "Installing under $ROOT"

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.27 2009/07/10 07:31:56 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SystemConfiguration.py,v 1.28 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,8 +8,9 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py,v 1.27 2009/07/10 07:31:56 joel Exp $"
+__RCSID__ = "$Id: SystemConfiguration.py,v 1.28 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
@@ -35,7 +36,6 @@ class SystemConfiguration(ModuleBaseSAM):
     self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "SystemConfiguration" )
     self.result = S_ERROR()
 
@@ -82,18 +82,17 @@ class SystemConfiguration(ModuleBaseSAM):
 
     self.cwd  = os.getcwd()
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
-    site = gConfig.getValue( '/LocalSite/Site', 'Unknown' )
     self.log.info( "Root directory for job is %s" % ( localRoot ) )
 
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
+      self.log.info('Could not determine sharedArea for site %s:\n%s' %(DIRAC.siteName(),sharedArea))
       return self.finalize('Could not determine shared area for site',sharedArea,'critical')
     else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+      self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if self.site=='LCG.CERN.ch':
+    if DIRAC.siteName()=='LCG.CERN.ch':
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
@@ -142,9 +141,9 @@ class SystemConfiguration(ModuleBaseSAM):
 
     self.log.info('Current account: %s' %self.runinfo['identity'])
     if not re.search('\d',self.runinfo['identityShort']):
-      self.log.info('%s uses static accounts' %self.site)
+      self.log.info('%s uses static accounts' %DIRAC.siteName())
     else:
-      self.log.info('%s uses pool accounts' %self.site)
+      self.log.info('%s uses pool accounts' %DIRAC.siteName())
 
     # FIXME: this prints lots of errors if not running with write privileges
     # R.G I have removed the -R to reduce the amount of errors.

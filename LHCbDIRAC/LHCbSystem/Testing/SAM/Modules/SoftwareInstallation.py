@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.37 2009/05/25 13:45:42 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.38 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,8 +11,9 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.37 2009/05/25 13:45:42 paterson Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.38 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
@@ -39,7 +40,6 @@ class SoftwareInstallation(ModuleBaseSAM):
     self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "SoftwareInstallation" )
     self.result = S_ERROR()
 
@@ -112,10 +112,10 @@ class SoftwareInstallation(ModuleBaseSAM):
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
       # After previous check this error should never occur
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
+      self.log.info('Could not determine sharedArea for site %s:\n%s' %(DIRAC.siteName(),sharedArea))
       return self.finalize('Could not determine shared area for site',sharedArea,'critical')
     else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+      self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     #Check for optional install project URL
     if self.installProjectURL:
@@ -142,7 +142,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       isPoolAccount = True
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if self.site=='LCG.CERN.ch':
+    if DIRAC.siteName()=='LCG.CERN.ch':
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')

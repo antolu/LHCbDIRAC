@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.18 2009/07/08 15:57:03 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.19 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,8 +10,9 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.18 2009/07/08 15:57:03 joel Exp $"
+__RCSID__ = "$Id: TestApplications.py,v 1.19 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
@@ -40,7 +41,6 @@ class TestApplications(ModuleBaseSAM):
     self.version = __RCSID__
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
     self.log = gLogger.getSubLogger( "TestApplications" )
     self.result = S_ERROR()
@@ -135,10 +135,10 @@ class TestApplications(ModuleBaseSAM):
     """
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists(sharedArea):
-      self.log.info('Could not determine sharedArea for site %s:\n%s' %(self.site,sharedArea))
+      self.log.info('Could not determine sharedArea for site %s:\n%s' %(DIRAC.siteName(),sharedArea))
       return self.finalize('Could not determine shared area for site',sharedArea,'critical')
     else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+      self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     localOpts = appOptions
 

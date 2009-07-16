@@ -1,13 +1,14 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.41 2009/05/25 13:45:34 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.42 2009/07/16 11:32:56 rgracian Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.41 2009/05/25 13:45:34 paterson Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.42 2009/07/16 11:32:56 rgracian Exp $"
 
+import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 try:
@@ -35,7 +36,6 @@ class LockSharedArea(ModuleBaseSAM):
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.site = gConfig.getValue('/LocalSite/Site','LCG.Unknown.ch')
     self.log = gLogger.getSubLogger( "LockSharedArea" )
     self.result = S_ERROR()
 
@@ -98,10 +98,10 @@ class LockSharedArea(ModuleBaseSAM):
     # Change the permissions on the shared area
     self.log.info('Current account: %s' %self.runinfo['identity'])
     if not re.search('\d',self.runinfo['identityShort']):
-      self.log.info('%s uses static accounts' %self.site)
+      self.log.info('%s uses static accounts' %DIRAC.siteName())
       isPoolAccount = False
     else:
-      self.log.info('%s uses pool accounts' %self.site)
+      self.log.info('%s uses pool accounts' %DIRAC.siteName())
       isPoolAccount = True
 
     #If running in safe mode stop here and return S_OK()
@@ -132,16 +132,16 @@ class LockSharedArea(ModuleBaseSAM):
 
     sharedArea = SharedArea()
     if not sharedArea:
-      self.log.info('Could not determine sharedArea for site %s:\n%s\n trying to create it' %(self.site,sharedArea))
+      self.log.info('Could not determine sharedArea for site %s:\n%s\n trying to create it' %(DIRAC.siteName(),sharedArea))
       createSharedArea = CreateSharedArea()
       if not createSharedArea:
-        return self.finalize('Could not create sharedArea for site %s:' %(self.site),sharedArea,'error')
+        return self.finalize('Could not create sharedArea for site %s:' %(DIRAC.siteName()),sharedArea,'error')
       sharedArea = SharedArea()
     else:
-      self.log.info('Software shared area for site %s is %s' %(self.site,sharedArea))
+      self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if self.site=='LCG.CERN.ch':
+    if DIRAC.siteName()=='LCG.CERN.ch':
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.136 2009/05/01 11:20:33 rgracian Exp $
+# $Id: JobFinalization.py,v 1.137 2009/07/16 11:32:57 rgracian Exp $
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.136 2009/05/01 11:20:33 rgracian Exp $"
+__RCSID__ = "$Id: JobFinalization.py,v 1.137 2009/07/16 11:32:57 rgracian Exp $"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -39,6 +39,7 @@ from DIRAC.Core.Utilities.SiteSEMapping                   import getSEsForSite
 from DIRAC.Core.Utilities.List import pop
 from DIRAC.Core.Utilities.File import makeGuid, fileAdler
 import os, time, re, random, shutil, commands
+import DIRAC
 
 class JobFinalization(ModuleBase):
 
@@ -79,7 +80,6 @@ class JobFinalization(ModuleBase):
     self.logSE = 'LogSE'
     self.bookkeepingTimeOut = 10 #seconds
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    self.site = gConfig.getValue('/LocalSite/Site','localSite')
 
     self.rm = ReplicaManager()
     self.bk = BookkeepingClient()
@@ -927,15 +927,15 @@ class JobFinalization(ModuleBase):
     self.log.info('Resolving '+outputSE+' SE')
 
     # Check if the SE is defined explicitly for the site
-    prefix = self.site.split('.')[0]
-    country = self.site.split('.')[-1]
+    prefix = DIRAC.siteName().split('.')[0]
+    country = DIRAC.siteName().split('.')[-1]
     # Concrete SE name
     result = gConfig.getOptions('/Resources/StorageElements/'+outputSE)
     if result['OK']:
       self.log.info('Found concrete SE %s' %outputSE)
       return S_OK([outputSE])
     # There is an alias defined for this Site
-    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,self.site,outputSE),[])
+    alias_se = gConfig.getValue('/Resources/Sites/%s/%s/AssociatedSEs/%s' % (prefix,DIRAC.siteName(),outputSE),[])
     if alias_se:
       self.log.info('Found associated SE for site %s' %(alias_se))
       return S_OK(alias_se)
@@ -1012,7 +1012,7 @@ class JobFinalization(ModuleBase):
   def __getLocalSEList(self):
     """ Ge the list of local Storage Element names
     """
-    result = getSEsForSite(self.site)
+    result = getSEsForSite(DIRAC.siteName())
     if not result['OK']:
       self.log.warn('Could not get SEs for site with result\n%s' %result)
       return []
