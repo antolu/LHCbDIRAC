@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.9 2009/06/15 11:38:41 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.10 2009/07/16 08:47:54 joel Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 # Defined states:
 #'New'
@@ -64,7 +64,7 @@ def _getMemberMails(group):
 def _inform_people(id,oldstate,state,author):
   if not state or state == 'New':
     return # was no state change or resurrect
-  
+
   csS=PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
   if not csS:
     gLogger.error('No ProductionRequest section in configuration')
@@ -79,12 +79,12 @@ def _inform_people(id,oldstate,state,author):
     gLogger.info('No notifications will be send')
     return
 
-  footer = "\n\nNOTE: that is automated notification request."
-  footer+= " Don't replay please.\n"
+  footer = "\n\nNOTE: it is an automated notification request."
+  footer+= " Don't reply please.\n"
   footer+= "DIRAC Web portal: https://lhcbtest.pic.es/DIRAC/%s/" % \
            PathFinder.getDIRACSetup()
   ppath = '/production/ProductionRequest/display\n'
-  
+
   authorMail = _getMailAddress(author)
   if authorMail:
     if not state in ['BK Check','Submitted']:
@@ -98,7 +98,7 @@ def _inform_people(id,oldstate,state,author):
         subj = "DIRAC: the state of Production Request %s is changed to '%s'"%\
                (id,state)
         body = '\n'.join(
-          ['The state of your requests is changed.',
+          ['The state of your request is changed.',
            'This mail is for information only.'])
       notification = NotificationClient()
       res = notification.sendMail(authorMail,subj,
@@ -112,32 +112,32 @@ def _inform_people(id,oldstate,state,author):
                       "You are informed as member of %s group"])
     groups = [ 'lhcb_prmgr' ]
   elif state == 'BK Check':
-    subj = "DIRAC: new Pruduction Request %s" %id
+    subj = "DIRAC: new Production Request %s" %id
     body = '\n'.join(["New Production is requested and it has",
                       "customized Simulation Conditions.",
                       "As member of %s group, your are asked either",
-                      "register new Simulation conditions",
-                      "or reject the request","",
+                      "to register new Simulation conditions",
+                      "or to reject the request","",
                       "In case some other member of the group has already",
                       "done that, please ignore this mail."])
     groups = [ 'lhcb_bk' ]
-    
+
   elif state == 'Submitted':
-    subj = "DIRAC: new Pruduction Request %s" %id
+    subj = "DIRAC: new Production Request %s" %id
     body = '\n'.join(["New Production is requested",
-                      "As member of %s group, your are asked either sign",
-                      "or reject it.","",
+                      "As member of %s group, your are asked either to sign",
+                      "or to reject it.","",
                       "In case some other member of the group has already",
                       "done that, please ignore this mail."])
     groups = [ 'lhcb_ppg','lhcb_tech' ]
   elif state == 'PPG OK' and oldstate == 'Accepted':
-    subj = "DIRAC: returned Pruduction Request %s" %id
+    subj = "DIRAC: returned Production Request %s" %id
     body = '\n'.join(["Production Request is returned by Production Manager.",
                       "As member of %s group, your are asked to correct and sign",
-                      "or reject it.","",
+                      "or to reject it.","",
                       "In case some other member of the group has already",
                       "done that, please ignore this mail."])
-    groups = [ 'lhcb_tech' ]    
+    groups = [ 'lhcb_tech' ]
   else:
     return
   for group in groups:
@@ -270,7 +270,7 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       return result
     recls = result['Value']
-    
+
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:
@@ -376,7 +376,7 @@ class ProductionRequestDB(DB):
         all subrequests of 'subrequestsFor' (when specified).
         Parameters with explicit types are assumed checked by service.
     """
-    try: # test parameters 
+    try: # test parameters
       for x in requestIDList:
         y = long(x)
     except:
@@ -457,7 +457,7 @@ class ProductionRequestDB(DB):
     if requestState in ['New','BK OK','Rejected']:
       if requestAuthor != creds['User']:
         self.lock.release()
-        return S_ERROR("Only author is alowed to modify unsubmitted request")
+        return S_ERROR("Only author is allowed to modify unsubmitted request")
     elif requestState == 'BK Check':
       if creds['Group'] != 'lhcb_bk':
         self.lock.release()
@@ -465,19 +465,19 @@ class ProductionRequestDB(DB):
     elif requestState == 'Submitted':
       if creds['Group'] != 'lhcb_ppg' and creds['Group'] != 'lhcb_tech':
         self.lock.release()
-        return S_ERROR("Only PPG members or Tech. experts are alowed to sign submitted request")
+        return S_ERROR("Only PPG members or Tech. experts are allowed to sign submitted request")
     elif requestState == 'PPG OK':
       if creds['Group'] != 'lhcb_tech':
         self.lock.release()
-        return S_ERROR("Only Tech. experts are alowed to sign this request")
+        return S_ERROR("Only Tech. experts are allowed to sign this request")
     elif requestState == 'Tech OK':
       if creds['Group'] != 'lhcb_ppg':
         self.lock.release()
-        return S_ERROR("Only PPG members are alowed to sign this request")
+        return S_ERROR("Only PPG members are allowed to sign this request")
     elif requestState in ['Accepted','Active']:
       if creds['Group'] != 'lhcb_prmgr':
         self.lock.release()
-        return S_ERROR("Only Tech. expers are alowed to comment active request")  
+        return S_ERROR("Only Tech. expers are allowed to comment active request")
     else:
       self.lock.release()
       return S_ERROR("The request is in unknown state '%s'" % requestState)
@@ -768,7 +768,7 @@ class ProductionRequestDB(DB):
                             "WHERE RequestID=%s" % requestID)
       if not result['OK']:
         self.lock.release()
-        return result      
+        return result
       # delete tracking
       result = self._update("DELETE FROM ProductionProgress "+
                             "WHERE RequestID IN "+
@@ -813,7 +813,7 @@ class ProductionRequestDB(DB):
     req = "DELETE FROM ProductionRequests "
     req+= "WHERE RequestID=%s" % requestID
     result = self._update(req,connection)
-    
+
     self.lock.release()
 
     if not result['OK']:
@@ -824,7 +824,7 @@ class ProductionRequestDB(DB):
     """ recurcive duplication function.
         NOTE: unlock in case of errors
     """
-    
+
     fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
     req = "SELECT %s " % fields
     req+= "FROM ProductionRequests as t "
@@ -849,14 +849,14 @@ class ProductionRequestDB(DB):
       rec['RequestAuthor'] = creds['User']
     if rec['RequestState']:
       rec['RequestState'] = 'New'
-    
+
     recl = [ rec[x] for x in self.requestFields[1:-6] ]
     result = self._fixedEscapeValues(recl)
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
-    
+
     req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-6])
     req+= " ) VALUES ( %s );" % ','.join(recls)
     result = self._update(req,connection)
@@ -953,7 +953,7 @@ class ProductionRequestDB(DB):
     rows = [dict(zip(self.progressFields,row)) for row in result['Value']]
     total = len(rows)
     return S_OK({'Rows':rows, 'Total':total})
-    
+
   def addProductionToRequest(self,pdict):
     """ Associate production to request.
         Existence of request is checked first.
