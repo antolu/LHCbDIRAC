@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.21 2009/07/09 15:59:09 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.22 2009/07/16 15:40:15 roma Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.21 2009/07/09 15:59:09 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.22 2009/07/16 15:40:15 roma Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -67,6 +67,7 @@ class LHCbSAMJob(Job):
     #self.samOwnerGroup = gConfig.getValue('/Operations/SAM/OwnerGroup','lhcb_admin')
     self.samOutputFiles = gConfig.getValue('/Operations/SAM/OutputSandbox',['*.log'])
     self.appTestPath = '/Operations/SAM/TestApplications'
+    self.samPriority = gConfig.getValue('/Operations/SAM/Priority',1)
     self.importLine = """
 try:
   from LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
@@ -86,8 +87,32 @@ except Exception,x:
     self.setJobGroup(self.samGroup)
     #self.setOwnerGroup(self.samOwnerGroup)
     self.setType(self.samType)
+    self.setPriority(self.samPriority)
     self._addJDLParameter('PilotTypes','private')
     self._addJDLParameter('SubmitPools','SAM')
+
+  #############################################################################
+  def setPriority(self,priority):
+    """Helper function.
+
+       Add the priority.
+
+       Example usage:
+
+       >>> job = LHCbSAMJob()
+       >>> job.setPriority(10)
+
+       @param priority: User priority
+       @type priority: Int
+    """
+    if not type(priority)==int:
+      try:
+        priority=int(priority)
+      except Exception,x:
+        raise TypeError,'Expected Integer for User priority'
+
+    self._addParameter(self.workflow,'Priority','JDL',priority,'User Job Priority')
+
 
   #############################################################################
   def setSharedAreaLock(self,forceDeletion=False,enableFlag=True):
