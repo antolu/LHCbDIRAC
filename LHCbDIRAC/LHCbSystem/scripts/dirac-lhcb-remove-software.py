@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-remove-software.py,v 1.1 2008/10/16 09:51:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-remove-software.py,v 1.2 2009/07/17 14:02:08 joel Exp $
 # File :   dirac-lhcb-remove-software
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-remove-software.py,v 1.1 2008/10/16 09:51:48 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-lhcb-remove-software.py,v 1.2 2009/07/17 14:02:08 joel Exp $"
+__VERSION__ = "$Revision: 1.2 $"
+try:
+  from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
+except Exception,x:
+  from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
+
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
@@ -17,6 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 diracAdmin = DiracAdmin()
 modifiedCS = False
+mailadress = 'lhcb-sam@cern.ch'
 
 def usage():
   print 'Usage: %s <NAME> <VERSION>' %(Script.scriptName)
@@ -38,6 +44,9 @@ softwareSection = '/Operations/SoftwareDistribution'
 activeSection = '/Operations/SoftwareDistribution/Active'
 osSection = '/Resources/Computing/OSCompatibility'
 deprecatedSection = '/Operations/SoftwareDistribution/Deprecated'
+
+subject = '%s %s remove to DIRAC CS' %(args[0],args[1])
+msg = 'Grid removal required for %s %s' %(args[0],args[1])
 
 packageNameVersion = '%s.%s' %(args[0],args[1])
 
@@ -104,6 +113,11 @@ if modifiedCS:
     DIRAC.exit(255)
   else:
     print 'Successfully committed changes to CS'
+    notifyClient = NotificationClient()
+    print 'Sending mail for software installation %s' %(mailadress)
+    res = notifyClient.sendMail(mailadress,subject,msg,'joel.closier@cern.ch',localAttempt=False)
+    if not res[ 'OK' ]:
+        print 'The mail could not be sent'
 else:
   print 'No modifications to CS required'
 
