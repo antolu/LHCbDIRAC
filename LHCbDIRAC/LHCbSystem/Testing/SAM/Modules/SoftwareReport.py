@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.2 2009/07/13 15:59:33 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.3 2009/07/17 14:48:08 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareReport.py,v 1.2 2009/07/13 15:59:33 joel Exp $"
+__RCSID__ = "$Id: SoftwareReport.py,v 1.3 2009/07/17 14:48:08 joel Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -149,7 +149,7 @@ class SoftwareReport(ModuleBaseSAM):
 #
 #to be remove...
 #
-      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
+#      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
       CheckSharedArea(self,sharedArea)
       for systemConfig in localPlatforms['Value'].keys():
 #        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
