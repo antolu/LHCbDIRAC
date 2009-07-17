@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.146 2009/07/16 11:32:57 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.147 2009/07/17 14:48:05 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.146 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.147 2009/07/17 14:48:05 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -531,7 +531,7 @@ done
       self.log.error( "No slice found matching configuration" )
       return S_ERROR( matcherror )
     # Fourth: find which of the matching slices is better for job sending
-    sliceNumber = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][1]
+    sliceNumber = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
     lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
     outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
