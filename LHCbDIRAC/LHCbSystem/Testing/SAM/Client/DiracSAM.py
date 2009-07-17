@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.9 2009/06/24 15:00:35 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.10 2009/07/17 12:57:06 joel Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.9 2009/06/24 15:00:35 joel Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.10 2009/07/17 12:57:06 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -71,6 +71,7 @@ class DiracSAM(Dirac):
       if install_project:
         self.log.verbose('Optional install_project URL is set to %s' %(install_project))
       job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable,installProjectURL=install_project)
+      job.reportSoftware(enableFlag=enable,installProjectURL=install_project)
       job.testApplications(enableFlag=enable)
       if script:
         job.runTestScript(scriptName=script,enableFlag=enable)
