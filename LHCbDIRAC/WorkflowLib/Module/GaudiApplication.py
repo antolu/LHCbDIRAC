@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.147 2009/07/17 14:48:05 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.148 2009/07/20 14:20:10 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.147 2009/07/17 14:48:05 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.148 2009/07/20 14:20:10 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -555,11 +555,18 @@ done
           return S_ERROR( "Connection lost to the Reco Manager" )
         continue
       retrycount = 0
-      jobInfo = ret[ 'Value' ][ str(jobID) ] # ( status , inputevents , outputevents , logfile )
+      jobInfo = ret[ 'Value' ][ str(jobID) ]
       jobstatus = jobInfo[ 'status' ]
       if jobstatus in [ 'DONE' , 'ERROR' ]:
-        self.numberOfEventsInput = str( jobInfo[ 'eventsRead' ] )
-        self.numberOfEventsOutput = str( jobInfo[ 'eventsWritten' ] )
+        ret = recoManager.getJobOutput( jobID )
+        if not ret[ 'OK' ]:
+          outputError = "Error retrieving output of jobID: %s" %jobID
+          self.log.error( outputError , ret[ 'Message' ] )
+          return S_ERROR( outputError )
+        jobInfo = ret[ 'Value' ][ str(jobID) ] # ( status , inputevents , outputevents , logfile , path )
+        # Hack: create symlink to output data
+        for path in jobInfo[ 'path' ].values():
+          os.symlink( path , os.path.basename( path ) )
         self.step_commons[ 'numberOfEventsInput' ] = str( jobInfo[ 'eventsRead' ] )
         self.step_commons[ 'numberOfEventsOutput' ] = str( jobInfo[ 'eventsWritten' ] )
         self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
