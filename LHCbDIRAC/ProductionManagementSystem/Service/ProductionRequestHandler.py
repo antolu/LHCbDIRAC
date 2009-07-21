@@ -1,20 +1,24 @@
-# $Id: ProductionRequestHandler.py,v 1.5 2009/06/15 11:46:17 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.6 2009/07/21 14:10:43 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.5 $"
+__RCSID__ = "$Revision: 1.6 $"
 
 import os
 import re
+import tempfile
 
 from types import *
 import threading
+import DIRAC
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
+
+from DIRAC.Core.Utilities.Shifter import getShifterProxy
 
 # This is a global instance of the ProductionRequestDB class
 productionRequestDB = False
@@ -203,3 +207,42 @@ class ProductionRequestHandler( RequestHandler ):
   types_getProductionTemplate = [StringType]
   def export_getProductionTemplate(self,name):
     return self.__getTemplate(name)
+
+  types_execProductionScript = [StringType,StringType]
+  def export_execProductionScript(self,script,workflow):
+    creds = self.__clientCredentials()
+    if creds['Group'] != 'lhcb_prmgr':
+      return S_ERROR("You have to be production manager")
+    res = getShifterProxy("ProductionManager")
+    if not res['OK']:
+      return res
+    proxyFile = res['Value']['proxyFile']
+    try:
+      f = tempfile.mkstemp()
+      os.write(f[0],workflow)
+      os.close(f[0])
+      fs= tempfile.mkstemp()
+      os.write(fs[0],script)
+      os.close(fs[0])
+    except Exception,msg:
+      gLogger.error("In temporary files createion: "+str(msg))
+      os.remove(proxyFile)
+      return S_ERROR(str(msg))
+    setenv = "source /opt/dirac/bashrc"
+    proxy = "X509_USER_PROXY=%s" % proxyFile
+    cmd = "python %s %s" % (fs[1],f[1])
+    try:
+      res = DIRAC.shellCall(1800,[ "/bin/bash -c '%s;%s %s'" \
+                                   % (setenv,proxy,cmd) ])
+      if res['OK']:
+        result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
+      else:
+        gLogger.error(res['Message'])
+        result = res
+    except Exception,msg:
+      gLogger.error("During execution: "+str(msg))
+      result = S_ERROR("Failed to execute: %s" % str(msg))
+    os.remove(f[1])
+    os.remove(fs[1])
+    os.remove(proxyFile)
+    return result
