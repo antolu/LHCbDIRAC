@@ -1,20 +1,20 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.11 2009/06/30 19:54:55 atsareg Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_vobox.sh,v 1.12 2009/07/21 08:22:45 rgracian Exp $
 # File :   install_vobox.sh
 # Author : Ricardo Graciani
 ########################################################################
 #
-if [ $# -ne 1 ] ; then
-  echo Usage: $0 DiracSiteName
+if [ $# -ne 2 ] ; then
+  echo Usage: $0 DiracSiteName DiracVersion
   exit
 fi
 SiteName=$1
+DiracVersion=$2
 #
 DESTDIR=/opt/vobox/lhcb/dirac
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r15p3
-EXTVERSION=v4r0
+DIRACVERSION=$DiracVersion
 DIRACARCH=Linux_i686_glibc-2.3.4
 DIRACPYTHON=24
 DIRACDIRS="startup runit data work requestDB"
@@ -102,7 +102,7 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
 #
 # Create pro and old links
