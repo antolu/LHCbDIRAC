@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.28 2009/07/17 13:52:45 joel Exp $
+# $Id: UsersAndGroups.py,v 1.29 2009/07/21 12:31:04 joel Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.28 2009/07/17 13:52:45 joel Exp $"
-__VERSION__ = "$Revision: 1.28 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.29 2009/07/21 12:31:04 joel Exp $"
+__VERSION__ = "$Revision: 1.29 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -223,11 +223,8 @@ class UsersAndGroups(AgentModule):
       body = 'Command to add new entries into LFC: \n'
       body += 'login to volhcb11 and run "source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh"\n\n'
       for lfcuser in newLFCUsers.keys():
-#          bodycmd = (('add_DN_LFC.py','--userDN=','"'+newLFCUsers[lfcuser]+'"',' --nickname=',lfcuser))
-          body += 'add_DN_LFC --userDN="'+newLFCUsers[lfcuser]+'" --nickname='+lfcuser+'\n'
-#      self.log.info(bodycmd)
-#      ret = systemCall(0,bodycmd )
-#      self.log.info('DEBUG JC : %s' % (ret))
+          for lfc_dn in newLFCUsers[lfcuser].split(','):
+             body += 'add_DN_LFC --userDN="'+lfc_dn.strip()+'" --nickname='+lfcuser+'\n'
 
       NotificationClient().sendMail( address,'UsersAndGroupsAgent: ' + subject, body, fromAddress )
 
