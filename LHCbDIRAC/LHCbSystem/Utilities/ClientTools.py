@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.10 2009/07/22 14:12:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.11 2009/07/22 14:36:12 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.10 2009/07/22 14:12:32 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.11 2009/07/22 14:36:12 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -17,7 +17,7 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 #############################################################################
-def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True):
+def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True,pklOpts=False):
   """Under development. Helper function.
 
      Relies on CMTPROJECTPATH and CMTCONFIG variables.
@@ -73,7 +73,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
 
   # Only run gaudirun if opts flag is specified
   if optsFlag:
-    result = _getOptsFiles(appName,appVersion,optionsFiles,destinationDir)
+    result = _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts)
     if not result['OK']:
       return result
     finalResult['optionsFile']=result['Value']
@@ -92,7 +92,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
   return S_OK(finalResult)
 
 #############################################################################
-def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
+def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts):
   """Set up project environment and expand options.
   """
   gLogger.verbose('Options files to locate are: %s' %string.join(optionsFiles,', '))
@@ -152,13 +152,21 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
     return S_ERROR(missing)
 
   newOptsName = '%s/%s_%s.opts' %(destinationDir,appName,appVersion)
+  if pklOpts:
+    newOptsName = '%s/%s_%s.pkl' %(destinationDir,appName,appVersion)
+
   if os.path.exists(newOptsName):
     gLogger.warn('%s already exists, will be overwritten' %newOptsName)
   gLogger.verbose('Attempting to run gaudirun.py')
   cmdTuple = ['gaudirun.py']
   cmdTuple.append('-n')
   cmdTuple.append('-v')
-  cmdTuple.append('--old-opts')
+  if pklOpts:
+    cmdTuple.append('--output')
+    cmdTuple.append(newOptsName)
+  else:
+    cmdTuple.append('--old-opts')
+
   for i in toCheck:
     cmdTuple.append(i)
 #  cmdTuple.append('>!')
@@ -169,9 +177,10 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
     gLogger.error('Problem during gaudirun.py call\n%s' %ret)
     return S_ERROR('Could not package job inputs')
 
-  fopen = open(newOptsName,'w')
-  fopen.write(ret['Value'][1])
-  fopen.close()
+  if not pklOpts:
+    fopen = open(newOptsName,'w')
+    fopen.write(ret['Value'][1])
+    fopen.close()
   return S_OK(newOptsName)
 
 #############################################################################
@@ -314,6 +323,7 @@ def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
     for file in tempFiles: os.remove(file)
   return S_OK(outputFile)
 
+#############################################################################
 def _mergeRootFiles(outputFile,inputFiles,rootEnv):
   cmd = "hadd %s" % outputFile
   for file in inputFiles:
@@ -321,8 +331,9 @@ def _mergeRootFiles(outputFile,inputFiles,rootEnv):
   res = DIRAC.shellCall(1800, cmd, env=rootEnv)
   return res
 
+#############################################################################
 def _setupRootEnvironment(daVinciVersion=''):
-  if os.environ.has_key('VO_LHCB_SW_DIR'):  
+  if os.environ.has_key('VO_LHCB_SW_DIR'):
     sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
     gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
   elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
@@ -340,7 +351,7 @@ def _setupRootEnvironment(daVinciVersion=''):
     setupProject.append('DaVinci ROOT')
   ret = DIRAC.Source( 60, setupProject, ret['outputEnv'])
   if not ret['OK']:
-    gLogger.warn('Error during SetupProject\n%s' %ret)   
+    gLogger.warn('Error during SetupProject\n%s' %ret)
     return ret
   appEnv = ret['outputEnv']
   return S_OK(appEnv)
