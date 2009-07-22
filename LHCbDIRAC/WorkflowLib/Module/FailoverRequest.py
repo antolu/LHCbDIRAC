@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: FailoverRequest.py,v 1.10 2009/04/18 18:26:57 rgracian Exp $
+# $Id: FailoverRequest.py,v 1.11 2009/07/22 08:25:57 paterson Exp $
 ########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job.
 """
 
-__RCSID__ = "$Id: FailoverRequest.py,v 1.10 2009/04/18 18:26:57 rgracian Exp $"
+__RCSID__ = "$Id: FailoverRequest.py,v 1.11 2009/07/22 08:25:57 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -108,11 +108,13 @@ class FailoverRequest(ModuleBase):
       inputFiles = self.fileReport.getFiles()
       for lfn in inputFiles:
         if inputFiles[lfn] != 'ApplicationCrash':
+          self.log.info('Forcing status to "Unused" due to workflow failure for: %s' %(lfn))
           self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
     else:
       self.log.verbose('Workflow status ok, setting input file status to processed')
       inputFiles = self.fileReport.getFiles()
       for lfn in inputFiles:
+        self.log.info('Setting status to "Processed" for: %s' %(lfn))
         self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')
 
     result = self.fileReport.commit()
