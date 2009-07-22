@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.22 2009/07/16 15:40:15 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.23 2009/07/22 08:55:14 joel Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.22 2009/07/16 15:40:15 roma Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.23 2009/07/22 08:55:14 joel Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -490,6 +490,66 @@ except Exception,x:
     step.addParameter(Parameter("samTestName","","string","","",False, False, "TestApplication SAM Test Name"))
     step.addParameter(Parameter("appNameVersion","","string","","",False, False, "Appliciation name and version"))
     step.addParameter(Parameter("appNameOptions","","string","","",False, False, "Appliciation Options"))
+    return step
+
+  #############################################################################
+  def checkApplications(self,enableFlag=True):
+    """Helper function.
+
+       Add the checkApplications step.
+
+       Example usage:
+
+       >>> job = LHCbSAMJob()
+       >>> job.checkApplications('True')
+
+       @param enableFlag: Flag to enable / disable calls for testing purposes
+       @type enableFlag: boolean
+
+    """
+    if not enableFlag in [True,False]:
+      raise TypeError,'Expected boolean value for enableFlag'
+
+    if enableFlag:
+      self.gaudiStepCount +=1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' %('SAM',stepNumber)
+      step =  self.__getCheckApplicationsStep(stepDefn)
+
+      self._addJDLParameter('TestApplication%s' %(appNameVersion.replace('.','')),str(enableFlag))
+      stepName = 'Run%sStep%s' %('SAM',stepNumber)
+      self.addToOutputSandbox.append('*.log')
+      self.workflow.addStep(step)
+      stepPrefix = '%s_' % stepName
+      self.currentStepPrefix = stepPrefix
+
+      # Define Step and its variables
+      stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+      stepInstance.setValue("enable",enableFlag)
+      stepInstance.setValue("samTestName",testName)
+      stepInstance.setValue("appNameVersion",appNameVersion)
+
+  #############################################################################
+  def __getCheckApplicationsStep(self,name='TestApplications'):
+    """Internal function.
+
+        This method controls the definition for a TestApplications step.
+    """
+    # Create the GaudiApplication module first
+    moduleName = 'CheckApplications'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A module to check if the application is properly installed')
+    body = string.replace(self.importLine,'<MODULE>','CheckApplications')
+    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    module.setBody(body)
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    moduleInstance = step.createModuleInstance('CheckApplications',name)
+    # Define step parameters
+    step.addParameter(Parameter("enable","","bool","","",False, False, "enable flag"))
+    step.addParameter(Parameter("samTestName","","string","","",False, False, "CheckApplication SAM Test Name"))
+    step.addParameter(Parameter("appNameVersion","","string","","",False, False, "Appliciation name and version"))
     return step
 
   #############################################################################
