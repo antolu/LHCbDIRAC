@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.11 2009/07/22 14:36:12 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.12 2009/07/22 15:12:18 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.11 2009/07/22 14:36:12 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.12 2009/07/22 15:12:18 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -17,7 +17,7 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 #############################################################################
-def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True,pklOpts=False):
+def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True):
   """Under development. Helper function.
 
      Relies on CMTPROJECTPATH and CMTCONFIG variables.
@@ -73,7 +73,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
 
   # Only run gaudirun if opts flag is specified
   if optsFlag:
-    result = _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts)
+    result = _getOptsFiles(appName,appVersion,optionsFiles,destinationDir)
     if not result['OK']:
       return result
     finalResult['optionsFile']=result['Value']
@@ -92,7 +92,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
   return S_OK(finalResult)
 
 #############################################################################
-def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts):
+def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
   """Set up project environment and expand options.
   """
   gLogger.verbose('Options files to locate are: %s' %string.join(optionsFiles,', '))
@@ -151,9 +151,8 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts):
     gLogger.error('The following options files could not be found:\n%s' %(string.join(missing,'\n')))
     return S_ERROR(missing)
 
-  newOptsName = '%s/%s_%s.opts' %(destinationDir,appName,appVersion)
-  if pklOpts:
-    newOptsName = '%s/%s_%s.pkl' %(destinationDir,appName,appVersion)
+
+  newOptsName = '%s/%s_%s.pkl' %(destinationDir,appName,appVersion)
 
   if os.path.exists(newOptsName):
     gLogger.warn('%s already exists, will be overwritten' %newOptsName)
@@ -161,11 +160,8 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts):
   cmdTuple = ['gaudirun.py']
   cmdTuple.append('-n')
   cmdTuple.append('-v')
-  if pklOpts:
-    cmdTuple.append('--output')
-    cmdTuple.append(newOptsName)
-  else:
-    cmdTuple.append('--old-opts')
+  cmdTuple.append('--output')
+  cmdTuple.append(newOptsName)
 
   for i in toCheck:
     cmdTuple.append(i)
@@ -177,10 +173,6 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir,pklOpts):
     gLogger.error('Problem during gaudirun.py call\n%s' %ret)
     return S_ERROR('Could not package job inputs')
 
-  if not pklOpts:
-    fopen = open(newOptsName,'w')
-    fopen.write(ret['Value'][1])
-    fopen.close()
   return S_OK(newOptsName)
 
 #############################################################################
@@ -216,6 +208,8 @@ def _getPythonDir(inputPath,destinationDir):
     except Exception,x:
      gLogger.warn('Could not create directory python in %s' %destinationDir)
      return S_ERROR(x)
+  if not os.path.exists('%s/python' %inputPath):
+    return S_ERROR('%s does not exist!' %inputPath)
   shutil.rmtree('%s/python' % destinationDir,True)
   shutil.copytree(inputPath+'/python','%s/python' % destinationDir)
   for fname in os.listdir(destinationDir+'/python'):
