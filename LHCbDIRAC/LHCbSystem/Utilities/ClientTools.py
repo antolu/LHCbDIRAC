@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.9 2009/07/01 12:50:35 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.10 2009/07/22 14:12:32 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.9 2009/07/01 12:50:35 acsmith Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.10 2009/07/22 14:12:32 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -84,7 +84,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
     if not result['OK']:
       return result
     finalResult['libraries']=result['Value']
-    result = _getPythonDir(inputPathPython,destinationDir)
+    result = _getPythonDir(inputPath,destinationDir)
     if not result['OK']:
       return result
     finalResult['pythondir']=result['Value']
