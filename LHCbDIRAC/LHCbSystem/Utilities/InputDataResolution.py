@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.17 2009/07/23 08:11:05 paterson Exp $
+# $Id: InputDataResolution.py,v 1.18 2009/07/23 15:01:49 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.17 2009/07/23 08:11:05 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.18 2009/07/23 15:01:49 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -113,6 +113,9 @@ class InputDataResolution:
       site = DIRAC.siteName()
 
     policy = []
+    if not self.arguments.has_key('Job'):
+      self.arguments['Job']={}
+
     if self.arguments['Job'].has_key('InputDataPolicy'):
       policy = self.arguments['Job']['InputDataPolicy']
       #In principle this can be a list of modules with the first taking precedence
