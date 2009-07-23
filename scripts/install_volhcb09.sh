@@ -202,6 +202,9 @@ $DESTDIR/pro/scripts/install_service.sh Logging   SystemLoggingReport
 $DESTDIR/pro/scripts/install_agent.sh   Logging   SystemLoggingDBCleaner
 $DESTDIR/pro/scripts/install_agent.sh   Logging   ErrorMessageMonitor
 
+#Bookkeeping service instalation
+$DESTDIR/pro/scripts/install_service.sh Bookkeeping BookkeepingManager
+
 if [ ! -z "$DIRACCVS" ] ; then
 
 
