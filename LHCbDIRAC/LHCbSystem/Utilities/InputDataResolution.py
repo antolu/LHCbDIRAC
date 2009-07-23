@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.16 2009/07/16 11:32:58 rgracian Exp $
+# $Id: InputDataResolution.py,v 1.17 2009/07/23 08:11:05 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.16 2009/07/16 11:32:58 rgracian Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.17 2009/07/23 08:11:05 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -112,20 +112,28 @@ class InputDataResolution:
     else:
       site = DIRAC.siteName()
 
-    self.log.verbose('Attempting to resolve input data policy for site %s' %site)
-    inputDataPolicy = gConfig.getOptionsDict('/Operations/InputDataPolicy')
-    if not inputDataPolicy:
-      return S_ERROR('Could not resolve InputDataPolicy from /Operations/InputDataPolicy')
+    policy = []
+    if self.arguments['Job'].has_key('InputDataPolicy'):
+      policy = self.arguments['Job']['InputDataPolicy']
+      #In principle this can be a list of modules with the first taking precedence
+      if type(policy) in types.StringTypes:
+        policy = [policy]
+      self.log.info('Job has a specific policy setting: %s' %(string.join(policy,', ')))
+    else:
+      self.log.verbose('Attempting to resolve input data policy for site %s' %site)
+      inputDataPolicy = gConfig.getOptionsDict('/Operations/InputDataPolicy')
+      if not inputDataPolicy:
+        return S_ERROR('Could not resolve InputDataPolicy from /Operations/InputDataPolicy')
 
-    options = inputDataPolicy['Value']
-    if options.has_key(site):
-      policy = options[site]
-      policy = [x.strip() for x in string.split(policy,',')]
-      self.log.info('Found specific input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
-    elif options.has_key('Default'):
-      policy = options['Default']
-      policy = [x.strip() for x in string.split(policy,',')]
-      self.log.info('Applying default input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
+      options = inputDataPolicy['Value']
+      if options.has_key(site):
+        policy = options[site]
+        policy = [x.strip() for x in string.split(policy,',')]
+        self.log.info('Found specific input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
+      elif options.has_key('Default'):
+        policy = options['Default']
+        policy = [x.strip() for x in string.split(policy,',')]
+        self.log.info('Applying default input data policy for site %s:\n%s' %(site,string.join(policy,',\n')))
 
     dataToResolve = None #if none, all supplied input data is resolved
     allDataResolved = False
