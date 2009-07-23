@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.15 2009/04/23 23:01:02 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.16 2009/07/23 10:13:43 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.15 2009/04/23 23:01:02 rgracian Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.16 2009/07/23 10:13:43 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -776,5 +776,37 @@ class LHCbJob(Job):
     condStr = string.join(conditions,';')
     description = 'List of CondDB tags'
     self._addParameter(self.workflow,'CondDBTags','JDL',condStr,description)
+
+  #############################################################################
+  def setInputDataPolicy(self,policy):
+    """Helper function.
+
+       Specify a job input data policy, this takes precedence over any site specific or
+       global settings.
+
+       Possible values for policy are 'Download' or 'Protocol' (case-insensitive).
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> job.setInputDataPolicy('download')
+
+    """
+    csSection = '/Operations/InputDataPolicy/'
+    possible = ['Download','Protocol']
+    finalPolicy = ''
+    for p in possible:
+      if string.lower(policy)==string.lower(p):
+        finalPolicy = policy
+
+    if not finalPolicy:
+      raise TypeError,'Expected one of %s for input data policy' %(string.join(possible,', '))
+
+    jobPolicy = gConfig.getValue('%s/%s' %(csSection,finalPolicy),'')
+    if not jobPolicy:
+      raise TypeError,'Could not get value for CS option %s/%s' %(csSection,finalPolicy)
+
+    description = 'User specified input data policy'
+    self._addParameter(self.workflow,'InputDataPolicy','JDL',jobPolicy,description)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
