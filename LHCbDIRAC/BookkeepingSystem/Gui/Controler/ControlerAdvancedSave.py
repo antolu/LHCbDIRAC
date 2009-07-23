@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerAdvancedSave.py,v 1.1 2009/03/31 16:26:45 zmathe Exp $
+# $Id: ControlerAdvancedSave.py,v 1.2 2009/07/23 14:09:06 zmathe Exp $
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 
-__RCSID__ = "$Id: ControlerAdvancedSave.py,v 1.1 2009/03/31 16:26:45 zmathe Exp $"
+__RCSID__ = "$Id: ControlerAdvancedSave.py,v 1.2 2009/07/23 14:09:06 zmathe Exp $"
 
 #############################################################################  
 class ControlerAdvancedSave(ControlerAbstract):
@@ -15,7 +15,7 @@ class ControlerAdvancedSave(ControlerAbstract):
   #############################################################################  
   def __init__(self, widget, parent):
     super(ControlerAdvancedSave, self).__init__(widget, parent)
-    self.__sites = {"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es"}
+    self.__sites = {"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es", 'ALL':None}
   
   #############################################################################  
   def messageFromParent(self, message):

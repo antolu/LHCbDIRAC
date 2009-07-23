@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.21 2009/05/20 09:37:54 zmathe Exp $
+# $Id: ControlerMain.py,v 1.22 2009/07/23 14:09:06 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.21 2009/05/20 09:37:54 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.22 2009/07/23 14:09:06 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -226,7 +226,6 @@ class ControlerMain(ControlerAbstract):
         nbofsuccsessful = 0
         if retVal['OK']:
           slist = retVal['Successful']
-          print slist[slist.keys()[0]]
           faild = retVal['Failed']
           nbofsuccsessful = len(slist)
           nboffaild = len(faild)
