@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.39 2009/07/23 15:15:10 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py,v 1.40 2009/07/24 09:28:09 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py,v 1.39 2009/07/23 15:15:10 joel Exp $"
+__RCSID__ = "$Id: SoftwareInstallation.py,v 1.40 2009/07/24 09:28:09 joel Exp $"
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
@@ -142,7 +142,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       isPoolAccount = True
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if DIRAC.siteName()=='LCG.CERN.ch' or self.site=='LCG.CERN5.ch':
+    if DIRAC.siteName() in ['LCG.CERN.ch','LCG.CERN5.ch']:
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
