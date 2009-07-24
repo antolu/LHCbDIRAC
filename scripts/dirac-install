@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.136 2009/06/12 06:34:18 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.137 2009/07/24 17:37:31 atsareg Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.136 2009/06/12 06:34:18 rgracian Exp $"
-__VERSION__ = "$Revision: 1.136 $"
+__RCSID__   = "$Id: dirac-install,v 1.137 2009/07/24 17:37:31 atsareg Exp $"
+__VERSION__ = "$Revision: 1.137 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -919,6 +919,15 @@ class Dirac:
     platformFile = os.path.join( self.scriptsPath, 'platform.py' )
     try:
       f = open(platformFile,'w')
+      
+###################################################################################
+###################################################################################
+#
+#  Create platform.py script
+#
+###################################################################################
+###################################################################################
+
       f.write("""#!/usr/bin/env python
 
 \"\"\" This module tries to retrieve as much platform-identifying data as
@@ -2200,6 +2209,15 @@ if __name__ == '__main__':
     print platform(aliased,terse)
     sys.exit(0)
 """)
+
+###################################################################################
+###################################################################################
+#
+#  End of platform.py creation
+#
+###################################################################################
+###################################################################################
+
       f.close()
       os.chmod( platformFile, os.stat(platformFile).st_mode|stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH )
     except Exception, x:
@@ -2347,7 +2365,11 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           arch = 'rh73_'+arch+'_gcc296'
         localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
-        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )     
+    elif voName == 'eela':  
+      localCfg.addDefaultEntry( '/DIRAC/Setup', 'EELA-Production' )   
+      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
+                                'dips://mareela.in2p3.fr:9135/Configuration/Server' )   
     else:
       pass
 
@@ -2364,20 +2386,32 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
     if ceName:
-      siteSections = DIRAC.gConfig.getSections('/Resources/Sites/LCG/')
-      if not siteSections['OK']:
-        dirac.logEXCEP('Could not get LCG site list')
-
+    
       siteName = None
-      sites = siteSections['Value']
-      for site in sites:
-        lcgCEs = DIRAC.gConfig.getValue('/Resources/Sites/LCG/%s/CE' %site,[])
-        if ceName in lcgCEs:
-          siteName = site
-          break
-      if not siteName:
-        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % ceName)
+      gridSections = DIRAC.gConfig.getSections('/Resources/Sites/')
+      if not gridSections['OK']:
+        dirac.logEXCEP('Could not get grid sections list')
+    
+      grids = gridSections['Value']
+      
+      for grid in grids:  
+    
+        siteSections = DIRAC.gConfig.getSections('/Resources/Sites/%s/' % grid)
+        if not siteSections['OK']: 
+          dirac.logEXCEP('Could not get %s site list' % grid)
 
+        sites = siteSections['Value']
+        for site in sites:
+          lcgCEs = DIRAC.gConfig.getValue('/Resources/Sites/%s/%s/CE' % (grid,site),[])
+          if ceName in lcgCEs:
+            siteName = site
+            break
+        if siteName:
+          break
+    
+      if not siteName:
+        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % ceName )    
+    
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
       dirac.logINFO( 'Setting /LocalSite/GridCE = %s' % ceName )
@@ -2431,7 +2465,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
         quotedArgs.append('"%s"' % arg.replace('"','\"'))
       else:
         quotedArgs.append(arg)
-    args         = str.join(' ',quotedArgs) + ' -v %s' % dirac.version
+    args         = str.join(' ',quotedArgs) + ' -v %s' % dirac.version   
     if os.path.exists( dirac.localPython ):
       myCmd = '%s %s %s ' % ( dirac.localPython, updateScript, args )
     else:
