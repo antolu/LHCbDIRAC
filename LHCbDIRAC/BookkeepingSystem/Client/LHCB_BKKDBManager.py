@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.95 2009/07/07 17:01:32 phicharp Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.96 2009/07/27 13:20:22 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.95 2009/07/07 17:01:32 phicharp Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.96 2009/07/27 13:20:22 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1654,7 +1654,8 @@ class LHCB_BKKDBManager(BaseESManager):
           if fileType in poolTypes:    
               s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" 
           elif fileType in mdfTypes:
-              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\"" 
+              s += "\"   DATAFILE=\'LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\""
+              #s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\"" 
           elif fileType in etcTypes:
               s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\"" 
         else:
