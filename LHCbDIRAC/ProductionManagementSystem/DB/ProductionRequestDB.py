@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.10 2009/07/16 08:47:54 joel Exp $
+# $Id: ProductionRequestDB.py,v 1.11 2009/07/27 14:44:21 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.10 $"
+__RCSID__ = "$Revision: 1.11 $"
 
 # Defined states:
 #'New'
@@ -346,11 +346,12 @@ class ProductionRequestDB(DB):
     """ Append monitoring columns. Somehow tricky SQL.
         Most probable need optimizations, but ok for now.
     """
-    r ="SELECT t.*,CAST(COALESCE(SUM(sr.NumberOfEvents),0)+"
-    r+="                COALESCE(t.NumberOfEvents,0) AS SIGNED)"
-    r+="           AS rqTotal, "
-    r+="           MIN(rh.TimeStamp) AS crTime,"
+    r ="SELECT t.*,MIN(rh.TimeStamp) AS crTime,"
     r+="           MAX(rh.TimeStamp) AS upTime "
+    r+="FROM "
+    r+="(SELECT t.*,CAST(COALESCE(SUM(sr.NumberOfEvents),0)+"
+    r+="                COALESCE(t.NumberOfEvents,0) AS SIGNED)"
+    r+="           AS rqTotal "
     r+=" FROM "
     r+=" (SELECT t.*,CAST(COALESCE(SUM(pp.BkEvents),0)+"
     r+="                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
@@ -362,6 +363,7 @@ class ProductionRequestDB(DB):
     r+="  LEFT JOIN ProductionProgress AS pp ON sr.RequestID=pp.RequestID "
     r+="  WHERE COALESCE(pp.Used,1) GROUP BY t.RequestID) AS t "
     r+=" LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
+    r+=" GROUP BY t.RequestID) as t"
     r+=" LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
     r+=" GROUP BY t.RequestID"
     return r+order
