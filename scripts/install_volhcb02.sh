@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.17 2009/05/11 08:29:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.18 2009/07/28 07:03:36 zmathe Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -203,6 +203,8 @@ $DESTDIR/pro/scripts/install_agent.sh Logging ErrorMessageMonitor
 
 $DESTDIR/pro/scripts/install_agent.sh LHCb CondDBAgent
 $DESTDIR/pro/scripts/install_agent.sh LHCb AncestorFilesAgent
+
+$DESTDIR/pro/scripts/install_service.sh Bookkeeping BookkeepingManager
 
 if [ ! -z "$DIRACCVS" ] ; then
 
