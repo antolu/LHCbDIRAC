@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.35 2009/07/01 10:44:52 acsmith Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.36 2009/07/28 07:35:11 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.35 2009/07/01 10:44:52 acsmith Exp $"
-__VERSION__ = "$Revision: 1.35 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.36 2009/07/28 07:35:11 rgracian Exp $"
+__VERSION__ = "$Revision: 1.36 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -132,7 +132,11 @@ def CheckInstallSoftware(app,config,area):
   """
   #NOTE: must cd to LOCAL area directory (install_project requirement)
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    try:
+      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    except:
+      DIRAC.gLogger.exception()
+      return False
     #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/',InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
