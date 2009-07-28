@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.11 2009/07/27 14:44:21 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.12 2009/07/28 09:22:15 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.11 $"
+__RCSID__ = "$Revision: 1.12 $"
 
 # Defined states:
 #'New'
@@ -357,11 +357,11 @@ class ProductionRequestDB(DB):
     r+="                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
     r+="  (SELECT t.*, CAST(SUM(pp.BkEvents) AS SIGNED)"
     r+="               AS bk FROM (%s) as t " % req
-    r+="   LEFT JOIN ProductionProgress as pp ON pp.RequestID=t.RequestID "
-    r+="   WHERE COALESCE(pp.Used,1) GROUP BY t.RequestID) as t "
+    r+="   LEFT JOIN ProductionProgress as pp ON (pp.RequestID=t.RequestID "
+    r+="   AND pp.Used=1) GROUP BY t.RequestID) as t "
     r+="  LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.MasterID "
-    r+="  LEFT JOIN ProductionProgress AS pp ON sr.RequestID=pp.RequestID "
-    r+="  WHERE COALESCE(pp.Used,1) GROUP BY t.RequestID) AS t "
+    r+="  LEFT JOIN ProductionProgress AS pp ON (sr.RequestID=pp.RequestID "
+    r+="  AND pp.Used=1) GROUP BY t.RequestID) AS t "
     r+=" LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
     r+=" GROUP BY t.RequestID) as t"
     r+=" LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
