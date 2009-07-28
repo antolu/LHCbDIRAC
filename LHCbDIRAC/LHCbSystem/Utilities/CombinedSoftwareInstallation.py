@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.36 2009/07/28 07:35:11 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.37 2009/07/28 07:38:47 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.36 2009/07/28 07:35:11 rgracian Exp $"
-__VERSION__ = "$Revision: 1.36 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.37 2009/07/28 07:38:47 rgracian Exp $"
+__VERSION__ = "$Revision: 1.37 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -198,7 +198,11 @@ def InstallApplication(app, config, area ):
    only missing parts
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    try:
+      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    except:
+      DIRAC.gLogger.exception()
+      return False
     #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/install_project.py',InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
@@ -257,7 +261,11 @@ def CheckApplication(app, config, area):
    check if given application is available in the given area
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    try:
+      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    except:
+      DIRAC.gLogger.exception()
+      return False
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
@@ -458,7 +466,11 @@ def RemoveApplication(app, config, area ):
    only missing parts
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    try:
+      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    except:
+      DIRAC.gLogger.exception()
+      return False
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
