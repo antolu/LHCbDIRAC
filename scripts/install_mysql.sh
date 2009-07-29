@@ -66,7 +66,7 @@ Systems
 EOF
 
 python << EOF
-from DIRAC.ConfigurationSystem.Client.CFG import CFG
+from DIRAC.Core.Utilities.CFG import CFG
 mainCFG = CFG()
 mainCFG.loadFromFile( "etc/dirac.cfg" )
 
