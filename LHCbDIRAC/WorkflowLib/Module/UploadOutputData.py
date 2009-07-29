@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.16 2009/07/16 11:32:57 rgracian Exp $
+# $Id: UploadOutputData.py,v 1.17 2009/07/29 14:06:24 paterson Exp $
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.16 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id: UploadOutputData.py,v 1.17 2009/07/29 14:06:24 paterson Exp $"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -193,10 +193,15 @@ class UploadOutputData(ModuleBase):
     return S_OK('Output data uploaded')
 
   #############################################################################
-  def __transferAndRegisterFile(self,fileName,metadata):
+  def __transferAndRegisterFile(self,fileName,metadata,failover=False):
     """Performs the transfer and register operation given all necessary file
        metadata.
     """
+    fileCatalog=None
+    if failover:
+      fileCatalog='LcgFileCatalogCombined'
+      self.log.info('Setting default catalog for failover transfer to LcgFileCatalogCombined')
+
     outputSEList = metadata['resolvedSE']
     self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName, string.join(outputSEList,', ')))
     localPath = '%s/%s' %(os.getcwd(),fileName)
@@ -204,8 +209,8 @@ class UploadOutputData(ModuleBase):
     errorList = []
 
     for se in outputSEList:
-      self.log.info('Attempting rm.putAndRegister("%s","%s","%s",guid=%s)' %(lfn,localPath,se,metadata['guid']))
-      result = self.rm.putAndRegister(lfn,localPath,se,metadata['guid'])
+      self.log.info('Attempting rm.putAndRegister("%s","%s","%s",guid="%s",catalog="%s")' %(lfn,localPath,se,metadata['guid'],fileCatalog))
+      result = self.rm.putAndRegister(lfn,localPath,se,guid=metadata['guid'],catalog=fileCatalog)
       self.log.verbose(result)
       if not result['OK']:
         self.log.error('rm.putAndRegister failed with message',result['Message'])
@@ -247,7 +252,7 @@ class UploadOutputData(ModuleBase):
     random.shuffle(self.failoverSEs)
     targetSE = metadata['resolvedSE'][0]
     metadata['resolvedSE']=self.failoverSEs
-    failover = self.__transferAndRegisterFile(fileName,metadata)
+    failover = self.__transferAndRegisterFile(fileName,metadata,failover=True)
     if not failover['OK']:
       self.log.error('Could not upload file to failover SEs',failover['Message'])
       return failover
