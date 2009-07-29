@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.19 2009/07/29 08:24:21 paterson Exp $
+# $Id: InputDataResolution.py,v 1.20 2009/07/29 08:39:50 paterson Exp $
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.19 2009/07/29 08:24:21 paterson Exp $"
+__RCSID__ = "$Id: InputDataResolution.py,v 1.20 2009/07/29 08:39:50 paterson Exp $"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
@@ -42,7 +42,7 @@ class InputDataResolution:
     """
     result = self.__resolveInputData()
     if not result['OK']:
-      self.log.warn('InputData resolution failed with result:\n%s' %(result))
+      self.log.error('InputData resolution failed with result:\n%s' %(result))
 
     #For local running of this module we can expose an option to ignore missing files
     ignoreMissing = False
@@ -51,11 +51,14 @@ class InputDataResolution:
 
     #For LHCb original policy was as long as one TURL exists, this can be conveyed to the application
     #this breaks due to the stripping so the policy has been changed.
-    failedReplicas = result['Failed']
-    if failedReplicas and not ignoreMissing:
-      self.log.error('Failed to obtain access to the following files:\n%s' %(string.join(failedReplicas,'\n')))
-      return S_ERROR('Failed to access all of requested input data')
+    if result.has_key('Failed'):
+      failedReplicas = result['Failed']
+      if failedReplicas and not ignoreMissing:
+        self.log.error('Failed to obtain access to the following files:\n%s' %(string.join(failedReplicas,'\n')))
+        return S_ERROR('Failed to access all of requested input data')
 
+    if not result.has_key('Successful'):
+      return result
 
     if not result['Successful']:
       return S_ERROR('Could not access any requested input data')
