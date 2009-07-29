@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.16 2009/07/23 10:13:43 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.17 2009/07/29 08:25:10 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.16 2009/07/23 10:13:43 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.17 2009/07/29 08:25:10 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -792,12 +792,12 @@ class LHCbJob(Job):
        >>> job.setInputDataPolicy('download')
 
     """
-    csSection = '/Operations/InputDataPolicy/'
+    csSection = '/Operations/InputDataPolicy'
     possible = ['Download','Protocol']
     finalPolicy = ''
     for p in possible:
       if string.lower(policy)==string.lower(p):
-        finalPolicy = policy
+        finalPolicy = p
 
     if not finalPolicy:
       raise TypeError,'Expected one of %s for input data policy' %(string.join(possible,', '))
