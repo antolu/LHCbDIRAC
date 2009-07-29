@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.29 2009/07/13 13:11:55 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.30 2009/07/29 13:52:43 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.29 2009/07/13 13:11:55 acsmith Exp $"
+__RCSID__ = "$Id: Production.py,v 1.30 2009/07/29 13:52:43 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -121,7 +121,7 @@ class Production(LHCbJob):
       self._addParameter(self.workflow,name,parameterType,parameterValue,description)
 
   #############################################################################
-  def _getOptions(self,appName,appType,extraOpts=None,spillOver=False,pileUp=True):
+  def _getOptions(self,appName,appType,extraOpts=None,spillOver=False,pileUp=True,inputType=None):
     """ Simple function to create the default options for a given project name.
 
         Assumes CondDB tags and event max are required.
@@ -166,25 +166,25 @@ class Production(LHCbJob):
         options.append("Brunel().OutputType = 'RDST'")
 
     elif appName.lower()=='davinci':
-      options.append('from DaVinci.Configuration import *') 
+      options.append('from DaVinci.Configuration import *')
       options.append('DaVinci().EvtMax=@{numberOfEvents}')
       options.append("DaVinci().HistogramFile = \"%s\"" % (self.histogramName))
       # If we want to generate an FETC for the first step of the stripping workflow
       if appType.lower()=='fetc':
         options.append("DaVinci().ETCFile = \"@{outputData}\"")
-      elif appType.lower() == 'dst':
+      elif appType.lower() == 'dst' and inputType!='dst': #e.g. not stripping
         options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      elif appType.lower() == 'dsts':
-        options.append("OutputStream(\"DSTBExclusive\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-        # NEED TO DEAL WITH MULTIPLE STREAMS
-        #options.append("OutputStream(\"DSTTopological\").Output = \"DATAFILE=\'PFN:02@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
+      elif appType.lower() == 'dst' and inputType=='dst': #e.g. stripping
+        options.append('from StrippingConf.Configuration import StrippingConf')
+        options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
+        options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
       elif appType.lower() == 'davincihist':
         options.append('from Configurables import InputCopyStream')
         options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
         options.append('DaVinci().MoniSequence.append(InputCopyStream())')
 
     elif appName.lower()=='merge':
-      options.append('EventSelector.PrintFreq = 200')
+      #options.append('EventSelector.PrintFreq = 200')
       options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
       return options
 
@@ -291,11 +291,10 @@ class Production(LHCbJob):
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1-RDST'
-    #HACK# We are explicitly producing DSTs until DaVinci is fixed to run DVMonitor on rDSTs.
     elif appType.lower()=='dst':
       dataType = 'DATA'
       if not outputSE:
-        #outputSE='Tier1_M-DST' #for real data master dst 
+        #outputSE='Tier1_M-DST' #for real data master dst
         outputSE='Tier1-RDST' #for real data DSTs from brunel
         self.log.info('Setting default outputSE to %s' %(outputSE))
     else:
@@ -333,11 +332,11 @@ class Production(LHCbJob):
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    appTypes = ['dst','fetc','dsts','root']
+    appTypes = ['dst','fetc','root']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
     if not inputDataType in ('rdst','dst'):
-      raise TypeError,'Only RDST input data type currently supported'
+      raise TypeError,'Only DST input data type currently supported'
 
     dataType='DATA'
     if not outputSE:
@@ -345,7 +344,7 @@ class Production(LHCbJob):
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = self._getOptions('DaVinci',appType,extraOpts=None,spillOver=False,pileUp=False)
+      optionsLine = self._getOptions('DaVinci',appType,extraOpts=None,spillOver=False,pileUp=False,inputType=inputDataType)
       self.log.info('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -488,6 +487,7 @@ class Production(LHCbJob):
     gaudiStep.setValue('outputData','@{STEP_ID}.@{applicationType}')
     outputList=[]
     outputList.append({"outputDataName":"@{STEP_ID}.@{applicationType}","outputDataType":"@{applicationType}","outputDataSE":outputSE})
+
     if histograms:
       outputList.append({"outputDataName":self.histogramName,"outputDataType":"HIST","outputDataSE":self.histogramSE})
     if extraOutput:
@@ -1086,7 +1086,7 @@ class Production(LHCbJob):
   #############################################################################
   def setWorkflowString(self, wfString):
     """ Uses the supplied string to create the workflow
-    """ 
+    """
     self.workflow = fromXMLString(wfString)
     self.name = self.workflow.getName()
 
