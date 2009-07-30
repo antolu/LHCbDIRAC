@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.30 2009/07/29 13:52:43 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.31 2009/07/30 08:15:38 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.30 2009/07/29 13:52:43 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.31 2009/07/30 08:15:38 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -746,7 +746,7 @@ class Production(LHCbJob):
     return S_OK()
 
   #############################################################################
-  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString=''):
+  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString='',requestID=0,reqUsed=0):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -855,6 +855,15 @@ class Production(LHCbJob):
       if not result['OK']:
         self.log.error(result)
       self.log.info('BK publishing result: %s' %result)
+
+    if requestID:
+      reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
+      reqDict = {'ProductionID':long(prodID),'RequestID':requestID,'Used':reqUsed,'BkEvents':0}
+      result = reqClient.addProductionToRequest(reqDict)
+      if not result['OK']:
+        self.log.error('Attempt to add production %s to request %s failed, dictionary below:\n%s' %(prodID,requestID,reqDict))
+      else:
+        self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
 
     #self._setProductionParameters(prodID,fileName,bkDict['GroupDescription'],bkDict,bkQuery,derivedProduction)
     return S_OK(prodID)
