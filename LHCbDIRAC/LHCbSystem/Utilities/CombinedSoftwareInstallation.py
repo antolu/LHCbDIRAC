@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.37 2009/07/28 07:38:47 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.38 2009/08/03 13:41:12 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.37 2009/07/28 07:38:47 rgracian Exp $"
-__VERSION__ = "$Revision: 1.37 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.38 2009/08/03 13:41:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.38 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -118,9 +118,11 @@ def MySiteRoot():
   mySiteRoot = ''
   localArea=LocalArea()
   if not localArea:
+    DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
     return mySiteRoot
   sharedArea=SharedArea()
   if not sharedArea:
+    DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
     return mySiteRoot
   mySiteRoot = '%s:%s' %(localArea,sharedArea)
   return mySiteRoot
@@ -449,13 +451,13 @@ def LocalArea():
       try:
         os.remove( localArea )
       except Exception, x:
-        DIRAC.gLogger.warn( 'Cannot remove:', localArea )
+        DIRAC.gLogger.error( 'Cannot remove:', localArea )
         localArea = ''
     else:
       try:
         os.mkdir( localArea )
       except Exception, x:
-        DIRAC.gLogger.warn( 'Cannot create:', localArea )
+        DIRAC.gLogger.error( 'Cannot create:', localArea )
         localArea = ''
   return localArea
 
