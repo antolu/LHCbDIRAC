@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.61 2009/08/02 20:21:00 atsareg Exp $
+# $Id: ProductionDB.py,v 1.62 2009/08/03 13:08:14 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.61 $"
+__RCSID__ = "$Revision: 1.62 $"
 
 import string, types
 from DIRAC.Core.Base.DB import DB
@@ -477,7 +477,7 @@ class ProductionDB(TransformationDB):
       productionID = self.getTransformationID(transName)
       self.lock.acquire()
       req = "INSERT INTO Jobs (TransformationID, WmsStatus, JobWmsID, TargetSE, CreationTime, LastUpdateTime) VALUES\
-      (%s,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),'%s');" % (productionID,'Created', 0, se, inputVector)
+      (%s,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP());" % (productionID,'Created', 0, se)
       result = self._getConnection()
       if result['OK']:
         connection = result['Value']
@@ -498,10 +498,11 @@ class ProductionDB(TransformationDB):
       jobID = int(result2['Value'][0][0])
       gLogger.verbose('Job published for Production="%s" with the input vector "%s"' % (productionID, inputVector))
       
-      req = "INSERT INTO JobInputs (JobID,InputVector) VALUES (%d,'%s')" % (jobID,inputVector)
-      result = self._update(req,connection)
-      if not result['OK']:
-        return S_ERROR('Failed to add input vector for job %d' % jobID)
+      if inputVector:
+        req = "INSERT INTO JobInputs (JobID,InputVector) VALUES (%d,'%s')" % (jobID,inputVector)
+        result = self._update(req,connection)
+        if not result['OK']:
+          return S_ERROR('Failed to add input vector for job %d' % jobID)
       
       return S_OK(jobID)
 
@@ -824,7 +825,6 @@ class ProductionDB(TransformationDB):
       jobDict['TargetSE']=result['Value'][0][3]
       jobDict['CreationTime']=result['Value'][0][4]
       jobDict['LastUpdateTime']=result['Value'][0][5]
-      jobDict['InputVector']=result['Value'][0][6]
     else:
       if result['OK']:
         result['Message']='' #used for printing error message
