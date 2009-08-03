@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb06.sh,v 1.2 2009/05/11 08:29:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb06.sh,v 1.3 2009/08/03 13:07:32 roma Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -161,6 +161,8 @@ sed -i 's/^log-bin=/# log-bin=/' $DESTDIR/pro/mysql/etc/my.cnf
 /opt/dirac/pro/mysql/share/mysql/mysql.server start
 
 $DESTDIR/pro/scripts/install_service.sh DataManagement StorageElement
+
+$DESTDIR/pro/scripts/install_agent.sh LHCb TargzJobLogAgent
 
 if [ ! -z "$DIRACCVS" ] ; then
 
