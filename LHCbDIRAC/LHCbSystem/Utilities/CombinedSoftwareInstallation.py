@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: CombinedSoftwareInstallation.py,v 1.38 2009/08/03 13:41:12 rgracian Exp $
+# $Id: CombinedSoftwareInstallation.py,v 1.39 2009/08/03 14:12:45 rgracian Exp $
 # File :   CombinedSoftwareInstallation.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,8 +21,8 @@
     on the Shared area
     If this is not possible it will do a local installation.
 """
-__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.38 2009/08/03 13:41:12 rgracian Exp $"
-__VERSION__ = "$Revision: 1.38 $"
+__RCSID__   = "$Id: CombinedSoftwareInstallation.py,v 1.39 2009/08/03 14:12:45 rgracian Exp $"
+__VERSION__ = "$Revision: 1.39 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
@@ -392,6 +392,9 @@ def SharedArea():
   elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
     DIRAC.gLogger.debug( 'Using CE SharedArea at "%s"' % sharedArea )
+  else:
+    # Add default, the same a for GRID sites with no real shared area
+    sharedArea = os.path.join('.','lib')
 
   if sharedArea:
     # if defined, check that it really exists
