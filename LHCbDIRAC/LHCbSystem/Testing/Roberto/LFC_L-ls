@@ -34,7 +34,7 @@ if [ -s $LFCPING_STAT ] ; then
 fi
 echo "<pre>"
 export LFC_HOST=$nodeName
-listing=`lfc-ls /grid/$SAME_VO 2>&1`
+listing=`time lfc-ls /grid/$SAME_VO 2>&1`
 RETVAL=$?
 if [ $RETVAL -eq 0 ] ; then
     summary=`echo "$listing" | wc -l`

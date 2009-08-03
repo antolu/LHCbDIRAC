@@ -26,7 +26,7 @@ if [ -f $SAME_WORK/LFC_C/no_vodir.$nodeName ]; then
     exit $SAME_INFO
 fi
 export LFC_HOST=$nodeName
-export LFC_HOME=/grid/$SAME_VO/SAM
+export LFC_HOME=/grid/$SAME_VO/test/SAM
 echo "<pre>"
 
 echo_config
@@ -49,7 +49,7 @@ lfc-rm -rf $filename 2>&1 >/dev/null
 echo "Creating file on LFC node $nodeName: $filename"
 echo "<pre>"
 set -x
-lfc-mkdir $filename
+time lfc-mkdir $filename
 RETVAL=$?
 set +x
 echo "</pre>"

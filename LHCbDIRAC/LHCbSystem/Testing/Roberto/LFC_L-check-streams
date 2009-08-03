@@ -15,7 +15,7 @@ if [ $RETVAL -eq 0 ] ; then
     echo "going to sleep 2 minutes(to be sure  the the information is propagated) "
     sleep 120
     export LFC_HOST=$nodeName
-    lfc-ls /grid/lhcb/replication_tests/streams
+    time lfc-ls /grid/lhcb/replication_tests/streams
     RETVAL=$?
     if [ $RETVAL -eq 0 ] ; then
 	echo "Probe directory replicated correctly" 
@@ -33,7 +33,7 @@ else
     echo "going to sleep 2 minutes (to be sure  the the information is propagated)"
     sleep 120
     export LFC_HOST=$nodeName
-    lfc-ls /grid/lhcb/replication_tests/streams
+    time lfc-ls /grid/lhcb/replication_tests/streams
     RETVAL=$?
     if [ $RETVAL -eq 0 ] ; then
 	echo "Probe directory removal not replicated correctly" 

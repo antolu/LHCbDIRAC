@@ -23,7 +23,7 @@ rm -f $SAME_WORK/LFC/no_vodir.$nodeName
 echo "Now performing a lcg-lr on a $SAME_VO files registered om the LFC node $nodeName:"
 echo "<pre>"
 export LFC_HOST=$nodeName
-listing=`lcg-lr --vo lhcb lfn:/grid/lhcb/test/lfc_mirror_test/1.test 2>&1`
+listing=`time lcg-lr --vo lhcb lfn:/grid/lhcb/test/lfc_mirror_test/1.test 2>&1`
 RETVAL=$?
 echo "$listing"
 echo "</pre>"
