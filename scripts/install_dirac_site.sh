@@ -63,6 +63,14 @@ if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
 DIRAC
 {
   Setup = $DIRACSETUP
+  Setups
+  {
+    LHCb-Development
+    {
+      WorkloadManagement = Development
+      LHCb = Development
+    }
+  }
   Configuration
   {
     Servers = dips://volhcb04.cern.ch:9135/Configuration/Server
@@ -79,6 +87,9 @@ DIRAC
 LocalSite
 {
   SharedArea = /opt/shared
+  waitingToRunningRatio = 0.2
+  maxWaitingJobs = 100
+  maxNumberJobs = 1000
 }
 EOF
 
