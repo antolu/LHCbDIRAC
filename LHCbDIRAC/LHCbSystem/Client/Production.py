@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.31 2009/07/30 08:15:38 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.32 2009/08/03 13:32:33 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.31 2009/07/30 08:15:38 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.32 2009/08/03 13:32:33 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -354,14 +354,14 @@ class Production(LHCbJob):
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1'):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={}):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
 
        Note: for MDF merging case must not add a finalization step.
     """
     if inputProduction:
-      result = self._setInputProductionBKStepInfo(inputProduction)
+      result = self._setInputProductionBKStepInfo(inputProduction,passDict)
       if not result['OK']:
         self.log.error(result)
         raise TypeError,'inputProduction must exist and have BK parameters'
@@ -427,8 +427,8 @@ class Production(LHCbJob):
     self.gaudiStepCount +=1
     gaudiStep =  self.__getGaudiApplicationStep('%s_%s' %(appName,self.gaudiStepCount))
 
-    #lower the appType
-    if appType:
+    #lower the appType if not creating a template
+    if appType and not re.search('{{',appType):
       appType = string.lower(appType)
 
     if spillover:
@@ -481,7 +481,10 @@ class Production(LHCbJob):
       #but also the template value can be used for testing
 
     if inputDataType != 'None':
-      gaudiStep.setValue('inputDataType',string.upper(inputDataType))
+      if re.search('{{',inputDataType):
+        gaudiStep.setValue('inputDataType',inputDataType)
+      else:
+        gaudiStep.setValue('inputDataType',string.upper(inputDataType))
 
     gaudiStep.setValue('applicationLog', '@{applicationName}_@{STEP_ID}.log')
     gaudiStep.setValue('outputData','@{STEP_ID}.@{applicationType}')
@@ -903,27 +906,28 @@ class Production(LHCbJob):
     return result
 
   #############################################################################
-  def _setInputProductionBKStepInfo(self,prodID):
+  def _setInputProductionBKStepInfo(self,prodID,passDict={}):
     """ This private method will attempt to retrieve the input production XML file
         in order to construct the BK XML
     """
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getProductionBody(int(prodID))
-    if not result['OK']:
-      return S_ERROR("Error during command execution: %s" % result['Message'])
-    if not result['Value']:
-      return S_ERROR("No body of production %s was found" % prodID)
-
-    prodXMLFile = 'InputProduction%s.xml' %prodID
-    body = result['Value']
-    fd = open( prodXMLFile, 'wb' )
-    fd.write(body)
-    fd.close()
-
-    prodWorkflow = Workflow(prodXMLFile)
-    passDict = prodWorkflow.findParameter('BKProcessingPass').getValue()
     if not passDict:
-      return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
+      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+      result = prodClient.getProductionBody(int(prodID))
+      if not result['OK']:
+        return S_ERROR("Error during command execution: %s" % result['Message'])
+      if not result['Value']:
+        return S_ERROR("No body of production %s was found" % prodID)
+
+      prodXMLFile = 'InputProduction%s.xml' %prodID
+      body = result['Value']
+      fd = open( prodXMLFile, 'wb' )
+      fd.write(body)
+      fd.close()
+
+      prodWorkflow = Workflow(prodXMLFile)
+      passDict = prodWorkflow.findParameter('BKProcessingPass').getValue()
+      if not passDict:
+        return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
 
     #for e.g. MDF case must remove some info
 #    if stepBKCutOff:
@@ -1028,6 +1032,14 @@ class Production(LHCbJob):
     """ Sets destination for all jobs.
     """
     self.setDestination(site)
+
+  #############################################################################
+  def setOutputMode(self,outputMode):
+    """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
+    """
+    if not outputMode.lower().capitalize() in ('Local','Any'):
+      raise TypeError,'Output mode must be Local or Any'
+    self._setParameter('outputMode','string',outputMode.lower().capitalize(),'SEResolutionPolicy')
 
   #############################################################################
   def setBKParameters(self,configName,configVersion,groupDescription,conditions):
