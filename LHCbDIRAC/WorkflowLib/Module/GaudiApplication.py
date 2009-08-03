@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.148 2009/07/20 14:20:10 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.149 2009/08/03 14:22:40 rgracian Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.148 2009/07/20 14:20:10 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.149 2009/08/03 14:22:40 rgracian Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -222,7 +222,7 @@ class GaudiApplication(ModuleBase):
     localArea = sharedArea
     if re.search(':',sharedArea):
       localArea = string.split(sharedArea,':')[0]
-      self.log.info('Setting local software area to %s' %localArea)
+    self.log.info('Setting local software area to %s' %localArea)
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
       self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
