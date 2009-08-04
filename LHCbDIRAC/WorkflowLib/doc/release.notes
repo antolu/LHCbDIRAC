@@ -1,4 +1,12 @@
-$Id: release.notes,v 1.31 2009/06/15 12:57:58 paterson Exp $
+$Id: release.notes,v 1.32 2009/08/04 07:20:45 paterson Exp $
+
+=========
+wkf-v9r23 : SKP : 4 August 2009
+- AnalyseLogFile - Updates for DaVinci in stripping case
+- FailoverRequest - Added print statements to explicitly show final file statuses
+- GaudiApplication - retrieve stdError from the call back / fixes for Online
+- UploadOutputData - Fix for BK registration on failover upload.
+- All - Use DIRAC.siteName to retrieve the site name from the configuration /LocalSite/Site
 
 =========
 wkf-v9r22 : SKP : 5 June 2009
