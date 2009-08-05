@@ -180,8 +180,8 @@ class CE2CSAgent(Agent):
     changed = False
 
     for site in sites:
-   #  if site[-2:]!='fr':
-   #    continue
+#      if site[-2:]!='fr':
+#        continue
       opt = gConfig.getOptionsDict('/Resources/Sites/LCG/%s'%site)['Value']
       name = opt.get('Name','')
       if name:
@@ -270,76 +270,76 @@ class CE2CSAgent(Agent):
           bdiice = result['Value'][0]
         except:
           gLogger.warn('Error in bdii for %s'%ce, result)
-          continue
+          bdiice = None
+        if bdiice:
+          try:
+            newwnTmpDir = bdiice['GlueSubClusterWNTmpDir']
+          except:
+            newwnTmpDir = 'Unknown'
+          if wnTmpDir != newwnTmpDir and newwnTmpDir != 'Unknown':
+            section = '/Resources/Sites/LCG/%s/CEs/%s/wnTmpDir'%(site,ce)
+            gLogger.info( section, " -> ".join((wnTmpDir,newwnTmpDir)))
+            if wnTmpDir == 'Unknown':
+              self.csAPI.setOption(section,newwnTmpDir)
+            else:
+              self.csAPI.modifyValue(section,newwnTmpDir)
+            changed = True
 
-        try:
-          newwnTmpDir = bdiice['GlueSubClusterWNTmpDir']
-        except:
-          newwnTmpDir = 'Unknown'
-        if wnTmpDir != newwnTmpDir and newwnTmpDir != 'Unknown':
-          section = '/Resources/Sites/LCG/%s/CEs/%s/wnTmpDir'%(site,ce)
-          gLogger.info( section, " -> ".join((wnTmpDir,newwnTmpDir)))
-          if wnTmpDir == 'Unknown':
-	    self.csAPI.setOption(section,newwnTmpDir)
-          else:
-	    self.csAPI.modifyValue(section,newwnTmpDir)
-          changed = True
+          try:
+            newarch = bdiice['GlueHostArchitecturePlatformType']
+          except:
+            newarch = 'Unknown'
+          if arch != newarch and newarch != 'Unknown':
+            section = '/Resources/Sites/LCG/%s/CEs/%s/architecture'%(site,ce)
+            gLogger.info( section, " -> ".join((arch,newarch)))
+            if arch == 'Unknown':
+              self.csAPI.setOption(section,newarch)
+            else:
+              self.csAPI.modifyValue(section,newarch)
+            changed = True
 
-        try:
-          newarch = bdiice['GlueHostArchitecturePlatformType']
-        except:
-          newarch = 'Unknown'
-        if arch != newarch and newarch != 'Unknown':
-          section = '/Resources/Sites/LCG/%s/CEs/%s/architecture'%(site,ce)
-          gLogger.info( section, " -> ".join((arch,newarch)))
-          if arch == 'Unknown':
-	    self.csAPI.setOption(section,newarch)
-          else:
-	    self.csAPI.modifyValue(section,newarch)
-          changed = True
+          try:
+            newos = '_'.join((bdiice['GlueHostOperatingSystemName'],bdiice['GlueHostOperatingSystemVersion'],bdiice['GlueHostOperatingSystemRelease']))
+          except:
+            newos = 'Unknown'
+          if os != newos and newos != 'Unknown':
+            section = '/Resources/Sites/LCG/%s/CEs/%s/OS'%(site,ce)
+            gLogger.info( section, " -> ".join((os,newos)))
+            if os == 'Unknown':
+              self.csAPI.setOption(section,newos)
+            else:
+              self.csAPI.modifyValue(section,newos)
+            changed = True
 
-        try:
-          newos = '_'.join((bdiice['GlueHostOperatingSystemName'],bdiice['GlueHostOperatingSystemVersion'],bdiice['GlueHostOperatingSystemRelease']))
-        except:
-          newos = 'Unknown'
-        if os != newos and newos != 'Unknown':
-          section = '/Resources/Sites/LCG/%s/CEs/%s/OS'%(site,ce)
-          gLogger.info( section, " -> ".join((os,newos)))
-          if os == 'Unknown':
-	    self.csAPI.setOption(section,newos)
-          else:
-	    self.csAPI.modifyValue(section,newos)
-          changed = True
+          try:
+            newsi00 = bdiice['GlueHostBenchmarkSI00']
+          except:
+            newsi00 = 'Unknown'
+          if si00 != newsi00 and newsi00 != 'Unknown':
+            section = '/Resources/Sites/LCG/%s/CEs/%s/SI00'%(site,ce)
+            gLogger.info( section, " -> ".join((newsi00,si00)))
+            if si00 == 'Unknown':
+              self.csAPI.setOption(section,newsi00)
+            else:
+              self.csAPI.modifyValue(section,newsi00)
+            changed = True
 
-        try:
-          newsi00 = bdiice['GlueHostBenchmarkSI00']
-        except:
-          newsi00 = 'Unknown'
-        if si00 != newsi00 and newsi00 != 'Unknown':
-          section = '/Resources/Sites/LCG/%s/CEs/%s/SI00'%(site,ce)
-          gLogger.info( section, " -> ".join((newsi00,si00)))
-          if si00 == 'Unknown':
-	    self.csAPI.setOption(section,newsi00)
-          else:
-	    self.csAPI.modifyValue(section,newsi00)
-          changed = True
-
-        try:
-          rte = bdiice['GlueHostApplicationSoftwareRunTimeEnvironment']
-          if 'VO-lhcb-pilot' in rte:
-            newpilot = 'True'
-          else:
-            newpilot = 'False'	
-        except:
-          newpilot = 'Unknown'
-        if pilot != newpilot and newpilot != 'Unknown':
-          section = '/Resources/Sites/LCG/%s/CEs/%s/Pilot'%(site,ce)
-          gLogger.info( section, " -> ".join((pilot,newpilot)))
-          if pilot == 'Unknown':
-	    self.csAPI.setOption(section,newpilot)
-          else:
-	    self.csAPI.modifyValue(section,newpilot)
-          changed = True
+          try:
+            rte = bdiice['GlueHostApplicationSoftwareRunTimeEnvironment']
+            if 'VO-lhcb-pilot' in rte:
+              newpilot = 'True'
+            else:
+              newpilot = 'False'        
+          except:
+            newpilot = 'Unknown'
+          if pilot != newpilot and newpilot != 'Unknown':
+            section = '/Resources/Sites/LCG/%s/CEs/%s/Pilot'%(site,ce)
+            gLogger.info( section, " -> ".join((pilot,newpilot)))
+            if pilot == 'Unknown':
+              self.csAPI.setOption(section,newpilot)
+            else:
+              self.csAPI.modifyValue(section,newpilot)
+            changed = True
 
         result = ldapCEState(ce)        #getBDIICEVOView
         if not result['OK']:
@@ -355,11 +355,11 @@ class CE2CSAgent(Agent):
         for queue in queues:
           try:
             queueName = queue['GlueCEUniqueID'].split('/')[-1]
-	    newmaxCPUTime = queue['GlueCEPolicyMaxCPUTime']
+            newmaxCPUTime = queue['GlueCEPolicyMaxCPUTime']
           except:
             gLogger.warn('error in queue',queue)
             continue
-	
+        
           result = gConfig.getOptionsDict(queueSectionString+'/%s'%(queueName))
           if not result['OK']:
             gLogger.warn("Section Queues",result['Message'])
@@ -372,9 +372,9 @@ class CE2CSAgent(Agent):
             section = queueSectionString + '/%s/maxCPUTime'%(queueName)
             gLogger.info( section, " -> ".join((maxCPUTime,newmaxCPUTime)))
             if maxCPUTime == 'Unknown':
-	      self.csAPI.setOption(section,newmaxCPUTime)
+              self.csAPI.setOption(section,newmaxCPUTime)
             else:
-	      self.csAPI.modifyValue(section,newmaxCPUTime)
+              self.csAPI.modifyValue(section,newmaxCPUTime)
             changed = True
 
     if changed:
