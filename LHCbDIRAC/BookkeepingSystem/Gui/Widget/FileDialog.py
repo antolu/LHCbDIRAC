@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.16 2009/05/08 15:23:24 zmathe Exp $
+# $Id: FileDialog.py,v 1.17 2009/08/06 12:25:26 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedS
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.16 2009/05/08 15:23:24 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.17 2009/08/06 12:25:26 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -146,7 +146,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     
     self.tableView.setModel(tm)
     self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-    self.tableView.setSelectionMode(QAbstractItemView.ContiguousSelection)
+    self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection) 
   
     self.tableView.setAlternatingRowColors(True)
 
