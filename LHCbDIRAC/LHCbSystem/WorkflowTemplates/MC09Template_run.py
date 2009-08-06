@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09Template_run.py,v 1.1 2009/08/03 13:30:06 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09Template_run.py,v 1.2 2009/08/06 12:05:49 paterson Exp $
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: MC09Template_run.py,v 1.1 2009/08/03 13:30:06 paterson Exp $"
+__RCSID__ = "$Id: MC09Template_run.py,v 1.2 2009/08/06 12:05:49 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -47,8 +47,8 @@ production.setBKParameters('MC','MC09','{{pDsc}}','{{simDesc}}')
 production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 
 production.addGaussStep('{{p1Ver}}','{{Generator}}',events,'{{p1Opt}}',eventType='{{eventType}}',extraPackages='{{p1EP}}')
-production.addBooleStep('{{p2App}}','digi','{{p2Opt}}',extraPackages='{{p2EP}}')
-production.addBrunelStep('{{p3App}}','dst','{{p3Opt}}',extraPackages='{{p3EP}}',inputDataType='digi')
+production.addBooleStep('{{p2Ver}}','digi','{{p2Opt}}',extraPackages='{{p2EP}}')
+production.addBrunelStep('{{p3Ver}}','dst','{{p3Opt}}',extraPackages='{{p3EP}}',inputDataType='digi')
 production.addFinalizationStep()
 
 production.setCPUTime(cpu)

@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.1 2009/08/03 13:29:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.2 2009/08/06 12:10:47 paterson Exp $
 ########################################################################
 
 """  The FEST Reco template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.1 2009/08/03 13:29:02 paterson Exp $"
+__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.2 2009/08/06 12:10:47 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -75,7 +75,7 @@ production.setInputBKSelection(inputBKQuery)
 production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 
 production.addBrunelStep("{{p1Ver}}","rdst","{{p1Opt}}",extraPackages='{{p1EP}}',eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=dataSE,histograms=True)
-production.addDaVinciStep("{{p2Ver}}","dst","{{p2Opt}}",extraPackages='{{p1EP}}',histograms=True)
+production.addDaVinciStep("{{p2Ver}}","dst","{{p2Opt}}",extraPackages='{{p2EP}}',histograms=True)
 production.addFinalizationStep()
 
 production.setProdPlugin(plugin)
