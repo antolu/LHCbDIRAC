@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.32 2009/08/03 13:32:33 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.33 2009/08/06 14:09:44 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.32 2009/08/03 13:32:33 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.33 2009/08/06 14:09:44 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -28,8 +28,10 @@ from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 try:
   from LHCbSystem.Client.LHCbJob import *
+  from LHCbSystem.Utilities.ProductionOptions import getOptions
 except Exception,x:
   from DIRAC.LHCbSystem.Client.LHCbJob import *
+  from DIRAC.LHCbSystem.Utilities.ProductionOptions import getOptions
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
@@ -121,85 +123,6 @@ class Production(LHCbJob):
       self._addParameter(self.workflow,name,parameterType,parameterValue,description)
 
   #############################################################################
-  def _getOptions(self,appName,appType,extraOpts=None,spillOver=False,pileUp=True,inputType=None):
-    """ Simple function to create the default options for a given project name.
-
-        Assumes CondDB tags and event max are required.
-    """
-    #HACK# Is appType supposed to be input or output data type or just some flag to get the desired behaviour?
-    options = []
-    #General options
-    dddbOpt = "LHCbApp().DDDBtag = \"@{DDDBTag}\""
-    conddbOpt = "LHCbApp().CondDBtag = \"@{CondDBTag}\""
-    evtOpt = "LHCbApp().EvtMax = @{numberOfEvents}"
-    options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
-    options.append("HistogramPersistencySvc().OutputFile = \"%s\"" % (self.histogramName))
-    if appName.lower()=='gauss':
-      options.append("OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      #Below 3 lines added to replace evt/evt printout
-      #options.append('from Configurables import SimInit')
-      #options.append('GaussSim = SimInit("GaussSim")')
-      #options.append('GaussSim.OutputLevel = 2')
-
-    elif appName.lower()=='boole':
-      if appType.lower()=='mdf':
-        options.append("OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\"")
-        options.append("OutputStream(\"RawWriter\").OutputLevel = INFO")
-      else:
-        options.append("OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      if spillOver:
-        options.append('Boole().UseSpillover = True')
-        if pileUp:
-          options.append("EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\",\"DATAFILE=\'@{pileupData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]")
-        else:
-          options.append("EventSelector(\"SpilloverSelector\").Input = [\"DATAFILE=\'@{spilloverData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"]")
-
-    elif appName.lower()=='brunel':
-      options.append("#include \"$BRUNELOPTS/SuppressWarnings.opts\"")
-      options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      options.append("from Configurables import Brunel")
-      if appType.lower()=='xdst':
-        options.append("Brunel().OutputType = 'XDST'")
-      elif appType.lower()=='dst':
-        options.append("Brunel().OutputType = 'DST'")
-      elif appType.lower()=='rdst':
-        options.append("Brunel().OutputType = 'RDST'")
-
-    elif appName.lower()=='davinci':
-      options.append('from DaVinci.Configuration import *')
-      options.append('DaVinci().EvtMax=@{numberOfEvents}')
-      options.append("DaVinci().HistogramFile = \"%s\"" % (self.histogramName))
-      # If we want to generate an FETC for the first step of the stripping workflow
-      if appType.lower()=='fetc':
-        options.append("DaVinci().ETCFile = \"@{outputData}\"")
-      elif appType.lower() == 'dst' and inputType!='dst': #e.g. not stripping
-        options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-      elif appType.lower() == 'dst' and inputType=='dst': #e.g. stripping
-        options.append('from StrippingConf.Configuration import StrippingConf')
-        options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
-        options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
-      elif appType.lower() == 'davincihist':
-        options.append('from Configurables import InputCopyStream')
-        options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
-        options.append('DaVinci().MoniSequence.append(InputCopyStream())')
-
-    elif appName.lower()=='merge':
-      #options.append('EventSelector.PrintFreq = 200')
-      options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
-      return options
-
-    else:
-      self.log.warn('No specific options found for project %s' %appName)
-
-    if extraOpts:
-      options.append(extraOpts)
-
-    options.append(dddbOpt)
-    options.append(conddbOpt)
-    options.append(evtOpt)
-    return options
-
-  #############################################################################
   def __getEventType(self,eventType):
     """ Checks whether or not the global event type should be set.
     """
@@ -220,7 +143,7 @@ class Production(LHCbJob):
     eventType = self.__getEventType(eventType)
     firstEventNumber=1
     if not overrideOpts:
-      optionsLine = self._getOptions('Gauss','sim',extraOpts=None,spillOver=False,pileUp=False)
+      optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName)
       self.log.info('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -238,7 +161,7 @@ class Production(LHCbJob):
     gaussStep.setValue('generatorName',generatorName)
 
   #############################################################################
-  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,spillover=False,pileup=True,inputData='previousStep',overrideOpts='',extraOutputFile={}):
+  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOutputFile={}):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi
         currently assumes input data type is sim
@@ -250,7 +173,7 @@ class Production(LHCbJob):
     inputData='previousStep'
 
     if not overrideOpts:
-      optionsLine = self._getOptions('Boole',appType,extraOpts=None,spillOver=spillover,pileUp=pileup)
+      optionsLine = getOptions('Boole',appType,extraOpts=None,histogram=self.histogramName)
       self.log.info('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -260,23 +183,11 @@ class Production(LHCbJob):
       outputSE='Tier1-RDST'
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
-    spilloverValue=''
-    pileupValue=''
-    if spillover:
-      inputData = 'firstStep'
-      spilloverValue=self.gaussList[1]
-      if not self.gaussList:
-        raise TypeError,'No Gauss step outputs found'
-      if pileup:
-        if not len(self.gaussList)>2:
-          raise TypeError,'Not enough Gauss steps for pile up'
-        pileupValue=self.gaussList[2]
-
     if extraOutputFile:
       self.log.info('Adding output file to Boole step %s' %extraOutputFile)
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,spilloverValue,pileupValue,extraOutputFile)
+    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile)
 
   #############################################################################
   def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1'):
@@ -287,32 +198,27 @@ class Production(LHCbJob):
         TODO: stripping case - to review
     """
     eventType = self.__getEventType(eventType)
+    dataType = ''
     if appType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1-RDST'
-    elif appType.lower()=='dst':
-      dataType = 'DATA'
-      if not outputSE:
-        #outputSE='Tier1_M-DST' #for real data master dst
-        outputSE='Tier1-RDST' #for real data DSTs from brunel
-        self.log.info('Setting default outputSE to %s' %(outputSE))
     else:
       if not appType.lower() in ['dst','xdst']:
         raise TypeError,'Application type not recognised'
       if inputDataType.lower()=='digi':
         dataType='MC'
         if not outputSE:
-          outputSE='Tier1_MC_M-DST' #for simulated master dst
+          outputSE='Tier1_MC-DST'
           self.log.info('Setting default outputSE to %s' %(outputSE))
-      elif inputDataType.lower()=='fetc': #TODO: stripping case - to review
+      elif inputDataType.lower()=='fetc':
         dataType='DATA'
         if not outputSE:
-          outputSE='Tier1_M-DST' #for real data master dst
+          outputSE='Tier1-DST' #for real data master dst
           self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = self._getOptions('Brunel',appType,extraOpts=None,spillOver=False,pileUp=False)
+      optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName)
       self.log.info('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -324,27 +230,38 @@ class Production(LHCbJob):
     self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1'):
+  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='DATA'):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst /undefined at the moment ;)
-        inputDataType is rdst / root
+        inputDataType is rdst / fetc
 
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    appTypes = ['dst','fetc','root']
+    appTypes = ['dst','fetc','rdst']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
     if not inputDataType in ('rdst','dst'):
       raise TypeError,'Only DST input data type currently supported'
 
-    dataType='DATA'
-    if not outputSE:
-      outputSE='Tier1_M-DST'
-      self.log.info('Setting default outputSE to %s' %(outputSE))
+    outputSE=''
+    if inputDataType.lower()=='rdst':
+      dataType='DATA'
+      if not outputSE:
+        outputSE='Tier1-DST'
+        self.log.info('Setting default outputSE to %s' %(outputSE))
+    elif inputDataType.lower()=='dst':
+      if not dataType:
+        raise TypeError,'Must clarify MC / DATA for DST->DST processing'
+      if dataType.upper()=='MC':
+        outputSE='Tier1_MC-DST'
+        self.log.info('Setting default outputSE to %s' %(outputSE))
+      else:
+        outputSE='Tier1-DST'
+        self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = self._getOptions('DaVinci',appType,extraOpts=None,spillOver=False,pileUp=False,inputType=inputDataType)
+      optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName)
       self.log.info('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -377,7 +294,7 @@ class Production(LHCbJob):
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = self._getOptions('Merge',appType,extraOpts=None,spillOver=False,pileUp=False)
+      optionsLine = getOptions('Merge',appType,extraOpts=None)
       self.log.info('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -390,7 +307,7 @@ class Production(LHCbJob):
       self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
 
   #############################################################################
-  def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup='',extraOutput={}):
+  def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -418,7 +335,7 @@ class Production(LHCbJob):
     return stepInstance
 
   #############################################################################
-  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,spillover='',pileup='',extraOutput={}):
+  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -430,15 +347,6 @@ class Production(LHCbJob):
     #lower the appType if not creating a template
     if appType and not re.search('{{',appType):
       appType = string.lower(appType)
-
-    if spillover:
-      gaudiStep.setLink('spilloverData',spillover,'outputData')
-    else:
-      gaudiStep.setValue('spilloverData',None)
-    if pileup:
-      gaudiStep.setLink('pileupData',pileup,'outputData')
-    else:
-      gaudiStep.setValue('pileupData',None)
 
     gaudiStep.setValue('applicationName',appName)
     gaudiStep.setValue('applicationVersion',appVersion)
@@ -593,8 +501,6 @@ class Production(LHCbJob):
     self._addParameter(gaudiAppDefn,'listoutput','list',[],'StepOutputList')
     self._addParameter(gaudiAppDefn,'extraPackages','string','','ExtraPackages')
     self._addParameter(gaudiAppDefn,'firstEventNumber','string','int','FirstEventNumber')
-    self._addParameter(gaudiAppDefn,'spilloverData','string','','spilloverData')
-    self._addParameter(gaudiAppDefn,'pileupData','string','','pileupData')
     self.workflow.addStep(gaudiAppDefn)
     return self.workflow.createStepInstance('Gaudi_App_Step',name)
 
