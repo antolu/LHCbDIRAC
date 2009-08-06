@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ControlerProcessingPassDialog.py,v 1.1 2009/03/20 17:13:56 zmathe Exp $
+# $Id: ControlerProcessingPassDialog.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-__RCSID__ = "$Id: ControlerProcessingPassDialog.py,v 1.1 2009/03/20 17:13:56 zmathe Exp $"
+__RCSID__ = "$Id: ControlerProcessingPassDialog.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $"
 
 #############################################################################  
 class ControlerProcessingPassDialog(ControlerAbstract):
@@ -18,7 +18,7 @@ class ControlerProcessingPassDialog(ControlerAbstract):
   def messageFromParent(self, message):
     if message.action()=='list':
       item = message['items']
-      message = Message({'action':'procDescription','groupdesc':item['name'],'passid':item['passid']})
+      message = Message({'action':'procDescription','groupdesc':item['name']})
       feedback = self.getParent().messageFromChild(self, message)
       if feedback != None:
         widget = self.getWidget()

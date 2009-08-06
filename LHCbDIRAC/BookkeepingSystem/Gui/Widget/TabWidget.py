@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: TabWidget.py,v 1.1 2009/03/20 17:13:55 zmathe Exp $
+# $Id: TabWidget.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                import *
 from PyQt4.QtCore                                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
-__RCSID__ = "$Id: TabWidget.py,v 1.1 2009/03/20 17:13:55 zmathe Exp $"
+__RCSID__ = "$Id: TabWidget.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $"
 
 #############################################################################  
 class TabWidget(QWidget):
@@ -53,6 +53,7 @@ class TabWidget(QWidget):
     # set column width to fit contents
     tableView.resizeColumnsToContents()
     tableView.setSortingEnabled(True)
+    tableView.sortByColumn (0, Qt.AscendingOrder)
   
     # set row height
     nrows = len(tabledata)

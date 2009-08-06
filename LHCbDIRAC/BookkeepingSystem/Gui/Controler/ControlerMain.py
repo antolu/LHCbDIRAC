@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.22 2009/07/23 14:09:06 zmathe Exp $
+# $Id: ControlerMain.py,v 1.23 2009/08/06 16:06:25 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.22 2009/07/23 14:09:06 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.23 2009/08/06 16:06:25 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -207,8 +207,8 @@ class ControlerMain(ControlerAbstract):
             return message
       elif message.action() == 'procDescription':
         desc = message['groupdesc']
-        passid = message['passid']
-        retVal = self.__bkClient.getProcessingPassDesc(desc, passid)
+        passdesc = ''
+        retVal = self.__bkClient.getProcessingPassDesc_new(desc)
         if not retVal['OK']:
           gLogger.error(retVal['Message'])
           return None   

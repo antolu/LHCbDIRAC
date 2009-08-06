@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.19 2009/04/01 15:44:53 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.20 2009/08/06 16:06:25 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.19 2009/04/01 15:44:53 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.20 2009/08/06 16:06:25 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -86,6 +86,10 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################       
   def getProcessingPassDesc(self, desc, passid, simid='ALL'):
     return self.getManager().getProcessingPassDesc(desc, passid, simid)
+  
+  #############################################################################
+  def getProcessingPassDesc_new(self, desc, simid='ALL'):
+    return self.getManager().getProcessingPassDesc_new(desc, simid)
   
   #############################################################################       
   def getMoreProductionInformations(self, prodid):

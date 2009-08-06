@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.101 2009/07/13 09:15:13 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.102 2009/08/06 16:06:25 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.101 2009/07/13 09:15:13 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.102 2009/08/06 16:06:25 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -262,7 +262,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK({'ConfigName':cname,'ConfigVersion':cversion,'ProgramName':pname,'ProgramVersion':pversion,'Processing pass':procdescription,'Data taking conditions':daqdesc})
   
   #############################################################################
-  def getPassindex(self, passid):
+  def getPassindex_old(self, passid):
     command='select distinct pi.description, g.groupdescription,   \
      a0.applicationname s0, a0.applicationversion v0, a0.optionfiles op0, a0.dddb d0, a0.conddb c0, a0.EXTRAPACKAGES e0, \
      a1.applicationname s1, a1.applicationversion v1, a1.optionfiles op1, a1.dddb d1, a1.conddb c1, a1.EXTRAPACKAGES e1, \
@@ -286,11 +286,85 @@ class OracleBookkeepingDB(IBookkeepingDB):
     res = self.dbR_._query(command)
     return res
   
+  def getPassIndex(self, passdesc):
+    command='select distinct pi.description, g.groupdescription,   \
+     a0.applicationname s0, a0.applicationversion v0, a0.optionfiles op0, a0.dddb d0, a0.conddb c0, a0.EXTRAPACKAGES e0, \
+     a1.applicationname s1, a1.applicationversion v1, a1.optionfiles op1, a1.dddb d1, a1.conddb c1, a1.EXTRAPACKAGES e1, \
+     a2.applicationname s2, a2.applicationversion v2, a2.optionfiles op2, a2.dddb d2, a2.conddb c2, a2.EXTRAPACKAGES e2, \
+     a3.applicationname s3, a3.applicationversion v3, a3.optionfiles op3, a3.dddb d3, a3.conddb c3, a3.EXTRAPACKAGES e3, \
+     a4.applicationname s4, a4.applicationversion v4, a4.optionfiles op4, a4.dddb d4, a4.conddb c4, a4.EXTRAPACKAGES e4, \
+     a5.applicationname s5, a5.applicationversion v5, a5.optionfiles op5, a5.dddb d5, a5.conddb c5, a5.EXTRAPACKAGES e5, \
+     a6.applicationname s6, a6.applicationversion v6, a6.optionfiles op6, a6.dddb d6, a6.conddb c6, a6.EXTRAPACKAGES e6 \
+   from pass_index pi , pass_group g, \
+        applications a0, applications a1, applications a2, applications a3, applications a4, applications a5, applications a6 \
+   where      \
+      g.groupid=pi.groupid         and \
+      pi.step0=a0.applicationid(+) and \
+      pi.step1=a1.applicationid(+) and \
+      pi.step2=a2.applicationid(+) and \
+      pi.step3=a3.applicationid(+) and \
+      pi.step4=a4.applicationid(+) and \
+      pi.step5=a5.applicationid(+) and \
+      pi.step6=a6.applicationid(+) and \
+      g.groupdescription='+str(passdesc)
+    res = self.dbR_._query(command)
+    return res
+  
+  def getProcessingPassDesc_new(self, totalproc, simid = 'ALL'):
+    result = {}
+    processing = {}
+    parametersNames = ['Steps','PassDescription', 'Groupdescription','Application Name','Application Version','Option files','DDDb', 'CondDb','Extra Packages']
+    records = []
+    proc = totalproc.split('+')
+    for group in proc:
+      condition = ''
+      if simid != 'ALL':
+        condition += ' and prod.simcondid='+str(simid)
+      condition += ' and g.groupdescription=\''+str(group.strip())+'\''
+      command =' select distinct pi.description, g.groupdescription,   \
+     a0.applicationname s0, a0.applicationversion v0, a0.optionfiles op0, a0.dddb d0, a0.conddb c0, a0.EXTRAPACKAGES e0, \
+     a1.applicationname s1, a1.applicationversion v1, a1.optionfiles op1, a1.dddb d1, a1.conddb c1, a1.EXTRAPACKAGES e1, \
+     a2.applicationname s2, a2.applicationversion v2, a2.optionfiles op2, a2.dddb d2, a2.conddb c2, a2.EXTRAPACKAGES e2, \
+     a3.applicationname s3, a3.applicationversion v3, a3.optionfiles op3, a3.dddb d3, a3.conddb c3, a3.EXTRAPACKAGES e3, \
+     a4.applicationname s4, a4.applicationversion v4, a4.optionfiles op4, a4.dddb d4, a4.conddb c4, a4.EXTRAPACKAGES e4, \
+     a5.applicationname s5, a5.applicationversion v5, a5.optionfiles op5, a5.dddb d5, a5.conddb c5, a5.EXTRAPACKAGES e5, \
+     a6.applicationname s6, a6.applicationversion v6, a6.optionfiles op6, a6.dddb d6, a6.conddb c6, a6.EXTRAPACKAGES e6 \
+   from pass_index pi , pass_group g, productions prod, \
+        applications a0, applications a1, applications a2, applications a3, applications a4, applications a5, applications a6  \
+   where   \
+      g.groupid=pi.groupid         and \
+      pi.step0=a0.applicationid(+) and \
+      pi.step1=a1.applicationid(+) and \
+      pi.step2=a2.applicationid(+) and \
+      pi.step3=a3.applicationid(+) and \
+      pi.step4=a4.applicationid(+) and \
+      pi.step5=a5.applicationid(+) and \
+      pi.step6=a6.applicationid(+) and \
+      prod.passid=pi.passid' + condition
+      
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      value = res['Value']
+      nb = 0
+      
+      for record in value:
+        nb += 1
+        s0 = ['Step0', record[0],record[1],str(record[2]),record[3],record[4],str(record[5]),str(record[6]),record[7]]
+        s1 = ['Step1', record[0],record[1], str(record[8]),record[9],record[10],str(record[11]),str(record[12]),record[13]]
+        s2 = ['Step2', record[0],record[1], str(record[14]),record[15],record[16],str(record[17]),str(record[18]),record[19]]
+        s3 = ['Step3', record[0],record[1], str(record[20]),record[21],record[22],str(record[23]),str(record[24]),record[25]]
+        s4 = ['Step4', record[0],record[1], str(record[26]),record[27],record[28],str(record[29]),str(record[30]),record[31]]
+        records = [s0,s1,s2,s3,s4]
+        processing[record[0]] = records
+      result = {'Parameters':parametersNames,'Records':processing, 'TotalRecords':nb}
+    return S_OK(result)
+  
   #############################################################################
   def getProcessingPassDesc(self, totalproc, passid, simid = 'ALL'):
     result = {}
     proc = totalproc.split('+')
-    retVal = self.getPassindex(passid)
+    retVal = self.getPassindex_old(passid)
     processing = {}
     if not retVal['OK']:
       return S_ERROR(retVal)
