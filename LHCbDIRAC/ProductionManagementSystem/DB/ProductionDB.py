@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.62 2009/08/03 13:08:14 atsareg Exp $
+# $Id: ProductionDB.py,v 1.63 2009/08/06 20:19:46 atsareg Exp $
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.
@@ -6,7 +6,7 @@
     The following methods are provided for public usage:
 
 """
-__RCSID__ = "$Revision: 1.62 $"
+__RCSID__ = "$Revision: 1.63 $"
 
 import string, types
 from DIRAC.Core.Base.DB import DB
@@ -596,8 +596,8 @@ class ProductionDB(TransformationDB):
     if result['OK']:
       site_se_mapping = result['Value']
 
-    req = "SELECT Jobs.JobID,JobInputs.InputVector,Jobs.TargetSE,Jobs.WmsStatus FROM Jobs,JobInputs" 
-    conditions = ['Jobs.JobID=JobInputs.JobID','TransformationID=%d' % int(productionID)]
+    req = "SELECT JobID,CreationTime,TargetSE,WmsStatus FROM Jobs" 
+    conditions = ['TransformationID=%d' % int(productionID)]
     if statusList:
       statusString = ','.join(["'"+x+"'" for x in statusList])
       conditions.append(" WmsStatus IN (%s) " % statusString)
@@ -612,6 +612,8 @@ class ProductionDB(TransformationDB):
       # do not uncomment this  req += " AND TargetSE='%s'" % site
       req += " LIMIT %d" % numJobs
         
+    print "AT >>>> DB.selectJobs", req    
+        
     result = self._query(req)
 
     if not result['OK']:
@@ -622,33 +624,43 @@ class ProductionDB(TransformationDB):
       if not site:
         # We do not care about the destination site
         for row in result['Value']:
-          if row[1]:
+          jobID = int(row[0])
+          resultInput = self.getJobInputVector(jobID)
+          inputVector = ''
+          if resultInput['OK']:
+            inputVector = resultInput['Value']
+          if inputVector:
             se = row[2]
             targetSite = ''
             for s,sList in site_se_mapping.items():
               if se in sList:
                 targetSite = s
             if targetSite:
-              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':se,'Status':row[3],'Site':targetSite}
+              resultDict[jobID] = {'InputData':inputVector,'TargetSE':se,'Status':row[3],'Site':targetSite}
             else:
               gLogger.warn('Can not find corresponding site for se: '+se)
           else:
-            resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
+            resultDict[jobID] = {'InputData':inputVector,'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
       else:
         # Get the jobs now
 
         for row in result['Value']:
           if len(resultDict) < numJobs:
-            if row[1]:
+            jobID = int(row[0])
+            resultInput = self.getJobInputVector(jobID)
+            inputVector = ''
+            if resultInput['OK']:
+              inputVector = resultInput['Value']
+            if inputVector:
               se = row[2]
               targetSite = ''
               for s,sList in site_se_mapping.items():
                 if se in sList:
                   targetSite = s
               if targetSite and targetSite == site:
-                resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':targetSite}
+                resultDict[jobID] = {'InputData':inputVector,'TargetSE':row[2],'Status':row[3],'Site':targetSite}
             else:
-              resultDict[int(row[0])] = {'InputData':row[1],'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
+              resultDict[jobID] = {'InputData':inputVector,'TargetSE':row[2],'Status':row[3],'Site':'ANY'}
           else:
             break
 
@@ -810,11 +822,26 @@ class ProductionDB(TransformationDB):
     result = self._update(req)
     return result
 
+  def getJobInputVector(self,jobID):
+    """ Get input vector for the given job
+    """
+    
+    req = "SELECT InputVector FROM JobInputs WHERE JobID='%d';" % jobID
+    result = self._query(req)
+    inputVector=''
+    if result['OK'] and result['Value']:
+      inputVector=result['Value'][0][0] 
+      
+    return S_OK(inputVector)  
+
   def getJobInfo(self,productionID,jobID):
     """ returns dictionary with information for given Job of given productionID
     """
     productionID = self.getTransformationID(productionID)
     req = "SELECT JobID,JobWmsID,WmsStatus,TargetSE,CreationTime,LastUpdateTime FROM Jobs WHERE TransformationID=%d AND JobID='%d';" % (productionID,jobID)
+
+    print "AT >>>> getJobInfo", req
+
     result = self._query(req)
     # lets create dictionary
     jobDict = {}
@@ -832,11 +859,10 @@ class ProductionDB(TransformationDB):
       gLogger.error( error )
       return S_ERROR( error )
     
-    req = "SELECT InputVector FROM JobInputs WHERE JobID='%d';" % jobID
-    result = self._query(req)
+    result = self.getJobInputVector(jobID)
     jobDict['InputVector']=''
-    if result['OK'] and result['Value']:
-      jobDict['InputVector']=result['Value'][0][0]      
+    if result['OK']:
+      jobDict['InputVector']=result['Value']    
     
     return S_OK(jobDict)
 

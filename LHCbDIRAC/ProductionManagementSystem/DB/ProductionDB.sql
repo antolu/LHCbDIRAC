@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.18 2009/08/02 20:20:05 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.19 2009/08/06 20:19:46 atsareg Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -77,6 +77,10 @@ CREATE TABLE ProductionRequests (
     PRIMARY KEY(RequestID)
 );
 
+-- The JobID being the secondary column in the Primary Key insures that it is
+-- incremented independently for each distinct TransformationID value, but only 
+-- for MyISAM type of tables
+
 DROP TABLE IF EXISTS Jobs;
 CREATE TABLE Jobs (
 JobID INTEGER NOT NULL AUTO_INCREMENT,
@@ -86,40 +90,18 @@ JobWmsID char(16) DEFAULT '',
 TargetSE char(32) DEFAULT 'Unknown',
 CreationTime DATETIME NOT NULL,
 LastUpdateTime DATETIME NOT NULL,
-PRIMARY KEY(JobID),
-INDEX(WmsStatus),
-INDEX(TransformationID)
+PRIMARY KEY(TransformationID,JobID),
+INDEX(WmsStatus)
 );
 
 DROP TABLE IF EXISTS JobInputs;
 CREATE TABLE JobInputs (
+TransformationID INTEGER NOT NULL,
 JobID INTEGER NOT NULL,
 InputVector BLOB,
-PRIMARY KEY(JobID)
+PRIMARY KEY(TransformationID,JobID)
 );
---------------------------------------------------------------------------------
--- For each row in the Productions table we going to have associated Job table
--- JobID - job index within production
--- WwsStatus - job status in the WMS, for example:
---   Created - newly created job
---   Reserved - prepeared for submission
---   Submitted - job submitted to WMS
---   Runing -
---   Failed -
---   Done - job finished
--- JobWmsID - index of this job in the WMS
---------------------------------------------------------------------------------
--- CREATE TABLE Jobs_%s(
--- JobID INTEGER NOT NULL AUTO_INCREMENT,
--- WmsStatus char(16) DEFAULT 'Created',
--- JobWmsID char(16) DEFAULT '',
--- TargetSE char(32) DEFAULT '',
--- CreationTime DATETIME NOT NULL,
--- LastUpdateTime DATETIME NOT NULL,
--- InputVector BLOB,
--- PRIMARY KEY(JobID),
--- INDEX(WmsStatus)
--- );
+
 --------------------------------------------------------------------------------
 --
 -- Added the standard base class database tables here
