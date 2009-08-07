@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.3 2009/07/17 14:48:08 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.4 2009/08/07 07:59:26 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareReport.py,v 1.3 2009/07/17 14:48:08 joel Exp $"
+__RCSID__ = "$Id: SoftwareReport.py,v 1.4 2009/08/07 07:59:26 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -325,9 +325,6 @@ def CheckSharedArea(self, area):
   """
    check if all application  in the  area are used or not
   """
-  if not os.path.exists(os.environ['LBSCRIPTS_HOME']+'/InstallArea/scripts/usedProjects'):
-      self.log.error('UsedProjects is not in the path')
-      return False
 
   if not area:
     return False
@@ -335,6 +332,22 @@ def CheckSharedArea(self, area):
   localArea = area
   if re.search(':',area):
     localArea = string.split(area,':')[0]
+
+  lbLogin = '%s/LbLogin' %localArea
+  ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
+  if not ret['OK']:
+    gLogger.warn('Error during lbLogin\n%s' %ret)
+  
+  lbenv = ret['outputEnv']  
+  
+  if not lbenv.has_key('LBSCRIPTS_HOME'):
+    self.log.error('LBSCRIPTS_HOME is not defined')
+    return False
+  
+  if not os.path.exists(lbenv['LBSCRIPTS_HOME']+'/InstallArea/scripts/usedProjects'):
+    self.log.error('UsedProjects is not in the path')
+    return False
+
 
   # Now run the installation
   curDir = os.getcwd()
@@ -348,7 +361,7 @@ def CheckSharedArea(self, area):
 
   self.log.info( 'Executing %s' % ' '.join(cmdTuple) )
   timeout = 300
-  ret = systemCall( timeout, cmdTuple )
+  ret = systemCall( timeout, cmdTuple, env=lbenv )
 #  self.log.info(ret)
   os.chdir(curDir)
   if not ret['OK']:
