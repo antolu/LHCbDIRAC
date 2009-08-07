@@ -2,16 +2,16 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.4 2009/06/24 09:37:42 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.5 2009/08/07 10:02:05 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.4 2009/06/24 09:37:42 acsmith Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.5 2009/08/07 10:02:05 acsmith Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.DataManagementSystem.Client.FileCatalog import FileCatalog
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
-import sys
+import sys,re
 
 if len(sys.argv) < 2:
   print 'Usage: dirac-production-verify-outputdata.py prodID'
@@ -39,6 +39,10 @@ filesWithoutReplicas = []
 totalBKSize = 0
 fileInfo = {}
 for lfn,lfnDict in res['Value'].items():
+  if lfnDict.has_key('FileType') and (lfnDict['FileType'] == 'LOG'):
+    continue
+  elif re.search('\.log$',lfn):
+    continue
   if not lfnDict['FilesSize']:
     size = 0
     incorrectlyRegisteredSize.append(lfn)
