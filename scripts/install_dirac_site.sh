@@ -3,22 +3,32 @@
 # File :   install_base.sh
 ########################################################################
 #
-# User that is allow to execute the script
+# User that is allowed to execute the script
 DIRACUSER=dirac
 #
-# Host where it es allow to run the script
+# Host where it is allowed to run the script
 DIRACHOST=YOUR_HOSTNAME
 #
-# Location of the installation
+# Location of the DIRAC site installation (default: /opt/dirac)
 DESTDIR=/opt/dirac
 #
+# Your queue for DIRAC jobs (batch is the default queue of Torque)
+Queue=batch
+# The name of your site given to you by the DIRAC admins
 SiteName=YOUR_SITE_NAME
+# The path to your shared area (default: /opt/shared)
 SharedArea=/opt/shared
+# Dirac Setup (e.g. LHCb-Production or LHCb-Development)
 DIRACSETUP=LHCb-Development
-DIRACVERSION=v4r18
-EXTVERSION=v4r0
+# Dirac version to install (default: HEAD)
+DIRACVERSION=HEAD
+# Version of the external applications to install (default: HEAD)
+EXTVERSION=HEAD
+# Dirac Architecture as determindes by the platform.py script
 DIRACARCH=Linux_x86_64_glibc-2.3.4
+# Python Version to use
 DIRACPYTHON=24
+# Directories to create at DESTDIR
 DIRACDIRS="startup runit data work control requestDB"
 
 export DIRACINSTANCE=Development
@@ -34,8 +44,8 @@ if [ $USER != $DIRACUSER ] ; then
   exit
 fi
 # check if the mask is properly set
-if [ "`umask`" != "0002" ] ; then
-  echo umask should be set to 0002 at system level for users
+if [ "`umask`" != "0002" ] || [ "`umask`" != "0022" ]; then
+  echo umask should be set to 0022 or 0002 at system level for users
   exit
 fi
 #
@@ -83,6 +93,7 @@ DIRAC
 }
 LocalSite
 {
+  Queue = $Queue
   SharedArea = $SharedArea 
   WaitingToRunningRatio = 0.2
   MaxWaitingJobs = 100
