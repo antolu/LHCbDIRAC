@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.102 2009/08/06 16:06:25 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.103 2009/08/07 10:10:19 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.102 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.103 2009/08/07 10:10:19 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1119,15 +1119,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('File Type not found:'+str(ftype)) 
         
         ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
     else:
-      command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and jobs.production='+str(prod)
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)
    
     res = self.dbR_._query(command)
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3]} 
+        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3], 'FileType':record[4]} 
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
