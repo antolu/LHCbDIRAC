@@ -44,7 +44,7 @@ if [ $USER != $DIRACUSER ] ; then
   exit
 fi
 # check if the mask is properly set
-if [ "`umask`" != "0002" ] || [ "`umask`" != "0022" ]; then
+if [ "`umask`" != "0002" ] && [ "`umask`" != "0022" ]; then
   echo umask should be set to 0022 or 0002 at system level for users
   exit
 fi
