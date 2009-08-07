@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.24 2009/07/16 11:32:57 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/GaudiApplicationScript.py,v 1.25 2009/08/07 15:09:12 atsareg Exp $
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.24 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplicationScript.py,v 1.25 2009/08/07 15:09:12 atsareg Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
@@ -287,7 +287,7 @@ class GaudiApplicationScript(ModuleBase):
     if status != 0:
       self.log.info( "%s execution completed with non-zero status:" % os.path.basename(self.script) )
       failed = True
-    elif len(stdError) > 0:
+    elif len(self.stdError) > 0:
       self.log.info( "%s execution completed with application warning:" % os.path.basename(self.script) )
       self.log.info(self.stdError)
     else:
