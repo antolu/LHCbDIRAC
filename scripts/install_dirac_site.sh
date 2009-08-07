@@ -7,14 +7,15 @@
 DIRACUSER=dirac
 #
 # Host where it es allow to run the script
-DIRACHOST=e5dirac.physik.tu-dortmund.de
+DIRACHOST=YOUR_HOSTNAME
 #
 # Location of the installation
 DESTDIR=/opt/dirac
 #
-SiteName=DIRAC.Dortmund.de
+SiteName=YOUR_SITE_NAME
+SharedArea=/opt/shared
 DIRACSETUP=LHCb-Development
-DIRACVERSION=v4r17
+DIRACVERSION=v4r18
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -22,10 +23,6 @@ DIRACDIRS="startup runit data work control requestDB"
 
 export DIRACINSTANCE=Development
 export LOGLEVEL=VERBOSE
-#
-# Uncomment to install from CVS (default install from TAR)
-# it implies -b (build from sources)
-DIRACCVS=yes
 #
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
@@ -86,10 +83,10 @@ DIRAC
 }
 LocalSite
 {
-  SharedArea = /opt/shared
-  waitingToRunningRatio = 0.2
-  maxWaitingJobs = 100
-  maxNumberJobs = 1000
+  SharedArea = $SharedArea 
+  WaitingToRunningRatio = 0.2
+  MaxWaitingJobs = 100
+  MaxNumberJobs = 1000
 }
 EOF
 
@@ -138,8 +135,6 @@ $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH pyth
 #
 # fix user .bashrc
 #
-grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
-  echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
@@ -200,32 +195,3 @@ Systems
 EOF
 
 ######################################################################
-
-if [ ! -z "$DIRACCVS" ] ; then
-
-
-        cd `dirname $DESTDIR`
-        mv DIRAC3/DIRAC DIRAC3/DIRAC.save
-
-echo
-echo
-echo   To get a CVS installation:
-echo
-echo   "   login with your own user"
-echo   "   start a bash shell"
-echo   "   execute"
-echo
-echo
-cat << EOF
-umask 0002
-export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
-cd `dirname $DESTDIR`
-cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
-cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
-cd DIRAC3/DIRAC
-ln -s ../LHCbSystem .
-EOF
-
-fi
-
-exit
