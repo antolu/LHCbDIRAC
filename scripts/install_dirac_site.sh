@@ -95,9 +95,9 @@ LocalSite
 {
   Queue = $Queue
   SharedArea = $SharedArea 
-  WaitingToRunningRatio = 0.2
-  MaxWaitingJobs = 100
-  MaxNumberJobs = 1000
+  WaitingToRunningRatio = 0.5
+  MaxWaitingJobs = 50
+  MaxNumberJobs = 10000
 }
 EOF
 
