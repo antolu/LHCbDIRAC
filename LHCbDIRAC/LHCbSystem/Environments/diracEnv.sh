@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.6 2009/03/11 11:21:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.7 2009/08/09 16:10:46 rgracian Exp $
 # File :   diracEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: diracEnv.sh,v 1.6 2009/03/11 11:21:32 paterson Exp $"
-__VERSION__="$Revision: 1.6 $"
+__RCSID__="$Id: diracEnv.sh,v 1.7 2009/08/09 16:10:46 rgracian Exp $"
+__VERSION__="$Revision: 1.7 $"
 
 if ! [ $# = 1 ] ;then
   echo "usage : . diracEnv <role>"
@@ -63,7 +63,7 @@ else
 fi
 
 
-export DIRACPLAT=`$DIRACROOT/scripts/platform.py`
+[ -z "$DIRACPLAT" ] && export DIRACPLAT=`$DIRACROOT/scripts/platform.py`
 export PATH=$DIRACROOT/$DIRACPLAT/bin:$DIRACROOT/scripts:$PATH
 export DIRACPYTHON=`which python`
 if ! echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin; then
