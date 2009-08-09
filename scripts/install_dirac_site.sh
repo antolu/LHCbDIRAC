@@ -18,13 +18,16 @@ Queue=batch
 SiteName=YOUR_SITE_NAME
 # The path to your shared area (default: /opt/shared)
 SharedArea=/opt/shared
+# If you have a proxy server which is able to handle big files up to 1GB config it here
+# example: HttpProxy=http://yourproxy.yourdomain.tld:3128
+HttpProxy=
 # Dirac Setup (e.g. LHCb-Production or LHCb-Development)
 DIRACSETUP=LHCb-Development
 # Dirac version to install (default: HEAD)
 DIRACVERSION=HEAD
 # Version of the external applications to install (default: HEAD)
 EXTVERSION=HEAD
-# Dirac Architecture as determindes by the platform.py script
+# Dirac Architecture as determined by the platform.py script
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 # Python Version to use
 DIRACPYTHON=24
@@ -93,6 +96,7 @@ DIRAC
 }
 LocalSite
 {
+  HttpProxy = $HttpProxy
   Queue = $Queue
   SharedArea = $SharedArea 
   WaitingToRunningRatio = 0.5
