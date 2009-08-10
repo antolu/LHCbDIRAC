@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.4 2009/08/07 07:59:26 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.5 2009/08/10 07:30:52 roma Exp $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareReport.py,v 1.4 2009/08/07 07:59:26 roma Exp $"
+__RCSID__ = "$Id: SoftwareReport.py,v 1.5 2009/08/10 07:30:52 roma Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -337,7 +337,10 @@ def CheckSharedArea(self, area):
   ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
-  
+    self.log.error('Error during lbLogin\n%s' %ret)
+
+    return False
+
   lbenv = ret['outputEnv']  
   
   if not lbenv.has_key('LBSCRIPTS_HOME'):
