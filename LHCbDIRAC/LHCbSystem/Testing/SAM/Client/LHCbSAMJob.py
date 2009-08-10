@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.23 2009/07/22 08:55:14 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.24 2009/08/10 11:39:05 paterson Exp $
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.23 2009/07/22 08:55:14 joel Exp $"
+__RCSID__ = "$Id: LHCbSAMJob.py,v 1.24 2009/08/10 11:39:05 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -88,8 +88,28 @@ except Exception,x:
     #self.setOwnerGroup(self.samOwnerGroup)
     self.setType(self.samType)
     self.setPriority(self.samPriority)
-    self._addJDLParameter('PilotTypes','private')
     self._addJDLParameter('SubmitPools','SAM')
+
+  #############################################################################
+  def setSAMGroup(self,samGroup):
+    """ Helper function. Set the SAM group and pilot types as required.
+
+        Example usage:
+
+        >>> job = LHCbSAMJob()
+        >>> job.setSAMGroup('SAMsw')
+
+        @param: SAM job group
+        @param: string
+    """
+    if not samGroup in ('SAM','SAMsw'):
+      raise TypeError,'Expected SAM / SAMsw for SAM group'
+
+    if samGroup=='SAM':
+      self.setJobGroup('SAM')
+    else:
+      self.setJobGroup('SAMsw')
+      self._addJDLParameter('PilotTypes','private')
 
   #############################################################################
   def setPriority(self,priority):
