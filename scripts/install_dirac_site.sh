@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.8 2009/08/12 08:12:05 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.9 2009/08/12 17:59:19 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -202,9 +202,13 @@ Install_Options="-S -v $DIRACVERSION -P $VERDIR -i $DIRACPYTHON -o /LocalSite/Si
 [ $EXTVERSION ] && Install_Options="$Install_Options -e $EXTVERSION"
 [ $DIRACARCH ] && Install_Options="$Install_Options -p $DIRACARCH"
 [ "$LOGLEVEL" == "DEBUG" ] && Install_Options="$Install_Options -d"
-Install_Options="$Install_Options -o /DIRAC/Security/SkipCAChecks=yes"
+Install_Options="$Install_Options"
 
 python $CURDIR/dirac-install $Install_Options || exit 1
+#
+# Retrive last version of CA's
+#
+$VERDIR/scripts/dirac-admin-get-CAs
 #
 # Create pro and old links
 old=$DESTDIR/old
@@ -227,15 +231,6 @@ cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1,
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
 $DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 #
-# Retrive last version of CA's
-#
-# To be done
-$DESTDIR/pro/scripts/dirac-configuration-dump-local-cache -f ttt.cfg
-#
-# Remove any reference to SkipCAChecks in dirac.cfg
-#
-sed -i 's/ *SkipCAChecks.*//' $DESTDIR/etc/dirac.cfg
-#
 # fix user .bashrc
 #
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
@@ -252,6 +247,7 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 #
 
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement TaskQueueDirector
+$DESTDIR/pro/scripts/install_agent.sh Framework CAUpdate
 
 cat > $DESTDIR/etc/WorkloadManagement_TaskQueueDirector.cfg <<EOF
 LocalSite
