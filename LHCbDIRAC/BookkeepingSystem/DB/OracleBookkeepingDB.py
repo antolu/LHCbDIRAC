@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.103 2009/08/07 10:10:19 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.104 2009/08/12 10:40:25 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.103 2009/08/07 10:10:19 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.104 2009/08/12 10:40:25 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1105,9 +1105,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR("Job is not found!")
     
   #############################################################################
-  def getProductionFiles(self, prod, ftype):
+  def getProductionFilesWithAGivenDate(self, prod, ftype, startDate = None, endDate = None):
     command = ''
     value = {}
+    condition = ''
+    if startDate != None:
+      condition += ' and files.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    
+    if endDate != None:
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    elif startDate != None and endDate == None:
+      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
       res = self.dbR_._query(fileType)
@@ -1119,9 +1129,38 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('File Type not found:'+str(ftype)) 
         
         ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+condition+' and jobs.production='+str(prod)
     else:
-      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid'+condition+' and jobs.production='+str(prod)
+   
+    res = self.dbR_._query(command)
+    if res['OK']:
+      dbResult = res['Value']
+      for record in dbResult:
+        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3], 'FileType':record[4]} 
+    else:
+      return S_ERROR(res['Message'])
+    return S_OK(value)
+  
+  #############################################################################
+  def getProductionFiles(self, prod, ftype):
+    command = ''
+    value = {}
+      
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+        return S_ERROR('Oracle error'+res['Message'])
+      else:
+        if len(res['Value']) == 0:
+          return S_ERROR('File Type not found:'+str(ftype)) 
+        
+        ftypeId = res['Value'][0][0]
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+condition+' and jobs.production='+str(prod)
+    else:
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid'+condition+' and jobs.production='+str(prod)
    
     res = self.dbR_._query(command)
     if res['OK']:

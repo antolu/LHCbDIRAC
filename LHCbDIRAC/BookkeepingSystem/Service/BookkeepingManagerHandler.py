@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.115 2009/08/06 16:06:25 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.116 2009/08/12 10:40:25 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.115 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.116 2009/08/12 10:40:25 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -233,6 +233,31 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getProductionFiles = [IntType, StringType]
   def export_getProductionFiles(self, prod, fileType):
     return dataMGMT_.getProductionFiles(int(prod), fileType)
+  
+  #############################################################################
+  types_getProductionFilesWithAGivenDate = [DictType]
+  def export_getProductionFilesWithAGivenDate(self, dataSet):
+    if dataSet.has_key('Production'):
+      production = dataSet['Production']
+    else:
+      return S_ERROR('The dictionary is not contains the Production!')
+    
+    if dataSet.has_key('FileType'):
+      fileType = dataSet['FileType']
+    else:
+      fileType = 'ALL'
+    
+    if dataSet.has_key('StartDate'):
+      sDate = dataSet['StartDate']
+    else:
+      sDate = None 
+     
+    if dataSet.has_key('EndDate'):
+      eDate = dataSet['EndDate']
+    else:
+      eDate = None 
+    
+    return dataMGMT_.getProductionFilesWithAGivenDate(production, fileType, sDate, eDate)
   
   #############################################################################  
   types_getProcessingPassDesc = [StringType, IntType, StringType]

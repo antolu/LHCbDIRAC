@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.91 2009/08/06 16:06:25 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.92 2009/08/12 10:40:25 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.91 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.92 2009/08/12 10:40:25 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -244,7 +244,13 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.getProductionFiles(int(prod), fileType)
     return result
-
+  
+  #############################################################################
+  def getProductionFilesWithAGivenDate(self, dataSet):
+    server = self.__getServer()
+    result = server.getProductionFilesWithAGivenDate(dataSet)
+    return result
+  
   #############################################################################
   def getProcessingPassDesc(self, totalproc, passid, simid='ALL'):
     server = self.__getServer()

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.98 2009/08/06 16:06:25 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.99 2009/08/12 10:40:25 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.98 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.99 2009/08/12 10:40:25 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -94,7 +94,7 @@ class LHCB_BKKDBManager(BaseESManager):
     print self.getPossibleParameters()
     print "For Example:"
     print "client.setParameter('Processing Pass')"
-    print "If you need help, you will use client.help() commnad."
+    print "If you need help, you will use client.help() command."
 
   ############################################################################# 
   def _updateTreeLevels(self, level):
