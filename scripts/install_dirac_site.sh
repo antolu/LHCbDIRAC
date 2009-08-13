@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.9 2009/08/12 17:59:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.10 2009/08/13 06:07:30 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -152,20 +152,19 @@ mkdir -p $DESTDIR || error_exit "Install directory $DESTDIR not available"
 CURDIR=`dirname $0`
 CURDIR=`cd $CURDIR; pwd -P`
 
-ROOT=$DESTDIR/DIRAC
+ROOT=$DESTDIR/pro
 
 echo
 echo "Installing under $DESTDIR"
 echo
 echo "Installing DIRAC under $ROOT"
 echo
-[ -L $ROOT ] || ln -sf $DESTDIR/pro $ROOT || exit
 
 if [ ! -d $DESTDIR/etc/grid-security/certificates ]; then
-  mkdir -p $DESTDIR/etc/grid-security/certificates || exit 1
+  mkdir -p $DESTDIR/etc/grid-security/certificates || error_exit "Can not create directory $DESTDIR/etc/grid-security/certificates"
 fi
 if [ ! -e $DESTDIR/etc/dirac.cfg ] ; then
-  cat >> $DESTDIR/etc/dirac.cfg << EOF || exit
+  cat >> $DESTDIR/etc/dirac.cfg << EOF || error_exit "Can not create file $DESTDIR/etc/dirac.cfg"
 DIRAC
 {
   Setup = $DIRACSETUP
@@ -176,35 +175,32 @@ DIRAC
   }
 }
 EOF
-
-
 fi
 
 for dir in $DIRACDIRS ; do
   if [ ! -d $DESTDIR/$dir ]; then
-    mkdir -p $DESTDIR/$dir || exit 1
+    mkdir -p $DESTDIR/$dir || error_exit "Can not create directory $DESTDIR/$dir"
   fi
 done
 
 # give an unique name to dest directory
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
-mkdir -p $VERDIR   || exit 1
+mkdir -p $VERDIR   || error_exit "Can not create directory $VERDIR"
 for dir in etc $DIRACDIRS ; do
-  ln -s ../../$dir $VERDIR   || exit 1
+  ln -s ../../$dir $VERDIR   || error_exit "Can not create link $VERDIR/$dir -> ../../$dir"
 done
 
 # to make sure we do not use DIRAC python
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-Install_Options="-S -v $DIRACVERSION -P $VERDIR -i $DIRACPYTHON -o /LocalSite/Site=$SiteName"
+Install_Options="-S -v $DIRACVERSION -P $VERDIR -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName"
 [ $EXTVERSION ] && Install_Options="$Install_Options -e $EXTVERSION"
 [ $DIRACARCH ] && Install_Options="$Install_Options -p $DIRACARCH"
 [ "$LOGLEVEL" == "DEBUG" ] && Install_Options="$Install_Options -d"
-Install_Options="$Install_Options"
 
-python $CURDIR/dirac-install $Install_Options || exit 1
+python $CURDIR/dirac-install $Install_Options || error_exit "Failed DIRAC installation"
 #
 # Retrive last version of CA's
 #
@@ -213,7 +209,11 @@ $VERDIR/scripts/dirac-admin-get-CAs
 # Create pro and old links
 old=$DESTDIR/old
 pro=$DESTDIR/pro
-[ -L $old ] && rm $old; [ -e $old ] && exit 1; [ -L $pro ] && mv $pro $old; [ -e $pro ] && exit 1; ln -s $VERDIR $pro || exit 1
+[ -L $old ] && rm $old
+[ -e $old ] && error_exit "Fail to remove link $old"
+[ -L $pro ] && mv $pro $old 
+[ -e $pro ] && error_exit "Fail to rename $pro $old"
+ln -s $VERDIR $pro || error_exit "Fail to create link $pro -> $VERDIR"
 
 [ $DIRACARCH ] || DIRACARCH=`$DESTDIR/pro/scripts/platform.py`
 
@@ -222,19 +222,15 @@ pro=$DESTDIR/pro
 ln -sf pro/$DIRACARCH/bin $DESTDIR/bin
 
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
-$DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON 2>&1 1>/dev/null|| exit 1
+$DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON 2>&1 1>/dev/null || error_exit "Could not create $DESTDIR/bashrc"
 
 ##
 ## Compile all python files .py -> .pyc, .pyo
 ##
 cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1, quiet=True )"
-$DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
-$DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
-#
-# fix user .bashrc
-#
-grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
-  echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
+$DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null     || error_exit "Fail to compile .pyc files"
+$DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || error_exit "Fail to compile .pyo files"
+
 chmod +x $DESTDIR/pro/scripts/install_service.sh
 cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 
@@ -245,9 +241,6 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 ##############################################################
 # INSTALL AGENTS
 #
-
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement TaskQueueDirector
-$DESTDIR/pro/scripts/install_agent.sh Framework CAUpdate
 
 cat > $DESTDIR/etc/WorkloadManagement_TaskQueueDirector.cfg <<EOF
 LocalSite
@@ -278,5 +271,8 @@ Systems
   }
 }
 EOF
+
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement TaskQueueDirector
+$DESTDIR/pro/scripts/install_agent.sh Framework CAUpdateAgent
 
 ######################################################################
