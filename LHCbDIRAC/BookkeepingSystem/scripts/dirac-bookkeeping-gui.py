@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.8 2009/03/30 14:55:32 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.9 2009/08/13 11:43:35 zmathe Exp $
 # File :   dirac-bookkeeping-gui.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.8 2009/03/30 14:55:32 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.9 2009/08/13 11:43:35 zmathe Exp $"
 __VERSION__ = "$ $"
-from DIRACEnvironment import DIRAC
-from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget import MainWidget
+from DIRAC.Core.Security.Misc                              import getProxyInfo
+from DIRAC                                                 import gLogger, S_OK, S_ERROR
+from DIRACEnvironment                                      import DIRAC
+from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -37,5 +39,24 @@ class bkk(QApplication):
         self.mainWidget.show()
         self.mainWidget.start()
 if __name__ == "__main__":
+    res = getProxyInfo(False,False)
+    if not res['OK']:
+      gLogger.error("Failed to get client proxy information.",res['Message'])  
+      sys.exit(1)
+    proxyInfo = res['Value']
+    if not proxyInfo.has_key('group'):
+      errStr = "Proxy information does not contain the group."
+      gLogger.error(errStr)
+      sys.exit(1)
+    if not proxyInfo.has_key('VOMS'):
+      errStr = "Proxy information does not contain the VOMs information."     
+      gLogger.error(errStr)
+      sys.exit(1)
+    res = getDNForUsername(proxyInfo['username'])
+    if not res['OK']:
+      errStr = "ReplicaManager.__getClientCertGroup: Error getting known proxies for user."
+      gLogger.error(errStr,res['Message'])
+      sys.exit(1)
+      
     app = bkk(sys.argv)
     sys.exit(app.exec_())
