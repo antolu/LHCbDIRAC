@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.143 2009/08/13 06:22:38 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.144 2009/08/13 06:47:28 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.143 2009/08/13 06:22:38 rgracian Exp $"
-__VERSION__ = "$Revision: 1.143 $"
+__RCSID__   = "$Id: dirac-install,v 1.144 2009/08/13 06:47:28 rgracian Exp $"
+__VERSION__ = "$Revision: 1.144 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -2414,7 +2414,8 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     if not dirac.serverFlag:
       try:
         from DIRAC.FrameworkSystem.Client.BundleDeliveryClient import BundleDeliveryClient
-        os.makedirs( os.path.join( dirac.root(), 'etc', 'grid-security', 'certificates' ) )
+        if not os.path.exists( os.path.join( dirac.root(), 'etc', 'grid-security', 'certificates' ) ):
+          os.makedirs( os.path.join( dirac.root(), 'etc', 'grid-security', 'certificates' ) )
         bdc = BundleDeliveryClient()
         result = bdc.syncCAs()
         if result[ 'OK' ]:
