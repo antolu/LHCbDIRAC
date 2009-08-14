@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.9 2009/08/13 11:43:35 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.10 2009/08/14 15:01:08 zmathe Exp $
 # File :   dirac-bookkeeping-gui.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.9 2009/08/13 11:43:35 zmathe Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.10 2009/08/14 15:01:08 zmathe Exp $"
 __VERSION__ = "$ $"
 from DIRAC.Core.Security.Misc                              import getProxyInfo
+from DIRAC.Core.Security.CS import getDNForUsername
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 from DIRACEnvironment                                      import DIRAC
 from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
@@ -46,10 +47,6 @@ if __name__ == "__main__":
     proxyInfo = res['Value']
     if not proxyInfo.has_key('group'):
       errStr = "Proxy information does not contain the group."
-      gLogger.error(errStr)
-      sys.exit(1)
-    if not proxyInfo.has_key('VOMS'):
-      errStr = "Proxy information does not contain the VOMs information."     
       gLogger.error(errStr)
       sys.exit(1)
     res = getDNForUsername(proxyInfo['username'])
