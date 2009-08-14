@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.10 2009/08/13 06:07:30 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.11 2009/08/14 08:24:11 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -204,6 +204,8 @@ python $CURDIR/dirac-install $Install_Options || error_exit "Failed DIRAC instal
 #
 # Retrive last version of CA's
 #
+[ $DIRACARCH ] || DIRACARCH=`$DESTDIR/pro/scripts/platform.py`
+export DIRACPLAT=$DIRACARCH
 $VERDIR/scripts/dirac-admin-get-CAs
 #
 # Create pro and old links
@@ -214,8 +216,6 @@ pro=$DESTDIR/pro
 [ -L $pro ] && mv $pro $old 
 [ -e $pro ] && error_exit "Fail to rename $pro $old"
 ln -s $VERDIR $pro || error_exit "Fail to create link $pro -> $VERDIR"
-
-[ $DIRACARCH ] || DIRACARCH=`$DESTDIR/pro/scripts/platform.py`
 
 #
 # Create bin link
