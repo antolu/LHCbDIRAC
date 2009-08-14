@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.104 2009/08/12 10:40:25 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.105 2009/08/14 14:18:40 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.104 2009/08/12 10:40:25 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.105 2009/08/14 14:18:40 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1255,7 +1255,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     values += str(step6)
     command = 'insert into pass_index (PASSID, DESCRIPTION, GROUPID, STEP0, STEP1, STEP2, STEP3, STEP4, STEP5, STEP6) values('+values+')'
     res = self.dbW_._query(command)
-    print res
     return res
 
 
@@ -1600,7 +1599,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       inputprod = None
     res = self.getSimulationCondIdByDesc(simdesc)
-    print res['Value']
+    
     if not res['OK']:
       gLogger.error("Simulation conditions problem", res["Message"])
       return S_ERROR("Simulation conditions problem" + str(res["Message"]))
@@ -2014,7 +2013,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   logicalFileNames['NotProcessed']+=[fileName]
                 else:
                    dbResult = res['Value']
-                   print dbResult
                    for record in dbResult:
                      fileids +=[record[1]]
                      if record[2] != 'No':
@@ -2364,7 +2362,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
       result = res
     else:
       records = res['Value']  
-      print records
       for file in records:
         value = records[file]
         command = 'select jobs.runnumber,jobs.fillnumber, configurations.configname,configurations.configversion from jobs,configurations where configurations.configurationid= jobs.configurationid and jobs.jobid='+str(value['JobId'])
