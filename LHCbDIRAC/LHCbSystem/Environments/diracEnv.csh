@@ -1,12 +1,12 @@
 #!/bin/csh
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.11 2009/03/11 11:21:25 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.csh,v 1.12 2009/08/16 16:45:25 rgracian Exp $
 # File :   diracEnv.csh
 # Author : Joel Closier
 # usage : source diracEnv.csh <role>
 ########################################################################
-set __RCSID__='$Id: diracEnv.csh,v 1.11 2009/03/11 11:21:25 paterson Exp $'
-set __VERSION__='$Revision: 1.11 $'
+set __RCSID__='$Id: diracEnv.csh,v 1.12 2009/08/16 16:45:25 rgracian Exp $'
+set __VERSION__='$Revision: 1.12 $'
 
 if ($#argv != 1) then
   echo "usage : source diracEnv.csh <role>"
@@ -67,8 +67,16 @@ else
   set userPasswd=`cat ~/.lcgpasswd`
 endif
 
+[ -z "$DIRACPLAT" ]        && setenv DIRACPLAT        `$DIRACROOT/scripts/platform.py`
+# If not defined it will prevent grid commands in lcg tar to find CAs
+[ -z "$X509_CERT_DIR" ]    && setenv X509_CERT_DIR    "$DIRACROOT/etc/grid-security/certificates"
+# If not defined it will prevent voms commands DIRAC to determine voms servers
+[ -z "$DIRAC_VOMSES" ]     && setenv DIRAC_VOMSES     "$DIRACROOT/etc/vomses"
+# If not defined it will prevent voms commands in lcg tar to check voms server credentials
+[ -z "$X509_VOMS_DIR" ]    && setenv X509_VOMS_DIR    "$DIRACROOT/etc/grid-security/vomsdir"
+# If not defined it will prevent gsissh command in lcg tar to work
+[ -z "$GLOBUS_LOCATION" ]  && setenv GLOBUS_LOCATION  "$DIRACROOT/$DIRACPLAT"
 
-setenv DIRACPLAT `$DIRACROOT/scripts/platform.py`
 setenv PATH $DIRACROOT/$DIRACPLAT/bin:$DIRACROOT/scripts:$PATH
 setenv DIRACPYTHON `which python`
 echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin

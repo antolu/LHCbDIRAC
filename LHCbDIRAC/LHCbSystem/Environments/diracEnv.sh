@@ -1,11 +1,11 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.7 2009/08/09 16:10:46 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Environments/diracEnv.sh,v 1.8 2009/08/16 16:45:12 rgracian Exp $
 # File :   diracEnv.sh
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__="$Id: diracEnv.sh,v 1.7 2009/08/09 16:10:46 rgracian Exp $"
-__VERSION__="$Revision: 1.7 $"
+__RCSID__="$Id: diracEnv.sh,v 1.8 2009/08/16 16:45:12 rgracian Exp $"
+__VERSION__="$Revision: 1.8 $"
 
 if ! [ $# = 1 ] ;then
   echo "usage : . diracEnv <role>"
@@ -62,8 +62,16 @@ else
   userPasswd=`cat ~/.lcgpasswd`
 fi
 
+[ -z "$DIRACPLAT" ]        && export DIRACPLAT=`$DIRACROOT/scripts/platform.py`
+# If not defined it will prevent grid commands in lcg tar to find CAs
+[ -z "$X509_CERT_DIR" ]    && export X509_CERT_DIR="$DIRACROOT/etc/grid-security/certificates"
+# If not defined it will prevent voms commands DIRAC to determine voms servers
+[ -z "$DIRAC_VOMSES" ]     && export DIRAC_VOMSES="$DIRACROOT/etc/vomses"
+# If not defined it will prevent voms commands in lcg tar to check voms server credentials
+[ -z "$X509_VOMS_DIR" ]    && export X509_VOMS_DIR="$DIRACROOT/etc/grid-security/vomsdir"
+# If not defined it will prevent gsissh command in lcg tar to work
+[ -z "$GLOBUS_LOCATION" ]  && export GLOBUS_LOCATION="$DIRACROOT/$DIRACPLAT"
 
-[ -z "$DIRACPLAT" ] && export DIRACPLAT=`$DIRACROOT/scripts/platform.py`
 export PATH=$DIRACROOT/$DIRACPLAT/bin:$DIRACROOT/scripts:$PATH
 export DIRACPYTHON=`which python`
 if ! echo $userPasswd | lhcb-proxy-init -d -g $group --pwstdin; then
