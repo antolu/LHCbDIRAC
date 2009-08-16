@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.146 2009/08/16 17:11:51 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.147 2009/08/16 17:36:40 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.146 2009/08/16 17:11:51 rgracian Exp $"
-__VERSION__ = "$Revision: 1.146 $"
+__RCSID__   = "$Id: dirac-install,v 1.147 2009/08/16 17:36:40 rgracian Exp $"
+__VERSION__ = "$Revision: 1.147 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -134,7 +134,6 @@ srcNo = len(src_tars)
 binNo = len(bin_tars)
 
 vomsesDict =  {'lhcb': '"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
-vomsDirDict = {'lhcb': { "host": "lcg-voms.cern.ch", "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch", "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}  }
 vomsDirDict = {'lhcb': { "host": "lcg-voms.cern.ch", 
                          "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch", 
                          "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}  }
@@ -694,7 +693,7 @@ class Dirac:
       if not os.path.exists( vomsDir ):
         # will raise an exception if the directory already exists
         os.makedirs( vomsDir )
-      for vo,voDict in vomsDirDict:
+      for vo,voDict in vomsDirDict.items():
         vomsDirFile = os.path.join( vomsDir, "%s.lsc" % voDict["host"] )
         f = open( vomsDirFile, 'w' )
         f.write( "%s\n%s\n" % ( voDict["DN"], voDict["CA"] ) )
