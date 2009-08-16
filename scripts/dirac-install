@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.144 2009/08/13 06:47:28 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.145 2009/08/16 17:04:29 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.144 2009/08/13 06:47:28 rgracian Exp $"
-__VERSION__ = "$Revision: 1.144 $"
+__RCSID__   = "$Id: dirac-install,v 1.145 2009/08/16 17:04:29 rgracian Exp $"
+__VERSION__ = "$Revision: 1.145 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -133,7 +133,10 @@ bin_tars = [ { 'name': 'DIRAC-external-client',
 srcNo = len(src_tars)
 binNo = len(bin_tars)
 
-vomsesDict = {'lhcb':'"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
+vomsesDict =  {'lhcb': '"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
+vomsDirDict = {'lhcb': { "host": "lcg-voms.cern.ch", 
+                         "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch", 
+                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}  }
 
 # Current python versions in use
 
@@ -650,6 +653,7 @@ class Dirac:
     """
      Make sure that dirac.cfg file exists in the default location, even if empty
      create vomses file
+     create vomsdir .lsc file
     """
     etcPath = os.path.join( self.__rootPath, 'etc')
     cfgPath = os.path.join( etcPath, 'dirac.cfg' )
@@ -677,9 +681,22 @@ class Dirac:
     try:
       os.mkdir( vomsesDir )
       for vo in vomsesDict:
-        vomsesFile = os.path.join( vomsesDir, '%s-voms.cern.ch' % vo )
+        vomsesFile = os.path.join( vomsesDir, "%s" % vo )
         f = open( vomsesFile, 'w' )
         f.write( '%s\n' % '\n'.join(vomsesDict[vo].split('\n')) )
+        f.close()
+    except:
+      pass
+
+    try:
+      vomsDir = os.path.join( etcPath, 'grid-security', vomsdir' )
+      if not os.path.exists( vomsDir ):
+        # will raise an exception if the directory already exists
+        os.makedirs( vomsDir )
+      for vo,voDict in vomsDirDict:
+        vomsDirFile = os.path.join( vomsDir, "%s.lsc" % voDict["host"] )
+        f = open( vomsDirFile, 'w' )
+        f.write( "%s\n%s\n" % ( voDict["DN"], voDict["CA"] ) )
         f.close()
     except:
       pass
