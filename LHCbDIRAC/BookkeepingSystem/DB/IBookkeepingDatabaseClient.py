@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.54 2009/08/12 10:40:25 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.55 2009/08/17 13:29:40 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.54 2009/08/12 10:40:25 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.55 2009/08/17 13:29:40 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -393,6 +393,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getAllAncestors(self, lfn, depth):
     return self.getManager().getAllAncestors(lfn, depth)
+  
+  #############################################################################
+  def getAllAncestorsWithFileMetaData(self, lfn, depth):
+    return self.getManager().getAllAncestorsWithFileMetaData(lfn, depth)
   
   #############################################################################
   def getDescendents(self, lfn, depth):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.92 2009/08/12 10:40:25 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.93 2009/08/17 13:29:40 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.92 2009/08/12 10:40:25 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.93 2009/08/17 13:29:40 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -372,6 +372,16 @@ class BookkeepingClient:
       result = server.getAncestors([lfns], depth)
     else:
       result = server.getAncestors(lfns, depth)
+    return result
+
+  #############################################################################
+  def getAllAncestorsWithFileMetaData(self, lfns, depth=1):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAllAncestorsWithFileMetaData([lfns], depth)
+    else:
+      result = server.getAllAncestorsWithFileMetaData(lfns, depth)
     return result
 
   #############################################################################
