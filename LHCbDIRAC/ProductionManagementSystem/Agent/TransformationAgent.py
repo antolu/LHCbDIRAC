@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.32 2009/08/18 10:50:47 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.33 2009/08/18 11:01:18 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.32 2009/08/18 10:50:47 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.33 2009/08/18 11:01:18 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -500,54 +500,6 @@ class TransformationAgent(Agent):
       result = server.setFileStatusForTransformation(production,[('MissingLFC',missing_lfns)])
       if not result['OK']:
         gLogger.warn(result['Message'])
-    return S_OK(lfc_data)
-
-  def checkDataWithLFC(self,production,data):
-    """ Check the lfns and replicas with the LFC catalog
-    """
-
-    # Sort files by LFN
-    datadict = {}
-    for lfn,se in data:
-      if not datadict.has_key(lfn):
-        datadict[lfn] = []
-      datadict[lfn].append(se)
-
-    lfns = datadict.keys()
-    start = time.time()
-    result = self.lfc.getReplicas(lfns)
-    delta = time.time() - start
-    gLogger.verbose('LFC results for %d files obtained in %.2f seconds' % (len(lfns),delta))
-    lfc_datadict = {}
-    lfc_data = []
-    if not result['OK']:
-      return result
-
-    failover_lfns = []
-    replicas = result['Value']['Successful']
-    for lfn, replicaDict in replicas.items():
-      lfc_datadict[lfn] = []
-      for se,pfn in replicaDict.items():
-        # Do not consider replicas in FAILOVER type storage
-        if se.lower().find('failover') == -1:
-          lfc_datadict[lfn].append(se)
-          lfc_data.append((lfn,se))
-        else:
-          failover_lfns.append(lfn)
-    lfc_lfns = lfc_datadict.keys()
-    # Check the input files if they are known by LFC
-    missing_lfns = []
-    for lfn in lfns:
-      if lfn not in lfc_lfns:
-        missing_lfns.append(lfn)
-        gLogger.warn('LFN: %s not found in the LFC' % lfn)
-    if missing_lfns:
-      # Mark this file in the transformation
-      server = RPCClient('ProductionManagement/ProductionManager')
-      result = server.setFileStatusForTransformation(production,[('MissingLFC',missing_lfns)])
-      if not result['OK']:
-        gLogger.warn(result['Message'])
-
     return S_OK(lfc_data)
 
   def checkAncestors(self,lfn,ancestorDepth):
