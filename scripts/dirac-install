@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.148 2009/08/17 13:16:27 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.149 2009/08/18 16:30:37 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.148 2009/08/17 13:16:27 rgracian Exp $"
-__VERSION__ = "$Revision: 1.148 $"
+__RCSID__   = "$Id: dirac-install,v 1.149 2009/08/18 16:30:37 rgracian Exp $"
+__VERSION__ = "$Revision: 1.149 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -33,7 +33,7 @@ DIRAC_CVS_REPOSITORY = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
 DIRAC_HTTP_SERVER    = 'http://cern.ch/lhcbproject/dist/DIRAC3'
 # DIRAC_HTTP_SERVER    = 'http://lhcbweb.pic.es/distribution/DIRAC3'
 DIRAC_VERSION        = 'HEAD'
-DIRAC_PYTHON         = '24'
+DIRAC_PYTHON         = '25'
 
 # List of native DIRAC platform supported by DIRAC, currently limited by the
 # availability of LCG python modules
@@ -48,6 +48,7 @@ availablePlatforms =  [ 'Linux_x86_64_glibc-2.5',      # slc5 64 bits
 
 # version of LCG tarball (with LCG python bindings)
 lcgVer = '3.1.14-0'
+lcgVer = '2009-08-13'
 
 # conversion between COMTCONFIG (lhcb platforms) and DIRAC platforms (also in dirac-pilot)
 platformDict = { 'slc4_ia32_gcc34' : 'Linux_i686_glibc-2.3.4',
