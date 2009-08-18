@@ -15,10 +15,8 @@ set X509_VOMS_DIR "$(X509_VOMS_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/cu
 
 use pyqt     v* LCG_Interfaces
 
-macro        Python_config_version               2.4.2 \
-             "target-slc5"                       2.5
-macro        globus_config_version               4.0.3-VDT-1.6.0 \
-             "target-slc5"                       4.0.7-VDT-1.10.1 
+macro        Python_config_version               2.5 
+
 macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
 macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
 macro        Python_config_version_twodigit   `$(pyth_maj)`.`$(pyth_min)`
@@ -29,13 +27,25 @@ macro        sip_config_version                  4.7.9
 
 #----------------------------------------------------------------------------------------
 # define specific version which are not in LHCBGRID package if needed: examples here
-macro       lcgutils_config_version             1.7.4-1
-macro       gfal_config_version                 1.11.6-2
+#macro        globus_config_version               4.0.3-VDT-1.6.0 \
+#             "target-slc5"                       4.0.7-VDT-1.10.1 
 
-macro       lfc_dpm_version                     1.7.2-1sec
+#macro       lcgutils_config_version             1.7.6-1
+#macro       gfal_config_version                 1.11.8-2
 
-macro       voms_version                        1.9.8-1
-macro       vomsapic_config_version             $(voms_version)
-macro       vomsapicpp_config_version           $(voms_version)
-macro       vomsclients_config_version          $(voms_version)
+#macro       lfc_dpm_version                     1.7.2-1sec
 
+#macro       voms_version                        1.8.9-2 \
+#            "target-slc5"                       1.8.12-1
+#macro       vomsapic_config_version             $(voms_version)  \
+#            "target-slc5"                       1.8.9-2
+#macro       vomsapicpp_config_version           $(voms_version)
+#macro       vomsclients_config_version          $(voms_version)
+#macro       vomsapi_noglobus_config_version     $(voms_version)
+
+#macro       cgsigsoap_config_version            1.3.3-1
+
+#macro       myproxy_config_version              3.6-VDT-1.6.0 \
+#            "target-slc5"                       4.2-VDT-1.10.1
+
+#use vomsapi_noglobus v* LCG_Interfaces
