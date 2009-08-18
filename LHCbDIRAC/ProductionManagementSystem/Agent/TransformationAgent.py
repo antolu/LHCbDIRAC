@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.31 2009/08/18 09:38:31 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.32 2009/08/18 10:50:47 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.31 2009/08/18 09:38:31 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.32 2009/08/18 10:50:47 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -169,7 +169,7 @@ class TransformationAgent(Agent):
 
     # Obtain the sizes for the files from the catalog
     data_m = data
-    res = self.lfc.getFileSize(datadict.keys())
+    res = self.lfc.getFileSize(lfns)
     fileSizes = {}
     if not res['OK']:
       gLogger.error("Failed to get file sizes.")
@@ -208,8 +208,6 @@ class TransformationAgent(Agent):
       return S_ERROR("Attempting to use BySize plugin and not file sizes provided")
 
     input_size = float(transDict['GroupSize'])*1000*1000*1000  # input size in GB converted to bytes
-    dataLog = RPCClient('DataManagement/DataLogging')
-    server = RPCClient('ProductionManagement/ProductionManager')
     # Sort files by SE
     datadict = {}
     for lfn,se in data:
@@ -222,21 +220,25 @@ class TransformationAgent(Agent):
     if not datadict:
       return data_m
 
-    lfns = []    
     # Group files by SE
     if flush: # flush mode
       chosenSE = datadict.keys()[0]
       lfns = datadict[chosenSE]
     else: # normal  mode
-      chosenSE = datadict.keys()[0]
-      selectedSize = 0
-      candidateFiles = datadict[chosenSE]
-      while selectedSize < input_size:
-        lfn = candidateFiles[0]
-        candidateFiles.remove(lfn)
-        if fileSizes.has_key(lfn):
-          lfns.append(lfn)
-          selectedSize += fileSizes[lfn]
+      for chosenSE in datadict.keys():
+        lfns = []
+        selectedSize = 0
+        candidateFiles = datadict[chosenSE]
+        while selectedSize < input_size:
+          if not candidateFiles:
+            break
+          lfn = candidateFiles[0]
+          candidateFiles.remove(lfn)
+          if fileSizes.has_key(lfn):
+            lfns.append(lfn)
+            selectedSize += fileSizes[lfn]
+        if selectedSize > input_size:
+          continue 
 
     if not lfns:
       gLogger.verbose("Neither SE has enough input data")
@@ -252,6 +254,8 @@ class TransformationAgent(Agent):
     return data_m
 
   def __createJob(self, production,lfns,lse):
+    dataLog = RPCClient('DataManagement/DataLogging')
+    server = RPCClient('ProductionManagement/ProductionManager')
     result = self.addJobToProduction(production,lfns,lse)
     if not result['OK']:
       gLogger.warn("Failed to add a new job to repository: "+result['Message'])
@@ -465,7 +469,7 @@ class TransformationAgent(Agent):
     """
     fileCatalog = FileCatalog()
     start = time.time()
-    res = fileCatalog.getReplicas(lfns)
+    result = fileCatalog.getReplicas(lfns)
     delta = time.time() - start
     gLogger.verbose('Replica results for %d files obtained in %.2f seconds' % (len(lfns),delta))
     lfc_datadict = {}
