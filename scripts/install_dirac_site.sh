@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.12 2009/08/14 16:24:14 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.13 2009/08/18 16:21:33 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -252,6 +252,10 @@ LocalSite
   WaitingToRunningRatio = 0.5
   MaxWaitingJobs = 50
   MaxNumberJobs = 10000
+  ResourceDict
+  {
+    Site = $SiteName
+  }
 }
 Systems
 {
