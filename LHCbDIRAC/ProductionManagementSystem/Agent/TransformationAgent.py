@@ -1,17 +1,17 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.30 2009/07/09 20:59:55 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.31 2009/08/18 09:38:31 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.30 2009/07/09 20:59:55 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.31 2009/08/18 09:38:31 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
+from DIRAC.DataManagementSystem.Client.FileCatalog import FileCatalog
 from DIRAC.LHCbSystem.Utilities.AncestorFiles import getAncestorFiles
 from DIRAC.Core.Utilities.SiteSEMapping       import getSitesForSE
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
@@ -34,7 +34,7 @@ class TransformationAgent(Agent):
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','yes')
-    self.lfc = LcgFileCatalogCombinedClient()
+    self.lfc = FileCatalog('LcgFileCatalogCombined')
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
     res = setupShifterProxyInEnv("ProductionManager")
@@ -119,7 +119,7 @@ class TransformationAgent(Agent):
         'Standard' plugin is used.
     """
 
-    available_plugins = ['CCRC_RAW','Standard']
+    available_plugins = ['CCRC_RAW','Standard','BySize']
 
     prodID = long(transDict['TransID'])
     prodName = transDict['Name']
@@ -167,11 +167,22 @@ class TransformationAgent(Agent):
           data_m.append((lfn,se))
       data = data_m
 
+    # Obtain the sizes for the files from the catalog
+    data_m = data
+    res = self.lfc.getFileSize(datadict.keys())
+    fileSizes = {}
+    if not res['OK']:
+      gLogger.error("Failed to get file sizes.")
+    elif res['Value']['Failed']:
+      gLogger.error("Failed to get file sizes for %s files" % len(res['Value']['Failed'].keys()))
+    else:
+      fileSizes = res['Value']['Successful']
+
     nJobs = 0
     if flush:
       while len(data) >0:
         ldata = len(data)
-        data = eval('self.generateJob_'+plugin+'(data,prodID,transDict,flush)')
+        data = eval('self.generateJob_'+plugin+'(data,prodID,transDict,flush,fileSizes)')
         if ldata == len(data):
           break
         else:
@@ -179,7 +190,7 @@ class TransformationAgent(Agent):
     else:
       while len(data) >= group_size:
         ldata = len(data)
-        data = eval('self.generateJob_'+plugin+'(data,prodID,transDict,flush)')
+        data = eval('self.generateJob_'+plugin+'(data,prodID,transDict,flush,fileSizes)')
         if ldata == len(data):
           break
         else:
@@ -189,7 +200,83 @@ class TransformationAgent(Agent):
     return S_OK(nJobs)
 
   #####################################################################################
-  def generateJob_CCRC_RAW(self,data,production,transDict,flush=False):
+  def generateJob_BySize(self,data,production,transDict,flush=False,fileSizes={}):
+    """ Generate a job according to the CCRC 2008 site shares
+    """
+    if not fileSizes:
+      gLogger.error("Attempting to use BySize plugin and not file sizes provided")
+      return S_ERROR("Attempting to use BySize plugin and not file sizes provided")
+
+    input_size = float(transDict['GroupSize'])*1000*1000*1000  # input size in GB converted to bytes
+    dataLog = RPCClient('DataManagement/DataLogging')
+    server = RPCClient('ProductionManagement/ProductionManager')
+    # Sort files by SE
+    datadict = {}
+    for lfn,se in data:
+      if not datadict.has_key(se):
+        datadict[se] = []
+      datadict[se].append(lfn)
+
+    data_m = data
+    # If we have no data then return
+    if not datadict:
+      return data_m
+
+    lfns = []    
+    # Group files by SE
+    if flush: # flush mode
+      chosenSE = datadict.keys()[0]
+      lfns = datadict[chosenSE]
+    else: # normal  mode
+      chosenSE = datadict.keys()[0]
+      selectedSize = 0
+      candidateFiles = datadict[chosenSE]
+      while selectedSize < input_size:
+        lfn = candidateFiles[0]
+        candidateFiles.remove(lfn)
+        if fileSizes.has_key(lfn):
+          lfns.append(lfn)
+          selectedSize += fileSizes[lfn]
+
+    if not lfns:
+      gLogger.verbose("Neither SE has enough input data")
+    else:
+      # We have found a SE with minimally (or max in case of flush) sufficient amount of data
+      res = self.__createJob(production,lfns,chosenSE)
+      if res['OK']:
+        # Remove used files from the initial list
+        data_m = []
+        for lfn,se in data:
+          if lfn not in lfns:
+            data_m.append((lfn,se))
+    return data_m
+
+  def __createJob(self, production,lfns,lse):
+    result = self.addJobToProduction(production,lfns,lse)
+    if not result['OK']:
+      gLogger.warn("Failed to add a new job to repository: "+result['Message'])
+      return result
+    jobID = long(result['Value'])
+    if not jobID:
+      gLogger.warn("Failed to obtain jobID for newly create job")
+
+    result = server.setFileStatusForTransformation(production,[('Assigned',lfns)])
+    if not result['OK']:
+      gLogger.error("Failed to update file status for production %d" % production)
+      
+    result = server.setFileJobID(production,jobID,lfns)
+    if not result['OK']:
+      gLogger.error("Failed to set file job ID for production %d" % production)
+      
+    result = server.setFileSEForTransformation(production,lse,lfns)
+    if not result['OK']:
+      gLogger.error("Failed to set SE for production %d" % production)
+    for lfn in lfns:
+      result = dataLog.addFileRecord(lfn,'Job created','ProdID: %s JobID: %s' % (production,jobID),'','TransformationAgent')
+    return S_OK()
+
+  #####################################################################################
+  def generateJob_CCRC_RAW(self,data,production,transDict,flush=False,fileSizes={}):
     """ Generate a job according to the CCRC 2008 site shares
     """
 
@@ -277,7 +364,7 @@ class TransformationAgent(Agent):
     return data_m
 
   #####################################################################################
-  def generateJob_Standard(self,data,production,transDict,flush=False):
+  def generateJob_Standard(self,data,production,transDict,flush=False,fileSizes={}):
     """ Generates a job based on the input data, adds job to the repository
         and returns a reduced list of the lfns that rest to be processed
         If flush is true, the group_size is not taken into account
@@ -289,8 +376,6 @@ class TransformationAgent(Agent):
     # Sort files by SE
     datadict = {}
     for lfn,se in data:
-      #if se in self.seBlackList:
-      #  continue
       if not datadict.has_key(se):
         datadict[se] = []
       datadict[se].append(lfn)
