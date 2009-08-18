@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.13 2009/08/18 16:21:33 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.14 2009/08/18 19:44:22 ffeldhau Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -40,7 +40,7 @@ DIRACARCH=""
 HttpProxy=""
 #
 # The path to your shared area (default: /opt/shared)
-SharedArea=/opt/shared
+SharedArea=""
 
 usage(){
 echo Usage: $0 
@@ -52,6 +52,7 @@ echo "  -Q --Queue Queue        Batch System submit Queue (default: $Queue)"
 echo "  -E --ExecQueue Queue    Batch System executing Queue (default: same as Queue)"
 echo "  -U --User UserName      User executing the script (default: $DIRACUSER)"
 echo "  -p --platform Platform  Use Platform instead of local one"
+echo "  -s --shared SharedArea  Set and use SharedArea
 echo "  -h --help               Print this"
 exit 0
 }
@@ -118,6 +119,12 @@ do
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
     ExecQueue=$1   
+  ;;
+  -s | --shared )
+    switch=$1
+    shift
+    [ $1 ] || error_exit "Switch $switch requires a argument"
+    SharedArea=$1
   ;;
   -U | --User )
     switch=$1
