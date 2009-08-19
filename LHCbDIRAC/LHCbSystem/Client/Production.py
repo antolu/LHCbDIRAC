@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.33 2009/08/06 14:09:44 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.34 2009/08/19 15:26:41 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.33 2009/08/06 14:09:44 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.34 2009/08/19 15:26:41 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -589,9 +589,8 @@ class Production(LHCbJob):
     return self.getParameter(int(productionID),'DetailedInfo')
 
   #############################################################################
-  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProduction='',prodXMLFile='',printOutput=False):
-    """ Under development.
-        Return detailed information for a given production.
+  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProduction='',prodXMLFile='',requestID=0,printOutput=False):
+    """ This method will publish production parameters
     """
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
@@ -610,47 +609,120 @@ class Production(LHCbJob):
         fd.write(body)
         fd.close()
 
-    if not bkPassInfo:
-      bkPassInfo = self.workflow.findParameter('BKProcessingPass').getValue()
-    if not groupDescription:
-      groupDescription = self.workflow.findParameter('groupDescription').getValue()
-
     prodWorkflow = Workflow(prodXMLFile)
+    if not bkPassInfo:
+      bkPassInfo = prodWorkflow.findParameter('BKProcessingPass').getValue()
+    if not groupDescription:
+      groupDescription = prodWorkflow.findParameter('groupDescription').getValue()
+
     parameters = {}
-    parameters['CondDBTag']=self.workflow.findParameter('CondDBTag').getValue()
-    parameters['DDDBTag']=self.workflow.findParameter('DDDBTag').getValue()
-    parameters['ConfigName']=self.workflow.findParameter('configName').getValue()
-    parameters['ConfigVersion']=self.workflow.findParameter('configVersion').getValue()
-    #now have to go through the BK steps to construct info string
+ #   parameters['PRODUCTION_ID']=str(prodID)
+ #   parameters['JOB_ID']='99999999'
+    parameters['Priority']=prodWorkflow.findParameter('Priority').getValue()
+    parameters['CondDBTag']=prodWorkflow.findParameter('CondDBTag').getValue()
+    parameters['DDDBTag']=prodWorkflow.findParameter('DDDBTag').getValue()
+    parameters['configName']=prodWorkflow.findParameter('configName').getValue()
+    parameters['configVersion']=prodWorkflow.findParameter('configVersion').getValue()
+    parameters['outputDataFileMask']=prodWorkflow.findParameter('outputDataFileMask').getValue()
+#    parameters['dataType']=prodWorkflow.findParameter('dataType').getValue()
+    parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
 
-    info = 'Production %s is created with the following parameters:\n' %prodID
-#(,appConfigVersion,gaussVersion,gaussOpts,eventTypeID,gaussGen,numberOfEvents,booleVersion,booleOpts,brunelVersion,brunelOpts,mcTruth)
+    for i in prodWorkflow.step_instances:
+      if i.findParameter('eventType'):
+        parameters['eventType']=i.findParameter('eventType').getValue()
 
-    prodWorkflow
+    #parameters['numberOfEvents']=prodWorkflow.findParameter('numberOfEvents').getValue()
+    parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
+    parameters['BKInputQuery']=bkInputQuery
+    parameters['BKProcessingPass']=bkPassInfo
+    parameters['groupDescription']=groupDescription
+    parameters['RequestID']=requestID
+
+    inputDataFile = ''
+    if parameters['BKInputQuery']:
+      bkserver = RPCClient('Bookkeeping/BookkeepingManager')
+      self.log.info('Production has input data query, will attempt to retrieve an input data file for LFN construction')
+      bkDict = parameters['BKInputQuery']
+      for name,value in bkDict.items():
+        if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
+          if value == 0:
+            del bkDict[name]
+          else:
+            bkDict[name] = str(value)
+        else:
+          if value.lower() == "all":
+            del bkDict[name]
+      result = bkserver.getFilesWithGivenDataSets(bkDict)
+      if not result['OK']:
+        self.log.error('Could not obtain data from input BK query')
+      else:
+         if result['Value']:
+           inputDataFile = result['Value'][0]
+           self.log.info('Found an input data set from input BK query: %s' %inputDataFile)
+         else:
+           self.log.info('No input datasets found from BK query')
+
+    dummyProdJobID = '99999999'
+    result = self.getOutputLFNs(prodID,dummyProdJobID,inputDataFile,prodXMLFile)
+    if not result['OK']:
+      self.log.error('Could not create production LFNs',result)
+    outputLFNs = result['Value']
+    parameters['OutputLFNs']=outputLFNs
+
+    outputDirectories = []
+    del outputLFNs['BookkeepingLFNs'] #since ProductionOutputData uses the file mask
+    for i in outputLFNs.values():
+      for j in i:
+        outputDir = '%s%s' %(j.split(str(prodID))[0],prodID)
+        if not outputDir in outputDirectories:
+          outputDirectories.append(outputDir)
+
+    parameters['OutputDirectories']=outputDirectories
+    #Create detailed information string similar to ELOG entry
+    info = []
+    info.append('%s Production %s for event type %s has following parameters:\n' %(parameters['JobType'],prodID,parameters['eventType']))
+    info.append('Production priority: %s' %(parameters['Priority']))
+    info.append('BK Config Name Version: %s %s' %(parameters['configName'],parameters['configVersion']))
+    info.append('BK Processing Pass Name: %s' %(parameters['groupDescription']))
+    info.append('CondDB Tag: %s' %(parameters['CondDBTag']))
+    info.append('DDDB Tag: %s\n' %(parameters['DDDBTag']))
+ #   info.append('Number of events: %s' %(parameters['numberOfEvents']))
+    #Now for the steps of the workflow
+    stepKeys = bkPassInfo.keys()
+    stepKeys.sort()
+    for step in stepKeys:
+      info.append('====> %s %s %s' %(bkPassInfo[step]['ApplicationName'],bkPassInfo[step]['ApplicationVersion'],step))
+      info.append('  %s Option Files:' %(bkPassInfo[step]['ApplicationName']))
+      for opts in bkPassInfo[step]['OptionFiles'].split(';'):
+        info.append('    %s' %opts)
+      info.append('  ExtraPackages: %s' %(bkPassInfo[step]['ExtraPackages']))
+
+    if parameters['BKInputQuery']:
+      info.append('BK Input Data Query:')
+      for n,v in parameters['BKInputDataQuery'].items():
+        info.append('    %s = %s' %(n,v))
+
+    #BK output directories (very useful)
+    bkPaths = []
+    bkOutputPath = '%s/%s/%s/%s/%s' %(parameters['configName'],parameters['configVersion'],parameters['BKCondition'],parameters['groupDescription'],parameters['eventType'])
+    fileTypes = parameters['outputDataFileMask']
+    fileTypes = [a.upper() for a in fileTypes.split(';')]
+    for f in fileTypes:
+      bkPaths.append('%s/%s' %(bkOutputPath,f))
+    parameters['BKPaths']=bkPaths
+    info.append('\nBK Browsing Paths:\n%s' %(string.join(bkPaths,'\n')))
+    infoString = string.join(info,'\n')
+    parameters['DetailedInfo']=infoString
 
     if printOutput:
-      print '='*20+'>BKPassInfo'
-      print bkPassInfo
-      print '='*20+'>BKInputQuery'
-      print bkPassInfo
-      print '='*20+'>BKGroupDescription'
-      print bkPassInfo
-      print '='*20+'>ProductionInfo'
-      print bkPassInfo
-      return S_OK()
+      for n,v in parameters.items():
+        print '='*len(n),n,'='*len(n)
+        print v
 
-    result = self.setParameter(int(prodID),'BKProcessingPass',bkPassInfo)
-    if not result['OK']:
-      self.log.error(result['Message'])
-    result = self.setParameter(int(prodID),'BKInputQuery',bkInputQuery)
-    if not result['OK']:
-      self.log.error(result['Message'])
-    result = self.setParameter(int(prodID),'BKGroupDescription',groupDescription)
-    if not result['OK']:
-      self.log.error(result['Message'])
-    result = self.setParameter(int(prodID),'DetailedInfo',info)
-    if not result['OK']:
-      self.log.error(result['Message'])
+    for n,v in parameters.items():
+      result = self.setProdParameter(prodID,n,v)
+      if not result['OK']:
+        self.log.error(result['Message'])
 
     return S_OK()
 
@@ -795,16 +867,18 @@ class Production(LHCbJob):
     fopen.close()
 
   #############################################################################
-  def getOutputLFNs(self,prodID=None,prodJobID=None,inputDataLFN=None):
+  def getOutputLFNs(self,prodID=None,prodJobID=None,inputDataLFN=None,prodXMLFile=''):
     """ Will construct the output LFNs for the production for visual inspection.
     """
-    self.workflow.toXMLFile('%s.xml' %self.name)
+    if not prodXMLFile:
+      self.log.info('Using workflow object to generate XML file')
+      prodXMLFile=self.workflow.toXMLFile('%s.xml' %self.name)
     dirac = DiracProduction()
     if not prodID:
       prodID = self.defaultProdID
     if not prodJobID:
       prodJobID = self.defaultProdJobID
-    result = dirac._getOutputLFNs('%s.xml' %self.name,productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
+    result = dirac._getOutputLFNs(prodXMLFile,productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
     if not result['OK']:
       return result
     lfns = result['Value']
@@ -856,11 +930,15 @@ class Production(LHCbJob):
     return S_OK()
 
   #############################################################################
-  def setParameter(self,prodID,pname,pvalue):
+  def setProdParameter(self,prodID,pname,pvalue):
     """Set a production parameter.
     """
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.addTransformationParameter(int(prodID),pname,pvalue)
+    if type(pvalue)==type(2):
+      pvalue = str(pvalue)
+    result = prodClient.addTransformationParameter(int(prodID),str(pname),str(pvalue))
+    if not result['OK']:
+      self.log.error('Problem setting parameter %s for production %s and value:\n%s' %(prodID,pname,pvalue))
     return result
 
   #############################################################################
