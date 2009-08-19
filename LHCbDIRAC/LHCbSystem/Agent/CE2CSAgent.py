@@ -178,9 +178,10 @@ class CE2CSAgent(Agent):
     sites = gConfig.getSections('/Resources/Sites/LCG')['Value']
 
     changed = False
+    body = ""
 
     for site in sites:
-#      if site[-2:]!='fr':
+#      if site[-2:]!='ru':
 #        continue
       opt = gConfig.getOptionsDict('/Resources/Sites/LCG/%s'%site)['Value']
       name = opt.get('Name','')
@@ -310,6 +311,7 @@ class CE2CSAgent(Agent):
             else:
               self.csAPI.modifyValue(section,newos)
             changed = True
+            body = body + "OS was changed %s -> %s for %s at %s\n"%(os,newos,ce,site)
 
           try:
             newsi00 = bdiice['GlueHostBenchmarkSI00']
@@ -378,6 +380,12 @@ class CE2CSAgent(Agent):
             changed = True
 
     if changed:
+      gLogger.info(body)      
+      if body:
+        notification = NotificationClient()
+        result = notification.sendMail(self.addressTo,self.subject,body,self.addressFrom,localAttempt=False)
+        
       return self.csAPI.commitChanges(sortUsers=False)
     else:
+      gLogger.info("No changes found")      
       return S_OK()
