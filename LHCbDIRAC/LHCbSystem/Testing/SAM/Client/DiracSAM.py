@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.10 2009/07/17 12:57:06 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.11 2009/08/19 15:06:56 roma Exp $
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.10 2009/07/17 12:57:06 joel Exp $"
+__RCSID__ = "$Id: DiracSAM.py,v 1.11 2009/08/19 15:06:56 roma Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -53,7 +53,7 @@ class DiracSAM(Dirac):
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,install_project=None,script=''):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,reportEnable=False,install_project=None,script=''):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -71,11 +71,13 @@ class DiracSAM(Dirac):
       if install_project:
         self.log.verbose('Optional install_project URL is set to %s' %(install_project))
       job.installSoftware(forceDeletion=deleteSharedArea,enableFlag=softwareEnable,installProjectURL=install_project)
-      job.reportSoftware(enableFlag=enable,installProjectURL=install_project)
+      job.reportSoftware(enableFlag=reportEnable,installProjectURL=install_project)
       job.testApplications(enableFlag=enable)
       if script:
         job.runTestScript(scriptName=script,enableFlag=enable)
       job.finalizeAndPublish(logUpload=logFlag,publishResults=publishFlag,enableFlag=enable)
+      if softwareEnable:
+        job.setSAMGroup("SAMsw")
     except Exception,x:
       self.log.warn('Creating SAM job failed with exception: %s' %x)
       return S_ERROR(str(x))
