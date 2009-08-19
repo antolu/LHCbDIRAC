@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.33 2009/08/18 11:01:18 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.34 2009/08/19 13:58:39 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.33 2009/08/18 11:01:18 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.34 2009/08/19 13:58:39 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -238,7 +238,7 @@ class TransformationAgent(Agent):
             lfns.append(lfn)
             selectedSize += fileSizes[lfn]
         if selectedSize > input_size:
-          continue 
+          break
 
     if not lfns:
       gLogger.verbose("Neither SE has enough input data")
