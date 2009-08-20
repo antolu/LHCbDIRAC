@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.8 2009/02/05 16:58:19 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.9 2009/08/20 10:08:21 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -31,7 +31,7 @@ class GridSiteMonitoringAgent(AgentModule):
 
   def execute( self ):
     elapsedTime = time.time() - self._lastUpdateTime
-    if elapsedTime < self.am_getOption( "GenerationInterval", 1800 ):
+    if elapsedTime < self.am_getOption( "GenerationInterval", 900 ):
       return S_OK()
     result = self._retrieveDataContents()
     if not result[ 'OK' ]:
