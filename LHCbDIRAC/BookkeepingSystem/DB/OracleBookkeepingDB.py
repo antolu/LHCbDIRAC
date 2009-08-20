@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.106 2009/08/17 13:29:40 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.107 2009/08/20 12:57:48 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.106 2009/08/17 13:29:40 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.107 2009/08/20 12:57:48 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1166,7 +1166,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3], 'FileType':record[4]} 
+        value[record[0]] = {'GotReplica':record[1],'FileSize':record[2],'GUID':record[3], 'FileType':record[4]} 
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
@@ -1179,7 +1179,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        value[record[0]] = {'GotReplica':record[1],'FilesSize':record[2],'GUID':record[3]} 
+        value[record[0]] = {'GotReplica':record[1],'FileSize':record[2],'GUID':record[3]} 
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
