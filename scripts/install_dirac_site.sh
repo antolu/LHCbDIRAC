@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.14 2009/08/18 19:44:22 ffeldhau Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.15 2009/08/21 08:59:55 ffeldhau Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -52,7 +52,7 @@ echo "  -Q --Queue Queue        Batch System submit Queue (default: $Queue)"
 echo "  -E --ExecQueue Queue    Batch System executing Queue (default: same as Queue)"
 echo "  -U --User UserName      User executing the script (default: $DIRACUSER)"
 echo "  -p --platform Platform  Use Platform instead of local one"
-echo "  -s --shared SharedArea  Set and use SharedArea
+echo "  -s --shared SharedArea  Set and use SharedArea"
 echo "  -h --help               Print this"
 exit 0
 }
