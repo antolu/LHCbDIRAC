@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.15 2009/08/21 08:59:55 ffeldhau Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.16 2009/08/26 13:50:24 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -275,7 +275,7 @@ Systems
         TaskQueueDirector
         {
           SubmitPools = DIRAC
-          ComputingElements = Torque
+          ComputingElements = $Queue
         }
       }
     }
