@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.18 2009/08/26 15:11:40 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.19 2009/08/26 15:13:15 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -49,7 +49,7 @@ echo Usage: $0
 echo "  -n --name SiteName      Set Site Name (mandatory)"
 echo "  -v --version Version    DIRAC Version to install (mandatory)"
 echo "  -L --LogLevel           LogLevel for installed Components"
-echo "  -C --CE CEType          The CE Type to be installed: Torque, InProcess. (default: InProcess )
+echo "  -C --CE CEType          The CE Type to be installed: Torque, InProcess. (default: InProcess )"
 echo "  -P --path Path          Site Installation PATH (default: $DESTDIR)"
 echo "  -Q --Queue Queue        Batch System submit Queue (default: $Queue)"
 echo "  -E --ExecQueue Queue    Batch System executing Queue (default: same as Queue)"
