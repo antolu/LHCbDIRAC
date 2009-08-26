@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.17 2009/08/26 15:05:59 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.18 2009/08/26 15:11:40 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -19,6 +19,8 @@ Queue=default
 # Log Level for installed Agents
 LOGLEVEL=VERBOSE
 #
+# CE Type to be used (currently it also corresponds to the CE Name)
+CEType=Inprocess
 
 #
 # Some Variable with no default that must be set by proper arguments
@@ -47,6 +49,7 @@ echo Usage: $0
 echo "  -n --name SiteName      Set Site Name (mandatory)"
 echo "  -v --version Version    DIRAC Version to install (mandatory)"
 echo "  -L --LogLevel           LogLevel for installed Components"
+echo "  -C --CE CEType          The CE Type to be installed: Torque, InProcess. (default: InProcess )
 echo "  -P --path Path          Site Installation PATH (default: $DESTDIR)"
 echo "  -Q --Queue Queue        Batch System submit Queue (default: $Queue)"
 echo "  -E --ExecQueue Queue    Batch System executing Queue (default: same as Queue)"
@@ -66,7 +69,7 @@ exit 1
 
 # 
 # Python Version to use
-DIRACPYTHON=24
+DIRACPYTHON=25
 # Directories to create at DESTDIR
 DIRACDIRS="startup runit data work control"
 #
@@ -107,6 +110,12 @@ do
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
     DESTDIR=$1   
+  ;;
+  -C | --CE )
+    switch=$1
+    shift
+    [ $1 ] || error_exit "Switch $switch requires a argument"
+    CEType=$1   
   ;;
   -Q | --Queue )
     switch=$1
@@ -276,7 +285,7 @@ Systems
         TaskQueueDirector
         {
           SubmitPools = DIRAC
-          ComputingElements = $Queue
+          ComputingElements = $CEType
         }
       }
     }
