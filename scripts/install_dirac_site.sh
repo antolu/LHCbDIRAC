@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.16 2009/08/26 13:50:24 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.17 2009/08/26 15:05:59 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -255,7 +255,8 @@ LocalSite
   HttpProxy = $HttpProxy
   Queue = $Queue
   ExecQueue = $ExecQueue
-  SharedArea = $SharedArea 
+  SharedArea = $SharedArea
+  CPUScalingFactor = 1.0
   WaitingToRunningRatio = 0.5
   MaxWaitingJobs = 50
   MaxNumberJobs = 10000
