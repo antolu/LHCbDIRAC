@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.19 2009/08/06 20:19:46 atsareg Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.20 2009/08/26 07:57:33 rgracian Exp $
 --------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
@@ -32,6 +32,7 @@ USE ProductionDB;
 DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
     WFName VARCHAR(255) NOT NULL,
+    INDEX (WFName),
     WFParent VARCHAR(255),
     Description  VARCHAR(255),
     LongDescription  BLOB,
