@@ -1,8 +1,8 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.1 2009/02/11 10:52:32 azhelezo Exp $
---------------------------------------------------------------------------------
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.2 2009/08/26 09:39:53 rgracian Exp $
+-- ------------------------------------------------------------------------------
 DROP DATABASE IF EXISTS ProductionRequestDB;
 CREATE DATABASE ProductionRequestDB;
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 
 -- Database owner definition
 USE mysql;
@@ -15,10 +15,10 @@ FLUSH PRIVILEGES;
 --
 --  Schema definition for the Production Requests table 
 --  history ( logging ) information
----
---------------------------------------------------------------------------------
+-- -
+-- ------------------------------------------------------------------------------
 USE ProductionRequestDB;
--------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS ProductionRequests;
 CREATE TABLE ProductionRequests (

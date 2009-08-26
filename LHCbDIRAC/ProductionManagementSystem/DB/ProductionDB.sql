@@ -1,13 +1,13 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.20 2009/08/26 07:57:33 rgracian Exp $
---------------------------------------------------------------------------------
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionDB.sql,v 1.21 2009/08/26 09:39:53 rgracian Exp $
+-- ------------------------------------------------------------------------------
 --
 --  Schema definition for the ProductionDB database - containing Productions and WorkFlows (Templates)
 --  history ( logging ) information
----
---------------------------------------------------------------------------------
+-- -
+-- ------------------------------------------------------------------------------
 DROP DATABASE IF EXISTS ProductionDB;
 CREATE DATABASE ProductionDB;
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 
 -- Database owner definition
 USE mysql;
@@ -17,9 +17,9 @@ GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.
 GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionDB.* TO Dirac@'%' IDENTIFIED BY 'must_be_set';
 FLUSH PRIVILEGES;
 
--------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 USE ProductionDB;
--------------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- This table keeps Workflow for the purpose of creating Productions
 -- WFName - name of the WF taken from the xml field "name"
 -- WFParent - name of the parent Workflow used to create the current one.
@@ -28,7 +28,7 @@ USE ProductionDB;
 -- PublisherDN - last persone to update WF
 -- PublishingTime - time stamp
 -- Body - XML body of the Workflow
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 DROP TABLE IF EXISTS Workflows;
 CREATE TABLE Workflows (
     WFName VARCHAR(255) NOT NULL,
@@ -43,13 +43,13 @@ CREATE TABLE Workflows (
     PRIMARY KEY(WFName)
 );
 
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 -- This table store additional fields required by the Production
 -- TransformationID - Transformation ID referes to Transformations table
 -- Parent - name of the Parent Workflow
 -- GroupSize - number of files per Transformation
 -- Body - XML body of the Workflow.
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 DROP TABLE IF EXISTS ProductionParameters;
 CREATE TABLE ProductionParameters (
     TransformationID INTEGER NOT NULL,
@@ -103,9 +103,9 @@ InputVector BLOB,
 PRIMARY KEY(TransformationID,JobID)
 );
 
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 --
 -- Added the standard base class database tables here
 --
---------------------------------------------------------------------------------
+-- ------------------------------------------------------------------------------
 SOURCE DIRAC/Core/Transformation/TransformationDB.sql
