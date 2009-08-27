@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.9 2009/08/20 10:08:21 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.10 2009/08/27 10:42:58 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -26,26 +26,37 @@ class GridSiteMonitoringAgent(AgentModule):
   __sitesAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
 
   def initialize( self ):
-    self._lastUpdateTime = 0
+    self.am_setOption( "PollingTime", 900 )
     return S_OK()
 
   def execute( self ):
-    elapsedTime = time.time() - self._lastUpdateTime
-    if elapsedTime < self.am_getOption( "GenerationInterval", 900 ):
-      return S_OK()
-    result = self._retrieveDataContents()
-    if not result[ 'OK' ]:
-      return result
-    fileContents = "%s\n" % "\n".join( result[ 'Value' ] )
-    self._lastUpdateTime = time.time()
-    return self._commitFileContents( fileContents )
+    if self.am_getOption( "EnabledDataTransferMonitoring", True ):
+      result = self._retrieveDataContents()
+      if not result[ 'OK' ]:
+        return result
+      fileContents = "%s\n" % "\n".join( result[ 'Value' ] )
+      self._lastUpdateTime = time.time()
+      result = self._commitFileContents( fileContents )
+      if not result[ 'OK' ]:
+        return result
+    #Generate
+    if self.am_getOption( "EnabledStartedJobsMonitoring", True ):
+      result = self._retrieveStartedJobs()
+      if not result[ 'OK' ]:
+        return result
+      fileContents = "%s\n" % "\n".join( result[ 'Value' ] )
+      result = self._commitFileContents( fileContents, remoteFileName = 'lhcb.sitemonitoring.startedjobs.csv' )
+      if not result[ 'OK' ]:
+        return result
+    return S_OK()
 
-  def _commitFileContents( self, fileData ):
+  def _commitFileContents( self, fileData, remoteFileName = 'lhcb.sitemonitoring.csv' ):
     fd, fName = tempfile.mkstemp()
     os.write( fd, fileData )
     os.close( fd )
     rm = ReplicaManager()
-    result = rm.put( "/lhcb/monitoring/lhcb.sitemonitoring.csv", fName, 'LogSE' )
+    gLogger.info( "Uploading %s" % remoteFileName )
+    result = rm.put( "/lhcb/monitoring/%s" % remoteFileName, fName, 'LogSE' )
     try:
       os.unlink( fName )
     except Exception, e:
@@ -183,3 +194,60 @@ class GridSiteMonitoringAgent(AgentModule):
       else:
         baseReportDesc[ "_%s" % key ] = ",".join( value )
     return "%s#%s" % ( baseURL, DEncode.encode( baseReportDesc ) )
+  
+  def _generateRunningJobsExtraURL( self, reportName, reportCond, groupBy = 'Site' ):
+    baseURL = "http://lhcbweb.pic.es/DIRAC/%s/visitor/systems/accountingPlots/WMSHistory" % gConfig.getValue( "/DIRAC/Setup" )
+    baseReportDesc = { '_plotName': reportName, '_grouping': groupBy, '_typeName': 'DataOperation', '_timeSelector': '86400' }
+    for key in reportCond:
+      value = reportCond[ key ]
+      if type( value ) == types.StringType:
+        baseReportDesc[ "_%s" % key ] = value
+      else:
+        baseReportDesc[ "_%s" % key ] = ",".join( value )
+    return "%s#%s" % ( baseURL, DEncode.encode( baseReportDesc ) )
+  
+  def _retrieveStartedJobs( self ):
+    rC = ReportsClient()
+    endT = Time.dateTime()
+    startT = endT - datetime.timedelta( seconds = self.am_getOption( "Timespan", 3600 ) )
+    reportCond = { 'Status' : [ 'Running' ] }
+    result = rC.getReport( "WMSHistory", 'NumberOfJobs', startT, endT,
+                          reportCond, 'Site' )
+    
+    if not result[ 'OK' ]:
+      return result
+    acData = result[ 'Value' ][ 'data' ]
+    granularity = result[ 'Value' ][ 'granularity' ]
+    endEpoch = int( Time.toEpoch( endT ) )
+    endEpoch = endEpoch - endEpoch % granularity
+    startEpoch = int( Time.toEpoch( startT ) )
+    startEpoch = startEpoch - startEpoch % granularity
+    epochs = range( startEpoch, endEpoch + granularity, granularity )
+    siteStarted = {}
+    for site in acData:
+      siteStarted[ site ] = 0
+      siteData = acData[ site ]
+      for i in range( 0, len( epochs ) - 1):
+        nextEp = epochs[ i + 1 ]
+        curEp = epochs[ i ]
+        started = 0
+        if nextEp in siteData:
+          started = siteData[ nextEp ]
+          if curEp in siteData:
+            started = started - siteData[ curEp ]
+          started = max( 0, started )
+        siteStarted[ site ] += started
+      if siteStarted[ site ] == 0:
+        del( siteStarted[ site ] )
+    cvsLines = []
+    sites = siteStarted.keys()
+    sites.sort()
+    url = self._generateRunningJobsExtraURL( 'NumberOfJobs', reportCond )
+    for site in sites:
+      startedJobs = siteStarted[ site ]
+      gridName = site[ :site.find(".") ]
+      site = gConfig.getValue( "/Resources/Sites/%s/%s/Name" %( gridName, site ), site )
+      cvsLines.append( "%s,job_processing,started_jobs,%d,-1,unknown,%d,%d,%s" % ( site, startedJobs,
+                                                                                startEpoch, endEpoch, 
+                                                                                url ) )
+    return S_OK( cvsLines ) 
