@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.34 2009/08/19 15:26:41 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.35 2009/08/28 10:37:32 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.34 2009/08/19 15:26:41 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.35 2009/08/28 10:37:32 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -100,7 +100,6 @@ class Production(LHCbJob):
     self._setParameter('CondDBTag','string','sim-20090112','CondDBTag')
     self._setParameter('DDDBTag','string','head-20090112','DetDescTag')
     self._setParameter('EventMaxDefault','string','-1','DefaultNumberOfEvents')
-
     #BK related parameters
     self._setParameter('configName','string','MC','ConfigName')
     self._setParameter('configVersion','string','2009','ConfigVersion')
@@ -277,6 +276,7 @@ class Production(LHCbJob):
 
        Note: for MDF merging case must not add a finalization step.
     """
+    self._setParameter('group_size','string','5','FileGroupSize')
     if inputProduction:
       result = self._setInputProductionBKStepInfo(inputProduction,passDict)
       if not result['OK']:
@@ -589,8 +589,9 @@ class Production(LHCbJob):
     return self.getParameter(int(productionID),'DetailedInfo')
 
   #############################################################################
-  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProduction='',prodXMLFile='',requestID=0,printOutput=False):
+  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False):
     """ This method will publish production parameters
+        N.B. a problem prevents saving of dictionaries at the MySQL level
     """
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
@@ -611,32 +612,40 @@ class Production(LHCbJob):
 
     prodWorkflow = Workflow(prodXMLFile)
     if not bkPassInfo:
-      bkPassInfo = prodWorkflow.findParameter('BKProcessingPass').getValue()
+      try:
+        bkPassInfo = prodWorkflow.findParameter('BKProcessingPass').getValue()
+      except Exception,x:
+        return S_ERROR('Could not determine BKProcessingPass from workflow')
     if not groupDescription:
       groupDescription = prodWorkflow.findParameter('groupDescription').getValue()
 
     parameters = {}
- #   parameters['PRODUCTION_ID']=str(prodID)
- #   parameters['JOB_ID']='99999999'
+
     parameters['Priority']=prodWorkflow.findParameter('Priority').getValue()
     parameters['CondDBTag']=prodWorkflow.findParameter('CondDBTag').getValue()
     parameters['DDDBTag']=prodWorkflow.findParameter('DDDBTag').getValue()
     parameters['configName']=prodWorkflow.findParameter('configName').getValue()
     parameters['configVersion']=prodWorkflow.findParameter('configVersion').getValue()
     parameters['outputDataFileMask']=prodWorkflow.findParameter('outputDataFileMask').getValue()
-#    parameters['dataType']=prodWorkflow.findParameter('dataType').getValue()
     parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
 
     for i in prodWorkflow.step_instances:
       if i.findParameter('eventType'):
         parameters['eventType']=i.findParameter('eventType').getValue()
 
+    if not parameters.has_key('eventType'):
+      return S_ERROR('Could not determine eventType from workflow')
+
+    if prodWorkflow.findParameter('group_size'):
+      parameters['group_size']=prodWorkflow.findParameter('group_size').getValue()
+
     #parameters['numberOfEvents']=prodWorkflow.findParameter('numberOfEvents').getValue()
     parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
     parameters['BKInputQuery']=bkInputQuery
     parameters['BKProcessingPass']=bkPassInfo
     parameters['groupDescription']=groupDescription
-    parameters['RequestID']=requestID
+    parameters['RequestID']=reqID
+    parameters['DerivedProduction']=derivedProd
 
     inputDataFile = ''
     if parameters['BKInputQuery']:
@@ -707,6 +716,12 @@ class Production(LHCbJob):
     bkOutputPath = '%s/%s/%s/%s/%s' %(parameters['configName'],parameters['configVersion'],parameters['BKCondition'],parameters['groupDescription'],parameters['eventType'])
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split(';')]
+
+    #Annoying that histograms are extension root
+    if 'ROOT' in fileTypes:
+      fileTypes.remove('ROOT')
+      fileTypes.append('HIST')
+
     for f in fileTypes:
       bkPaths.append('%s/%s' %(bkOutputPath,f))
     parameters['BKPaths']=bkPaths
@@ -718,6 +733,11 @@ class Production(LHCbJob):
       for n,v in parameters.items():
         print '='*len(n),n,'='*len(n)
         print v
+
+    #Due to problem with Transformation parameters have to remove dictionaries (lists will be joined with \n)
+    del parameters['BKInputQuery']
+    del parameters['BKProcessingPass']
+    del parameters['OutputLFNs']
 
     for n,v in parameters.items():
       result = self.setProdParameter(prodID,n,v)
@@ -846,7 +866,11 @@ class Production(LHCbJob):
       else:
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
 
-    #self._setProductionParameters(prodID,fileName,bkDict['GroupDescription'],bkDict,bkQuery,derivedProduction)
+    try:
+      self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict,bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
+    except Exception,x:
+      self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
+
     return S_OK(prodID)
 
   #############################################################################
@@ -933,6 +957,9 @@ class Production(LHCbJob):
   def setProdParameter(self,prodID,pname,pvalue):
     """Set a production parameter.
     """
+    if type(pvalue)==type([]):
+      pvalue=string.join(pvalue,'\n')
+
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     if type(pvalue)==type(2):
       pvalue = str(pvalue)
@@ -942,18 +969,25 @@ class Production(LHCbJob):
     return result
 
   #############################################################################
-  def getParameter(self,prodID,pname=''):
-    """Get a production parameter.
+  def getParameters(self,prodID,pname='',printOutput=False):
+    """Get a production parameter or all of them if no parameter name specified.
     """
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     result = prodClient.getTransformation(int(prodID))
+    self.log.verbose(result)
     if pname:
-      if result['Value'].has_key(pname):
-        return S_OK(result['Value'][pname])
+      if result['Value']['Additional'].has_key(pname):
+        return S_OK(result['Value']['Additional'][pname])
       else:
+        self.log.verbose(result)
         return S_ERROR('Production %s does not have parameter %s' %(prodID,pname))
 
-    return result
+    if printOutput:
+      for n,v in result['Value']['Additional'].items():
+        print '='*len(n),'\n',n,'\n','='*len(n)
+        print v
+
+    return S_OK(result['Value']['Additional'])
 
   #############################################################################
   def setAlignmentDBLFN(self,lfn):
@@ -1058,7 +1092,7 @@ class Production(LHCbJob):
   def setProdPlugin(self,plugin):
     """ Sets the plugin to be used to creating the production jobs
     """
-    available_plugins = ['CCRC_RAW']
+    available_plugins = ['CCRC_RAW','BySize']
     if plugin in available_plugins:
       self.plugin = plugin
     else:
