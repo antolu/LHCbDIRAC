@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.29 2009/07/21 12:31:04 joel Exp $
+# $Id: UsersAndGroups.py,v 1.30 2009/08/28 16:08:12 joel Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.29 2009/07/21 12:31:04 joel Exp $"
-__VERSION__ = "$Revision: 1.29 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.30 2009/08/28 16:08:12 joel Exp $"
+__VERSION__ = "$Revision: 1.30 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -187,6 +187,28 @@ class UsersAndGroups(AgentModule):
       userDN =  False
       for dn in lfcUsers:
         if dn == users[user]['DN'] :
+          userDN = True
+          break
+
+      if not userDN:
+        self.log.info('========= DN %s need to be registered in LFC for user %s' % (users[user]['DN'], user))
+        newLFCUsers[user] = users[user]['DN']
+
+    for user in multiDNUsers:
+      userDN =  False
+      for dn in lfcUsers:
+        if dn in users[user]['DN'] :
+          userDN = True
+          break
+
+      if not userDN:
+        self.log.info('========= DN %s need to be registered in LFC for user %s' % (users[user]['DN'], user))
+        newLFCUsers[user] = users[user]['DN']
+
+    for user in duplicateUsers:
+      userDN =  False
+      for dn in lfcUsers:
+        if dn in users[user]['DN'] :
           userDN = True
           break
 
