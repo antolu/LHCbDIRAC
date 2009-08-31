@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.30 2009/08/28 16:08:12 joel Exp $
+# $Id: UsersAndGroups.py,v 1.31 2009/08/31 13:59:33 joel Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.30 2009/08/28 16:08:12 joel Exp $"
-__VERSION__ = "$Revision: 1.30 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.31 2009/08/31 13:59:33 joel Exp $"
+__VERSION__ = "$Revision: 1.31 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -186,7 +186,7 @@ class UsersAndGroups(AgentModule):
         self.log.error( 'Fail to modifyUser User:', '(%s) %s' % ( user, users[user] ) )
       userDN =  False
       for dn in lfcUsers:
-        if dn == users[user]['DN'] :
+        if dn in users[user]['DN'] :
           userDN = True
           break
 
