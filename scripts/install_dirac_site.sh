@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.19 2009/08/26 15:13:15 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.20 2009/08/31 17:53:19 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -45,7 +45,7 @@ HttpProxy=""
 SharedArea=""
 
 usage(){
-echo Usage: $0 
+echo Usage: $0
 echo "  -n --name SiteName      Set Site Name (mandatory)"
 echo "  -v --version Version    DIRAC Version to install (mandatory)"
 echo "  -L --LogLevel           LogLevel for installed Components"
@@ -67,7 +67,7 @@ echo
 exit 1
 }
 
-# 
+#
 # Python Version to use
 DIRACPYTHON=25
 # Directories to create at DESTDIR
@@ -91,43 +91,43 @@ do
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    LOGLEVEL=$1   
+    LOGLEVEL=$1
   ;;
   -n | --name )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    SiteName=$1   
+    SiteName=$1
   ;;
   -p | --platform )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    DIRACARCH=$1   
+    DIRACARCH=$1
   ;;
   -P | --path )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    DESTDIR=$1   
+    DESTDIR=$1
   ;;
   -C | --CE )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    CEType=$1   
+    CEType=$1
   ;;
   -Q | --Queue )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    Queue=$1   
+    Queue=$1
   ;;
   -E | --ExecQueue )
     switch=$1
     shift
     [ $1 ] || error_exit "Switch $switch requires a argument"
-    ExecQueue=$1   
+    ExecQueue=$1
   ;;
   -s | --shared )
     switch=$1
@@ -211,7 +211,7 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-Install_Options="-S -v $DIRACVERSION -P $VERDIR -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName -o /DIRAC/Security/UseServerCertificate=yes"
+Install_Options="-S -v $DIRACVERSION -P $VERDIR -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName -o /LocalSite/ResourceDict/Site=$SiteName -o /DIRAC/Security/UseServerCertificate=yes"
 [ $EXTVERSION ] && Install_Options="$Install_Options -e $EXTVERSION"
 [ $DIRACARCH ] && Install_Options="$Install_Options -p $DIRACARCH"
 [ "$LOGLEVEL" == "DEBUG" ] && Install_Options="$Install_Options -d"
@@ -223,7 +223,7 @@ old=$DESTDIR/old
 pro=$DESTDIR/pro
 [ -L $old ] && rm $old
 [ -e $old ] && error_exit "Fail to remove link $old"
-[ -L $pro ] && mv $pro $old 
+[ -L $pro ] && mv $pro $old
 [ -e $pro ] && error_exit "Fail to rename $pro $old"
 ln -s $VERDIR $pro || error_exit "Fail to create link $pro -> $VERDIR"
 #
@@ -259,21 +259,6 @@ cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 #
 
 cat > $DESTDIR/etc/WorkloadManagement_TaskQueueDirector.cfg <<EOF
-LocalSite
-{
-  HttpProxy = $HttpProxy
-  Queue = $Queue
-  ExecQueue = $ExecQueue
-  SharedArea = $SharedArea
-  CPUScalingFactor = 1.0
-  WaitingToRunningRatio = 0.5
-  MaxWaitingJobs = 50
-  MaxNumberJobs = 10000
-  ResourceDict
-  {
-    Site = $SiteName
-  }
-}
 Systems
 {
   WorkloadManagement
