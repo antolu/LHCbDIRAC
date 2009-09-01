@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.36 2009/09/01 12:31:35 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.37 2009/09/01 13:31:10 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.36 2009/09/01 12:31:35 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.37 2009/09/01 13:31:10 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -628,6 +628,11 @@ class Production(LHCbJob):
     parameters['configVersion']=prodWorkflow.findParameter('configVersion').getValue()
     parameters['outputDataFileMask']=prodWorkflow.findParameter('outputDataFileMask').getValue()
     parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
+
+    if prodWorkflow.findParameter('InputData'): #now only comes from BK query
+      prodWorkflow.findParameter('InputData').setValue('')
+      self.log.info('Resetting input data for production to null in workflow template, now comes from a BK query...')
+      prodWorkflow.toXMLFile(prodXMLFile)
 
     for i in prodWorkflow.step_instances:
       if i.findParameter('eventType'):
