@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.35 2009/08/28 10:37:32 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.36 2009/09/01 12:31:35 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.35 2009/08/28 10:37:32 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.36 2009/09/01 12:31:35 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -586,7 +586,7 @@ class Production(LHCbJob):
   def getDetailedInfo(self,productionID):
     """ Return detailed information for a given production.
     """
-    return self.getParameter(int(productionID),'DetailedInfo')
+    return self.getParameters(int(productionID),'DetailedInfo')
 
   #############################################################################
   def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False):
@@ -974,7 +974,14 @@ class Production(LHCbJob):
     """
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     result = prodClient.getTransformation(int(prodID))
-    self.log.verbose(result)
+    if not result['OK']:
+      self.log.error(result)
+      return S_ERROR('Could not retrieve parameters for production %s' %prodID)
+
+    if not result['Value'].has_key('Additional'):
+      self.log.info(result)
+      return S_ERROR('No additional parameters available for production %s' %prodID)
+
     if pname:
       if result['Value']['Additional'].has_key(pname):
         return S_OK(result['Value']['Additional'][pname])
