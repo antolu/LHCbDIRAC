@@ -2,16 +2,16 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.6 2009/08/28 15:35:23 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.7 2009/09/02 10:24:27 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.6 2009/08/28 15:35:23 acsmith Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.7 2009/09/02 10:24:27 acsmith Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.LHCbSystem.Client.Production import Production
 from DIRAC.Core.Utilities.List  import sortList
-from DIRAC import gLogger
+from DIRAC import gLogger,gConfig
 import sys
 
 if len(sys.argv) < 2:
@@ -23,6 +23,12 @@ else:
 integrityClient = DataIntegrityClient()
 replicaManager = ReplicaManager()
 productionClient = Production()
+
+res = productionClient.getParameters(prodID,pname='OutputDirectories')
+if not res['OK']:
+  gLogger.error(res['Message'])
+  sys.exit(0)
+directories = res['Value'].splitlines()
 
 ######################################################
 #
@@ -43,11 +49,6 @@ if not res['OK']:
 #
 # This check performs Catalog->BK and Catalog->SE for possible output directories
 #
-res = productionClient.getParameters(prodID,pname='OutputDirectories')
-if not res['OK']:
-  gLogger.error(res['Message'])
-  sys.exit(0)
-directories = res['Value'].splitlines()
 res = replicaManager.getCatalogExists(directories)
 if not res['OK']:
   gLogger.error(res['Message'])
@@ -84,3 +85,17 @@ for directory in sortList(directoryExists.keys()):
 #
 # This check performs SE->Catalog->BK for possible output directories
 #
+storageElements = gConfig.getValue('Resources/StorageElementGroups/Tier1_MC_M-DST',[])
+for storageElementName in sortList(storageElements):
+  res = integrityClient.storageDirectoryToCatalog(directories,storageElementName)
+  if not res['OK']:
+    gLogger.error(res['Message'])
+    sys.exit(0)
+  catalogMetadata = res['Value']['CatalogMetadata']
+  storageMetadata = res['Value']['StorageMetadata']
+  lfnMissing = []
+  for lfn in storageMetadata.keys():
+    if not lfn in bk2catalogMetadata.keys():
+      lfnMissing.append(lfn)
+  if lfnMissing:
+    res = integrityClient.catalogFileToBK(lfnMissing)
