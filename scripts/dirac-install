@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.149 2009/08/18 16:30:37 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.150 2009/09/04 15:03:06 acasajus Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.149 2009/08/18 16:30:37 rgracian Exp $"
-__VERSION__ = "$Revision: 1.149 $"
+__RCSID__   = "$Id: dirac-install,v 1.150 2009/09/04 15:03:06 acasajus Exp $"
+__VERSION__ = "$Revision: 1.150 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -2411,7 +2411,32 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           arch = 'rh73_'+arch+'_gcc296'
         localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
-        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )                               
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )   
+    elif voName == 'magic':  
+      localCfg.addDefaultEntry( '/DIRAC/Setup', 'MAGIC-Test' )   
+      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
+                                'dips://dirac02.pic.es:9002/Configuration/Server' ) 
+                                
+      # A.T. This is not really LHCb specific                          
+      dirac.lhcbPlatform()
+      if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
+        if DIRAC.platformTuple[1] == 'i686':
+          arch = 'ia32'
+        elif DIRAC.platformTuple[1] == 'x86_64':
+          arch = 'amd64'
+        else:
+          arch = DIRAC.platformTuple[1]
+        if DIRAC.platformTuple[2] >= 'glibc-2.5':
+          arch = 'slc5_'+arch+'_gcc41'
+        elif DIRAC.platformTuple[2] >= 'glibc-2.3.4':
+          arch = 'slc4_'+arch+'_gcc34'
+        elif DIRAC.platformTuple[2] >= 'glibc-2.3.3':
+          arch = 'slc3_'+arch+'_gcc323'
+        else:
+          arch = 'rh73_'+arch+'_gcc296'
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
+      else:
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )                              
     else:
       pass
       
