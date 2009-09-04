@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_Merging_run.py,v 1.1 2009/09/03 08:07:16 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_Merging_run.py,v 1.2 2009/09/04 12:13:15 paterson Exp $
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging production.
 """
 
-__RCSID__ = "$Id: MC09_MC_Merging_run.py,v 1.1 2009/09/03 08:07:16 paterson Exp $"
+__RCSID__ = "$Id: MC09_MC_Merging_run.py,v 1.2 2009/09/04 12:13:15 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -42,7 +42,7 @@ extend = '{{Extend#Extend MC production by this many jobs}}'
 
 production = Production()
 production.setProdType('MCSimulation')
-production.setWorkflowName('{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{numberOfEvents}}Events_Request{{ID}}')
+production.setWorkflowName('MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{numberOfEvents}}Events_Request{{ID}}')
 production.setWorkflowDescription('MC09 workflow for Gauss, Boole and Brunel.')
 production.setBKParameters('MC','MC09','{{pDsc}}','{{simDesc}}')
 production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
@@ -112,7 +112,7 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 mergeProd = Production()
 mergeProd.setProdType('Merge')
-mergeProd.setWorkflowName('{{pDsc}}_EventType%s_Prod%s_Files%s_Merging%s_Request{{ID}}' %(evtType,inputProd,numberOfFiles,fileType))
+mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%s_Request{{ID}}' %(fileType,evtType,inputProd,numberOfFiles))
 mergeProd.setWorkflowDescription('MC09 workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters('MC','MC09','{{pDsc}}','{{simDesc}}')
 mergeProd.setDBTags('{{p1CDb}}','{{p1DDDb}}')
