@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.117 2009/08/17 13:29:41 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.118 2009/09/07 13:37:28 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.117 2009/08/17 13:29:41 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.118 2009/09/07 13:37:28 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -871,13 +871,7 @@ class BookkeepingManagerHandler(RequestHandler):
     value = dataMGMT_.getNumberOfEvents(prodid)
     if value['OK']==True:
       nbOfEvents = value['Value']
-      
-    value = dataMGMT_.getSteps(prodid)
-    if value['OK']==True:
-      steps = value['Value']
-    else:
-      return S_ERROR(value['Message'])
-  
+    
     value = dataMGMT_.getConfigsAndEvtType(prodid)
     if value['OK']==True:
       prodinfos = value['Value']
@@ -888,6 +882,18 @@ class BookkeepingManagerHandler(RequestHandler):
     cversion = prodinfos[0][1]
     eventType = prodinfos[0][2]
     path += cname+'/'+cversion+'/'
+      
+    value = dataMGMT_.getSteps(prodid)
+    if value['OK']==True:
+      steps = value['Value']
+    else:
+      steps = value['Message']
+      result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
+      return S_OK(result)
+  
+      #return S_ERROR(value['Message'])
+  
+    
     res = dataMGMT_.getProductionSimulationCond(prodid)
     if not res['OK']:
       return S_ERROR(res['Message'])
