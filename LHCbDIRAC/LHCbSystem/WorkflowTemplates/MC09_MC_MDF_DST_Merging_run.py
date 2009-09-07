@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_MDF_DST_Merging_run.py,v 1.1 2009/09/04 12:43:48 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_MDF_DST_Merging_run.py,v 1.2 2009/09/07 08:11:12 paterson Exp $
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging productions for MDF+DST.
 """
 
-__RCSID__ = "$Id: MC09_MC_MDF_DST_Merging_run.py,v 1.1 2009/09/04 12:43:48 paterson Exp $"
+__RCSID__ = "$Id: MC09_MC_MDF_DST_Merging_run.py,v 1.2 2009/09/07 08:11:12 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -92,6 +92,8 @@ diracProd.production(prodID,'start',printOutput=True)
 msg += ' and started in manual submission mode.'
 print msg
 
+mcProdID = prodID
+
 ############
 #DST Merging
 ############
@@ -151,7 +153,7 @@ mdfSE = 'CERN-RDST'
 
 #Other parameters
 evtType = '{{eventType}}'
-inputProd  = int(prodID)
+inputProd  = int(mcProdID)
 mergeFiles = '200'
 bkPassDict = {}
 mid = ['/lhcb/MC/MC09/MDF/00004811/0001/00004811_00012000_2.mdf']
