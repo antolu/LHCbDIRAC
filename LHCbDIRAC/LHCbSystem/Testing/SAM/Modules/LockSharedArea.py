@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.42 2009/07/16 11:32:56 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.43 2009/09/07 15:02:55 joel Exp $
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.42 2009/07/16 11:32:56 rgracian Exp $"
+__RCSID__ = "$Id: LockSharedArea.py,v 1.43 2009/09/07 15:02:55 joel Exp $"
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
@@ -141,7 +141,7 @@ class LockSharedArea(ModuleBaseSAM):
       self.log.info('Software shared area for site %s is %s' %(DIRAC.siteName(),sharedArea))
 
     #nasty fix but only way to resolve writeable volume at CERN
-    if DIRAC.siteName()=='LCG.CERN.ch':
+    if DIRAC.siteName()=='LCG.CERN.ch' or DIRAC.siteName()=='LCG.CERN5.ch':
       self.log.info('Changing shared area path to writeable volume at CERN')
       if re.search('.cern.ch',sharedArea):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
