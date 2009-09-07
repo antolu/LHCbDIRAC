@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.118 2009/09/07 13:37:28 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.119 2009/09/07 17:43:42 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.118 2009/09/07 13:37:28 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.119 2009/09/07 17:43:42 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -908,6 +908,48 @@ class BookkeepingManagerHandler(RequestHandler):
     result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
+  types_getProductionSummary = [DictType]
+  def export_getProductionSummary(self, dict):
+    
+    if dict.has_key('ConfigurationName'):
+      cName = dict['ConfigurationName']
+    else:
+      cName = 'ALL'
+    
+    if dict.has_key('ConfigurationVersion'):
+      cVersion = dict['ConfigurationVersion']
+    else:
+      cVersion = 'ALL'
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    else:
+      production = 'ALL'
+      
+    if dict.has_key('SimulationDescription'):
+      simdesc = dict['SimulationDescription']
+    else:
+      simdesc = 'ALL'
+    
+    if dict.has_key('ProcessingPassGroup'):
+      pgroup= dict['ProcessingPassGroup']
+    else:
+      pgroup= 'ALL'
+      
+    if dict.has_key('FileType'):
+      ftype = dict['FileType']
+    else:
+      ftype = 'ALL'
+    
+    if dict.has_key('EventType'):
+      evttype= dict['EventType'] 
+    else:
+      evttype='ALL'
+    
+    retVal = dataMGMT_.getProductionSummary(cName, cVersion, simdesc, pgroup, production, ftype, evttype)
+          
+    return retVal
+    
   #############################################################################
   types_getProductionInformations = [LongType]
   def export_getProductionInformations(self, prodid):

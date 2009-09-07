@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.93 2009/08/17 13:29:40 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.94 2009/09/07 17:43:41 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.93 2009/08/17 13:29:40 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.94 2009/09/07 17:43:41 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -283,12 +283,19 @@ class BookkeepingClient:
       return S_OK(value)
     return S_ERROR()
 
+  #############################################################################
   def getSimConditions(self):
     server = self.__getServer()
     result = server.getSimConditions()
     return result
+  
+  #############################################################################
+  def getProductionSummary(self, dict):
+    server = self.__getServer()
+    result = server.getProductionSummary(dict)
+    return result
 
-
+                           
   #############################################################################
   def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
     server = self.__getServer()

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.107 2009/08/20 12:57:48 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.108 2009/09/07 17:43:41 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.107 2009/08/20 12:57:48 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.108 2009/09/07 17:43:41 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2798,6 +2798,78 @@ class OracleBookkeepingDB(IBookkeepingDB):
     res = self.dbR_._query(command)
     return res
   
+  #############################################################################
+  def getProductionSummary(self, cName, cVersion, simdesc='ALL', pgroup='ALL', production='ALL', ftype='ALL', evttype='ALL'):
+    conditions = ''
+    
+    if cName != 'ALL':
+      conditions += ' and bookkeepingview.configname=\''+cName+'\'' 
+        
+    if cVersion != 'ALL':
+      conditions += ' and bookkeepingview.configversion=\''+cVersion+'\''
+        
+    if ftype != 'ALL':
+      fType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fType)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+        return S_ERROR(res['Message'])
+      else:
+        value = res['Value']
+        if len(value) == 0:
+          return S_ERROR('File type is not found!')
+        ftypeId = res['Value'][0][0]
+        conditions += ' and files.filetypeid='+str(ftypeId)
+    else:
+      conditions += ' and bookkeepingview.filetypeid= files.filetypeid  \
+                      and bookkeepingview.filetypeid= filetypes.filetypeid '
+    if evttype != 'ALL':
+      conditions += ' and bookkeepingview.eventtypeid='+str(evttype)
+    else:
+      conditions += ' and bookkeepingview.eventtypeid=files.eventtypeid '
+    
+    if production != 'ALL':
+      conditions += ' and jobs.production='+str(production)
+      conditions += ' and jobs.production= bookkeepingview.production '
+    else:
+       conditions += ' and jobs.production= bookkeepingview.production '
+  
+    if simdesc != 'ALL':
+      conditions += 'and productions.simcondid = simulationconditions.simid '
+      conditions += 'and simulationconditions.simdescription = \''+str(simdesc)+'\''
+    else:
+      conditions += 'and productions.simcondid = simulationconditions.simid '    
+    
+    command = ' select bookkeepingview.configname, bookkeepingview.configversion, simulationconditions.simdescription, \
+       pass_group.groupdescription, bookkeepingview.eventtypeid, \
+       bookkeepingview.description, bookkeepingview.production, filetypes.name, sum(files.eventstat) \
+  from jobs, bookkeepingview,files, filetypes, productions, simulationconditions, pass_index, pass_group \
+        where jobs.jobid= files.jobid and \
+        bookkeepingview.programname= jobs.programname and \
+        bookkeepingview.programversion= jobs.programversion and \
+        bookkeepingview.production = productions.production and \
+        productions.passid= pass_index.passid and \
+        pass_index.groupid=pass_group.groupid' + conditions 
+    
+    command += ' Group by  bookkeepingview.configname, bookkeepingview.configversion, \
+            simulationconditions.simdescription, pass_group.groupdescription,\
+            bookkeepingview.eventtypeid, bookkeepingview.description,\
+            bookkeepingview.production, filetypes.name'
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    
+    parameters = ['ConfigurationName', 'ConfigurationVersion', 'SimulationDescription', 'Processing pass group', 'EventTypeId', 'EventType description','Production', 'FileType','Number of events']
+    dbResult = retVal['Value']
+    records = []
+    nbRecords = 0
+    for record in dbResult:
+      row = [record[0],record[1],record[2],record[3],record[4],record[5],record[6], record[7],record[8]]
+      records += [row]
+      nbRecords += 1
+    
+    return S_OK({'TotalRecords':nbRecords,'ParameterNames':parameters,'Records':records,'Extras': {}})
+            
   #############################################################################
   def getProductionSimulationCond(self, prod):
     command ='select simulationconditions.simdescription  FROM simulationconditions, productions where \

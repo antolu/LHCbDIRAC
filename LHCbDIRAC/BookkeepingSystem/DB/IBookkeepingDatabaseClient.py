@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.55 2009/08/17 13:29:40 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.56 2009/09/07 17:43:41 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.55 2009/08/17 13:29:40 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.56 2009/09/07 17:43:41 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -135,6 +135,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getProductionFilesWithAGivenDate(self, prod, ftype, startDate = None, endDate = None):
     return self.getManager().getProductionFilesWithAGivenDate(prod, ftype, startDate, endDate)
+  
+  #############################################################################
+  def getProductionSummary(self, cName, cVersion, simdesc='ALL', pgroup='ALL', production='ALL', ftype='ALL', evttype='ALL'):
+    return  self.getManager().getProductionSummary(cName, cVersion, simdesc, pgroup, production, ftype, evttype)
   
   #############################################################################
   def addReplica(self, File):
