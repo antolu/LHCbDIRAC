@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-productions-summary.py,v 1.1 2009/09/07 17:43:41 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-productions-summary.py,v 1.2 2009/09/07 17:47:37 zmathe Exp $
 # File :   dirac-bookkeeping-productions-summary
 # Author : Zoltan Mathe
 ########################################################################
@@ -51,7 +51,7 @@ if evttype == '':
 
 dict = {'ConfigurationName':cName,'ConfigurationVersion':cVersion,'Production':production,'SimulationDescription':simdesc,'ProcessingPassGroup':pgroup,'FileType':ftype,'EventType':evttype}
 res = bk.getProductionSummary(dict)
-print res
+
 if not res["OK"]:
   print res["Message"]
 else:
