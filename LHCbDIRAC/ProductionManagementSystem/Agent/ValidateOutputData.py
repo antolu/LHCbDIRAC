@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.2 2009/09/08 14:13:32 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.3 2009/09/08 14:33:48 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ValidateOutputData.py,v 1.2 2009/09/08 14:13:32 acsmith Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: ValidateOutputData.py,v 1.3 2009/09/08 14:33:48 acsmith Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger
+from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
@@ -43,8 +43,10 @@ class ValidateOutputData(AgentModule):
       gLogger.error("Failed to get ValidatingOutput productions",res['Message'])
       return res
     prods = res['Value']
-    for prodID in prods:
-      res = self.checkProductionIntegrity(prodID)
+    gLogger.info("Found %s productions in ValidatingOutput status" % len(prods))
+    for prodID in sortList(prods):
+      gLogger.info("-" * 40)
+      res = self.checkProductionIntegrity(int(prodID))
       if not res['OK']:
         gLogger.error("Failed to perform full integrity check for production")
       else:
@@ -52,14 +54,17 @@ class ValidateOutputData(AgentModule):
         if not res['OK']:
           gLogger.error("Failed to update the production status")
         else:
-          gLogger.info("Successfully updated the status of the production to WaitingIntegrity")
+          gLogger.info("Updated status of production %s to WaitingIntegrity" % prodID)
+      gLogger.info("-" * 40)
     return S_OK()
 
   #############################################################################
   def checkProductionIntegrity(self,prodID):
     """ This method contains the real work
     """
+    gLogger.info("-" * 40)
     gLogger.info("Checking the integrity of production %s" % prodID)
+    gLogger.info("-" * 40)
     directories = []
     res = self.productionClient.getParameters(prodID,pname='OutputDirectories')
     if res['OK']:
@@ -145,7 +150,6 @@ class ValidateOutputData(AgentModule):
         if not res['OK']:
           gLogger.error(res['Message'])
           return res
-
     gLogger.info("-" * 40)
     gLogger.info("Completed integrity check for production %s" % prodID)
     gLogger.info("-" * 40)
