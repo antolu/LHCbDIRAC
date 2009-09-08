@@ -16,7 +16,7 @@ DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB09.CERN.CH
 DIRACSETUP=LHCb-Production
-DIRACVERSION=v4r15p2
+DIRACVERSION=v4r18p2
 EXTVERSION=v4r0
 DIRACARCH=Linux_x86_64_glibc-2.3.4
 DIRACPYTHON=24
@@ -125,8 +125,8 @@ done
 dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
 PATH=`echo $PATH | sed "s/$dir://"`
 
-echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
-     $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+echo $CURDIR/dirac-install -d -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
+     $CURDIR/dirac-install -d -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
 
 #
 # Create pro and old links
@@ -170,9 +170,12 @@ $DESTDIR/pro/scripts/install_service.sh Configuration Server
 $DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
 
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
+$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionRequest
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement RequestTrackingAgent
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ValidateOutputData
 
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
