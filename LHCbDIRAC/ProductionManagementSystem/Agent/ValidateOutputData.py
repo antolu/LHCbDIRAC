@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.1 2009/09/08 14:04:24 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.2 2009/09/08 14:13:32 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ValidateOutputData.py,v 1.1 2009/09/08 14:04:24 acsmith Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: ValidateOutputData.py,v 1.2 2009/09/08 14:13:32 acsmith Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -25,6 +25,8 @@ class ValidateOutputData(AgentModule):
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
     self.productionClient = ProductionClient()
+    self.am_setModuleParam("shifterProxy", "DataManager")
+    self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     return S_OK()
 
   #############################################################################
