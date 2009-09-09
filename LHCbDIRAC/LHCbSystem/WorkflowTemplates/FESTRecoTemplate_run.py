@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.2 2009/08/06 12:10:47 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.3 2009/09/09 08:57:06 paterson Exp $
 ########################################################################
 
 """  The FEST Reco template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.2 2009/08/06 12:10:47 paterson Exp $"
+__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.3 2009/09/09 08:57:06 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -53,7 +53,7 @@ recoType='RECO'
 inProductionID='{{inProductionID}}'
 if args:
   inProductionID = int(inProductionID)
-  recoType=dqDict[dqFlag]
+  recoType=dqDict[dqFlag.lower()]
 
 inputBKQuery = { 'SimulationConditions'     : 'All',
                  'DataTakingConditions'     : '{{simDesc}}',
@@ -91,7 +91,7 @@ if not args:
   print 'Created local workflow template: %s' %templateName
   sys.exit(0)
 
-result = production.create(bkQuery,groupSize=1,derivedProduction=ancestorProd,bkScript=False,requestID=int('{{ID}}'),reqUsed=1)
+result = production.create(bkQuery=inputBKQuery,groupSize=1,derivedProduction=int(ancestorProd),bkScript=False,requestID=int('{{ID}}'),reqUsed=1)
 if not result['OK']:
   print 'Error:',result['Message']
 
