@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.6 2009/07/21 14:10:43 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.7 2009/09/09 09:40:36 paterson Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.6 $"
+__RCSID__ = "$Revision: 1.7 $"
 
 import os
 import re
@@ -59,7 +59,7 @@ class ProductionRequestHandler( RequestHandler ):
   types_getProductionRequest = [ListType]
   def export_getProductionRequest(self,requestIDList):
     """ Get production request(s) specified by the list of requestIDs
-        AZ!!: not tested !! 
+        AZ!!: not tested !!
     """
     if not requestIDList:
       return S_OK({})
@@ -246,3 +246,39 @@ class ProductionRequestHandler( RequestHandler ):
     os.remove(fs[1])
     os.remove(proxyFile)
     return result
+
+  types_getProductionRequestSummary = [StringType,StringType]
+  def export_getProductionRequestSummary(self,status,requestType):
+    """ Method to retrieve the production / request relations for a given request status.
+    """
+    reqList = self.database.getProductionRequest([],long(0),'','',long(0),long(0))
+    if not reqList['OK']:
+      return reqList
+
+    requests = reqList['Value']
+    resultDict = {}
+    reqTypes = [requestType]
+    selectStatus = [status]
+
+    for req in requests['Rows']:
+      id = int(req['RequestID'])
+      if not req['RequestType'] in reqTypes:
+        gLogger.verbose('Skipping %s request ID %s...' %(req['RequestType'],id))
+        continue
+      if not req['RequestState'] in selectStatus:
+        gLogger.verbose('Skipping request ID %s in state %s' %(id,req['RequestState']))
+        continue
+      if req['HasSubrequest']:
+        gLogger.verbose('Simulation request %s is a parent, getting subrequests...' %id)
+        subReq = self.database.getProductionRequest([],long(id),'','',long(0),long(0))
+        if not subReq['OK']:
+          gLogger.error('Could not get production request for %s' %id)
+          return subReq
+        for sreq in subReq['Value']['Rows']:
+          sid = int(sreq['RequestID'])
+          resultDict[sid] = { 'reqTotal':sreq['rqTotal'],'bkTotal':sreq['bkTotal'],'master':id }
+      else:
+        gLogger.verbose('Simulation request %s is a single request' %id)
+        resultDict[id] = {'reqTotal':req['rqTotal'],'bkTotal':req['bkTotal'],'master':0}
+
+    return S_OK(resultDict)
