@@ -1,7 +1,7 @@
 """ Client class to access the production manager service
 """
-# $Id: ProductionClient.py,v 1.3 2009/09/08 13:58:52 acsmith Exp $
-__RCSID__ = "$Revision: 1.3 $"
+# $Id: ProductionClient.py,v 1.4 2009/09/09 09:18:45 acsmith Exp $
+__RCSID__ = "$Revision: 1.4 $"
 
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -39,3 +39,7 @@ class ProductionClient:
   def setProductionStatus(self,prodID,status):
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     return server.setTransformationStatus(prodID, status)
+
+  def selectWMSJobs(self,prodID,statusList=[],newer=0):
+    server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    return server.selectWMSJobs(prodID,statusList,newer)
