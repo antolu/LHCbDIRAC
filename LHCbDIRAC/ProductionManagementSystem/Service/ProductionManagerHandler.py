@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.55 2009/09/09 09:18:23 acsmith Exp $
+# $Id: ProductionManagerHandler.py,v 1.56 2009/09/09 11:48:08 acsmith Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.55 $"
+__RCSID__ = "$Revision: 1.56 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -661,4 +661,8 @@ class ProductionManagerHandler( TransformationHandler ):
     """
     return productionDB.selectWMSJobs(prodID,statusList,newer)
     
-
+  types_cleanProduction = [[LongType,IntType]]
+  def export_cleanProduction(self,prodID):
+    """ Clean the files and jobs for the production
+    """
+    return productionDB.cleanProduction(prodID)
