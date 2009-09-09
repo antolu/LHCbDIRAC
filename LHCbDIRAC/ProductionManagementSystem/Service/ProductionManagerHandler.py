@@ -1,10 +1,10 @@
-# $Id: ProductionManagerHandler.py,v 1.54 2009/07/12 14:47:56 atsareg Exp $
+# $Id: ProductionManagerHandler.py,v 1.55 2009/09/09 09:18:23 acsmith Exp $
 """
 ProductionManagerHandler is the implementation of the Production service
 
     The following methods are available in the Service interface
 """
-__RCSID__ = "$Revision: 1.54 $"
+__RCSID__ = "$Revision: 1.55 $"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -635,26 +635,30 @@ class ProductionManagerHandler( TransformationHandler ):
     """ Get the summary of the production information for a given page in the
         production monitor in a generic format
     """
-
     return productionDB.getDistinctAttributeValues(attribute,selectDict)
 
   types_createProductionRequest = [DictType]
   def export_createProductionRequest(self,requestDict):
     """ Create production request
     """
-
     return productionDB.createProductionRequest(requestDict)
 
   types_getProductionRequest = [ListType]
   def export_getProductionRequest(self,requestIDList):
     """ Get production request(s) specified by the list of requestIDs
     """
-
     return productionDB.getProductionRequest(requestIDList)
 
   types_updateProductionRequest = [[LongType,IntType],DictType]
   def export_updateProductionRequest(self,requestID,requestDict):
     """ Update production request specified by requestID
     """
-
     return productionDB.updateProductionRequest(requestID,requestDict)
+
+  types_selectWMSJobs = [[LongType,IntType]]
+  def export_selectWMSJobs(self,prodID,statusList=[],newer=0):
+    """ Select the jobIDs for a given production
+    """
+    return productionDB.selectWMSJobs(prodID,statusList,newer)
+    
+
