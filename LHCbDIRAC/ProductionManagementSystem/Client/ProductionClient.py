@@ -1,7 +1,7 @@
 """ Client class to access the production manager service
 """
-# $Id: ProductionClient.py,v 1.5 2009/09/09 15:09:55 acsmith Exp $
-__RCSID__ = "$Revision: 1.5 $"
+# $Id: ProductionClient.py,v 1.6 2009/09/10 11:47:30 acsmith Exp $
+__RCSID__ = "$Revision: 1.6 $"
 
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -58,3 +58,7 @@ class ProductionClient:
     if not res['OK']:
       return res
     return S_OK(res['Value']['Status'])
+
+  def getProductionLastUpdate(self,prodID):
+    server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    return server.getTransformationLastUpdate(prodID)
