@@ -176,6 +176,7 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAge
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement RequestTrackingAgent
 $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ValidateOutputData
+$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionStatusAgent
 
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
