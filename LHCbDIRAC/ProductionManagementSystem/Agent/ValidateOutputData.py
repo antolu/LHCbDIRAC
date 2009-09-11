@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.4 2009/09/08 20:59:28 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.5 2009/09/11 15:21:44 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ValidateOutputData.py,v 1.4 2009/09/08 20:59:28 acsmith Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: ValidateOutputData.py,v 1.5 2009/09/11 15:21:44 acsmith Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -55,25 +55,10 @@ class ValidateOutputData(AgentModule):
       gLogger.info("-" * 40)
       res = self.checkProductionIntegrity(int(prodID))
       if not res['OK']:
-        gLogger.error("Failed to perform full integrity check for production")
+        gLogger.error("Failed to perform full integrity check for production %d" % prodID)
       else:
-        res = self.integrityClient.getProductionProblematics(int(prodID))
-        if not res['OK']:
-          gLogger.error("Failed to determine whether there were problematic files",res['Message'])
-          newStatus = ''       
-        elif res['Value']:
-          gLogger.info("%d problematic files for production %s were found" % (len(res['Value']),prodID))
-          newStatus = "WaitingIntegrity"
-        else:
-          gLogger.info("No problematics were found for production %s" % prodID)  
-          newStatus = "ValidatedOutput"
-        if newStatus:
-          res = self.productionClient.setProductionStatus(prodID,newStatus)
-          if not res['OK']:
-            gLogger.error("Failed to update status of production %s to %s" % (prodID,newStatus))
-          else:
-            gLogger.info("Updated status of production %s to %s" % (prodID,newStatus))
-      gLogger.info("-" * 40)
+        gLogger.info("-" * 40)
+
     return S_OK()
 
   def updateWaitingIntegrity(self):
@@ -103,21 +88,52 @@ class ValidateOutputData(AgentModule):
     return
 
   #############################################################################
+  #
+  # These are the hacks to try and recover the production directories
+  #
+    
+  def getProductionDirectories(self,prodID):
+    """ Get the directories for the supplied productionID from the production management system
+    """
+    res = self.__getProductionDirectories(prodID)
+    if not res['OK']:
+      return res
+    if not res['Value']:
+      self.__createProductionDirectories(prodID)
+      res = self.__getProductionDirectories(prodID)
+    return res
+
+  def __getProductionDirectories(self,prodID):
+    directories = []
+    res = self.productionClient.getParameters(prodID,pname='OutputDirectories')
+    if res['OK']:
+      directories = res['Value'].splitlines()
+    elif res['Message'].endswith('not found'):
+      gLogger.warn("The production was not found in the production management system.")
+    elif res['Message'] == 'Parameter OutputDirectories not found for production':
+      gLogger.warn("No output directories available for production.")
+    else:
+      gLogger.error("Completely failed to obtain production parameters",res['Message'])
+      return res
+    return S_OK(directories)
+
+  def __createProductionDirectories(self,prodID):
+    from DIRAC.LHCbSystem.Client.Production import Production
+    production = Production()
+    res = production._setProductionParameters(prodID)
+
+  #############################################################################
   def checkProductionIntegrity(self,prodID):
     """ This method contains the real work
     """
     gLogger.info("-" * 40)
     gLogger.info("Checking the integrity of production %s" % prodID)
     gLogger.info("-" * 40)
-    directories = []
-    res = self.productionClient.getParameters(prodID,pname='OutputDirectories')
-    if res['OK']:
-      directories = res['Value'].splitlines()
-    elif res['Message'].endswith('not found'):
-      gLogger.warn("The production was not found in the production management system. Skipping SE->LFC and LFC>BK checks.")
-    else:
-      gLogger.error("Completely failed to obtain production parameters",res['Message'])
+    
+    res = self.getProductionDirectories(prodID)  
+    if not res['OK']:
       return res
+    directories = res['Value']
 
     ######################################################
     #
@@ -136,11 +152,11 @@ class ValidateOutputData(AgentModule):
 
     if not directories:
       return S_OK()
+
     ######################################################
     #
     # This check performs Catalog->BK and Catalog->SE for possible output directories
     #
-
     res = self.replicaManager.getCatalogExists(directories)
     if not res['OK']:
       gLogger.error(res['Message'])
@@ -178,6 +194,7 @@ class ValidateOutputData(AgentModule):
     # This check performs SE->Catalog->BK for possible output directories
     #
     storageElements = gConfig.getValue('Resources/StorageElementGroups/Tier1_MC_M-DST',[])
+    storageElements.extend(['CNAF_MC-DST','CNAF-RAW'])
     for storageElementName in sortList(storageElements):
       res = self.integrityClient.storageDirectoryToCatalog(directories,storageElementName)
       if not res['OK']:
@@ -194,7 +211,24 @@ class ValidateOutputData(AgentModule):
         if not res['OK']:
           gLogger.error(res['Message'])
           return res
+
     gLogger.info("-" * 40)
     gLogger.info("Completed integrity check for production %s" % prodID)
+    res = self.integrityClient.getProductionProblematics(int(prodID))
+    if not res['OK']:
+      gLogger.error("Failed to determine whether there were associated problematic files",res['Message'])
+      newStatus = ''
+    elif res['Value']:
+      gLogger.info("%d problematic files for production %s were found" % (len(res['Value']),prodID))
+      newStatus = "WaitingIntegrity"
+    else:
+      gLogger.info("No problematics were found for production %s" % prodID)  
+      newStatus = "ValidatedOutput"
+    if newStatus:
+      res = self.productionClient.setProductionStatus(prodID,newStatus)
+      if not res['OK']:
+        gLogger.error("Failed to update status of production %s to %s" % (prodID,newStatus))
+      else:
+        gLogger.info("Updated status of production %s to %s" % (prodID,newStatus))
     gLogger.info("-" * 40)
     return S_OK()
