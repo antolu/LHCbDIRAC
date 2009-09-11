@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.1 2009/09/11 13:11:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.2 2009/09/11 13:35:01 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.1 2009/09/11 13:11:00 paterson Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.2 2009/09/11 13:35:01 paterson Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -283,7 +283,7 @@ class ProductionStatusAgent(AgentModule):
     """ Notify the production manager of the changes as productions should be
         manually extended in some cases.
     """
-    if not self.updatedProductions or not self.updatedRequests:
+    if not self.updatedProductions and not self.updatedRequests:
       self.log.info('No changes this cycle, mail will not be sent')
       return S_OK()
 
