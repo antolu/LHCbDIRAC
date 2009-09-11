@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.3 2009/09/11 15:32:22 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.4 2009/09/11 15:45:17 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.3 2009/09/11 15:32:22 paterson Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.4 2009/09/11 15:45:17 paterson Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -82,23 +82,23 @@ class ProductionStatusAgent(AgentModule):
         continue
       progress = int(bkTotal*100/totalRequested)
       self.log.verbose('Request progress for ID %s is %s' %(reqID,progress))
-      if progress > int(self.targetPercentage):
-        res = reqClient.getProductionProgressList(long(reqID))
-        if not res['OK']:
-          self.log.error('Could not get production progress list for request %s:\n%s' %(reqID,res))
-          continue
-        prodDictList = res['Value']['Rows']
-        if len(prodDictList)>2:
-          self.log.error('More than 2 associated productions for request %s, ignoring from further consideration...' %reqID)
-          continue
-        for p in prodDictList:
-          prod = p['ProductionID']
+      res = reqClient.getProductionProgressList(long(reqID))
+      if not res['OK']:
+        self.log.error('Could not get production progress list for request %s:\n%s' %(reqID,res))
+        continue
+      prodDictList = res['Value']['Rows']
+      if len(prodDictList)>2:
+        self.log.error('More than 2 associated productions for request %s, ignoring from further consideration...' %reqID)
+        continue
+      for p in prodDictList:
+        prod = p['ProductionID']
+        if progress > int(self.targetPercentage):
           if p['Used']:
             prodValOutputs[prod]=reqID
           else:
             prodValInputs[prod]=reqID
-      else:
-        notDone[prod]=reqID
+        else:
+          notDone[prod]=reqID
 
     #Check that there is something to do
     if not prodValOutputs.keys():
