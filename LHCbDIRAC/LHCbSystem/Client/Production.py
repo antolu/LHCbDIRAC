@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.37 2009/09/01 13:31:10 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.38 2009/09/11 11:27:24 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.37 2009/09/01 13:31:10 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.38 2009/09/11 11:27:24 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -302,9 +302,9 @@ class Production(LHCbJob):
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed, doesn't look like this is used anywhere...
     if inputDataType.lower()=='mdf':
-      self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
+      self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
     else:
-      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,'','',{})
+      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
 
   #############################################################################
   def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
@@ -1104,7 +1104,7 @@ class Production(LHCbJob):
   def setProdPlugin(self,plugin):
     """ Sets the plugin to be used to creating the production jobs
     """
-    available_plugins = ['CCRC_RAW','BySize']
+    available_plugins = ['CCRC_RAW','BySize','Standard']
     if plugin in available_plugins:
       self.plugin = plugin
     else:
