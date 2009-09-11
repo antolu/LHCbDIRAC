@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.2 2009/09/11 09:16:38 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.3 2009/09/11 12:37:38 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.2 2009/09/11 09:16:38 acsmith Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.3 2009/09/11 12:37:38 acsmith Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -57,15 +57,15 @@ class ProductionCleaningAgent(AgentModule):
           self.cleanProduction(int(prodID))
 
     # Obtain the productions where the remnant output data is to be removed
-    res = self.productionClient.getProductionsWithStatus('RemovingOutput')
+    res = self.productionClient.getProductionsWithStatus('RemovingFiles')
     if not res['OK']:
-      gLogger.error("Failed to get RemovingOutput productions",res['Message'])
+      gLogger.error("Failed to get RemovingFiles productions",res['Message'])
     else:
       prods = res['Value']
       if not prods:
-        gLogger.info("No productions found in RemovingOutput status")
+        gLogger.info("No productions found in RemovingFiles status")
       else:
-        gLogger.info("Found %d productions in RemovingOutput status" % len(prods))
+        gLogger.info("Found %d productions in RemovingFiles status" % len(prods))
         for prodID in sortList(prods):
           self.removeProductionOutput(int(prodID))
 
@@ -139,12 +139,12 @@ class ProductionCleaningAgent(AgentModule):
     if not res['OK']:
       return res
     gLogger.info("Successfully removed output of production %d" % prodID)
-    # Change the status of the production to RemovedOutput
-    res = self.productionClient.setProductionStatus(prodID,'RemovedOutput')
+    # Change the status of the production to RemovedFiles
+    res = self.productionClient.setProductionStatus(prodID,'RemovedFiles')
     if not res['OK']:
-      gLogger.error("Failed to update status of production %s to RemovedOutput" % (prodID),res['Message'])
+      gLogger.error("Failed to update status of production %s to RemovedFiles" % (prodID),res['Message'])
       return res
-    gLogger.info("Updated status of production %s to RemovedOutput" % (prodID))
+    gLogger.info("Updated status of production %s to RemovedFiles" % (prodID))
     return S_OK()
 
   def cleanProduction(self,prodID):
