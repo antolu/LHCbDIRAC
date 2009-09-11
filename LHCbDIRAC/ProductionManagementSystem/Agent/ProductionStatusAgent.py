@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.2 2009/09/11 13:35:01 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.3 2009/09/11 15:32:22 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -17,15 +17,15 @@
      ValidatingInput -> Active
      ValidatingInput -> RemovingFiles
 
-     RemovingFiles -> Completed
+     RemovedFiles -> Completed
 
      In addition this also updates request status from Active to Done.
 
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.2 2009/09/11 13:35:01 paterson Exp $"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.3 2009/09/11 15:32:22 paterson Exp $"
+__VERSION__ = "$Revision: 1.3 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -73,6 +73,7 @@ class ProductionStatusAgent(AgentModule):
     prodReqSummary = result['Value']
     prodValOutputs = {}
     prodValInputs = {}
+    notDone = {}
     for reqID,mdata in prodReqSummary.items():
       totalRequested = mdata['reqTotal']
       bkTotal = mdata['bkTotal']
@@ -96,6 +97,8 @@ class ProductionStatusAgent(AgentModule):
             prodValOutputs[prod]=reqID
           else:
             prodValInputs[prod]=reqID
+      else:
+        notDone[prod]=reqID
 
     #Check that there is something to do
     if not prodValOutputs.keys():
@@ -170,8 +173,11 @@ class ProductionStatusAgent(AgentModule):
     returnToActive = []
     for prod in validatedOutput:
       if not prodValOutputs.has_key(prod):
-        self.log.info('Prod %s not found as having enough BK events in validating outputs structure' %prod)
-        returnToActive.append(prod)
+        if notDone.has_key(prod):
+          unfinishedRequest = notDone[prod]
+          if unfinishedRequest in singleRequests:
+            self.log.info('Prod %s for single request %s has not enough BK events' %(prod,unfinishedRequest))
+            returnToActive.append(prod)
         continue
       reqID = prodValOutputs[prod]
       if reqID in singleRequests:
@@ -216,15 +222,20 @@ class ProductionStatusAgent(AgentModule):
         self.log.error('Req %s is not in list of completed parents' %(finishedReq))
         continue
       subreqs = parentRequests[finishedReq]
-      mcProd=None
-      for assocProd,req in prodValInputs.items():
-        if req==finishedReq:
-          mcProd = assocProd
+      for subreq in subreqs:
+        mcProd=None
+        outputProd=None
+        for assocProd,req in prodValInputs.items():
+          if req==finishedReq:
+            mcProd = assocProd
+        for prod,req in prodValOutputs.items():
+          if req==finishedReq:
+            outputProd = prod
 
-      if mcProd:
-        self.updateProductionStatus(mcProd,'ValidatingInput','RemovingFiles')
-
-      self.updateProductionStatus(prod,'ValidatedOutput','Completed')
+        if mcProd:
+          self.updateProductionStatus(mcProd,'ValidatingInput','RemovingFiles')
+        if outputProd:
+          self.updateProductionStatus(prod,'ValidatedOutput','Completed')
       self.updateRequestStatus(finishedReq,'Done')
 
     #Must return to active state the following Used productions (and associated MC prods)
