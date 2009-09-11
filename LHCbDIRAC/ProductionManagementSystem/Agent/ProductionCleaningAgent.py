@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.1 2009/09/09 15:26:28 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.2 2009/09/11 09:16:38 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.1 2009/09/09 15:26:28 acsmith Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.2 2009/09/11 09:16:38 acsmith Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -13,6 +13,7 @@ from DIRAC.WorkloadManagementSystem.Client.WMSClient           import WMSClient
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient          import BookkeepingClient
 from DIRAC.Core.Utilities.List                                 import sortList
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
+from datetime                                                  import datetime,timedelta
 
 import re, os
 
@@ -43,23 +44,54 @@ class ProductionCleaningAgent(AgentModule):
       return S_OK('Disabled via CS flag')
 
     # Obtain the productions in the Deleted status and remove any mention of the jobs/files
-    res = self.productionClient.getProductionsWithStatus('Deleted')
+    res = self.productionClient.getProductionsWithStatus('Cleaning')
     if not res['OK']:
       gLogger.error("Failed to get Cleaning productions",res['Message'])
-      return res
-    prods = res['Value']
-    if not prods:
-      gLogger.info("No productions found in Cleaning status")
-      return S_OK()
-    gLogger.info("Found %s productions in Cleaning status" % len(prods))
-    for prodID in sortList(prods):
-      self.cleanProduction(int(prodID))
+    else:
+      prods = res['Value']
+      if not prods:
+        gLogger.info("No productions found in Cleaning status")
+      else:
+        gLogger.info("Found %d productions in Cleaning status" % len(prods))
+        for prodID in sortList(prods):
+          self.cleanProduction(int(prodID))
+
+    # Obtain the productions where the remnant output data is to be removed
+    res = self.productionClient.getProductionsWithStatus('RemovingOutput')
+    if not res['OK']:
+      gLogger.error("Failed to get RemovingOutput productions",res['Message'])
+    else:
+      prods = res['Value']
+      if not prods:
+        gLogger.info("No productions found in RemovingOutput status")
+      else:
+        gLogger.info("Found %d productions in RemovingOutput status" % len(prods))
+        for prodID in sortList(prods):
+          self.removeProductionOutput(int(prodID))
 
     # Obtain the productions to be archived and remove the jobs in the WMS and production management
-    # TODO
+    res = self.productionClient.getProductionsWithStatus('Completed')
+    if not res['OK']:
+      gLogger.error("Failed to get Completed productions",res['Message'])
+    else:
+      prods = res['Value']
+      if not prods:
+        gLogger.info("No productions found in Completed status")
+      else:
+        gLogger.info("Found %d productions in Completed status" % len(prods))
+        for prodID in sortList(prods):
+          res = self.productionClient.getProductionLastUpdate(prodID)
+          if not res['OK']:
+            gLogger.error("Failed to get last update time for production %d" % prodID)
+          else:
+            lastUpdateTime = res['Value']
+            timeDelta = timedelta(days=30)
+            maxCTime = datetime.utcnow() -  timeDelta
+            if lastUpdateTime < maxCTime:
+              self.archiveProduction(prodID)
 
     return S_OK()
-
+  
   #############################################################################
   #
   # These are the functional methods for archiving and cleaning productions
@@ -86,22 +118,43 @@ class ProductionCleaningAgent(AgentModule):
     gLogger.info("Updated status of production %s to Archived" % (prodID))
     return S_OK()
 
+  def removeProductionOutput(self,prodID):
+    """ This just removes any mention of the output data from the catalog and storage
+    """
+    gLogger.info("Removing output data for production %s" % prodID)
+    res = self.getProductionDirectories(prodID)
+    if not res['OK']:
+      return res
+    directories = res['Value']
+    for directory in directories:
+      if not re.search('/LOG/',directory):
+        res = self.cleanCatalogContents(directory)
+        if not res['OK']:
+          return res
+        res = self.cleanStorageContents(directory)
+        if not res['OK']:
+          return res
+    # Clean ALL the possible remnants found in the BK
+    res = self.cleanBKFiles(prodID)
+    if not res['OK']:
+      return res
+    gLogger.info("Successfully removed output of production %d" % prodID)
+    # Change the status of the production to RemovedOutput
+    res = self.productionClient.setProductionStatus(prodID,'RemovedOutput')
+    if not res['OK']:
+      gLogger.error("Failed to update status of production %s to RemovedOutput" % (prodID),res['Message'])
+      return res
+    gLogger.info("Updated status of production %s to RemovedOutput" % (prodID))
+    return S_OK()
+
   def cleanProduction(self,prodID):
     """ This removes any mention of the supplied production 
     """
     gLogger.info("Cleaning production %s" % prodID)
-    directories = []
-    res = self.productionClient.getParameters(prodID,pname='OutputDirectories')
-    if res['OK']:
-      directories = res['Value'].splitlines()
-    elif res['Message'].endswith('not found'):
-      gLogger.warn("The production was not found in the production management system.")
-    elif res['Message'] == 'Parameter OutputDirectories not found for production':
-      gLogger.warn("No output directories available for production.")
-    else:
-      gLogger.error("Completely failed to obtain production parameters",res['Message'])
+    res = self.getProductionDirectories(prodID)
+    if not res['OK']:
       return res
-
+    directories = res['Value']
     # Clean the jobs in the WMS and any failover requests found
     res = self.cleanProductionJobs(prodID)
     if not res['OK']:
@@ -135,6 +188,41 @@ class ProductionCleaningAgent(AgentModule):
       return res
     gLogger.info("Updated status of production %s to Deleted" % (prodID))
     return S_OK()
+
+  #############################################################################
+  #
+  # These are the hacks to try and recover the production directories
+  #
+
+  def getProductionDirectories(self,prodID):
+    """ Get the directories for the supplied productionID from the production management system
+    """
+    res = self.__getProductionDirectories(prodID)
+    if not res['OK']:
+      return res
+    if not res['Value']:
+      self.__createProductionDirectories(prodID)
+      res = self.__getProductionDirectories(prodID)
+    return res
+
+  def __getProductionDirectories(self,prodID):
+    directories = []
+    res = self.productionClient.getParameters(prodID,pname='OutputDirectories')
+    if res['OK']:
+      directories = res['Value'].splitlines()
+    elif res['Message'].endswith('not found'):
+      gLogger.warn("The production was not found in the production management system.")
+    elif res['Message'] == 'Parameter OutputDirectories not found for production':
+      gLogger.warn("No output directories available for production.")
+    else:
+      gLogger.error("Completely failed to obtain production parameters",res['Message'])
+      return res
+    return S_OK(directories)
+
+  def __createProductionDirectories(self,prodID):
+    from DIRAC.LHCbSystem.Client.Production import Production 
+    production = Production()
+    res = production._setProductionParameters(prodID)
 
   #############################################################################
   #
@@ -197,7 +285,9 @@ class ProductionCleaningAgent(AgentModule):
     return S_OK()
 
   def __getCatalogDirectoryContents(self,directories):
-    gLogger.info('Obtaining the catalog contents for %d directories' % len(directories))
+    gLogger.info('Obtaining the catalog contents for %d directories:' % len(directories))
+    for directory in directories:
+      gLogger.info(directory)
     activeDirs = directories
     allFiles = {}
     while len(activeDirs) > 0:
@@ -209,7 +299,7 @@ class ProductionCleaningAgent(AgentModule):
       elif not res['OK']:
         gLogger.error('Failed to get directory contents','%s %s' % (currentDir,res['Message']))
       else:
-        dirContents = res['Value']['Successful'][currentDir]
+        dirContents = res['Value']
         activeDirs.extend(dirContents['SubDirs'])
         allFiles.update(dirContents['Files'])
     gLogger.info("Found %d files" % len(allFiles))
