@@ -1,13 +1,13 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BookkeepingWatchAgent.py,v 1.1 2009/09/14 20:30:12 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BookkeepingWatchAgent.py,v 1.2 2009/09/14 21:03:57 acsmith Exp $
 ########################################################################
 
-__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.1 2009/09/14 20:30:12 acsmith Exp $"
+__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.2 2009/09/14 21:03:57 acsmith Exp $"
 
 from DIRAC                                            import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                      import AgentModule
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from DIRAC.Core.Transformation.TranformationDBClient  import TransformationDBClient
+from DIRAC.Core.Transformation.TransformationDBClient import TransformationDBClient
 import os, time, datetime
 
 
@@ -22,20 +22,19 @@ class BookkeepingWatchAgent(AgentModule):
     self.fileLog = {}
     self.timeLog = {}
     self.fullTimeLog = {}
-    self.pollingTime = self.am_getOption('PollingTime',120):
+    self.pollingTime = self.am_getOption('PollingTime',120)
     self.fullUpdatePeriod = self.am_getOption('FullUpdatePeriod',86400)
-
+    gMonitor.registerActivity("Iteration","Agent Loops",AGENT_NAME,"Loops/min",gMonitor.OP_SUM)
     # Configure the TransformationDBClient
     service = self.am_getOption('TransformationService','')
     if not service:
       gLogger.fatal("To initialise this agent the TransformationService option must be provided")
       return S_ERROR()
-    self.transClient = TransformationDBClient()
+    self.transClient = TransformationDBClient('TransformationDB')
     self.transClient.setServer(service)
     # Create the BK client
     self.bkClient = BookkeepingClient()
 
-    gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return S_OK()
 
   ##############################################################################
