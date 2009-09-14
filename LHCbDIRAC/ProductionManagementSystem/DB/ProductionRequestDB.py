@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.13 2009/09/11 13:09:45 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.14 2009/09/14 09:52:02 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.13 $"
+__RCSID__ = "$Revision: 1.14 $"
 
 # Defined states:
 #'New'
@@ -1039,7 +1039,7 @@ class ProductionRequestDB(DB):
     req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active' "
     req2+= " OR MasterID in (%s)" % req1
     req  = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
-    req += "in (%s) AND Used" % req2
+    req += "in (%s)" % req2
 
     result = self._query(req)
     if not result['OK']:
