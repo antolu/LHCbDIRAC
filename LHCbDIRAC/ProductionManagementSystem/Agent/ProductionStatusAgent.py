@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.4 2009/09/11 15:45:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.5 2009/09/15 14:46:55 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.4 2009/09/11 15:45:17 paterson Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.5 2009/09/15 14:46:55 paterson Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -71,6 +71,14 @@ class ProductionStatusAgent(AgentModule):
       return S_OK()
 
     prodReqSummary = result['Value']
+
+    result = reqClient.getAllProductionProgress()
+    if not result['OK']:
+      self.log.error('Could not retrieve production progress summary:\n%s\n will be attempted on next execution cycle' %result)
+      return S_OK()
+
+    progressSummary = result['Value']
+
     prodValOutputs = {}
     prodValInputs = {}
     notDone = {}
@@ -82,18 +90,17 @@ class ProductionStatusAgent(AgentModule):
         continue
       progress = int(bkTotal*100/totalRequested)
       self.log.verbose('Request progress for ID %s is %s' %(reqID,progress))
-      res = reqClient.getProductionProgressList(long(reqID))
-      if not res['OK']:
+      if not progressSummary.has_key(reqID):
         self.log.error('Could not get production progress list for request %s:\n%s' %(reqID,res))
         continue
-      prodDictList = res['Value']['Rows']
-      if len(prodDictList)>2:
+
+      prodProgress = progressSummary[reqID]
+      if len(prodProgress.keys())>2:
         self.log.error('More than 2 associated productions for request %s, ignoring from further consideration...' %reqID)
         continue
-      for p in prodDictList:
-        prod = p['ProductionID']
+      for prod,used in prodProgress.items():
         if progress > int(self.targetPercentage):
-          if p['Used']:
+          if used['Used']:
             prodValOutputs[prod]=reqID
           else:
             prodValInputs[prod]=reqID
@@ -107,28 +114,30 @@ class ProductionStatusAgent(AgentModule):
 
     #Now we have the production IDs to change, need to ensure parameters are present before
     #proceeding with other actions, this is temporary (will be added at creation time normally)
-    toRemove = []
-    for production in prodValOutputs.keys():
-      result = self.setProdParams(production)
-      if not result['OK']:
-        toRemove.append(production)
+#    toRemove = []
+#    for production in prodValOutputs.keys():
+#      result = self.setProdParams(production)
+#      if not result['OK']:
+#        toRemove.append(production)
 
-    for p in toRemove: del prodValOutputs[p]
+#    for p in toRemove: del prodValOutputs[p]
 
-    toRemove = []
-    for production in prodValInputs.keys():
-      result = self.setProdParams(production)
-      if not result['OK']:
-        toRemove.append(production)
+#    toRemove = []
+#    for production in prodValInputs.keys():
+#      result = self.setProdParams(production)
+#      if not result['OK']:
+#        toRemove.append(production)
 
-    for p in toRemove: del prodValInputs[p]
+#    for p in toRemove: del prodValInputs[p]
 
     #Now have to update productions to ValidatingOutput / Input after cleaning jobs
     for prod,req in prodValOutputs.items():
       self.cleanActiveJobsUpdateStatus(prod,'Active','ValidatingOutput')
+      #self.updateProductionStatus(prod,'Active','ValidatingOutput')
 
     for prod,req in prodValInputs.items():
       self.cleanActiveJobsUpdateStatus(prod,'Active','ValidatingInput')
+      #self.updateProductionStatus(prod,'Active','ValidatingInput')
 
     #Select productions in ValidatedOutput and recheck #BK events
     #Either request is Done, productions Completed, MC prods go to RemoveInputs
@@ -136,7 +145,7 @@ class ProductionStatusAgent(AgentModule):
     productionClient = ProductionClient()
     res = productionClient.getProductionsWithStatus('ValidatedOutput')
     if not res['OK']:
-      gLogger.error("Failed to get ValidatedOutput productions",res['Message'])
+      self.log.error("Failed to get ValidatedOutput productions",res['Message'])
       return res
 
     validatedOutput = res['Value']
@@ -223,19 +232,16 @@ class ProductionStatusAgent(AgentModule):
         continue
       subreqs = parentRequests[finishedReq]
       for subreq in subreqs:
-        mcProd=None
-        outputProd=None
-        for assocProd,req in prodValInputs.items():
-          if req==finishedReq:
-            mcProd = assocProd
-        for prod,req in prodValOutputs.items():
-          if req==finishedReq:
-            outputProd = prod
+        if not progressSummary.has_key(subreq):
+          self.log.error('Could not get production progress list for request %s:\n%s' %(reqID,res))
+          continue
+        prodProgress = progressSummary[subreq]
+        for prod,used in prodProgress.items():
+          if used['Used']:
+            self.updateProductionStatus(prod,'ValidatedOutput','Completed')
+          else:
+            self.updateProductionStatus(prod,'ValidatingInput','RemovingFiles')
 
-        if mcProd:
-          self.updateProductionStatus(mcProd,'ValidatingInput','RemovingFiles')
-        if outputProd:
-          self.updateProductionStatus(prod,'ValidatedOutput','Completed')
       self.updateRequestStatus(finishedReq,'Done')
 
     #Must return to active state the following Used productions (and associated MC prods)
@@ -243,24 +249,12 @@ class ProductionStatusAgent(AgentModule):
       self.log.info('Final productions to be returned to Active status are: %s' %(string.join([str(i) for i in returnToActive],', ')))
 
     mcReturnToActive = []
-    for reqID,mdata in prodReqSummary.items():
-      res = reqClient.getProductionProgressList(long(reqID))
-      if not res['OK']:
-        self.log.error('Could not get production progress list for request %s:\n%s' %(reqID,res))
-        continue
-      for prod in returnToActive:
-        prodDictList = res['Value']['Rows']
-        mcProd = None
-        match = False
-        for p in prodDictList:
-          prodReq = p['ProductionID']
-          if prodReq == prod:
-            self.log.info('Found associated MC production for production %s' %prod)
-            match = True
-          else:
-            mcProd = prodReq
-        if match:
-          mcReturnToActive.append(mcProd)
+    for prod in returnToActive:
+      for reqID,prodDict in progressSummary.items():
+        if prod in prodDict.keys():
+          for prodID,used in prodDict.items():
+            if not prodDict['Used']:
+              mcReturnToActive.append(prodID)
 
     if mcReturnToActive:
       self.log.info('Final MC productions to be returned to active are: %s' %(string.join([str(i) for i in mcReturnToActive],', ')))
@@ -278,14 +272,15 @@ class ProductionStatusAgent(AgentModule):
     if not res['Value']:
       self.log.info('No productions in RemovedFiles status')
     else:
-      for prod in res['Value'].items():
+      for prod in res['Value']:
         self.updateProductionStatus(prod,'RemovedFiles','Completed')
 
     self.log.info('Productions updated this cycle:')
     for n,v in self.updatedProductions.items():
       self.log.info('Production %s: %s => %s' %(n,v['from'],v['to']))
 
-    self.log.info('Requests updated to Done status: %s' %(string.join([str(i) for i in self.updatedRequests],', ')))
+    if self.updatedRequests:
+      self.log.info('Requests updated to Done status: %s' %(string.join([str(i) for i in self.updatedRequests],', ')))
     self.mailProdManager()
     return S_OK()
 
@@ -319,7 +314,7 @@ class ProductionStatusAgent(AgentModule):
     self.updatedRequests.append(reqID)
     #return S_OK()
     reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
-    result = reqClient.updateProductionRequest(long(reqID),{'RequestStatus':'Done'})
+    result = reqClient.updateProductionRequest(long(reqID),{'RequestState':status})
     if not result['OK']:
       self.log.error(result)
 
