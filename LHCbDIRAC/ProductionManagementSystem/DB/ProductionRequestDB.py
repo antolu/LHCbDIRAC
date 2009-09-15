@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.15 2009/09/15 12:53:55 acsmith Exp $
+# $Id: ProductionRequestDB.py,v 1.16 2009/09/15 13:52:12 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.15 $"
+__RCSID__ = "$Revision: 1.16 $"
 
 # Defined states:
 #'New'
@@ -20,6 +20,7 @@ __RCSID__ = "$Revision: 1.15 $"
 
 
 import string
+import time
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR, gConfig
@@ -184,6 +185,21 @@ class ProductionRequestDB(DB):
         outValues[i] = 'NULL'
     return S_OK(outValues)
 
+  def __prefixComments(self,update,old,user):
+    """ Add Log style prefix to the record like change """
+    if not update:
+      return update
+    if not old:
+      old=''
+    if not update.startswith(old) and not update.endswith(old):
+      return update
+    prefix = "Comment by %s on %s:\n" % (user,time.strftime("%b %d, %Y"))
+    if update.startswith(old):
+      if old.rstrip():
+        old=old.rstrip()+'\n\n'
+      return old+prefix+update[len(old):].lstrip()
+    return prefix+update.lstrip()
+
   def __getRequestInfo(self,id,connection):
     """ Retrive info fields from specified ID
         Used to get ParentID information.
@@ -264,6 +280,8 @@ class ProductionRequestDB(DB):
         # so we only check EventType consistency
         if not rec['EventType']:
           return S_ERROR("Please specify Event type/number or add subrequest(s)")
+    if 'Comments' in rec:
+      rec['Comments'] = self.__prefixComments(rec['Comments'],'',creds['User'])
 
     recl = [ rec[x] for x in self.requestFields[1:-6] ]
     result = self._fixedEscapeValues(recl)
@@ -472,6 +490,10 @@ class ProductionRequestDB(DB):
       if creds['Group'] != 'lhcb_tech':
         self.lock.release()
         return S_ERROR("Only Tech. experts are allowed to sign this request")
+    elif requestState == 'On-hold':
+      if creds['Group'] != 'lhcb_tech':
+        self.lock.release()
+        return S_ERROR("Only Tech. experts are allowed to sign this request")
     elif requestState == 'Tech OK':
       if creds['Group'] != 'lhcb_ppg':
         self.lock.release()
@@ -578,7 +600,7 @@ class ProductionRequestDB(DB):
 #        if update['RequestState'] == 'Tech OK' and not update.get('ProID',old['ProID']):
 #          self.lock.release()
 #          return S_ERROR("Registered processing pass is required to sign for Tech OK")
-    elif requestState == 'PPG OK':
+    elif requestState in ['PPG OK','On-hold']:
       for x in update:
         if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
           self.lock.release()
@@ -587,7 +609,7 @@ class ProductionRequestDB(DB):
         return S_OK(inform)
       if update['RequestState'] == 'Tech OK':
         update['RequestState'] = 'Accepted'
-      if not update['RequestState'] in ['Accepted','Rejected']:
+      if not update['RequestState'] in ['Accepted','Rejected','On-hold']:
         self.lock.release()
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
 # AZ: removed from logic
@@ -672,6 +694,10 @@ class ProductionRequestDB(DB):
     if len(update) == 0:
       self.lock.release()
       return S_OK(requestID) # nothing to update
+
+    if 'Comments' in update:
+      update['Comments'] = self.__prefixComments(update['Comments'],
+                                                 old['Comments'],creds['User'])
 
     result = self.__checkUpdate(update,old,creds,connection)
     if not result['OK']:
@@ -1065,6 +1091,23 @@ class ProductionRequestDB(DB):
         gLogger.info('Problem in updating progress. Not fatal: %s' %
                      result['Message'])
     return S_OK('')
+
+  def getProductionList(self,requestID):
+    """ return a list of all productions associated
+        with the request or any its subrequest
+    """
+    req1 = "SELECT RequestID FROM ProductionRequests WHERE MasterID=%s"%requestID 
+    req  = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
+    req += "in (%s) OR RequestID=%s" % (req1,requestID)
+
+    result = self._query(req)
+    if not result['OK']:
+      return result
+
+    gLogger.info(result['Value'])
+
+    values = [row[0] for row in result['Value']]
+    return S_OK(values)
 
   def getAllSubRequestSummary(self,status='',type=''):
     """ return a dictionary containing a summary for each subrequest
