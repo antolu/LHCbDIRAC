@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.7 2009/09/09 09:40:36 paterson Exp $
+# $Id: ProductionRequestHandler.py,v 1.8 2009/09/15 12:56:12 acsmith Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.7 $"
+__RCSID__ = "$Revision: 1.8 $"
 
 import os
 import re
@@ -145,6 +145,18 @@ class ProductionRequestHandler( RequestHandler ):
     """
     return self.database.updateTrackedProductions(update)
 
+  types_getAllSubRequestSummary = []
+  def export_getAllSubRequestSummary(self,status='',type=''):
+    """ Return a summary for each subrequest
+    """
+    return self.database.getAllSubRequestSummary(status,type)
+
+  types_getAllProductionProgress = []
+  def export_getAllProductionProgress(self):
+    """ Return all the production progress
+    """
+    return self.database.getAllProductionProgress()
+
   def __getTplFolder(self):
     csS=PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
     if not csS:
@@ -282,3 +294,4 @@ class ProductionRequestHandler( RequestHandler ):
         resultDict[id] = {'reqTotal':req['rqTotal'],'bkTotal':req['bkTotal'],'master':0}
 
     return S_OK(resultDict)
+
