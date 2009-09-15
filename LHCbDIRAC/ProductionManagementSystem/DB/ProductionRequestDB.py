@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.16 2009/09/15 13:52:12 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.17 2009/09/15 14:47:02 acsmith Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.16 $"
+__RCSID__ = "$Revision: 1.17 $"
 
 # Defined states:
 #'New'
@@ -503,7 +503,7 @@ class ProductionRequestDB(DB):
         self.lock.release()
         return S_ERROR("Only Tech. experts are allowed to manage accepted request")
     elif requestState == 'Active':
-      if not creds['Group'] in ['lhcb_prmgr','lhcb_prod']:
+      if not creds['Group'] in ['lhcb_prmgr','lhcb_prod','hosts']:
         self.lock.release()
         return S_ERROR("Only experts are allowed to manage active request")
     else:
