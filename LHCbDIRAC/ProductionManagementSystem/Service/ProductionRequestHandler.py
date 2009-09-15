@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.8 2009/09/15 12:56:12 acsmith Exp $
+# $Id: ProductionRequestHandler.py,v 1.9 2009/09/15 13:58:13 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.8 $"
+__RCSID__ = "$Revision: 1.9 $"
 
 import os
 import re
@@ -59,7 +59,7 @@ class ProductionRequestHandler( RequestHandler ):
   types_getProductionRequest = [ListType]
   def export_getProductionRequest(self,requestIDList):
     """ Get production request(s) specified by the list of requestIDs
-        AZ!!: not tested !!
+        AZ!!: not tested !! 
     """
     if not requestIDList:
       return S_OK({})
@@ -150,7 +150,7 @@ class ProductionRequestHandler( RequestHandler ):
     """ Return a summary for each subrequest
     """
     return self.database.getAllSubRequestSummary(status,type)
-
+  
   types_getAllProductionProgress = []
   def export_getAllProductionProgress(self):
     """ Return all the production progress
@@ -259,6 +259,13 @@ class ProductionRequestHandler( RequestHandler ):
     os.remove(proxyFile)
     return result
 
+  types_getProductionList = [LongType]
+  def export_getProductionList(self,requestID):
+    """ Return the list of productions associated with request and
+        its subrequests
+    """
+    return self.database.getProductionList(requestID)
+
   types_getProductionRequestSummary = [StringType,StringType]
   def export_getProductionRequestSummary(self,status,requestType):
     """ Method to retrieve the production / request relations for a given request status.
@@ -294,4 +301,3 @@ class ProductionRequestHandler( RequestHandler ):
         resultDict[id] = {'reqTotal':req['rqTotal'],'bkTotal':req['bkTotal'],'master':0}
 
     return S_OK(resultDict)
-
