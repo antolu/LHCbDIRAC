@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.14 2009/09/14 09:52:02 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.15 2009/09/15 12:53:55 acsmith Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.14 $"
+__RCSID__ = "$Revision: 1.15 $"
 
 # Defined states:
 #'New'
@@ -1065,3 +1065,37 @@ class ProductionRequestDB(DB):
         gLogger.info('Problem in updating progress. Not fatal: %s' %
                      result['Message'])
     return S_OK('')
+
+  def getAllSubRequestSummary(self,status='',type=''):
+    """ return a dictionary containing a summary for each subrequest
+    """
+    req = "SELECT RequestID,ParentID,RequestType,RequestState,NumberOfEvents FROM ProductionRequests"
+    if status and type:
+      req = "%s WHERE RequestState = '%s' AND RequestType = '%s'" % (req,status,type)
+    elif status:
+      req = "%s WHERE RequestState = '%s'" % (req,status)
+    elif type:
+      req = "%s WHERE RequestType = '%s'" % (req,type)
+    res = self._query(req)
+    if not res['OK']:
+      return res
+    sRequestInfo = {}
+    for sRequestID,parentID,type,status,reqEvents in res['Value']:
+      if not parentID:
+        parent = 0
+      sRequestInfo[sRequestID] = {'Master':parent, 'RequestType':type, 'Status':status, 'ReqEvents':reqEvents}
+    return S_OK(sRequestInfo)
+    
+  def getAllProductionProgress(self):
+    """ return a dictionary containing for each requestID the active productions and the number of events
+    """
+    req = "SELECT RequestID, ProductionID, Used, BkEvents FROM ProductionProgress;"
+    res = self._query(req)
+    if not res['OK']:
+      return res
+    sRequestInfo = {}
+    for sRequestID, prodID, used, events in res['Value']:
+      if not sRequestInfo.has_key(sRequestID):
+        sRequestInfo[sRequestID] = {}
+      sRequestInfo[sRequestID][prodID] = {'Used':used, 'Events':events}
+    return S_OK(sRequestInfo)
