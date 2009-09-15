@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.40 2009/07/16 11:32:57 rgracian Exp $
+# $Id: BookkeepingReport.py,v 1.41 2009/09/15 14:14:29 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.40 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.41 2009/09/15 14:14:29 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -105,9 +105,39 @@ class BookkeepingReport(ModuleBase):
 
     return S_OK()
 
+  ############################################################################
+  def getNodeInformation(self):
+    """Try to obtain system HostName, CPU, Model, cache and memory.  This information
+       is not essential to the running of the jobs but will be reported if
+       available.
+    """
+    result = S_OK()
+    try:
+      file = open ("/proc/cpuinfo","r")
+      info =  file.readlines()
+      file.close()
+      result["HostName"] = socket.gethostname()
+      result["CPU(MHz)"]   = string.replace(string.replace(string.split(info[6],":")[1]," ",""),"\n","")
+      result["ModelName"] = string.replace(string.replace(string.split(info[4],":")[1]," ",""),"\n","")
+      result["CacheSize(kB)"] = string.replace(string.replace(string.split(info[7],":")[1]," ",""),"\n","")
+      file = open ("/proc/meminfo","r")
+      info =  file.readlines()
+      file.close()
+      result["Memory(kB)"] =  string.replace(string.replace(string.split(info[3],":")[1]," ",""),"\n","")
+    except Exception, x:
+      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
+      self.log.fatal(str(x))
+      result = S_ERROR()
+      result['Message']='Failed to obtain system information for '+self.systemFlag
+      return result
+
+    return result
+
+
 
   def execute(self):
     self.log.info('Initializing '+self.version)
+
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
        self.log.info('Skip this module, failure detected in a previous step :')
        self.log.info('Workflow status : %s' %(self.workflowStatus))
@@ -146,6 +176,15 @@ class BookkeepingReport(ModuleBase):
       ldatestart = time.strftime("%Y-%m-%d",time.localtime(self.step_commons['StartTime']))
       ltimestart = time.strftime("%H:%M",time.localtime(self.step_commons['StartTime']))
 
+    # Timing
+    exectime = 0
+    if self.step_commons.has_key('StartTime'):
+      exectime = time.time() - self.step_commons['StartTime']
+    cputime = 0
+    if self.step_commons.has_key('StartStats'):
+      stats = os.times()
+      cputime = stats[0]+stats[2]-self.step_commons['StartStats'][0]-self.step_commons['StartStats'][2]
+
     s = ''
     s = s+'<?xml version="1.0" encoding="ISO-8859-1"?>\n'
     s = s+'<!DOCTYPE Job SYSTEM "book.dtd">\n'
@@ -162,6 +201,16 @@ class BookkeepingReport(ModuleBase):
           '" ConfigVersion="'+configVersion+ \
           '" Date="'+ldate+ \
           '" Time="'+ltime+'">\n'
+
+    s = s+self.__parameter_string("CPUTIME",cputime,'Info')
+    s = s+self.__parameter_string("ExecTime",exectime,'Info')
+
+    nodeInfo = self.getNodeInformation()
+    if nodeInfo['OK']:
+      s = s+self.__parameter_string("WNMODEL",nodeInfo['ModelName'],'Info')
+      s = s+self.__parameter_string("WNMEMORY",nodeInfo['Memory(kB)'],'Info')
+      s = s+self.__parameter_string("WNCPUPOWER",nodeInfo['CPU(MHz)'],'Info')
+      s = s+self.__parameter_string("WNCACHE",nodeInfo['CacheSize(kB)'],'Info')
 
     s = s+self.__parameter_string("Production",self.PRODUCTION_ID,'Info')
     s = s+self.__parameter_string("DiracJobId",self.JOB_ID,'Info')
