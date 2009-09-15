@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.17 2009/08/06 12:25:26 zmathe Exp $
+# $Id: FileDialog.py,v 1.18 2009/09/15 10:39:00 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedS
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.17 2009/08/06 12:25:26 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.18 2009/09/15 10:39:00 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -109,9 +109,9 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################  
   def showData(self, data):
-    noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId']
+    noheader = ['name','expandable','level','fullpath','WorkerNode', 'FileType','EvtTypeId']
     tabledata =[]
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat','Generator']
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()

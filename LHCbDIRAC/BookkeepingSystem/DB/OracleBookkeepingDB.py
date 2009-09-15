@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.108 2009/09/07 17:43:41 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.109 2009/09/15 10:39:00 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.108 2009/09/07 17:43:41 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.109 2009/09/15 10:39:00 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -689,7 +689,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
          
     if ftype == 'ALL':
-      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
@@ -698,7 +698,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
     else:
-      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, jobs.Generator, jobs.GeometryVersion, \
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
@@ -1097,9 +1097,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if len( res['Value'] ) == 0:
         return S_ERROR('File not found!')
       jobid = res['Value'][0][0]
-      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER, GENERATOR, \
-                 GEOMETRYVERSION, GRIDJOBID, LOCALJOBID, LOCATION,  NAME, NUMBEROFEVENTS, \
-                 STATISTICSREQUESTED, WNCPUPOWER, WNCPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE, jobid from jobs where jobid='+str(jobid)
+      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER,  \
+                 LOCATION,  NAME, NUMBEROFEVENTS, \
+                 STATISTICSREQUESTED, WNCPUPOWER, CPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE, jobid from jobs where jobid='+str(jobid)
       res = self.dbR_._query(command)
       return res
     return S_ERROR("Job is not found!")
@@ -1328,9 +1328,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       dbResult = res['Value']
       for record in dbResult:
         jobid = str(record[19])
-        value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], 'Generator':record[5], \
-                 'GeometryVersion':record[6], 'GridJobID':record[7], 'LocalJobID':record[8], 'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
-                  'StatistivsRequested':record[12], 'WNCPUPOWER':record[13], 'WNCPUTIME':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18]}  
+        value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
+                  'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
+                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14]}  
       list[jobid]=value
     return S_OK(list)
   
@@ -2130,12 +2130,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'EventInputStat':None, \
                  'ExecTime':None, \
                  'FirstEventNumber':None, \
-                 'Generator':None, \
-                 'GeometryVersion':None, \
-                 'GridJobId':None, \
                  'JobEnd':None, \
                  'JobStart':None, \
-                 'LocalJobId':None, \
                  'Location':None, \
                  'Name':None, \
                  'NumberOfEvents':None, \
@@ -2143,11 +2139,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'ProgramName':None, \
                  'ProgramVersion':None, \
                  'StatisticsRequested':None, \
-                 'WNCPUPower':None, \
-                 'WNCPUTime':None, \
-                 'WNCache':None, \
-                 'WNMemory':None, \
-                 'WNModel':None, \
+                 'WNCPUPOWER':None, \
+                 'CPUTIME':None, \
+                 'WNCACHE':None, \
+                 'WNMEMORY':None, \
+                 'WNMODEL':None, \
                  'WorkerNode':None, \
                  'RunNumber':None,
                  'FillNumber':None}
@@ -2174,12 +2170,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['EventInputStat'], \
                   attrList['ExecTime'], \
                   attrList['FirstEventNumber'], \
-                  attrList['Generator'], \
-                  attrList['GeometryVersion'], \
-                  attrList['GridJobId'], \
                   attrList['JobEnd'], \
                   attrList['JobStart'], \
-                  attrList['LocalJobId'], \
                   attrList['Location'], \
                   attrList['Name'], \
                   attrList['NumberOfEvents'], \
@@ -2187,11 +2179,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['ProgramName'], \
                   attrList['ProgramVersion'], \
                   attrList['StatisticsRequested'], \
-                  attrList['WNCPUPower'], \
-                  attrList['WNCPUTime'], \
-                  attrList['WNCache'], \
-                  attrList['WNMemory'], \
-                  attrList['WNModel'], \
+                  attrList['WNCPUPOWER'], \
+                  attrList['CPUTIME'], \
+                  attrList['WNCACHE'], \
+                  attrList['WNMEMORY'], \
+                  attrList['WNMODEL'], \
                   attrList['WorkerNode'], \
                   attrList['RunNumber'], \
                   attrList['FillNumber'] ])           
@@ -2845,6 +2837,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
        bookkeepingview.description, bookkeepingview.production, filetypes.name, sum(files.eventstat) \
   from jobs, bookkeepingview,files, filetypes, productions, simulationconditions, pass_index, pass_group \
         where jobs.jobid= files.jobid and \
+        files.gotreplica=\'Yes\' and \
         bookkeepingview.programname= jobs.programname and \
         bookkeepingview.programversion= jobs.programversion and \
         bookkeepingview.production = productions.production and \

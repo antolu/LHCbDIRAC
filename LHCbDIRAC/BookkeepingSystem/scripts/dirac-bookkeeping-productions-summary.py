@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-productions-summary.py,v 1.2 2009/09/07 17:47:37 zmathe Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-productions-summary.py,v 1.3 2009/09/15 10:39:00 zmathe Exp $
 # File :   dirac-bookkeeping-productions-summary
 # Author : Zoltan Mathe
 ########################################################################
@@ -59,7 +59,7 @@ else:
   records = value['Records']
   nbRec = value['TotalRecords']
   params = value['ParameterNames']
-  width=10
+  width=20
   print params[0].ljust(30)+str(params[1]).ljust(30)+str(params[2]).ljust(30)+str(params[3]).ljust(30)+str(params[4]).ljust(30)+str(params[5]).ljust(30)+str(params[6]).ljust(20)+str(params[7]).ljust(20)+str(params[8]).ljust(20)
   for record in records:
     print str(record[0]).ljust(15)+str(record[1]).ljust(15)+str(record[2]).ljust(20)+str(record[3]).ljust(width)+str(record[4]).ljust(width)+str(record[5]).ljust(width)+str(record[6]).ljust(width)+str(record[7]).ljust(width)+str(record[8]).ljust(width)
