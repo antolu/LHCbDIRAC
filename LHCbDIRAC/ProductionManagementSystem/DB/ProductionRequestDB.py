@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.17 2009/09/15 14:47:02 acsmith Exp $
+# $Id: ProductionRequestDB.py,v 1.18 2009/09/16 12:25:24 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.17 $"
+__RCSID__ = "$Revision: 1.18 $"
 
 # Defined states:
 #'New'
@@ -468,7 +468,7 @@ class ProductionRequestDB(DB):
       if result['Value']:
         hasSubreq = True
 
-    if requestState in ['Done','Cancelled']:
+    if requestState in ['Done','Cancelled'] and creds['Group'] != 'diracAdmin':
       self.lock.release()
       return S_ERROR("Done or cancelled requests can't be modified")
 
@@ -503,9 +503,13 @@ class ProductionRequestDB(DB):
         self.lock.release()
         return S_ERROR("Only Tech. experts are allowed to manage accepted request")
     elif requestState == 'Active':
-      if not creds['Group'] in ['lhcb_prmgr','lhcb_prod','hosts']:
+      if not creds['Group'] in ['lhcb_prmgr','lhcb_prod']:
         self.lock.release()
         return S_ERROR("Only experts are allowed to manage active request")
+    elif requestState in ['Done','Cancelled']:
+      if creds['Group'] != 'diracAdmin':
+        self.lock.release()
+        return S_ERROR("Only admin can violate the system logic")
     else:
       self.lock.release()
       return S_ERROR("The request is in unknown state '%s'" % requestState)
