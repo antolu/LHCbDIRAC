@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.5 2009/09/15 14:46:55 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.6 2009/09/16 10:43:46 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.5 2009/09/15 14:46:55 paterson Exp $"
-__VERSION__ = "$Revision: 1.5 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.6 2009/09/16 10:43:46 paterson Exp $"
+__VERSION__ = "$Revision: 1.6 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -51,7 +51,6 @@ class ProductionStatusAgent(AgentModule):
     self.am_setModuleParam("shifterProxy", "ProductionManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     #Agent parameters
-    self.targetPercentage = self.am_getOption('TargetPercentage',102)
     self.updatedProductions = {}
     self.updatedRequests = []
     return S_OK()
@@ -99,7 +98,7 @@ class ProductionStatusAgent(AgentModule):
         self.log.error('More than 2 associated productions for request %s, ignoring from further consideration...' %reqID)
         continue
       for prod,used in prodProgress.items():
-        if progress > int(self.targetPercentage):
+        if bkTotal >= totalRequested:
           if used['Used']:
             prodValOutputs[prod]=reqID
           else:
