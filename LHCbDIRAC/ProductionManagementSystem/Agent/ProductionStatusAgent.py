@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.6 2009/09/16 10:43:46 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.7 2009/09/16 11:21:09 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.6 2009/09/16 10:43:46 paterson Exp $"
-__VERSION__ = "$Revision: 1.6 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.7 2009/09/16 11:21:09 paterson Exp $"
+__VERSION__ = "$Revision: 1.7 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -150,6 +150,10 @@ class ProductionStatusAgent(AgentModule):
     validatedOutput = res['Value']
     if not validatedOutput:
       self.log.info('No productions in ValidatedOutput status to process')
+      self.log.info('Productions updated this cycle:')
+      for n,v in self.updatedProductions.items():
+        self.log.info('Production %s: %s => %s' %(n,v['from'],v['to']))
+      self.mailProdManager()
       return S_OK()
 
     parentRequests = {}
