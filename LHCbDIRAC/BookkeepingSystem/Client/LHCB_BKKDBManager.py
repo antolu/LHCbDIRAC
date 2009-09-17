@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.100 2009/09/15 10:39:00 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.101 2009/09/17 13:38:46 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.100 2009/09/15 10:39:00 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.101 2009/09/17 13:38:46 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -604,7 +604,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7],'RunNumber':record[8],'FillNumber':record[9],'PhysicStat':record[10], 'DataQuality':record[11],'EvtTypeId':evtType,'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1296,9 +1296,9 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = result['Value']
       for record in dbResult:
         prod = str(record[0])
-        value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
-                 'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
-                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14]}  
+        value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], 'Generator':record[5], \
+                 'GeometryVersion':record[6], 'GridJobID':record[7], 'LocalJobID':record[8], 'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
+                  'StatistivsRequested':record[12], 'WNCPUPOWER':record[13], 'WNCPUTIME':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18]}  
     else:
       gLogger.error(result['Message'])
     return value

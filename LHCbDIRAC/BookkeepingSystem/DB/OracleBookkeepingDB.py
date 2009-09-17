@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.109 2009/09/15 10:39:00 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.110 2009/09/17 13:38:45 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.109 2009/09/15 10:39:00 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.110 2009/09/17 13:38:45 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -689,7 +689,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
          
     if ftype == 'ALL':
-      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
@@ -698,7 +698,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
     else:
-      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
@@ -776,7 +776,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
        ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt,quality \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
-            jobs.Generator gen, jobs.GeometryVersion geom, \
+            \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
         jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality\
         from'+tables+',filetypes, dataquality \
@@ -791,7 +791,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
        ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt,quality \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
-            jobs.Generator gen, jobs.GeometryVersion geom, \
+            \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality \
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
@@ -1097,8 +1097,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if len( res['Value'] ) == 0:
         return S_ERROR('File not found!')
       jobid = res['Value'][0][0]
-      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER,  \
-                 LOCATION,  NAME, NUMBEROFEVENTS, \
+      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER, \'not used\', \
+                 \'not used\', \'not used\', \'not used\', LOCATION,  NAME, NUMBEROFEVENTS, \
                  STATISTICSREQUESTED, WNCPUPOWER, CPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE, jobid from jobs where jobid='+str(jobid)
       res = self.dbR_._query(command)
       return res
