@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.18 2009/09/16 14:44:03 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.19 2009/09/17 11:51:57 joel Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
 
-__RCSID__="$Id: dirac-architecture,v 1.18 2009/09/16 14:44:03 joel Exp $"
+__RCSID__="$Id: dirac-architecture,v 1.19 2009/09/17 11:51:57 joel Exp $"
 
 import sys, os, string, re
 
@@ -13,6 +13,7 @@ import sys, os, string, re
 # ap, 11-aug-2004 : initial version
 # ap, 18-aug-2004 : check gcc version also on mac (Darwin)
 # jc, 9-mar-2007  : adapted for LHCb
+
 
 def checkGcc() :
 
@@ -73,6 +74,7 @@ def guessHWArch() :
 def guessPlatform() :
     opSys = None
     comp  = None
+    newSchema = False
 
     # simple guesser ...
     if ( os.uname()[0] == "SunOS" ) :
@@ -108,12 +110,12 @@ def guessPlatform() :
 
         osRe = re.compile('.*Scientific Linux CERN SLC release (\d)\.(\d) .*')
         osMat = osRe.match(lines)
-#        print opSys, osMat.group(1)
         if osMat:
-#            if osMat.group(1) != '5':
-            opSys = "slc"+osMat.group(1)+"_" + guessHWArch()
-#            else:
-#               opSys = os.uname()[-1]+"-slc"+osMat.group(1)
+            if osMat.group(1) != '5':
+               opSys = "slc"+osMat.group(1)+"_" + guessHWArch()
+            else:
+               newSchema = True
+               opSys = os.uname()[-1]+"-slc"+osMat.group(1)+"-"
 
         if not opSys:
             if ( string.find(lines, "Red Hat") != -1 and
@@ -188,14 +190,17 @@ def guessPlatform() :
     if comp == "gcc346" and opSys[:4] == "slc4" :
         comp = "gcc34"
 
-    return (opSys, comp)
+    return (opSys, comp, newSchema)
 
 if __name__ == "__main__" :
-    osStr,comStr = guessPlatform()
+    osStr,comStr,newSchema = guessPlatform()
     if osStr == "ERROR" or comStr == "ERROR":
         print "ERROR"
     else:
-    	arch = osStr+'_'+comStr
+        if newSchema:
+    	   arch = osStr+comStr+'-opt'
+    	else:
+    	   arch = osStr+'_'+comStr
     	if len(sys.argv) > 1:
     		if sys.argv[1] == 'python':
     		 	baseDir = os.path.realpath( os.path.dirname( __file__ ) + "/../%s/bin/" % arch  )
