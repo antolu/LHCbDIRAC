@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.10 2009/08/27 10:42:58 acasajus Exp $
+# $Id: GridSiteMonitoringAgent.py,v 1.11 2009/09/17 16:58:12 acasajus Exp $
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'
@@ -111,18 +111,18 @@ class GridSiteMonitoringAgent(AgentModule):
     activities.append( ( { 'Source' : self.__sitesAll, 'Destination' : self.__sitesAll, 'Protocol' : 'FTS' },
                          'data_transfer', 'Destination' ) )
     rC = ReportsClient()
-    for func in ( self._dataGetSuccessRate, self._dataGetThroughput ):
+    for func in ( self._dateGetTransferedBytes, self._dataGetSuccessRate, self._dataGetThroughput ):
       for cond, acName, grouping in activities:
         result = func( startT, endT, cond, acName, rC, grouping )
         if not result[ 'OK' ]:
           return result
-        finalData.extend( result[ 'Value' ][1] )
+        finalData.extend( result[ 'Value' ] )
+    finalData.sort()
     return S_OK( finalData )
 
   def _dataGetSuccessRate( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
-    metricName = "%s,success_rate" % metricName
     result = rC.getReport( "DataOperation", 'SuceededTransfers', startT, endT,
-                          reportCond, 'Channel' )
+                          reportCond, groupBy )
     startEpoch = Time.toEpoch( startT )
     endEpoch = Time.toEpoch( endT )
     if not result[ 'OK' ]:
@@ -134,38 +134,61 @@ class GridSiteMonitoringAgent(AgentModule):
       return result
     failedData, extraData = self._sumDataBuckets( result[ 'Value' ], [ 'Suceeded' ] )
     okRateData = {}
+    totalFilesData = {}
+    #Calculate OK rate
     for channel in suceededData:
       if channel in failedData:
         okRateData[channel] = ( suceededData[channel] / ( suceededData[channel] + failedData[channel] ) ) * 100
+    #Calculate total files transfered
+    for channel in suceededData:
+      totalFilesData[channel] = suceededData[channel]
+    for channel in failedData:
+      if channel in totalFilesData:
+        totalFilesData[channel] += failedData[channel]
+      else:
+        totalFilesData[channel] = failedData[channel]
     finalData = []
-    extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond, groupBy )
-    for channel in okRateData:
-      self._appendToFinalData( finalData, channel, metricName, okRateData[ channel ], 100.0,
-                               startEpoch, endEpoch, extraURL, groupBy  )
     if groupBy == 'Channel':
       allSites =[ "%s -> %s" % ( source, destination ) for source in reportCond[ 'Source' ]
-                                                       for destination in reportCond[ 'Destination' ] ]
+                                                       for destination in reportCond[ 'Destination' ] if source != destination ]
     else:
       allSites = reportCond[ groupBy ]
-    for channel in allSites:
-      if channel in okRateData:
-        continue
-      self._appendToFinalData( finalData, channel, metricName, 0.0, 0.0,
+    #Success_rate name
+    extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond, groupBy )
+    subMetricName = "%s,success_rate" % metricName
+    self.__addWithMissing( finalData, subMetricName, allSites, okRateData, startEpoch, endEpoch, extraURL, groupBy, 100 )
+    #Failed files
+    extraURL = self._generateDataExtraURL( "FailedTransfers", reportCond, groupBy )
+    subMetricName = "%s,failed_files" % metricName
+    self.__addWithMissing( finalData, subMetricName, allSites, failedData, startEpoch, endEpoch, extraURL, groupBy, -1 )
+    #Total files
+    extraURL = self._generateDataExtraURL( "SuceededTransfers", reportCond, groupBy )
+    subMetricName = "%s,total_files" % metricName
+    self.__addWithMissing( finalData, subMetricName, allSites, totalFilesData, startEpoch, endEpoch, extraURL, groupBy, -1 )
+    return S_OK( finalData )
+    
+  def __addWithMissing( self, finalData, subMetricName, allSites, data, 
+                        startEpoch, endEpoch, extraURL, groupBy, max ):
+    for channel in data:
+      self._appendToFinalData( finalData, channel, subMetricName, data[ channel ], max,
                                startEpoch, endEpoch, extraURL, groupBy  )
-
-    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
-    return S_OK( ( okRateData, finalData ) )
+    for channel in allSites:
+      if channel in data:
+        continue
+      self._appendToFinalData( finalData, channel, subMetricName, 0.0, 0.0,
+                               startEpoch, endEpoch, extraURL, groupBy  )
+    gLogger.info( "[DATA]%s data" % subMetricName, "%s records" % len( finalData ) )
 
   def _appendToFinalData( self, finalData, sites, fullMetricName, value, expected, start, end, URL, groupBy ):
-      if groupBy == "Channel":
-        sites = List.fromChar( sites, "->" )
-      elif groupBy == 'Source':
-        sites = [ sites, 'all' ]
-      elif groupBy == 'Destination':
-        sites = [ 'all', sites ]
-      finalData.append( "%s,%s,%s,%.1f,%.1f,unknown,%d,%d,%s" % ( sites[0], sites[1], fullMetricName,
-                                                                  value, expected, start, end,
-                                                                  URL ) )
+    if groupBy == "Channel":
+      sites = List.fromChar( sites, "->" )
+    elif groupBy == 'Source':
+      sites = [ sites, 'all' ]
+    elif groupBy == 'Destination':
+      sites = [ 'all', sites ]
+    finalData.append( "%s,%s,%s,%.1f,%.1f,unknown,%d,%d,%s" % ( sites[0], sites[1], fullMetricName,
+                                                                value, expected, start, end,
+                                                                URL ) )
 
   def _dataGetThroughput( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
     metricName = "%s,average_transfer_rate" % metricName
@@ -182,7 +205,24 @@ class GridSiteMonitoringAgent(AgentModule):
       self._appendToFinalData( finalData, channel, metricName, throughtputData[channel], -1,
                                startEpoch, endEpoch, extraURL, groupBy  )
     gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
-    return S_OK( ( throughtputData, finalData ) )
+    return S_OK( finalData )
+
+  def _dateGetTransferedBytes( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
+    metricName = "%s,transfered_bytes" % metricName
+    result = rC.getReport( "DataOperation", 'DataTransfered', startT, endT,
+                          reportCond, groupBy )
+    if not result[ 'OK' ]:
+      return result
+    startEpoch = Time.toEpoch( startT )
+    endEpoch = Time.toEpoch( endT )
+    transferedData = result[ 'Value' ][ 'data' ]
+    finalData = []
+    extraURL = self._generateDataExtraURL( "DataTransfered", reportCond, groupBy  )
+    for channel in transferedData:
+      self._appendToFinalData( finalData, channel, metricName, transferedData[channel], -1,
+                               startEpoch, endEpoch, extraURL, groupBy  )
+    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
+    return S_OK( finalData )
 
   def _generateDataExtraURL( self, reportName, reportCond, groupBy = 'Channel' ):
     baseURL = "http://lhcbweb.pic.es/DIRAC/%s/visitor/systems/accountingPlots/dataOperation" % gConfig.getValue( "/DIRAC/Setup" )
