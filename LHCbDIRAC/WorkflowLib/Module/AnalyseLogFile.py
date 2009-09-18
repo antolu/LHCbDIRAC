@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.73 2009/07/16 11:32:57 rgracian Exp $
+# $Id: AnalyseLogFile.py,v 1.74 2009/09/18 13:16:35 paterson Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.73 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.74 2009/09/18 13:16:35 paterson Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -218,6 +218,8 @@ class AnalyseLogFile(ModuleBase):
             msg = msg +inputname+'\n'
 
     if self.applicationLog:
+      if type(self.logFilePath)==type([]):
+        self.logFilePath = self.logFilePath[0]
       logurl = 'http://lhcb-logs.cern.ch/storage'+self.logFilePath
       msg = msg + '\n\nLog Files directory for the job:\n'
       msg = msg+logurl+'/\n'
@@ -342,7 +344,7 @@ class AnalyseLogFile(ModuleBase):
     # Check the log file exists and get the contents
     res = self.getLogString()
     if not res['OK']:
-      self.log.error(result['Message'])
+      self.log.error(result)
       self.updateFileStatus(self.jobInputData, "Unused")
       # return S_OK if the Step already failed to avoid overwriting the error
       if not self.stepStatus['OK']: return S_OK()
