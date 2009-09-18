@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.74 2009/09/18 13:16:35 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.75 2009/09/18 13:41:22 paterson Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.74 2009/09/18 13:16:35 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.75 2009/09/18 13:41:22 paterson Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -477,6 +477,8 @@ class AnalyseLogFile(ModuleBase):
     if not lastEvent:
       return S_ERROR('%s No events read' % mailto)
     self.numberOfEventsInput = str(lastEvent)
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = self.numberOfEventsInput
     # Get the number of events output by LHCb
     res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:
@@ -533,6 +535,9 @@ class AnalyseLogFile(ModuleBase):
 
     # Get the last event processed
     lastEvent = self.getLastEvent()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+
     # Get the number of events processed by Boole
     res = self.getEventsProcessed('BooleInit')
     if not res['OK']:
@@ -582,6 +587,8 @@ class AnalyseLogFile(ModuleBase):
 
     # Get the last event processed
     lastEvent = self.getLastEvent()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
     # Get the number of events processed by Brunel
     res = self.getEventsProcessed('BrunelInit')
     if not res['OK']:
@@ -629,6 +636,8 @@ class AnalyseLogFile(ModuleBase):
 
     # Get the last event processed
     lastEvent = self.getLastEventSummary()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
     # Get the number of events processed by DaVinci
     res = self.getEventsProcessed('DaVinciInit')
     if not res['OK']:
