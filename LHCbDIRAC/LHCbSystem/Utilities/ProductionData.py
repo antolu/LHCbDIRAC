@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.6 2009/04/29 16:51:26 rgracian Exp $
+# $Id: ProductionData.py,v 1.7 2009/09/18 13:59:48 paterson Exp $
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.6 2009/04/29 16:51:26 rgracian Exp $"
+__RCSID__ = "$Id: ProductionData.py,v 1.7 2009/09/18 13:59:48 paterson Exp $"
 
 import string,re
 
@@ -45,7 +45,7 @@ def constructProductionLFNs(paramDict):
     #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
     fileName = info['outputDataName'].split('_')
     index=0
-    if not re.search('\d',fileName[index]):
+    if not re.search('^\d',fileName[index]):
       index+=1
     if not fileName[index]==str(productionID).zfill(8):
       fileName[index]=str(productionID).zfill(8)
@@ -163,5 +163,11 @@ def getLogPath(paramDict):
   gLogger.verbose('Log target path is:\n%s' %logTargetPath)
   jobOutputs = {'LogFilePath':logFilePath,'LogTargetPath':logTargetPath}
   return S_OK(jobOutputs)
+
+#############################################################################
+def constructUserLFNs(paramDict):
+  """ Used for constructing output LFNs for user jobs.
+  """
+  return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
