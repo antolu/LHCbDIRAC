@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.149 2009/08/03 14:22:40 rgracian Exp $
+# $Id: GaudiApplication.py,v 1.150 2009/09/18 13:57:55 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.149 2009/08/03 14:22:40 rgracian Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.150 2009/09/18 13:57:55 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -15,12 +15,17 @@ except Exception,x:
   from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
   from DIRAC.LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
 
+try:
+  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+except Exception,x:
+  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+
 from WorkflowLib.Module.ModuleBase                       import *
 from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
 
-import shutil, re, string, os, sys, time
+import shutil, re, string, os, sys, time, glob
 
 class GaudiApplication(ModuleBase):
 
@@ -54,6 +59,8 @@ class GaudiApplication(ModuleBase):
     self.optionsLinePrev = ''
     self.optionsLine = ''
     self.extraPackages = ''
+    self.applicationType = ''
+    self.jobType = ''
 
 
   #############################################################################
@@ -130,44 +137,61 @@ class GaudiApplication(ModuleBase):
     except Exception, x:
         print "No additional options"
 
+  #############################################################################
   def resolveInputVariables(self):
+    """ Resolve all input variables for the module here.
+    """
+
     if self.workflow_commons.has_key('SystemConfig'):
-       self.systemConfig = self.workflow_commons['SystemConfig']
+      self.systemConfig = self.workflow_commons['SystemConfig']
 
     if self.step_commons.has_key('applicationName'):
-       self.applicationName = self.step_commons['applicationName']
-       self.applicationVersion = self.step_commons['applicationVersion']
-       self.applicationLog = self.step_commons['applicationLog']
+      self.applicationName = self.step_commons['applicationName']
+      self.applicationVersion = self.step_commons['applicationVersion']
+      self.applicationLog = self.step_commons['applicationLog']
+
+    if self.step_commons.has_key('applicationType'):
+      self.applicationType = self.step_commons['applicationType']
 
     if self.step_commons.has_key('numberOfEvents'):
-       self.numberOfEvents = self.step_commons['numberOfEvents']
+      self.numberOfEvents = self.step_commons['numberOfEvents']
 
     if self.step_commons.has_key('optionsFile'):
-       self.optionsFile = self.step_commons['optionsFile']
+      self.optionsFile = self.step_commons['optionsFile']
 
     if self.step_commons.has_key('optionsLine'):
-       self.optionsLine = self.step_commons['optionsLine']
+      self.optionsLine = self.step_commons['optionsLine']
 
     if self.step_commons.has_key('optionsLinePrev'):
-       self.optionsLinePrev = self.step_commons['optionsLinePrev']
+      self.optionsLinePrev = self.step_commons['optionsLinePrev']
 
     if self.step_commons.has_key('generatorName'):
       self.generator_name = self.step_commons['generatorName']
 
     if self.step_commons.has_key('extraPackages'):
-       self.extraPackages = self.step_commons['extraPackages']
+      self.extraPackages = self.step_commons['extraPackages']
 
     if self.workflow_commons.has_key('poolXMLCatName'):
-       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+      self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
     if self.step_commons.has_key('inputDataType'):
-       self.inputDataType = self.step_commons['inputDataType']
+      self.inputDataType = self.step_commons['inputDataType']
 
     if self.workflow_commons.has_key('InputData'):
-       self.InputData = self.workflow_commons['InputData']
+      self.InputData = self.workflow_commons['InputData']
 
     if self.step_commons.has_key('inputData'):
-       self.inputData = self.step_commons['inputData']
+      self.inputData = self.step_commons['inputData']
+
+    if self.workflow_commons.has_key('JobType'):
+      self.jobType = self.workflow_commons['JobType']
+
+    #only required until the stripping is the same for MC / data
+    if self.workflow_commons.has_key('configName'):
+      self.bkConfigName = self.workflow_commons['configName']
+
+    if self.step_commons.has_key('listoutput'):
+      self.stepOutputs = self.step_commons['listoutput']
 
 
   #############################################################################
@@ -424,6 +448,7 @@ done
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
     self.stdError = ''
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    #self.result = {'OK':True,'Value':(0,'Disabled Execution','')}
     resultTuple = self.result['Value']
 
     status = resultTuple[0]
@@ -450,6 +475,40 @@ done
       #self.setApplicationStatus('%s Exited With Status %s' %(self.applicationName,status))
       self.log.error('%s Exited With Status %s' %(self.applicationName,status))
       return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))
+
+    #For the MC stripping case, must add the streams generated by DaVinci
+    #initially only the MC case separates the streams... if the same applies
+    #for real data the last condition below can be removed then e.g. configName = MC or data
+    if self.jobType.lower()=='datastripping' and self.applicationName.lower()=='davinci' and self.applicationType.lower()=='dst' and self.bkConfigName.lower()=='mc':
+      self.log.info('DataStripping DaVinci DST step, will attempt to add output data files to the global list of output data')
+      finalOutputs=[]
+      toMatch = ''
+      outputDataSE = ''
+      for output in self.stepOutputs:
+        if output['outputDataType']=='dst':
+          outputDataSE = output['outputDataSE']
+          toMatch = output['outputDataName']
+          globList = glob.glob('*%s*' %toMatch)
+          strippingFiles = []
+          for check in globList:
+            if os.path.isfile(check):
+              self.log.info('Found output file matching %s: %s' %(toMatch,check))
+              strippingFiles.append(check)
+          for f in strippingFiles:
+            finalOutputs.append({'outputDataName':f,'outputDataType':'DST','outputDataSE':outputDataSE})
+        else:
+          finalOutputs.append(output)
+      self.log.info('Final step outputs are: %s' %(finalOutputs))
+      self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
+      self.log.info('Attempting to recreate the production output LFNs...')
+      result = constructProductionLFNs(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        return result
+      self.workflow_commons['BookkeepingLFNs']=result['Value']['BookkeepingLFNs']
+      self.workflow_commons['LogFilePath']=result['Value']['LogFilePath']
+      self.workflow_commons['ProductionOutputData']=result['Value']['ProductionOutputData']
+      self.step_commons['listoutput']=finalOutputs
 
     # Still have to set the application status e.g. user job case.
     self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
@@ -481,10 +540,10 @@ done
     if not self.workflow_commons.has_key( 'dataType' ):
       return S_ERROR( inputoutputerror )
     dataType = self.workflow_commons[ 'dataType' ].lower()
-    if not self.workflow_commons.has_key('configName'): 
+    if not self.workflow_commons.has_key('configName'):
       return S_ERROR( inputoutputerror )
     configName = self.workflow_commons['configName']
-    if self.workflow_commons.has_key('configVersion'): 
+    if self.workflow_commons.has_key('configVersion'):
       configVersion = self.workflow_commons['configVersion']
     else:
       configVersion = self.applicationVersion
@@ -515,7 +574,7 @@ done
       result = recoManager.sliceStatus()
     except:
       self.log.exception()
-      return S_ERROR( xmlrpcerror )      
+      return S_ERROR( xmlrpcerror )
     if not result[ 'OK' ]:
       self.log.error( result[ 'Message' ] )
       return S_ERROR( matcherror )
@@ -537,7 +596,7 @@ done
     outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
     result = recoManager.submitJob( sliceNumber, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
     if not result[ 'OK' ]:
-      self.log.error( "Error running job" , sc[ 'Message' ] ) 
+      self.log.error( "Error running job" , sc[ 'Message' ] )
       return S_ERROR( "Error submiting job" )
     # The submission went well
     if os.path.exists( self.applicationLog ):
@@ -589,7 +648,7 @@ done
         self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
         print self.step_commons
         return S_OK('%s %s Successful' %(self.applicationName,self.applicationVersion))
-      
+
   def compareConfigs( self , config1 , config2 ): # FIXME
     if len(config1.keys()) != len(config2.keys()):
       return False
@@ -603,27 +662,27 @@ done
         elif config1[ key ] != config2[ key ]:
           return False
     return True
-    
+
 from random import random,seed
 seed()
 class DummyRPC:
   cache = {}
   def sliceStatus( self ):
     return { 'OK' : True ,'Value' :
-    { '0' : { 
+    { '0' : {
              'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'},
              'availability' : 0.25 },
-      '1' : { 
+      '1' : {
              'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'},
              'availability' : 0.25 },
       '2' : {
              'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' },
-             'availability' : 0.25 }, 
+             'availability' : 0.25 },
       '3' : {
              'config' :  {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v34r7', 'ExtraPackages': ['AppConfig.v2r7p2'], 'DDDb': 'head-20090508', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py'], 'CondDb': 'head-20090508' },
              'availability' : 0.25 }
     } }
-    
+
   def jobStatus( self , jobID ):
     status = int(random()*3)
     statusdict = { 0 : 'DONE' , 1 : 'RUNNING' , 2: 'ERROR' }
@@ -632,7 +691,7 @@ class DummyRPC:
     print '++++++++++++++++++++++++++++++'
     from DIRAC.Core.Utilities.File import makeGuid
     return { 'OK' : True , 'Value' : { str(jobID) : { 'status' : jobstatus , 'eventsRead' : 500 , 'eventsWritten' : 500-status , 'log' : ['This is line 1' , 'This is line 2'] , 'md5': { self.outputFile : '52b21a147c8018240f12bf286b79b9a5' } , 'guid': { self.outputFile : makeGuid() } , 'size': { self.outputFile : '12234' } } } }
-    
+
   def submitJob( self , selectedSlice, inputFile , outputFile ):
     import os
     self.outputFile = os.path.basename( outputFile )
