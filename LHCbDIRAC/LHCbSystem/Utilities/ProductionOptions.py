@@ -1,20 +1,20 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.1 2009/08/06 14:10:23 paterson Exp $
+# $Id: ProductionOptions.py,v 1.2 2009/09/18 16:21:17 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
     create production workflows but also provides lists of options files for
-    test jobs (to do).
+    test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.1 2009/08/06 14:10:23 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.2 2009/09/18 16:21:17 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 import string
 
 #############################################################################
-def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applicationName}_@{STEP_ID}_Hist.root'):
+def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applicationName}_@{STEP_ID}_Hist.root',production=True):
   """ Simple function to create the default options for a given project name.
 
       Assumes CondDB tags and event max are required.
@@ -55,9 +55,11 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     elif appType.lower() == 'dst' and inputType!='dst': #e.g. not stripping
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
     elif appType.lower() == 'dst' and inputType=='dst': #e.g. stripping
-      options.append('from StrippingConf.Configuration import StrippingConf')
-      options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
-      options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
+      options.append('from Configurables import SelDSTWriter')
+      options.append('SelDSTWriter.OutputFileSuffix = \'@{outputData}\'')
+#      options.append('from StrippingConf.Configuration import StrippingConf')
+#      options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
+#      options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
     elif appType.lower() == 'davincihist':
       options.append('from Configurables import InputCopyStream')
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
@@ -74,15 +76,19 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   if extraOpts:
     options.append(extraOpts)
 
-  options.append(dddbOpt)
-  options.append(conddbOpt)
-  options.append(evtOpt)
+  if production:
+    options.append(dddbOpt)
+    options.append(conddbOpt)
+    options.append(evtOpt)
+
   return options
 
 #############################################################################
-def printOptions():
+def printOptions(project='',printOutput=True):
   """ A simple method to print all currently used project options in a nicely
-      formatted way.
+      formatted way.  This also allows to restrict printing to options for a
+      given project if desired. The list of projects is:
+      Gauss, Boole, Brunel, DaVinci and Merge (case insensitive).
   """
   appDict = {}
   appDict['Gauss']=['sim;None']
@@ -90,22 +96,44 @@ def printOptions():
   appDict['Brunel']=['dst;digi','rdst;mdf','dst;fetc','xdst;digi']
   appDict['DaVinci']=['dst;rdst','dst;dst','fetc;rdst']
   appDict['Merge']=['dst;dst']
-
   apps = appDict.keys()
   apps.sort()
+
+  for i in apps:
+    if project.lower()==i.lower():
+      project = i
+
+  finalApps = {}
+  if appDict.has_key(project):
+    apps = [project]
+
   for app in apps:
     dataFlows = appDict[app]
     for data in dataFlows:
       appType = data.split(';')[0]
       inputFileType = data.split(';')[1]
       print '\n========> %s ( %s -> %s )' %(app,inputFileType.upper(),appType.upper())
-      _printOpts(getOptions(app,appType,inputType=inputFileType))
+      opts = getOptions(app,appType,inputType=inputFileType)
+      for opt in opts:
+        print opt
 
 #############################################################################
-def _printOpts(opts):
-  """ Internal function to control formatting.
+def getTestOptions(projectName):
+  """ Function to retrieve arbitrary working options for running a test job. Not
+      all processing cases are supported, this is intended only to return working options
+      for a simple test job as a computing exercise only.
   """
-  for opt in opts:
-    print opt
+  testOpts = {}
+  testOpts['gauss']='$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
+  testOpts['boole']='$BOOLEROOT/tests/options/testBoole-defaults.py'
+  testOpts['brunel']='$BRUNELROOT/tests/options/testBrunel-defaults.py'
+  testOpts['davinci']='$DAVINCIROOT/options/DaVinci-MC09.py'
+
+  apps = testOpts.keys()
+
+  if not projectName.lower() in apps:
+    return S_ERROR('Could not find test options for project %s' %projectName)
+
+  return S_OK(testOpts[projectName.lower()])
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
