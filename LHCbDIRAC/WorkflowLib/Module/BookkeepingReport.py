@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.41 2009/09/15 14:14:29 joel Exp $
+# $Id: BookkeepingReport.py,v 1.42 2009/09/18 13:15:56 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.41 2009/09/15 14:14:29 joel Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.42 2009/09/18 13:15:56 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -293,6 +293,9 @@ class BookkeepingReport(ModuleBase):
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
     self.log.info(outputs)
+    if type(self.logFilePath)==type([]):
+      self.logFilePath = self.logFilePath[0]
+
     for output,outputse,outputtype in list(outputs):
       self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
       typeName = outputtype.upper()
