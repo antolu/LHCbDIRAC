@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.20 2009/08/31 17:53:19 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_dirac_site.sh,v 1.21 2009/09/18 09:01:47 rgracian Exp $
 # File:    install_dirac_site.sh
 # Author : Florian Feldhaus, Ricardo Graciani
 ########################################################################
@@ -270,6 +270,7 @@ Systems
         TaskQueueDirector
         {
           SubmitPools = DIRAC
+          DefaultSubmitPools = DIRAC
           ComputingElements = $CEType
         }
       }
