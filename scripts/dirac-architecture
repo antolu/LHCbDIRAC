@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 #######################
-#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.20 2009/09/22 09:43:28 joel Exp $
+#$Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-architecture,v 1.21 2009/09/24 14:11:17 joel Exp $
 #######################
 #  to return the architecture tag to be used for CMTCONFIG or architecture
 #
 
-__RCSID__="$Id: dirac-architecture,v 1.20 2009/09/22 09:43:28 joel Exp $"
+__RCSID__="$Id: dirac-architecture,v 1.21 2009/09/24 14:11:17 joel Exp $"
 
 import sys, os, string, re
 
@@ -129,11 +129,11 @@ def guessPlatform() :
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "3.0.2") != -1 ) : opSys = "cel3-i386"
             elif ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, "3") != -1 ) : opSys = "slc3_" + guessHWArch()
+                 string.find(lines, "3.") != -1 ) : opSys = "slc3_" + guessHWArch()
             elif ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, "4") != -1 ) : opSys = "slc4_" + guessHWArch()
+                 string.find(lines, "4.") != -1 ) : opSys = "slc4_" + guessHWArch()
             elif ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, "5") != -1 ) :
+                 string.find(lines, "5.") != -1 ) :
                     opSys = os.uname()[-1] + "-slc5-"
                     newSchema = True
             elif ( string.find(lines, "Linux for High Performance Computing") != -1 and
