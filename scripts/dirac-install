@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.151 2009/09/04 16:49:06 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.152 2009/09/27 11:48:09 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.151 2009/09/04 16:49:06 acasajus Exp $"
-__VERSION__ = "$Revision: 1.151 $"
+__RCSID__   = "$Id: dirac-install,v 1.152 2009/09/27 11:48:09 rgracian Exp $"
+__VERSION__ = "$Revision: 1.152 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -167,6 +167,7 @@ def parse_options_install():
    -u --url=<url>              Use <url> to download tarballs
    -v --version=<version>      DIRAC <version> to install
    -C --cvs                    Retrieve from CVS (implies -b)
+   -D --dump                   Print platform and dump platform.py file
    -N --Name=<CEName>          Use <CEName> to determine Site Name
    -P --path=<root>            Install under <root>
    -S --server                 Make a full server installation
@@ -180,10 +181,10 @@ def parse_options_install():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:g:hi:n:p:r:u:v:o:s:CN:P:SUV:'
+  shortOptions = 'bde:g:hi:n:p:r:u:v:o:s:CDN:P:SUV:'
   longOptions  = ['build', 'debug', 'external=', 'grid=', 'help', 'python=', 'name=',
                   'platform=', 'repository=', 'url=', 'version=',
-                  'cvs', 'Name=', 'path=', 'server', 'Upload', 'vo=',
+                  'cvs', 'dump', 'Name=', 'path=', 'server', 'Upload', 'vo=',
                   'option=', 'section=', 'cert=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
@@ -221,6 +222,8 @@ def parse_options_install():
     elif o == '-C' or o == '--cvs':
       dirac.cvsFlag()
       dirac.build()
+    elif o == '-D' or o == '--dump':
+      dirac.dump()
     elif o == '-N' or o == '--Name':
       ceName = v
     elif o in ('-P', '--path'):
@@ -327,6 +330,14 @@ class Dirac:
 
     self.localPlatform = None
     # self.platform( )
+
+  def dump(self):
+    """
+     Report local platform and dump platform.py
+    """
+    self.platform()
+    self.logINFO( 'Using platform "%s"' %  dirac.localPlatform )
+    sys.exit(0)
 
   def tmpDir(self):
     """
@@ -2353,6 +2364,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "u:", "url=",      "Use <url> to download tarballs" )
     Script.registerSwitch( "v:", "version=",  "DIRAC <version> to install" )
     Script.registerSwitch( "C",  "cvs",       "Retrieve from CVS (implies -b)" )
+    Script.registerSwitch( "D",  "dump",      "Print platform and dump platform.py file" )
     Script.registerSwitch( "N:", "Name=",     "Use <CEName> to determine Site Name" )
     Script.registerSwitch( "P:", "path=",     "Install under <root>" )
     Script.registerSwitch( "S",  "server",    "Make a full server installation" )
