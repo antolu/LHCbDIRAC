@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.19 2009/08/18 16:32:17 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb02.sh,v 1.20 2009/09/27 12:21:44 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -140,7 +140,7 @@ grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HO
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
-cp $CURDIR/dirac-install $DESTDIR/pro/scripts
+cp $DESTDIR/pro/scripts/dirac-update $DESTDIR/pro/scripts/dirac-install
 
 #
 # Configure MySQL if not yet done

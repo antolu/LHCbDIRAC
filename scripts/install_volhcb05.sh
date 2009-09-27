@@ -121,7 +121,7 @@ grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HO
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
 chmod +x $DESTDIR/pro/scripts/install_service.sh
-cp $CURDIR/dirac-install $DESTDIR/pro/scripts
+cp $DESTDIR/pro/scripts/dirac-update $DESTDIR/pro/scripts/dirac-install
 
 #
 # Configure MySQL if not yet done
