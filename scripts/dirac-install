@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.153 2009/09/27 12:12:03 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.154 2009/09/28 13:20:12 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.153 2009/09/27 12:12:03 rgracian Exp $"
-__VERSION__ = "$Revision: 1.153 $"
+__RCSID__   = "$Id: dirac-install,v 1.154 2009/09/28 13:20:12 rgracian Exp $"
+__VERSION__ = "$Revision: 1.154 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -147,13 +147,14 @@ python = {'python24':'external/Python-2.4.4',
 siteName = None
 ceName   = None
 voName   = "lhcb"
+gatewayServer = None
 uploadFlag = False
 
 def parse_options_install():
   """
    parse command line options:
   """
-  global siteName, ceName, uploadFlag, voName, lcgVer
+  global siteName, ceName, uploadFlag, voName, lcgVer, gatewayServer
   help = """
    -b --build                  Force local compilation
    -d --debug                  Set debug flag
@@ -174,6 +175,7 @@ def parse_options_install():
    -S --server                 Make a full server installation
    -U --Upload                 Upload compiled distribution to lhcbweb (if -b)
    -V --vo=<voname>            Run vo specific configuration (default=lhcb)
+   -W --gateway=<gateway>      Configure <gateway> as DIRAC Gateway for the site
 
   from DIRAC framework:
 
@@ -182,10 +184,11 @@ def parse_options_install():
     -c --cert=<cert>           Use server certificate <cert> to connect to Core Services
 
   """
-  shortOptions = 'bde:g:hi:n:p:r:u:v:o:s:CDGN:P:SUV:'
+  shortOptions = 'bde:g:hi:n:p:r:u:v:o:s:CDGN:P:SUV:W:'
   longOptions  = ['build', 'debug', 'external=', 'grid=', 'help', 'python=', 'name=',
                   'platform=', 'repository=', 'url=', 'version=',
                   'cvs', 'dump', 'Grid', 'Name=', 'path=', 'server', 'Upload', 'vo=',
+                  'gateway=',
                   'option=', 'section=', 'cert=']
   try:
     ( optionVals, extraOptions ) = getopt.getopt( sys.argv[1:], shortOptions, longOptions )
@@ -237,6 +240,8 @@ def parse_options_install():
       uploadFlag = True
     elif o == '-V' or o == '--vo':
       voName = v
+    elif o == '-W' or o == '--gateway':
+      gatewayServer = v
 
   dirac.createScripts()
 
@@ -807,11 +812,14 @@ class Dirac:
         error = 'Extracting file "%s"' % localName
         ret = os.system( 'tar -tzf %s > /dev/null 2>&1' % localName )
         if ret != 0:
+          self.logERROR( error )
+          os.system( 'file %s' % localName )
           raise Exception( 'Fail to extract tarfile'  )
         if dir:
           self.__rmDir( dir )
         ret = os.system( 'tar xzf %s' % localName )
         if ret != 0:
+          self.logERROR( error )
           raise Exception( 'Fail to extract tarfile'  )
         os.remove( localName )
         return
@@ -2382,17 +2390,21 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "S",  "server",    "Make a full server installation" )
     Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
     Script.registerSwitch( "V:", "vo=",       "Run vo specific configuration (default=lhcb)" )
+    Script.registerSwitch( "W:", "gateway=",  "Configure <gateway> as DIRAC Gateway for the site" )
+    
 
     from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
     localCfg = LocalConfiguration()
 
     # before any other default it goes the VO specific configuration add as many vo's cases as necessary.
+    csServer = None
+    if gatewayServer:
+      csServer = gatewayServer+'/Configuration/Server'
     if voName == 'lhcb':
       dirac.lhcbPlatform()
       localCfg.addDefaultEntry( '/DIRAC/Setup', 'LHCb-Production' )
-      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
-                                'dips://lhcbprod.pic.es:9135/Configuration/Server, '
-                                'dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server' )
+      if not csServer:
+        csServers = 'dips://lhcbprod.pic.es:9135/Configuration/Server, dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server'
       if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
         if DIRAC.platformTuple[1] == 'i686':
           arch = 'ia32'
@@ -2412,9 +2424,9 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
       else:
         localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )     
     elif voName == 'eela':  
-      localCfg.addDefaultEntry( '/DIRAC/Setup', 'EELA-Production' )   
-      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
-                                'dips://mareela.in2p3.fr:9135/Configuration/Server' ) 
+      localCfg.addDefaultEntry( '/DIRAC/Setup', 'EELA-Production' )
+      if not csServer:
+        csServer = 'dips://mareela.in2p3.fr:9135/Configuration/Server'
                                 
       # A.T. This is not really LHCb specific                          
       dirac.lhcbPlatform()
@@ -2438,8 +2450,8 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
         localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
     elif voName == 'magic':  
       localCfg.addDefaultEntry( '/DIRAC/Setup', 'MAGIC-Test' )   
-      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
-                                'dips://dirac02.pic.es:9002/Configuration/Server' ) 
+      if not csServer:
+        csServer = 'dips://dirac02.pic.es:9002/Configuration/Server'
                                 
       # A.T. This is not really LHCb specific                          
       dirac.lhcbPlatform()
@@ -2463,6 +2475,11 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
         localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )                            
     else:
       pass
+
+    if csServer:
+      localCfg.addDefaultEntry( '/DIRAC/Configuration/Servers',
+                                'dips://lhcbprod.pic.es:9135/Configuration/Server, '
+                                'dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server' )
       
       
 
@@ -2528,17 +2545,18 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
       localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
       dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
 
+    # FIXME: this will be remove soon since DIRAC.SiteName() returns the proper default 
     localCfg.addDefaultEntry( '/LocalSite/Site', DEFAULT_SITE )
-
 
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
 
+    localCfg.addDefaultEntry( '/DIRAC/Gateways/%s' % DIRAC.siteName(), gatewayServer )
+
     if DIRAC.gConfig.getValue('/LocalSite/Site','') == DEFAULT_SITE:
-      # if there is no Site Name, assume there is LCG CA's available and disable
+      # if there is no Site Name, assume there is no LCG CA's available and disable
       # check of server identity on the clients.
       localCfg.addDefaultEntry( '/DIRAC/Security/SkipCAChecks','yes')
       Script.parseCommandLine( script = myShortName, ignoreErrors = True )
-
 
 
     # further checks can be implemented here
