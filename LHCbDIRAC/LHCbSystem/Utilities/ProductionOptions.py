@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.3 2009/09/30 13:36:35 paterson Exp $
+# $Id: ProductionOptions.py,v 1.4 2009/09/30 15:55:51 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,7 +7,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.3 2009/09/30 13:36:35 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.4 2009/09/30 15:55:51 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -48,7 +48,8 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   elif appName.lower()=='davinci':
     options.append('from DaVinci.Configuration import *')
 #    options.append('DaVinci().EvtMax=@{numberOfEvents}')
-#    options.append("DaVinci().HistogramFile = \"%s\"" % (histogram))
+    #for the stripping some options override the above Gaudi level setting
+    options.append("DaVinci().HistogramFile = \"%s\"" % (histogram))
     # If we want to generate an FETC for the first step of the stripping workflow
     if appType.lower()=='fetc':
       options.append("DaVinci().ETCFile = \"@{outputData}\"")
