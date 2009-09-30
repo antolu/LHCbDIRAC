@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.43 2009/09/18 13:41:56 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.44 2009/09/30 15:57:49 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.43 2009/09/18 13:41:56 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.44 2009/09/30 15:57:49 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -291,9 +291,12 @@ class BookkeepingReport(ModuleBase):
 
     outputs = []
     count = 0
+    bkTypeDict = {}
     while (count < len(self.listoutput)):
       if self.listoutput[count].has_key('outputDataName'):
         outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
+      if self.listoutput[count].has_key('outputBKType'):
+        bkTypeDict[self.listoutput[count]['outputDataName']]=self.listoutput[count]['outputBKType']
       count=count+1
     outputs_done = []
     outputs.append(((self.applicationLog),('LogSE'),('LOG')))
@@ -305,6 +308,11 @@ class BookkeepingReport(ModuleBase):
       self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
       typeName = outputtype.upper()
       typeVersion = '1'
+      if bkTypeDict.has_key(output):
+        typeVersion=typeName
+        typeName=string.upper(bkTypeDict[output])
+        self.log.info('Setting explicit BK type version for %s to %s and file type to %s' %(output,typeVersion,typeName))
+
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
         continue
