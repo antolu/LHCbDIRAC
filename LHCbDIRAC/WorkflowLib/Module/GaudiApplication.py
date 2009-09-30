@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.150 2009/09/18 13:57:55 paterson Exp $
+# $Id: GaudiApplication.py,v 1.151 2009/09/30 15:57:04 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.150 2009/09/18 13:57:55 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.151 2009/09/30 15:57:04 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -487,15 +487,17 @@ done
       for output in self.stepOutputs:
         if output['outputDataType']=='dst':
           outputDataSE = output['outputDataSE']
-          toMatch = output['outputDataName']
-          globList = glob.glob('*%s*' %toMatch)
+          toMatch = output['outputDataName'].split('.')[0]
+          globList = glob.glob('*%s*dst' %toMatch)
+          self.log.info('Pattern to match is "*%s*dst"' %toMatch)
           strippingFiles = []
           for check in globList:
             if os.path.isfile(check):
-              self.log.info('Found output file matching %s: %s' %(toMatch,check))
+              self.log.info('Found output file matching "*%s*dst": %s' %(toMatch,check))
               strippingFiles.append(check)
           for f in strippingFiles:
-            finalOutputs.append({'outputDataName':f,'outputDataType':'DST','outputDataSE':outputDataSE})
+            bkType = f.split('.')[1]
+            finalOutputs.append({'outputDataName':f,'outputDataType':'DST','outputDataSE':outputDataSE,'outputBKType':bkType})
         else:
           finalOutputs.append(output)
       self.log.info('Final step outputs are: %s' %(finalOutputs))
