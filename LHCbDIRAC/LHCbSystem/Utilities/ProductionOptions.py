@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.2 2009/09/18 16:21:17 paterson Exp $
+# $Id: ProductionOptions.py,v 1.3 2009/09/30 13:36:35 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,7 +7,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.2 2009/09/18 16:21:17 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.3 2009/09/30 13:36:35 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -56,7 +56,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
     elif appType.lower() == 'dst' and inputType=='dst': #e.g. stripping
       options.append('from Configurables import SelDSTWriter')
-      options.append('SelDSTWriter.OutputFileSuffix = \'@{outputData}\'')
+      options.append('SelDSTWriter.OutputFileSuffix = \'@{STEP_ID}\'')
 #      options.append('from StrippingConf.Configuration import StrippingConf')
 #      options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
 #      options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
