@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.151 2009/09/30 15:57:04 paterson Exp $
+# $Id: GaudiApplication.py,v 1.152 2009/10/01 09:50:36 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.151 2009/09/30 15:57:04 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.152 2009/10/01 09:50:36 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -496,7 +496,7 @@ done
               self.log.info('Found output file matching "*%s*dst": %s' %(toMatch,check))
               strippingFiles.append(check)
           for f in strippingFiles:
-            bkType = f.split('.')[1]
+            bkType = string.upper(string.join(string.split(f,'.')[1:],'.'))
             finalOutputs.append({'outputDataName':f,'outputDataType':'DST','outputDataSE':outputDataSE,'outputBKType':bkType})
         else:
           finalOutputs.append(output)
