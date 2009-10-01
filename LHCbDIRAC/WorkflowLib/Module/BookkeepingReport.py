@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.44 2009/09/30 15:57:49 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.45 2009/10/01 14:34:16 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.44 2009/09/30 15:57:49 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.45 2009/10/01 14:34:16 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -309,7 +309,7 @@ class BookkeepingReport(ModuleBase):
       typeName = outputtype.upper()
       typeVersion = '1'
       if bkTypeDict.has_key(output):
-        typeVersion=typeName
+        typeVersion='ROOT_All'
         typeName=string.upper(bkTypeDict[output])
         self.log.info('Setting explicit BK type version for %s to %s and file type to %s' %(output,typeVersion,typeName))
 
