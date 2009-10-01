@@ -1,4 +1,14 @@
-$Id: release.notes,v 1.32 2009/08/04 07:20:45 paterson Exp $
+$Id: release.notes,v 1.33 2009/10/01 14:36:21 paterson Exp $
+
+=========
+wkf-v9r24 : SKP : 1 October 2009
+ - AnalyseLogFile
+ - BookkeepingReport
+ - GaudiApplication
+Updates to support the MC stripping where DaVinci creates several output files
+that we don't know the name of in one step. GaudiApplication now discovers the
+output files based on the STEP_ID and conveys them to the BK report module.  The
+file type in the BK report is set to ROOT_All for now.
 
 =========
 wkf-v9r23 : SKP : 4 August 2009
