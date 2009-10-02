@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_Stripping_run.py,v 1.1 2009/10/02 10:25:45 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_Stripping_run.py,v 1.2 2009/10/02 13:43:53 paterson Exp $
 ########################################################################
 
 """  The MC09 stripping template creates a workflow for Brunel & DaVinci with
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: MC09_Stripping_run.py,v 1.1 2009/10/02 10:25:45 paterson Exp $"
+__RCSID__ = "$Id: MC09_Stripping_run.py,v 1.2 2009/10/02 13:43:53 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -65,7 +65,7 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 lfn = 'LFN:/lhcb/MC/MC09/DST/00004838/0000/00004838_00000001_1.dst'
 
 production.addDaVinciStep("{{p1Ver}}","fetc","{{p1Opt}}",extraPackages='{{p1EP}}',eventType='{{eventType}}',histograms=True,numberOfEvents="-1",inputData=lfn,dataType='MC')
-production.addBrunelStep("{{p2Ver}}","dst","{{p2Opt}}",extraPackages='{{p2EP}}',inputData=[],inputDataType='fetc',dataType='MC',histograms=True)
+production.addBrunelStep("{{p2Ver}}","dst","{{p2Opt}}",extraPackages='{{p2EP}}',inputDataType='fetc',dataType='MC',histograms=True)
 production.addDaVinciStep("{{p3Ver}}","dst","{{p3Opt}}",extraPackages='{{p3EP}}',inputDataType='dst',dataType='MC',histograms=True)
 production.addFinalizationStep()
 
