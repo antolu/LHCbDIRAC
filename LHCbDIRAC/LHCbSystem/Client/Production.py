@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.39 2009/09/14 12:02:39 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.40 2009/10/02 09:28:02 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.39 2009/09/14 12:02:39 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.40 2009/10/02 09:28:02 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -189,7 +189,7 @@ class Production(LHCbJob):
     self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile)
 
   #############################################################################
-  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1'):
+  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA'):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst
         inputDataType is mdf / digi
@@ -197,7 +197,6 @@ class Production(LHCbJob):
         TODO: stripping case - to review
     """
     eventType = self.__getEventType(eventType)
-    dataType = ''
     if appType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
@@ -211,10 +210,14 @@ class Production(LHCbJob):
           outputSE='Tier1_MC-DST'
           self.log.info('Setting default outputSE to %s' %(outputSE))
       elif inputDataType.lower()=='fetc':
-        dataType='DATA'
+        #Must rely on data type for fetc only
         if not outputSE:
-          outputSE='Tier1-DST' #for real data master dst
-          self.log.info('Setting default outputSE to %s' %(outputSE))
+          if dataType.lower()=='mc':
+            outputSE='Tier1_MC-DST'
+            self.log.info('Setting default outputSE to %s' %(outputSE))
+          else:
+            outputSE='Tier1-DST' #for real data master dst
+            self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName)
