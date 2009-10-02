@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.157 2009/10/02 08:27:53 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.158 2009/10/02 08:37:06 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.157 2009/10/02 08:27:53 rgracian Exp $"
-__VERSION__ = "$Revision: 1.157 $"
+__RCSID__   = "$Id: dirac-install,v 1.158 2009/10/02 08:37:06 rgracian Exp $"
+__VERSION__ = "$Revision: 1.158 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -2526,7 +2526,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     if siteName:
       try:
         grid = siteName.split('.')[0]
-      expcet:
+      except:
         grid = LCG
       localSE = DIRAC.gConfig.getValue( '/Resources/Sites/%s/%s/SE' % ( grid, siteName ) , 'None' )
       localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
