@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.101 2009/09/17 13:38:46 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.102 2009/10/02 10:05:46 phicharp Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.101 2009/09/17 13:38:46 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.102 2009/10/02 10:05:46 phicharp Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1637,6 +1637,11 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
         s += "\nEventSelector.Input   = {\n"
     fileType = fileType.split()[0]
+    # Allow fileType to be of the form XXX.<fileType>
+    try:
+      fileType = fileType.split(".")[1]
+    except:
+      pass
     poolTypes = ["DST", "RDST", "DIGI", "SIM", "XDST"]
     mdfTypes = ["RAW", "MDF"]
     etcTypes = ["SETC", "FETC", "ETC"]
@@ -1652,7 +1657,7 @@ class LHCB_BKKDBManager(BaseESManager):
         first = False
         if savePfn:
           if fileType in poolTypes:    
-              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\"" 
+              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
           elif fileType in mdfTypes:
               s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\"" 
           elif fileType in etcTypes:
