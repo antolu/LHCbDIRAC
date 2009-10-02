@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.45 2009/10/01 14:34:16 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.46 2009/10/02 20:51:11 joel Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.45 2009/10/01 14:34:16 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.46 2009/10/02 20:51:11 joel Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -222,7 +222,7 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
     s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
     s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')
-    s = s+self.__parameter_string('EventinputStat',self.firstStepInput,'Info')
+    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
 
     host = None
     if os.environ.has_key("HOSTNAME"):
