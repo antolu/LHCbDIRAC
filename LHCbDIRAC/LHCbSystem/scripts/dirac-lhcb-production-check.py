@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id: dirac-lhcb-production-check.py,v 1.2 2009/06/18 13:24:54 szczypka Exp $
+# $Id: dirac-lhcb-production-check.py,v 1.3 2009/10/05 16:28:11 szczypka Exp $
 # File :   dirac-lhcb-production-check.py
 # Author : Paul Szczypka
 ########################################################################
@@ -14,7 +14,6 @@ It also lists the base locations of the files produced, the number of events pro
 """
 
 from DIRAC.Core.Base import Script
-Script.parseCommandLine()
 import DIRAC
 
 from random import choice
