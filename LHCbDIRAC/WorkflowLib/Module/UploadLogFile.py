@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.18 2009/10/02 16:20:29 paterson Exp $
+# $Id: UploadLogFile.py,v 1.19 2009/10/05 10:16:51 paterson Exp $
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.18 2009/10/02 16:20:29 paterson Exp $"
+__RCSID__ = "$Id: UploadLogFile.py,v 1.19 2009/10/05 10:16:51 paterson Exp $"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
@@ -83,6 +83,8 @@ class UploadLogFile(ModuleBase):
 
     if not type(self.logFilePath)==type(' '):
       self.logFilePath = self.logFilePath[0]
+    if not type(self.logLFNPath)==type(' '):
+      self.logLFNPath = self.logLFNPath[0]
 
     if self.workflow_commons.has_key('Request'):
       self.request = self.workflow_commons['Request']
