@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DiracSys/dirac-make,v 1.1 2009/06/04 06:28:25 joel Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DiracSys/dirac-make,v 1.2 2009/10/05 06:13:08 rgracian Exp $
 #
 # preliminary version to prepare external package needed for DIRAC3
 #
@@ -33,7 +33,7 @@ fi
 #
 for dir in `find . -type d -name scripts` ; do
   find $dir -maxdepth 1 -type f -exec chmod +x {} \;  || exit 1
-  for file in `find $dir -name "*.py" -maxdepth 1 -type f | grep -v __init__`
+  for file in `find $dir -maxdepth 1 -name "*.py" -type f | grep -v __init__`
   do
     dstfile=$DIRACscripts/`echo $file | sed 's:^.*/::g' | sed 's/\.[a-z]*$//g'`
     orgfile=$file
