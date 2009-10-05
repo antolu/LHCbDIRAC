@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.13 2009/10/05 13:07:59 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.14 2009/10/05 13:37:13 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.13 2009/10/05 13:07:59 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.14 2009/10/05 13:37:13 paterson Exp $"
 
 import string,re,os,shutil,types
 
@@ -69,6 +69,8 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
   #not sure if there's also a lib there at the end or not
   inputPath = '%s/%s_%s/InstallArea/%s' %(userArea,appName,appVersion,systemConfig)
 
+  inputPath = '%s/%s_%s/InstallArea/' %(userArea,appName,appVersion)
+  inputPath = os.path.join(userArea,appName+"_"+appVersion,InstallArea)
   finalResult = {'optionsFile':'','libraries':''}
 
   # Only run gaudirun if opts flag is specified
@@ -80,7 +82,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
 
   # Only retrieve libraries if lib flag is specified
   if libFlag:
-    result = _getLibFiles(inputPath,destinationDir)
+    result = _getLibFiles(os.path.join(inputPath,systemConfig),destinationDir)
     if not result['OK']:
       return result
     finalResult['libraries']=result['Value']
