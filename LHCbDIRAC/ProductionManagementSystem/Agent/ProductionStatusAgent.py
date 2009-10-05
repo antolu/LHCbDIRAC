@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.7 2009/09/16 11:21:09 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.8 2009/10/05 14:54:51 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.7 2009/09/16 11:21:09 paterson Exp $"
-__VERSION__ = "$Revision: 1.7 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.8 2009/10/05 14:54:51 paterson Exp $"
+__VERSION__ = "$Revision: 1.8 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -316,7 +316,7 @@ class ProductionStatusAgent(AgentModule):
     """
     self.updatedRequests.append(reqID)
     #return S_OK()
-    reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
+    reqClient = RPCClient('ProductionManagement/ProductionRequest',useCertificates=False,timeout=120)
     result = reqClient.updateProductionRequest(long(reqID),{'RequestState':status})
     if not result['OK']:
       self.log.error(result)
