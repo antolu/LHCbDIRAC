@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.5 2008/07/17 14:15:23 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.6 2009/10/06 13:39:49 rgracian Exp $
 # File :   install_bashrc.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -29,6 +29,7 @@ if [ -e /afs/cern.ch/lhcb/scripts/GridEnv.sh ] ; then
   # LCGPATH=\`dirname \$LCGPYTHON\`
   # PATH=\`echo \$PATH | awk -F: '{\$1="";OFS=":";print \$0}'\`
   PYTHONPATH=\`echo \$PYTHONPATH | awk -F: '{\$1="" ; \$2="" ; OFS=":";print \$0}'\`
+  PYTHONPATH=""
 fi
 
 DIRAC=$DESTDIR/pro
