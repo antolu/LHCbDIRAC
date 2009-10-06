@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.14 2009/10/05 13:37:13 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.15 2009/10/06 08:58:47 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.14 2009/10/05 13:37:13 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.15 2009/10/06 08:58:47 acsmith Exp $"
 
 import string,re,os,shutil,types
 
@@ -316,7 +316,9 @@ def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to perform final ROOT merger")
   if cleanUp:
-    for file in tempFiles: os.remove(file)
+    for file in tempFiles: 
+      if os.path.exists(file):
+        os.remove(file)
   return S_OK(outputFile)
 
 #############################################################################
