@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.3 2009/09/11 12:37:38 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.4 2009/10/06 14:56:05 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.3 2009/09/11 12:37:38 acsmith Exp $"
-__VERSION__ = "$Revision: 1.3 $"
+__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.4 2009/10/06 14:56:05 acsmith Exp $"
+__VERSION__ = "$Revision: 1.4 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -11,7 +11,7 @@ from DIRAC.ProductionManagementSystem.Client.ProductionClient  import Production
 from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
 from DIRAC.WorkloadManagementSystem.Client.WMSClient           import WMSClient
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient          import BookkeepingClient
-from DIRAC.Core.Utilities.List                                 import sortList
+from DIRAC.Core.Utilities.List                                 import sortList,breakListIntoChunks
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from datetime                                                  import datetime,timedelta
 
@@ -376,19 +376,22 @@ class ProductionCleaningAgent(AgentModule):
     return S_OK(jobIDs)
 
   def __removeWMSJobs(self,jobIDs):
-    res = self.wmsClient.deleteJob(jobIDs)
-    if res['OK']:
-      gLogger.info("Successfully removed %d jobs from WMS" % len(jobIDs))
+    allRemove = True
+    for jobList in breakListIntoChunks(jobIDs,500):
+      res = self.wmsClient.deleteJob(jobList)
+      if res['OK']:
+        gLogger.info("Successfully removed %d jobs from WMS" % len(jobList))
+      elif (res.has_key('InvalidJobIDs')) and (not res.has_key('NonauthorizedJobIDs')) and (not res.has_key('FailedJobIDs')):
+        gLogger.info("Found %s jobs which did not exist in the WMS" % len(res['InvalidJobIDs']))
+      elif res.has_key('NonauthorizedJobIDs'):
+        gLogger.error("Failed to remove %s jobs because not authorized" % len(res['NonauthorizedJobIDs']))
+        allRemove = False
+      elif res.has_key('FailedJobIDs'):
+        gLogger.error("Failed to remove %s jobs" % len(res['FailedJobIDs']))
+        allRemove = False
+    if allRemove:
       return S_OK()
-    if (res.has_key('InvalidJobIDs')) and (not res.has_key('NonauthorizedJobIDs')) and (not res.has_key('FailedJobIDs')):
-      gLogger.info("Found %s jobs which did not exist in the WMS" % len(res['InvalidJobIDs']))
-      return S_OK() # the only failures were for jobIDs that didn't exist
-    gLogger.error("Failed to remove all jobs from WMS",res['Message'])
-    if res.has_key('NonauthorizedJobIDs'):
-      gLogger.warn("Failed to remove %s jobs because not authorized" % len(res['NonauthorizedJobIDs']))
-    if res.has_key('FailedJobIDs'):
-      gLogger.warn("Failed to remove %s jobs" % len(res['FailedJobIDs']))
-    return res
+    return S_ERROR("Failed to remove all jobs from WMS")
 
   def __removeFailoverRequests(self,jobIDs):
     res = self.requestClient.getRequestForJobs(jobIDs) 
