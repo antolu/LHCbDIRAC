@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.13 2009/05/11 08:29:04 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.14 2009/10/07 13:42:53 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -105,6 +105,16 @@ Systems
     }
   }
 }
+Resources
+{
+  FileCatalogs
+  {
+    LcgFileCatalogCombined
+    {
+      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
+    }
+  }
+} 
 EOF
 
 fi

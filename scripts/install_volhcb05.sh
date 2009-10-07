@@ -69,6 +69,16 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 }
+Resources
+{
+  FileCatalogs
+  {
+    LcgFileCatalogCombined
+    {
+      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
+    }
+  }
+} 
 EOF
 
 fi

@@ -103,6 +103,16 @@ Systems
     }
   }
 }
+Resources
+{
+  FileCatalogs
+  {
+    LcgFileCatalogCombined
+    {
+      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
+    }
+  }
+} 
 EOF
 
 fi

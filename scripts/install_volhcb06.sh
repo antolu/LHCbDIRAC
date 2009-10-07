@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb06.sh,v 1.3 2009/08/03 13:07:32 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb06.sh,v 1.4 2009/10/07 13:42:53 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -81,6 +81,16 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 }
+Resources
+{
+  FileCatalogs
+  {
+    LcgFileCatalogCombined
+    {
+      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
+    }
+  }
+} 
 EOF
 fi
 cat > $DESTDIR/etc/DataManagement_StorageElement.cfg <<EOF
