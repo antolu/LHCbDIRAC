@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.40 2009/10/02 09:28:02 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.41 2009/10/08 07:34:04 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.40 2009/10/02 09:28:02 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.41 2009/10/08 07:34:04 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -240,7 +240,7 @@ class Production(LHCbJob):
     """
     eventType = self.__getEventType(eventType)
     firstEventNumber=0
-    appTypes = ['dst','fetc','rdst']
+    appTypes = ['dst','fetc','rdst','davincihist']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
     if not inputDataType in ('rdst','dst'):
@@ -268,6 +268,9 @@ class Production(LHCbJob):
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
+
+    if appType.lower()=='davincihist':
+      appType='dst'
 
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
