@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.110 2009/09/17 13:38:45 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.111 2009/10/08 09:57:32 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.110 2009/09/17 13:38:45 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.111 2009/10/08 09:57:32 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1158,9 +1158,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('File Type not found:'+str(ftype)) 
         
         ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+condition+' and jobs.production='+str(prod)
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)
     else:
-      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid'+condition+' and jobs.production='+str(prod)
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)
    
     res = self.dbR_._query(command)
     if res['OK']:
