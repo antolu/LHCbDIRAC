@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.102 2009/10/02 10:05:46 phicharp Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.103 2009/10/08 09:28:24 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.102 2009/10/02 10:05:46 phicharp Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.103 2009/10/08 09:28:24 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1584,7 +1584,7 @@ class LHCB_BKKDBManager(BaseESManager):
     fd = ''
     if optionsFile == '':
       fd = ''
-      if savetype == 'txt':
+      if savedType == 'txt':
         for lfn in files:
           fd += str(lfn[0])+'\n'
         return fd
