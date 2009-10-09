@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.19 2009/06/25 13:01:32 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.20 2009/10/09 16:56:43 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.19 2009/06/25 13:01:32 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.20 2009/10/09 16:56:43 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -22,30 +22,39 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################  
   def messageFromParent(self, message):
     if message.action()=='list':
-      items = message['items'].getChildren()
-      self.getWidget().setModel(items) # I have to save files.
-      self.getWidget().setPath(message['items']['fullpath'])
-      self.__selectedFiles = []
-      res = self.getWidget().showData(items)
-      
-      keys = items.keys()
-      value = items[keys[0]]
-      self.getWidget().showSelection(value['Selection'])
-      if res:
-        
-        events = self.countNumberOfEvents(items)
-        self.getWidget().showNumberOfEvents(events)
-        
-        nbfiles = self.countNumberOfFiles(items)
-        self.getWidget().showNumberOfFiles(nbfiles)
-        
-        filesize = self.getSizeOfFiles(items)
-        self.getWidget().showFilesSize(filesize)
-        
-        
-        self.getWidget().show()
+      self.__list(message)
+    elif message.action()=='listNextFiles': 
+      self.__list(message, update=True)
+    
     return True  
   
+  def __list(self, message, update=False):
+    items = message['items'].getChildren()
+    if update:
+      self.getWidget().updateModel(items) # I have to save files.
+    else:
+      self.getWidget().setModel(items)
+    self.getWidget().setPath(message['items']['fullpath'])
+    self.__selectedFiles = []
+    res = self.getWidget().showData(items)
+    
+    
+    keys = items.keys()
+    value = items[keys[0]]
+    self.getWidget().showSelection(value['Selection'])
+    if res:
+      
+      events = self.countNumberOfEvents(items)
+      self.getWidget().showNumberOfEvents(events)
+      
+      nbfiles = self.countNumberOfFiles(items)
+      self.getWidget().showNumberOfFiles(nbfiles)
+      
+      filesize = self.getSizeOfFiles(items)
+      self.getWidget().showFilesSize(filesize)
+      
+  
+      self.getWidget().show()
   #############################################################################  
   def messageFromChild(self, sender, message):
     if message.action()=='advancedSave':

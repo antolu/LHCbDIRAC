@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.28 2009/05/03 14:53:34 rgracian Exp $
+# $Id: XMLFilesReaderManager.py,v 1.29 2009/10/09 16:53:20 zmathe Exp $
 ########################################################################
 
 """
@@ -16,9 +16,10 @@ from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                       
 #from DIRAC.BookkeepingSystem.Client.BookkeepingClient                             import BookkeepingClient
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.28 2009/05/03 14:53:34 rgracian Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.29 2009/10/09 16:53:20 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -126,6 +127,7 @@ class XMLFilesReaderManager:
         file.setTypeID(typeID)
 
       params = file.getFileParams()
+      evtExists = False
       for param in params:
         paramName = param.getParamName()
 
@@ -152,7 +154,37 @@ class XMLFilesReaderManager:
           if not result['OK']:
             self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName, errorReport)
             return S_ERROR("The event type " + str(value) + " is missing.\n")
+        
+        if paramName == "EventTypeId":
+          if param.getParamValue() != '':
+            value = long(param.getParamValue())
+            result = dataManager_.checkEventType(value)
+            if not result['OK']:
+              self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName, errorReport)
+              return S_ERROR("The event type " + str(value) + " is missing.\n")
+            evtExists = True              
 
+      if not evtExists and file.getFileType() not in ['LOG']:
+        inputFiles = job.getJobInputFiles()
+        if len(inputFiles) > 0:
+          fileName = inputFiles[0].getFileName()
+          res = dataManager_.getFileMetadata([fileName])
+          if res['OK']:
+            value = res['Value']
+            if value[fileName].has_key('EventTypeId'):
+              if file.exists('EventTypeId'):
+                param = file.getParam('EventTypeId')
+                param.setParamValue(str(value[fileName]['EventTypeId']))
+              else:
+                newFileParams = FileParam()
+                newFileParams.setParamName('EventTypeId')
+                newFileParams.setParamValue(str(value[fileName]['EventTypeId']))
+                file.addFileParam(newFileParams)
+          else:
+            return S_ERROR(res['Message']) 
+        else:
+          return S_ERROR('I can not fill the EventTypeId because there is no input files!')
+        
 
       ################
 
