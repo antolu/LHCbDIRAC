@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.4 2009/09/30 15:55:51 paterson Exp $
+# $Id: ProductionOptions.py,v 1.5 2009/10/12 19:30:42 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,22 +7,29 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.4 2009/09/30 15:55:51 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.5 2009/10/12 19:30:42 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 import string
 
 #############################################################################
-def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applicationName}_@{STEP_ID}_Hist.root',production=True):
+def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applicationName}_@{STEP_ID}_Hist.root',condDB='@{CondDBTag}',ddDB='@{DDDBTag}',production=True):
   """ Simple function to create the default options for a given project name.
 
       Assumes CondDB tags and event max are required.
   """
   options = []
+
+  #To resolve MC / Upgrade case
+  if condDB.lower() == 'global':
+    condDB='@{CondDBTag}'
+  if not ddDB.lower() == 'global':
+    ddDB = '@{DDDBTag}'
+
   #General options
-  dddbOpt = "LHCbApp().DDDBtag = \"@{DDDBTag}\""
-  conddbOpt = "LHCbApp().CondDBtag = \"@{CondDBTag}\""
+  dddbOpt = "LHCbApp().DDDBtag = \"%s\"" %(ddDB)
+  conddbOpt = "LHCbApp().CondDBtag = \"%s\"" %(condDB)
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
   options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append("HistogramPersistencySvc().OutputFile = \"%s\"" % (histogram))
