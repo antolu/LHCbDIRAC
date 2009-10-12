@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.41 2009/10/08 07:34:04 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.42 2009/10/12 19:04:17 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.41 2009/10/08 07:34:04 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.42 2009/10/12 19:04:17 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -136,7 +136,7 @@ class Production(LHCbJob):
     return eventType
 
   #############################################################################
-  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts=''):
+  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts='',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
     """
     eventType = self.__getEventType(eventType)
@@ -153,14 +153,14 @@ class Production(LHCbJob):
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,{})
+    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,{},condDBTag,ddDBTag)
     self.gaussList.append(gaussStep.getName())
     gaussStep.setValue('numberOfEventsInput', 0)
     gaussStep.setValue('numberOfEventsOutput', 0)
     gaussStep.setValue('generatorName',generatorName)
 
   #############################################################################
-  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOutputFile={}):
+  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi
         currently assumes input data type is sim
@@ -186,10 +186,10 @@ class Production(LHCbJob):
       self.log.info('Adding output file to Boole step %s' %extraOutputFile)
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile)
+    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile,condDBTag,ddDBTag)
 
   #############################################################################
-  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA'):
+  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst
         inputDataType is mdf / digi
@@ -229,10 +229,10 @@ class Production(LHCbJob):
       optionsLine = "%s;%s" % (optionsLine,extraOpts.replace('\n',';'))
     firstEventNumber=0
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
+    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='DATA'):
+  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst /undefined at the moment ;)
         inputDataType is rdst / fetc
@@ -273,16 +273,15 @@ class Production(LHCbJob):
       appType='dst'
 
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
+    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={}):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
 
        Note: for MDF merging case must not add a finalization step.
     """
-    self._setParameter('group_size','string','5','FileGroupSize')
     if inputProduction:
       result = self._setInputProductionBKStepInfo(inputProduction,passDict)
       if not result['OK']:
@@ -310,7 +309,7 @@ class Production(LHCbJob):
     if inputDataType.lower()=='mdf':
       self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
     else:
-      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
+      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
 
   #############################################################################
   def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
@@ -341,7 +340,7 @@ class Production(LHCbJob):
     return stepInstance
 
   #############################################################################
-  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
+  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={},condDBTag='global',ddDBTag='global'):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -420,6 +419,13 @@ class Production(LHCbJob):
     self.__addSoftwarePackages('%s.%s' %(appName,appVersion))
     dddbOpt = "@{DDDBTag}"
     conddbOpt = "@{CondDBTag}"
+    if not condDBTag.lower() == 'global':
+      self.log.info('Specific CondDBTag setting found for %s step, setting to: %s' %(appName,condDBTag))
+      conddbOpt = condDBTag
+    if not ddDBTag.lower() == 'global':
+      self.log.info('Specific DDDBTag setting found for %s step, setting to: %s' %(appName,ddDBTag))
+      dddbOpt = ddDBTag
+
     #to construct the BK processing pass structure, starts from step '0'
     stepID = 'Step%s' %(self.gaudiStepCount-1)
     bkOptionsFile = optionsFile
