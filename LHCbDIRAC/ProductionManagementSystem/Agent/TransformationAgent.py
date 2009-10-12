@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.36 2009/10/12 09:06:09 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.37 2009/10/12 12:59:04 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.36 2009/10/12 09:06:09 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.37 2009/10/12 12:59:04 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -220,12 +220,13 @@ class TransformationAgent(Agent):
     if not datadict:
       return data_m
 
+    create = False
     # Group files by SE
     if flush: # flush mode
       chosenSE = datadict.keys()[0]
       lfns = datadict[chosenSE]
+      create = True
     else: # normal  mode
-      create = False
       for chosenSE in datadict.keys():
         lfns = []
         selectedSize = 0
@@ -233,10 +234,10 @@ class TransformationAgent(Agent):
         while selectedSize < input_size:
           if not candidateFiles:
             break
-          lfn = candidateFiles[0]
+          lfn = candidateFiles[0] 
           candidateFiles.remove(lfn)
           if fileSizes.has_key(lfn):
-            lfns.append(lfn)  
+            lfns.append(lfn)
             selectedSize += fileSizes[lfn]
         if selectedSize > input_size:
           create = True
