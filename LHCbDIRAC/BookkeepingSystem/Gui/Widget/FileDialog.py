@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.19 2009/09/17 13:38:46 zmathe Exp $
+# $Id: FileDialog.py,v 1.20 2009/10/12 10:01:44 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedS
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.19 2009/09/17 13:38:46 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.20 2009/10/12 10:01:44 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -65,8 +65,11 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################  
   def setModel(self, model):
-    self.__model.update(model)
+    self.__model = model
   
+  def updateModel(self, model):
+    self.__model.update(model)
+    
   #############################################################################  
   def getModel(self):
     return self.__model

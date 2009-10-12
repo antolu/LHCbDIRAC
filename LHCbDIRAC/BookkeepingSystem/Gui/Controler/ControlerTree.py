@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.16 2009/06/25 13:01:32 zmathe Exp $
+# $Id: ControlerTree.py,v 1.17 2009/10/12 10:01:44 zmathe Exp $
 ########################################################################
 
 
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.16 2009/06/25 13:01:32 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.17 2009/10/12 10:01:44 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -48,7 +48,7 @@ class ControlerTree(ControlerAbstract):
       if feedback.action()=='showNode':
           controlers = self.getChildren()
           ct = controlers['FileDialog']  
-          message = Message({'action':'list','items':feedback['items']})
+          message = Message({'action':'listNextFiles','items':feedback['items']})
           ct.messageFromParent(message)
     elif message.action() =='PageSizeIsNull':
       self.__offset = 0
