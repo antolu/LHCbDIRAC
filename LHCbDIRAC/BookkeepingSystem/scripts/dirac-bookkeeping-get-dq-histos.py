@@ -123,7 +123,7 @@ def getCERNpfn(lfn):
   """
   Download file if it is a root file
   """
-  res = dirac.getFile(lfn,False)
+  res = dirac.getFile(lfn)
   return res['OK']
 
 def makeNiceName(lfn,run):
