@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.42 2009/10/12 19:04:17 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.43 2009/10/12 19:38:05 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.42 2009/10/12 19:04:17 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.43 2009/10/12 19:38:05 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -142,7 +142,7 @@ class Production(LHCbJob):
     eventType = self.__getEventType(eventType)
     firstEventNumber=1
     if not overrideOpts:
-      optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName)
+      optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
       self.log.info('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -172,7 +172,7 @@ class Production(LHCbJob):
     inputData='previousStep'
 
     if not overrideOpts:
-      optionsLine = getOptions('Boole',appType,extraOpts=None,histogram=self.histogramName)
+      optionsLine = getOptions('Boole',appType,extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
       self.log.info('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -220,7 +220,7 @@ class Production(LHCbJob):
             self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName)
+      optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
       self.log.info('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -263,7 +263,7 @@ class Production(LHCbJob):
         self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName)
+      optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
       self.log.info('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
@@ -299,7 +299,7 @@ class Production(LHCbJob):
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
-      optionsLine = getOptions('Merge',appType,extraOpts=None)
+      optionsLine = getOptions('Merge',appType,extraOpts=None,condDB=condDBTag,ddDB=ddDBTag)
       self.log.info('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
