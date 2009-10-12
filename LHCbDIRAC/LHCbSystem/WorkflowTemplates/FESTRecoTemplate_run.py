@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.7 2009/10/08 14:50:20 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.8 2009/10/12 10:39:44 paterson Exp $
 ########################################################################
 
 """  The FEST Reco template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.7 2009/10/08 14:50:20 paterson Exp $"
+__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.8 2009/10/12 10:39:44 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -35,10 +35,11 @@ except:
   from DIRAC.LHCbSystem.Client.Production import Production
 
 #Configurable parameters
-priority = '{{Priority#Production priority (default 7)}}'
-plugin = '{{PluginType#Production plugin name (default CCRC_RAW)}}'
-ancestorProd = '{{AncestorProd#Ancestor production if any (default 0)}}'
-dataSE = '{{DataSE#Output Data Storage Element (default Tier1-RDST)}}'
+priority = '{{Priority#Production priority#7}}'
+plugin = '{{PluginType#Production plugin name#CCRC_RAW}}'
+ancestorProd = '{{AncestorProd#Ancestor production (if any)#0}}'
+dataSE = '{{DataSE#Output Data Storage Element#Tier1-RDST}}'
+appendName = '{{AppendName#String to append to production name#1}}'
 
 #Other parameters
 dqDict = {}
@@ -76,7 +77,7 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 production = Production()
 production.setProdType('DataReconstruction')
 wkfName='{{pDsc}}_{{eventType}}_{{p1App}}{{p1Ver}}_{{p2App}}{{p2Ver}}_DDDB{{p1DDDb}}_CondDB{{p1CDb}}_Request{{ID}}'
-production.setWorkflowName('%s_%s' %(recoType,wkfName))
+production.setWorkflowName('%s_%s_%s' %(recoType,wkfName,appendName))
 production.setWorkflowDescription("FEST data reconstruction production.")
 production.setBKParameters('{{configName}}','{{configVersion}}','{{pDsc}}','{{simDesc}}')
 production.setInputBKSelection(inputBKQuery)
