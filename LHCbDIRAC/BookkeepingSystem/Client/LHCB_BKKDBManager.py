@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.103 2009/10/08 09:28:24 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.104 2009/10/12 10:27:34 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.103 2009/10/08 09:28:24 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.104 2009/10/12 10:27:34 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1535,7 +1535,13 @@ class LHCB_BKKDBManager(BaseESManager):
         pname = processedPath[7][1]
         pversion = processedPath[7][1]
     retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
-    return self.writeJobOptions(retVal['Records'],optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
+    values = retVal['Records']
+    files = {}
+    # The list has to be convert to dictionary
+    for i in values:
+      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[9],'EvtTypeId':i[10]}
+      
+    return self.writeJobOptions(files,optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
   
   #############################################################################         
   def getLimitedInformations(self,StartItem, Maxitems, path):
