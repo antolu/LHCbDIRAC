@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.5 2009/10/12 19:30:42 paterson Exp $
+# $Id: ProductionOptions.py,v 1.6 2009/10/12 19:51:52 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,7 +7,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.5 2009/10/12 19:30:42 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.6 2009/10/12 19:51:52 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -24,7 +24,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   #To resolve MC / Upgrade case
   if condDB.lower() == 'global':
     condDB='@{CondDBTag}'
-  if not ddDB.lower() == 'global':
+  if ddDB.lower() == 'global':
     ddDB = '@{DDDBTag}'
 
   #General options
