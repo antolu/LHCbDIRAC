@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.104 2009/10/12 10:27:34 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.105 2009/10/12 10:59:03 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.104 2009/10/12 10:27:34 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.105 2009/10/12 10:59:03 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -1698,3 +1698,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################       
   def getMoreProductionInformations(self, prodid):
     return self.db_.getMoreProductionInformations(prodid)
+  
+  #############################################################################
+  def getAvailableProductions(self):
+    return self.db_.getAvailableProductions()
