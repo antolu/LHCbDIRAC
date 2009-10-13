@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.119 2009/09/07 17:43:42 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.120 2009/10/13 15:10:26 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.119 2009/09/07 17:43:42 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.120 2009/10/13 15:10:26 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -876,8 +876,10 @@ class BookkeepingManagerHandler(RequestHandler):
     if value['OK']==True:
       prodinfos = value['Value']
     
-    path = ''
+    path = '/'
     
+    if len(prodinfos) == 0:
+      return S_ERROR('This production does not contains any jobs!')
     cname = prodinfos[0][0]
     cversion = prodinfos[0][1]
     eventType = prodinfos[0][2]
@@ -905,6 +907,9 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       path += '/'+res['Value']
     path += '/'+str(eventType)
+    prefix = '\n'+path
+    for i in nbOfEvents:
+      path += prefix +'/'+i[0]
     result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
