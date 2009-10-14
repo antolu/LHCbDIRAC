@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_Stripping_run.py,v 1.2 2009/10/02 13:43:53 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_Stripping_run.py,v 1.3 2009/10/14 07:36:20 paterson Exp $
 ########################################################################
 
 """  The MC09 stripping template creates a workflow for Brunel & DaVinci with
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: MC09_Stripping_run.py,v 1.2 2009/10/02 13:43:53 paterson Exp $"
+__RCSID__ = "$Id: MC09_Stripping_run.py,v 1.3 2009/10/14 07:36:20 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -38,9 +38,12 @@ except:
   from DIRAC.LHCbSystem.Client.Production import Production
 
 #Configurable parameters
-cpu = '{{MaxCPUTime#MC Max CPU time in secs (default 100000)}}'
-priority = '{{Priority#Production priority (default 7)}}'
-plugin = '{{PluginType#Production plugin name (default CCRC_RAW)}}'
+cpu = '{{MaxCPUTime#MC Max CPU time in secs#100000}}'
+priority = '{{Priority#Production priority#7}}'
+plugin = '{{PluginType#Production plugin name#Standard}}'
+filesPerJob = '{{FilesPerJob#Group size or number of files per job#10}}'
+appendName = '{{AppendName#String to append to production name#1}}'
+
 inProductionID='{{inProductionID}}'
 
 inputBKQuery = { 'SimulationConditions'     : '{{simDesc}}',
@@ -57,6 +60,7 @@ production = Production()
 production.setProdType('DataStripping')
 wkfName='{{pDsc}}_{{eventType}}_{{p1App}}{{p1Ver}}_{{p2App}}{{p2Ver}}_DDDB{{p1DDDb}}_CondDB{{p1CDb}}_Request{{ID}}'
 production.setWorkflowName(wkfName)
+production.setWorkflowName('%s_%s' %(wkfName,appendName))
 production.setWorkflowDescription("MC09 data stripping production.")
 production.setBKParameters('{{configName}}','{{configVersion}}','{{pDsc}}','{{simDesc}}')
 production.setInputBKSelection(inputBKQuery)
@@ -75,6 +79,10 @@ production.setProdGroup('{{pDsc}}')
 production.setProdPriority(priority)
 production.setFileMask("fetc;dst;root")
 
+#temporary
+production.setWorkflowLib('v9r26')
+
+
 if not args:
   print 'No arguments specified, will create workflow only.'
   os.chdir(start)
@@ -83,7 +91,7 @@ if not args:
   print 'Created local workflow template: %s' %templateName
   sys.exit(0)
 
-result = production.create(inputBKQuery,groupSize=1,bkScript=True,requestID=int('{{ID}}'),reqUsed=0)
+result = production.create(inputBKQuery,groupSize=filesPerJob,bkScript=True,requestID=int('{{ID}}'),reqUsed=0)
 if not result['OK']:
   print 'Error:',result['Message']
 
