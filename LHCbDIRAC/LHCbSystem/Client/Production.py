@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.44 2009/10/14 07:47:00 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.45 2009/10/14 13:47:14 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.44 2009/10/14 07:47:00 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.45 2009/10/14 13:47:14 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -658,6 +658,24 @@ class Production(LHCbJob):
 
     #parameters['numberOfEvents']=prodWorkflow.findParameter('numberOfEvents').getValue()
     parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
+
+    if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
+      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+      res = prodClient.getProductionInfo(prodID)
+      if not res['OK']:
+        self.log.error(res)
+        return S_ERROR('Could not obtain production info')
+
+      res = res['Value']['Value']
+      if res['BkQueryID']:
+        self.log.info('Production %s has BK query ID %s' %(prodID,res['BkQueryID']))
+        bk = prodClient.getBookkeepingQuery(res['BkQueryID'])
+        if not bk['OK']:
+          self.log.error(bk)
+          return S_ERROR('Could not obtain production BK query')
+
+      bkInputQuery = bk['Value']
+
     parameters['BKInputQuery']=bkInputQuery
     parameters['BKProcessingPass']=bkPassInfo
     parameters['groupDescription']=groupDescription
@@ -725,7 +743,7 @@ class Production(LHCbJob):
 
     if parameters['BKInputQuery']:
       info.append('BK Input Data Query:')
-      for n,v in parameters['BKInputDataQuery'].items():
+      for n,v in parameters['BKInputQuery'].items():
         info.append('    %s = %s' %(n,v))
 
     #BK output directories (very useful)
