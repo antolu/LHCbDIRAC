@@ -2,9 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-run-files.py,v 1.1 2009/02/12 17:16:31 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-run-files.py,v 1.2 2009/10/14 09:04:12 zmathe Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-run-files.py,v 1.1 2009/02/12 17:16:31 acsmith Exp $"
+__RCSID__   = "$Id: dirac-bookkeeping-run-files.py,v 1.2 2009/10/14 09:04:12 zmathe Exp $"
 __VERSION__ = "$ $"
 
 from DIRAC import gLogger
@@ -29,7 +29,7 @@ else:
   else:
     print  '%s %s %s %s' % ('FileName'.ljust(100),'Size'.ljust(10),'GUID'.ljust(40),'Replica'.ljust(8))
     for lfn in sortList(res['Value'].keys()):
-      size = res['Value'][lfn]['FilesSize']
+      size = res['Value'][lfn]['FileSize']
       guid = res['Value'][lfn]['GUID']
       hasReplica = res['Value'][lfn]['GotReplica']
       print '%s %s %s %s' % (lfn.ljust(100),str(size).ljust(10),guid.ljust(40),hasReplica.ljust(8))
