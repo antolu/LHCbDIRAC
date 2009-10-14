@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.43 2009/10/12 19:38:05 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.44 2009/10/14 07:47:00 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.43 2009/10/12 19:38:05 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.44 2009/10/14 07:47:00 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -1152,4 +1152,10 @@ class Production(LHCbJob):
     """
     self.workflow = fromXMLString(wfString)
     self.name = self.workflow.getName()
+
+  #############################################################################
+  def disableCPUCheck(self):
+    """ Uses the supplied string to create the workflow
+    """
+    self._setParameter('DisableCPUCheck','JDL','True','DisableWatchdogCPUCheck')
 
