@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_MDF_DST_Merging_run.py,v 1.2 2009/09/07 08:11:12 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_MDF_DST_Merging_run.py,v 1.3 2009/10/14 07:34:51 paterson Exp $
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging productions for MDF+DST.
 """
 
-__RCSID__ = "$Id: MC09_MC_MDF_DST_Merging_run.py,v 1.2 2009/09/07 08:11:12 paterson Exp $"
+__RCSID__ = "$Id: MC09_MC_MDF_DST_Merging_run.py,v 1.3 2009/10/14 07:34:51 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -35,14 +35,16 @@ except:
   from DIRAC.LHCbSystem.Client.Production import Production
 
 #configurable parameters
-events = '{{numberOfEvents#MC Number of events per job (default 500)}}'
-cpu = '{{MaxCPUTime#MC Max CPU time in secs (default 100000)}}'
-priority = '{{Priority#MC Production priority (default 4)}}'
-extend = '{{Extend#Extend MC production by this many jobs}}'
+events = '{{numberOfEvents#MC Number of events per job#500}}'
+cpu = '{{MaxCPUTime#MC Max CPU time in secs#100000}}'
+priority = '{{Priority#MC Production priority#4}}'
+extend = '{{Extend#Extend MC production by this many jobs#100}}'
+appendName = '{{AppendName#String to append to production name#1}}'
 
 production = Production()
 production.setProdType('MCSimulation')
-production.setWorkflowName('MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{numberOfEvents}}Events_Request{{ID}}')
+wkfName = 'MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{numberOfEvents}}Events_Request{{ID}}'
+production.setWorkflowName('%s_%s' %(wkfName,appendName))
 production.setWorkflowDescription('MC09 workflow for Gauss, Boole and Brunel.')
 production.setBKParameters('MC','MC09','{{pDsc}}','{{simDesc}}')
 production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
