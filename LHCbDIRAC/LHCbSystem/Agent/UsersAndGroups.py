@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.31 2009/08/31 13:59:33 joel Exp $
+# $Id: UsersAndGroups.py,v 1.32 2009/10/15 08:06:51 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.31 2009/08/31 13:59:33 joel Exp $"
-__VERSION__ = "$Revision: 1.31 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.32 2009/10/15 08:06:51 rgracian Exp $"
+__VERSION__ = "$Revision: 1.32 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -12,24 +12,27 @@ import os
 from DIRAC.Core.Base.AgentModule              import AgentModule
 from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC                                    import S_OK, S_ERROR, gConfig
+from DIRAC                                    import S_OK, S_ERROR, gConfig, Source
 
 from DIRAC                                    import systemCall
 from DIRAC                                    import List
 
 VO_NAME     = 'lhcb'
 VOMS_SERVER = 'voms.cern.ch'
+GRIDENV     = ''
 
 class UsersAndGroups(AgentModule):
 
   def initialize(self):
     self.vomsServer = VOMS_SERVER
     self.am_setOption( "PollingTime", 3600*6 ) # Every 6 hours
+    self.gridEnv = GRIDENV
     return S_OK()
 
   def execute(self):
 
     self.log.info( 'Starting Agent loop')
+    self.gridEnv = self.am_getOption( 'GridEnv', self.gridEnv )
 
     mappingSection = 'Security/VOMSMapping'
     ret = gConfig.getOptionsDict( mappingSection )
@@ -69,7 +72,7 @@ class UsersAndGroups(AgentModule):
 
     vomsAdminTuple = ('voms-admin','--vo','lhcb','--host',self.vomsServer)
 
-    ret = systemCall(0, vomsAdminTuple + ('list-roles',) )
+    ret = self._gridCommand( 0, proxyFile, vomsAdminTuple + ('list-roles',) )
     if not ret['OK']:
       self.log.fatal('Can not get Role List', ret['Message'])
       return ret
@@ -88,7 +91,7 @@ class UsersAndGroups(AgentModule):
           roles[role] = {'Group':group,'Users':[]}
     self.log.info( "DIRAC valid roles are:\n\t", "\n\t ".join( roles.keys() )  )
 
-    ret = systemCall(0, vomsAdminTuple + ('list-users',) )
+    ret = self._gridCommand(0, proxyFile, vomsAdminTuple + ('list-users',) )
     if not ret['OK']:
       self.log.fatal('Can not get User List', ret['Message'])
       return ret
@@ -119,7 +122,7 @@ class UsersAndGroups(AgentModule):
     multiDNUsers   = []
     for item in List.fromChar(ret['Value'][1],'\n'):
       dn,ca = List.fromChar(item,',')
-      ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-attributes', dn, ca))
+      ret = self._gridCommand(0, proxyFile, vomsAdminTuple + ('--nousercert', 'list-user-attributes', dn, ca))
       if not ret['OK']:
         self.log.error('Can not get User Alias',dn)
         continue
@@ -150,7 +153,7 @@ class UsersAndGroups(AgentModule):
       else:
         oldUsers.append(user)
 
-      ret = systemCall(0,vomsAdminTuple + ('--nousercert', 'list-user-roles', dn, ca) )
+      ret = self._gridCommand(0, proxyFile, vomsAdminTuple + ('--nousercert', 'list-user-roles', dn, ca) )
       if not ret['OK']:
         self.log.error('Can not get User Roles', user)
         continue
@@ -281,3 +284,21 @@ class UsersAndGroups(AgentModule):
 #    return S_OK()
     return csapi.commitChanges()
 
+  def _gridCommand(self, timeout, proxyFile, cmd):
+    """
+     Execute cmd tuple after sourcing GridEnv
+    """
+    gridEnv = dict(os.environ)
+    if self.gridEnv:
+      self.log.verbose( 'Sourcing GridEnv script:', self.gridEnv )
+      ret = Source( 10, [self.gridEnv] )
+      if not ret['OK']:
+        self.log.error( 'Failed sourcing GridEnv:', ret['Message'] )
+        return S_ERROR( 'Failed sourcing GridEnv' )
+      if ret['stdout']: self.log.verbose( ret['stdout'] )
+      if ret['stderr']: self.log.warn( ret['stderr'] )
+      gridEnv = ret['outputEnv']
+
+    gridEnv[ 'X509_USER_PROXY' ] = proxyFile
+    self.log.verbose( 'Executing', ' '.join(cmd) )
+    return systemCall( timeout, cmd, env = gridEnv )
