@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.19 2009/10/07 11:21:38 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.20 2009/10/15 15:26:44 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.19 $"
+__RCSID__ = "$Revision: 1.20 $"
 
 # Defined states:
 #'New'
@@ -12,6 +12,7 @@ __RCSID__ = "$Revision: 1.19 $"
 #'BK Check'
 #'Submitted'
 #'PPG OK'
+#'On-hold'
 #'Tech OK'
 #'Accepted'
 #'Active'
@@ -62,10 +63,11 @@ def _getMemberMails(group):
       emails.append(email)
   return emails
 
-def _inform_people(id,oldstate,state,author):
+def _inform_people(rec,oldstate,state,author,inform):
   if not state or state == 'New':
     return # was no state change or resurrect
 
+  id = rec['RequestID']
   csS=PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
   if not csS:
     gLogger.error('No ProductionRequest section in configuration')
@@ -80,11 +82,19 @@ def _inform_people(id,oldstate,state,author):
     gLogger.info('No notifications will be send')
     return
 
-  footer = "\n\nNOTE: it is an automated notification request."
+  footer = "\n\nNOTE: it is an automated notification."
   footer+= " Don't reply please.\n"
-  footer+= "DIRAC Web portal: https://lhcbtest.pic.es/DIRAC/%s/" % \
+  footer+= "DIRAC Web portal: https://lhcbweb.pic.es/DIRAC/%s/" % \
            PathFinder.getDIRACSetup()
-  ppath = '/production/ProductionRequest/display\n'
+  ppath = '/production/ProductionRequest/display\n\n'
+
+  ppath+= 'The request details:\n'
+  ppath+= '  Type: %s' % str(rec['RequestType'])
+  ppath+= '  Name: %s\n' % str(rec['RequestName'])
+  ppath+= '  Conditions: %s\n' % str(rec['SimCondition'])
+  ppath+= '  Processing pass: %s\n' % str(rec['ProPath'])
+
+  gLogger.info(".... %s ...." %ppath)
 
   authorMail = _getMailAddress(author)
   if authorMail:
@@ -107,6 +117,26 @@ def _inform_people(id,oldstate,state,author):
                                   fromAddress,True)
       if not res['OK']:
         gLogger.error("_inform_people: can't send email: %s" % res['Message'])
+
+  if inform:
+    subj = "DIRAC: the state of Production Request %s is changed to '%s'"%\
+           (id,state)
+    body = '\n'.join(
+      ['You have received this mail because you are'
+       'in the subscription list for this request'])
+    for x in inform.replace(" ",",").split(","):
+      if x:
+        if x.find("@") > 0:
+          eMail = x
+        else:
+          eMail = _getMailAddress(author)
+      if eMail:
+        res = notification.sendMail(eMail,subj,
+                                    body+footer+'lhcb_user'+ppath,
+                                    fromAddress,True)
+        if not res['OK']:
+          gLogger.error("_inform_people: can't send email: %s" % res['Message'])
+
   if state == 'Accepted':
     subj = "DIRAC: the Production Request %s is accepted." % id
     body = '\n'.join(["The Production Request is signed and ready to process",
@@ -168,6 +198,7 @@ class ProductionRequestDB(DB):
                     'SimCondition', 'SimCondID', 'SimCondDetail',
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
+                    'Inform',
                     'HasSubrequest', 'bk', 'bkTotal', 'rqTotal',  # runtime
                     'crTime', 'upTime' ] # runtime
 
@@ -206,7 +237,7 @@ class ProductionRequestDB(DB):
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
     """
-    inFields  = [ 'RequestState','ParentID','MasterID','RequestAuthor' ]
+    inFields  = [ 'RequestState','ParentID','MasterID','RequestAuthor','Inform' ]
     result = self._query("SELECT %s " % ','.join(inFields) +
                          "FROM ProductionRequests " +
                          "WHERE RequestID=%s;" % id, connection)
@@ -219,7 +250,7 @@ class ProductionRequestDB(DB):
     return S_OK(dict(zip(inFields,result['Value'][0])))
 
   def __getStateAndAuthor(self,id,connection):
-    """ Return state and Author of Master for id (or id's own if no parents)
+    """ Return state, Author and inform list of Master for id (or id's own if no parents)
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
     """
@@ -228,12 +259,12 @@ class ProductionRequestDB(DB):
       return result
     pinfo = result['Value']
     if not pinfo['MasterID']:
-      return S_OK([pinfo['RequestState'],pinfo['RequestAuthor']])
+      return S_OK([pinfo['RequestState'],pinfo['RequestAuthor'],pinfo['Inform']])
     result = self.__getRequestInfo(pinfo['MasterID'],connection)
     if not result['OK']:
       return result
     pinfo = result['Value']
-    return S_OK([pinfo['RequestState'],pinfo['RequestAuthor']])
+    return S_OK([pinfo['RequestState'],pinfo['RequestAuthor'],pinfo['Inform']])
 
   def __checkMaster(self,master,id,connection):
     """ Return State of Master for id (or id's own if no parents)
@@ -316,7 +347,7 @@ class ProductionRequestDB(DB):
       result = self.__getStateAndAuthor(masterID,connection)
       if not result['OK']:
         return result
-      requestState,requestAuthor = result['Value']
+      requestState,requestAuthor,requestInform = result['Value']
       if requestState != 'New':
         self.lock.release()
         return S_ERROR("Requests can't be modified after submission")
@@ -357,7 +388,8 @@ class ProductionRequestDB(DB):
         gLogger.error(result['Message'])
     self.lock.release()
     if rec['RequestState'] in ['BK Check','Submitted']:
-      _inform_people(requestID,'',rec['RequestState'],creds['User'])
+      rec['RequestID'] = requestID
+      _inform_people(rec,'',rec['RequestState'],creds['User'],rec['Inform'])
     return S_OK(requestID)
 
   def __addMonitoring(self,req,order):
@@ -453,9 +485,11 @@ class ProductionRequestDB(DB):
     result = self.__getStateAndAuthor(requestID,connection)
     if not result['OK']:
       return result
-    requestState,requestAuthor = result['Value']
-    inform = { 'id':str(requestID), 'state':'', 'author': str(requestAuthor),
-               'oldstate': requestState }
+    requestState,requestAuthor,requestInform = result['Value']
+    rec=old.copy()
+    rec.update(update)
+    inform = { 'rec':rec, 'state':'', 'author': str(requestAuthor),
+               'oldstate': requestState, 'inform': requestInform }
 
     hasSubreq = False
     if not old['MasterID']:
@@ -557,7 +591,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("Rejected requests must be resurrected before modifications")
     elif requestState == 'BK Check':
       for x in update:
-        if not x in ['RequestState','SimCondition','SimCondID','SimCondDetail','Comments']:
+        if not x in ['RequestState','SimCondition','SimCondID','SimCondDetail','Comments','Inform']:
           self.lock.release()
           return S_ERROR("%s can't be modified during BK check" % x)
       if not 'RequestState' in update:
@@ -570,7 +604,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("Registered simulation conditions required to sign for BK OK")
     elif requestState == 'BK OK':
       for x in update:
-        if not x in ['RequestState','Comments']:
+        if not x in ['RequestState','Comments','Inform']:
           self.lock.release()
           return S_ERROR("%s can't be modified after BK check" % x)
       if not 'RequestState' in update:
@@ -581,7 +615,7 @@ class ProductionRequestDB(DB):
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState','Comments','RequestPriority']:
+          if not x in ['RequestState','Comments','Inform','RequestPriority']:
             self.lock.release()
             return S_ERROR("%s can't be modified during PPG signing" % x)
         if not 'RequestState' in update:
@@ -593,7 +627,7 @@ class ProductionRequestDB(DB):
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
       if creds['Group'] == 'lhcb_tech':
         for x in update:
-          if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
+          if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
             self.lock.release()
             return S_ERROR("%s can't be modified during Tech signing" % x)
         if not 'RequestState' in update:
@@ -609,7 +643,7 @@ class ProductionRequestDB(DB):
 #          return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState in ['PPG OK','On-hold']:
       for x in update:
-        if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
+        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
           self.lock.release()
           return S_ERROR("%s can't be modified during Tech signing" % x)
       if not 'RequestState' in update:
@@ -625,7 +659,7 @@ class ProductionRequestDB(DB):
 #        return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'Tech OK':
       for x in update:
-        if not x in ['RequestState','Comments','RequestPriority']:
+        if not x in ['RequestState','Comments','Inform','RequestPriority']:
           self.lock.release()
           return S_ERROR("%s can't be modified during PPG signing" % x)
       if not 'RequestState' in update:
@@ -637,7 +671,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
     elif requestState in ['Accepted','Active']:
       for x in update:
-        if not x in ['RequestState','Comments','ProPath','ProID','ProDetail']:
+        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
           self.lock.release()
           return S_ERROR("%s can't be modified during the progress" % x)
       if not 'RequestState' in update:
@@ -651,6 +685,7 @@ class ProductionRequestDB(DB):
           self.lock.release()
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
     inform['state'] = update['RequestState']
+    inform['rec'].update(update)
     return S_OK(inform)
 
   def updateProductionRequest(self,requestID,requestDict,creds):
@@ -780,7 +815,7 @@ class ProductionRequestDB(DB):
     result = self.__getStateAndAuthor(requestID,connection)
     if not result['OK']:
       return result
-    requestState,requestAuthor = result['Value']
+    requestState,requestAuthor,requestInform = result['Value']
     if creds['Group'] != 'diracAdmin':
       if requestAuthor != creds['User']:
         self.lock.release()
@@ -968,7 +1003,7 @@ class ProductionRequestDB(DB):
       result = self.__getStateAndAuthor(requestID,connection)
       if not result['OK']:
         return result
-      requestState,requestAuthor = result['Value']
+      requestState,requestAuthor,requestInform = result['Value']
       if requestState != 'New' or requestAuthor != creds['User']:
         self.lock.release()
         return S_ERROR('Can not duplicate subrequest of request in progress')
@@ -1015,7 +1050,7 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       self.lock.release()
       return result
-    requestState,requestAuthor = result['Value']
+    requestState,requestAuthor,requestInform = result['Value']
 
     req ="INSERT INTO ProductionProgress ( "
     req+=','.join(self.progressFields)

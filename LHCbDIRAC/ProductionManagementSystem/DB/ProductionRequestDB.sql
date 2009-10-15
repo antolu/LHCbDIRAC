@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.2 2009/08/26 09:39:53 rgracian Exp $
+-- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.3 2009/10/15 15:27:45 azhelezo Exp $
 -- ------------------------------------------------------------------------------
 DROP DATABASE IF EXISTS ProductionRequestDB;
 CREATE DATABASE ProductionRequestDB;
@@ -55,6 +55,7 @@ CREATE TABLE ProductionRequests (
     INDEX(NumberOfEvents),
     Description BLOB,
     Comments BLOB,
+    Inform   BLOB
     PRIMARY KEY(RequestID)
 );
 
