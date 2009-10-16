@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.18 2009/10/12 10:16:02 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.19 2009/10/16 09:50:57 paterson Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.18 2009/10/12 10:16:02 acsmith Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.19 2009/10/16 09:50:57 paterson Exp $"
 
 import string,re,os,shutil,types, tempfile
 
@@ -70,7 +70,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
   inputPath = '%s/%s_%s/InstallArea/%s' %(userArea,appName,appVersion,systemConfig)
 
   inputPath = '%s/%s_%s/InstallArea/' %(userArea,appName,appVersion)
-  inputPath = os.path.join(userArea,appName+"_"+appVersion,InstallArea)
+  inputPath = os.path.join(userArea,appName+"_"+appVersion,"InstallArea")
   finalResult = {'optionsFile':'','libraries':''}
 
   # Only run gaudirun if opts flag is specified
