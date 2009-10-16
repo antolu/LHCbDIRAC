@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.32 2009/10/15 08:06:51 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.33 2009/10/16 08:48:23 joel Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.32 2009/10/15 08:06:51 rgracian Exp $"
-__VERSION__ = "$Revision: 1.32 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.33 2009/10/16 08:48:23 joel Exp $"
+__VERSION__ = "$Revision: 1.33 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -246,7 +246,8 @@ class UsersAndGroups(AgentModule):
       subject = 'New LFC Users found'
       self.log.info( subject, newLFCUsers )
       body = 'Command to add new entries into LFC: \n'
-      body += 'login to volhcb11 and run "source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh"\n\n'
+      body += 'login to volhcb11 and run : \n'
+      body += 'source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh \n\n'
       for lfcuser in newLFCUsers.keys():
           for lfc_dn in newLFCUsers[lfcuser].split(','):
              body += 'add_DN_LFC --userDN="'+lfc_dn.strip()+'" --nickname='+lfcuser+'\n'
