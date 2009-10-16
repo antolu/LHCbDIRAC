@@ -1,9 +1,9 @@
-# $Id: ProductionRequestHandler.py,v 1.9 2009/09/15 13:58:13 azhelezo Exp $
+# $Id: ProductionRequestHandler.py,v 1.10 2009/10/16 15:39:28 azhelezo Exp $
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.9 $"
+__RCSID__ = "$Revision: 1.10 $"
 
 import os
 import re
@@ -102,6 +102,13 @@ class ProductionRequestHandler( RequestHandler ):
     """
     creds = self.__clientCredentials()
     return self.database.deleteProductionRequest(requestID,creds)
+
+  types_splitProductionRequest = [LongType,ListType]
+  def export_splitProductionRequest(self,requestID,splitList):
+    """ split production request
+    """
+    creds = self.__clientCredentials()
+    return self.database.splitProductionRequest(requestID,splitList,creds)
 
   types_getProductionProgressList = [LongType]
   def export_getProductionProgressList(self,requestID):

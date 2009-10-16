@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.20 2009/10/15 15:26:44 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.21 2009/10/16 15:38:24 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.20 $"
+__RCSID__ = "$Revision: 1.21 $"
 
 # Defined states:
 #'New'
@@ -894,11 +894,10 @@ class ProductionRequestDB(DB):
         return result
     return S_OK(requestID)
 
-  def __duplicateDeep(self,requestID,masterID,parentID,creds,connection):
-    """ recurcive duplication function.
+  def __getRequest(self,requestID,connection):
+    """ retrive complete request record
         NOTE: unlock in case of errors
     """
-
     fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
     req = "SELECT %s " % fields
     req+= "FROM ProductionRequests as t "
@@ -911,6 +910,18 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return S_ERROR('The request is no longer exist')
     rec = dict(zip(self.requestFields[:-6],result['Value'][0]))
+    return S_OK(rec)
+
+  def __duplicateDeep(self,requestID,masterID,parentID,creds,connection):
+    """ recurcive duplication function.
+        NOTE: unlock in case of errors
+    """
+
+    result = self.__getRequest(requestID,connection)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    rec = result['Value']
 
     if masterID and not rec['MasterID']:
       return S_OK("") # substructured request
@@ -1012,6 +1023,162 @@ class ProductionRequestDB(DB):
     if result['OK']:
       self.lock.release()
     return result
+
+  def __checkAuthorizeSplit(self,requestState,creds):
+    """
+    Check that current user is allowed to split in specified state
+    """
+    if creds['Group'] == 'diracAdmin':
+      return S_OK()
+    if ( requestState in [ 'Submitted', 'PPG OK', 'On-hold' ] ) \
+           and creds['Group'] == 'lhcb_tech':
+      return S_OK()
+    if  requestState in [ 'Accepted', 'Active' ] and creds['Group'] == 'lhcb_prmgr':
+      return S_OK()
+    return S_ERROR('You are not allowed to split the request')
+
+  def __moveChildDeep(self,requestID,masterID,setParent,connection):
+    """
+    Update parent for this request if setParent is True
+    and update master for this and all subrequests
+    """
+    if setParent:
+      updates="ParentID=%s,MasterID=%s" % (str(masterID),str(masterID))
+    req = "UPDATE ProductionRequests "
+    req+= "SET %s " % updates
+    req+= "WHERE RequestID=%s" % requestID
+    result = self._update(req,connection)
+    if not result['OK']:
+      return result
+    req = "SELECT RequestID,MasterID "
+    req+= "FROM ProductionRequests as t "
+    req+= "WHERE t.ParentID=%s" % requestID
+    result = self._query(req,connection)
+    if not result['OK']:
+      return result
+    for ch in result['Value']:
+      if ch[1]:
+        ret = self.__moveChildDeep(ch[0],masterID,False,connection)
+        if not ret['OK']:
+          gLogger.error("_moveChildDeep: can not move to %s: %s" % (str(masterID),ret['Message']))
+        # !!! Failing that will leave both requests inconsistant !!!
+        # But since we have only one subrequest level now, it will never happened
+    return S_OK()
+
+  def splitProductionRequest(self,requestID,splitlist,creds):
+    """
+    Fully duplicate master production request with its history
+    and reassociate first level subrequests from splitlist
+    (with there subrequest structure).
+    Substructures can not be moved. 
+    Only experts in appropriate request state can request the split.
+    """
+    try:
+      requestID = long(requestID)
+    except Exception,e:
+      return S_ERROR('RequestID is not a number')
+    if not splitlist:
+      return S_ERROR('Split list is empty')
+    isplitlist = []
+    try:
+      isplitlist = [ long(x) for x in splitlist ]
+    except Exception,e:
+      return S_ERROR('RequestID in split list is not a number')
+    
+    self.lock.acquire() # transaction begin ?? may be after connection ??
+    result = self._getConnection()
+    if not result['OK']:
+      self.lock.release()
+      return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
+    connection = result['Value']
+
+    result = self.__getRequest(requestID,connection)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    rec = result['Value']
+
+    # Check that operation is valid
+    if rec['MasterID']:
+      self.lock.release()
+      return S_ERROR('Can not duplicate subrequest of request in progress')
+    result = self.__checkAuthorizeSplit(rec['RequestState'],creds)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    req = "SELECT RequestID,MasterID "
+    req+= "FROM ProductionRequests as t "
+    req+= "WHERE t.ParentID=%s" % requestID
+    result = self._query(req,connection)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    fisplitlist = []
+    keeplist = []
+    for ch in result['Value']:
+      if ch[0] in isplitlist and ch[1] == requestID:
+        fisplitlist.append(long(ch[0]))
+      elif ch[1]:
+        keeplist.append(long(ch[0]))
+    if len(isplitlist) != len(fisplitlist):
+      self.lock.release()
+      return S_ERROR('Requested for spliting subrequests are no longer exist')
+    if not keeplist:
+      self.lock.release()
+      return S_ERROR('You have to keep at least one subrequest')
+
+    # Now copy the master
+    recl = [ rec[x] for x in self.requestFields[1:-6] ]
+    result = self._fixedEscapeValues(recl)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    recls = result['Value']
+    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-6])
+    req+= " ) VALUES ( %s );" % ','.join(recls)
+    result = self._update(req,connection)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    req = "SELECT LAST_INSERT_ID();"
+    result = self._query(req,connection)
+    if not result['OK']:
+      self.lock.release()
+      return result
+    newRequestID = long(result['Value'][0][0])
+
+    # Move subrequests (!! Errors are not fatal !!)
+    rsplitlist = []
+    for x in fisplitlist:
+      if self.__moveChildDeep(x,newRequestID,True,connection)['OK']:
+        rsplitlist.append(x)
+    # If nothing could be moved, remove the master
+    if not rsplitlist:
+      req ="DELETE FROM ProductionRequests "
+      req+="WHERE RequestID=%s" % str(newRequestID)
+      result = self._update(req,connection)
+      self.lock.release()
+      return S_ERROR('Could not move subrequests')
+
+    # Copy the history (failures are not fatal since
+    # it is hard to revert the previous changes...)
+    req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
+    req+= "ORDER BY TimeStamp"
+    result = self._query(req,connection)
+    if not result['OK']:
+      gLogger.error("SplitProductionRequest: can not get history for %s: %s" % (str(requestID),result['Message']))
+    else:
+      for x in result['Value']:
+        x=list(x)
+        x[0]= newRequestID
+        ret = self._update("INSERT INTO RequestHistory ("+
+                           ','.join(self.historyFields)+
+                           ") VALUES ( %s,'%s','%s','%s')" % tuple([str(y) for y in x]),connection)
+      if not ret['OK']:
+        gLogger.error("SplitProductionRequest: add history fail: %s",['Message'])
+
+    self.lock.release()
+    return S_OK(newRequestID)
 
   progressFields = [ 'ProductionID','RequestID','Used','BkEvents' ]
 
