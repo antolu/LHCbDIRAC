@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_Merging_run.py,v 1.3 2009/10/12 14:55:49 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_Merging_run.py,v 1.4 2009/10/16 08:37:06 paterson Exp $
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging production.
 """
 
-__RCSID__ = "$Id: MC09_MC_Merging_run.py,v 1.3 2009/10/12 14:55:49 paterson Exp $"
+__RCSID__ = "$Id: MC09_MC_Merging_run.py,v 1.4 2009/10/16 08:37:06 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -87,9 +87,9 @@ print msg
 
 
 #Configurable parameters
-numberOfFiles = '{{NumberInputFiles#Merge Number of input files to merge per job}}'
+groupSize = '{{MergeSize#File size for merging jobs (in GB)#5}}'
 priority = '9'
-fileType = '{{FileType#Merge File type to merge (default DST)}}'
+fileType = '{{FileType#File type to merge#DST}}'
 
 #Other parameters
 evtType = '{{eventType}}'
@@ -114,17 +114,18 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 mergeProd = Production()
 mergeProd.setProdType('Merge')
-mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%s_Request{{ID}}' %(fileType,evtType,inputProd,numberOfFiles))
+mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(fileType,evtType,inputProd,groupSize))
 mergeProd.setWorkflowDescription('MC09 workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters('MC','MC09','{{pDsc}}','{{simDesc}}')
 mergeProd.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 mergeProd.addMergeStep('{{p4Ver}}',optionsFile='$STDOPTS/PoolCopy.opts',eventType='{{eventType}}',inputDataType=fileType,inputProduction=inputProd,inputData=[],passDict=bkPassDict)
 mergeProd.addFinalizationStep(removeInputData=True)
 mergeProd.setInputBKSelection(inputBKQuery)
-mergeProd.setJobFileGroupSize(numberOfFiles)
+mergeProd.setJobFileGroupSize(groupSize)
+mergeProd.setFileMask(fileType)
+mergeProd.setProdPlugin('BySize')
 mergeProd.setProdGroup('{{pDsc}}')
 mergeProd.setProdPriority(priority)
-mergeProd.setFileMask(fileType)
 
 #if not args:
 #  print 'No arguments specified, will create workflow only.'
