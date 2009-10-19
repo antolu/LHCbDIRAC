@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.45 2009/10/14 13:47:14 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.46 2009/10/19 11:51:21 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.45 2009/10/14 13:47:14 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.46 2009/10/19 11:51:21 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -902,7 +902,7 @@ class Production(LHCbJob):
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
 
     try:
-      self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict,bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
+      self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
     except Exception,x:
       self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
 
