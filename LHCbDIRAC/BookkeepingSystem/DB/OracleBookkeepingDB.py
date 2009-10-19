@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.112 2009/10/19 11:17:38 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.113 2009/10/19 11:31:46 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.112 2009/10/19 11:17:38 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.113 2009/10/19 11:31:46 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -2663,7 +2663,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         records = res['Value']  
         for record in records:
-          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'PhysicStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12]}
+          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'PhysicStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12],'RunNumber':record[13]}
           result[file]= row
     return S_OK(result)
   
