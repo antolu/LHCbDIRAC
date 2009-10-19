@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.37 2009/10/12 12:59:04 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.38 2009/10/19 12:39:26 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.37 2009/10/12 12:59:04 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.38 2009/10/19 12:39:26 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -119,7 +119,7 @@ class TransformationAgent(Agent):
         'Standard' plugin is used.
     """
 
-    available_plugins = ['CCRC_RAW','Standard','BySize']
+    available_plugins = ['CCRC_RAW','Standard','BySize','ByRunStandard','ByRunCCRC_RAW','ByRunBySize']
 
     prodID = long(transDict['TransID'])
     prodName = transDict['Name']
@@ -167,8 +167,9 @@ class TransformationAgent(Agent):
           data_m.append((lfn,se))
       data = data_m
 
-    # Obtain the sizes for the files from the catalog
     data_m = data
+
+    # Obtain the sizes for the files from the catalog
     res = self.lfc.getFileSize(lfns)
     fileSizes = {}
     if not res['OK']:
@@ -200,8 +201,61 @@ class TransformationAgent(Agent):
     return S_OK(nJobs)
 
   #####################################################################################
+  # For by-run splitting
+
+  def generateJob_ByRunStandard(self,data,production,transDict,flush=False,fileSizes={}):
+    return self.__ByRun(self,data,production,transDict,flush,fileSizes,'Standard')
+
+  def generateJob_ByRunBySize(self,data,production,transDict,flush=False,fileSizes={}):
+    return self.__ByRun(self,data,production,transDict,flush,fileSizes,'BySize')
+
+  def generateJob_ByRunCCRC_RAW(self,data,production,transDict,flush=False,fileSizes={}):
+    return self.__ByRun(self,data,production,transDict,flush,fileSizes,'CCRC_RAW')
+
+  def __ByRun(self,data,production,transDict,flush=False,fileSizes={},additionalPlugin='Standard'):
+    """ Generate a job grouping the files by run
+    """
+    lfnDict = {}
+    for lfn,se in data:
+      lfns[lfn] = se
+    bk = RPCClient('Bookkeeping/BookeepingManager')
+    # group data by run
+    res = bk.getFileMetadata(lfns.keys())
+    if not res['OK']:
+      gLogger.error("Failed to get bookkeeping metadata",res['Message'])
+      return res
+    for lfn,metadata in res['Value'].items():
+      runNumber = 0
+      if metadata.has_key("RunNumber"):
+        runNumber = metadata["RunNumber"]
+      if not runDict.has_key(runNumber):
+        runDict[runNumber] = []
+      runDict[runNumber].append((lfn,lfnDict[lfn]))
+    # for each run try and create the jobs
+    for runNumber,data in runDict.items():
+      nJobs = 0
+      if flush:   
+        while len(data) > 0:
+          ldata = len(data)
+          data = eval('self.generateJob_%s(data,prodID,transDict,flush,fileSizes)' % additionalPlugin)
+          if ldata == len(data):
+            break
+          else:
+            nJobs += 1
+      else:
+        while len(data) >= group_size:
+          ldata = len(data)
+          data = eval('self.generateJob_%s(data,prodID,transDict,flush,fileSizes)' % additionalPlugin)
+          if ldata == len(data):
+            break
+          else:
+            nJobs += 1
+      gLogger.verbose('%d jobs created for run %d' % (nJobs,runNumber))
+    return []
+ 
+  #####################################################################################
   def generateJob_BySize(self,data,production,transDict,flush=False,fileSizes={}):
-    """ Generate a job according to the CCRC 2008 site shares
+    """ Generate a job according to the supplied input size
     """
     if not fileSizes:
       gLogger.error("Attempting to use BySize plugin and not file sizes provided")
@@ -556,7 +610,6 @@ class TransformationAgent(Agent):
       return result
     if result['Value']:
       return S_OK(result['Value'][0])
-
     return S_OK('')
 
   def getSitesForSEs(self, seList):
@@ -568,5 +621,4 @@ class TransformationAgent(Agent):
       result = getSitesForSE(se)
       if result['OK']:
         sites += result['Value']
-
     return sites
