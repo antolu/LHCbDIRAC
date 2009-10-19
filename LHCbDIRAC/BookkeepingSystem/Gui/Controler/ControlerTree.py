@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.17 2009/10/12 10:01:44 zmathe Exp $
+# $Id: ControlerTree.py,v 1.18 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.17 2009/10/12 10:01:44 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.18 2009/10/19 11:17:39 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -72,15 +72,25 @@ class ControlerTree(ControlerAbstract):
     
   #############################################################################  
   def standardQuery(self):
-    message = Message({'action':'StandardQuery'})
-    self.getParent().messageFromChild(self, message)
-    self.getWidget().setAdvancedQueryValue()
-  
+    widget = self.getWidget()
+    
+    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupRadioButtonIsChecked():
+      message = Message({'action':'StandardQuery'})
+      self.getParent().messageFromChild(self, message)
+      self.getWidget().setAdvancedQueryValue()
+    else:
+      self.getWidget().setAdvancedQueryValue()
+    
   #############################################################################  
   def advancedQuery(self):
-    message = Message({'action':'AdvancedQuery'})
-    self.getParent().messageFromChild(self, message)
-    self.getWidget().setStandardQueryValue()
+    widget = self.getWidget()
+    
+    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupRadioButtonIsChecked():
+      message = Message({'action':'AdvancedQuery'})
+      self.getParent().messageFromChild(self, message)
+      self.getWidget().setStandardQueryValue()
+    else:
+      self.getWidget().setStandardQueryValue()
     
   #############################################################################  
   def eventTypeButton(self):

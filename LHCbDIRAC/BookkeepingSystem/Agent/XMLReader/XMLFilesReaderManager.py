@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.29 2009/10/09 16:53:20 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.30 2009/10/19 11:17:38 zmathe Exp $
 ########################################################################
 
 """
@@ -17,9 +17,10 @@ from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                       
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
+from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.29 2009/10/09 16:53:20 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.30 2009/10/19 11:17:38 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -128,6 +129,7 @@ class XMLFilesReaderManager:
 
       params = file.getFileParams()
       evtExists = False
+      runExists = False
       for param in params:
         paramName = param.getParamName()
 
@@ -184,7 +186,21 @@ class XMLFilesReaderManager:
             return S_ERROR(res['Message']) 
         else:
           return S_ERROR('I can not fill the EventTypeId because there is no input files!')
-        
+      
+      infiles = job.getJobInputFiles()
+      if not job.exists('RunNumber') and len(infiles) > 0:
+        fileName = infiles[0].getFileName()
+        retVal = dataManager_.getRunNumber(fileName)
+        if not retVal['OK']:
+          return S_ERROR(retVal['Message'])
+        value = retVal['Value']
+        if len(value) > 0 and value[0][0] != None: 
+          runnumber = value[0][0]
+          newJobParams = JobParameters()
+          newJobParams.setName('RunNumber')
+          newJobParams.setValue(str(runnumber))
+          job.addJobParams(newJobParams)
+                     
 
       ################
 
@@ -320,6 +336,7 @@ class XMLFilesReaderManager:
       else:
         gLogger.error('Unable to create processing pass!',res['Message'])
         return S_ERROR('Unable to create processing pass!')
+      
 
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \

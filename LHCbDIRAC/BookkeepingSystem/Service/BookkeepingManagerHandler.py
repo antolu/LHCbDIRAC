@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.120 2009/10/13 15:10:26 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.121 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.120 2009/10/13 15:10:26 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.121 2009/10/19 11:17:39 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -835,6 +835,42 @@ class BookkeepingManagerHandler(RequestHandler):
   types_checkLfns = [ListType]
   def export_checkLfns(self, lfns):
     return dataMGMT_.checkProductionStatus(productionid = None, lfns = lfns)
+  
+  #############################################################################
+  types_getAvailableRunNumbers = []
+  def export_getAvailableRunNumbers(self):
+    return dataMGMT_.getAvailableRunNumbers()
+  
+  #############################################################################
+  types_getProPassWithRunNumber = [StringType]
+  def export_getProPassWithRunNumber(self, runnumber):
+    return dataMGMT_.getProPassWithRunNumber(runnumber)
+  
+  #############################################################################
+  types_getEventTypeWithAgivenRuns = [StringType, StringType]
+  def export_getEventTypeWithAgivenRuns(self, runnumber, processing):
+    return dataMGMT_.getEventTypeWithAgivenRuns(runnumber, processing)
+  
+  #############################################################################
+  types_getFileTypesWithAgivenRun = [StringType, StringType, StringType]
+  def export_getFileTypesWithAgivenRun(self, runnumber, procPass, evtId):
+    return dataMGMT_.getFileTypesWithAgivenRun(runnumber, procPass, evtId)
+  
+  #############################################################################
+  types_getLimitedNbOfRunFiles = [StringType, StringType, StringType, StringType]
+  def export_getLimitedNbOfRunFiles(self,  procPass, evtId, runnumber, ftype):
+    return dataMGMT_.getLimitedNbOfRunFiles(procPass, evtId, runnumber, ftype)
+  
+  #############################################################################
+  types_getLimitedFilesWithAgivenRun = [StringType, StringType, StringType, StringType]
+  def export_getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
+    return dataMGMT_.getLimitedFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
+  
+  #############################################################################
+  types_getRunFilesWithAgivenRun = [StringType, StringType, StringType, StringType]
+  def export_getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
+    return dataMGMT_.getRunFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
+  
   
   '''
   Monitoring

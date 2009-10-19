@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.56 2009/09/07 17:43:41 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.57 2009/10/19 11:17:38 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.56 2009/09/07 17:43:41 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.57 2009/10/19 11:17:38 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -501,6 +501,38 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getRunFiles(self, runid):
     return self.getManager().getRunFiles(runid)
+  
+  #############################################################################
+  def getRunNumber(self, lfn):
+    return self.getManager().getRunNumber(lfn)
+  
+  #############################################################################
+  def getAvailableRunNumbers(self):
+    return self.getManager().getAvailableRunNumbers()
+  
+  #############################################################################
+  def getProPassWithRunNumber(self, runnumber):
+    return self.getManager().getProPassWithRunNumber(runnumber)
+  
+  #############################################################################
+  def getEventTypeWithAgivenRuns(self,runnumber, processing):
+    return self.getManager().getEventTypeWithAgivenRuns(runnumber, processing)
+  
+  #############################################################################
+  def getFileTypesWithAgivenRun(self, runnumber, procPass, evtId):
+    return self.getManager().getFileTypesWithAgivenRun(runnumber, procPass, evtId)
+  
+  #############################################################################
+  def getLimitedNbOfRunFiles(self,  procPass, evtId, runnumber, ftype):
+    return self.getManager().getLimitedNbOfRunFiles(procPass, evtId, runnumber, ftype)
+  
+  #############################################################################
+  def getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
+    return self.getManager().getLimitedFilesWithAgivenRun(procPass, evtId, runnumber, ftype, startitem, maxitems)
+  
+  #############################################################################
+  def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
+    return self.getManager().getRunFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
   
   #############################################################################
   '''

@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.20 2009/10/09 16:56:43 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.21 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.20 2009/10/09 16:56:43 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.21 2009/10/19 11:17:39 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -30,10 +30,7 @@ class ControlerFileDialog(ControlerAbstract):
   
   def __list(self, message, update=False):
     items = message['items'].getChildren()
-    if update:
-      self.getWidget().updateModel(items) # I have to save files.
-    else:
-      self.getWidget().setModel(items)
+    self.getWidget().updateModel(items) # I have to save files.
     self.getWidget().setPath(message['items']['fullpath'])
     self.__selectedFiles = []
     res = self.getWidget().showData(items)
@@ -89,6 +86,7 @@ class ControlerFileDialog(ControlerAbstract):
     self.getWidget().showSelectedFileSize(0)
     self.getWidget().showSelectedNumberOfEvents(0)
     self.getWidget().showSelectedNumberOfFiles(0)
+    self.getWidget().setModel({})
     self.getWidget().close()
     
   #############################################################################  

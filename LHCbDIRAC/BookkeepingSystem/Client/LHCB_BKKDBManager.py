@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.105 2009/10/12 10:59:03 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.106 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.105 2009/10/12 10:59:03 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.106 2009/10/19 11:17:39 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -50,9 +50,10 @@ class LHCB_BKKDBManager(BaseESManager):
                                   ]
   
   LHCB_BKDB_PREFIXES_RUN =     ['RUN',
-                                   'EVT',
-                                   'FTY',
-                                   ''
+                                'PAS',
+                                'EVT',
+                                'FTY',
+                                 ''
                                   ]
   
   LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFGN',
@@ -927,7 +928,7 @@ class LHCB_BKKDBManager(BaseESManager):
        entityList += self.plevelBody_0(path, levels, None)
        
     if levels == 1: 
-      production = self.plevelHeader_2(path, levels, processedPath) 
+      production = self.rlevelHeader_2(path, levels, processedPath) 
       entityList += self.plevelBody_2(path, levels, production)
     
     if levels == 2:
@@ -946,24 +947,29 @@ class LHCB_BKKDBManager(BaseESManager):
     levels, processedPath = self.getLevel(path)
     
     if levels == 0:
-       self.plevelHeader_0(path, levels, processedPath)
+       self.rlevelHeader_0(path, levels, processedPath)
        entityList += self.rlevelBody_0(path, levels, None)
        
     if levels == 1: 
-      production = self.plevelHeader_2(path, levels, processedPath) 
-      entityList += self.plevelBody_2(path, levels, production)
+      runnumber = self.rlevelHeader_2(path, levels, processedPath) 
+      entityList += self.rlevelBody_2(path, levels, str(runnumber))
     
     if levels == 2:
-      production, evt = self.plevelHeader_3(path, levels, processedPath) 
-      entityList += self.plevelBody_3(path, levels, production, evt)
+      runnumber, processing = self.rlevelHeader_3(path, levels, processedPath) 
+      entityList += self.rlevelBody_3(path, levels, runnumber, processing)
     
     if levels == 3:
-      production, evt, ftype = self.plevelHeader_4(path, levels, processedPath) 
-      entityList += self.plevelBody_4(path, levels, production, evt, ftype)
+      runnumber, processing, evt = self.rlevelHeader_4(path, levels, processedPath) 
+      entityList += self.rlevelBody_4(path, levels, runnumber, processing, evt)
+    
+    if levels == 4:
+      runnumber, processing, evt, ftype = self.rlevelHeader_5(path, levels, processedPath) 
+      entityList += self.rlevelBody_5(path, levels, runnumber, processing, evt, ftype)
+    
     
     return entityList
-  
-  ############################################################################# 
+
+   ############################################################################# 
   def plevelHeader_0(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("-----------------------------------------------------------")
@@ -1088,19 +1094,170 @@ class LHCB_BKKDBManager(BaseESManager):
     
     return entityList
   
+  def rlevelHeader_0(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug ("Runs:")
+    gLogger.debug ("-----------------------------------------------------------")
+  
+    # list root
+    gLogger.debug("listing runs")
+ 
   ############################################################################# 
   def rlevelBody_0(self, path, levels, processedPath):
     entityList = list()
-    result = self.db_.getAvailableRuns()
+    result = self.db_.getAvailableRunNumbers()
   
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        prod = str(record[0])
-        entityList += [self._getEntityFromPath(path, str(prod), levels, 'Production(s)/Run(s)')]
+        run = str(record[0])
+        entityList += [self._getEntityFromPath(path, str(run), levels, 'Run(s)')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def rlevelHeader_2(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing processing pass")
+    runnumber = processedPath[0][1]  
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("RunNumber        | %s " % (runnumber))
+    
+    gLogger.debug("Available processing pass:")
+    return runnumber
+  
+  ############################################################################# 
+  def rlevelBody_2(self, path, levels, runnumber):
+    entityList = list()
+    result = self.db_.getProPassWithRunNumber(runnumber)
+    if result['OK']:
+      dbResult = result['Value']
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Processing Pass')
+        if add:
+          entityList += [add]
+      for record in dbResult:
+        prod = str(record[1])
+        value = {'passid':record[0],'Total ProcessingPass':prod}
+  
+        entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None,  'Processing Pass')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  #############################################################################
+  def rlevelHeader_3(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing eventtypes")
+    runnumber = processedPath[0][1] 
+    processing =  processedPath[1][1] 
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Run number        | %s " % (runnumber))
+    gLogger.debug("Processing pass   | %s " % (processing))
+    
+    gLogger.debug("Available eventtypes types:")
+    return runnumber, processing
+  
+  #############################################################################
+  def rlevelBody_3(self, path, levels, runnumber,processing):
+    entityList = list()
+    result = self.db_.getEventTypeWithAgivenRuns(runnumber, processing)
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        evtType = str(record[0])
+        value = {'Event Type':evtType,'Description':record[1]}
+        entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels,None, 'Event types')]
+      self._cacheIt(entityList)
+    else:
+        gLogger.error(result['Message'])
+    return entityList    
+  
+  
+   ############################################################################# 
+  def rlevelHeader_4(self, path, levels, processedPath):
+    entityList = list()
+    gLogger.debug("listing file types")
+    runnumber = processedPath[0][1] 
+    processing = processedPath[1][1]
+    eventtype = processedPath[2][1]
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Runnumber         | %s " % (runnumber))
+    gLogger.debug("Processing pass   | %s " % (processing))
+    gLogger.debug("Event type        | %s " % (eventtype))
+    
+    gLogger.debug("Available file types:")
+    return runnumber, processing, eventtype
+  
+  ############################################################################# 
+  def rlevelBody_4(self, path, levels, runnumber, processing, evt):
+    entityList = list()
+    result = self.db_.getFileTypesWithAgivenRun(runnumber, processing, evt)
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        ftype = str(record[0])
+        entityList += [self._getEntityFromPath(path, ftype, levels, 'File types')]
+      self._cacheIt(entityList)
+    else:
+      gLogger.error(result['Message'])
+    return entityList
+  
+  ############################################################################# 
+  def rlevelHeader_5(self, path, levels, processedPath): 
+    entityList = list()
+    gLogger.debug("listing file types")
+    runnumber = processedPath[0][1] 
+    processing = processedPath[1][1] 
+    eventtype =  processedPath[2][1] 
+    ftype = processedPath[3][1] 
+    
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters:")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Run number        | %s " % (runnumber))
+    gLogger.debug("Processing pass   | %s " % (processing))
+    gLogger.debug("Event type        | %s " % (eventtype))
+    gLogger.debug("File type         | %s " % (ftype))
+    
+    gLogger.debug("Available files:")
+    return runnumber, processing, eventtype, ftype
+  
+  ############################################################################# 
+  def rlevelBody_5(self, path, levels, runnumber, processing, evt, ftype):
+    entityList = list()
+    result = self.db_.getRunFilesWithAgivenRun(processing, evt, runnumber, ftype)
+    selection = {"Configuration Name":'ALL', \
+                 "Configuration Version":'ALL', \
+                 "Simulation Condition":'ALL', \
+                 "Processing Pass":str(processing), \
+                 "Event type":str(evt), \
+                 "Production":'ALL', \
+                 "File Type":str(ftype), \
+                 "Program name":'ALL', \
+                 "Program version":'ALL', \
+                 "RunNumber":str(runnumber)}
+    
+    if result['OK']:
+      dbResult = result['Value']
+      for record in dbResult:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'Selection':selection}
+        self.files_ += [record[0]]
+        entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
+      self._cacheIt(entityList)    
+    else:
+      gLogger.error(result['Message'])
+    
     return entityList
   
   ############################################################################# 
@@ -1139,7 +1296,7 @@ class LHCB_BKKDBManager(BaseESManager):
         entity.update({'showFiles':0})
       elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2] and level == 2:
         entity.update({'showFiles':0})
-      elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3] and level == 2:
+      elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3] and level == 3:
         entity.update({'showFiles':0})
     return entity
   
@@ -1313,7 +1470,7 @@ class LHCB_BKKDBManager(BaseESManager):
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
       return self._getLimitedFilesProductions(SelectionDict, SortDict, StartItem, Maxitems)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
-      return self._getLimitedFilesProductions(SelectionDict, SortDict, StartItem, Maxitems)
+      return self._getLimitedFilesRuns(SelectionDict, SortDict, StartItem, Maxitems)
   
   #############################################################################       
   def _getLimitedFilesConfigParams(self, SelectionDict, SortDict, StartItem, Maxitems):
@@ -1467,6 +1624,73 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program version":'ALL'}
           
     return self.__getFiles('ALL', 'ALL', 'ALL', 'ALL', evtType, prod, ftype, 'ALL', 'ALL', SortDict, StartItem, Maxitems, selection)
+
+  #############################################################################
+  def _getLimitedFilesRuns(self, SelectionDict, SortDict, StartItem, Maxitems):
+    entityList = list()
+    path = SelectionDict['fullpath'] 
+    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
+    valid, processedPath = self._processPath(path)
+   
+    if not valid:
+      gLogger.error(path + " is not valid!");
+      raise ValueError, "Invalid path '%s'" % path
+        # get directory content
+    levels = len(processedPath)
+    self._updateTreeLevels(levels)
+      
+    #if levels == 7:    
+    self.files_ = []
+    gLogger.debug("listing files")
+    runnumber = processedPath[0][1]
+    processing = processedPath[1][1]
+    evtType = processedPath[2][1]
+    ftype = processedPath[3][1]
+        
+    selection = {"Configuration Name":'ALL', \
+                 "Configuration Version":'ALL', \
+                 "Simulation Condition":'ALL', \
+                 "Processing Pass":str(processing),\
+                 "Event type":str(evtType), \
+                 "Production":'ALL', \
+                 "File Type":str(ftype), \
+                 "Program name":'ALL', \
+                 "Program version":'ALL',\
+                 "RunNumber":str(runnumber)}
+          
+    return self.__getRunFiles(evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection)  
+  
+  
+  
+  #############################################################################       
+  def __getRunFiles(self, evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection):
+    totalrecords = 0
+    nbOfEvents = 0
+    filesSize = 0
+    if len(SortDict) > 0:
+      res = self.db_.getLimitedNbOfRunFiles(processing,evtType, runnumber,ftype)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+      else:
+        totalrecords = res['Value'][0][0]
+        nbOfEvents = res['Value'][0][1]
+        filesSize = res['Value'][0][2]
+    records = []
+    parametersNames=[]
+    if StartItem > -1 and Maxitems != 0:
+      result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype)
+    
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality']
+      
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult:
+          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14]]
+          records += [value]
+      else:
+        gLogger.error(result['Message'])
+    
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize }} } 
   
   #############################################################################       
   def __getFiles(self,configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection):

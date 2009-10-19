@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.94 2009/09/07 17:43:41 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.95 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.94 2009/09/07 17:43:41 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.95 2009/10/19 11:17:39 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -607,6 +607,42 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionsWithEventTypes(long(eventType), configName,  configVersion, processingPass)
 
+  #############################################################################
+  def getAvailableRunNumbers(self):
+    server = self.__getServer()
+    return server.getAvailableRunNumbers()
+  
+  #############################################################################
+  def getProPassWithRunNumber(self, runnumber):
+    server = self.__getServer()
+    return server.getProPassWithRunNumber(str(runnumber))
+  
+  #############################################################################
+  def getEventTypeWithAgivenRuns(self, runnumber, processing):
+    server = self.__getServer()
+    return server.getEventTypeWithAgivenRuns(str(runnumber), str(processing))
+  
+  #############################################################################
+  def getFileTypesWithAgivenRun(self, runnumber, procPass, evtId):
+    server = self.__getServer()
+    return server.getFileTypesWithAgivenRun(str(runnumber), str(procPass), str(evtId))
+  
+  #############################################################################
+  def getLimitedNbOfRunFiles(self,  procPass, evtId, runnumber, ftype):
+    server = self.__getServer()
+    return server.getLimitedNbOfRunFiles(str(procPass), str(evtId), str(runnumber), str(ftype))
+  
+  #############################################################################
+  def getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
+    server = self.__getServer()
+    return server.getLimitedFilesWithAgivenRun(str(procPass), str(evtId), str(runnumber), str(ftype))
+  
+  #############################################################################
+  def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
+    server = self.__getServer()
+    return server.getRunFilesWithAgivenRun(str(procPass), str(evtId), str(runnumber), str(ftype))
+   
+  
   #############################################################################
   def addReplica(self, fileName):
     server = self.__getServer()

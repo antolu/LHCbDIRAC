@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.111 2009/10/08 09:57:32 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.112 2009/10/19 11:17:38 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.111 2009/10/08 09:57:32 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.112 2009/10/19 11:17:38 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -66,7 +66,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getAvailableConfigNames(self):
-    command = ' select distinct Configname from configurations'
+    command = ' select distinct Configname from bookkeepingview'
     res = self.dbR_._query(command)
     return res
   
@@ -83,7 +83,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getConfigVersions(self, configname):
-    command = ' select distinct configversion from configurations where configname=\''+configname+'\''
+    command = ' select distinct configversion from bookkeepingview where configname=\''+configname+'\''
     res = self.dbR_._query(command)
     return res
   
@@ -804,8 +804,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     res = self.dbR_._query(command)
     return res
-  
-  
+ 
+    
   def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     
     condition = ''    
@@ -1143,6 +1143,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(value)
   
   #############################################################################
+  def getRunNumber(self, lfn):
+    command = 'select jobs.runnumber from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
+    res = self.dbR_._query(command)
+    return res
+         
+  #############################################################################
   def getProductionFiles(self, prod, ftype):
     command = ''
     value = {}
@@ -1170,6 +1176,277 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return S_ERROR(res['Message'])
     return S_OK(value)
+  
+  #############################################################################
+  def getAvailableRunNumbers(self):
+    command = 'select distinct runnumber from bookkeepingview'
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getProPassWithRunNumber(self, runnumber):
+    
+    condition = ' and bview.runnumber='+str(runnumber)
+    
+    command = ' select distinct prod.passid, prod.TOTALPROCPASS,   \
+     a0.applicationname s0, a0.applicationversion v0, a0.optionfiles op0, a0.dddb d0, a0.conddb c0, a0.EXTRAPACKAGES e0, \
+     a1.applicationname s1, a1.applicationversion v1, a1.optionfiles op1, a1.dddb d1, a1.conddb c1, a1.EXTRAPACKAGES e1, \
+     a2.applicationname s2, a2.applicationversion v2, a2.optionfiles op2, a2.dddb d2, a2.conddb c2, a2.EXTRAPACKAGES e2, \
+     a3.applicationname s3, a3.applicationversion v3, a3.optionfiles op3, a3.dddb d3, a3.conddb c3, a3.EXTRAPACKAGES e3, \
+     a4.applicationname s4, a4.applicationversion v4, a4.optionfiles op4, a4.dddb d4, a4.conddb c4, a4.EXTRAPACKAGES e4, \
+     a5.applicationname s5, a5.applicationversion v5, a5.optionfiles op5, a5.dddb d5, a5.conddb c5, a5.EXTRAPACKAGES e5, \
+     a6.applicationname s6, a6.applicationversion v6, a6.optionfiles op6, a6.dddb d6, a6.conddb c6, a6.EXTRAPACKAGES e6  \
+   from bookkeepingview bview, productions prod,pass_index pi , \
+        applications a0, applications a1, applications a2, applications a3, applications a4, applications a5, applications a6 \
+   where  \
+      bview.production=prod.production and \
+      prod.passid=pi.passid and \
+      pi.step0=a0.applicationid(+) and \
+      pi.step1=a1.applicationid(+) and \
+      pi.step2=a2.applicationid(+) and \
+      pi.step3=a3.applicationid(+) and \
+      pi.step4=a4.applicationid(+) and \
+      pi.step5=a5.applicationid(+) and \
+      pi.step6=a6.applicationid(+) ' + condition
+       
+    res = self.dbR_._query(command)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    value = res['Value']
+    retvalue = []
+    description = ''
+    for one in value:
+      tmp = list(one)
+      groups = tmp[1].split('<')
+      description = ''
+      for group in groups:
+        result = self.getDescription(group)['Value'][0][0]
+        description += result +' + '
+      tmp[1]=description[:-3] 
+      retvalue += [tuple(tmp)]
+    return S_OK(retvalue)
+  
+  
+  #############################################################################
+  def getEventTypeWithAgivenRuns(self,runnumber, processing):
+    condition = ' and bookkeepingview.runnumber='+str(runnumber)
+    if processing != 'ALL':
+      descriptions = processing.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+    
+    command ='select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,bookkeepingview,productions where \
+         bookkeepingview.production=productions.production and \
+         eventTypes.EventTypeId=bookkeepingview.eventtypeid'+condition
+  
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getFileTypesWithAgivenRun(self, runnumber, procPass, evtId):
+
+    condition = ' and bookkeepingview.runnumber='+str(runnumber)    
+
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+          
+    if evtId != 'ALL':
+      condition += ' and bookkeepingview.EventTypeId='+str(evtId)
+    
+      
+    command = 'select distinct filetypes.name from filetypes,bookkeepingview,productions where \
+               bookkeepingview.filetypeId=fileTypes.filetypeid and bookkeepingview.production=productions.production'+condition
+               
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def getLimitedNbOfRunFiles(self,  procPass, evtId, runnumber, ftype):
+    
+    condition = ' and jobs.runnumber='+str(runnumber)    
+    tables = ' jobs, files, productions'
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)  
+    
+    if ftype == 'ALL':
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from '+ tables +', filetypes \
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.filetypeid=filetypes.filetypeid' + condition 
+    else:
+      command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE) from ' + tables +' \
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\'' + condition 
+    
+    res = self.dbR_._query(command)
+    return res
+
+  #############################################################################
+  def getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
+    
+    condition = ' and jobs.runnumber='+str(runnumber)    
+     
+    tables = ' jobs, files, productions'
+            
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    
+         
+    if ftype == 'ALL':
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt,quality \
+      FROM \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt,quality \
+          from( \
+           select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
+            \'not used\' gen, \'not used\' geom, \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality\
+        from'+tables+',filetypes, dataquality \
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid \
+         files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
+    else:
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt,quality from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt,quality \
+          from( \
+           select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
+            \'not used\' gen, \'not used\' geom, \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality \
+        from'+ tables+', dataquality\
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid and \
+         jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
+      
+    res = self.dbR_._query(command)
+    return res
+ 
+  #############################################################################
+  def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
+    condition = ' and jobs.runnumber='+str(runnumber)    
+    
+    tables = ' jobs, files,productions'
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    
+         
+    if ftype == 'ALL':
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables+' ,filetypes, dataquality \
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.filetypeid=filetypes.filetypeid and \
+         files.qualityid= dataquality.qualityid' + condition 
+      all +=1
+    else:
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables +' ,dataquality\
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid= dataquality.qualityid' + condition 
+    
+    
+    res = self.dbR_._query(command)
+    return res
   
   #############################################################################
   def getRunFiles(self, runid):

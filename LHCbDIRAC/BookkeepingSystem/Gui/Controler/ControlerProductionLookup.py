@@ -1,13 +1,14 @@
 ########################################################################
-# $Id: ControlerProductionLookup.py,v 1.4 2009/06/15 13:06:02 zmathe Exp $
+# $Id: ControlerProductionLookup.py,v 1.5 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
+from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 
-__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.4 2009/06/15 13:06:02 zmathe Exp $"
+__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.5 2009/10/19 11:17:39 zmathe Exp $"
 
 #############################################################################  
 class ControlerProductionLookup(ControlerAbstract):
@@ -25,13 +26,10 @@ class ControlerProductionLookup(ControlerAbstract):
       self.__model = message['items']
       widget = self.getWidget()
       keys = self.__model.getChildren().keys()
-      newkeys = []
-      for i in keys:
-        newkeys += [abs(int(i))]
       
-      newkeys.sort()
-      newkeys.reverse()
-      for i in newkeys:
+      keys.sort()
+      keys.reverse()
+      for i in keys:
         self.__list += [str(i)]
       widget.setModel(self.__list)
       widget.show()
@@ -65,10 +63,17 @@ class ControlerProductionLookup(ControlerAbstract):
    
   #############################################################################  
   def cancel(self): 
+    self.getWidget().getListView().reset()
     self.getWidget().close()
+    
   
   def all(self):
-    message = Message({'action':'showAllProduction','items':self.__model})
+    widget = self.getWidget()
+    data = widget.getModel().getAllData()
+    parent = Item({'fullpath':'/'},None)
+    for i in data:
+      parent.addItem(self.__model.getChildren()[i])
+    message = Message({'action':'showAllProduction','items':parent})
     self.getParent().messageFromChild(self, message)
     self.getWidget().close()
     

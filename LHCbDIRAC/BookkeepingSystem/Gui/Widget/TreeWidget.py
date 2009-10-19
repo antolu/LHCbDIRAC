@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreeWidget.py,v 1.10 2009/06/23 07:34:50 zmathe Exp $
+# $Id: TreeWidget.py,v 1.11 2009/10/19 11:17:38 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtCore  import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import Proces
 from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
-__RCSID__ = "$Id: TreeWidget.py,v 1.10 2009/06/23 07:34:50 zmathe Exp $"
+__RCSID__ = "$Id: TreeWidget.py,v 1.11 2009/10/19 11:17:38 zmathe Exp $"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
@@ -92,3 +92,11 @@ class TreeWidget(QWidget, Ui_TreeWidget):
   #############################################################################
   def getPageSize(self):
     return self.pageSize.text()
+  
+  #############################################################################
+  def runLookupRadioButtonIsChecked(self):
+    return self.runLookup.isChecked()
+  
+  #############################################################################
+  def productionLookupRadioButtonIsChecked(self):
+    return self.productionRadioButton.isChecked()

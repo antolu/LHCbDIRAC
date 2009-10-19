@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.23 2009/08/06 16:06:25 zmathe Exp $
+# $Id: ControlerMain.py,v 1.24 2009/10/19 11:17:39 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.23 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.24 2009/10/19 11:17:39 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -262,7 +262,7 @@ class ControlerMain(ControlerAbstract):
         ct.messageFromParent(message)        
       
       elif message.action() == 'error':
-        QMessageBox.information(self.getWidget(), "Error", 'Please select a production!', QMessageBox.Ok)
+        QMessageBox.information(self.getWidget(), "Error", 'Please select a production or more productions!', QMessageBox.Ok)
       
       elif message.action() == 'showOneProduction':
         paths = message['paths']
