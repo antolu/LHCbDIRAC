@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobPathResolution.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $
+# $Id: JobPathResolution.py,v 1.4 2009/10/20 14:33:33 paterson Exp $
 # File :   JobPathResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
     of JDL parameters.
 """
 
-__RCSID__ = "$Id: JobPathResolution.py,v 1.3 2009/04/18 18:26:57 rgracian Exp $"
+__RCSID__ = "$Id: JobPathResolution.py,v 1.4 2009/10/20 14:33:33 paterson Exp $"
 
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger
@@ -59,13 +59,14 @@ class JobPathResolution:
     if inputData:
       self.log.info('Job %s has input data requirement' % (job))
       bkInputData = gConfig.getValue(section+'/BKInputData','BKInputData')
-      lhcbPath += bkInputData+','       
+      lhcbPath += 'InputData,'
+      lhcbPath += bkInputData+','
 
-    inputDataType = classadJob.get_expression('InputDataType').replace('"','').replace('Unknown','')
-    if inputDataType=='ETC':
-      self.log.info('Job %s has ETC requirement' % (job))
-      eventTagCollection = gConfig.getValue(section+'/ETC','ETC')
-      lhcbPath += eventTagCollection+','
+#    inputDataType = classadJob.get_expression('InputDataType').replace('"','').replace('Unknown','')
+#    if inputDataType=='ETC':
+#      self.log.info('Job %s has ETC requirement' % (job))
+#      eventTagCollection = gConfig.getValue(section+'/ETC','ETC')
+#      lhcbPath += eventTagCollection+','
 
     if classadJob.lookupAttribute('CondDBTags'):
       condDB = gConfig.getValue(section+'/CondDB','CondDB')
