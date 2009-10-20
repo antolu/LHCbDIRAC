@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.13 2009/04/29 12:26:46 acasajus Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.14 2009/10/20 12:06:59 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.13 2009/04/29 12:26:46 acasajus Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.14 2009/10/20 12:06:59 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -83,13 +83,13 @@ class AncestorFilesAgent( OptimizerModule ):
     self.log.info('BK lookup time %.2f s' %(time.time()-start))
     self.log.debug(result)
     if not result['OK']:
-      report = self.setJobParam( job, self.optimizerName, result['Message'] )
+      report = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), result['Message'] )
       return result
 
     newInputData = result['Value']
     totalAncestors = len(newInputData)-len(inputData)
     param = '%s ancestor files retrieved from BK for depth %s' %(totalAncestors,ancestorDepth)
-    report = self.setJobParam(job,self.optimizerName,param)
+    report = self.setJobParam(job, self.am_getModuleParam( 'optimizerName' ), param)
     if not report['OK']:
       self.log.warn(report['Message'])
 
