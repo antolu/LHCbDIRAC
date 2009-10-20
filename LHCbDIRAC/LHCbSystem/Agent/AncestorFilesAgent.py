@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.14 2009/10/20 12:06:59 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/AncestorFilesAgent.py,v 1.15 2009/10/20 15:02:33 paterson Exp $
 # File :   AncestorFilesAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -12,7 +12,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.14 2009/10/20 12:06:59 paterson Exp $"
+__RCSID__ = "$Id: AncestorFilesAgent.py,v 1.15 2009/10/20 15:02:33 paterson Exp $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
@@ -25,7 +25,7 @@ import re, time
 class AncestorFilesAgent( OptimizerModule ):
 
   #############################################################################
-  def checkJob( self, job, classAdJob ):
+  def checkJob( self, job, classadJob ):
     """ The main agent execution method
     """
     result = self.__checkAncestorDepth( job, classadJob )
