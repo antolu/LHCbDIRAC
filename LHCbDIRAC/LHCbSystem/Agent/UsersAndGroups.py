@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.33 2009/10/16 08:48:23 joel Exp $
+# $Id: UsersAndGroups.py,v 1.34 2009/10/21 15:02:31 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.33 2009/10/16 08:48:23 joel Exp $"
-__VERSION__ = "$Revision: 1.33 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.34 2009/10/21 15:02:31 acasajus Exp $"
+__VERSION__ = "$Revision: 1.34 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.CSAPI   import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC                                    import S_OK, S_ERROR, gConfig, Source
 
-from DIRAC                                    import systemCall
+from DIRAC                                    import systemCall, shellCall
 from DIRAC                                    import List
 
 VO_NAME     = 'lhcb'
@@ -28,6 +28,24 @@ class UsersAndGroups(AgentModule):
     self.am_setOption( "PollingTime", 3600*6 ) # Every 6 hours
     self.gridEnv = GRIDENV
     return S_OK()
+  
+  def getMailForUser( self, userName ):
+    #
+    ret = shellCall( 0, "finger -m %s | grep Name: | sed 's/^.*Name: //g' | sed 's/ /\./g'" % userName )
+    if not ret[ 'OK' ]:
+      self.log.error( "Could not get mail for user", "%s: %s" % ( userName, ret[ 'Message' ] ) )
+      return ""
+    exitStatus, stdout, stderr = ret[ 'Value' ]
+    if exitStatus != 0:
+      self.log.error( "Could not get mail for user", userName )
+      return ""
+    stdout = stdout.strip()
+    if not stdout:
+      return ""
+    mailUser =  List.fromChar( stdout, "\n" )[0]
+    if not mailUser:
+      return ""
+    return "%s@cern.ch" % mailUser
 
   def execute(self):
 
@@ -146,7 +164,11 @@ class UsersAndGroups(AgentModule):
           users[user]['CA'] += ', %s' % ca
         duplicateUsers.append( user )
         continue
-      users[user] = { 'DN': dn, 'CA': ca , 'email': '%s@cern.ch' % user }
+      userMail = self.getMailForUser( user )
+      if not userMail:
+        userMail = '%s@cern.ch' % user
+      self.log.info( "Mail for user %s is %s" % ( user, userMail ) )
+      users[user] = { 'DN': dn, 'CA': ca , 'email': userMail }
 
       if not user in currentUsers:
         newUsers.append(user)
