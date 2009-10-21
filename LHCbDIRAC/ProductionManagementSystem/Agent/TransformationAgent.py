@@ -1,17 +1,17 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.39 2009/10/19 13:58:11 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.40 2009/10/21 09:47:49 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.39 2009/10/19 13:58:11 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.40 2009/10/21 09:47:49 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.DataManagementSystem.Client.FileCatalog import FileCatalog
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.LHCbSystem.Utilities.AncestorFiles import getAncestorFiles
 from DIRAC.Core.Utilities.SiteSEMapping       import getSitesForSE
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
@@ -34,7 +34,7 @@ class TransformationAgent(Agent):
     result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','yes')
-    self.lfc = FileCatalog('LcgFileCatalogCombined')
+    self.rm = ReplicaManager()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
     res = setupShifterProxyInEnv("ProductionManager")
@@ -169,7 +169,7 @@ class TransformationAgent(Agent):
 
     # Obtain the sizes for the files from the catalog
     data_m = data
-    res = self.lfc.getFileSize(lfns)
+    res = self.rm.getCatalogFileSize(lfns)
     fileSizes = {}
     if not res['OK']:
       gLogger.error("Failed to get file sizes.")
@@ -580,7 +580,7 @@ class TransformationAgent(Agent):
     numAncestors = len(fileList)
 
     # Determine common SEs now
-    result = self.lfc.getReplicas(fileList)
+    result = self.rm.getActiveReplicas(fileList)
     if not result['OK']:
       gLogger.warn(result['Message'])
       return S_ERROR('Failed to get results from LFC: %s' % result['Message'])
