@@ -1,4 +1,9 @@
-$Id: release.notes,v 1.36 2009/10/19 15:17:19 paterson Exp $
+$Id: release.notes,v 1.37 2009/10/22 08:37:27 paterson Exp $
+
+=========
+wkf-v9r28 : SKP : 22 October 2009
+- GaudiApplication
+Minor update to support FEST reco stripping.
 
 =========
 wkf-v9r27 : SKP : 5 October 2009
