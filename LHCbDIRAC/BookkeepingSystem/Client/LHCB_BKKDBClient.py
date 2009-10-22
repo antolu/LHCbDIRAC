@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.21 2009/10/12 10:59:03 zmathe Exp $
+# $Id: LHCB_BKKDBClient.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.21 2009/10/12 10:59:03 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):
@@ -98,3 +98,7 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getAvailableProductions(self):
     return self.getManager().getAvailableProductions()
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    return self.getManager().getFileHistory(lfn)

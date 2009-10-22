@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: Job.py,v 1.9 2009/10/19 11:17:39 zmathe Exp $
+# $Id: Job.py,v 1.10 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """
 
 """
 
-__RCSID__ = "$Id: Job.py,v 1.9 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: Job.py,v 1.10 2009/10/22 20:38:03 zmathe Exp $"
 
 
 class Job:
@@ -60,6 +60,14 @@ class Job:
       if i.getName() == jobParam:
         ok = True
     return ok
+  
+  #############################################################################
+  def getParam(self, jobParam):
+    param = None
+    for i in self.jobParameters_:
+      if i.getName() == jobParam:
+        param = i
+    return param
   
   #############################################################################  
   def addJobInputFiles(self, files):

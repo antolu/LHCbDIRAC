@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.24 2009/10/19 11:17:39 zmathe Exp $
+# $Id: ControlerMain.py,v 1.25 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.24 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: ControlerMain.py,v 1.25 2009/10/22 20:38:03 zmathe Exp $"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):
@@ -129,10 +129,11 @@ class ControlerMain(ControlerAbstract):
       elif message.action() == 'JobInfo':
         files = self.__bkClient.getJobInfo(message['fileName'])
         message = Message({'action':'showJobInfos','items':files})
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        feedback = ct.messageFromParent(message)
-        return feedback
+        return message
+        #controlers = self.getChildren()
+        #ct = controlers['TreeWidget']
+        #feedback = ct.messageFromParent(message)
+        #return feedback
       elif message.action() == 'waitCursor':
         self.getWidget().waitCursor()
         return True
@@ -169,17 +170,13 @@ class ControlerMain(ControlerAbstract):
         if len(files) == 0:
           message = Message({'action':'error','message':'Please select a file or files!'})
           return message
-        res = self.__bkClient.getAncestors(files, 3)
+        res = self.__bkClient.getFileHistory(files)
         if not res['OK']:
           message = Message({'action':'error','message':res['Message']})
           return message
         else:
-          message = Message({'action':'showAncestors','files':res['Value']})
-          controlers = self.getChildren()
-          ct = controlers['TreeWidget']
-          ct.messageFromParent(message)
-          message = Message({'action':'OK'})
-          return message
+          return Message({'action':'showAncestors','files':res['Value']})
+        
       elif message.action() == 'logfile':
         files = message['fileName']
         if len(files)==0:

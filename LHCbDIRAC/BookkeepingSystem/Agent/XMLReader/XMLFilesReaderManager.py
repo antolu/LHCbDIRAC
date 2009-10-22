@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.30 2009/10/19 11:17:38 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.31 2009/10/22 20:38:02 zmathe Exp $
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                      
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.30 2009/10/19 11:17:38 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.31 2009/10/22 20:38:02 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -200,8 +200,25 @@ class XMLFilesReaderManager:
           newJobParams.setName('RunNumber')
           newJobParams.setValue(str(runnumber))
           job.addJobParams(newJobParams)
-                     
-
+      
+      inputfiles = job.getJobInputFiles()
+      sumEventInputStat = 0
+      for i in inputfiles:
+        fname = i.getFileName()
+        res = dataManager_.getJobInfo(fname)
+        if res['OK']:
+          value = res["Value"]
+          if len(value) > 0 and value[0][2] != None:
+            sumEventInputStat += value[0][2]
+        else:
+          return S_ERROR(res['Message'])
+      
+      
+      currentEventInputStat = job.getParam('EventInputStat')
+      
+      if currentEventInputStat.getValue() != None and str(sumEventInputStat) > str(currentEventInputStat.getValue()):
+        currentEventInputStat.setValue(sumEventInputStat)
+    
       ################
 
     config = job.getJobConfiguration()
@@ -236,8 +253,8 @@ class XMLFilesReaderManager:
     for file in outputFiles:
       result = self.__insertOutputFiles(job, file)
       if not result['OK']:
-        dataManager_.deleteJob(job.getJobId())
         dataManager_.deleteInputFiles(job.getJobId())
+        dataManager_.deleteJob(job.getJobId())
         self.errorMgmt_.reportError (17, "Unable to create file " + str(file.getFileName()) + "!", deleteFileName, errorReport)
         return S_ERROR("Unable to create file " + str(file.getFileName()) + "!"+"ERROR: "+result["Message"])
       else:

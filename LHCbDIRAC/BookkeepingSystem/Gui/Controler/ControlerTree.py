@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.18 2009/10/19 11:17:39 zmathe Exp $
+# $Id: ControlerTree.py,v 1.19 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.18 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: ControlerTree.py,v 1.19 2009/10/22 20:38:03 zmathe Exp $"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):
@@ -21,15 +21,13 @@ class ControlerTree(ControlerAbstract):
     self.__offset = 0
   #############################################################################  
   def messageFromParent(self, message):
+    gLogger.debug(message)
     if message.action()=='list':
       self.getWidget().getTree().showTree(message['items'])
     elif message.action()=='removeTree':
       self.getWidget().getTree().clearTree()
       self.getWidget().getTree().showTree(message['items'])      
     elif message.action()=='showJobInfos':
-      controlers = self.getChildren()
-      controlers['InfoDialog'].messageFromParent(message)
-    elif message.action()== 'showAncestors':
       controlers = self.getChildren()
       controlers['InfoDialog'].messageFromParent(message)
     else:
@@ -115,14 +113,20 @@ class ControlerTree(ControlerAbstract):
           parentItem.takeChild(0)           
 
         if node.has_key('showFiles'):
+          message = Message({'action':'waitCursor','type':None})
+          feeddback = self.getParent().messageFromChild(self, message)
+          
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)
+          
           statistics = feedback['Extras']['GlobalStatistics']
           files = feedback['TotalRecords']
           nbev = statistics['Number of Events']
           show={'Number of files':files,'Nuber of Events':nbev}
           #show={'Number of files':feedback['TotalRecords'],'Nuber of Events':feedback['Extras']['Number of Events']}
           self.getWidget().getTree().addLeaf(show, parentItem)
+          message = Message({'action':'arrowCursor','type':None})
+          feeddback = self.getParent().messageFromChild(self, message)
         else:
           message = Message({'action':'expande','node':path})
           feedback = self.getParent().messageFromChild(self, message)
@@ -153,7 +157,7 @@ class ControlerTree(ControlerAbstract):
     if parentnode != None: 
       parent = parentnode.getUserObject()
       controlers = self.getChildren()
-      if parent.has_key('level') and parent.has_key('showFiles'):
+      if parent.has_key('level') and parent.has_key('showFiles'):  
         path = parent['fullpath']
         message = Message({'action':'expande','node':path, 'StartItem':0,'MaxItem':self.getPageSize()})
         self.__pagesize += self.__offset

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.95 2009/10/19 11:17:39 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.96 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.95 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.96 2009/10/22 20:38:03 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -738,6 +738,10 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getFilesWithGivenDataSets(values)
   
+  #############################################################################
+  def getFileHistory(self, lfn):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFileHistory(lfn)
   
   '''
   Monitoring

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py,v 1.106 2009/10/19 11:17:39 zmathe Exp $
+# $Id: LHCB_BKKDBManager.py,v 1.107 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.106 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: LHCB_BKKDBManager.py,v 1.107 2009/10/22 20:38:03 zmathe Exp $"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
@@ -605,7 +605,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1085,7 +1085,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1926,3 +1926,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getAvailableProductions(self):
     return self.db_.getAvailableProductions()
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    return self.db_.getFileHistory(lfn)

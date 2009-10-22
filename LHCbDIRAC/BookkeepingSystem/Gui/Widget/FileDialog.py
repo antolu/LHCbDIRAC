@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.20 2009/10/12 10:01:44 zmathe Exp $
+# $Id: FileDialog.py,v 1.21 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,9 +9,10 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
 from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
+from DIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.20 2009/10/12 10:01:44 zmathe Exp $"
+__RCSID__ = "$Id: FileDialog.py,v 1.21 2009/10/22 20:38:03 zmathe Exp $"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):
@@ -58,6 +59,9 @@ class FileDialog(QDialog, Ui_FileDialog):
     
     self.__advancedSave = AdvancedSave(self)
     self.__controler.addChild('AdvancedSave', self.__advancedSave.getControler())
+    
+    self.__historyDialog = HistoryDialog(self)
+    self.__controler.addChild('HistoryDialog',self.__historyDialog.getControler())
     
   #############################################################################  
   def getControler(self):
@@ -114,7 +118,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   def showData(self, data):
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId', 'Generator']
     tabledata =[]
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat']
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','PhysicStat','EventInputStat']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()

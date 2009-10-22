@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py,v 1.121 2009/10/19 11:17:39 zmathe Exp $
+# $Id: BookkeepingManagerHandler.py,v 1.122 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.121 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py,v 1.122 2009/10/22 20:38:03 zmathe Exp $"
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -871,6 +871,26 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
     return dataMGMT_.getRunFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
   
+  #############################################################################
+  types_getFileHistory = [StringType]
+  def export_getFileHistory(self, lfn):
+    retVal = dataMGMT_.getFileHistory(lfn)
+    result = {}
+    records = []
+    if retVal['OK']:
+      values = retVal['Value']
+      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'PhysicStat', 'Dataquality', 'FileInsertDate']
+      sum = 0
+      for record in values:
+        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13]]
+        records += [value]
+        sum += 1
+      result = {'ParameterNames':parameterNames,'Records':records,'TotalRecords':sum}
+    else:
+      result = S_ERROR(retVal['Message'])
+    return S_OK(result)
+  
+  #############################################################################
   
   '''
   Monitoring

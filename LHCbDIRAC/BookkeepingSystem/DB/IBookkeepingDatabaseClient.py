@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.57 2009/10/19 11:17:38 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.58 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.57 2009/10/19 11:17:38 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.58 2009/10/22 20:38:03 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -533,6 +533,10 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
     return self.getManager().getRunFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    return self.getManager().getFileHistory(lfn)
   
   #############################################################################
   '''

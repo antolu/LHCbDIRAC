@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.21 2009/10/19 11:17:39 zmathe Exp $
+# $Id: ControlerFileDialog.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.21 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id: ControlerFileDialog.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -11,6 +11,7 @@ from PyQt4.QtGui                                                     import *
 from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
 from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
 import sys
+from DIRAC                                                           import gLogger, S_OK, S_ERROR
 #############################################################################  
 class ControlerFileDialog(ControlerAbstract):
   
@@ -72,7 +73,7 @@ class ControlerFileDialog(ControlerAbstract):
       message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel})
       feedback = self.getParent().messageFromChild(self, message)
     else:
-      self.getParent().messageFromChild(self, message)
+      return self.getParent().messageFromChild(self, message)
   
   #############################################################################  
   def close(self):
@@ -258,15 +259,29 @@ class ControlerFileDialog(ControlerAbstract):
     if len(self.__selectedFiles) != 0:
       message = Message({'action':'JobInfo','fileName':self.__selectedFiles[0]})
       feedback = self.getParent().messageFromChild(self, message)
+      if feedback.action() == 'showJobInfos':
+        controlers = self.getChildren()
+        ct = controlers['HistoryDialog']
+        feedback = ct.messageFromParent(feedback)
+      return S_ERROR(feedback)
+        
   
   #############################################################################  
   def getancesstots(self):
-    message = Message({'action':'getAnccestors','files':self.__selectedFiles})
+    message = Message({'action':'getAnccestors','files':self.__selectedFiles[0]})
     feedback = self.getParent().messageFromChild(self, message)
     action = feedback.action()
     if action == 'error':
       self.getWidget().showError(feedback['message'])  
-  
+    elif action == 'showAncestors':
+      controlers = self.getChildren()
+      ct = controlers['HistoryDialog']
+      message = feedback['files']
+      message = Message({'action':'list','items':message})
+      feedback = ct.messageFromParent(message)
+    else:
+      self.getWidget().showError('Unkown message'+str(message))
+    
   #############################################################################  
   def loggininginfo(self):
     message = Message({'action':'logfile','fileName':self.__selectedFiles})

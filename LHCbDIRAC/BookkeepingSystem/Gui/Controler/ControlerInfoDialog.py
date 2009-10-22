@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ControlerInfoDialog.py,v 1.2 2009/01/26 17:38:00 zmathe Exp $
+# $Id: ControlerInfoDialog.py,v 1.3 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
-
-__RCSID__ = "$Id: ControlerInfoDialog.py,v 1.2 2009/01/26 17:38:00 zmathe Exp $"
+from DIRAC                                                   import gLogger, S_OK, S_ERROR
+__RCSID__ = "$Id: ControlerInfoDialog.py,v 1.3 2009/10/22 20:38:03 zmathe Exp $"
 
 #############################################################################  
 class ControlerInfoDialog(ControlerAbstract):
@@ -16,6 +16,7 @@ class ControlerInfoDialog(ControlerAbstract):
   
   #############################################################################  
   def messageFromParent(self, message):
+    gLogger.debug(message)
     if message.action()=='list':
       res = self.getWidget().showData(message['items'])
       if res:

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.113 2009/10/19 11:31:46 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.114 2009/10/22 20:38:03 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.113 2009/10/19 11:31:46 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.114 2009/10/22 20:38:03 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -24,7 +24,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     """
     """
     super(OracleBookkeepingDB, self).__init__()
-    
     self.cs_path = getDatabaseSection('Bookkeeping/BookkeepingDB')
     
     self.dbHost = ''
@@ -58,6 +57,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
     self.dbW_ = OracleDB(self.dbServer, self.dbPass, self.dbHost)
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
+    
   #############################################################################
   def getAvailableConfigurations(self):
     """
@@ -690,7 +690,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables+' ,filetypes, dataquality \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
@@ -699,7 +699,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag from '+ tables +' ,dataquality\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid and \
@@ -1089,20 +1089,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getJobInfo(self, lfn):
-    command = 'select jobid from files where filename=\''+lfn+'\''
+    command = 'select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER, \'not used\', \
+                 \'not used\', \'not used\', \'not used\', jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS, \
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.jobid from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
     res = self.dbR_._query(command)
-    if not res['OK']:
-        gLogger.error('File Type not found:',res['Message'])
-    else:
-      if len( res['Value'] ) == 0:
-        return S_ERROR('File not found!')
-      jobid = res['Value'][0][0]
-      command = 'select  DIRACJOBID, DIRACVERSION, EVENTINPUTSTAT, EXECTIME, FIRSTEVENTNUMBER, \'not used\', \
-                 \'not used\', \'not used\', \'not used\', LOCATION,  NAME, NUMBEROFEVENTS, \
-                 STATISTICSREQUESTED, WNCPUPOWER, CPUTIME, WNCACHE, WNMEMORY, WNMODEL, WORKERNODE, jobid from jobs where jobid='+str(jobid)
-      res = self.dbR_._query(command)
-      return res
-    return S_ERROR("Job is not found!")
+    return res
+    
     
   #############################################################################
   def getProductionFilesWithAGivenDate(self, prod, ftype, startDate = None, endDate = None):
@@ -3166,6 +3158,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
       value = res['Value']
       procpass = value[0][0]
     return S_OK(procpass)
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    command = 'select  files.fileid, files.filename,files.adler32,files.creationdate,files.eventstat,files.eventtypeid,files.gotreplica, \
+files.guid,files.jobid,files.md5sum, files.filesize,files.physicstat, dataquality.dataqualityflag, files.inserttimestamp from files, dataquality \
+where files.fileid in ( select inputfiles.fileid from files,inputfiles where files.jobid= inputfiles.jobid and files.filename=\''+str(lfn)+'\')\
+and files.qualityid= dataquality.qualityid'
+ 
+    res = self.dbR_._query(command)
+    return res
+    
   
   #############################################################################
   #
