@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.34 2009/10/21 15:02:31 acasajus Exp $
+# $Id: UsersAndGroups.py,v 1.35 2009/10/23 08:34:58 rgracian Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.34 2009/10/21 15:02:31 acasajus Exp $"
-__VERSION__ = "$Revision: 1.34 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.35 2009/10/23 08:34:58 rgracian Exp $"
+__VERSION__ = "$Revision: 1.35 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -175,15 +175,18 @@ class UsersAndGroups(AgentModule):
       else:
         oldUsers.append(user)
 
+      # In some cases list-user-roles fails this will prevent user to get out of default groups
+      users[user]['Groups'] = ['lhcb', 'private_pilot', 'user']
       ret = self._gridCommand(0, proxyFile, vomsAdminTuple + ('--nousercert', 'list-user-roles', dn, ca) )
       if not ret['OK']:
         self.log.error('Can not get User Roles', user)
+        self.log.error('Error executing list-user-roles:', ret['Message'] )
         continue
       if ret['Value'][0]:
         self.log.error('Can not get User Roles', ret['Value'][2])
+        self.log.error('Error executing list-user-roles:', '\n'.join( ret['Value']) )
         continue
 
-      users[user]['Groups'] = ['lhcb', 'private_pilot', 'user']
       for newItem in List.fromChar(ret['Value'][1],'\n'):
         role = newItem
         if role not in vomsRoles:
