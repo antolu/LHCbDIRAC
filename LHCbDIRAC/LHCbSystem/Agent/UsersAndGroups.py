@@ -1,10 +1,10 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.35 2009/10/23 08:34:58 rgracian Exp $
+# $Id: UsersAndGroups.py,v 1.36 2009/10/23 10:08:48 acasajus Exp $
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.35 2009/10/23 08:34:58 rgracian Exp $"
-__VERSION__ = "$Revision: 1.35 $"
+__RCSID__   = "$Id: UsersAndGroups.py,v 1.36 2009/10/23 10:08:48 acasajus Exp $"
+__VERSION__ = "$Revision: 1.36 $"
 """
   Update Users and Groups from VOMS on CS
 """
@@ -31,7 +31,7 @@ class UsersAndGroups(AgentModule):
   
   def getMailForUser( self, userName ):
     #
-    ret = shellCall( 0, "finger -m %s | grep Name: | sed 's/^.*Name: //g' | sed 's/ /\./g'" % userName )
+    ret = shellCall( 0, "finger -m %s | grep Name: | sed 's/^.*Name: //g' | sed 's/ [A-Z]\. / /g' | sed 's/ /\./g'" % userName )
     if not ret[ 'OK' ]:
       self.log.error( "Could not get mail for user", "%s: %s" % ( userName, ret[ 'Message' ] ) )
       return ""
