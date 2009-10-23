@@ -190,6 +190,7 @@ $DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionStatusAge
 
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   AncestorFilesAgent
+$DESTDIR/pro/scripts/install_agent.sh   LHCb   BKInputDataAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   CondDBAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteMonitoringAgent
 $DESTDIR/pro/scripts/install_agent.sh   LHCb   GridSiteWMSMonitoringAgent
