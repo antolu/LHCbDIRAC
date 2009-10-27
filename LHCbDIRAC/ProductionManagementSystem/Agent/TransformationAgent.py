@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.40 2009/10/21 09:47:49 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/TransformationAgent.py,v 1.41 2009/10/27 17:17:47 acsmith Exp $
 ########################################################################
 
 """  The Transformation Agent prepares production jobs for processing data
      according to transformation definitions in the Production database.
 """
 
-__RCSID__ = "$Id: TransformationAgent.py,v 1.40 2009/10/21 09:47:49 acsmith Exp $"
+__RCSID__ = "$Id: TransformationAgent.py,v 1.41 2009/10/27 17:17:47 acsmith Exp $"
 
 from DIRAC.Core.Base.Agent      import Agent
 from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
@@ -530,9 +530,8 @@ class TransformationAgent(Agent):
   def getDataReplicas(self,production,lfns):
     """ Get the replicas for the LFNs and check their statuses
     """
-    fileCatalog = FileCatalog()
     start = time.time()
-    result = fileCatalog.getReplicas(lfns)
+    result = self.rm.getActiveReplicas(lfns)
     delta = time.time() - start
     gLogger.verbose('Replica results for %d files obtained in %.2f seconds' % (len(lfns),delta))
     lfc_datadict = {}
