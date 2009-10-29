@@ -39,13 +39,15 @@ for physicalFile in castorFiles:
   relativePath =  re.findall(exp,physicalFile)[0]
   gLogger.verbose("Found relative path of %s to be %s" % (physicalFile,relativePath))
   res = replicaManager.getStorageFile(physicalFile,'CERN-USER',singleFile=True)
+  localFile = os.path.basename(relativePath)
   if not res['OK']:
     gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
+    if os.path.exists(localFile): os.remove(localFile)
     continue
-  localFile = os.path.basename(relativePath)
   gLogger.verbose("Obtained local copy of %s at %s" % (physicalFile,localFile))
   lfn = '/lhcb/user/%s/%s/Migrated/%s' % (username[0],username,relativePath)
   res = lhcb.addRootFile(lfn,localFile,se)
+  if os.path.exists(localFile): os.remove(localFile)
   if not res['OK']:
     gLogger.error("Failed to upload %s to grid." % physicalFile,res['Message'])
     continue
