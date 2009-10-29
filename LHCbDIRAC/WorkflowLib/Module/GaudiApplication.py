@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.155 2009/10/22 08:36:48 paterson Exp $
+# $Id: GaudiApplication.py,v 1.156 2009/10/29 15:40:55 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.155 2009/10/22 08:36:48 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.156 2009/10/29 15:40:55 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -434,23 +434,24 @@ done
     comp_path = localArea+'/'+self.systemConfig #TODO: why is this not used elsewhere?
     if os.path.exists(comp_path):
       self.log.info('Compiler libraries found...')
-      # Use the application loader shipped with the application if any (ALWAYS will be here)
-      comm = 'gaudirun.py  '+self.optfile+' '+self.optfile_extra+'\n'
+
+    # Use the application loader shipped with the application if any (ALWAYS will be here)
+    comm = 'gaudirun.py  '+self.optfile+' '+self.optfile_extra+'\n'
 #      if self.generator_name == '':
 #        comm = 'gaudirun.py  '+self.optfile+' ./'+self.optfile_extra+'\n'
 #      else:
 #        comm = 'gaudirun.py  '+self.optfile+' $LB'+self.generator_name.upper()+'ROOT/options/'+self.generator_name+'.opts ./'+self.optfile_extra+'\n'
 
-      print 'Command = ',comm
-      script.write(comm)
-      script.write('declare -x appstatus=$?\n')
-      script.write('# check for core dumps and analyze it if present\n')
-      script.write('if [ -e core.* ] ; then\n')
-      script.write('  gdb python core.* >> %s_coredump.log << EOF\n' % self.applicationName )
-      script.write('where\n')
-      script.write('quit\n')
-      script.write('EOF\n')
-      script.write('fi\n')
+    print 'Command = ',comm
+    script.write(comm)
+    script.write('declare -x appstatus=$?\n')
+    script.write('# check for core dumps and analyze it if present\n')
+    script.write('if [ -e core.* ] ; then\n')
+    script.write('  gdb python core.* >> %s_coredump.log << EOF\n' % self.applicationName )
+    script.write('where\n')
+    script.write('quit\n')
+    script.write('EOF\n')
+    script.write('fi\n')
 
     script.write('exit $appstatus\n')
     script.close()
