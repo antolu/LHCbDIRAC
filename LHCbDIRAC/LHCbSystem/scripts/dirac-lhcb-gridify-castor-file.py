@@ -38,7 +38,7 @@ for physicalFile in castorFiles:
     continue
   relativePath =  re.findall(exp,physicalFile)[0]
   gLogger.verbose("Found relative path of %s to be %s" % (physicalFile,relativePath))
-  res = replicaManager.getStorageFile(physicalFile,'CERN-USER',singleFile=True)
+  res = replicaManager.getStorageFile(physicalFile,'CERN-RDST',singleFile=True)
   localFile = os.path.basename(relativePath)
   if not res['OK']:
     gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
