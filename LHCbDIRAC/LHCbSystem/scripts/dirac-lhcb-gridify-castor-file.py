@@ -12,7 +12,7 @@ from DIRAC                                                import gLogger
 from DIRAC.Core.Security.Misc                             import getProxyInfo
 from DIRAC.LHCbSystem.Client.LHCbAPI                      import LHCbAPI
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
-import re
+import re,os
 
 lhcb = LHCbAPI()
 replicaManager = ReplicaManager()
@@ -37,15 +37,17 @@ for physicalFile in castorFiles:
     gLogger.info("Failed to determine relative path for file %s. Ignored." % physicalFile)
     continue
   relativePath =  re.findall(exp,physicalFile)[0]
+  gLogger.verbose("Found relative path of %s to be %s" % (physicalFile,relativePath))
   res = replicaManager.getStorageFile(physicalFile,'CERN-USER',singleFile=True)
   if not res['OK']:
     gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
     continue
-  localFile = res['Value']
+  localFile = os.path.basename(relativePath)
+  gLogger.verbose("Obtained local copy of %s at %s" % (physicalFile,localFile))
+  lfn = '/lhcb/user/%s/%s/Migrated/%s' % (username[0],username,relativePath)
   res = lhcb.addRootFile(lfn,localFile,se)
   if not res['OK']:
     gLogger.error("Failed to upload %s to grid." % physicalFile,res['Message'])
     continue
-  lfn = '/lhcb/user/%s/%s/Migrated/%s' % (username[0],username,relativePath)
   gLogger.info("Successfully uploaded %s to Grid. The corresponding LFN is %s" % (physicalFile,lfn))
 DIRAC.exit(0)
