@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.19 2009/10/16 09:50:57 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.20 2009/10/29 19:27:54 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.19 2009/10/16 09:50:57 paterson Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.20 2009/10/29 19:27:54 acsmith Exp $"
 
 import string,re,os,shutil,types, tempfile
 
@@ -232,35 +232,13 @@ def _errorReport(error,message=None):
 def getRootFileGUID(fileName,cleanUp=True):
   """ Function to retrieve a file GUID using Root.
   """
-  setupProject = ['SetupProject']
-  setupProject.append( '--ignore-missing' )
-  setupProject.append( 'DaVinci' )
-  sharedArea = ''
-  if os.environ.has_key('VO_LHCB_SW_DIR'):
-    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
-    gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-  elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
-    sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
-    gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
+  # Setup the root enviroment
+  res = _setupRootEnvironment()
+  if not res['OK']:
+    return _errorReport(res['Message'],"Failed to setup the ROOT environment")
+  rootEnv = res['Value']
 
-  if not sharedArea:
-    gLogger.error('Could not find VO_LHCB_SW_DIR or /LocalSite/SharedArea in local configuration')
-    return S_ERROR('Could not find local shared software area')
-
-  lbLogin = '%s/LbLogin' %sharedArea
-  ret = DIRAC.Source( 300,[lbLogin], dict(os.environ))
-  if not ret['OK']:
-    gLogger.warn('Error during lbLogin\n%s' %ret)
-    return ret
-
-  setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
-  setupProject.append('DaVinci')
-  ret = DIRAC.Source( 300, setupProject, ret['outputEnv'] )
-  if not ret['OK']:
-    gLogger.warn('Error during SetupProject\n%s' %ret)
-    return ret
-
-  appEnv = ret['outputEnv']
+  # Write the script to be executed  
   fopen = open('tmpRootScript.py','w')
   fopen.write('from ROOT import TFile\n')
   fopen.write("l=TFile.Open('%s')\n" %fileName)
@@ -273,26 +251,27 @@ def getRootFileGUID(fileName,cleanUp=True):
   fopen.write("print 'GUID%sGUID' %fid\n")
   fopen.write('l.Close()\n')
   fopen.close()
+
+  # Execute the root script
   cmd = ['python']
   cmd.append('tmpRootScript.py')
   gLogger.debug(cmd)
-  ret = DIRAC.systemCall( 1800, cmd, env=appEnv, callbackFunction=log )
+  ret = DIRAC.systemCall( 1800, cmd, env=rootEnv)
   if not ret['OK']:
     gLogger.error('Problem using root\n%s' %ret)
     return ret
 
   if cleanUp:
     os.remove('tmpRootScript.py')
-
   stdout = ret['Value'][1]
   try:
     guid = stdout.split('GUID')[1]
+    gLogger.verbose('GUID found to be %s' %guid)
+    return S_OK(guid)
   except Exception,x:
     gLogger.error('Could not obtain GUID from file')
     return S_ERROR('Failed to get GUID from file')
 
-  gLogger.verbose('GUID found to be %s' %guid)
-  return S_OK(guid)
 
 #############################################################################
 def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
