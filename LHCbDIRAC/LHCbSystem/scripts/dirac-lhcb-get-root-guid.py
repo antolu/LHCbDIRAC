@@ -12,10 +12,9 @@ if not localFiles:
   gLogger.info("Usage: dirac-lhcb-get-root-guid file1 [file2 ...]")
   gLogger.info("Try dirac-lhcb-get-root-guid --help for options")
   DIRAC.exit(0)
-
 for file in localFiles:
   if not os.path.exists(file):
-    gLogger.info("The supplied file %s does not exist")
+    gLogger.info("The supplied file %s does not exist" % file)
     continue
   res = getRootFileGUID(file)
   if not res['OK']:
