@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.21 2009/10/29 19:56:25 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.22 2009/10/29 20:11:59 acsmith Exp $
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.21 2009/10/29 19:56:25 acsmith Exp $"
+__RCSID__ = "$Id: ClientTools.py,v 1.22 2009/10/29 20:11:59 acsmith Exp $"
 
 import string,re,os,shutil,types, tempfile
 
@@ -239,38 +239,7 @@ def getRootFilesGUIDs(fileNames,cleanUp=True):
   rootEnv = res['Value']
   fileGUIDs = {}
   for fileName in fileNames:
-    # Write the script to be executed
-    fopen = open('tmpRootScript.py','w')
-    fopen.write('from ROOT import TFile\n')
-    fopen.write("l=TFile.Open('%s')\n" %fileName)
-    fopen.write("t=l.Get(\'##Params\')\n")
-    fopen.write('t.Show(0)\n')
-    fopen.write('leaves=t.GetListOfLeaves()\n')
-    fopen.write('leaf=leaves.UncheckedAt(0)\n')
-    fopen.write('val=leaf.GetValueString()\n')
-    fopen.write("fid=val.split('=')[2].split(']')[0]\n")
-    fopen.write("print 'GUID%sGUID' %fid\n")
-    fopen.write('l.Close()\n')
-    fopen.close()
-    # Execute the root script
-    cmd = ['python']
-    cmd.append('tmpRootScript.py')
-    gLogger.debug(cmd)
-    ret = DIRAC.systemCall( 1800, cmd, env=rootEnv)
-    if not ret['OK']:
-      gLogger.error('Problem using root\n%s' %ret)
-      fileGUIDs[fileName] = ''
-      continue
-    if cleanUp:
-      os.remove('tmpRootScript.py')  
-    stdout = ret['Value'][1]
-    try:
-      guid = stdout.split('GUID')[1]
-      fileGUIDs[fileName] = guid
-      gLogger.verbose('GUID found to be %s' %guid)
-    except Exception,x:
-      gLogger.error('Could not obtain GUID from file')
-      fileGUIDs[fileName] = ''
+    fileGUIDs[fileName] = _getROOTGUID(fileName,rootEnv)
   return S_OK(fileGUIDs)
 
 def getRootFileGUID(fileName,cleanUp=True):
@@ -281,10 +250,13 @@ def getRootFileGUID(fileName,cleanUp=True):
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the ROOT environment")
   rootEnv = res['Value']
-  # Write the script to be executed  
+  return S_OK(_getROOTGUID(fileName,rootEnv))
+
+def _getROOTGUID(rootFile,rootEnv,cleanUp=True):
+  # Write the script to be executed
   fopen = open('tmpRootScript.py','w')
   fopen.write('from ROOT import TFile\n')
-  fopen.write("l=TFile.Open('%s')\n" %fileName)
+  fopen.write("l=TFile.Open('%s')\n" % rootFile)
   fopen.write("t=l.Get(\'##Params\')\n")
   fopen.write('t.Show(0)\n')
   fopen.write('leaves=t.GetListOfLeaves()\n')
@@ -300,19 +272,18 @@ def getRootFileGUID(fileName,cleanUp=True):
   gLogger.debug(cmd)
   ret = DIRAC.systemCall( 1800, cmd, env=rootEnv)
   if not ret['OK']:
-    gLogger.error('Problem using root\n%s' %ret)
-    return ret
-
+    gLogger.error('Problem using root\n%s' % ret)
+    return '' 
   if cleanUp:
-    os.remove('tmpRootScript.py')
+    os.remove('tmpRootScript.py')  
   stdout = ret['Value'][1]
   try:
     guid = stdout.split('GUID')[1]
-    gLogger.verbose('GUID found to be %s' %guid)
-    return S_OK(guid)
+    gLogger.verbose('GUID found to be %s' % guid)
+    return guid
   except Exception,x:
     gLogger.error('Could not obtain GUID from file')
-    return S_ERROR('Failed to get GUID from file')
+    return ''
 
 #############################################################################
 def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
