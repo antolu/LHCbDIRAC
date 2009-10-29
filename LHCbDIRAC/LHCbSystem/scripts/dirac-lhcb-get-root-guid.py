@@ -4,7 +4,8 @@ Script.parseCommandLine(ignoreErrors = True)
 localFiles = Script.getPositionalArgs()
 import DIRAC
 from DIRAC                                                import gLogger
-from DIRAC.LHCbSystem.Utilities.ClientTools               import getRootFileGUID
+from DIRAC.LHCbSystem.Utilities.ClientTools               import getRootFilesGUIDs
+from DIRAC.Core.Utilities.List                            import sortList
 import os
 
 if not localFiles:
@@ -12,13 +13,20 @@ if not localFiles:
   gLogger.info("Usage: dirac-lhcb-get-root-guid file1 [file2 ...]")
   gLogger.info("Try dirac-lhcb-get-root-guid --help for options")
   DIRAC.exit(0)
-for file in localFiles:
-  if not os.path.exists(file):
-    gLogger.info("The supplied file %s does not exist" % file)
-    continue
-  res = getRootFileGUID(file)
-  if not res['OK']:
-    gLogger.info("Failed to obtain GUID for %s: %s" % (file,res['Message']))
-    continue
-  gLogger.info("%s GUID: %s" % (file,res['Value']))
+existFiles = []
+for localFile in localFiles:
+  if os.path.exists(localFile):
+    existFiles.append(os.path.realpath(localFile))
+  else:
+    gLogger.info("The supplied file %s does not exist" % localFile)  
+res = getRootFilesGUIDs(existFiles)
+if not res['OK']:
+  gLogger.error("Failed to obtain file GUIDs",res['Message'])
+  DIRAC.exit(-1)
+fileGUIDs = res['Value']
+for file in sortList(fileGUIDs.keys()):
+  if fileGUIDs[file]:
+    gLogger.info("%s GUID: %s" % (file,fileGUIDs[file]))
+  else:
+    gLogger.info("%s GUID: Failed to get GUID" % file)
 DIRAC.exit(0)
