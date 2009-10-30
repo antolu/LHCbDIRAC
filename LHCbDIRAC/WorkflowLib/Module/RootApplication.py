@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.12 2009/05/28 13:54:53 roma Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.13 2009/10/30 12:59:06 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.12 2009/05/28 13:54:53 roma Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.13 2009/10/30 12:59:06 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -14,7 +14,7 @@ try:
 except Exception,x:
   from LHCbSystem.Utilities.CombinedSoftwareInstallation  import  MySiteRoot
 
-import string, os, sys, fnmatch
+import string, os, sys, fnmatch, re
 
 class RootApplication(object):
 
@@ -65,6 +65,8 @@ class RootApplication(object):
       self.arguments = self.step_commons['arguments']
     else:
       self.log.warn('No arguments specified')
+
+    print self.arguments
 
     if self.step_commons.has_key('logFile'):
       self.logFile = self.step_commons['logFile']
@@ -144,7 +146,14 @@ class RootApplication(object):
       rootCmd.append('-b')
       rootCmd.append('-f')
       if self.arguments:
-        macroArgs = '%s\(%s\)' %(self.rootScript,self.arguments)
+        escapedArgs=[]
+        for arg in self.arguments:
+          if type(arg)==type(' '):
+            escapedArgs.append('\'"%s"\'' %(arg))
+          else:
+            escapedArgs.append('%s' %(arg))
+
+        macroArgs = '%s\(%s\)' %(self.rootScript,string.join(escapedArgs,','))
         rootCmd.append(macroArgs)
       else:
         rootCmd.append(self.rootScript)
@@ -169,12 +178,12 @@ class RootApplication(object):
       rootCmd = [pythonbin]
       rootCmd.append(self.rootScript)
       if self.arguments:
-        rootCmd.append(self.arguments)
+        rootCmd+=self.arguments
 
     elif self.rootType.lower() in ('bin','exe'):
       rootCmd = [os.path.abspath(self.rootScript)]
       if self.arguments:
-        rootCmd.append(self.arguments)
+        rootCmd+=self.arguments
 
     if os.path.exists(self.logFile):
       os.remove(self.logFile)
