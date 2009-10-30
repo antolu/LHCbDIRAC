@@ -1,10 +1,10 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.13 2009/10/30 12:59:06 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/RootApplication.py,v 1.14 2009/10/30 13:19:00 paterson Exp $
 ########################################################################
 
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py,v 1.13 2009/10/30 12:59:06 paterson Exp $"
+__RCSID__ = "$Id: RootApplication.py,v 1.14 2009/10/30 13:19:00 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -63,6 +63,11 @@ class RootApplication(object):
 
     if self.step_commons.has_key('arguments'):
       self.arguments = self.step_commons['arguments']
+      tmp=[]
+      for argument in self.arguments:
+        if argument:
+          tmp.append(argument)
+      self.arguments = tmp
     else:
       self.log.warn('No arguments specified')
 
