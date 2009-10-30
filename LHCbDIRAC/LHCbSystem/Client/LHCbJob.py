@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.18 2009/10/30 12:58:36 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.19 2009/10/30 13:19:19 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.18 2009/10/30 12:58:36 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.19 2009/10/30 13:19:19 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -500,7 +500,7 @@ class LHCbJob(Job):
        @param rootScript: Path to ROOT macro script
        @type rootScript: string
        @param arguments: Optional arguments for macro
-       @type arguments: string
+       @type arguments: string or list
        @param logFile: Optional log file name
        @type logFile: string
     """
@@ -525,7 +525,7 @@ class LHCbJob(Job):
        @param rootScript: Path to ROOT python script
        @type rootScript: string
        @param arguments: Optional arguments for python script
-       @type arguments: string
+       @type arguments: string or list
        @param logFile: Optional log file name
        @type logFile: string
     """
@@ -550,7 +550,7 @@ class LHCbJob(Job):
        @param rootScript: Path to ROOT macro script
        @type rootScript: string
        @param arguments: Optional arguments for macro
-       @type arguments: string
+       @type arguments: string or list
        @param logFile: Optional log file name
        @type logFile: string
     """
