@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.17 2009/07/29 08:25:10 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.18 2009/10/30 12:58:36 paterson Exp $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.17 2009/07/29 08:25:10 paterson Exp $"
+__RCSID__ = "$Id: LHCbJob.py,v 1.18 2009/10/30 12:58:36 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -563,7 +563,10 @@ class LHCbJob(Job):
 
         Supports the root macro, python and executable wrapper functions.
     """
-    for param in [rootVersion,rootScript,rootType,arguments,logFile]:
+    if not type(arguments) == types.ListType:
+      arguments = [arguments]
+
+    for param in [rootVersion,rootScript,rootType,logFile]:
       if not type(param) in types.StringTypes:
         raise TypeError,'Expected strings for Root application input parameters'
 
@@ -645,7 +648,7 @@ class LHCbJob(Job):
     step.addParameter(Parameter("rootVersion","","string","","",False, False, "Root version."))
     step.addParameter(Parameter("rootScript","","string","","",False, False, "Root script."))
     step.addParameter(Parameter("rootType","","string","","",False, False, "Root type."))
-    step.addParameter(Parameter("arguments","","string","","",False, False, "Optional arguments for payload."))
+    step.addParameter(Parameter("arguments",[],"list","","",False, False, "Optional arguments for payload."))
     step.addParameter(Parameter("logFile","","string","","",False, False, "Log file name."))
     return step
 
