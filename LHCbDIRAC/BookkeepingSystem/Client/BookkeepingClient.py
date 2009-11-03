@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.96 2009/10/22 20:38:03 zmathe Exp $
+# $Id: BookkeepingClient.py,v 1.97 2009/11/03 13:47:13 zmathe Exp $
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.96 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id: BookkeepingClient.py,v 1.97 2009/11/03 13:47:13 zmathe Exp $"
 
 class BookkeepingClient:
 
@@ -240,9 +240,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def getProductionFiles(self, prod, fileType):
+  def getProductionFiles(self, prod, fileType, replica='ALL'):
     server = self.__getServer()
-    result = server.getProductionFiles(int(prod), fileType)
+    result = server.getProductionFiles(int(prod), fileType, replica)
     return result
   
   #############################################################################

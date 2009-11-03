@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.58 2009/10/22 20:38:03 zmathe Exp $
+# $Id: IBookkeepingDatabaseClient.py,v 1.59 2009/11/03 13:47:13 zmathe Exp $
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.58 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.59 2009/11/03 13:47:13 zmathe Exp $"
 
 class IBookkeepingDatabaseClient(object):
     
@@ -129,8 +129,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getAvailableRuns()
   
   #############################################################################
-  def getProductionFiles(self, prod, fileType):
-    return self.getManager().getProductionFiles(prod, fileType)
+  def getProductionFiles(self, prod, fileType, replica='ALL'):
+    return self.getManager().getProductionFiles(prod, fileType, replica)
   
   #############################################################################
   def getProductionFilesWithAGivenDate(self, prod, ftype, startDate = None, endDate = None):
