@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.31 2009/10/22 20:38:02 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.32 2009/11/03 12:27:19 zmathe Exp $
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                      
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.31 2009/10/22 20:38:02 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.32 2009/11/03 12:27:19 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -157,6 +157,7 @@ class XMLFilesReaderManager:
             self.errorMgmt_.reportError (13, "The event type " + str(value) + " is missing.\n", deleteFileName, errorReport)
             return S_ERROR("The event type " + str(value) + " is missing.\n")
         
+        gLogger.debug('EventTypeId checking!')
         if paramName == "EventTypeId":
           if param.getParamValue() != '':
             value = long(param.getParamValue())
@@ -215,8 +216,7 @@ class XMLFilesReaderManager:
       
       
       currentEventInputStat = job.getParam('EventInputStat')
-      
-      if currentEventInputStat.getValue() != None and str(sumEventInputStat) > str(currentEventInputStat.getValue()):
+      if currentEventInputStat != None and currentEventInputStat.getValue() != None and str(sumEventInputStat) > str(currentEventInputStat.getValue()):
         currentEventInputStat.setValue(sumEventInputStat)
     
       ################
