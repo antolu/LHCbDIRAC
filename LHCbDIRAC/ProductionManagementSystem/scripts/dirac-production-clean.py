@@ -2,10 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-clean.py,v 1.1 2009/09/09 15:09:03 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-clean.py,v 1.2 2009/11/03 10:38:22 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: dirac-production-clean.py,v 1.1 2009/09/09 15:09:03 acsmith Exp $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__   = "$Id: dirac-production-clean.py,v 1.2 2009/11/03 10:38:22 acsmith Exp $"
+__VERSION__ = "$Revision: 1.2 $"
 
 import sys
 if len(sys.argv) < 2:
@@ -26,7 +26,7 @@ if not res['OK']:
   gLogger.error(res['Message'])
   DIRAC.exit(-1)
 status = res['Value']
-if not status in ['Deleted','Cleaning']:
+if not status in ['Deleted','Cleaning','Archived']:
   gLogger.error("The production is in %s status and can not be cleaned" % status)
   DIRAC.exit(-1)
 agent = ProductionCleaningAgent('ProductionManagement/ProductionCleaningAgent','dirac-production-clean-production')
