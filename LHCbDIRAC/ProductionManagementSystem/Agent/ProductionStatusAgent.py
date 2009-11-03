@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.8 2009/10/05 14:54:51 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.9 2009/11/03 14:22:27 paterson Exp $
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,8 +24,8 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.8 2009/10/05 14:54:51 paterson Exp $"
-__VERSION__ = "$Revision: 1.8 $"
+__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.9 2009/11/03 14:22:27 paterson Exp $"
+__VERSION__ = "$Revision: 1.9 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -80,7 +80,7 @@ class ProductionStatusAgent(AgentModule):
 
     prodValOutputs = {}
     prodValInputs = {}
-    notDone = {}
+    notDoneOutputs = {}
     for reqID,mdata in prodReqSummary.items():
       totalRequested = mdata['reqTotal']
       bkTotal = mdata['bkTotal']
@@ -104,7 +104,8 @@ class ProductionStatusAgent(AgentModule):
           else:
             prodValInputs[prod]=reqID
         else:
-          notDone[prod]=reqID
+          if used['Used']:
+            notDoneOutputs[prod]=reqID
 
     #Check that there is something to do
     if not prodValOutputs.keys():
@@ -185,8 +186,8 @@ class ProductionStatusAgent(AgentModule):
     returnToActive = []
     for prod in validatedOutput:
       if not prodValOutputs.has_key(prod):
-        if notDone.has_key(prod):
-          unfinishedRequest = notDone[prod]
+        if notDoneOutputs.has_key(prod):
+          unfinishedRequest = notDoneOutputs[prod]
           if unfinishedRequest in singleRequests:
             self.log.info('Prod %s for single request %s has not enough BK events' %(prod,unfinishedRequest))
             returnToActive.append(prod)
@@ -210,11 +211,18 @@ class ProductionStatusAgent(AgentModule):
     for req,subReqs in parentRequests.items():
       finished = True
       toCheck = []
+      notDoneProds = []
       for subreq in subReqs:
         for assocProd,valreq in prodValOutputs.items():
           if valreq==subreq:
             toCheck.append(assocProd)
+        for notDoneProd,notDoneReq in notDoneOutputs.items():
+          if notDoneReq==subreq:
+            notDoneProds.append(notDoneProd)
       self.log.info('==> Checking productions: %s for parent request %s' %(string.join([str(i) for i in toCheck],', '),req))
+      for notDoneProd in notDoneProds:
+        self.log.info('Production %s is part of parent request ID %s but does not have enough BK events' %(notDoneProd,req))
+        finished=False
       for prod in toCheck:
         if not prod in validatedOutput:
           self.log.info('Production %s is part of parent request ID %s but not yet in ValidatedOutput status' %(prod,req))
