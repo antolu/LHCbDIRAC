@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.8 2009/10/12 10:39:44 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.9 2009/11/03 15:33:14 paterson Exp $
 ########################################################################
 
 """  The FEST Reco template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.8 2009/10/12 10:39:44 paterson Exp $"
+__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.9 2009/11/03 15:33:14 paterson Exp $"
 
 import sys,os,string
 start = os.getcwd()
@@ -92,7 +92,7 @@ if recoType.lower=='express':
 
 production.setInputBKSelection(inputBKQuery)
 production.setProdGroup('{{pDsc}}')
-production.setFileMask("rdst;root")
+production.setFileMask("%s;root" %(appType))
 production.setProdPriority(priority)
 
 if not args:
