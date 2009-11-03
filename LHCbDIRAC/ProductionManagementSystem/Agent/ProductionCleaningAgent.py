@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.4 2009/10/06 14:56:05 acsmith Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionCleaningAgent.py,v 1.5 2009/11/03 15:24:30 acsmith Exp $
 ########################################################################
-__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.4 2009/10/06 14:56:05 acsmith Exp $"
-__VERSION__ = "$Revision: 1.4 $"
+__RCSID__   = "$Id: ProductionCleaningAgent.py,v 1.5 2009/11/03 15:24:30 acsmith Exp $"
+__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
@@ -85,7 +85,7 @@ class ProductionCleaningAgent(AgentModule):
             gLogger.error("Failed to get last update time for production %d" % prodID)
           else:
             lastUpdateTime = res['Value']
-            timeDelta = timedelta(days=30)
+            timeDelta = timedelta(days=7)
             maxCTime = datetime.utcnow() -  timeDelta
             if lastUpdateTime < maxCTime:
               self.archiveProduction(prodID)
@@ -134,8 +134,12 @@ class ProductionCleaningAgent(AgentModule):
         res = self.cleanStorageContents(directory)
         if not res['OK']:
           return res
+    gLogger.info("Removed directories in the catalog and storage for production")
     # Clean ALL the possible remnants found in the BK
-    res = self.cleanBKFiles(prodID)
+    bkFlag = 'Yes'
+    if not directories:
+      bkFlag = ''
+    res = self.cleanBKFiles(prodID,bkFlag)
     if not res['OK']:
       return res
     gLogger.info("Successfully removed output of production %d" % prodID)
@@ -177,7 +181,10 @@ class ProductionCleaningAgent(AgentModule):
         if not res['OK']:
           return res
     # Clean ALL the possible remnants found in the BK
-    res = self.cleanBKFiles(prodID)
+    bkFlag = 'Yes'
+    if not directories:
+      bkFlag = ''
+    res = self.cleanBKFiles(prodID,'Yes')
     if not res['OK']:
       return res
     gLogger.info("Successfully cleaned production %d" % prodID)
@@ -314,8 +321,8 @@ class ProductionCleaningAgent(AgentModule):
     gLogger.info("Successfully removed production log directory")
     return S_OK()
 
-  def cleanBKFiles(self,prodID):
-    res = self.bkClient.getProductionFiles(prodID,'ALL') 
+  def cleanBKFiles(self,prodID,bkFlag=''):
+    res = self.bkClient.getProductionFiles(prodID,'ALL',bkFlag) 
     if not res['OK']: 
       return res
     bkMetadata = res['Value']
