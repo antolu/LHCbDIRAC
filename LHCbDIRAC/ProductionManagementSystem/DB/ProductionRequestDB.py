@@ -1,9 +1,9 @@
-# $Id: ProductionRequestDB.py,v 1.21 2009/10/16 15:38:24 azhelezo Exp $
+# $Id: ProductionRequestDB.py,v 1.22 2009/11/03 16:33:04 azhelezo Exp $
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.21 $"
+__RCSID__ = "$Revision: 1.22 $"
 
 # Defined states:
 #'New'
@@ -291,6 +291,9 @@ class ProductionRequestDB(DB):
     """ Create new Production Request
         TODO: Complete check of content
     """
+    if creds['Group'] == 'hosts':
+      return S_ERROR('Authorization required')
+
     rec = dict.fromkeys(self.requestFields[1:-6],None)
     for x in requestDict:
       if x in rec and str(requestDict[x]) != '':
@@ -916,6 +919,8 @@ class ProductionRequestDB(DB):
     """ recurcive duplication function.
         NOTE: unlock in case of errors
     """
+    if creds['Group'] == 'hosts':
+      return S_ERROR('Authorization required')
 
     result = self.__getRequest(requestID,connection)
     if not result['OK']:
@@ -992,6 +997,8 @@ class ProductionRequestDB(DB):
     master must be in New state and user must be the
     author.
     """
+    gLogger.info("creds: %s" % str(creds))
+
     try:
       requestID = long(requestID)
     except Exception,e:
