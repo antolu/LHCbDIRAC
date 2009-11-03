@@ -31,7 +31,7 @@ if not castorFiles:
 exp = re.compile(r'/castor/cern.ch/user/[a-z]/[a-z]*/(\S+)$')
 for physicalFile in castorFiles:
   if not physicalFile.startswith("/castor/cern.ch/user"):
-    gLoger.info("%s is not a Castor user file (e.g. /castor/cern.ch/user/%s/%s). Ignored." % (physicalFile,username[0],username))
+    gLogger.info("%s is not a Castor user file (e.g. /castor/cern.ch/user/%s/%s). Ignored." % (physicalFile,username[0],username))
     continue
   if not re.findall(exp,physicalFile):
     gLogger.info("Failed to determine relative path for file %s. Ignored." % physicalFile)
