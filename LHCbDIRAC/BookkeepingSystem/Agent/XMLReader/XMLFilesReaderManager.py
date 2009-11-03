@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.32 2009/11/03 12:27:19 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.33 2009/11/03 15:53:33 zmathe Exp $
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                      
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.32 2009/11/03 12:27:19 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.33 2009/11/03 15:53:33 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -216,7 +216,7 @@ class XMLFilesReaderManager:
       
       
       currentEventInputStat = job.getParam('EventInputStat')
-      if currentEventInputStat != None and currentEventInputStat.getValue() != None and str(sumEventInputStat) > str(currentEventInputStat.getValue()):
+      if currentEventInputStat != None and currentEventInputStat.getValue() != None and long(sumEventInputStat) > long(currentEventInputStat.getValue()):
         currentEventInputStat.setValue(sumEventInputStat)
     
       ################
