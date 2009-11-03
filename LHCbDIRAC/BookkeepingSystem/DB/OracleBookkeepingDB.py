@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py,v 1.116 2009/11/03 13:47:13 zmathe Exp $
+# $Id: OracleBookkeepingDB.py,v 1.117 2009/11/03 13:57:18 zmathe Exp $
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.116 2009/11/03 13:47:13 zmathe Exp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py,v 1.117 2009/11/03 13:57:18 zmathe Exp $"
 
 from types                                                           import *
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
@@ -1146,7 +1146,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     value = {}
     condition = ''
     if gotreplica != 'ALL':
-      condition += 'and files.gotrplica=\''+str(gotreplica)+'\''
+      condition += 'and files.gotreplica=\''+str(gotreplica)+'\''
       
     if ftype != 'ALL':
       fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
