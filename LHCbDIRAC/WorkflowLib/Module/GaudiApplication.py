@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py,v 1.156 2009/10/29 15:40:55 paterson Exp $
+# $Id: GaudiApplication.py,v 1.157 2009/11/04 13:24:44 paterson Exp $
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplication.py,v 1.156 2009/10/29 15:40:55 paterson Exp $"
+__RCSID__ = "$Id: GaudiApplication.py,v 1.157 2009/11/04 13:24:44 paterson Exp $"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
@@ -102,6 +102,12 @@ class GaudiApplication(ModuleBase):
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.append(evtSelOpt)
+
+      if self.applicationName.lower()=='moore':
+        options = []
+        options.append('from Configurables import Moore')
+        options.append("Moore().inputFiles = %s" %(self.inputData))
+
     poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.append(poolOpt)
     return S_OK(options)
