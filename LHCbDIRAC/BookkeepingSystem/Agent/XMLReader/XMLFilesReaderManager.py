@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.33 2009/11/03 15:53:33 zmathe Exp $
+# $Id: XMLFilesReaderManager.py,v 1.34 2009/11/04 11:37:18 zmathe Exp $
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                      
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.33 2009/11/03 15:53:33 zmathe Exp $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.34 2009/11/04 11:37:18 zmathe Exp $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -368,7 +368,7 @@ class XMLFilesReaderManager:
     else:
       value = res['Value']
       if value[0][0]==0:
-        gLogger.error('Missing processing pass and simulation conditions!(Please fill it!) Production=',str(attrList['Production']))
+        gLogger.warn('Missing processing pass and simulation conditions!(Please fill it!) Production=',str(attrList['Production']))
 
 
     if attrList['JobStart']==None:
