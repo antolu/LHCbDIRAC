@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py,v 1.47 2009/10/09 13:48:43 paterson Exp $
+# $Id: BookkeepingReport.py,v 1.48 2009/11/04 16:12:22 paterson Exp $
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py,v 1.47 2009/10/09 13:48:43 paterson Exp $"
+__RCSID__ = "$Id: BookkeepingReport.py,v 1.48 2009/11/04 16:12:22 paterson Exp $"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from WorkflowLib.Utilities.Tools import *
@@ -176,6 +176,7 @@ class BookkeepingReport(ModuleBase):
     dataTypes.append('BMUON.DST')
     dataTypes.append('HADRON.DST')
     dataTypes.append('JPSI.DST')
+    dataTypes.append('L0XHLT1.DST')
 
     if self.workflow_commons.has_key('dataType'):
       job_mode = self.workflow_commons['dataType'].lower()
