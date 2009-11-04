@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.46 2009/10/19 11:51:21 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.47 2009/11/04 16:13:36 paterson Exp $
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.46 2009/10/19 11:51:21 paterson Exp $"
+__RCSID__ = "$Id: Production.py,v 1.47 2009/11/04 16:13:36 paterson Exp $"
 
 import string, re, os, time, shutil, types, copy
 
@@ -153,7 +153,7 @@ class Production(LHCbJob):
       self.log.info('Setting default outputSE to %s' %(outputSE))
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,{},condDBTag,ddDBTag)
+    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
     self.gaussList.append(gaussStep.getName())
     gaussStep.setValue('numberOfEventsInput', 0)
     gaussStep.setValue('numberOfEventsOutput', 0)
@@ -186,7 +186,7 @@ class Production(LHCbJob):
       self.log.info('Adding output file to Boole step %s' %extraOutputFile)
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile,condDBTag,ddDBTag)
+    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile,condDBTag,ddDBTag,'')
 
   #############################################################################
   def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
@@ -229,7 +229,7 @@ class Production(LHCbJob):
       optionsLine = "%s;%s" % (optionsLine,extraOpts.replace('\n',';'))
     firstEventNumber=0
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
+    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
 
   #############################################################################
   def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
@@ -273,7 +273,37 @@ class Production(LHCbJob):
       appType='dst'
 
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
+    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
+
+  #############################################################################
+  def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='MC',condDBTag='global',ddDBTag='global',outputAppendName=''):
+    """ Wraps around addGaudiStep and getOptions.
+        appType is  dst and inputDataType is raw only at the moment.
+    """
+    eventType = self.__getEventType(eventType)
+    firstEventNumber=0
+    appTypes = ['dst']
+    if not appType in appTypes:
+      raise TypeError,'Application type not currently supported (%s)' % appTypes
+    if not inputDataType in ('raw'):
+      raise TypeError,'Only RAW input data type currently supported'
+
+    if not dataType.lower()=='mc':
+      raise TypeError,'Only MC data type is supported'
+
+    if not outputSE:
+      outputSE='Tier1_MC-DST'
+    self.log.info('Setting default outputSE to %s' %(outputSE))
+
+    if not overrideOpts:
+      optionsLine = getOptions('Moore',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
+      self.log.info('Default options for Moore are:\n%s' %(string.join(optionsLine,'\n')))
+      optionsLine = string.join(optionsLine,';')
+    else:
+      optionsLine = overrideOpts
+
+    self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
+    self._addGaudiStep('Moore',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,outputAppendName)
 
   #############################################################################
   def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
@@ -309,7 +339,7 @@ class Production(LHCbJob):
     if inputDataType.lower()=='mdf':
       self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
     else:
-      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag)
+      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
 
   #############################################################################
   def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={}):
@@ -340,7 +370,7 @@ class Production(LHCbJob):
     return stepInstance
 
   #############################################################################
-  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={},condDBTag='global',ddDBTag='global'):
+  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',histograms=False,firstEventNumber=0,extraOutput={},condDBTag='global',ddDBTag='global',outputAppendName=''):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -355,6 +385,9 @@ class Production(LHCbJob):
 
     gaudiStep.setValue('applicationName',appName)
     gaudiStep.setValue('applicationVersion',appVersion)
+    if outputAppendName:
+      appType = string.lower('%s.%s' %(outputAppendName,appType))
+
     gaudiStep.setValue('applicationType',appType)
     if type(optionsFile)==type([]):
       optionsFile = string.join(optionsFile,';')
