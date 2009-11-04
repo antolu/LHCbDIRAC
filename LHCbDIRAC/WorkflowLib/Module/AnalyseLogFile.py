@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.75 2009/09/18 13:41:22 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.76 2009/11/04 13:24:06 paterson Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.75 2009/09/18 13:41:22 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.76 2009/11/04 13:24:06 paterson Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -163,6 +163,7 @@ class AnalyseLogFile(ModuleBase):
       else:
         result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
+        print self.workflow_commons
         self.log.error('Could not create production LFNs',result['Message'])
         msg += 'Could not create production LFNs:\n%s\n' % result['Message']
 
@@ -188,6 +189,7 @@ class AnalyseLogFile(ModuleBase):
       msg = msg + '\n\nInput Data:\n'
       result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
+        print self.workflow_commons
         self.log.error('Could not create production LFNs',result['Message'])
         msg += 'Could not create production LFNs:\n%s\n' % result['Message']
 
@@ -402,7 +404,10 @@ class AnalyseLogFile(ModuleBase):
   def goodJob(self):
     # Check if the application finish successfully
     self.log.info('Check application ended successfully')
-    okay = self.findString('Application Manager Finalized successfully')['Value']
+    toFind = 'Application Manager Finalized successfully'
+    if self.applicationName.lower()=='moore':
+      toFind = 'Service finalized successfully'
+    okay = self.findString(toFind)['Value']
     if not okay:
       return S_ERROR('Finalization Error')
 
@@ -463,10 +468,48 @@ class AnalyseLogFile(ModuleBase):
       return self.checkBrunelEvents()
     if self.applicationName.lower() == 'davinci':
       return self.checkDaVinciEvents()
+    if self.applicationName.lower() == 'moore':
+      return self.checkMooreEvents()
     return S_ERROR("Application not known")
 #
 #-----------------------------------------------------------------------
 #
+
+  def checkMooreEvents(self):
+    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEventSummary()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+    # Get the number of events processed by DaVinci
+    res = self.getEventsProcessed('L0Muon')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("Crash in event %s" % lastEvent)
+    processedEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = self.findString('No more events in event selection')['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("Not all input events processed")
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR("Too few events processed")
+    return S_OK()
+
   def checkLHCbEvents(self):
     """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
     """
@@ -724,8 +767,11 @@ class AnalyseLogFile(ModuleBase):
     exp = re.compile(r"Requested to process ([0-9]+|all)")
     findline = re.search(exp,self.logString)
     if not findline:
-      self.log.error("Could not determine requested events.")
-      return S_ERROR("Could not determine requested events")
+      if self.applicationName.lower()=='moore':
+        return S_OK(int(self.numberOfEvents))
+      else:
+        self.log.error("Could not determine requested events.")
+        return S_ERROR("Could not determine requested events")
     events = findline.group(1)
     if events == 'all':
       requestedEvents = 0
@@ -794,11 +840,14 @@ class AnalyseLogFile(ModuleBase):
 
         If the string is not found an error is returned
     """
-    possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim']
+    possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
     if not service in possibleServices:
       self.log.error("Requested service not available.",service)
       return S_ERROR("Requested service '%s' not available" % service)
     exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
+    if service.lower()=='l0muon':
+      exp = re.compile(r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" %service)
+
     findline = re.search(exp,self.logString)
     if not findline:
       self.log.error("Could not determine events processed.")
