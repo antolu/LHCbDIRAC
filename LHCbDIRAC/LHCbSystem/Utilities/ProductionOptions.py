@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.7 2009/10/19 13:40:56 paterson Exp $
+# $Id: ProductionOptions.py,v 1.8 2009/11/04 13:25:18 paterson Exp $
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,7 +7,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.7 2009/10/19 13:40:56 paterson Exp $"
+__RCSID__ = "$Id: ProductionOptions.py,v 1.8 2009/11/04 13:25:18 paterson Exp $"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -78,9 +78,11 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     #options.append('EventSelector.PrintFreq = 200')
     options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
     return options
-
+  elif appName.lower()=='moore':
+    options.append('from Configurables import Moore')
+    options.append('Moore().outputFile = \'@{outputData}\'')
   else:
-    self.log.warn('No specific options found for project %s' %appName)
+    gLogger.warn('No specific options found for project %s' %appName)
 
   if extraOpts:
     options.append(extraOpts)
