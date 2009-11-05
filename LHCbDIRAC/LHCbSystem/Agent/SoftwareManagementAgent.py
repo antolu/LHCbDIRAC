@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/SoftwareManagementAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $
+# $HeadURL$
 # File :   SoftwareManagementAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareManagementAgent.py,v 1.7 2009/04/18 18:26:58 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Agent                                      import Agent
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory

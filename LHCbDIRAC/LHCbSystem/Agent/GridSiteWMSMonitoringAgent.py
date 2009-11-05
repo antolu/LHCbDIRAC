@@ -1,4 +1,4 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/GridSiteWMSMonitoringAgent.py,v 1.7 2008/12/19 12:09:02 atsareg Exp $
+# $HeadURL$
 
 '''
 GridSiteWMSMonitoringAgent extracts information on the current Grid activity from the DIRAC WMS

@@ -1,11 +1,11 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/FileReport.py,v 1.9 2008/10/08 12:33:23 rgracian Exp $
+# $HeadURL$
 
 """
   FileReport class encapsulates methods to report file status in the
   production environment in failover safe way
 """
 
-__RCSID__ = "$Id: FileReport.py,v 1.9 2008/10/08 12:33:23 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 import copy
 from DIRAC.Core.DISET.RPCClient import RPCClient

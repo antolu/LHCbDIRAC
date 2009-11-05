@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py,v 1.17 2009/07/29 14:06:24 paterson Exp $
+# $Id$
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py,v 1.17 2009/07/29 14:06:24 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager

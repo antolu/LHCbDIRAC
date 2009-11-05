@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManagerForTransfer.py,v 1.10 2008/09/12 16:18:10 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          i
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
-__RCSID__ = "$Id: XMLFilesReaderManagerForTransfer.py,v 1.10 2008/09/12 16:18:10 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class XMLFilesReaderManagerForTransfer:
   

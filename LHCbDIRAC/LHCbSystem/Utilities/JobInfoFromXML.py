@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/JobInfoFromXML.py,v 1.3 2008/09/18 12:15:03 roma Exp $
+# $HeadURL$
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################

@@ -1,10 +1,10 @@
 ########################################################################
-# $Id: HistoryNavigationCommand.py,v 1.1 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
-__RCSID__ = "$Id: HistoryNavigationCommand.py,v 1.1 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 
 ########################################################################

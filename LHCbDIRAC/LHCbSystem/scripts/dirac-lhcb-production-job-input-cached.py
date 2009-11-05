@@ -2,7 +2,7 @@
 
 __author__ = 'Greig A Cowan'
 __date__ = 'Sept 2008'
-__RCSID__ = '$Id: dirac-lhcb-production-job-input-cached.py,v 1.1 2008/10/16 09:51:48 paterson Exp $'
+__RCSID__ = '$Id$'
 __VERSION__ = '$Revision: 1.1 $'
 
 from DIRACEnvironment import DIRAC

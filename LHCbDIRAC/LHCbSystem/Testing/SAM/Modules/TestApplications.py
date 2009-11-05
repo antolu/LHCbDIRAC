@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/TestApplications.py,v 1.19 2009/07/16 11:32:56 rgracian Exp $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: TestApplications.py,v 1.19 2009/07/16 11:32:56 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig

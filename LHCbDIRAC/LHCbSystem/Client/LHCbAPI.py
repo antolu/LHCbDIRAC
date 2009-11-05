@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbAPI.py,v 1.3 2009/07/01 10:40:14 acsmith Exp $
+# $HeadURL$
 # Author: Andrew C. Smith
 ########################################################################
 
@@ -13,7 +13,7 @@
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-__RCSID__ = "$Id: LHCbAPI.py,v 1.3 2009/07/01 10:40:14 acsmith Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList

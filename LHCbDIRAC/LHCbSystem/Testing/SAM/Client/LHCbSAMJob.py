@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/LHCbSAMJob.py,v 1.24 2009/08/10 11:39:05 paterson Exp $
+# $HeadURL$
 # File :   LHCbSAMJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py,v 1.24 2009/08/10 11:39:05 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 

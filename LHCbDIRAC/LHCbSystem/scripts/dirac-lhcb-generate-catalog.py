@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-generate-catalog.py,v 1.5 2009/07/06 14:40:11 phicharp Exp $
+# $HeadURL$
 # File :   dirac-lhcb-generate-catalog.py
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-generate-catalog.py,v 1.5 2009/07/06 14:40:11 phicharp Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.5 $"
 
 from DIRACEnvironment import DIRAC

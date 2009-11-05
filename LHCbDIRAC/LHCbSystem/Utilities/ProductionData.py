@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ProductionData.py,v 1.7 2009/09/18 13:59:48 paterson Exp $
+# $Id$
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
 """
 
-__RCSID__ = "$Id: ProductionData.py,v 1.7 2009/09/18 13:59:48 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import string,re
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-productions-summary.py,v 1.3 2009/09/15 10:39:00 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-productions-summary
 # Author : Zoltan Mathe
 ########################################################################

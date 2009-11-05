@@ -2,9 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-verify-outputdata.py,v 1.10 2009/09/11 15:24:25 acsmith Exp $
+# $HeadURL$
 ########################################################################
-__RCSID__   = "$Id: dirac-production-verify-outputdata.py,v 1.10 2009/09/11 15:24:25 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.10 $"
 
 import sys

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AdvancedSave.py,v 1.2 2009/04/01 13:06:36 zmathe Exp $
+# $Id$
 ########################################################################
 from PyQt4.QtGui                                                          import *
 from PyQt4.QtCore                                                         import *
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave_ui                   import
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAdvancedSave          import ControlerAdvancedSave
 import DIRAC,os
 
-__RCSID__ = "$Id: AdvancedSave.py,v 1.2 2009/04/01 13:06:36 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class AdvancedSave(QDialog, Ui_Dialog):

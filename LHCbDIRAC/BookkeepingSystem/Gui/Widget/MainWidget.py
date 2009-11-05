@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: MainWidget.py,v 1.8 2009/06/23 07:34:50 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item                           import Ite
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 from DIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
-__RCSID__ = "$Id: MainWidget.py,v 1.8 2009/06/23 07:34:50 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 

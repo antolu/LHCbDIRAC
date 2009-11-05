@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py,v 1.8 2009/11/04 13:25:18 paterson Exp $
+# $Id$
 ########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
@@ -7,7 +7,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py,v 1.8 2009/11/04 13:25:18 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 

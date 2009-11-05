@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: StepFinalization.py,v 1.12 2009/05/01 11:23:04 rgracian Exp $
+# $Id$
 ########################################################################
 
 
-__RCSID__ = "$Id: StepFinalization.py,v 1.12 2009/05/01 11:23:04 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager

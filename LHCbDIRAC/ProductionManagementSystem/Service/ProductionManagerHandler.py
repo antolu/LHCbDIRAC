@@ -1,4 +1,4 @@
-# $Id: ProductionManagerHandler.py,v 1.56 2009/09/09 11:48:08 acsmith Exp $
+# $Id$
 """
 ProductionManagerHandler is the implementation of the Production service
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-eventtype-mgt-update.py,v 1.1 2008/11/11 15:49:56 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-eventtype-mgt-update
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-eventtype-mgt-update.py,v 1.1 2008/11/11 15:49:56 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
 import sys,string,re

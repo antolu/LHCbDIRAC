@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-production-informations.py,v 1.7 2009/09/07 13:37:28 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-production-informations
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-production-informations.py,v 1.7 2009/09/07 13:37:28 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script

@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-production-check-files.py,v 1.2 2008/10/17 13:18:15 rgracian Exp $
+# $HeadURL$
 # File :   dirac-lhcb-production-check-files
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-production-check-files.py,v 1.2 2008/10/17 13:18:15 rgracian Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 import os, sys, popen2
 import sys,string, pprint

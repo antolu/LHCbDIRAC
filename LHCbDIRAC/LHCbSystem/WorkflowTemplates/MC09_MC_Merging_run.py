@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_Merging_run.py,v 1.4 2009/10/16 08:37:06 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging production.
 """
 
-__RCSID__ = "$Id: MC09_MC_Merging_run.py,v 1.4 2009/10/16 08:37:06 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

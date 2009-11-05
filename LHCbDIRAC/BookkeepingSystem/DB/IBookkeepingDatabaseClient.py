@@ -1,4 +1,4 @@
-# $Id: IBookkeepingDatabaseClient.py,v 1.59 2009/11/03 13:47:13 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
 from DIRAC                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py,v 1.59 2009/11/03 13:47:13 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class IBookkeepingDatabaseClient(object):
     

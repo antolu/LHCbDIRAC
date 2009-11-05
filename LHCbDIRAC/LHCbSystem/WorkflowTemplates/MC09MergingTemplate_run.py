@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09MergingTemplate_run.py,v 1.1 2009/08/03 13:29:36 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The MC09 merging template creates a workflow for merging with
@@ -7,7 +7,7 @@
      type.  The input production is specified at creation time.
 """
 
-__RCSID__ = "$Id: MC09MergingTemplate_run.py,v 1.1 2009/08/03 13:29:36 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

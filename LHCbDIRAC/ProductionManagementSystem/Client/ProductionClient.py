@@ -1,6 +1,6 @@
 """ Client class to access the production manager service
 """
-# $Id: ProductionClient.py,v 1.6 2009/09/10 11:47:30 acsmith Exp $
+# $Id$
 __RCSID__ = "$Revision: 1.6 $"
 
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR

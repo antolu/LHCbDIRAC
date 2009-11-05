@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/ModuleBase.py,v 1.9 2009/07/16 11:32:57 rgracian Exp $
+# $HeadURL$
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several
@@ -7,7 +7,7 @@
 
 """
 
-__RCSID__ = "$Id: ModuleBase.py,v 1.9 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager

@@ -2,9 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-run-files.py,v 1.2 2009/10/14 09:04:12 zmathe Exp $
+# $HeadURL$
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-run-files.py,v 1.2 2009/10/14 09:04:12 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
 from DIRAC import gLogger

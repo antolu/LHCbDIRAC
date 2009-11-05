@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/CondDBAgent.py,v 1.9 2009/05/04 17:30:06 atsareg Exp $
+# $HeadURL$
 # File :   CondDBAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -18,7 +18,7 @@
     if the requested tag does not become available.
 """
 
-__RCSID__ = "$Id: CondDBAgent.py,v 1.9 2009/05/04 17:30:06 atsareg Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd

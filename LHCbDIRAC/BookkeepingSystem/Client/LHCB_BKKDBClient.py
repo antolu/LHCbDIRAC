@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from DIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from DIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):

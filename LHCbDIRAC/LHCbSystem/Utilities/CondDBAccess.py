@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/CondDBAccess.py,v 1.2 2009/06/15 16:22:59 paterson Exp $
+# $HeadURL$
 # Author: Stuart Paterson
 ########################################################################
 
 """  The CondDB access module allows.
 """
 
-__RCSID__ = "$Id: CondDBAccess.py,v 1.2 2009/06/15 16:22:59 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import string,os,shutil,re
 

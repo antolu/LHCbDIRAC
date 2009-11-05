@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-create.py,v 1.14 2009/07/10 12:48:00 acsmith Exp $
+# $HeadURL$
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-create.py,v 1.14 2009/07/10 12:48:00 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.14 $"
 import DIRAC
 from DIRAC import gLogger

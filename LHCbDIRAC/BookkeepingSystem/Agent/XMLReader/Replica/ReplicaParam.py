@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ReplicaParam.py,v 1.3 2008/07/02 09:49:12 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ReplicaParam.py,v 1.3 2008/07/02 09:49:12 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class ReplicaParam:
     

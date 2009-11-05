@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: ControlerFileDialog.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py,v 1.22 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message

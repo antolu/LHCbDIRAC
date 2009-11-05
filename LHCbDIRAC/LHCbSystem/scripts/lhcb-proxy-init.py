@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/lhcb-proxy-init.py,v 1.15 2009/06/04 06:55:40 joel Exp $
+# $HeadURL$
 # File :   dirac-proxy-init.py
 # Author : Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id: lhcb-proxy-init.py,v 1.15 2009/06/04 06:55:40 joel Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.15 $"
 
 import sys

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTStrippingTemplate_run.py,v 1.1 2009/10/21 12:47:29 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The FEST Stripping template creates a workflow for Brunel & DaVinci with
@@ -8,7 +8,7 @@
      This does
 """
 
-__RCSID__ = "$Id: FESTStrippingTemplate_run.py,v 1.1 2009/10/21 12:47:29 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os,string
 start = os.getcwd()

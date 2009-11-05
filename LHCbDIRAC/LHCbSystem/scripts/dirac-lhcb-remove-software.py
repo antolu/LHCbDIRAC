@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-remove-software.py,v 1.2 2009/07/17 14:02:08 joel Exp $
+# $HeadURL$
 # File :   dirac-lhcb-remove-software
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-remove-software.py,v 1.2 2009/07/17 14:02:08 joel Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 try:
   from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerAdvancedSave.py,v 1.2 2009/07/23 14:09:06 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -7,7 +7,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import Cont
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                     import *
 
-__RCSID__ = "$Id: ControlerAdvancedSave.py,v 1.2 2009/07/23 14:09:06 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerAdvancedSave(ControlerAbstract):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_Stripping_run.py,v 1.3 2009/10/14 07:36:20 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The MC09 stripping template creates a workflow for Brunel & DaVinci with
@@ -9,7 +9,7 @@
 
 """
 
-__RCSID__ = "$Id: MC09_Stripping_run.py,v 1.3 2009/10/14 07:36:20 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os,string
 start = os.getcwd()

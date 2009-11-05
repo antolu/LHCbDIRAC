@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ErrorLoggingHandler.py,v 1.1 2009/10/22 09:05:05 roma Exp $
+# $Id$
 ########################################################################
 
 """ The error logging service does something...
 """
 
-__RCSID__ = "$Id: ErrorLoggingHandler.py,v 1.1 2009/10/22 09:05:05 roma Exp $"
+__RCSID__ = "$Id$"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler

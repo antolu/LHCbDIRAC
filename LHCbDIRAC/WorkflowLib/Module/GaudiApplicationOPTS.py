@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplicationOPTS.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $
+# $Id$
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: GaudiApplicationOPTS.py,v 1.5 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog

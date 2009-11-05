@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/Production.py,v 1.47 2009/11/04 16:13:36 paterson Exp $
+# $HeadURL$
 # File :   Production.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     - Use getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py,v 1.47 2009/11/04 16:13:36 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 

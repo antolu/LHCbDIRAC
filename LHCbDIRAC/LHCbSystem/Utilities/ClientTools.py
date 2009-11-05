@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/ClientTools.py,v 1.22 2009/10/29 20:11:59 acsmith Exp $
+# $HeadURL$
 # File :   ClientTools.py
 ########################################################################
 
@@ -7,7 +7,7 @@
      of the DIRAC client in the LHCb environment.
 """
 
-__RCSID__ = "$Id: ClientTools.py,v 1.22 2009/10/29 20:11:59 acsmith Exp $"
+__RCSID__ = "$Id$"
 
 import string,re,os,shutil,types, tempfile
 

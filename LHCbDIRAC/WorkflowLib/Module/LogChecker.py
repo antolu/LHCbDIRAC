@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: LogChecker.py,v 1.21 2009/11/04 10:19:04 paterson Exp $
+# $Id$
 ########################################################################
 """ Script Base Class """
 
-__RCSID__ = "$Id: LogChecker.py,v 1.21 2009/11/04 10:19:04 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall

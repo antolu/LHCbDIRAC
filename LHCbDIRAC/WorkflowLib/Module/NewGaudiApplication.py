@@ -1,9 +1,9 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Module/NewGaudiApplication.py,v 1.25 2008/10/08 12:33:22 rgracian Exp $
+# $HeadURL$
 # File :   NewGaudiApplication.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: NewGaudiApplication.py,v 1.25 2008/10/08 12:33:22 rgracian Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.25 $"
 """ Gaudi Application Class """
 

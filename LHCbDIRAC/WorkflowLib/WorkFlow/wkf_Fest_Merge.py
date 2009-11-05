@@ -1,4 +1,4 @@
-__RCSID__ = "$Id: wkf_Fest_Merge.py,v 1.1 2008/11/10 12:47:04 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *

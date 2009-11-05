@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingManagerAgent.py,v 1.28 2008/07/25 19:15:48 zmathe Exp $
+# $Id$
 ########################################################################
 
 """ 
 BookkeepingManager agent process the ToDo directory and put the data to Oracle database.   
 """
 
-__RCSID__ = "$Id: BookkeepingManagerAgent.py,v 1.28 2008/07/25 19:15:48 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 

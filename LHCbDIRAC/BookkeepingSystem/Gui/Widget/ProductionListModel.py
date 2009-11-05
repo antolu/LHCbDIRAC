@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: ProductionListModel.py,v 1.3 2009/10/19 11:17:38 zmathe Exp $
+# $Id$
 ########################################################################
 from PyQt4.QtGui                                                          import *
 from PyQt4.QtCore                                                         import *
 
 import types
 
-__RCSID__ = "$Id: ProductionListModel.py,v 1.3 2009/10/19 11:17:38 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class ProductionListModel(QAbstractListModel):
   #############################################################################  

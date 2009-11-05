@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: module_example.py,v 1.1 2007/11/27 10:30:42 joel Exp $
+# $Id$
 ########################################################################
 """ Gaudi Application Class """
 
-__RCSID__ = "$Id: module_example.py,v 1.1 2007/11/27 10:30:42 joel Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Os import fixLDPath

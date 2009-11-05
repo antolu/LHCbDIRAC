@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobReader.py,v 1.11 2008/11/24 16:02:36 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -21,7 +21,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    impo
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: JobReader.py,v 1.11 2008/11/24 16:02:36 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 
 class JobReader:

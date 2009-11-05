@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-pass-index-insert.py,v 1.5 2009/03/05 16:40:45 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-pass-index-insert.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-pass-index-insert.py,v 1.5 2009/03/05 16:40:45 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
 import sys,string,re

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: XMLFilesReaderManager.py,v 1.34 2009/11/04 11:37:18 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                      
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 import os,sys,datetime
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py,v 1.34 2009/11/04 11:37:18 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()

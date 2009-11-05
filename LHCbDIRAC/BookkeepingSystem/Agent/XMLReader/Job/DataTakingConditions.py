@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: DataTakingConditions.py,v 1.1 2008/08/21 14:11:19 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: DataTakingConditions.py,v 1.1 2008/08/21 14:11:19 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 
 class DataTakingConditions:

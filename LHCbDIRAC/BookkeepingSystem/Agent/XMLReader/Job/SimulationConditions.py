@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SimulationConditions.py,v 1.1 2008/07/02 09:49:11 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: SimulationConditions.py,v 1.1 2008/07/02 09:49:11 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 
 class SimulationConditions:

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ReplicaReader.py,v 1.2 2008/11/24 16:02:36 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -10,7 +10,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica      import Replica
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam import ReplicaParam
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: ReplicaReader.py,v 1.2 2008/11/24 16:02:36 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class ReplicaReader:
     

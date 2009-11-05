@@ -1,10 +1,10 @@
 ########################################################################
-# $Id: ControlerTable.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $
+# $Id$
 ########################################################################
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
-__RCSID__ = "$Id: ControlerTable.py,v 1.1 2008/09/25 15:50:33 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerTable(ControlerAbstract):

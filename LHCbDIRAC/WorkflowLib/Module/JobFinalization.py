@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobFinalization.py,v 1.137 2009/07/16 11:32:57 rgracian Exp $
+# $Id$
 ########################################################################
 
 """ JobFinalization module is used in the LHCb production workflows to
@@ -22,7 +22,7 @@
 
 """
 
-__RCSID__ = "$Id: JobFinalization.py,v 1.137 2009/07/16 11:32:57 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.Catalog.BookkeepingDBClient import BookkeepingDBClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager

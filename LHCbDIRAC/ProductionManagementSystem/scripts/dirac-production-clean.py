@@ -2,9 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-clean.py,v 1.2 2009/11/03 10:38:22 acsmith Exp $
+# $HeadURL$
 ########################################################################
-__RCSID__   = "$Id: dirac-production-clean.py,v 1.2 2009/11/03 10:38:22 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 
 import sys

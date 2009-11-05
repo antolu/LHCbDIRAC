@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SoftwareReport.py,v 1.5 2009/08/10 07:30:52 roma Exp $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareReport.py,v 1.5 2009/08/10 07:30:52 roma Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient

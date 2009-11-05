@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py,v 1.31 2009/09/11 09:09:53 joel Exp $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py,v 1.31 2009/09/11 09:09:53 joel Exp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig

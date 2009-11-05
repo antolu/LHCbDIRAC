@@ -1,8 +1,8 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/BookkeepingWatchAgent.py,v 1.2 2009/09/14 21:03:57 acsmith Exp $
+# $HeadURL$
 ########################################################################
 
-__RCSID__ = "$Id: BookkeepingWatchAgent.py,v 1.2 2009/09/14 21:03:57 acsmith Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                            import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                      import AgentModule

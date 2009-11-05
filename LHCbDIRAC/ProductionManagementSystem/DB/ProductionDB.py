@@ -1,4 +1,4 @@
-# $Id: ProductionDB.py,v 1.65 2009/09/09 11:47:10 acsmith Exp $
+# $Id$
 """
     DIRAC ProductionDB class is a front-end to the pepository database containing
     Workflow (templates) Productions and vectors to create jobs.

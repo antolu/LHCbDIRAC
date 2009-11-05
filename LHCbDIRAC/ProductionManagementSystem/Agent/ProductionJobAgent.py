@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionJobAgent.py,v 1.19 2009/07/14 00:12:51 atsareg Exp $
+# $HeadURL$
 ########################################################################
 
 """  The Production Job Agent automatically submits production jobs after
@@ -8,7 +8,7 @@
      Dirac Production interface to submit the jobs.
 """
 
-__RCSID__ = "$Id: ProductionJobAgent.py,v 1.19 2009/07/14 00:12:51 atsareg Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerProductionLookup.py,v 1.5 2009/10/19 11:17:39 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from PyQt4.QtGui                                                     import *
 from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 
-__RCSID__ = "$Id: ControlerProductionLookup.py,v 1.5 2009/10/19 11:17:39 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerProductionLookup(ControlerAbstract):

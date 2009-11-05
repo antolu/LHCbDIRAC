@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-sam-submit-ce.py,v 1.2 2009/08/19 15:14:40 roma Exp $
+# $HeadURL$
 # File :   dirac-lhcb-sam-submit-ce
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce.py,v 1.2 2009/08/19 15:14:40 roma Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 import sys,string
 from DIRACEnvironment import DIRAC

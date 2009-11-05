@@ -1,5 +1,5 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/Utilities/Tools.py,v 1.30 2009/06/20 18:20:05 atsareg Exp $
-__RCSID__ = "$Id: Tools.py,v 1.30 2009/06/20 18:20:05 atsareg Exp $"
+# $HeadURL$
+__RCSID__ = "$Id$"
 
 import os, re, string
 from DIRAC.Core.Utilities.Subprocess                     import shellCall

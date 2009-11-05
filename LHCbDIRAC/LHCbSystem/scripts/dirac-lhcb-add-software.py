@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-add-software.py,v 1.3 2009/05/08 07:20:47 joel Exp $
+# $HeadURL$
 # File :   dirac-lhcb-add-software
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-add-software.py,v 1.3 2009/05/08 07:20:47 joel Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.3 $"
 try:
   from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient

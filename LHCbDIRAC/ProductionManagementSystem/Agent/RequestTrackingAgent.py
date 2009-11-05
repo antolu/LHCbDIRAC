@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/RequestTrackingAgent.py,v 1.2 2009/02/11 13:21:59 atsareg Exp $
+# $HeadURL$
 ########################################################################
 
 """ Production requests agent perform all periodic task with
     requests. Nothing for now...
 """
 
-__RCSID__ = "$Id: RequestTrackingAgent.py,v 1.2 2009/02/11 13:21:59 atsareg Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Agent          import Agent
 from DIRAC.Core.DISET.RPCClient     import RPCClient

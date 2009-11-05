@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TableWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id$
 ########################################################################
 
 # -*- coding: utf-8 -*-
@@ -13,7 +13,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-__RCSID__ = "$Id: TableWidget_ui.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class Ui_TableWidget(object):
     def setupUi(self, TableWidget):

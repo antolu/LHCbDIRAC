@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-run-test-job.py,v 1.4 2008/10/23 10:00:10 paterson Exp $
+# $HeadURL$
 # File :   dirac-lhcb-run-test-job
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-run-test-job.py,v 1.4 2008/10/23 10:00:10 paterson Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.4 $"
 
 import sys,string,os,shutil

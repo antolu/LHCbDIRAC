@@ -1,9 +1,9 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Client/ProductionManagerCLI.py,v 1.18 2009/03/05 11:04:19 atsareg Exp $
+# $HeadURL$
 # File :   ProductionManagerCLI.py
 # Author : Adria Casajus
 ########################################################################
-__RCSID__   = "$Id: ProductionManagerCLI.py,v 1.18 2009/03/05 11:04:19 atsareg Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.18 $"
 
 import cmd

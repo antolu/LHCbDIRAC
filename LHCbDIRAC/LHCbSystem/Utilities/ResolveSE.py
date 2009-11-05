@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ResolveSE.py,v 1.2 2009/02/11 15:05:34 paterson Exp $
+# $Id$
 ########################################################################
 """ Resolve SE takes the workflow SE description and returns the list
     of destination storage elements for uploading an output file.
 """
 
-__RCSID__ = "$Id: ResolveSE.py,v 1.2 2009/02/11 15:05:34 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.SiteSEMapping                   import getSEsForSite
 from DIRAC.Core.Utilities.List                            import uniqueElements

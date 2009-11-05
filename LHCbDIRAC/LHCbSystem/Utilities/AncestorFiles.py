@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Utilities/AncestorFiles.py,v 1.3 2008/11/24 17:40:03 paterson Exp $
+# $HeadURL$
 # File :   AncestorFiles.py
 # Author : Stuart Paterson
 ########################################################################
@@ -9,7 +9,7 @@
       interface this will eventually be updated to use the DIRAC3 BK Client.
 """
 
-__RCSID__ = "$Id: AncestorFiles.py,v 1.3 2008/11/24 17:40:03 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 

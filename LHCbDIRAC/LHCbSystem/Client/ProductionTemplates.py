@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/ProductionTemplates.py,v 1.4 2009/04/08 13:55:21 paterson Exp $
+# $HeadURL$
 # File :   ProductionTemplates.py
 # Author : Stuart Paterson
 ########################################################################
@@ -26,7 +26,7 @@
     31/3/9 - Initial iteration supporting MC simulation workflows
 """
 
-__RCSID__ = "$Id: ProductionTemplates.py,v 1.4 2009/04/08 13:55:21 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import os
 

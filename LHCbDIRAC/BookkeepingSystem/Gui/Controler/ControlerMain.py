@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerMain.py,v 1.25 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                                                     import *
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import Prog
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 import sys
-__RCSID__ = "$Id: ControlerMain.py,v 1.25 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerMain(ControlerAbstract):

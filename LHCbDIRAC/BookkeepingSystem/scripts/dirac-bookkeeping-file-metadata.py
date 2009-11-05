@@ -2,9 +2,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-file-metadata.py,v 1.5 2009/10/19 11:30:09 zmathe Exp $
+# $HeadURL$
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-file-metadata.py,v 1.5 2009/10/19 11:30:09 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient

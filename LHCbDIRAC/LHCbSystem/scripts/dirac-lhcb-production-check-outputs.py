@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 ########################################################################
-# $Id: dirac-lhcb-production-check-outputs.py,v 1.1 2009/01/29 13:11:45 szczypka Exp $
+# $Id$
 # File :   dirac-lhcb-production-check-outputs.py
 # Author : Paul Szczypka
 ########################################################################

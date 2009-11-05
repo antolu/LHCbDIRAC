@@ -2,7 +2,7 @@
 #Updated FEST reconstruction workflow with new finalization modules
 ####################################################################
 
-__RCSID__ = "$Id: FEST_Reconstruction.py,v 1.2 2009/03/05 13:28:10 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *

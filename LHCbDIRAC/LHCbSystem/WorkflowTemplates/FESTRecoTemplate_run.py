@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/FESTRecoTemplate_run.py,v 1.9 2009/11/03 15:33:14 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The FEST Reco template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: FESTRecoTemplate_run.py,v 1.9 2009/11/03 15:33:14 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os,string
 start = os.getcwd()

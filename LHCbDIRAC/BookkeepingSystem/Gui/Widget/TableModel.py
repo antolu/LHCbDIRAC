@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TableModel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                 import *
@@ -7,7 +7,7 @@ from PyQt4.QtCore                import *
 
 import operator, datetime  
 
-__RCSID__ = "$Id: TableModel.py,v 1.3 2008/11/26 11:37:43 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class TableModel(QAbstractTableModel): 

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py,v 1.97 2009/11/03 13:47:13 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import types,cPickle,os, tempfile
 Script.parseCommandLine()
 
 
-__RCSID__ = "$Id: BookkeepingClient.py,v 1.97 2009/11/03 13:47:13 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class BookkeepingClient:
 

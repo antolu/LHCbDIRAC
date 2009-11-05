@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TreePanel.py,v 1.8 2009/03/31 16:26:44 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtCore import *
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 import DIRAC, types
 
-__RCSID__ = "$Id: TreePanel.py,v 1.8 2009/03/31 16:26:44 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class TreePanel(QTreeWidget):

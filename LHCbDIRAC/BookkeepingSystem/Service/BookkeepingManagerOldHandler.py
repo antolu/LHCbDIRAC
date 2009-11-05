@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerOldHandler.py,v 1.2 2008/07/22 14:14:51 zmathe Exp $
+# $Id$
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database 
 """
 
-__RCSID__ = "$Id: BookkeepingManagerOldHandler.py,v 1.2 2008/07/22 14:14:51 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler

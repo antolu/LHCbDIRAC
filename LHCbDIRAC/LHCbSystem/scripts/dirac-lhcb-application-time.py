@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id: dirac-lhcb-application-time.py,v 1.1 2009/05/19 19:08:56 szczypka Exp $
+# $Id$
 # File :   dirac-lhcb-application-time.py
 # Author : Paul Szczypka
 ########################################################################

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: HistoryDialog.py,v 1.1 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel                 import TableM
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerHistoryDialog  import ControlerHistoryDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: HistoryDialog.py,v 1.1 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class HistoryDialog(QDialog, Ui_HistoryDialog):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Client/LHCbJob.py,v 1.19 2009/10/30 13:19:19 paterson Exp $
+# $HeadURL$
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -82,7 +82,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py,v 1.19 2009/10/30 13:19:19 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 

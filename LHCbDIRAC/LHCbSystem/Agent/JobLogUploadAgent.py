@@ -1,10 +1,10 @@
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Agent/JobLogUploadAgent.py,v 1.4 2008/10/22 15:31:49 atsareg Exp $
+# $HeadURL$
 
 """  JobLogUploadAgent uploads log and other auxilliary files of the given job
      to the long term lo storage
 """
 
-__RCSID__ = "$Id: JobLogUploadAgent.py,v 1.4 2008/10/22 15:31:49 atsareg Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.Agent import Agent

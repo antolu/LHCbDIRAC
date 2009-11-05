@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: BookkeepingRecreateViewAgent.py,v 1.3 2008/03/05 14:45:34 zmathe Exp $
+# $Id$
 ########################################################################
 
 """ 
 
 """
 
-__RCSID__ = "$Id: BookkeepingRecreateViewAgent.py,v 1.3 2008/03/05 14:45:34 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingRecreateViewAgent'
 

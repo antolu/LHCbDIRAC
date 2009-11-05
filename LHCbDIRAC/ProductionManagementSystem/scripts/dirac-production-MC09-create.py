@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-MC09-create.py,v 1.17 2009/06/19 14:06:46 paterson Exp $
+# $HeadURL$
 # File :   dirac-production-MC09-create.py
 # Author : Andrew C. Smith
 ########################################################################
-__RCSID__   = "$Id: dirac-production-MC09-create.py,v 1.17 2009/06/19 14:06:46 paterson Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.17 $"
 import DIRAC
 from DIRAC import gLogger

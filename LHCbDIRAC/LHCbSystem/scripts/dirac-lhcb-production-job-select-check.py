@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 import os, sys, popen2
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-production-job-select-check.py,v 1.1 2008/10/16 09:51:48 paterson Exp $
+# $HeadURL$
 # File :   dirac-wms-select-jobs
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-production-job-select-check.py,v 1.1 2008/10/16 09:51:48 paterson Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.1 $"
 import sys,string
 from DIRACEnvironment import DIRAC

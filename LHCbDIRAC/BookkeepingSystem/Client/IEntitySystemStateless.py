@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IEntitySystemStateless.py,v 1.4 2009/05/08 15:23:25 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: IEntitySystemStateless.py,v 1.4 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class IEntitySystemStateless(object):

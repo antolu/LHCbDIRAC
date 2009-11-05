@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py,v 1.3 2009/03/04 15:06:24 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-get-file-descendants
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-get-file-descendants.py,v 1.3 2009/03/04 15:06:24 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.3 $"
 
 from DIRACEnvironment import DIRAC

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ControlerTree.py,v 1.19 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Mess
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 import types
-__RCSID__ = "$Id: ControlerTree.py,v 1.19 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerTree(ControlerAbstract):

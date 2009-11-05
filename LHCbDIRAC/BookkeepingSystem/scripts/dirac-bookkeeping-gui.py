@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-gui.py,v 1.10 2009/08/14 15:01:08 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-gui.py
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-gui.py,v 1.10 2009/08/14 15:01:08 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 from DIRAC.Core.Security.Misc                              import getProxyInfo
 from DIRAC.Core.Security.CS import getDNForUsername

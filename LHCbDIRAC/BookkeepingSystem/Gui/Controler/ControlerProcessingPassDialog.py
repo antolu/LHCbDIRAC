@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ControlerProcessingPassDialog.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $
+# $Id$
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-__RCSID__ = "$Id: ControlerProcessingPassDialog.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerProcessingPassDialog(ControlerAbstract):

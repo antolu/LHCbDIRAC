@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-setdataquality-run.py,v 1.2 2009/05/11 11:21:52 zmathe Exp $
+# $HeadURL$
 # File :   dirac-bookkeeping-setdataquality-run
 # Author : Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: dirac-bookkeeping-setdataquality-run.py,v 1.2 2009/05/11 11:21:52 zmathe Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 
 from DIRACEnvironment import DIRAC

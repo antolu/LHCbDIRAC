@@ -2,7 +2,7 @@
 #FEST production workflow
 ####################################################################
 
-__RCSID__ = "$Id: wkf_Fest.py,v 1.6 2009/02/18 19:58:53 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Workflow.Parameter import *
 from DIRAC.Core.Workflow.Module import *

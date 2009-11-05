@@ -1,4 +1,4 @@
-# $Id: GridSiteMonitoringAgent.py,v 1.11 2009/09/17 16:58:12 acasajus Exp $
+# $Id$
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'

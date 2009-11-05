@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProcessingPassDialog.py,v 1.1 2009/03/20 17:13:55 zmathe Exp $
+# $Id$
 ########################################################################
 from PyQt4.QtGui                                                          import *
 from PyQt4.QtCore                                                         import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: ProcessingPassDialog.py,v 1.1 2009/03/20 17:13:55 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ProcessingPassDialog(QDialog,Ui_ProcessingPassDialog):

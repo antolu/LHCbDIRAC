@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SoftwareDistribution.py,v 1.3 2009/05/01 11:17:11 rgracian Exp $
+# $Id$
 # File :   SoftwareDistribution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -17,7 +17,7 @@
     as required.
 """
 
-__RCSID__ = "$Id: SoftwareDistribution.py,v 1.3 2009/05/01 11:17:11 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger

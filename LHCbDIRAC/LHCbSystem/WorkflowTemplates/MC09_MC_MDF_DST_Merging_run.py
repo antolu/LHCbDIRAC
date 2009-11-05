@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/MC09_MC_MDF_DST_Merging_run.py,v 1.3 2009/10/14 07:34:51 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
@@ -7,7 +7,7 @@
      In addition this creates the necessary merging productions for MDF+DST.
 """
 
-__RCSID__ = "$Id: MC09_MC_MDF_DST_Merging_run.py,v 1.3 2009/10/14 07:34:51 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

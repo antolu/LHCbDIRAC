@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/WorkflowLib/API/test/LHCbJobTest.py,v 1.2 2008/01/17 15:42:23 paterson Exp $
+# $HeadURL$
 # File  : TestJob.py
 # Author: Stuart Paterson
 ########################################################################

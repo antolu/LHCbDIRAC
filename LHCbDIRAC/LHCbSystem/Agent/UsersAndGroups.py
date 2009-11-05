@@ -1,9 +1,9 @@
 #######################################################################
-# $Id: UsersAndGroups.py,v 1.36 2009/10/23 10:08:48 acasajus Exp $
+# $Id$
 # File :   UsersAndGroups.py
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: UsersAndGroups.py,v 1.36 2009/10/23 10:08:48 acasajus Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.36 $"
 """
   Update Users and Groups from VOMS on CS

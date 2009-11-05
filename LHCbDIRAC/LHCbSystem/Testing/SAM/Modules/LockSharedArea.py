@@ -1,12 +1,12 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/LockSharedArea.py,v 1.43 2009/09/07 15:02:55 joel Exp $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py,v 1.43 2009/09/07 15:02:55 joel Exp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig

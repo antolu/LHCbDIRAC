@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.77 2009/11/05 09:20:47 paterson Exp $
+# $Id$
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.77 2009/11/05 09:20:47 paterson Exp $"
+__RCSID__ = "$Id$"
 
 import commands, os, time, smtplib, re, string, shutil
 

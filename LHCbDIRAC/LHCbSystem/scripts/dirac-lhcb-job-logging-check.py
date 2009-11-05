@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 import os, sys
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-job-logging-check.py,v 1.6 2009/05/20 10:55:01 acsmith Exp $
+# $HeadURL$
 # File :   dirac-lhcb-job-logging-check
 # Author : Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-job-logging-check.py,v 1.6 2009/05/20 10:55:01 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.6 $"
 import sys,string, pprint
 from DIRACEnvironment import DIRAC

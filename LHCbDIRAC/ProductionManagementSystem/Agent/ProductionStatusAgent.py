@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ProductionStatusAgent.py,v 1.9 2009/11/03 14:22:27 paterson Exp $
+# $HeadURL$
 ########################################################################
 
 """  The ProductionStatusAgent monitors productions for active requests
@@ -24,7 +24,7 @@
      To do: review usage of production API(s) and refactor into Production Client
 """
 
-__RCSID__   = "$Id: ProductionStatusAgent.py,v 1.9 2009/11/03 14:22:27 paterson Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.9 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath

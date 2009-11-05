@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingXmlFileTransferAgent.py,v 1.13 2008/07/22 14:14:50 zmathe Exp $
+# $Id$
 ########################################################################
 
 """ 
@@ -15,7 +15,7 @@ from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  i
 #from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 #from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
-__RCSID__ = "$Id: BookkeepingXmlFileTransferAgent.py,v 1.13 2008/07/22 14:14:50 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class BookkeepingXmlFileTransferAgent(Agent):
 

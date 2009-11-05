@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Client/DiracSAM.py,v 1.11 2009/08/19 15:06:56 roma Exp $
+# $HeadURL$
 # File :   DiracSAM.py
 # Author : Stuart Paterson
 ########################################################################
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py,v 1.11 2009/08/19 15:06:56 roma Exp $"
+__RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 

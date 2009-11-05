@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: TableWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -9,7 +9,7 @@ from PyQt4.QtGui   import *
 from DIRAC.BookkeepingSystem.Gui.Widget.TableWidget_ui     import Ui_TableWidget
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTable  import ControlerTable
 
-__RCSID__ = "$Id: TableWidget.py,v 1.1 2008/09/25 15:50:31 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class TableWidget(QWidget, Ui_TableWidget):

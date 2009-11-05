@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/scripts/dirac-lhcb-fix-file-guid.py,v 1.2 2009/05/29 12:22:39 paterson Exp $
+# $HeadURL$
 # File :   dirac-dms-fix-file-guid
 # Author : Stuart Paterson, Philippe Charpentier
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-fix-file-guid.py,v 1.2 2009/05/29 12:22:39 paterson Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 
 import os,string

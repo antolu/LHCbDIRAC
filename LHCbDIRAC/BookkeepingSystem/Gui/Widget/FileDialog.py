@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileDialog.py,v 1.21 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -12,7 +12,7 @@ from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import Controler
 from DIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
 import DIRAC,os
 
-__RCSID__ = "$Id: FileDialog.py,v 1.21 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class FileDialog(QDialog, Ui_FileDialog):

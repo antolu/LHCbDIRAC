@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionLookup.py,v 1.3 2009/10/19 11:17:38 zmathe Exp $
+# $Id$
 ########################################################################
 from PyQt4.QtGui                                                          import *
 from PyQt4.QtCore                                                         import *
@@ -8,7 +8,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
 import DIRAC,os
 
-__RCSID__ = "$Id: ProductionLookup.py,v 1.3 2009/10/19 11:17:38 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ProductionLookup(QDialog, Ui_Production):

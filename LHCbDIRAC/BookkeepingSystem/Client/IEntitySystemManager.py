@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IEntitySystemManager.py,v 1.3 2008/06/09 10:19:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 
@@ -10,7 +10,7 @@
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.Client.IEntitySystemStateless           import IEntitySystemStateless  
 
-__RCSID__ = "$Id: IEntitySystemManager.py,v 1.3 2008/06/09 10:19:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 
 #############################################################################

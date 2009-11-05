@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESClient.py,v 1.6 2009/05/08 15:23:25 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import 
 from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py,v 1.6 2009/05/08 15:23:25 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):

@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Testing/SAM/Modules/CheckApplications.py,v 1.1 2009/07/22 08:55:48 joel Exp $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: CheckApplications.py,v 1.1 2009/07/22 08:55:48 joel Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 from DIRAC.Core.DISET.RPCClient import RPCClient

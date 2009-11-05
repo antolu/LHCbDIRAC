@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProgressThread.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtCore                                                                 import *
@@ -7,7 +7,7 @@ from PyQt4.QtGui                                                                
 #from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 import time
 
-__RCSID__ = "$Id: ProgressThread.py,v 1.4 2008/10/18 18:36:52 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class ProgressThread(QThread):
   def __init__(self, stop, message='', parent=None):

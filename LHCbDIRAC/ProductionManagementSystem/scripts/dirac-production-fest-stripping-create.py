@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 #############################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/scripts/dirac-production-fest-stripping-create.py,v 1.6 2009/07/03 14:42:29 acsmith Exp $
+# $HeadURL$
 #############################################################################
-__RCSID__   = "$Id: dirac-production-fest-stripping-create.py,v 1.6 2009/07/03 14:42:29 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.6 $"
 
 import DIRAC

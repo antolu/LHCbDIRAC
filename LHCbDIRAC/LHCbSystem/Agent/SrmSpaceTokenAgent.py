@@ -1,4 +1,4 @@
-# $Id: SrmSpaceTokenAgent.py,v 1.4 2008/10/31 16:36:39 acasajus Exp $
+# $Id$
 
 __author__ = 'Greig A Cowan'
 __date__ = 'September 2008'

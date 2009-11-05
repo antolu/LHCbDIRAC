@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InfoDialog.py,v 1.7 2009/04/18 17:33:31 rgracian Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                                import *
@@ -9,7 +9,7 @@ from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableMode
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 import DIRAC
 
-__RCSID__ = "$Id: InfoDialog.py,v 1.7 2009/04/18 17:33:31 rgracian Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class InfoDialog(QDialog, Ui_Dialog):

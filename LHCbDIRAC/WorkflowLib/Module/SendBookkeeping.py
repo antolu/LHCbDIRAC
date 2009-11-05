@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: SendBookkeeping.py,v 1.8 2009/04/19 10:12:34 acsmith Exp $
+# $Id$
 ########################################################################
 """ This module uploads the BK records prior to performing the transfer
     and registration (BK,LFC) operations using the preprepared BK XML
@@ -7,7 +7,7 @@
     no application crashes have been observed.
 """
 
-__RCSID__ = "$Id: SendBookkeeping.py,v 1.8 2009/04/19 10:12:34 acsmith Exp $"
+__RCSID__ = "$Id$"
 
 from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer

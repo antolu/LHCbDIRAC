@@ -1,4 +1,4 @@
-# $Id: ProductionRequestDB.py,v 1.23 2009/11/03 17:34:49 azhelezo Exp $
+# $Id$
 """
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.

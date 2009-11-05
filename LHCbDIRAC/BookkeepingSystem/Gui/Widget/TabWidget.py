@@ -1,12 +1,12 @@
 ########################################################################
-# $Id: TabWidget.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $
+# $Id$
 ########################################################################
 
 from PyQt4.QtGui                                                import *
 from PyQt4.QtCore                                               import *
 from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
-__RCSID__ = "$Id: TabWidget.py,v 1.2 2009/08/06 16:06:25 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class TabWidget(QWidget):

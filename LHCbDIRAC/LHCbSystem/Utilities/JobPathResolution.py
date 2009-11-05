@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: JobPathResolution.py,v 1.4 2009/10/20 14:33:33 paterson Exp $
+# $Id$
 # File :   JobPathResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
     of JDL parameters.
 """
 
-__RCSID__ = "$Id: JobPathResolution.py,v 1.4 2009/10/20 14:33:33 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger

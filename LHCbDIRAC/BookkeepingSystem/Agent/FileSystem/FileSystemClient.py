@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileSystemClient.py,v 1.1 2008/02/29 11:54:23 zmathe Exp $
+# $Id$
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC.BookkeepingSystem.Agent.FileSystem.FileManager import FileManager
 from DIRAC.BookkeepingSystem.Agent.FileSystem.IFileClient import IFileClient
 
-__RCSID__ = "$Id: FileSystemClient.py,v 1.1 2008/02/29 11:54:23 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 class FileSystemClient(IFileClient):
     

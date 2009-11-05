@@ -1,7 +1,7 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/ValidateOutputData.py,v 1.5 2009/09/11 15:21:44 acsmith Exp $
+# $HeadURL$
 ########################################################################
-__RCSID__   = "$Id: ValidateOutputData.py,v 1.5 2009/09/11 15:21:44 acsmith Exp $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath

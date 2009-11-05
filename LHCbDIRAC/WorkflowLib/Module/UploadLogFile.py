@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadLogFile.py,v 1.19 2009/10/05 10:16:51 paterson Exp $
+# $Id$
 ########################################################################
 """ UploadLogFile module is used to upload the files present in the working
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py,v 1.19 2009/10/05 10:16:51 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager

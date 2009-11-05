@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: InputDataResolution.py,v 1.20 2009/07/29 08:39:50 paterson Exp $
+# $Id$
 # File :   InputDataResolution.py
 # Author : Stuart Paterson
 ########################################################################
@@ -14,7 +14,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py,v 1.20 2009/07/29 08:39:50 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice

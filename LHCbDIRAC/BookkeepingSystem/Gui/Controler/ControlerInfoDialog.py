@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: ControlerInfoDialog.py,v 1.3 2009/10/22 20:38:03 zmathe Exp $
+# $Id$
 ########################################################################
 
 
 from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 from DIRAC                                                   import gLogger, S_OK, S_ERROR
-__RCSID__ = "$Id: ControlerInfoDialog.py,v 1.3 2009/10/22 20:38:03 zmathe Exp $"
+__RCSID__ = "$Id$"
 
 #############################################################################  
 class ControlerInfoDialog(ControlerAbstract):

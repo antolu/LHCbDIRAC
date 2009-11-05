@@ -1,4 +1,4 @@
-# $Id: ProductionRequestHandler.py,v 1.10 2009/10/16 15:39:28 azhelezo Exp $
+# $Id$
 """
 ProductionRequestHandler is the implementation of
 the Production Request service

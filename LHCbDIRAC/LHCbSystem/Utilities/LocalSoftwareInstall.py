@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LocalSoftwareInstall.py,v 1.2 2009/03/31 12:34:53 paterson Exp $
+# $Id$
 # File :   LocalSoftwareInstall.py
 # Author : Ricardo Graciani
 ########################################################################
@@ -15,7 +15,7 @@
     in the local area of the job
 """
 
-__RCSID__ = "$Id: LocalSoftwareInstall.py,v 1.2 2009/03/31 12:34:53 paterson Exp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger

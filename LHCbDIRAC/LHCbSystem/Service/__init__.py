@@ -1,5 +1,5 @@
 ############################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/Service/__init__.py,v 1.1 2009/09/17 12:54:03 paterson Exp $
+# $HeadURL$
 ############################################################
 
 """
@@ -8,4 +8,4 @@
    This contains the LHCb specific DIRAC services.
 """
 
-__RCSID__ = "$Id: __init__.py,v 1.1 2009/09/17 12:54:03 paterson Exp $"
+__RCSID__ = "$Id$"
