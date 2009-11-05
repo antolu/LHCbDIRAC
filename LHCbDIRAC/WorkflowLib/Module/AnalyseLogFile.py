@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: AnalyseLogFile.py,v 1.76 2009/11/04 13:24:06 paterson Exp $
+# $Id: AnalyseLogFile.py,v 1.77 2009/11/05 09:20:47 paterson Exp $
 ########################################################################
 
-__RCSID__ = "$Id: AnalyseLogFile.py,v 1.76 2009/11/04 13:24:06 paterson Exp $"
+__RCSID__ = "$Id: AnalyseLogFile.py,v 1.77 2009/11/05 09:20:47 paterson Exp $"
 
 import commands, os, time, smtplib, re, string, shutil
 
@@ -768,7 +768,10 @@ class AnalyseLogFile(ModuleBase):
     findline = re.search(exp,self.logString)
     if not findline:
       if self.applicationName.lower()=='moore':
-        return S_OK(int(self.numberOfEvents))
+        if int(self.numberOfEvents)<0:
+          return S_OK(0)
+        else:
+          return S_OK(int(self.numberOfEvents))
       else:
         self.log.error("Could not determine requested events.")
         return S_ERROR("Could not determine requested events")
