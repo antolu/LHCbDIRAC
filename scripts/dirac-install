@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.158 2009/10/02 08:37:06 rgracian Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/dirac-install,v 1.159 2009/11/05 10:19:20 rgracian Exp $
 # File :   dirac-install
 # Author : Ricardo Graciani
 ########################################################################
-__RCSID__   = "$Id: dirac-install,v 1.158 2009/10/02 08:37:06 rgracian Exp $"
-__VERSION__ = "$Revision: 1.158 $"
+__RCSID__   = "$Id: dirac-install,v 1.159 2009/11/05 10:19:20 rgracian Exp $"
+__VERSION__ = "$Revision: 1.159 $"
 """
     Script to deploy/update a DIRAC installation
 """
@@ -137,7 +137,10 @@ binNo = len(bin_tars)
 vomsesDict =  {'lhcb': '"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
 vomsDirDict = {'lhcb': { "host": "lcg-voms.cern.ch", 
                          "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch", 
-                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}  }
+                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"} 
+               'LHCb': { "host": "voms.cern.ch", 
+                         "DN": "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch", 
+                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}}
 
 # Current python versions in use
 
