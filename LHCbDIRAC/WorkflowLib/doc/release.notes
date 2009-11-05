@@ -1,4 +1,12 @@
-$Id: release.notes,v 1.37 2009/10/22 08:37:27 paterson Exp $
+$Id: release.notes,v 1.38 2009/11/05 09:28:23 paterson Exp $
+
+=========
+wkf-v9r29 : SKP : 4 November 2009
+Updates to the following components to support L0Hlt stripping with Moore:
+ - AnalyseLogFile
+ - BookkeepingReport
+ - GaudiApplication
+ - LogChecker
 
 =========
 wkf-v9r28 : SKP : 22 October 2009
