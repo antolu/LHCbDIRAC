@@ -1,5 +1,5 @@
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/Upgrade_MC_Merging_run.py,v 1.2 2009/10/16 09:55:24 paterson Exp $
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/LHCbSystem/WorkflowTemplates/Upgrade_MC_Merging_run.py,v 1.3 2009/11/05 08:15:48 paterson Exp $
 ########################################################################
 
 """  The Upgrade template creates a workflow for Gauss->Boole->Brunel with
@@ -9,7 +9,7 @@
      CondDB / DDDB to be set at each step.
 """
 
-__RCSID__ = "$Id: Upgrade_MC_Merging_run.py,v 1.2 2009/10/16 09:55:24 paterson Exp $"
+__RCSID__ = "$Id: Upgrade_MC_Merging_run.py,v 1.3 2009/11/05 08:15:48 paterson Exp $"
 
 import sys,os
 start = os.getcwd()
@@ -44,6 +44,7 @@ cpu = '{{MaxCPUTime#MC Max CPU time in secs#100000}}'
 priority = '{{Priority#MC Production priority#4}}'
 extend = '{{Extend#Extend MC production by this many jobs#100}}'
 appendName = '{{AppendName#String to append to production name#1}}'
+finalAppType = '{{FinalAppType#Brunel file type to produce and merge e.g. DST/XDST#DST}}'
 
 production = Production()
 production.setProdType('MCSimulation')
@@ -56,7 +57,7 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 production.addGaussStep('{{p1Ver}}','{{Generator}}',events,'{{p1Opt}}',eventType='{{eventType}}',extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}')
 production.addBooleStep('{{p2Ver}}','digi','{{p2Opt}}',extraPackages='{{p2EP}}',condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}')
 #production.addBrunelStep('{{p3Ver}}','dst','{{p3Opt}}',extraPackages='{{p3EP}}',inputDataType='digi',condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')
-production.addBrunelStep('{{p3Ver}}','dst','{{p3Opt}}',extraPackages='{{p3EP}}',inputDataType='digi',outputSE='CERN_MC_M-DST',condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')
+production.addBrunelStep('{{p3Ver}}',finalAppType.lower(),'{{p3Opt}}',extraPackages='{{p3EP}}',inputDataType='digi',outputSE='CERN_MC_M-DST',condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')
 
 production.addFinalizationStep()
 
@@ -64,7 +65,7 @@ production.setCPUTime(cpu)
 production.setProdGroup('{{pDsc}}')
 production.setProdPriority(priority)
 production.setOutputMode('Any')
-production.setFileMask('dst')
+production.setFileMask(finalAppType.lower())
 
 if not args:
   print 'No arguments specified, will create workflow only.'
@@ -95,7 +96,6 @@ print msg
 #Configurable parameters
 groupSize = '{{MergeSize#File size for merging jobs (in GB)#5}}'
 priority = '9'
-fileType = '{{FileType#File type to merge#DST}}'
 
 #Other parameters
 evtType = '{{eventType}}'
@@ -111,7 +111,7 @@ bkPassDict = {}
 inputBKQuery = { 'SimulationConditions'     : 'All',
                  'DataTakingConditions'     : 'All',
                  'ProcessingPass'           : 'All',
-                 'FileType'                 : fileType,
+                 'FileType'                 : finalAppType,
                  'EventType'                : evtType,
                  'ConfigName'               : 'All',
                  'ConfigVersion'            : 'All',
@@ -120,17 +120,17 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 mergeProd = Production()
 mergeProd.setProdType('Merge')
-mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(fileType,evtType,inputProd,groupSize))
+mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(finalAppType,evtType,inputProd,groupSize))
 mergeProd.setWorkflowDescription('Upgrade workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters('MC','Upgrade','{{pDsc}}','{{simDesc}}')
 mergeProd.setDBTags('{{p1CDb}}','{{p1DDDb}}')
-mergeProd.addMergeStep('{{p4Ver}}',optionsFile='$STDOPTS/PoolCopy.opts',eventType='{{eventType}}',inputDataType=fileType,inputProduction=inputProd,inputData=[],passDict=bkPassDict,condDBTag='{{p4CDb}}',ddDBTag='{{p4DDDb}}')
+mergeProd.addMergeStep('{{p4Ver}}',optionsFile='$STDOPTS/PoolCopy.opts',eventType='{{eventType}}',inputDataType=finalAppType.lower(),inputProduction=inputProd,inputData=[],passDict=bkPassDict,condDBTag='{{p4CDb}}',ddDBTag='{{p4DDDb}}')
 mergeProd.addFinalizationStep(removeInputData=True)
 mergeProd.setInputBKSelection(inputBKQuery)
 mergeProd.setJobFileGroupSize(groupSize)
 mergeProd.setProdGroup('{{pDsc}}')
 mergeProd.setProdPriority(priority)
-mergeProd.setFileMask(fileType)
+mergeProd.setFileMask(finalAppType.lower())
 mergeProd.setProdPlugin('BySize')
 
 #if not args:
