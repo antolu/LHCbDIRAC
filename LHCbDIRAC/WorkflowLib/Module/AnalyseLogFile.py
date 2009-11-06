@@ -488,6 +488,11 @@ class AnalyseLogFile(ModuleBase):
     lastEvent = self.getLastEventSummary()['Value']
     if not self.workflow_commons.has_key('FirstStepInputEvents'):
       self.workflow_commons['FirstStepInputEvents'] = lastEvent
+
+    res = self.getEventsOutput('InputCopyStream')
+    if not res['OK']:
+      return S_ERROR('No events output')
+    
     # Get the number of events processed by DaVinci
     res = self.getEventsProcessed('L0Muon')
     if not res['OK']:
