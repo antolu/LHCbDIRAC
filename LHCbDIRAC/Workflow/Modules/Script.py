@@ -1,3 +1,10 @@
+########################################################################
+# $Id: GaudiApplication.py 18064 2009-11-05 19:40:01Z acasajus $
+########################################################################
+""" Script Class """
+
+__RCSID__ = "$Id: GaudiApplication.py 18064 2009-11-05 19:40:01Z acasajus $"
+
 
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC                           import S_OK, S_ERROR

@@ -6,13 +6,12 @@
 
 __RCSID__ = "$Id: RootApplication.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
-try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import  MySiteRoot
-except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import  MySiteRoot
+
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 import string, os, sys, fnmatch, re
 

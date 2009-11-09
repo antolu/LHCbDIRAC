@@ -7,9 +7,10 @@
 
 __RCSID__ = "$Id: RemoveInputData.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import string,os

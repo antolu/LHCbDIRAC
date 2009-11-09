@@ -7,20 +7,16 @@
 
 __RCSID__ = "$Id: UploadOutputData.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.PoolXMLFile         import getGUID
 from DIRAC.Core.Utilities.File                             import fileAdler
+
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.LHCbSystem.Utilities.ResolveSE       import getDestinationSEList
+
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
-
-try:
-  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-  from LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-  from DIRAC.LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
 
 import string,os,random
 
