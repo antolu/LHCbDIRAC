@@ -1,8 +1,15 @@
+########################################################################
+# $HeadURL$
+########################################################################
+
+__RCSID__ = "$Id$"
+
 """  SAM Agent submits SAM jobs
 """
+
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Base.Agent import Agent
-from DIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
+from DIRAC.Core.Base.AgentModule                              import AgentModule
+from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.Core.Utilities import shellCall
 from DIRAC.Interfaces.API.Dirac import Dirac
@@ -77,21 +84,14 @@ class SAMPublisher:
     else:
       return S_ERROR("Publishing error")
 
-class SAMAgent(Agent):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class SAMAgent(AgentModule):
 
   def initialize(self):
-    result = Agent.initialize(self)
-
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',3600*6) # Every 6 hours
+    self.pollingTime = self.am_getOption('PollingTime',3600*6)
     gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
-
-    self.useProxies = gConfig.getValue(self.section+'/UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
+    
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
     if not self.proxyLocation:
       self.proxyLocation = False
 
@@ -106,17 +106,14 @@ class SAMAgent(Agent):
     if not result['OK']:
       gLogger.error("SAM publisher installation", result['Message'])
 
+    if self.useProxies:
+      self.am_setModuleParam( "shifterProxy", "SAMManager" )
+
     return result
 
   def execute(self):
 
     gLogger.debug("Executing %s"%(self.name))
-
-    if self.useProxies:
-      result = setupShifterProxyInEnv( "SAMManager", self.proxyLocation )
-      if not result[ 'OK' ]:
-        self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-        return result
 
     self._clearSAMjobs()
     self._siteAccount()

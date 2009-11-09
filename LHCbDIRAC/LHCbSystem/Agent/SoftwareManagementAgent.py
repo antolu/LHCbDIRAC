@@ -16,7 +16,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base.Agent                                      import Agent
+from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.Utilities.ModuleFactory                         import ModuleFactory
 from DIRAC                                                      import S_OK, S_ERROR, gConfig, gLogger
 
@@ -24,23 +24,16 @@ import os, sys, re, string, time, shutil
 
 AGENT_NAME = 'LHCb/SoftwareManagementAgent'
 
-class SoftwareManagementAgent(Agent):
-
-  #############################################################################
-  def __init__(self):
-    """ Standard constructor for Agent
-    """
-    Agent.__init__(self,AGENT_NAME)
+class SoftwareManagementAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
     """Sets defaults
     """
-    result = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',10)
+    self.pollingTime = self.am_getOption('PollingTime',120)
     #DEBUGGING OPTIONS
     self.pollingTime = 5
-    self.maxcount = 1 #AGent.py base class must be fixed for run_once use-case
+    self.maxcount = 1 #Agent.py base class must be fixed for run_once use-case
     return result
 
   #############################################################################

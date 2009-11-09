@@ -1,13 +1,15 @@
+########################################################################
 # $HeadURL$
+########################################################################
+
+__RCSID__ = "$Id$"
 
 """  JobLogUploadAgent uploads log and other auxilliary files of the given job
      to the long term lo storage
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
@@ -21,15 +23,9 @@ from types import *
 
 AGENT_NAME = 'LHCb/JobLogUploadAgent'
 
-class JobLogUploadAgent(Agent,RequestAgentMixIn):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class JobLogUploadAgent(AgentModule,RequestAgentMixIn):
 
   def initialize(self):
-    result = Agent.initialize(self)
     self.RequestDBClient = RequestClient()
     self.rm = ReplicaManager()
 

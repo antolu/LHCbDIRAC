@@ -1,9 +1,14 @@
-'''
-Queries BDII to pick out information about RANK.
-'''
+########################################################################
+# $HeadURL$
+########################################################################
+
+__RCSID__ = "$Id$"
+
+""" Queries BDII to pick out information about RANK.
+"""
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.Utilities.ldapsearchBDII import ldapCEState
 from DIRAC  import gMonitor
 
@@ -11,22 +16,15 @@ import sys, os
 
 AGENT_NAME = "LHCb/RANKMonitoringAgent"
 
-class RANKMonitoringAgent(Agent):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class RANKMonitoringAgent(AgentModule):
 
   def initialize( self ):
 
-    result = Agent.initialize(self)
+    self.pollingTime = self.am_getOption('PollingTime',60*10) # Every 10 minuts
+    gLogger.info("PollingTime %d minutes" %(int(self.pollingTime)/60))
 
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',60*10) # Every 10 minuts
-    gLogger.info("PollingTime %d minuts" %(int(self.pollingTime)/60))
-
-    self.useProxies = gConfig.getValue(self.section+'/UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
     if not self.proxyLocation:
       self.proxyLocation = False
 

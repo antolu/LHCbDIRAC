@@ -1,12 +1,15 @@
+########################################################################
 # $HeadURL$
+########################################################################
 
-'''
-GridSiteWMSMonitoringAgent extracts information on the current Grid activity from the DIRAC WMS
-and publishes it to the web
-'''
+__RCSID__ = "$Id$"
+
+""" GridSiteWMSMonitoringAgent extracts information on the current Grid activity from the DIRAC WMS
+    and publishes it to the web
+"""
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.WorkloadManagementSystem.DB.JobDB       import JobDB
 from DIRAC.Core.Utilities import Time
@@ -24,14 +27,9 @@ SAM_JOB_TYPES = ['sam']
 
 AGENT_NAME = "LHCb/GridSiteWMSMonitoringAgent"
 
-class GridSiteWMSMonitoringAgent(Agent):
-  def __init__( self ):
-    Agent.__init__( self, AGENT_NAME )
+class GridSiteWMSMonitoringAgent(AgentModule):
 
   def initialize( self ):
-    result = Agent.initialize( self )
-    if not result[ 'OK' ]:
-      return result
     self._lastUpdateTime = 0
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
     self.jobDB = JobDB()

@@ -1,10 +1,15 @@
-'''
-Queries BDII for unknown CE.
-Queries BDII for CE information and put it to CS.
-'''
+########################################################################
+# $HeadURL$
+########################################################################
+
+__RCSID__ = "$Id$"
+
+""" Queries BDII for unknown CE.
+    Queries BDII for CE information and put it to CS.
+"""
 
 from DIRAC                                                    import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent                                    import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.Utilities                                     import List
 from DIRAC.Core.Utilities.Shifter                             import setupShifterProxyInEnv
 from DIRAC.Core.Utilities.ldapsearchBDII                      import ldapSite, ldapCluster,ldapCE,ldapCEState
@@ -15,44 +20,34 @@ import sys, os
 
 AGENT_NAME = "LHCb/CE2CSAgent"
 
-class CE2CSAgent(Agent):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class CE2CSAgent(AgentModule):
 
   def initialize( self ):
 
-    result = Agent.initialize(self)
-
-    self.logLevel = gConfig.getValue(self.section+'/LogLevel','INFO')
+    self.logLevel = self.am_getOption('LogLevel','INFO')
     gLogger.info("LogLevel",self.logLevel)
     gLogger.setLevel(self.logLevel)
-    
+    self.pollingTime = self.am_getOption('PollingTime',120)
     gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
-    self.addressTo = gConfig.getValue(self.section+'/MailTo',"lhcb-SAM@cern.ch")
+    self.addressTo = self.am_getOption('MailTo','lhcb-SAM@cern.ch')
     gLogger.info("MailTo",self.addressTo)
-    self.addressFrom = gConfig.getValue(self.section+'/MailFrom',"lhcb-SAM@cern.ch")
+    self.addressFrom =  self.am_getOption('MailFrom','lhcb-SAM@cern.ch')
     gLogger.info("MailFrom",self.addressFrom)
     self.subject = "CE2CSAgent"
-
-    self.useProxies = gConfig.getValue(self.section+'/UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
     if not self.proxyLocation:
       self.proxyLocation = False
 
+    if self.useProxies:
+      self.am_setModuleParam( "shifterProxy", "SAMManager" )
+      
     return S_OK()
 
   def execute(self):
 
     gLogger.info("Executing %s"%(self.name))
-
-    if self.useProxies:
-      result = setupShifterProxyInEnv( "SAMManager", self.proxyLocation )
-      if not result[ 'OK' ]:
-        self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-        return result
+      
     os.system('dirac-proxy-info')
     
     self.csAPI = CSAPI()      

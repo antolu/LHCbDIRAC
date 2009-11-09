@@ -1,13 +1,14 @@
-__author__ = 'Vladimir Romanovsky'
-__date__ = 'July 2009'
-__version__ = 0.0
+########################################################################
+# $HeadURL$
+########################################################################
 
-'''
-Compress Old Jobs 
-'''
+__RCSID__ = "$Id$"
+
+""" Compress Old Jobs 
+"""
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
@@ -24,32 +25,28 @@ import tarfile
 
 AGENT_NAME = "LHCb/TargzJobLogAgent"
 
-class TargzJobLogAgent(Agent):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class TargzJobLogAgent(AgentModule):
 
   def initialize( self ):
   
-    result = Agent.initialize(self)
-
-    self.logLevel = gConfig.getValue(self.section+'/LogLevel','INFO')
+    self.logLevel =self.am_getOption('LogLevel','INFO')
     gLogger.info("LogLevel",self.logLevel)
     gLogger.setLevel(self.logLevel)
 
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',3600)
+    self.pollingTime = self.am_getOption('PollingTime',3600)
     gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
 
-    self.logPath = gConfig.getValue(self.section+'/LogPath', '/storage/lhcb/MC/MC09/LOG')
+    self.logPath = self.am_getOption('LogPath', '/storage/lhcb/MC/MC09/LOG')
     gLogger.info("LogPath", self.logPath)
 
-    self.useProxies = gConfig.getValue(self.section+'/UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
     if not self.proxyLocation:
       self.proxyLocation = False
 
+    if self.useProxies:
+      self.am_setModuleParam( "shifterProxy", "SAMManager" )
+      
     self.storageElement = StorageElement("CERN-tape")    
     self.destDirectory="/lhcb/backup/log"
 
@@ -58,12 +55,6 @@ class TargzJobLogAgent(Agent):
   def execute(self):
 
     gLogger.info( 'Starting Agent loop')
-
-    if self.useProxies:
-      result = setupShifterProxyInEnv( "SAMManager", self.proxyLocation )
-      if not result[ 'OK' ]:
-        gLogger.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-        return result
 
     path = os.path.abspath(self.logPath)
 

@@ -1,15 +1,14 @@
-# $Id$
+########################################################################
+# $HeadURL$
+########################################################################
 
-__author__ = 'Greig A Cowan'
-__date__ = 'September 2008'
-__version__ = 0.1
+__RCSID__ = "$Id$"
 
-'''
-Queries BDII to pick out information about SRM2.2 space token descriptions.
-'''
+""" Queries BDII to pick out information about SRM2.2 space token descriptions.
+"""
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.Agent import Agent
+from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.AccountingSystem.Client.Types.SRMSpaceTokenDeployment import SRMSpaceTokenDeployment
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from DIRAC.Core.Utilities import Time
@@ -20,17 +19,11 @@ import ldap
 
 AGENT_NAME = "LHCb/SrmSpaceTokenAgent"
 
-class SrmSpaceTokenAgent(Agent):
-
-  def __init__( self ):
-    Agent.__init__( self, AGENT_NAME )
+class SrmSpaceTokenAgent(AgentModule):
 
   def initialize( self ):
-    result = Agent.initialize( self )
     self.pollingTime = 43200
-    if not result[ 'OK' ]:
-      return result
-    bdiiServerLocation = gConfig.getValue( "%s/BDIIServer" % self.section, 'lcg-bdii.cern.ch:2170' )
+    bdiiServerLocation = self.am_getOption('BDIIServer','lcg-bdii.cern.ch:2170')
     self.bdiiServerPort = 2170
     bdiiSplit = bdiiServerLocation.split( ":" )
     self.bdiiServerHostname = bdiiSplit[0]
