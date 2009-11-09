@@ -8,20 +8,12 @@ __RCSID__ = "$Id: GaudiApplication.py 18064 2009-11-05 19:40:01Z acasajus $"
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-try:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
-  from LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
-  from DIRAC.LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
 
-try:
-  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.LHCbSystem.Utilities.CondDBAccess                  import getCondDBFiles
+from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
 
-from WorkflowLib.Module.ModuleBase                       import *
-from WorkflowLib.Utilities.Tools import *
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
 
@@ -269,7 +261,7 @@ class GaudiApplication(ModuleBase):
     self.log.info('Setting local software area to %s' %localArea)
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
-      self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
+      self.run_number =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)
 
     if self.optionsFile and not self.optionsFile == "None":
       print self.optionsFile
@@ -615,8 +607,8 @@ done
     # Fourth: find which of the matching slices is better for job sending
     sliceNumber = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
-    lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
-    outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
+    lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
+    outputFile = _makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
     result = recoManager.submitJob( sliceNumber, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
     if not result[ 'OK' ]:
       self.log.error( "Error running job" , sc[ 'Message' ] )
