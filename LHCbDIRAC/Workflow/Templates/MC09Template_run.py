@@ -27,11 +27,8 @@ if not resultDict[ 'OK' ]:
   sys.exit(1)
 ###############################################################################
 
-from DIRAC.Interfaces.API.DiracProduction import DiracProduction
-try:
-  from LHCbSystem.Client.Production import Production
-except:
-  from DIRAC.LHCbSystem.Client.Production import Production
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
+from LHCbDIRAC.LHCbSystem.Client.Production import Production
 
 #configurable parameters
 events = '{{numberOfEvents#Number of events per job (default 500)}}'

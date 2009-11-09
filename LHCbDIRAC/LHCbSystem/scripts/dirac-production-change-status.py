@@ -22,7 +22,7 @@ for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() in ('f','force'):
     disableChecks=True
 
-from DIRAC.Interfaces.API.DiracProduction                    import DiracProduction
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
 diracProd = DiracProduction()
 
 def usage():

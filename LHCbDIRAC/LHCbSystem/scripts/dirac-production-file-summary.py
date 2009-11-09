@@ -31,7 +31,7 @@ Script.registerSwitch( "", "Summary=", "Print a summary of the files (True/False
 Script.registerSwitch( "", "PrintOutput=", "Print all file records (extremely verbose) default is False" )
 Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower()=="status":

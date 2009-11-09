@@ -8,7 +8,7 @@ __RCSID__   = "$Id: dirac-production-job-summary.py 18064 2009-11-05 19:40:01Z a
 __VERSION__ = "$Revision: 1.1 $"
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.Interfaces.API.DiracProduction                    import DiracProduction
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
