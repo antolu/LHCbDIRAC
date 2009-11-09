@@ -42,7 +42,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     else:
       options.append("OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
   elif appName.lower()=='brunel':
-    options.append("#include \"$BRUNELOPTS/SuppressWarnings.opts\"")
+    options.append("Brunel().NoWarnings = True")
     options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
     options.append("from Configurables import Brunel")
     if appType.lower()=='xdst':
