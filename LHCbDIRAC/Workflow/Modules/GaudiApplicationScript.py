@@ -20,14 +20,13 @@ from DIRAC.Core.Utilities                                import ldLibraryPath
 from DIRAC.Core.Utilities                                import Source
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from WorkflowLib.Module.ModuleBase                       import *
-from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
-import DIRAC
 
-try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
-except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import CheckApplication, MySiteRoot
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
+from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+
+from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
+
+import DIRAC
 
 import shutil, re, string, os, sys
 
