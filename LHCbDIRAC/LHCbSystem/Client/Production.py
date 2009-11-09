@@ -889,6 +889,7 @@ class Production(LHCbJob):
       bkDict['Steps'][step]['DDDb']=self.workflow.findParameter('DDDBTag').getValue()
       bkDict['Steps'][step]['CondDb']=self.workflow.findParameter('CondDBTag').getValue()
 
+    prodID = 0
     if publish:
       dirac = DiracProduction()
       if self.inputFileMask:
@@ -934,10 +935,11 @@ class Production(LHCbJob):
       else:
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
 
-    try:
-      self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
-    except Exception,x:
-      self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
+    if publish:
+      try:
+        self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
+      except Exception,x:
+        self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
 
     return S_OK(prodID)
 
