@@ -8,21 +8,16 @@ import commands, os, time, smtplib, re, string, shutil
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 
-try:
-  from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
-except Exception,x:
-  from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
-
-try:
-  from LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
+from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from WorkflowLib.Utilities.Tools                         import getGuidFromPoolXMLCatalog
-from WorkflowLib.Module.ModuleBase                       import ModuleBase
+from DIRAC.DataManagementSystem.Client.PoolXMLFile       import getGUID
+
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
+
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
@@ -207,7 +202,16 @@ class AnalyseLogFile(ModuleBase):
               continue
 
             if self.jobID:
-              guidinput = getGuidFromPoolXMLCatalog(self.poolXMLCatName,inputname)
+              guidResult = getGUID(inputname)
+              guidinput = ''
+              if not guidResult['OK']:
+                self.log.error('Could not find GUID for %s with message' %(inputname),guidResult['Message'])
+              elif guidResult['generated']:
+                self.log.error('PoolXMLFile generated GUID(s) for the following files ',string.join(guidResult['generated'],', '))
+                guidinput = guidResult['Value'][inputname]
+              else:
+                guidinput = guidResult['Value'][inputname]
+                
               result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput,catalog='LcgFileCatalogCombined')
               if not result['OK']:
                   self.log.error('Could not save INPUT data file',result['Message'])
