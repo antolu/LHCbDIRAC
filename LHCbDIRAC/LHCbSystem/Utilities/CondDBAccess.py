@@ -12,10 +12,7 @@ import string,os,shutil,re
 
 import DIRAC
 
-try:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 

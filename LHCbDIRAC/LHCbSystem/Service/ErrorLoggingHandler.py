@@ -10,7 +10,7 @@ __RCSID__ = "$Id$"
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.LHCbSystem.DB.ErrorLoggingDB import ErrorLoggingDB
+from LHCbDIRAC.LHCbSystem.DB.ErrorLoggingDB import ErrorLoggingDB
 
 errorLoggingDB = None
 
