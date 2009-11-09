@@ -8,12 +8,11 @@ __RCSID__ = "$Id: GaudiApplicationOPTS.py 18064 2009-11-05 19:40:01Z acasajus $"
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
-except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
-from WorkflowLib.Module.ModuleBase                       import *
-from WorkflowLib.Utilities.Tools import *
+
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData                import constructProductionLFNs
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
+from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
@@ -245,8 +244,8 @@ class GaudiApplication(ModuleBase):
     self.log.info('Setting local software area to %s' %localArea)
 
     if self.applicationName == "Gauss" and self.PRODUCTION_ID and self.JOB_ID:
-      self.run_number = runNumber(self.PRODUCTION_ID,self.JOB_ID)
-
+      self.run_number =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)
+      
     if self.optionsFile and not self.optionsFile == "None":
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,fileopt)):
