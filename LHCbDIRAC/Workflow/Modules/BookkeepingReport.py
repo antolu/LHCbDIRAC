@@ -5,16 +5,12 @@
 
 __RCSID__ = "$Id: BookkeepingReport.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
-from WorkflowLib.Utilities.Tools import *
-from WorkflowLib.Module.ModuleBase import ModuleBase
+from DIRAC.DataManagementSystem.Client.PoolXMLFile  import getGUID
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
+
 from DIRAC import  *
 import DIRAC
-
-try:
-  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
 
 import os, time, re, string
 
@@ -350,12 +346,15 @@ class BookkeepingReport(ModuleBase):
         md5sum = out.split()[0]
 
       if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
-        guid = getGuidFromPoolXMLCatalog(self.poolXMLCatName,output)
-        if guid == '':
-          if md5sum != '000000000000000000000000000000000000':
-            guid = makeGuid(output)
-          else:
-            guid = makeGuid()
+        guidResult = getGUID(output)
+        guid = ''
+        if not guidResult['OK']:
+          self.log.error('Could not find GUID for %s with message' %(output),guidResult['Message'])
+        elif guidResult['generated']:
+          self.log.error('PoolXMLFile generated GUID(s) for the following files ',string.join(guidResult['generated'],', '))
+          guid = guidResult['Value'][output]
+        else:
+          guidinput = guidResult['Value'][output]
       else:
         guid = self.step_commons[ 'guid' ][ output ]
 
