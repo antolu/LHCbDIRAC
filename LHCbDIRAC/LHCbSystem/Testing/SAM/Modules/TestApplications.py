@@ -15,14 +15,10 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
-try:
-  from DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
-  from DIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
-  from DIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
-except Exception,x:
-  from LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
-  from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
-  from LHCbSystem.Client.LHCbJob import LHCbJob
+
+from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 

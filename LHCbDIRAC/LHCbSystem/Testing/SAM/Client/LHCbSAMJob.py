@@ -17,7 +17,7 @@
    An example SAM Test script would be::
 
     from DIRAC.Interfaces.API.Dirac import Dirac
-    from DIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
+    from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
 
     j = LHCbSAMJob()
     j.setDestinationCE('LCG.PIC.es')
@@ -70,9 +70,9 @@ class LHCbSAMJob(Job):
     self.samPriority = gConfig.getValue('/Operations/SAM/Priority',1)
     self.importLine = """
 try:
-  from LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
+  from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
 except Exception,x:
-  from DIRAC.LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
+  print 'Could not import <MODULE> from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules:\n%s' %(x)
 """
     self.__setDefaults()
 

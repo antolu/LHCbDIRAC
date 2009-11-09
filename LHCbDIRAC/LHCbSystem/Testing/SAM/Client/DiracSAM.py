@@ -14,9 +14,9 @@ __RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 
-from DIRAC.Interfaces.API.Dirac                     import *
-from DIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
-from DIRAC.Core.Utilities.SiteCEMapping             import getCESiteMapping,getSiteForCE
+from DIRAC.Interfaces.API.Dirac                         import *
+from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
+from DIRAC.Core.Utilities.SiteCEMapping                 import getCESiteMapping,getSiteForCE
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 class DiracSAM(Dirac):

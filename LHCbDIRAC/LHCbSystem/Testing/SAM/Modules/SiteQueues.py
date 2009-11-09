@@ -13,10 +13,7 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
-try:
-  from DIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
-except Exception,x:
-  from LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
+from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re
 
