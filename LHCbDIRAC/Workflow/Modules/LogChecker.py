@@ -5,12 +5,13 @@
 
 __RCSID__ = "$Id: LogChecker.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from WorkflowLib.Module.AnalyseLogFile import *
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+
+from LHCbDIRAC.Workflow.Modules.AnalyseLogFile                    import AnalyseLogFile
+from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
-from WorkflowLib.Module.ModuleBase                       import *
-from WorkflowLib.Utilities.Tools                         import *
 
 import commands, os
 
@@ -56,6 +57,11 @@ class LogChecker(ModuleBase):
     if self.step_commons.has_key('numberOfEventsOutput'):
        self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
 
+  def copyClassAttributes(self,from_, to_, except_=[]):
+    """copy class attributes from one class to another"""
+    for attr in from_.__dict__.keys():
+      if attr not in except_:
+        to_.__dict__[attr]=from_.__dict__[attr]
 
   def execute(self):
     self.resolveInputVariables()
@@ -67,7 +73,7 @@ class LogChecker(ModuleBase):
 
     # Copy all attributes from container class into embedded class replacing
     # inheritance mechanism which can not be used in this case
-    copyClassAttributes(self, self.logChecker, 'logChecker')
+    self.copyClassAttributes(self.logChecker, 'logChecker')
 
     rc = self.logChecker.execute()
     self.step_commons['numberOfEventsInput'] = self.logChecker.numberOfEventsInput
