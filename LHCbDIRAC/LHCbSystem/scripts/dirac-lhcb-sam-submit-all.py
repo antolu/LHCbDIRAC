@@ -14,7 +14,7 @@ Script.registerSwitch( "", "script=", "Optional path to python script to execute
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
-from DIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
+from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
 
 script = ''
 

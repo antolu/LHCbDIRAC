@@ -6,11 +6,8 @@
 ########################################################################
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
-try:
-  from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
-except Exception,x:
-  from DIRAC.WorkloadManagementSystem.Client.NotificationClient import NotificationClient
 
+from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin

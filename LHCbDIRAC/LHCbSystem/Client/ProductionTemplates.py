@@ -30,10 +30,7 @@ __RCSID__ = "$Id$"
 
 import os
 
-try:
-  from LHCbSystem.Client.Production import *
-except Exception,x:
-  from DIRAC.LHCbSystem.Client.Production import *
+from LHCbDIRAC.LHCbSystem.Client.Production import *
 
 from DIRAC import gLogger
 

@@ -21,17 +21,13 @@ __RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 
-from DIRAC.Interfaces.API.DiracProduction             import DiracProduction
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
-try:
-  from LHCbSystem.Client.LHCbJob import *
-  from LHCbSystem.Utilities.ProductionOptions import getOptions
-except Exception,x:
-  from DIRAC.LHCbSystem.Client.LHCbJob import *
-  from DIRAC.LHCbSystem.Utilities.ProductionOptions import getOptions
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
+from LHCbDIRAC.LHCbSystem.Client.LHCbJob                  import *
+from LHCbDIRAC.Utilities.ProductionOptions                import getOptions
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 

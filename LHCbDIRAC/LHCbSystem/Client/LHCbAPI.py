@@ -18,7 +18,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList
 from DIRAC.Interfaces.API.Dirac                     import Dirac
-from DIRAC.LHCbSystem.Utilities.ClientTools         import mergeRootFiles,getRootFileGUID
+from LHCbDIRAC.LHCbSystem.Utilities.ClientTools     import mergeRootFiles,getRootFileGUID
 
 import os, glob, fnmatch
 

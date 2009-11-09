@@ -24,9 +24,9 @@ Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-from DIRAC.LHCbSystem.Utilities.JobInfoFromXML        import JobInfoFromXML
+from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML        import JobInfoFromXML
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 rm = ReplicaManager()
 bk = BookkeepingClient()

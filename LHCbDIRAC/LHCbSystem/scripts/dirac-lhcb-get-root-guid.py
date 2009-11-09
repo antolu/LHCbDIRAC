@@ -4,7 +4,7 @@ Script.parseCommandLine(ignoreErrors = True)
 localFiles = Script.getPositionalArgs()
 import DIRAC
 from DIRAC                                                import gLogger
-from DIRAC.LHCbSystem.Utilities.ClientTools               import getRootFilesGUIDs
+from LHCbDIRAC.LHCbSystem.Utilities.ClientTools           import getRootFilesGUIDs
 from DIRAC.Core.Utilities.List                            import sortList
 import os
 

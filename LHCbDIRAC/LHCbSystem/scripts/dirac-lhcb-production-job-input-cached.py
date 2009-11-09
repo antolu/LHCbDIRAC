@@ -8,7 +8,7 @@ __VERSION__ = '$Revision: 1.1 $'
 from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.LHCbSystem.Utilities.JobInfoFromXML import JobInfoFromXML
+from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML import JobInfoFromXML
 
 def usage():
   print 'Usage: %s [Try -h,--help for more information] job [job2 [job3 [...]]]' %(Script.scriptName)
