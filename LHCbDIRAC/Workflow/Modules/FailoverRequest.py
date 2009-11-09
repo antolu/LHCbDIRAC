@@ -7,7 +7,7 @@
 
 __RCSID__ = "$Id: FailoverRequest.py 18064 2009-11-05 19:40:01Z acasajus $"
 
-from WorkflowLib.Module.ModuleBase                         import *
+from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
