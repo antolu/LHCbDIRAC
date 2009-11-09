@@ -111,6 +111,7 @@ class LHCbJob(Job):
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
     self.scratchDir = gConfig.getValue(self.section+'/LocalSite/ScratchDir','/tmp')
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
+    self.importLocation = 'LHCbDIRAC.Workflow.Modules'
 
   #############################################################################
   def setApplication(self,appName,appVersion,optionsFiles,inputData='',optionsLine='',inputDataType='',logFile=''):
@@ -256,7 +257,7 @@ class LHCbJob(Job):
     moduleName = 'GaudiApplication'
     module = ModuleDefinition(moduleName)
     module.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
-    body = 'from WorkflowLib.Module.GaudiApplication import GaudiApplication\n'
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -404,7 +405,7 @@ class LHCbJob(Job):
     moduleName = 'GaudiApplicationScript'
     module = ModuleDefinition(moduleName)
     module.setDescription('A  Gaudi Application script module that can execute any provided script in the given project name and version environment')
-    body = 'from WorkflowLib.Module.GaudiApplicationScript import GaudiApplicationScript\n'
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -638,7 +639,7 @@ class LHCbJob(Job):
     moduleName = 'RootApplication'
     module = ModuleDefinition(moduleName)
     module.setDescription('A generic Root Application module that can execute macros, python scripts or executables')
-    body = 'from WorkflowLib.Module.RootApplication import RootApplication\n'
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
