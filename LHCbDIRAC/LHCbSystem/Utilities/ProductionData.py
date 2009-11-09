@@ -3,15 +3,15 @@
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
+    
+    TODO: this module inherits the WorkflowLib Tools behaviour (imported
+    as private methods). This can be cleaned up. 
 """
 
 __RCSID__ = "$Id$"
 
 import string,re
 
-#Until the workflow_commons and this utility (for local running) is used by all modules we have
-#to retain this dependency on the wokflow library here.
-from WorkflowLib.Utilities.Tools import *
 #This utility can eventually contain all of the LHCb conventions regarding input data.
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -56,10 +56,10 @@ def constructProductionLFNs(paramDict):
   lfnRoot = ''
   debugRoot = ''
   if inputData:
-    lfnRoot = getLFNRoot(inputData,wfType)
+    lfnRoot = _getLFNRoot(inputData,wfType)
   else:
-    lfnRoot = getLFNRoot('',wfType,wfConfigVersion)
-    debugRoot= getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
+    lfnRoot = _getLFNRoot('',wfType,wfConfigVersion)
+    debugRoot= _getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
 
   if not lfnRoot:
     return S_ERROR('LFN root could not be constructed')
@@ -69,17 +69,17 @@ def constructProductionLFNs(paramDict):
   bkLFNs = []
   debugLFNs = []
   for fileTuple in fileTupleList:
-    lfn = makeProductionLfn(str(jobID).zfill(8),lfnRoot,fileTuple,wfMode,str(productionID).zfill(8))
+    lfn = _makeProductionLfn(str(jobID).zfill(8),lfnRoot,fileTuple,wfMode,str(productionID).zfill(8))
     outputData.append(lfn)
     bkLFNs.append(lfn)
     if debugRoot:
-      debugLFNs.append(makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfMode,str(productionID).zfill(8)))
+      debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfMode,str(productionID).zfill(8)))
 
   if debugRoot:
-    debugLFNs.append(makeProductionLfn(str(jobID).zfill(8),debugRoot,('%s_core' % str(jobID).zfill(8) ,'core'),wfMode,str(productionID).zfill(8)))
+    debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,('%s_core' % str(jobID).zfill(8) ,'core'),wfMode,str(productionID).zfill(8)))
 
   #Get log file path - unique for all modules
-  logPath = makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
+  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
   logFilePath = ['%s/%s' %(logPath,str(jobID).zfill(8))]
   logTargetPath = ['%s/%s_%s.tar' %(logPath,str(productionID).zfill(8),str(jobID).zfill(8))]
   #[ aside, why does makeProductionPath not append the jobID itself ????
@@ -150,12 +150,12 @@ def getLogPath(paramDict):
   gLogger.verbose('WFMode = %s, WFConfigVersion = %s, WFType=%s' %(wfMode,wfConfigVersion,wfType))
   lfnRoot = ''
   if inputData:
-    lfnRoot = getLFNRoot(inputData,wfType)
+    lfnRoot = _getLFNRoot(inputData,wfType)
   else:
-    lfnRoot = getLFNRoot('',wfType,wfConfigVersion)
+    lfnRoot = _getLFNRoot('',wfType,wfConfigVersion)
 
   #Get log file path - unique for all modules
-  logPath = makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
+  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
   logFilePath = ['%s/%s' %(logPath,str(jobID).zfill(8))]
   logTargetPath = ['%s/%s_%s.tar' %(logPath,str(productionID).zfill(8),str(jobID).zfill(8))]
 
@@ -166,8 +166,77 @@ def getLogPath(paramDict):
 
 #############################################################################
 def constructUserLFNs(paramDict):
-  """ Used for constructing output LFNs for user jobs.
+  """ Under construction, will be used for constructing output LFNs for user job
+      finalization.
   """
   return S_OK()
 
+#############################################################################
+def _makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
+  """ Constructs the path in the logical name space where the output
+      data for the given production will go. In
+  """
+  result = LFN_ROOT+'/'+typeName.upper()+'/'+prodstring+'/'
+  if log:
+    try:
+      jobid = int(JOB_ID)
+      jobindex = string.zfill(jobid/10000,4)
+    except:
+      jobindex = '0000'
+    result += jobindex
+
+  return result
+
+#############################################################################
+def _makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
+  """ Constructs the logical file name according to LHCb conventions.
+      Returns the lfn without 'lfn:' prepended.
+  """
+  try:
+    jobid = int(JOB_ID)
+    jobindex = string.zfill(jobid/10000,4)
+  except:
+    jobindex = '0000'
+
+  if re.search('lfn:',fname) or re.search('LFN:',fname):
+    return filetuple[0].replace('lfn:','').replace('LFN:','')
+  
+  return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
+      
+#############################################################################
+def _getLFNRoot(lfn,namespace='',configVersion=0):
+  """
+  return the root path of a given lfn
+
+  eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
+  eg : /lhcb/MC/<year>/  = getLFNRoot(None)
+  """
+  dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','XDST']
+  LFN_ROOT=''  
+  
+  if not lfn:
+    LFN_ROOT='/lhcb/MC/'+str(configVersion)
+    if namespace.lower() in ('test','debug'):
+      LFN_ROOT='/lhcb/MC/%s' %(namespace)
+    return LFN_ROOT
+  
+  lfn = [fname.replace(' ','') for fname in lfn.split(';')]
+  lfnroot = lfn[0].split('/')
+  for part in lfnroot:
+    if not part in dataTypes:
+      LFN_ROOT+='/%s' %(part)
+    else:
+      break
+       
+  if namespace.lower() in ('test','debug'):
+    tmpLfnRoot = LFN_ROOT.split(os.path.sep)
+    if len(tmpLfnRoot)>2:
+      tmpLfnRoot[2] = namespace
+    else:
+      tmLfnRoot[-1] = namespace
+        
+    LFN_ROOT = string.join(tmpLfnRoot,os.path.sep)
+
+  return LFN_ROOT
+        
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
