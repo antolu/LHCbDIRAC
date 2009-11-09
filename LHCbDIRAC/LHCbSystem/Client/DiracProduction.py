@@ -32,12 +32,10 @@ from DIRAC.Core.Utilities.File                      import makeGuid
 from DIRAC.Core.Utilities.Time                      import toString
 from DIRAC.Core.Security.X509Chain                  import X509Chain
 from DIRAC.Core.Security                            import Locations, CS
-from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
-try:
-  from LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+
+from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
 COMPONENT_NAME='DiracProduction'
 
