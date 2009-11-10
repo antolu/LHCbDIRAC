@@ -27,7 +27,7 @@ from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
 from LHCbDIRAC.LHCbSystem.Client.LHCbJob                  import *
-from LHCbDIRAC.Utilities.ProductionOptions                import getOptions
+from LHCbDIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
