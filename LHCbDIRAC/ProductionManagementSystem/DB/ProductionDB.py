@@ -879,7 +879,8 @@ class ProductionDB(TransformationDB):
     result = self.getJobInputVector(productionID,jobID)
     jobDict['InputVector']=''
     if result['OK']:
-      jobDict['InputVector']=result['Value'][jobID]    
+      if result['Value'].has_key(jobID):
+        jobDict['InputVector']=result['Value'][jobID]    
     
     return S_OK(jobDict)
 
