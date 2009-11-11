@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Interfaces/API/DiracProduction.py $
+# $HeadURL$
 # File :   DiracProduction.py
 # Author : Stuart Paterson
 ########################################################################
@@ -15,7 +15,7 @@ Script.parseCommandLine()
    Helper functions are to be documented with example usage.
 """
 
-__RCSID__ = "$Id: DiracProduction.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 import string, re, os, time, shutil, types, copy
 import pprint

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: UploadOutputData.py 18064 2009-11-05 19:40:01Z acasajus $
+# $Id$
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer

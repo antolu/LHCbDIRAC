@@ -7,7 +7,7 @@
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.5 $"
 
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "n:", "site=", "DIRAC Site Name" )

@@ -8,7 +8,7 @@ __RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
 import sys,string,re
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.parseCommandLine( ignoreErrors = True )

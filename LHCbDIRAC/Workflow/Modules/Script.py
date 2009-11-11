@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: GaudiApplication.py 18064 2009-11-05 19:40:01Z acasajus $
+# $Id$
 ########################################################################
 """ Script Class """
 
-__RCSID__ = "$Id: GaudiApplication.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 
 from DIRAC.Core.Utilities.Subprocess import shellCall

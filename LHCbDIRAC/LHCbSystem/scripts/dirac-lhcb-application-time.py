@@ -9,7 +9,7 @@
 Records the average time spent running all applications in a production or series of productions.
 """
 
-from DIRACEnvironment                                       import DIRAC
+import DIRAC
 from DIRAC.Core.Base                                        import Script
 
 from random import choice

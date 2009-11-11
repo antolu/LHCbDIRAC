@@ -1,12 +1,12 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/WorkflowTemplates/MDF_Merging_run.py $
+# $HeadURL$
 ########################################################################
 
 """  The MDF merging template allows to disable the watchdog CPU check
      in the case that many input files per job are requested.
 """
 
-__RCSID__ = "$Id: MDF_Merging_run.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

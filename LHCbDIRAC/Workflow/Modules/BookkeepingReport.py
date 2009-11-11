@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: BookkeepingReport.py 18064 2009-11-05 19:40:01Z acasajus $
+# $Id$
 ########################################################################
 """ Bookkeeping Report Class """
 
-__RCSID__ = "$Id: BookkeepingReport.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.PoolXMLFile  import getGUID
 from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs

@@ -8,7 +8,7 @@ import os, sys, popen2
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.1 $"
 import sys,string
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "", "Status=", "Primary status" )

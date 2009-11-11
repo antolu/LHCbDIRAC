@@ -9,7 +9,7 @@ __VERSION__ = "$Revision: 1.4 $"
 
 import sys,string,os,shutil
 
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "p:", "Project=", "Project Name e.g. Gauss, Boole, Brunel or DaVinci" )

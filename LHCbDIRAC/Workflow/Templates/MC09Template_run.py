@@ -1,12 +1,12 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/WorkflowTemplates/MC09Template_run.py $
+# $HeadURL$
 ########################################################################
 
 """  The MC09 template creates a workflow for Gauss->Boole->Brunel with
      configurable number of events, CPU time, jobs to extend and priority.
 """
 
-__RCSID__ = "$Id: MC09Template_run.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

@@ -5,7 +5,7 @@
 # Author : Paul Szczypka
 ########################################################################
 import sys, time, commands, os
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 """

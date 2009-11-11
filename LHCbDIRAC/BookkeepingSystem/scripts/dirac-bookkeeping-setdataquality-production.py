@@ -7,7 +7,7 @@
 __RCSID__   = "$Id$"
 __VERSION__ = "$ $"
 
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient

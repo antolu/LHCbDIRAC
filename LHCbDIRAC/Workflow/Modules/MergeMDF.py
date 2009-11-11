@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: MergeMDF.py 18064 2009-11-05 19:40:01Z acasajus $
+# $Id$
 ########################################################################
 """ Simple merging module for MDF files. """
 
-__RCSID__ = "$Id: MergeMDF.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.DISET.RPCClient                          import RPCClient

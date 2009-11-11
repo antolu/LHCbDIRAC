@@ -7,7 +7,7 @@
 __RCSID__   = "$ $"
 __VERSION__ = "$ $"
 
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 import types

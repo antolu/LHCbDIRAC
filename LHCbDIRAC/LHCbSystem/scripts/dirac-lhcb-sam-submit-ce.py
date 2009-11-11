@@ -7,7 +7,7 @@
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.2 $"
 import sys,string
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "", "ce=", "Computing Element to submit to (must be in DIRAC CS)" )

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: StepAccounting.py 18064 2009-11-05 19:40:01Z acasajus $
+# $Id$
 ########################################################################
 
 """ StepAccounting module performs several common operations at the end of
@@ -7,7 +7,7 @@
     data
 """
 
-__RCSID__ = "$Id: StepAccounting.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 
 from DIRAC  import S_OK, S_ERROR, gLogger, gConfig

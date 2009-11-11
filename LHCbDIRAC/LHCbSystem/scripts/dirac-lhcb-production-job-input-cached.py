@@ -5,7 +5,7 @@ __date__ = 'Sept 2008'
 __RCSID__ = '$Id$'
 __VERSION__ = '$Revision: 1.1 $'
 
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.Interfaces.API.Dirac import Dirac
 from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML import JobInfoFromXML

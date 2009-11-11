@@ -7,7 +7,7 @@
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.1 $"
 import sys
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "", "script=", "Optional path to python script to execute in SAM jobs [Experts only]" )

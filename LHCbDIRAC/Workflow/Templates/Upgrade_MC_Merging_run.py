@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/WorkflowTemplates/Upgrade_MC_Merging_run.py $
+# $HeadURL$
 ########################################################################
 
 """  The Upgrade template creates a workflow for Gauss->Boole->Brunel with
@@ -9,7 +9,7 @@
      CondDB / DDDB to be set at each step.
 """
 
-__RCSID__ = "$Id: Upgrade_MC_Merging_run.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__ = "$Id$"
 
 import sys,os
 start = os.getcwd()

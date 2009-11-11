@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Interfaces/scripts/dirac-production-file-status.py $
+# $HeadURL$
 # File :   dirac-production-file-status
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-production-file-status.py 18064 2009-11-05 19:40:01Z acasajus $"
+__RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.1 $"
-from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "", "ProductionID=", "Restrict query to given production ID (default is to show status for all)" )
