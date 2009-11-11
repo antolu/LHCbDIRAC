@@ -6,8 +6,9 @@
 
 """
 
-from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
-from DIRAC.BookkeepingSystem.DB.DB                                   import DB
+from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
+from LHCbDIRAC.BookkeepingSystem.DB.DB                                   import DB
+
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 

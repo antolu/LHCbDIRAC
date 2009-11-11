@@ -7,8 +7,8 @@
 
 __RCSID__ = "$Id$"
 
+from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDB                   import IBookkeepingDB
 from types                                                           import *
-from DIRAC.BookkeepingSystem.DB.IBookkeepingDB                       import IBookkeepingDB
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection

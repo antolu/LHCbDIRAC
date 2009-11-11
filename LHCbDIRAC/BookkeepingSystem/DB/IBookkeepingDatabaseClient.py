@@ -5,8 +5,8 @@
 
 """
 
-from DIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
-from DIRAC                                                 import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
+from DIRAC                                                     import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"
 
