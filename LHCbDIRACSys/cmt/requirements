@@ -19,7 +19,6 @@ use BookkeepingSystem		 v* LHCbDIRAC
 use ProductionManagementSystem   v* LHCbDIRAC
 use BookkeepingSystem    	 v* LHCbDIRAC
 
-use DIRAC v*
 
 private
 action DiracMake "$(DIRACSYSROOT)/dirac-make"
