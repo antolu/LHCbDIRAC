@@ -6,8 +6,8 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileManager import FileManager
-from DIRAC.BookkeepingSystem.Agent.FileSystem.IFileClient import IFileClient
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileManager import FileManager
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.IFileClient import IFileClient
 
 __RCSID__ = "$Id$"
 

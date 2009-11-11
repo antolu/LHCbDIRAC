@@ -9,11 +9,12 @@
 
 AGENT_NAME = 'Bookkeeping/BookkeepingXmlFileTransferAgent'
 
-from DIRAC.Core.Base.Agent                                                     import Agent
-from DIRAC                                                                     import S_OK, S_ERROR, gConfig
-from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
-#from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
-#from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
+from DIRAC.Core.Base.Agent                                                         import Agent
+from DIRAC                                                                         import S_OK, S_ERROR, gConfig
+
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer
+#from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
+#from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
 
 __RCSID__ = "$Id$"
 

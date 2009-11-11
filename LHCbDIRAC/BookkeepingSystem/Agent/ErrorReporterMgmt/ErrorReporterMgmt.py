@@ -6,9 +6,9 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient import FileSystemClient
-from DIRAC                                                     import gLogger, S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client.Config                   import gConfig
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient import FileSystemClient
+from DIRAC                                                         import gLogger, S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client.Config                       import gConfig
 import os
 
 __RCSID__ = "$Id$"

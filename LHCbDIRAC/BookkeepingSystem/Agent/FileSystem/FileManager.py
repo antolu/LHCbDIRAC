@@ -6,9 +6,9 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.FileSystem.IFileManager import IFileManager
-from DIRAC.BookkeepingSystem.Agent.FileSystem.IFileClient  import IFileClient
-from DIRAC                                                 import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.IFileManager import IFileManager
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.IFileClient  import IFileClient
+from DIRAC                                                     import gLogger, S_OK, S_ERROR
 
 import os
 import types

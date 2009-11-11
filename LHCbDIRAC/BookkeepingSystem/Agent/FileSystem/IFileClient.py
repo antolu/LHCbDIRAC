@@ -6,7 +6,7 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.FileSystem.IFileManager import IFileManager
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.IFileManager import IFileManager
 
 __RCSID__ = "$Id$"
 
@@ -48,4 +48,4 @@ class IFileClient(object):
   def getPathSeparator(self):
     return self.getManager().getPathSeparator()
   
-  #############################################################################  
+  
