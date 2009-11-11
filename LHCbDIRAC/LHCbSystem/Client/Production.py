@@ -690,11 +690,16 @@ class Production(LHCbJob):
 
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
       prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-      res = prodClient.getProductionInfo(prodID)
+      res = prodClient.getProductionInfo(int(prodID))
       if not res['OK']:
         self.log.error(res)
         return S_ERROR('Could not obtain production info')
 
+      if not res['Value']['OK']:
+        self.log.error(res)
+        return S_ERROR('Could not obtain production info')      
+
+      #for my sanity
       res = res['Value']['Value']
       if res['BkQueryID']:
         self.log.info('Production %s has BK query ID %s' %(prodID,res['BkQueryID']))
