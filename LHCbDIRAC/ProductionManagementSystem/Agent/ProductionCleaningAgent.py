@@ -10,7 +10,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaMan
 from DIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
 from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
 from DIRAC.WorkloadManagementSystem.Client.WMSClient           import WMSClient
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient          import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 from DIRAC.Core.Utilities.List                                 import sortList,breakListIntoChunks
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from datetime                                                  import datetime,timedelta
