@@ -227,7 +227,7 @@ class ProductionCleaningAgent(AgentModule):
     return S_OK(directories)
 
   def __createProductionDirectories(self,prodID):
-    from DIRAC.LHCbSystem.Client.Production import Production 
+    from LHCbDIRAC.LHCbSystem.Client.Production import Production 
     production = Production()
     res = production._setProductionParameters(prodID)
 

@@ -94,7 +94,7 @@ def runJob(projectName,projectVersion,optionsFile,systemConfig,submissionMode,cp
   scriptName = '%s/DiracAPI_%s_%s_%s.py' %(os.getcwd(),projectName,projectVersion,submissionMode.lower().capitalize())
   fopen = open(scriptName,'w')
   fopen.write('# Example DIRAC API script written for %s %s in %s mode using:\n# %s\n\n' %(projectName,projectVersion,submissionMode,__RCSID__))
-  fopen.write('from DIRAC.LHCbSystem.Client.LHCbJob import LHCbJob\nfrom DIRAC.Interfaces.API.Dirac import Dirac\nj=LHCbJob()\n')
+  fopen.write('from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob\nfrom DIRAC.Interfaces.API.Dirac import Dirac\nj=LHCbJob()\n')
   j = LHCbJob()
   fopen.write('j.setCPUTime("%s")\n' %cpuTime)
   j.setCPUTime(cpuTime)

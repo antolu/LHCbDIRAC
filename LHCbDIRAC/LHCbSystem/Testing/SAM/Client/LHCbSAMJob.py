@@ -184,7 +184,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to manage the lock in the shared area of a Grid site for LHCb')
     body = string.replace(self.importLine,'<MODULE>','LockSharedArea')
-    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.LockSharedArea import LockSharedArea\n'
+    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.LockSharedArea import LockSharedArea\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -243,7 +243,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the system configuration of a Grid site for LHCb')
     body = string.replace(self.importLine,'<MODULE>','SystemConfiguration')
-    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SystemConfiguration import SystemConfiguration\n'
+    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SystemConfiguration import SystemConfiguration\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -299,7 +299,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
     body = string.replace(self.importLine,'<MODULE>','SiteQueues')
-    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SiteQueues import SiteQueues\n'
+    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SiteQueues import SiteQueues\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -366,7 +366,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to install LHCb software')
     body = string.replace(self.importLine,'<MODULE>','SoftwareInstallation')
-    #'from DIRAC.LHCbSystem.Testing.SAM.Modules.SoftwareInstallation import SoftwareInstallation\n'
+    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SoftwareInstallation import SoftwareInstallation\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -428,7 +428,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the content of the SHARED area for the given CE')
     body = string.replace(self.importLine,'<MODULE>','SoftwareReport')
-    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -499,7 +499,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
     body = string.replace(self.importLine,'<MODULE>','TestApplications')
-    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -560,7 +560,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check if the application is properly installed')
     body = string.replace(self.importLine,'<MODULE>','CheckApplications')
-    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
+    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -622,7 +622,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
     body = string.replace(self.importLine,'<MODULE>','SAMFinalization')
-    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.SAMFinalization import SAMFinalization\n'
+    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SAMFinalization import SAMFinalization\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -689,7 +689,7 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
     body = string.replace(self.importLine,'<MODULE>','RunTestScript')
-    #body = 'from DIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
+    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)

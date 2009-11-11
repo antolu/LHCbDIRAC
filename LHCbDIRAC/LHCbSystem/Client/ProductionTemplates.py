@@ -273,7 +273,7 @@ fopen = open('runLocalWorkflow.py','w')
 fopen.write("""import sys
 xmlfile = str(sys.argv[1])
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
 d = Dirac()
 j = LHCbJob(xmlfile)
 print d.submit(j,mode='local')

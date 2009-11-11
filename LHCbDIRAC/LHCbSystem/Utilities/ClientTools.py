@@ -30,7 +30,7 @@ def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=
 
      Example usage:
 
-     >>> from DIRAC.LHCbSystem.Utilities.ClientTools import packageInputs
+     >>> from LHCbDIRAC.LHCbSystem.Utilities.ClientTools import packageInputs
      >>> packageInputs('DaVinci','v20r3',optionsFiles=['$DAVINCIUSERROOT/myOpts.py'])
 
      @param condDict: CondDB tags
