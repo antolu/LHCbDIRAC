@@ -10,9 +10,9 @@ __RCSID__ = "$Id$"
 from types                                                      import *
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Service.copyFiles                  import copyXMLfile
 from DIRAC.ConfigurationSystem.Client.Config                    import gConfig
 
+from LHCbDIRAC.BookkeepingSystem.Service.copyFiles              import copyXMLfile
 import time,sys,os
 
   

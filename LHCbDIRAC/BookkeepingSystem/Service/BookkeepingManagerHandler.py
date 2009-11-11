@@ -7,13 +7,14 @@
 
 __RCSID__ = "$Id$"
 
+from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from LHCbDIRAC.BookkeepingSystem.Service.copyFiles                                    import copyXMLfile
+
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Service.copyFiles                                    import copyXMLfile
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
-from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
 from DIRAC.Core.Utilities                                                         import DEncode
