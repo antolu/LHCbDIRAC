@@ -11,9 +11,7 @@ import sys, os
 import signal
 import string
 import time
-from DIRAC import S_OK, S_ERROR
-from DIRAC import gConfig
-from DIRAC.LoggingSystem.Client.Logger import gLogger
+from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Transformation.TransformationDBCLI   import TransformationDBCLI
 #job submission
