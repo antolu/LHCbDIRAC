@@ -6,11 +6,11 @@
 ########################################################################
 __RCSID__   = "$Id$"
 __VERSION__ = "$ $"
-from DIRAC.Core.Security.Misc                              import getProxyInfo
-from DIRAC.Core.Security.CS import getDNForUsername
-from DIRAC                                                 import gLogger, S_OK, S_ERROR
+from DIRAC.Core.Security.Misc                                  import getProxyInfo
+from DIRAC.Core.Security.CS                                    import getDNForUsername
+from DIRAC                                                     import gLogger, S_OK, S_ERROR
 import DIRAC
-from DIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
