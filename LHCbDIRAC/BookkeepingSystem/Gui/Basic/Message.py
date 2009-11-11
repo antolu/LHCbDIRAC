@@ -15,4 +15,4 @@ class Message(dict):
   def action(self):
     return self['action']
   
-  #############################################################################  
+   

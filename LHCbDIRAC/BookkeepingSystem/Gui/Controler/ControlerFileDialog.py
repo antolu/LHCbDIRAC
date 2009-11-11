@@ -5,13 +5,16 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from PyQt4.QtGui                                                     import *
-from DIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
-from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
-import sys
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
+
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
+
+from PyQt4.QtGui                                                     import *
+
+import sys
 #############################################################################  
 class ControlerFileDialog(ControlerAbstract):
   

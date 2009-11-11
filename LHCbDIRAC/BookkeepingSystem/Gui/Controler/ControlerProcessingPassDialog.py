@@ -3,8 +3,9 @@
 ########################################################################
 
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+
 __RCSID__ = "$Id$"
 
 #############################################################################  

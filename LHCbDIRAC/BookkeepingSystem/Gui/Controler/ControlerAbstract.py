@@ -45,4 +45,4 @@ class ControlerAbstract(object):
   def setParent(self, parent):
     self.__parent = parent
   
-  #############################################################################  
+    

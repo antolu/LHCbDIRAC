@@ -1,11 +1,11 @@
 ########################################################################
 # $Id$
 ########################################################################
-from PyQt4.QtGui                                                          import *
-from PyQt4.QtCore                                                         import *
-from DIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup_ui               import Ui_Production
-from DIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
+from PyQt4.QtGui                                                              import *
+from PyQt4.QtCore                                                             import *
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup_ui               import Ui_Production
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
 import DIRAC,os
 
 __RCSID__ = "$Id$"

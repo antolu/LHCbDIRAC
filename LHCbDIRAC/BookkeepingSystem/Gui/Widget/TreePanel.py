@@ -4,8 +4,9 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from DIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
-from DIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
+
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 import DIRAC, types
 
 __RCSID__ = "$Id$"

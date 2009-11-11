@@ -5,11 +5,14 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from DIRAC.BookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import HistoryNavigationCommand
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import HistoryNavigationCommand
+
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
+
 from PyQt4.QtGui                                                     import *
+
 import sys
 #############################################################################  
 class ControlerHistoryDialog(ControlerAbstract):

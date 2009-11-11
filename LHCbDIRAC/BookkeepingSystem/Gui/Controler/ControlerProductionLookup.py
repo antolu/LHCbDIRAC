@@ -3,11 +3,11 @@
 ########################################################################
 
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from PyQt4.QtGui                                                     import *
-from DIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 
+from PyQt4.QtGui                                                     import *
 __RCSID__ = "$Id$"
 
 #############################################################################  

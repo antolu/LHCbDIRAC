@@ -2,8 +2,9 @@
 # $Id$
 ########################################################################
 
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
+
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
 __RCSID__ = "$Id$"
 
 

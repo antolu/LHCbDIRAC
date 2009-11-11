@@ -1,12 +1,13 @@
 ########################################################################
 # $Id$
 ########################################################################
-from PyQt4.QtGui                                                          import *
-from PyQt4.QtCore                                                         import *
-from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog_ui           import Ui_ProcessingPassDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.TableModel                        import TableModel
-from DIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
+from PyQt4.QtGui                                                              import *
+from PyQt4.QtCore                                                             import *
+
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog_ui           import Ui_ProcessingPassDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                        import TableModel
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
 import DIRAC,os
 
 __RCSID__ = "$Id$"

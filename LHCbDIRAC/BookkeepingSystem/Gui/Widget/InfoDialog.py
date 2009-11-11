@@ -4,9 +4,9 @@
 
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
-from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
-from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 import DIRAC
 
 __RCSID__ = "$Id$"

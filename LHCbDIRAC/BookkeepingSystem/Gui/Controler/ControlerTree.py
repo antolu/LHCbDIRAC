@@ -3,9 +3,9 @@
 ########################################################################
 
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from DIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
 
 import types
 __RCSID__ = "$Id$"

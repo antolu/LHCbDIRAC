@@ -4,12 +4,13 @@
 
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
-from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
-from DIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
-from DIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
+
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
 import DIRAC,os
 
 __RCSID__ = "$Id$"

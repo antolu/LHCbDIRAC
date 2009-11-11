@@ -5,16 +5,16 @@
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from DIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
-from DIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
-from DIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
-from DIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
+from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
 __RCSID__ = "$Id$"
 
-#from DIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
+#from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
 #############################################################################  
 class TreeWidget(QWidget, Ui_TreeWidget):

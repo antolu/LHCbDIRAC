@@ -2,7 +2,7 @@
 # $Id$
 ########################################################################
 
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
 __RCSID__ = "$Id$"
 
@@ -21,4 +21,4 @@ class ControlerTable(ControlerAbstract):
   def messageFromChild(self, sender, message):
     pass
   
-  #############################################################################  
+    

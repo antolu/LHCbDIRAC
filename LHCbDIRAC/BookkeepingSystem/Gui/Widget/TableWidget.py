@@ -6,8 +6,8 @@
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from DIRAC.BookkeepingSystem.Gui.Widget.TableWidget_ui     import Ui_TableWidget
-from DIRAC.BookkeepingSystem.Gui.Controler.ControlerTable  import ControlerTable
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableWidget_ui     import Ui_TableWidget
+from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTable  import ControlerTable
 
 __RCSID__ = "$Id$"
 
