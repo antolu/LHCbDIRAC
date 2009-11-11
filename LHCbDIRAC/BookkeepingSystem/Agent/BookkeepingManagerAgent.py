@@ -10,15 +10,17 @@ __RCSID__ = "$Id$"
 
 AGENT_NAME = 'Bookkeeping/BookkeepingManagerAgent'
 
-from DIRAC.Core.Base.Agent                                                        import Agent
-from DIRAC                                                                        import S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
-from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                      import Replica
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam                 import ReplicaParam
-from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
-from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica                      import Replica
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam                 import ReplicaParam
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
+
+from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient           import LcgFileCatalogCombinedClient
+from DIRAC.ConfigurationSystem.Client.Config                                          import gConfig
+from DIRAC.Core.Base.Agent                                                            import Agent
+from DIRAC                                                                            import S_OK, S_ERROR
+
 import os
 
 class BookkeepingManagerAgent(Agent):
