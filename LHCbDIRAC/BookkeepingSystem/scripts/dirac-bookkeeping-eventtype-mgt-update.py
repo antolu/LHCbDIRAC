@@ -10,7 +10,7 @@ __VERSION__ = "$ $"
 import sys,string,re
 import DIRAC
 
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 fileName = ''

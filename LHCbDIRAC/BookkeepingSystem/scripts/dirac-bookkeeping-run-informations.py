@@ -21,7 +21,7 @@ if len(args) < 1:
   
 exitCode = 0
 
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 run=long(args[0])
 

@@ -13,7 +13,7 @@ from DIRAC.Core.Base import Script
 
 Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 exitCode = 0

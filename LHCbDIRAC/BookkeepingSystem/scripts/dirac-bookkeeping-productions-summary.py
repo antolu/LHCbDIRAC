@@ -17,7 +17,7 @@ args = Script.getPositionalArgs()
 
 exitCode = 0
 
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 print 'It you do not know the attributes, the default value is ALL or press ENTER'
