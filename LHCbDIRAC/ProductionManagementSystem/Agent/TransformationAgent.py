@@ -131,7 +131,7 @@ class TransformationAgent(Agent):
 
     res = server.getTransformationLFNs(prodName)
     if not res['OK']:
-      gLogger.error("Failed to get data for transformation","%s %s" % (prodName,res['Message']))
+      gLogger.warn("Failed to get data for transformation","%s %s" % (prodName,res['Message']))
       return res
     lfns = res['Value']
     if not lfns:
