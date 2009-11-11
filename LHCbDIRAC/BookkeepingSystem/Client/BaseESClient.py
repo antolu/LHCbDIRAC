@@ -6,9 +6,9 @@
  Base Entity System client
 """
 
-from DIRAC                                                               import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
-from DIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
+from DIRAC                                                                   import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
+from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
 __RCSID__ = "$Id$"

@@ -7,8 +7,8 @@
 Base Entity System Manager
 """
 
-from DIRAC                                                               import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Client.IEntitySystemManager                 import IEntitySystemManager 
+from DIRAC                                                                   import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemManager                 import IEntitySystemManager 
 import os
 __RCSID__ = "$Id$"
 

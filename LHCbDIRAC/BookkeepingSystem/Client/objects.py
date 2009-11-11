@@ -4,9 +4,9 @@
 
 """
 """
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Client                                  import IndentMaker
-from UserDict                                                        import UserDict
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Client                                  import IndentMaker
+from UserDict                                                            import UserDict
 
 import types
 
