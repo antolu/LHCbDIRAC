@@ -2,7 +2,7 @@
 # Created    : 2008-09-24
 # Maintainer : Philippe Charpentier
 #============================================================================
-package           DiracConfig
+package           LHCbDIRACConfig
 
 use LCG_Settings *
 use LHCbGridSys v*
@@ -15,7 +15,7 @@ set X509_VOMS_DIR "$(X509_VOMS_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/cu
 
 use pyqt     v* LCG_Interfaces
 
-macro        Python_config_version               2.5 
+macro        Python_config_version               2.5
 
 macro        pyth_maj "echo $(Python_config_version)  | awk -F . '{print $1}'"
 macro        pyth_min "echo $(Python_config_version)  | awk -F . '{print $2}'"
@@ -28,7 +28,7 @@ macro        sip_config_version                  4.7.9
 #----------------------------------------------------------------------------------------
 # define specific version which are not in LHCBGRID package if needed: examples here
 #macro        globus_config_version               4.0.3-VDT-1.6.0 \
-#             "target-slc5"                       4.0.7-VDT-1.10.1 
+#             "target-slc5"                       4.0.7-VDT-1.10.1
 
 #macro       lcgutils_config_version             1.7.6-1
 #macro       gfal_config_version                 1.11.8-2
