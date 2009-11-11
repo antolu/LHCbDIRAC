@@ -15,10 +15,11 @@ use LHCbDIRACPolicy v*
 use LHCbDIRACConfig v*
 
 use LHCbSystem       		 v* LHCbDIRAC
-
 use BookkeepingSystem		 v* LHCbDIRAC
 use ProductionManagementSystem   v* LHCbDIRAC
 use BookkeepingSystem    	 v* LHCbDIRAC
+
+use DIRAC v*
 
 private
 action DiracMake "$(DIRACSYSROOT)/dirac-make"
