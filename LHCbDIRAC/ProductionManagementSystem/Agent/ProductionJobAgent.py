@@ -12,8 +12,10 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
-from DIRAC.Interfaces.API.DiracProduction                 import DiracProduction
 from DIRAC.Core.Utilities.Shifter                         import setupShifterProxyInEnv
+
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
+
 from DIRAC                                                import S_OK, S_ERROR, gConfig, gMonitor
 
 import os, time, string, datetime

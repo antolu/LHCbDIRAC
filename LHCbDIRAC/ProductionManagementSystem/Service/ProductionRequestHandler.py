@@ -14,11 +14,11 @@ import threading
 import DIRAC
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
-
 from DIRAC.Core.Utilities.Shifter import getShifterProxy
+
+from LHCbDIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
 
 # This is a global instance of the ProductionRequestDB class
 productionRequestDB = False

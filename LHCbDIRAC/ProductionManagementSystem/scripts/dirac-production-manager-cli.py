@@ -9,7 +9,7 @@ __VERSION__ = "$Revision: 1.24 $"
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.ProductionManagementSystem.Client.ProductionManagerCLI import ProductionManagerCLI
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionManagerCLI import ProductionManagerCLI
 
 
 Script.localCfg.addDefaultEntry( "LogLevel", "DEBUG" )

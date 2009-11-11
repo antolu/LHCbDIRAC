@@ -14,8 +14,8 @@ if len(sys.argv) < 2:
 else:
   prodID = int(sys.argv[1])
 
-from DIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent import ProductionCleaningAgent
-from DIRAC.ProductionManagementSystem.Client.ProductionClient       import ProductionClient
+from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent import ProductionCleaningAgent
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient       import ProductionClient
 from DIRAC import gLogger
 import DIRAC
 

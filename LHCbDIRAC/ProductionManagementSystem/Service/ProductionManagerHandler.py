@@ -9,10 +9,11 @@ __RCSID__ = "$Revision: 1.56 $"
 from types import *
 from DIRAC.Core.DISET.RequestHandler                      import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.ProductionManagementSystem.DB.ProductionDB     import ProductionDB
 from DIRAC.Core.Transformation.TransformationHandler      import TransformationHandler
 from DIRAC.Core.Workflow.Workflow                         import *
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
+
+from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 # This is a global instance of the ProductionDB class

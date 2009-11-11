@@ -31,11 +31,12 @@ from DIRAC                                                     import S_OK, S_ER
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
-from DIRAC.Interfaces.API.DiracProduction                      import DiracProduction
-from DIRAC.LHCbSystem.Client.Production                        import Production
 from DIRAC.Interfaces.API.Dirac                                import Dirac
 from DIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
+
+from LHCbDIRAC.LHCbSystem.Client.Production                    import Production
+from LHCbDIRAC.LHCbSystem.Client.DiracProduction               import DiracProduction
 
 import string,time
 
