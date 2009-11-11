@@ -61,6 +61,7 @@ def constructProductionLFNs(paramDict):
     lfnRoot = _getLFNRoot('',wfType,wfConfigVersion)
     debugRoot= _getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
 
+  gLogger.verbose('LFN root is: %s' %(lfnRoot))
   if not lfnRoot:
     return S_ERROR('LFN root could not be constructed')
 
@@ -198,8 +199,9 @@ def _makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
   except:
     jobindex = '0000'
 
+  fname = filetuple[0]
   if re.search('lfn:',fname) or re.search('LFN:',fname):
-    return filetuple[0].replace('lfn:','').replace('LFN:','')
+    return fname.replace('lfn:','').replace('LFN:','')
   
   return LFN_ROOT+'/'+filetuple[1].upper()+'/'+prodstring+'/'+jobindex+'/'+filetuple[0]
       
@@ -211,7 +213,7 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
   eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
   eg : /lhcb/MC/<year>/  = getLFNRoot(None)
   """
-  dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','XDST']
+  dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','XDST','L0HLT1.DST']
   LFN_ROOT=''  
   
   if not lfn:
@@ -224,9 +226,12 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
   lfnroot = lfn[0].split('/')
   for part in lfnroot:
     if not part in dataTypes:
-      LFN_ROOT+='/%s' %(part)
+      LFN_ROOT+='/%s' %(part)  
     else:
       break
+  
+  if re.search('//',LFN_ROOT):
+    LFN_ROOT = LFN_ROOT.replace('//','/')
        
   if namespace.lower() in ('test','debug'):
     tmpLfnRoot = LFN_ROOT.split(os.path.sep)
