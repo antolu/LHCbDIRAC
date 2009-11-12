@@ -3,9 +3,6 @@
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
-    
-    TODO: this module inherits the WorkflowLib Tools behaviour (imported
-    as private methods). This can be cleaned up. 
 """
 
 __RCSID__ = "$Id$"
@@ -213,7 +210,8 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
   eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
   eg : /lhcb/MC/<year>/  = getLFNRoot(None)
   """
-  dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','XDST','L0HLT1.DST']
+  dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
+  gLogger.info('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
   LFN_ROOT=''  
   
   if not lfn:

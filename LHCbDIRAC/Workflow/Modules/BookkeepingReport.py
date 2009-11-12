@@ -165,14 +165,8 @@ class BookkeepingReport(ModuleBase):
 
   def makeBookkeepingXMLString(self):
 
-    dataTypes = ['SIM','DIGI','DST','RAW','ETC','SETC','FETC','RDST','MDF','HIST','XDST']
-    #to be reviewed
-    dataTypes.append('DSTAR.DST')
-    dataTypes.append('LAMBDA.DST')
-    dataTypes.append('BMUON.DST')
-    dataTypes.append('HADRON.DST')
-    dataTypes.append('JPSI.DST')
-    dataTypes.append('L0HLT1.DST')
+    dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
+    gLogger.info('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
 
     if self.workflow_commons.has_key('dataType'):
       job_mode = self.workflow_commons['dataType'].lower()
