@@ -77,7 +77,7 @@ production.setProdPriority(priority)
 production.setFileMask("fetc;dst;root")
 
 #temporary
-production.setWorkflowLib('v9r26')
+#production.setWorkflowLib('v9r26')
 
 
 if not args:
