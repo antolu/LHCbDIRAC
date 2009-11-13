@@ -39,7 +39,7 @@ appendName = '{{AppendName#String to append to production name#1}}'
 #Eventually this should be retrieved from the BK
 fileTypes = {}
 fileTypes['DSTAR.DST']=1
-fileTypes['LAMBDA.DST']=5 #300MB files
+fileTypes['LAMBDA.DST']=1 
 fileTypes['BMUON.DST']=1
 fileTypes['HADRON.DST']=1
 fileTypes['JPSI.DST']=1
@@ -72,9 +72,6 @@ for fileType,groupSize in fileTypes.items():
   mergeProd.addFinalizationStep(removeInputData=False)
   mergeProd.setInputBKSelection(inputBKQuery)
   mergeProd.setProdGroup('{{pDsc}}')
-  #temporary setting
-  mergeProd.setWorkflowLib('v9r26')
-  #end temp setting
   mergeProd.setProdPriority(priority)
   mergeProd.setJobFileGroupSize(groupSize)
   mergeProd.setFileMask(fileType)
