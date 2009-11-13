@@ -132,10 +132,45 @@ class Production(LHCbJob):
     return eventType
 
   #############################################################################
+  def __checkArguments(self,extraPackages,optionsFile):
+    """ Checks for typos in the structure of standard arguments to workflows.
+        In case of any non-standard settings will raise an exception preventing
+        creation of the production. Must be called after setting the first event type
+        of the production.
+    """
+    separator = ';'
+    if not extraPackages: 
+      extraPackages=[]
+    
+    if not optionsFile:
+      optionsFile=[]
+    
+    if not re.search(';',extraPackages):
+      extraPackages=[extraPackages]
+    if not re.search(';',optionsFile):
+      optionsFile = [optionsFile]
+    
+    for p in extraPackages:
+      self.log.verbose('Checking extra package: %s' %(p))
+      if not re.search('.',p):
+        raise TypeError,'Must have extra packages in the following format "Name.Version" not %s' %(p)
+    
+    for o in optionsFile:
+      if re.search('DECFILESROOT',o):
+        self.log.verbose('Production has event type %s specified, checking event type options: %s' %(self.firstEventType,o))
+        if re.search('@',o) or re.search('%s' %self.firstEventType,o):
+          self.log.verbose('Options: %s specify event type correctly' %(o))
+        else:
+          raise TypeError,'Event type options must be referred to as the event type number or workflow parameter'
+
+    self.log.verbose('Extra packages and event type options are correctly specified')
+
+  #############################################################################
   def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts='',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
     """
     eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=1
     if not overrideOpts:
       optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
@@ -162,6 +197,7 @@ class Production(LHCbJob):
         currently assumes input data type is sim
     """
     eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)    
     firstEventNumber=0
     numberOfEvents='-1'
     inputDataType='sim'
@@ -193,6 +229,8 @@ class Production(LHCbJob):
         TODO: stripping case - to review
     """
     eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)
+    
     if appType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
@@ -235,6 +273,7 @@ class Production(LHCbJob):
 
     """
     eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=0
     appTypes = ['dst','fetc','rdst','davincihist']
     if not appType in appTypes:
@@ -242,7 +281,6 @@ class Production(LHCbJob):
     if not inputDataType in ('rdst','dst'):
       raise TypeError,'Only DST input data type currently supported'
 
-    outputSE=''
     if inputDataType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
@@ -251,12 +289,13 @@ class Production(LHCbJob):
     elif inputDataType.lower()=='dst':
       if not dataType:
         raise TypeError,'Must clarify MC / DATA for DST->DST processing'
-      if dataType.upper()=='MC':
-        outputSE='Tier1_MC-DST'
-        self.log.info('Setting default outputSE to %s' %(outputSE))
-      else:
-        outputSE='Tier1-DST'
-        self.log.info('Setting default outputSE to %s' %(outputSE))
+      if not outputSE:
+        if dataType.upper()=='MC':
+          outputSE='Tier1_MC-DST'
+          self.log.info('Setting default outputSE to %s' %(outputSE))
+        else:
+          outputSE='Tier1-DST'
+          self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
@@ -277,6 +316,8 @@ class Production(LHCbJob):
         appType is  dst and inputDataType is raw only at the moment.
     """
     eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)
+    
     firstEventNumber=0
     appTypes = ['dst']
     if not appType in appTypes:
@@ -305,9 +346,9 @@ class Production(LHCbJob):
   def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
-
-       Note: for MDF merging case must not add a finalization step.
     """
+    eventType = self.__getEventType(eventType)    
+    self.__checkArguments(extraPackages, optionsFile)    
     if inputProduction:
       result = self._setInputProductionBKStepInfo(inputProduction,passDict)
       if not result['OK']:
@@ -387,6 +428,7 @@ class Production(LHCbJob):
     gaudiStep.setValue('applicationType',appType)
     if type(optionsFile)==type([]):
       optionsFile = string.join(optionsFile,';')
+    optionsFile = optionsFile.replace(' ','')
 
     gaudiStep.setValue('optionsFile',optionsFile)
     gaudiStep.setValue('optionsLine',optionsLine)
@@ -396,6 +438,8 @@ class Production(LHCbJob):
     if extraPackages:
       if type(extraPackages)==type([]):
         extraPackages = string.join(extraPackages,';')
+
+      extraPackages = extraPackages.replace(' ','')
       gaudiStep.setValue('extraPackages',extraPackages)
       self.__addSoftwarePackages(extraPackages)
 
