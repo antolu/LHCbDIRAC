@@ -95,6 +95,10 @@ class FileDialog(QDialog, Ui_FileDialog):
   def showNumberOfFiles(self, number):
     self.lineEdit.setText(str(number))
   
+  #############################################################################
+  def showEventInputStat(self, number):
+    self.alleventinputstat.setText(str(number))
+  
   #############################################################################  
   def showFilesSize(self, number):
     self.lineEdit_5.setText(str(number)+'  GB')
@@ -102,6 +106,10 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def showSelectedNumberOfEvents(self, number):
     self.lineEdit_4.setText(str(number))
+  
+  #############################################################################
+  def showSelectedEventInputStat(self, number):
+    self.eventInputstat.setText(str(number))
   
   #############################################################################  
   def showSelectedNumberOfFiles(self, number):

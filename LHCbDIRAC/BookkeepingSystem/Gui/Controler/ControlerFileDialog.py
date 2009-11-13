@@ -51,6 +51,9 @@ class ControlerFileDialog(ControlerAbstract):
       nbfiles = self.countNumberOfFiles(items)
       self.getWidget().showNumberOfFiles(nbfiles)
       
+      eventinputstat = self.countNumberOfEventInputStat(items)
+      self.getWidget().showEventInputStat(eventinputstat)
+      
       filesize = self.getSizeOfFiles(items)
       self.getWidget().showFilesSize(filesize)
       
@@ -197,6 +200,7 @@ class ControlerFileDialog(ControlerAbstract):
       self.updateSelectedNbEventType(self.__selectedFiles)
       self.updateSelectedNbFiles(self.__selectedFiles)
       self.updateSelectedFileSize(self.__selectedFiles)
+      self.updateselectedNbEventInputStat(self.__selectedFiles)
       #print 'Selection',selected.indexes()[0].model().arraydata[row][0]
     
     if deselected:
@@ -209,6 +213,7 @@ class ControlerFileDialog(ControlerAbstract):
           self.updateSelectedNbEventType(self.__selectedFiles)
           self.updateSelectedNbFiles(self.__selectedFiles)
           self.updateSelectedFileSize(self.__selectedFiles)
+          self.updateselectedNbEventInputStat(self.__selectedFiles)
       
   #############################################################################  
   def countNumberOfEvents(self, items):
@@ -218,6 +223,15 @@ class ControlerFileDialog(ControlerAbstract):
       if value['EventStat'] != None:
         eventnum += int(value['EventStat'])
     return eventnum
+  
+  #############################################################################
+  def countNumberOfEventInputStat(self, items):
+    eventinputstat = 0;
+    for item in items:
+      value = items[item]
+      if value['EventInputStat'] != None:
+        eventinputstat += int(value['EventInputStat'])
+    return eventinputstat
   
   #############################################################################  
   def countNumberOfFiles(self, items):
@@ -235,6 +249,15 @@ class ControlerFileDialog(ControlerAbstract):
     nbevents = self.countNumberOfEvents(lfns)
     self.getWidget().showSelectedNumberOfEvents(nbevents)
   
+  #############################################################################
+  def updateselectedNbEventInputStat(self, files):
+    model = self.getWidget().getModel()
+    lfns = {}
+    for i in files:
+      lfns[i] = model[i]
+    eventinputstat = self.countNumberOfEventInputStat(lfns)
+    self.getWidget().showSelectedEventInputStat(eventinputstat)
+    
   #############################################################################  
   def updateSelectedNbFiles(self, files):
     self.getWidget().showSelectedNumberOfFiles(len(files))

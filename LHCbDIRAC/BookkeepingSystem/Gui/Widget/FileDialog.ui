@@ -1,143 +1,144 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>FileDialog</class>
- <widget class="QDialog" name="FileDialog" >
-  <property name="windowModality" >
+ <widget class="QDialog" name="FileDialog">
+  <property name="windowModality">
    <enum>Qt::WindowModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>813</width>
+    <height>654</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Feicim FileDialog</string>
   </property>
-  <property name="modal" >
+  <property name="modal">
    <bool>false</bool>
   </property>
-  <layout class="QGridLayout" >
-   <item rowspan="3" row="0" column="0" >
-    <widget class="QTableView" name="tableView" />
+  <layout class="QGridLayout">
+   <item row="0" column="0" rowspan="3">
+    <widget class="QTableView" name="tableView"/>
    </item>
-   <item row="0" column="1" colspan="3" >
-    <widget class="QGroupBox" name="groupBox_3" >
-     <property name="title" >
+   <item row="0" column="1" colspan="3">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
       <string/>
      </property>
-     <layout class="QGridLayout" >
-      <item row="0" column="0" >
-       <layout class="QGridLayout" >
-        <item row="0" column="1" >
-         <widget class="QLineEdit" name="configname" >
-          <property name="readOnly" >
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <layout class="QGridLayout">
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="configname">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="1" >
-         <widget class="QLineEdit" name="configversion" >
-          <property name="readOnly" >
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="configversion">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="2" column="1" >
-         <widget class="QLineEdit" name="simulation" >
-          <property name="readOnly" >
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="simulation">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="3" column="1" >
-         <widget class="QLineEdit" name="processing" >
-          <property name="readOnly" >
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="processing">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="4" column="1" >
-         <widget class="QLineEdit" name="eventtype" >
-          <property name="readOnly" >
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="eventtype">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="5" column="1" >
-         <widget class="QLineEdit" name="filetype" >
-          <property name="readOnly" >
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="filetype">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="6" column="1" >
-         <widget class="QLineEdit" name="production" >
-          <property name="readOnly" >
+        <item row="6" column="1">
+         <widget class="QLineEdit" name="production">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="7" column="1" >
-         <widget class="QLineEdit" name="progrnameandversion" >
-          <property name="readOnly" >
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="progrnameandversion">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_7" >
-          <property name="text" >
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
            <string>Configuration Name</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" >
-         <widget class="QLabel" name="label_8" >
-          <property name="text" >
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
            <string>Configuration Version</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_9" >
-          <property name="text" >
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
            <string>Simulation Conditions</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" >
-         <widget class="QLabel" name="label_10" >
-          <property name="text" >
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
            <string>Processing pass</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="0" >
-         <widget class="QLabel" name="label_11" >
-          <property name="text" >
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
            <string>Event Type</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" >
-         <widget class="QLabel" name="label_12" >
-          <property name="text" >
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
            <string>File Type</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0" >
-         <widget class="QLabel" name="label_13" >
-          <property name="text" >
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_13">
+          <property name="text">
            <string>Production</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0" >
-         <widget class="QLabel" name="label_14" >
-          <property name="text" >
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
            <string>Program Name and version</string>
           </property>
          </widget>
@@ -147,57 +148,67 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="1" colspan="3" >
-    <widget class="QGroupBox" name="groupBox" >
-     <property name="title" >
+   <item row="1" column="1" colspan="3">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
       <string>Statistics</string>
      </property>
-     <layout class="QGridLayout" >
-      <item row="0" column="0" >
-       <layout class="QGridLayout" >
-        <item row="1" column="0" >
-         <layout class="QHBoxLayout" >
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <layout class="QGridLayout">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout">
           <item>
-           <widget class="QLabel" name="label_2" >
-            <property name="text" >
+           <widget class="QLabel" name="label_2">
+            <property name="text">
              <string>Number Of Events</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label" >
-          <property name="text" >
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
            <string>Number Of Files:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1" >
-         <widget class="QLineEdit" name="lineEdit" >
-          <property name="readOnly" >
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="1" >
-         <widget class="QLineEdit" name="lineEdit_2" >
-          <property name="readOnly" >
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_2">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_5" >
-          <property name="text" >
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
            <string>Files size</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1" >
-         <widget class="QLineEdit" name="lineEdit_5" >
-          <property name="readOnly" >
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_5">
+          <property name="readOnly">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="alleventinputstat"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>EventInputStat</string>
           </property>
          </widget>
         </item>
@@ -206,57 +217,67 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="1" colspan="3" >
-    <widget class="QGroupBox" name="groupBox_2" >
-     <property name="title" >
+   <item row="2" column="1" colspan="3">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
       <string>Selected</string>
      </property>
-     <layout class="QGridLayout" >
-      <item row="0" column="0" >
-       <layout class="QGridLayout" >
-        <item row="1" column="0" >
-         <layout class="QHBoxLayout" >
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <layout class="QGridLayout">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout">
           <item>
-           <widget class="QLabel" name="label_4" >
-            <property name="text" >
+           <widget class="QLabel" name="label_4">
+            <property name="text">
              <string>Number Of Events</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
-        <item row="0" column="1" >
-         <widget class="QLineEdit" name="lineEdit_3" >
-          <property name="readOnly" >
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_3">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="1" column="1" >
-         <widget class="QLineEdit" name="lineEdit_4" >
-          <property name="readOnly" >
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_4">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" >
-         <widget class="QLabel" name="label_6" >
-          <property name="text" >
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
            <string>Number Of Files:</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1" >
-         <widget class="QLineEdit" name="lineEdit_6" >
-          <property name="readOnly" >
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_6">
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
-        <item row="2" column="0" >
-         <widget class="QLabel" name="label_3" >
-          <property name="text" >
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
            <string>Files size</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="eventInputstat"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_16">
+          <property name="text">
+           <string>EventInputStat</string>
           </property>
          </widget>
         </item>
@@ -265,30 +286,30 @@
      </layout>
     </widget>
    </item>
-   <item row="4" column="1" >
-    <widget class="QPushButton" name="advancedSave" >
-     <property name="text" >
+   <item row="4" column="1">
+    <widget class="QPushButton" name="advancedSave">
+     <property name="text">
       <string>Advanced Save..</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="2" >
-    <widget class="QPushButton" name="saveButton" >
-     <property name="text" >
+   <item row="4" column="2">
+    <widget class="QPushButton" name="saveButton">
+     <property name="text">
       <string>Save Files...</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="3" >
-    <widget class="QPushButton" name="closeButton" >
-     <property name="text" >
+   <item row="4" column="3">
+    <widget class="QPushButton" name="closeButton">
+     <property name="text">
       <string>Close</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="0" >
-    <widget class="QPushButton" name="nextButton" >
-     <property name="text" >
+   <item row="4" column="0">
+    <widget class="QPushButton" name="nextButton">
+     <property name="text">
       <string>Next Page</string>
      </property>
     </widget>
