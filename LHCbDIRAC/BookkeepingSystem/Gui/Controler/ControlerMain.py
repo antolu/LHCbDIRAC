@@ -240,8 +240,9 @@ class ControlerMain(ControlerAbstract):
           else:
             self.__bkClient.writeJobOptions(exist, filename, catalog= catalog)
           m = 'Total files:'+str(totalFiles)+'\n'
-          m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'
-          m += str(nboffaild)+ ' not found '+str(site.split('.')[1])
+          if site != None:
+            m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'
+            m += str(nboffaild)+ ' not found '+str(site.split('.')[1])
           QMessageBox.information(self.getWidget(), "Information", m ,QMessageBox.Ok)
         else:
           QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
