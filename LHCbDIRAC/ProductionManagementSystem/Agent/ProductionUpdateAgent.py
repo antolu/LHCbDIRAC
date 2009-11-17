@@ -8,10 +8,10 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base.Agent    import Agent
-from DIRAC                    import S_OK, S_ERROR, gConfig, gLogger, gMonitor
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC                                            import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
+from DIRAC.Core.Base.AgentModule                      import AgentModule
 import os, time
 
 
@@ -24,21 +24,13 @@ FINAL_STATUS = ['Done','Failed','Completed']
 # Update job statuses no more frequently than NEWER minutes
 NEWER = 2
 
-class ProductionUpdateAgent(Agent):
-
-  #############################################################################
-  def __init__(self):
-    """ Standard constructor for Agent
-    """
-    Agent.__init__(self,AGENT_NAME)
+class ProductionUpdateAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
     """ Make the necessary initilizations
     """
-    result = Agent.initialize(self)
     self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-
     self.prodDB = ProductionDB()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return result
