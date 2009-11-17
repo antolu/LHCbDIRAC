@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                                    
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 #from DIRAC.BookkeepingSystem.Client.BookkeepingClient                             import BookkeepingClient
-from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient       import LcgFileCatalogCombinedClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
@@ -39,7 +39,7 @@ class XMLFilesReaderManager:
     self.jobs_ = []
     self.replicas_ = []
     #self.dataManager_ = BookkeepingDatabaseClient()
-    self.lcgFileCatalogClient_ = LcgFileCatalogCombinedClient()
+    self.replicaManager_ = ReplicaManager()
     self.errorMgmt_ = ErrorReporterMgmt()
 
   #############################################################################
@@ -446,7 +446,7 @@ class XMLFilesReaderManager:
         gLogger.info(fileID)
 
       if (delete):
-        result = self.lcgFileCatalogClient_.getReplicas(replicaFileName)
+        result = self.replicaManager_.getReplicas(replicaFileName)
         list = result['Value']
         replicaList = list['Successful']
         if len(replicaList) == 0:
