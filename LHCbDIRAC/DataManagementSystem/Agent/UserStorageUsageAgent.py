@@ -11,7 +11,8 @@ from DIRAC.Core.Utilities.List import sortList
 
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
 from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
-from DIRAC.DataManagementSystem.Agent.StorageUsageAgent import StorageUsageAgent
+
+from LHCbDIRAC.DataManagementSystem.Agent.StorageUsageAgent import StorageUsageAgent
 
 import time,os
 from types import *
@@ -23,7 +24,7 @@ class UserStorageUsageAgent(StorageUsageAgent):
   def initialize(self):
     self.catalog = CatalogDirectory()
     if self.am_getOption('DirectDB',False):
-      from DIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
       self.StorageUsageDB = StorageUsageDB()
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient

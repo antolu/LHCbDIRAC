@@ -4,7 +4,7 @@ from DIRAC import gLogger, gConfig, rootPath, S_OK, S_ERROR
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 # This is a global instance of the DataIntegrityDB class
 storageUsageDB = False
