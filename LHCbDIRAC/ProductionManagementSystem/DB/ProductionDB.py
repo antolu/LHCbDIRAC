@@ -12,7 +12,7 @@ import string, types
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC  import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Transformation.TransformationDB import TransformationDB
+from DIRAC.TransformationSystem.DB.TransformationDB import TransformationDB
 from DIRAC.Core.Utilities import Time
 
 
