@@ -1,0 +1,1 @@
+""" LHCbDIRAC.DataManagementSystem.Client package """

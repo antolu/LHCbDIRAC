@@ -1,0 +1,1 @@
+""" LHCbDIRAC.DataManagementSystem.DB package """
