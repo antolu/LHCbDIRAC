@@ -1,17 +1,16 @@
 """  RAWIntegrityAgent determines whether RAW files in Castor were migrated correctly
 """
-from DIRAC  import gLogger, gConfig, gMonitor,S_OK, S_ERROR
-from DIRAC.Core.Base.Agent import Agent
-from DIRAC.Core.Utilities.Pfn import pfnparse, pfnunparse
-from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
-from DIRAC.Core.Utilities.Subprocess import shellCall
-from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.DataManagementSystem.Client.DataLoggingClient import DataLoggingClient
+from DIRAC                                                  import gLogger, gConfig, gMonitor,S_OK, S_ERROR
+from DIRAC.Core.Base.Agent                                  import Agent
+from DIRAC.RequestManagementSystem.Client.RequestClient     import RequestClient
+from DIRAC.RequestManagementSystem.Client.RequestContainer  import RequestContainer
+from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
+from DIRAC.Core.Utilities.Shifter                           import setupShifterProxyInEnv
+from DIRAC.Core.Utilities.Subprocess                        import shellCall
+from DIRAC.ConfigurationSystem.Client                       import PathFinder
+from DIRAC.DataManagementSystem.Client.DataLoggingClient    import DataLoggingClient
+
+from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB       import RAWIntegrityDB
 
 import time,os
 from types import *
