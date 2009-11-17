@@ -1,9 +1,9 @@
 """ Simple DISET interface to the RAW Integrity DB to allow access to the RAWIntegrityDB
 """
+from DIRAC                                              import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.DISET.RequestHandler                    import RequestHandler
+from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB   import RAWIntegrityDB
 from types import *
-from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 
 database = False
 
