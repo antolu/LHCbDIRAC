@@ -9,7 +9,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
-from DIRAC.DataManagementSystem.Client.StorageElement      import StorageElement
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
