@@ -4,10 +4,10 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger, gMonitor
-from DIRAC.Core.Base.AgentModule                           import AgentModule
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-from DIRAC.Core.Transformation.TransformationDBClient      import TransformationDBClient
+from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC.Core.Base.AgentModule                                    import AgentModule
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+from DIRAC.TransformationSystem.Client.TransformationDBClient       import TransformationDBClient
 import os, time, datetime
 
 
