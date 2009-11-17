@@ -9,7 +9,7 @@
 
 AGENT_NAME = 'Bookkeeping/BookkeepingXmlFileTransferAgent'
 
-from DIRAC.Core.Base.Agent                                                         import Agent
+from DIRAC.Core.Base.AgentModule                                                   import AgentModule
 from DIRAC                                                                         import S_OK, S_ERROR, gConfig
 
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManagerForTransfer  import XMLFilesReaderManagerForTransfer

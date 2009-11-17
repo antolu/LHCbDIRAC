@@ -18,7 +18,7 @@ from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient              
 
 from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient           import LcgFileCatalogCombinedClient
 from DIRAC.ConfigurationSystem.Client.Config                                          import gConfig
-from DIRAC.Core.Base.Agent                                                            import Agent
+from DIRAC.Core.Base.AgentModule                                                      import AgentModule
 from DIRAC                                                                            import S_OK, S_ERROR
 
 import os
