@@ -30,7 +30,7 @@ class ProductionUpdateAgent(AgentModule):
   def initialize(self):
     """ Make the necessary initilizations
     """
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
+    self.pollingTime = self.am_getOption('PollingTime',120)
     self.prodDB = ProductionDB()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     return result
