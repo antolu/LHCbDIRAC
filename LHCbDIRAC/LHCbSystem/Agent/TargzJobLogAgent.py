@@ -7,14 +7,11 @@ __RCSID__ = "$Id$"
 """ Compress Old Jobs 
 """
 
-from DIRAC import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                                                    import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                              import AgentModule
-from DIRAC.Core.Utilities.Subprocess import shellCall
-from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
-from DIRAC.DataManagementSystem.Client.StorageElement import StorageElement
-from DIRAC.Core.Utilities.Subprocess                import shellCall
-
-
+from DIRAC.Core.Utilities.Subprocess                          import shellCall
+from DIRAC.Core.Utilities.Shifter                             import setupShifterProxyInEnv
+from DIRAC.Resources.Storage.StorageElement                   import StorageElement
 import sys, os, shutil
 import time
 import types
