@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
-from DIRAC.DataManagementSystem.Client.Storage.StorageFactory import StorageFactory
+from DIRAC.Resources.Storage.StorageFactory import StorageFactory
 from DIRAC.Core.Utilities.File import getSize
 import unittest,time,os,shutil,sys
 from types import *
