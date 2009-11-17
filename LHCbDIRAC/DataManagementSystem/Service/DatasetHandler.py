@@ -2,9 +2,9 @@
 """
 from DIRAC                                                  import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                        import RequestHandler
-from DIRAC.DataManagementSystem.DB.DatasetDB                import DatasetDB
-from DIRAC.DataManagementSystem.Client.Dataset              import Dataset
 from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
+from LHCbDIRAC.DataManagementSystem.DB.DatasetDB            import DatasetDB
+from LHCbDIRAC.DataManagementSystem.Client.Dataset          import Dataset
 from types                                                  import *
 
 # This is a global instance of the DataLoggingDB class
