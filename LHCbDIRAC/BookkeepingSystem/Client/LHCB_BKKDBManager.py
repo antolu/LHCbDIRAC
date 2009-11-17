@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        imp
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client                                      import objects
 from LHCbDIRAC.BookkeepingSystem.Client.Help                                 import Help
-from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient  import LcgFileCatalogCombinedClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager                        import ReplicaManager
 import os
 import types
 import sys
@@ -78,7 +78,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR    
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient(rpcClinet)
-    self.lfc_ = LcgFileCatalogCombinedClient()
+    self.rm_ = ReplicaManager()
     
     self.helper_ = Help()
     
@@ -150,7 +150,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getFilesPFN(self):
     lfns = self.files_
-    res = self.lfc_.getReplicas(lfns)
+    res = self.rm_.getCatalogReplicas(lfns)
     return res
   
   ############################################################################# 
