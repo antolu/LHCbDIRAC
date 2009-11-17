@@ -8,7 +8,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base.Agent          import Agent
+from DIRAC.Core.Base.AgentModule    import AgentModule
 from DIRAC.Core.DISET.RPCClient     import RPCClient
 from DIRAC.Core.Utilities.Shifter   import setupShifterProxyInEnv
 from DIRAC                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger
@@ -34,16 +34,12 @@ def bkProductionProgress(id,setup):
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 
-class RequestTrackingAgent(Agent):
-  def __init__(self):
-    """ Standard constructor for Agent"""
-    Agent.__init__(self,AGENT_NAME)
+class RequestTrackingAgent(AgentModule):
 
   def initialize(self):
     """Sets defaults"""
-    result = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-    self.setup       = gConfig.getValue('/DIRAC/Setup','LHCb-Production')
+    self.pollingTime = self.am_getOption('PollingTime',120)    
+    self.setup       = self.am_getOption('/DIRAC/Setup','LHCb-Production')
     return result
 
   def getTrackedProductions(self):
