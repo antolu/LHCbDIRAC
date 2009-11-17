@@ -9,7 +9,7 @@ __RCSID__ = "$Revision: 1.56 $"
 from types import *
 from DIRAC.Core.DISET.RequestHandler                      import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Transformation.TransformationHandler      import TransformationHandler
+from DIRAC.TransformationSystem.Service.TransformationHandler      import TransformationHandler
 from DIRAC.Core.Workflow.Workflow                         import *
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 
