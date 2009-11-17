@@ -13,7 +13,7 @@ import string
 import time
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Transformation.TransformationDBCLI   import TransformationDBCLI
+from DIRAC.TransformationSystem.Client.TransformationDBCLI   import TransformationDBCLI
 #job submission
 from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
 
