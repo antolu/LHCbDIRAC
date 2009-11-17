@@ -21,6 +21,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
+from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC.Core.Utilities.Time                             import fromString,toEpoch
@@ -37,18 +38,9 @@ class CondDBAgent(OptimizerModule):
     """
     #Define the shifter proxy needed
     self.am_setModuleParam( "shifterProxy", "ProductionManager" )
-
     self.tagWaitTime = self.am_getOption( 'MaxTagWaitTime', 12  )
-
+    self.rm = ReplicaManager()
     result = S_OK()
-    try:
-      from DIRAC.DataManagementSystem.Client.Catalog.LcgFileCatalogCombinedClient import LcgFileCatalogCombinedClient
-      self.fileCatalog = LcgFileCatalogCombinedClient()
-    except Exception,x:
-      msg = 'Failed to create LcgFileCatalogClient with exception:'
-      self.log.fatal(msg)
-      self.log.fatal(str(x))
-      result = S_ERROR(msg)
     return result
 
   #############################################################################
@@ -131,7 +123,7 @@ class CondDBAgent(OptimizerModule):
     """This method checks the CondDB tags in the file catalogue.
     """
     start = time.time()
-    replicas = self.fileCatalog.getReplicas(lfns)
+    replicas = self.rm.getActiveReplicas(lfns)
     self.log.verbose(replicas)
     timing = time.time() - start
     self.log.info('LFC Lookup Time: %.2f seconds ' % (timing) )
