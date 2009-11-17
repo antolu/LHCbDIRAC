@@ -62,6 +62,12 @@ class Production(LHCbJob):
     self.inputBKSelection = {}
     self.jobFileGroupSize = 0
     self.ancestorProduction = ''
+    self.importLine = """
+try:
+  from LHCbDIRAC.LHCbSystem.Workflow.Module.<MODULE> import <MODULE>
+except Exception,x:
+  from WorkflowLib.Module.<MODULE> import <MODULE>
+"""    
     if not script:
       self.__setDefaults()
 
@@ -388,7 +394,9 @@ class Production(LHCbJob):
     self.gaudiStepCount +=1
     MergeMDFModule = ModuleDefinition('MergeMDF')
     MergeMDFModule.setDescription('Merge MDF Files Module')
-    MergeMDFModule.setBody('from WorkflowLib.Module.MergeMDF import MergeMDF\n')
+    
+    body = string.replace(self.importLine,'<MODULE>','MergeMDF')
+    MergeMDFModule.setBody(body)
 
     MergeMDFStep = StepDefinition('Merge_MDF_Step')
     MergeMDFStep.addModule(MergeMDFModule)
@@ -545,15 +553,18 @@ class Production(LHCbJob):
     """
     gaudiApp = ModuleDefinition('GaudiApplication')
     gaudiApp.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
-    gaudiApp.setBody('from WorkflowLib.Module.GaudiApplication import GaudiApplication\n')
+    body = string.replace(self.importLine,'<MODULE>','GaudiApplication')
+    gaudiApp.setBody(body)
 
     analyseLog = ModuleDefinition('LogChecker')
     analyseLog.setDescription('Check LogFile module')
-    analyseLog.setBody('from WorkflowLib.Module.LogChecker import *\n')
+    body = string.replace(self.importLine,'<MODULE>','LogChecker')
+    analyseLog.setBody(body)
 
     genBKReport = ModuleDefinition('BookkeepingReport')
     genBKReport.setDescription('Bookkeeping Report module')
-    genBKReport.setBody('from WorkflowLib.Module.BookkeepingReport import * \n')
+    body = string.replace(self.importLine,'<MODULE>','BookkeepingReport')
+    genBKReport.setBody(body)    
     #self._addParameter(genBKReport,'STEP_ID','string','','StepID')
     #must update job addParam function to deal with self
     genBKReport.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False,"StepID"))
@@ -600,28 +611,33 @@ class Production(LHCbJob):
     sendBK = ModuleDefinition('SendBookkeeping')
     sendBK.setDescription('Sends the BK reports')
     self._addParameter(sendBK,'Enable','bool','True','EnableFlag')
-    sendBK.setBody('from WorkflowLib.Module.SendBookkeeping import SendBookkeeping \n')
+    body = string.replace(self.importLine,'<MODULE>','SendBookkeeping')
+    sendBK.setBody(body)
 
     dataUpload = ModuleDefinition('UploadOutputData')
     dataUpload.setDescription('Uploads the output data')
     self._addParameter(dataUpload,'Enable','bool','True','EnableFlag')
-    dataUpload.setBody('from WorkflowLib.Module.UploadOutputData import UploadOutputData \n')
+    body = string.replace(self.importLine,'<MODULE>','UploadOutputData')
+    dataUpload.setBody(body)    
 
     if removeInputData:
       removeInputs = ModuleDefinition('RemoveInputData')
       removeInputs.setDescription('Removes input data after merged output data uploaded to an SE')
       self._addParameter(removeInputs,'Enable','bool','True','EnableFlag')
-      removeInputs.setBody('from WorkflowLib.Module.RemoveInputData import RemoveInputData \n')
+      body = string.replace(self.importLine,'<MODULE>','RemoveInputData')
+      removeInputs.setBody(body)        
 
     logUpload = ModuleDefinition('UploadLogFile')
     logUpload.setDescription('Uploads the log files')
     self._addParameter(logUpload,'Enable','bool','True','EnableFlag')
-    logUpload.setBody('from WorkflowLib.Module.UploadLogFile import UploadLogFile \n')
+    body = string.replace(self.importLine,'<MODULE>','UploadLogFile')
+    logUpload.setBody(body)         
 
     failoverRequest = ModuleDefinition('FailoverRequest')
     failoverRequest.setDescription('Sends any failover requests')
     self._addParameter(failoverRequest,'Enable','bool','True','EnableFlag')
-    failoverRequest.setBody('from WorkflowLib.Module.FailoverRequest import * \n')
+    body = string.replace(self.importLine,'<MODULE>','FailoverRequest')
+    failoverRequest.setBody(body)      
 
     finalization = StepDefinition('Job_Finalization')
 
