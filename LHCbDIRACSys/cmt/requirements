@@ -13,14 +13,13 @@ include_path      none
 
 use LHCbDIRACPolicy v0r1
 use LHCbDIRACConfig v0r2
-use LHCbDIRAC v0r3
 use DIRAC v0r81
 
-#use LHCbSystem       		 v* LHCbDIRAC
-#use BookkeepingSystem		 v* LHCbDIRAC
-#use ProductionManagementSystem   v* LHCbDIRAC
-#use BookkeepingSystem    	 v* LHCbDIRAC
-#use Workflow                 v* LHCbDIRAC
+use LHCbSystem       		 v0r3 LHCbDIRAC
+use BookkeepingSystem		 v0r3 LHCbDIRAC
+use ProductionManagementSystem   v0r3 LHCbDIRAC
+use BookkeepingSystem    	 v0r3 LHCbDIRAC
+use Workflow                 v0r3 LHCbDIRAC
 
 private
 action DiracMake "$(DIRACSYSROOT)/dirac-make"
