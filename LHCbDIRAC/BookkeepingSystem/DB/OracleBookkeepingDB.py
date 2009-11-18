@@ -2599,7 +2599,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def insertDataTakingCond(self, conditions): 
-    datataking = {  'BeamCond':None, \
+    datataking = {  'Description':None,\
+                    'BeamCond':None, \
                     'BeamEnergy':None, \
                     'MagneticField':None, \
                     'VELO':None, \
@@ -2621,7 +2622,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return S_ERROR(" The datatakingconditions table not contains "+param+" this attributte!!")
       datataking[param] = conditions[param]
         
-    res = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertDataTakingCond', LongType, [datataking['BeamCond'], datataking['BeamEnergy'], \
+    res = self.dbW_.executeStoredFunctions('BKK_ORACLE.insertDataTakingCond', LongType, [datataking['Description'], datataking['BeamCond'], datataking['BeamEnergy'], \
                                                                                   datataking['MagneticField'], datataking['VELO'], \
                                                                                   datataking['IT'], datataking['TT'], datataking['OT'], \
                                                                                   datataking['RICH1'], datataking['RICH2'], \
