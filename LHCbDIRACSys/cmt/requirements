@@ -26,3 +26,7 @@ private
 action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
 macro_append constituents " DiracMake "
 macro_remove cmt_actions_constituents 'DiracMake'
+
+action DiracGSI "$(LHCBDIRACSYSROOT)/dirac-GSI"
+macro_append constituents " DiracGSI "
+macro_remove cmt_actions_constituents 'DiracGSI'
