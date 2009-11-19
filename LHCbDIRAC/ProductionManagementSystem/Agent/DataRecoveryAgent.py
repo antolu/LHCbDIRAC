@@ -35,7 +35,6 @@ __VERSION__ = "$Revision: 1.9 $"
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
-from DIRAC.ProductionManagementSystem.DB.ProductionDB          import ProductionDB
 from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
 from DIRAC.Core.Utilities.List                                 import uniqueElements
 from DIRAC.Core.Utilities.Time                                 import timeInterval,dateTime
@@ -43,8 +42,10 @@ from DIRAC.Core.Utilities.Shifter                              import setupShift
 
 try:
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
+  from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB      import ProductionDB  
 except Exception,x:  
   from DIRAC.BookkeepingSystem.Client.BookkeepingClient          import BookkeepingClient
+  from DIRAC.ProductionManagementSystem.DB.ProductionDB          import ProductionDB
 
 import string,re,datetime
 
