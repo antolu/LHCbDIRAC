@@ -7,7 +7,7 @@ package           LHCbDIRACConfig
 use LCG_Settings *
 use LHCbGridSys v*
 
-set DIRAC_VOMSES "$(DiracConfig_cmtpath)/etc/vomses"
+set DIRAC_VOMSES "$(LHCbDIRACConfig_cmtpath)/etc/vomses"
 
 #At CERN, define the location of certificates...
 set X509_CERT_DIR "$(X509_CERT_DIR)"  CERN "/afs/cern.ch/project/gd/LCG-share/current/external/etc/grid-security/certificates"
