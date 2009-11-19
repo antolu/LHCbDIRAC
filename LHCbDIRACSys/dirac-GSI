@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DiracSys/dirac-make,v 1.2 2009/10/05 06:13:08 rgracian Exp $
+#
+# preliminary version to prepare external package needed for DIRAC3
+#
+function canonicalize
+{
+  cd -P -- "$(dirname -- "$1")" &&
+  printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
+}
+basedir=`canonicalize $0`
+basedir=`dirname $basedir`
+basedir=`canonicalize $basedir/..`
+#
+#DIRACdir=`canonicalize $basedir/..`
+cd $basedir
+
+tar zxvf $LHCBTAR/DIRAC3/DIRAC-external-client-v4r0-Linux_i686_glibc-2.5-python25.tar.gz Linux_i686_glibc-2.5/lib/python2.5/site-packages/GSI/
+
+ln -s ../../../Linux_x86_64_glibc-2.5/lib/python2.5/site-packages/GSI $basedir/InstallArea/x86_64-slc5-gcc43-opt/python2.5/
