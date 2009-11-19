@@ -23,6 +23,6 @@ use BookkeepingSystem    	 v0r3 LHCbDIRAC
 use Workflow                 v0r3 LHCbDIRAC
 
 private
-action DiracMake "$(DIRACSYSROOT)/dirac-make"
+action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
 macro_append constituents " DiracMake "
 macro_remove cmt_actions_constituents 'DiracMake'
