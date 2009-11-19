@@ -18,6 +18,7 @@ use DIRAC v0r81
 use LHCbSystem       		 v0r3 LHCbDIRAC
 use BookkeepingSystem		 v0r3 LHCbDIRAC
 use ProductionManagementSystem   v0r3 LHCbDIRAC
+use DataManagementSystem   v0r3 LHCbDIRAC
 use BookkeepingSystem    	 v0r3 LHCbDIRAC
 use Workflow                 v0r3 LHCbDIRAC
 
