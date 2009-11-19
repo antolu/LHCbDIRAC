@@ -31,7 +31,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" %(ddDB)
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" %(condDB)
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
-  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
+#  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append("HistogramPersistencySvc().OutputFile = \"%s\"" % (histogram))
   if appName.lower()=='gauss':
     options.append("OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
@@ -84,6 +84,8 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   else:
     gLogger.warn('No specific options found for project %s' %appName)
 
+  postConfig = 'def forceOptions():\n  MessageSvc().Format = "%u % F%18W%S%7W%R%T %0W%M"\n  MessageSvc().timeFormat = "%Y-%m-%d %H:%M:%S UTC"\nappendPostConfigAction(forceOptions)'
+
   if extraOpts:
     options.append(extraOpts)
 
@@ -92,6 +94,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     options.append(conddbOpt)
     options.append(evtOpt)
 
+  options.append(postConfig)
   return options
 
 #############################################################################
