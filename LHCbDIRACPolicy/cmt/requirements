@@ -33,7 +33,7 @@ cmtpath_pattern \
 # Path cleaner
 #-------------------------------------------------------------------
 
-macro strip_script "$(DIRACPOLICYROOT)/scripts/StripPath" WIN32 "$(DIRACPOLICYROOT)\scripts\StripPath"
+macro strip_script "$(LHCBDIRACPOLICYROOT)/scripts/StripPath" WIN32 "$(LHCBDIRACPOLICYROOT)\scripts\StripPath"
 
 cmtpath_pattern \
     setup_script $(strip_script) ;
