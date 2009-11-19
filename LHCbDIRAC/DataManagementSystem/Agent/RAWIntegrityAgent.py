@@ -190,7 +190,7 @@ class RAWIntegrityAgent(Agent):
         if not res['OK']:
           self.DataLog.addFileRecord(lfn,'RegisterFailed',se,'','RAWIntegrityAgent')
           gLogger.error("RAWIntegrityAgent.execute: Completely failed to register successfully migrated file.", res['Message'])
-        elif not res['Value']['Successful'].has_key(lfn):
+        elif res['Value']['Failed'].has_key(lfn):
           self.DataLog.addFileRecord(lfn,'RegisterFailed',se,'','RAWIntegrityAgent')
           gLogger.error("RAWIntegrityAgent.execute: Failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn])
         else:
