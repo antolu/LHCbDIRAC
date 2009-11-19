@@ -25,7 +25,7 @@ cmtpath_pattern \
    macro <project>_install_scripts "" \
          DIRAC_without_installarea "<path>/scripts" \
          <project>_without_installarea "" \
-         <project>_with_installarea&Unix "<path>/$(<project>_installarea_prefix)/scripts"\
+         <project>_with_installarea&Unix "<path>/scripts"\
          <project>_with_installarea&WIN32 "<path>\$(<project>_installarea_prefix)\scripts" ; \
    path_remove  PATH ${<project>_install_scripts} ; \
    path_prepend PATH ${<project>_install_scripts}
