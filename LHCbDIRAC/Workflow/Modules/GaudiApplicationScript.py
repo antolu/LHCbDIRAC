@@ -18,7 +18,7 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Core.Utilities                                import ldLibraryPath
 from DIRAC.Core.Utilities                                import Source
-from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
 from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication

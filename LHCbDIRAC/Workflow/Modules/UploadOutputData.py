@@ -9,7 +9,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.PoolXMLFile         import getGUID
+from DIRAC.Resources.Catalog.PoolXMLFile                   import getGUID
 from DIRAC.Core.Utilities.File                             import fileAdler
 
 from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs

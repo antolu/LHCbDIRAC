@@ -6,10 +6,10 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
-from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
+from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 
-from LHCbDIRAC.Workflow.Modules.AnalyseLogFile                    import AnalyseLogFile
-from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+from LHCbDIRAC.Workflow.Modules.AnalyseLogFile           import AnalyseLogFile
+from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 

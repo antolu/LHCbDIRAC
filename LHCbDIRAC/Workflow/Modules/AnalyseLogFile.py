@@ -9,11 +9,11 @@ import commands, os, time, smtplib, re, string, shutil
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 
 from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
+from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
+from DIRAC.Resources.Catalog.PoolXMLFile                 import getGUID
 
-from DIRAC.DataManagementSystem.Client.PoolXMLCatalog    import PoolXMLCatalog
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from DIRAC.DataManagementSystem.Client.PoolXMLFile       import getGUID
 
 from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase

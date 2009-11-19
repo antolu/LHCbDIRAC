@@ -5,7 +5,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.DataManagementSystem.Client.PoolXMLFile  import getGUID
+from DIRAC.Resources.Catalog.PoolXMLFile            import getGUID
 from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
 
