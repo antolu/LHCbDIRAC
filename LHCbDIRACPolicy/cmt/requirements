@@ -8,7 +8,7 @@ cmtpath_pattern \
    macro <project>_install_python "" \
          DIRAC_without_installarea "<path>" \
          <project>_without_installarea "" \
-         <project>_with_installarea&Unix "<path>/$(<project>_installarea_prefix)/python"\
+         <project>_with_installarea&Unix "<path>"\
          <project>_with_installarea&WIN32 "<path>\$(<project>_installarea_prefix)\python" ; \
     path_remove  PYTHONPATH ${<project>_install_python} ; \
     path_prepend PYTHONPATH ${<project>_install_python}
