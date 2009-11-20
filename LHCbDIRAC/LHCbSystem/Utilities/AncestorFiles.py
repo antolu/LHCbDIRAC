@@ -17,14 +17,12 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import Bookkeepin
 import time, string
 
 #############################################################################
-def getAncestorFiles(inputData,ancestorDepth):
-  """ Returns S_OK(<list of files>) or S_ERROR(<Message>) after querying the
+def getFileAncestors(inputData,ancestorDepth):
+  """ Returns S_OK({inputFile1:[ancestor1,],}) or S_ERROR(<Message>) after querying the
       Bookkeeping for ancestor files.
 
       Input data can be an LFN string or a list of LFNs.  Ancestor depth is an integer or
       string that converts to an integer.
-
-      If successful, the original input data LFNs are also returned in the list.
   """
   if not type(inputData) == type([]):
     inputData = [inputData]
@@ -46,11 +44,23 @@ def getAncestorFiles(inputData,ancestorDepth):
   if not inputData.sort() == returnedInputData.sort():
     gLogger.warn('Not all ancestors returned after getAncestors call:\n%s' %result)
     return S_ERROR('Not all ancestors returned after getAncestors call')
+  return S_OK(data['Successful'])
 
-  inputDataWithAncestors = returnedInputData
-  for input,ancestorList in data['Successful'].items():
+def getAncestorFiles(inputData,ancestorDepth):
+  """ Returns S_OK(<list of files>) or S_ERROR(<Message>) after querying the
+      Bookkeeping for ancestor files.
+
+      Input data can be an LFN string or a list of LFNs.  Ancestor depth is an integer or
+      string that converts to an integer.
+
+      If successful, the original input data LFNs are also returned in the list.
+  """
+  res = getFileAncestors(inputData,ancestorDepth)
+  if not res['OK']:
+    return res
+  inputDataWithAncestors = res['Value'].keys()
+  for input,ancestorList in res['Value'].items():
     inputDataWithAncestors += ancestorList
-
   totalFiles = len(inputDataWithAncestors)-len(inputData)
   gLogger.verbose('%s ancestor files retrieved from the bookkeeping for ancestor depth %s' %(totalFiles,ancestorDepth))
   return S_OK(inputDataWithAncestors)
