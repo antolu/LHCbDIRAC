@@ -836,7 +836,7 @@ except Exception,x:
       info.append('  ExtraPackages: %s' %(bkPassInfo[step]['ExtraPackages']))
 
     if parameters['BKInputQuery']:
-      info.append('BK Input Data Query:')
+      info.append('\nBK Input Data Query:')
       for n,v in parameters['BKInputQuery'].items():
         info.append('    %s = %s' %(n,v))
 
@@ -971,6 +971,11 @@ except Exception,x:
       self.log.info('Publish flag is disabled, using default production ID')
 
     bkDict['Production']=int(prodID)
+    if bkQuery:
+      if bkQuery.has_key('ProcessingPass'):
+        inputProcPass = bkDict['ProcessingPass']
+        self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
+        bkDict['InputProductionTotalProcessingPass']=''
 
     if bkScript:
       self.log.info('Writing BK publish script...')
