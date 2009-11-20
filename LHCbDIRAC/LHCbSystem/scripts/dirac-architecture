@@ -125,6 +125,10 @@ def guessPlatform() :
                     opSys = os.uname()[-1] + "-slc5-"
                     newSchema = True
             elif ( string.find(lines, "Red Hat Enterprise") != -1 and
+                 string.find(lines, "5.") != -1 ) :
+                    opSys = os.uname()[-1] + "-slc5-"
+                    newSchema = True
+            elif ( string.find(lines, "Red Hat Enterprise") != -1 and
                  string.find(lines, "4.") != -1 ) : opSys = "slc4_" + guessHWArch()
             elif ( string.find(lines, "Scientific Linux") != -1 and
                  string.find(lines, "4.") != -1 ) : opSys = "slc4_" + guessHWArch()
