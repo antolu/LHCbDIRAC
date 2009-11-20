@@ -2591,6 +2591,23 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     command = command[:-4]
     res = self.dbR_._query(command)
+    if res['OK']:
+        if len(res['Value'])==0:
+          command = 'select DaqPeriodId from data_taking_conditions where ' 
+          for param in condition:
+            if param != 'Description':
+              if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+                command += str(param)+' is NULL and '
+              elif condition[param] != None:
+                command +=  str(param)+'=\''+condition[param]+'\' and '
+              else:
+                command += str(param)+' is NULL and '
+            
+          command = command[:-4]
+          retVal = self.dbR_._query(command)
+          if retVal['OK']:
+            if len(retVal['Value'])!=0:
+              return S_ERROR('Only the Description is different, the other attributes are the same and they are exists in the DB!')
     return res
   
   #############################################################################
