@@ -30,18 +30,3 @@ CREATE TABLE BkQueries (
   INDEX (DataQualityFlag),
   PRIMARY KEY  (`BkQueryID`)
 ) ENGINE=MyISAM
-
----------------------------------------------------------------------------------
-DROP TABLE IF EXISTS Workflows;
-CREATE TABLE Workflows (
-    WFName VARCHAR(255) NOT NULL,
-    INDEX (WFName),
-    WFParent VARCHAR(255),
-    Description  VARCHAR(255),
-    LongDescription  BLOB,
-    AuthorDN VARCHAR(255) NOT NULL,
-    AuthorGroup VARCHAR(255) NOT NULL,
-    PublishingTime TIMESTAMP,
-    Body BLOB,
-    PRIMARY KEY(WFName)
-);
