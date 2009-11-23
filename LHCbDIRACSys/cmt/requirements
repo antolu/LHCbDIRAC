@@ -21,7 +21,7 @@ use ProductionManagementSystem   v0r3 LHCbDIRAC
 use DataManagementSystem   v0r3 LHCbDIRAC
 use BookkeepingSystem    	 v0r3 LHCbDIRAC
 use Workflow                 v0r3 LHCbDIRAC
-use TransformationSystem     v0r1 LHCbDIRAC
+use TransformationSystem     v0r1p1 LHCbDIRAC
 
 private
 action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
