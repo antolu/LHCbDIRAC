@@ -11,7 +11,7 @@ branches          cmt doc src
 
 include_path      none
 
-use LHCbDIRACPolicy v0r2
+use LHCbDIRACPolicy v0r3
 use LHCbDIRACConfig v0r3
 use DIRAC v0r83
 
