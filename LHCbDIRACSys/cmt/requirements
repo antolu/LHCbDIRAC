@@ -24,9 +24,13 @@ use Workflow                 v0r3 LHCbDIRAC
 use TransformationSystem     v0r1p1 LHCbDIRAC
 
 private
-action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
+action DiracMake "$(DIRACROOT)/Core/scripts/dirac-deploy-scripts.py"
 macro_append constituents " DiracMake "
 macro_remove cmt_actions_constituents 'DiracMake'
+
+#action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
+#macro_append constituents " DiracMake "
+#macro_remove cmt_actions_constituents 'DiracMake'
 
 action DiracGSI "$(LHCBDIRACSYSROOT)/dirac-GSI"
 macro_append constituents " DiracGSI "
