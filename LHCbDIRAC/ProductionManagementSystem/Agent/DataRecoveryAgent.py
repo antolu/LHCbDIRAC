@@ -39,6 +39,7 @@ from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestCli
 from DIRAC.Core.Utilities.List                                 import uniqueElements
 from DIRAC.Core.Utilities.Time                                 import timeInterval,dateTime
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
+from DIRAC.Core.DISET.RPCClient                                import RPCClient
 
 try:
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
@@ -81,6 +82,7 @@ class DataRecoveryAgent(AgentModule):
     fileSelectionStatus = self.am_getOption('FileSelectionStatus',['Assigned','MaxReset'])
     updateStatus = self.am_getOption('FileUpdateStatus','Unused')
     wmsStatusList = self.am_getOption('WMSStatus',['Failed','Stalled'])
+    wmsRecheckStatusList = self.am_getOption('RecheckWMSStatus',['Completed'])
     #only worry about files > 12hrs since last update    
     selectDelay = self.am_getOption('SelectionDelay',12) #hours 
     bkDepth = self.am_getOption('BKDepth',2)
@@ -99,7 +101,7 @@ class DataRecoveryAgent(AgentModule):
     self.log.info('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
     for transformation,typeName in transformationDict.items():
 #      if not transformation in ('5589','5600'):
-#      if not transformation=='5593':
+##      if not transformation=='5616':
 #        print 'skipping %s' %transformation
 #        continue
       self.log.info('='*len('Looking at transformation %s type %s:' %(transformation,typeName)))
@@ -116,7 +118,7 @@ class DataRecoveryAgent(AgentModule):
         continue
     
       fileDict = result['Value']      
-      result = self.obtainWMSJobIDs(transformation,fileDict,selectDelay,wmsStatusList)
+      result = self.obtainWMSJobIDs(transformation,fileDict,selectDelay,wmsStatusList,wmsRecheckStatusList)
       if not result['OK']:
         self.log.error(result)
         self.log.error('Could not obtain WMS jobIDs for files of transformation %s' %(transformation))
@@ -231,7 +233,7 @@ class DataRecoveryAgent(AgentModule):
     return S_OK(fileDict)
   
   #############################################################################
-  def obtainWMSJobIDs(self,transformation,fileDict,selectDelay,wmsStatusList):
+  def obtainWMSJobIDs(self,transformation,fileDict,selectDelay,wmsStatusList,wmsRecheckStatusList):
     """ Group files by the corresponding WMS jobIDs, check the corresponding
         jobs have not been updated for the delay time.  Can't get into any 
         mess because we start from files only in MaxReset / Assigned and check
@@ -259,18 +261,33 @@ class DataRecoveryAgent(AgentModule):
       wmsStatus = params['WmsStatus']
       jobInputData = params['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
-            
-      if not wmsStatus in wmsStatusList:
-        self.log.info('Job %s is in status %s, expected one of %s, ignoring from further consideration' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
-        continue
-      
-      #Exclude jobs not having an old enough last update time or appropriate WMS status now      
+
+      #Exclude jobs first by not having an old enough last update time   
       delta = datetime.timedelta( hours = selectDelay )
       interval = timeInterval(lastUpdate,delta)
       now = dateTime()
       if interval.includes(now):
         self.log.info('Job %s was last updated less than %s hours ago, ignoring %s files from further consideration' %(wmsID,selectDelay,len(jobInputData)))
         continue
+      
+      #Exclude jobs not having appropriate WMS status now         
+      if not wmsStatus in wmsStatusList:
+        if not wmsStatus in wmsRecheckStatusList:
+          self.log.info('Job %s is in status %s, expected one of %s, ignoring from further consideration' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
+          continue
+        else:
+          self.log.info('Job %s is in status %s, not one of %s, status will be rechecked with WMS (in case last production update is incorrect)' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
+          monitoring = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
+          statusDict = monitoring.getJobsStatus([wmsID])
+          if not statusDict['OK']:
+            self.log.warn('Could not obtain job status information for job %s with result:\n%s\nwill retry on next iteration...' %(wmsID,statusDict))
+            continue
+          jobMonStatus = statusDict['Value'][int(wmsID)]['Status']
+          if not jobMonStatus in wmsStatusList:
+            self.log.info('After rechecking with WMS: job %s status is %s, not one of %s, ignoring from further consideration' %(wmsID,jobMonStatus,string.join(wmsStatusList,', ')))
+            continue
+          else:
+            self.log.info('After rechecking with WMS: job %s status is in fact %s (not %s) so will be considered' %(wmsID,jobMonStatus,wmsStatus))
       
       finalJobData = []
       #Must map unique files -> jobs in expected state
