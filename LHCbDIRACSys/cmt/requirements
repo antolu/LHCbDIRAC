@@ -13,7 +13,7 @@ include_path      none
 
 use LHCbDIRACPolicy v0r3
 use LHCbDIRACConfig v0r3
-use DIRAC v0r83
+use DIRAC v0r84
 
 use LHCbSystem       		 v0r3 LHCbDIRAC
 use BookkeepingSystem		 v0r3 LHCbDIRAC
@@ -27,10 +27,6 @@ private
 action DiracMake "$(DIRACROOT)/Core/scripts/dirac-deploy-scripts.py"
 macro_append constituents " DiracMake "
 macro_remove cmt_actions_constituents 'DiracMake'
-
-#action DiracMake "$(LHCBDIRACSYSROOT)/dirac-make"
-#macro_append constituents " DiracMake "
-#macro_remove cmt_actions_constituents 'DiracMake'
 
 action DiracGSI "$(LHCBDIRACSYSROOT)/dirac-GSI"
 macro_append constituents " DiracGSI "
