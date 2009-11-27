@@ -24,10 +24,16 @@ import string, re, os, time, shutil, types, copy
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
-from LHCbDIRAC.LHCbSystem.Client.LHCbJob                  import *
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions
+try:
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
+  from LHCbDIRAC.LHCbSystem.Client.LHCbJob                  import *
+  from LHCbDIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions
+except Exception,x:
+  from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from DIRAC.Interfaces.API.DiracProduction             import DiracProduction
+  from DIRAC.LHCbSystem.Client.LHCbJob                  import *
+  from DIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions    
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
@@ -151,10 +157,12 @@ except Exception,x:
     if not optionsFile:
       optionsFile=[]
     
-    if not re.search(';',extraPackages):
-      extraPackages=[extraPackages]
-    if not re.search(';',optionsFile):
-      optionsFile = [optionsFile]
+    if extraPackages:
+      if not re.search(';',extraPackages):
+        extraPackages=[extraPackages]
+    if optionsFile:
+      if not re.search(';',optionsFile):
+        optionsFile = [optionsFile]
     
     for p in extraPackages:
       self.log.verbose('Checking extra package: %s' %(p))
@@ -170,6 +178,7 @@ except Exception,x:
           raise TypeError,'Event type options must be referred to as the event type number or workflow parameter'
 
     self.log.verbose('Extra packages and event type options are correctly specified')
+    return S_OK()
 
   #############################################################################
   def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts='',condDBTag='global',ddDBTag='global'):
@@ -973,9 +982,9 @@ except Exception,x:
     bkDict['Production']=int(prodID)
     if bkQuery:
       if bkQuery.has_key('ProcessingPass'):
-        inputProcPass = bkDict['ProcessingPass']
+        inputProcPass = bkQuery['ProcessingPass']
         self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
-        bkDict['InputProductionTotalProcessingPass']=''
+        bkDict['InputProductionTotalProcessingPass']=inputProcPass
 
     if bkScript:
       self.log.info('Writing BK publish script...')
