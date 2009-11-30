@@ -3164,7 +3164,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR(res['Message'])
     else:
       value = res['Value']
-      simcond = value[0][0]
+      if len(value) == 0:
+        command = 'select DESCRIPTION from data_taking_conditions, productions where productions.simcondid=data_taking_conditions.daqperiodid and productions.production='+str(prod) 
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          return S_ERROR(res['Message'])
+        else:
+          value = res['Value']
+          if len(value) != 0:
+            daqdesc = value[0][0]
+            return S_OK(daqdesc)
+          else:
+            return S_ERROR('The data taking or simulation condition is missing!')
+      else:
+        simcond = value[0][0]
     return S_OK(simcond)
   
   #############################################################################

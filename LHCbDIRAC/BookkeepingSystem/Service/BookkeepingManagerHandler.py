@@ -423,7 +423,10 @@ class BookkeepingManagerHandler(RequestHandler):
       datataking = str(values['DataTakingConditions'])
     
     if values.has_key('ProcessingPass'):
-      procPass = values['ProcessingPass']
+      if values['ProcessingPass'] == 'Stripping01-L0HLT1':
+        procPass = 'MC09-Sim03Reco02-withoutTruth+Stripping01-L0HLT1'
+      else:
+        procPass = values['ProcessingPass']
     else:
       procPass = 'ALL'
     
