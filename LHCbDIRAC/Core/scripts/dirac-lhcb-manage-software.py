@@ -10,7 +10,7 @@ import sys
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
-from DIRAC.Core.Base.Agent import createAgent
+from DIRAC.Core.Base.AgentReactor                        import AgentReactor
 from DIRAC import gConfig
 
 Script.parseCommandLine( ignoreErrors = True )
@@ -39,9 +39,8 @@ if not resultDict[ 'OK' ]:
   print "There were errors when loading configuration", resultDict['Message']
   sys.exit(1)
 
-agent = createAgent(agentName)
-result = agent.run_once()
-
+agent = AgentReactor(agentName)
+result = agent.runNumCycles(numCycles=1)
 if not result['OK']:
   print 'ERROR %s' %result['Message']
   exitCode = 2
