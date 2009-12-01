@@ -11,7 +11,7 @@ __RCSID__ = "$Id: RunTestScript.py 18161 2009-11-11 12:07:09Z acasajus $"
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re, time
 

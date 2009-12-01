@@ -14,7 +14,7 @@ from DIRAC  import gMonitor
 
 import sys, os
 
-AGENT_NAME = "LHCb/RANKMonitoringAgent"
+AGENT_NAME = "ResourceStatusSystem/RANKMonitoringAgent"
 
 class RANKMonitoringAgent(AgentModule):
 

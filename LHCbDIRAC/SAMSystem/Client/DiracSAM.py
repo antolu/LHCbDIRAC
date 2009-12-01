@@ -15,7 +15,7 @@ __RCSID__ = "$Id: DiracSAM.py 18161 2009-11-11 12:07:09Z acasajus $"
 import string, re, os, time, shutil, types, copy
 
 from DIRAC.Interfaces.API.Dirac                         import *
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
+from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob              import LHCbSAMJob
 from DIRAC.Core.Utilities.SiteCEMapping                 import getCESiteMapping,getSiteForCE
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 

@@ -18,8 +18,8 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication,CreateSharedArea
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea,InstallApplication,RemoveApplication,CreateSharedArea
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
 import string, os, sys, re, shutil, urllib
 

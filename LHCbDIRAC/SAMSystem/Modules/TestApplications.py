@@ -16,9 +16,9 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
-from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.ModuleBaseSAM import *
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 

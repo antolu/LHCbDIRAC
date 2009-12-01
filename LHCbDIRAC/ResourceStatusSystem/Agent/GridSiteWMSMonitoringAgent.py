@@ -25,7 +25,7 @@ DATA_JOB_TYPES = ['^Data']
 USER_JOB_TYPES = ['user']
 SAM_JOB_TYPES = ['sam']
 
-AGENT_NAME = "LHCb/GridSiteWMSMonitoringAgent"
+AGENT_NAME = "ResourceStatusSystem/GridSiteWMSMonitoringAgent"
 
 class GridSiteWMSMonitoringAgent(AgentModule):
 

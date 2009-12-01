@@ -8,8 +8,9 @@ __RCSID__ = "$Id$"
 """
 
 from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule                              import AgentModule
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
+from DIRAC.Core.Base.AgentModule import AgentModule
+from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
+
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.Core.Utilities import shellCall
 from DIRAC.Interfaces.API.Dirac import Dirac
@@ -20,13 +21,13 @@ from DIRAC  import gMonitor
 
 import os,time
 
-AGENT_NAME = "LHCb/SAMAgent"
+AGENT_NAME = "SAMSystem/SAMAgent"
 
 class SAMPublisher:
 
   def __init__(self):
     self.Script = None
-    self.samPublishClient = os.getenv('DIRAC','/opt/dirac/pro')+'/DIRAC/LHCbSystem/Testing/SAM/Distribution/sam.tar.gz'
+    self.samPublishClient = os.getenv('DIRAC','/opt/dirac/pro')+'/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz'
 
   def install(self, dest=None):
     cmd = 'tar -zxvf %s' %(self.samPublishClient)

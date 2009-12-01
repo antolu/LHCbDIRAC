@@ -47,7 +47,7 @@ from DIRAC.Interfaces.API.Job                       import Job
 from DIRAC.Core.Utilities.SiteCEMapping             import getSiteForCE
 from DIRAC                                          import gConfig
 
-COMPONENT_NAME='DIRAC/LHCbSystem/Testing/SAM/Client/LHCbSAMJob'
+COMPONENT_NAME='LHCbDIRAC/SAMSystem/Client/LHCbSAMJob'
 
 class LHCbSAMJob(Job):
 
@@ -70,9 +70,9 @@ class LHCbSAMJob(Job):
     self.samPriority = gConfig.getValue('/Operations/SAM/Priority',1)
     self.importLine = """
 try:
-  from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.<MODULE> import <MODULE>
+  from LHCbDIRAC.SAMSystem.Modules.<MODULE> import <MODULE>
 except Exception,x:
-  print 'Could not import <MODULE> from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules:\n%s' %(x)
+  print 'Could not import <MODULE> from LHCbDIRAC.SAMSystem.Modules:\n%s' %(x)
 """
     self.__setDefaults()
 
