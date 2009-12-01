@@ -31,7 +31,7 @@ class GridSiteWMSMonitoringAgent(AgentModule):
 
   def initialize( self ):
     self._lastUpdateTime = 0
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
+    self.am_setOption('PollingTime',120)
     self.jobDB = JobDB()
     self.siteGOCNameDict = {}
     return S_OK()
