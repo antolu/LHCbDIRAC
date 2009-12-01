@@ -55,7 +55,7 @@ class SrmSpaceTokenAgent(AgentModule):
     sites = ['RAL-LCG2', 'FZK-LCG2', 'SARA-MATRIX',
              'CERN-PROD', 'UKI-SCOTGRID-ECDF', 'IN2P3-CC',
              'GRIF-LAL', 'csTCDie', 'INFN-T1', 'pic']
-    sites = gConfig.getValue( "%s/Sites" % self.section, sites )
+    sites = self.am_getOption('Sites',sites)         
     now = Time.dateTime()
     for site in sites:
       #name = site[0][1]['GlueSiteUniqueID'][0]
