@@ -28,7 +28,7 @@ if not resultDict[ 'OK' ]:
 ###############################################################################
 
 try:
-  from LHCbSystem.Client.Production import Production
+  from LHCbDIRAC.Interfaces.API.Production import Production
   from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 except:
   from DIRAC.LHCbSystem.Client.Production import Production
