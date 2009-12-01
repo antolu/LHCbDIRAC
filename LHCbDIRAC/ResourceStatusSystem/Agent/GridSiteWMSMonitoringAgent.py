@@ -45,7 +45,8 @@ class GridSiteWMSMonitoringAgent(AgentModule):
       siteMask = result['Value']
 
     elapsedTime = time.time() - self._lastUpdateTime
-    if elapsedTime < gConfig.getValue( "%s/GenerationInterval" % self.section, 1800 ):
+    generationInterval = self.am_getOption("GenerationInterval",1800)
+    if elapsedTime < generationInterval:
       return S_OK()
     result = self._getWMSData()
     if not result[ 'OK' ]:
