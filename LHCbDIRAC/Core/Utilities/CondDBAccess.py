@@ -12,7 +12,7 @@ import string,os,shutil,re
 
 import DIRAC
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import MySiteRoot
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 

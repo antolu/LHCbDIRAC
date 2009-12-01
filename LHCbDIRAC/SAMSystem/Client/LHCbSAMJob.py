@@ -17,7 +17,7 @@
    An example SAM Test script would be::
 
     from DIRAC.Interfaces.API.Dirac import Dirac
-    from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.LHCbSAMJob import LHCbSAMJob
+    from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob import LHCbSAMJob
 
     j = LHCbSAMJob()
     j.setDestinationCE('LCG.PIC.es')
@@ -184,7 +184,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to manage the lock in the shared area of a Grid site for LHCb')
     body = string.replace(self.importLine,'<MODULE>','LockSharedArea')
-    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.LockSharedArea import LockSharedArea\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -243,7 +242,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the system configuration of a Grid site for LHCb')
     body = string.replace(self.importLine,'<MODULE>','SystemConfiguration')
-    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SystemConfiguration import SystemConfiguration\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -299,7 +297,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
     body = string.replace(self.importLine,'<MODULE>','SiteQueues')
-    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SiteQueues import SiteQueues\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -366,7 +363,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to install LHCb software')
     body = string.replace(self.importLine,'<MODULE>','SoftwareInstallation')
-    #'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SoftwareInstallation import SoftwareInstallation\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -428,7 +424,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the content of the SHARED area for the given CE')
     body = string.replace(self.importLine,'<MODULE>','SoftwareReport')
-    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -499,7 +494,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check the LHCb queues for the given CE')
     body = string.replace(self.importLine,'<MODULE>','TestApplications')
-    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -560,7 +554,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module to check if the application is properly installed')
     body = string.replace(self.importLine,'<MODULE>','CheckApplications')
-    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.TestApplications import TestApplications\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -622,7 +615,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
     body = string.replace(self.importLine,'<MODULE>','SAMFinalization')
-    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.SAMFinalization import SAMFinalization\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)
@@ -689,7 +681,6 @@ except Exception,x:
     module = ModuleDefinition(moduleName)
     module.setDescription('A module for LHCb SAM job finalization, reports to SAM DB')
     body = string.replace(self.importLine,'<MODULE>','RunTestScript')
-    #body = 'from LHCbDIRAC.LHCbSystem.Testing.SAM.Modules.RunTestScript import RunTestScript\n'
     module.setBody(body)
     # Create Step definition
     step = StepDefinition(name)

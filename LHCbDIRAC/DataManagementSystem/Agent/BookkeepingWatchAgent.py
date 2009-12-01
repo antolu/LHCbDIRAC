@@ -5,7 +5,7 @@
 __RCSID__ = "$Id: BookkeepingWatchAgent.py 18192 2009-11-11 16:51:47Z paterson $"
 
 from DIRAC                                            import S_OK, S_ERROR, gConfig, gLogger, gMonitor
-from LHCbDIRAC.LHCbSystem.Agent.BookkeepingWatchAgent     import BookkeepingWatchAgent
+from LHCbDIRAC.TransformationSystem.Agent.BookkeepingWatchAgent import BookkeepingWatchAgent
 
 
 AGENT_NAME = 'DataManagement/BookkeepingWatchAgent'

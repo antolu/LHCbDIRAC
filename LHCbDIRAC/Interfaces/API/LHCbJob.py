@@ -17,7 +17,7 @@
    An example DaVinci application script would be::
 
      from DIRAC.Interfaces.API.Dirac import Dirac
-     from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
      j.setCPUTime(5000)
@@ -35,7 +35,7 @@
    Another example for executing a script in the Gaudi Application environment is::
 
      from DIRAC.Interfaces.API.Dirac import Dirac
-     from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
      j.setCPUTime(5000)
@@ -51,7 +51,7 @@
    For execution of a python Bender module::
 
      from DIRAC.Interfaces.API.Dirac import Dirac
-     from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
      j.setCPUTime(5000)
@@ -66,7 +66,7 @@
    To execute a ROOT Macro, Python script and Executable consecutively an example script would be::
 
      from DIRAC.Interfaces.API.Dirac import Dirac
-     from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
      j.setCPUTime(50000)
