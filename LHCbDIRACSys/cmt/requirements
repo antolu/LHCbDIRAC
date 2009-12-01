@@ -13,7 +13,7 @@ include_path      none
 
 use LHCbDIRACPolicy v1r0
 use LHCbDIRACConfig v1r0
-use DIRAC v0r85
+use DIRAC v0r86
 
 use BookkeepingSystem		 v1r0 LHCbDIRAC
 use ConfigurationSystem      v1r0 LHCbDIRAC
