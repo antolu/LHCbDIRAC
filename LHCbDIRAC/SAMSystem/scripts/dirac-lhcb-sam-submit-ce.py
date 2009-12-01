@@ -23,7 +23,7 @@ Script.registerSwitch( "", "install_project=", "Optional install_project URL [Ex
 Script.registerSwitch( "", "script=", "Optional path to python script to execute in SAM jobs [Experts only]" )
 Script.parseCommandLine( ignoreErrors = True )
 
-from LHCbDIRAC.LHCbSystem.Testing.SAM.Client.DiracSAM import DiracSAM
+from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
 args = Script.getPositionalArgs()
 

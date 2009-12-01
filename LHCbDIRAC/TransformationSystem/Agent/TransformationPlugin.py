@@ -4,7 +4,7 @@ from DIRAC                                                  import gConfig, gLog
 from DIRAC.Core.Utilities.SiteSEMapping                     import getSitesForSE
 from DIRAC.Core.Utilities.List                              import breakListIntoChunks, sortList, uniqueElements
 from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
-from LHCbDIRAC.LHCbSystem.Utilities.AncestorFiles           import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles       import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin  import TransformationPlugin

@@ -27,12 +27,12 @@ if not resultDict[ 'OK' ]:
   sys.exit(1)
 ###############################################################################
 
-
-from DIRAC.Interfaces.API.DiracProduction import DiracProduction
 try:
   from LHCbSystem.Client.Production import Production
+  from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 except:
   from DIRAC.LHCbSystem.Client.Production import Production
+  from DIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 #Configurable parameters
 priority = '{{Priority#Production priority#7}}'

@@ -29,8 +29,8 @@ if not resultDict[ 'OK' ]:
 ###############################################################################
 
 
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
-from LHCbDIRAC.LHCbSystem.Client.Production import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.Production import Production
 
 #Configurable parameters
 cpu = '{{MaxCPUTime#MC Max CPU time in secs#100000}}'

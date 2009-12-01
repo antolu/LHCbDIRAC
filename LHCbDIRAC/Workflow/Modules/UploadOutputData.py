@@ -12,10 +12,10 @@ from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContain
 from DIRAC.Resources.Catalog.PoolXMLFile                   import getGUID
 from DIRAC.Core.Utilities.File                             import fileAdler
 
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
-from LHCbDIRAC.LHCbSystem.Utilities.ResolveSE       import getDestinationSEList
+from LHCbDIRAC.Core.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ResolveSE       import getDestinationSEList
 
-from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
 import string,os,random

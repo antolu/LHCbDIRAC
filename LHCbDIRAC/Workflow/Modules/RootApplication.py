@@ -9,7 +9,7 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 

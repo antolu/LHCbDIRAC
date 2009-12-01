@@ -10,8 +10,8 @@ from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData                import constructProductionLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData             import constructProductionLFNs
 
 import string,os
 

@@ -9,9 +9,9 @@ from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData                import constructProductionLFNs
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
-from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
+from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC

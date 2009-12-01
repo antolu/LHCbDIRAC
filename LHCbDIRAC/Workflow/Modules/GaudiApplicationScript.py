@@ -21,8 +21,8 @@ from DIRAC.Core.Utilities                                import Source
 from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
-from LHCbDIRAC.Workflow.Modules.ModuleBase                        import ModuleBase
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
+from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
 

@@ -12,9 +12,9 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData         import getLogPath
+from LHCbDIRAC.Core.Utilities.ProductionData               import getLogPath
 
-from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
 import os,shutil,glob,string,random

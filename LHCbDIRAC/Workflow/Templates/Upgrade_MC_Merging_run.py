@@ -32,8 +32,8 @@ if not resultDict[ 'OK' ]:
 
 os.system('hostname')
 
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
-from LHCbDIRAC.LHCbSystem.Client.Production import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.Production import Production
 
 #configurable parameters
 events = '{{numberOfEvents#MC Number of events per job#500}}'

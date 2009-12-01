@@ -16,11 +16,11 @@ from DIRAC                                                 import S_OK, S_ERROR,
 import DIRAC
 
 try:
-  from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructUserLFNs
-  from LHCbDIRAC.LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
+  from LHCbDIRAC.Core.Utilities.ProductionData  import constructUserLFNs
+  from LHCbDIRAC.Core.Utilities.ResolveSE       import getDestinationSEList
 except Exception,x:
   from DIRAC.LHCbSystem.Utilities.ProductionData  import constructUserLFNs
-  from DIRAC.LHCbSystem.Utilities.ResolveSE  import getDestinationSEList
+  from DIRAC.LHCbSystem.Utilities.ResolveSE       import getDestinationSEList
 
 import string,os,random
 

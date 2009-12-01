@@ -7,16 +7,14 @@ __RCSID__ = "$Id$"
 import commands, os, time, smtplib, re, string, shutil
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
-
 from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 from DIRAC.Resources.Catalog.PoolXMLFile                 import getGUID
-
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import getLogPath,constructProductionLFNs
-from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData             import getLogPath,constructProductionLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 
 from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
 import DIRAC

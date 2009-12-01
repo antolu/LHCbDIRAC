@@ -27,8 +27,8 @@ if not resultDict[ 'OK' ]:
   sys.exit(1)
 ###############################################################################
 
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
-from LHCbDIRAC.LHCbSystem.Client.Production import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.Production import Production
 
 #configurable parameters
 inputProd  = '{{InputProduction#Input production ID}}'
