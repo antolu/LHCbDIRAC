@@ -26,9 +26,9 @@ from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 try:
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
-  from LHCbDIRAC.LHCbSystem.Client.LHCbJob                  import *
-  from LHCbDIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions
+  from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
+  from LHCbDIRAC.Interfaces.API.LHCbJob                     import *
+  from LHCbDIRAC.Core.Utilities.ProductionOptions           import getOptions
 except Exception,x:
   from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.Interfaces.API.DiracProduction             import DiracProduction
@@ -70,7 +70,7 @@ class Production(LHCbJob):
     self.ancestorProduction = ''
     self.importLine = """
 try:
-  from LHCbDIRAC.LHCbSystem.Workflow.Module.<MODULE> import <MODULE>
+  from LHCbDIRAC.Workflow.Module.<MODULE> import <MODULE>
 except Exception,x:
   from WorkflowLib.Module.<MODULE> import <MODULE>
 """    

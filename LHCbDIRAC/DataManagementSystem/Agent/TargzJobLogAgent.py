@@ -20,7 +20,7 @@ import re
 from datetime import datetime, timedelta
 import tarfile
 
-AGENT_NAME = "LHCb/TargzJobLogAgent"
+AGENT_NAME = "DataManagement/TargzJobLogAgent"
 
 class TargzJobLogAgent(AgentModule):
 

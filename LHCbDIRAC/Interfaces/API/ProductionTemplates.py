@@ -30,7 +30,7 @@ __RCSID__ = "$Id$"
 
 import os
 
-from LHCbDIRAC.LHCbSystem.Client.Production import *
+from LHCbDIRAC.Interfaces.API.Production import *
 
 from DIRAC import gLogger
 

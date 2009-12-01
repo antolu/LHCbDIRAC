@@ -10,7 +10,7 @@ for switch in Script.getUnprocessedSwitches():
 import DIRAC
 from DIRAC                                                import gLogger
 from DIRAC.Core.Security.Misc                             import getProxyInfo
-from LHCbDIRAC.LHCbSystem.Client.LHCbAPI                  import LHCbAPI
+from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
 import re,os
 

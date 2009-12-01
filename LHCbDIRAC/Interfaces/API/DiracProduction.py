@@ -33,7 +33,7 @@ from DIRAC.Core.Utilities.Time                      import toString
 from DIRAC.Core.Security.X509Chain                  import X509Chain
 from DIRAC.Core.Security                            import Locations, CS
 
-from LHCbDIRAC.LHCbSystem.Utilities.ProductionData  import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ProductionData        import constructProductionLFNs
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 

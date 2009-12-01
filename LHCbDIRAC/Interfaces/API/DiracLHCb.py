@@ -22,9 +22,9 @@ from LHCbDIRAC.LHCbSystem.Utilities.ClientTools     import mergeRootFiles,getRoo
 
 import os, glob, fnmatch
 
-COMPONENT_NAME='LHCbAPI'
+COMPONENT_NAME='DiracLHCb'
 
-class LHCbAPI(Dirac):
+class DiracLHCb(Dirac):
 
   #############################################################################
   def __init__(self, WithRepo=False, RepoLocation=''):
