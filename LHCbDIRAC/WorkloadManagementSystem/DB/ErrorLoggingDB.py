@@ -11,7 +11,7 @@ class ErrorLoggingDB(DB):
 
   def __init__( self, maxQueueSize = 10 ):
 
-    DB.__init__( self, 'ErrorLoggingDB', 'LHCb/ErrorLoggingDB', maxQueueSize )
+    DB.__init__( self, 'ErrorLoggingDB', 'WorkloadManagement/ErrorLoggingDB', maxQueueSize )
     self.lock = threading.Lock()
 
   def setError( self, production, project='', version='', errornumber=0 ):
