@@ -15,13 +15,18 @@ use LHCbDIRACPolicy v1r0
 use LHCbDIRACConfig v1r0
 use DIRAC v0r85
 
-use LHCbSystem       		 v1r0 LHCbDIRAC
 use BookkeepingSystem		 v1r0 LHCbDIRAC
+use ConfigurationSystem      v1r0 LHCbDIRAC
+use Core                     v1r0 LHCbDIRAC
+use DataManagementSystem     v1r0 LHCbDIRAC
+use Interfaces               v1r0 LHCbDIRAC
+use LHCbSystem       		 v1r0 LHCbDIRAC
 use ProductionManagementSystem   v1r0 LHCbDIRAC
-use DataManagementSystem   v1r0 LHCbDIRAC
-use BookkeepingSystem    	 v1r0 LHCbDIRAC
-use Workflow                 v1r0 LHCbDIRAC
+use ResourceStatusSystem     v1r0 LHCbDIRAC
+use SAMSystem                v1r0 LHCbDIRAC
 use TransformationSystem     v1r0 LHCbDIRAC
+use Workflow                 v1r0 LHCbDIRAC
+use WorkloadManagementSystem v1r0 LHCbDIRAC
 
 private
 action DiracMake "$(DIRACROOT)/Core/scripts/dirac-deploy-scripts.py"
