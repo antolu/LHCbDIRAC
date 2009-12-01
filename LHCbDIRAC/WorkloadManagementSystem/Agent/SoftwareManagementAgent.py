@@ -22,7 +22,7 @@ from DIRAC                                                      import S_OK, S_E
 
 import os, sys, re, string, time, shutil
 
-AGENT_NAME = 'LHCb/SoftwareManagementAgent'
+AGENT_NAME = 'WorkloadManagement/SoftwareManagementAgent'
 
 class SoftwareManagementAgent(AgentModule):
 
@@ -40,7 +40,7 @@ class SoftwareManagementAgent(AgentModule):
   def execute(self):
     """The SoftwareManagementAgent execution method.
     """
-    softwareModule = gConfig.getValue(self.section+'/ModulePath','DIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation')
+    softwareModule = gConfig.getValue(self.section+'/ModulePath','LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation')
     self.log.info('LHCb Software Distribution module: %s' %(softwareModule))
     try:
       exec 'from %s import InstallApplication,RemoveApplication' %softwareModule

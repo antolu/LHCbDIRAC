@@ -17,7 +17,7 @@ __RCSID__ = "$Id$"
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
 
-from LHCbDIRAC.LHCbSystem.Utilities.AncestorFiles          import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles      import getAncestorFiles 
 
 from DIRAC                                                 import gConfig, S_OK, S_ERROR
 

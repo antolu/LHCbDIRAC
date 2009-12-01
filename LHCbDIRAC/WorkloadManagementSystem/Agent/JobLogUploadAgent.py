@@ -21,7 +21,7 @@ from DIRAC.RequestManagementSystem.Agent.RequestAgentMixIn import RequestAgentMi
 import time,os,re, shutil
 from types import *
 
-AGENT_NAME = 'LHCb/JobLogUploadAgent'
+AGENT_NAME = 'WorkloadManagement/JobLogUploadAgent'
 
 class JobLogUploadAgent(AgentModule,RequestAgentMixIn):
 

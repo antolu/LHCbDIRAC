@@ -9,6 +9,8 @@
       single destination is unavailable. 
       
       Needs to be able to access the JobDB.
+      
+      *UNDER DEVELOPMENT*
 """
 
 __RCSID__ = "$Id: SiteAvailabilityAgent.py 18191 2009-11-11 16:46:41Z paterson $"
