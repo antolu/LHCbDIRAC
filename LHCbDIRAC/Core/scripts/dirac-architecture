@@ -40,6 +40,7 @@ def checkGcc() :
 
     # On Mac OS X 10.3 (and SuSE 8.2) the compiler is 3.3 ...
     if ( string.find(compString, "g++ (GCC) 3.3") != -1 ) : comp = "gcc33"
+    if ( string.find(compString, "g++ (Ubuntu 4.4.1-4ubuntu8) 4.4") != -1 ) : comp = "gcc44"
 
     if ( not comp and string.find(compString, "(GCC) 4.0.1") != -1 ) : comp = "gcc40"
 
@@ -49,7 +50,7 @@ def checkGcc() :
         # errLog.close()
         sys.stderr.write("\nERROR:\n")
         sys.stderr.write("\tCompiler version '" + compString + "' is not supported, sorry.\n")
-        sys.stderr.write("\tFor information on supported platforms and porting see mailto:lhcb-dirac-developers@cern.ch \n\n")
+        sys.stderr.write("\tFor information on supported platforms and porting see mailto:lhcb-dirac@cern.ch \n\n")
         comp = "ERROR"
 #        sys.exit(-1)
 
@@ -136,6 +137,10 @@ def guessPlatform() :
                  string.find(lines, "5.") != -1 ) :
                     opSys = os.uname()[-1] + "-slc5-"
                     newSchema = True
+            elif ( string.find(lines, "Ubuntu" ) != -1 and
+                 string.find(lines, "9.") != -1 ) :
+                    opSys = os.uname()[-1] + "-slc5-"
+                    newSchema = True
             elif ( string.find(lines, "Debian") != -1 and
                  string.find(lines, "4") != -1 ) : opSys = "slc4_"  + guessHWArch()
             elif ( string.find(lines, "SuSE") != -1 and
@@ -160,10 +165,10 @@ def guessPlatform() :
                  string.find(lines, "10.1") != -1 ) : opSys = "suse101"  # not compatible
             elif ( string.find(lines, "SUSE") != -1 and
                  string.find(lines, "10.2") != -1 ) : opSys = "suse102"  # not compatible
+            elif ( string.find(lines, "SUSE") != -1 and
+                 string.find(lines, "11.") != -1 ) : opSys = "suse11"  # not compatible
             elif ( string.find(lines, "Mandriva Linux") != -1 and
                  string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible
-            elif string.find(lines, "Ubuntu" ) != -1:
-                 opSys = "ubu%s_%s" % (lines.split()[1], guessHWArch() )
 
         if not opSys :
             # errLog = open(".guessPlatf-os.err",'w')
