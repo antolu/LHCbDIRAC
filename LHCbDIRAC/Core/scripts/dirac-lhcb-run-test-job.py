@@ -26,13 +26,13 @@ Script.registerSwitch( "d:", "TestDir=", "Optional: path to a directory to execu
 Script.registerSwitch( "g", "Generate", "Optional: specify this switch to only generate the API script and retrieve the project options file (disabled by default)" )
 Script.parseCommandLine( ignoreErrors = True )
 
-from LHCbDIRAC.LHCbSystem.Client.LHCbJob import LHCbJob
+from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 
 args = Script.getPositionalArgs()
 
-from LHCbDIRAC.LHCbSystem.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 
 #Constants (some can be overidden, some are messy)
 

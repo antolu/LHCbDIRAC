@@ -3,7 +3,7 @@
 ############################################################
 
 """
-   LHCbSystem.Testing.SAM.modules package
+   LHCbDIRAC.SAMSystem.Modules package
 
    This contains the LHCb specific SAM job modules.
 """

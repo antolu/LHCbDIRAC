@@ -18,7 +18,7 @@ from DIRAC.ConfigurationSystem.Client.CSAPI                   import CSAPI
 
 import sys, os
 
-AGENT_NAME = "LHCb/CE2CSAgent"
+AGENT_NAME = "ConfigurationSystem/CE2CSAgent"
 
 class CE2CSAgent(AgentModule):
 

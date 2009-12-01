@@ -3,7 +3,7 @@
 ############################################################
 
 """
-   LHCbSystem.Testing.SAM.Distribution package
+   LHCbDIRAC.SAMSystem.Distribution package
 
    This contains the stable SAM client tarball.
 """
