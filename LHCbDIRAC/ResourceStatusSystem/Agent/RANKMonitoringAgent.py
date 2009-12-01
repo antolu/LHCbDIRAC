@@ -14,9 +14,9 @@ from DIRAC  import gMonitor
 
 import sys, os
 
-AGENT_NAME = "ResourceStatusSystem/RANKMonitoringAgent"
+AGENT_NAME = "ResourceStatusSystem/RankMonitoringAgent"
 
-class RANKMonitoringAgent(AgentModule):
+class RankMonitoringAgent(AgentModule):
 
   def initialize( self ):
 
