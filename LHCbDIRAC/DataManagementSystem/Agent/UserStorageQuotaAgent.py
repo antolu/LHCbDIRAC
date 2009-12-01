@@ -26,7 +26,7 @@ class UserStorageQuotaAgent(AgentModule):
       self.StorageUsageDB = RPCClient('DataManagement/StorageUsage')
     self.am_setModuleParam("shifterProxy", "DataManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
-    self.defaultQuota = gConfig.getValue('/Security/DefaultStorageQuota',1000) # Default is 1TB
+    self.defaultQuota = gConfig.getValue('/Registry/DefaultStorageQuota',1000) # Default is 1TB
     gLogger.info("initialize: Default quota found to be %d GB" % self.defaultQuota)
     return S_OK()
 
@@ -41,7 +41,7 @@ class UserStorageQuotaAgent(AgentModule):
     gLogger.info("Determining quota usage for %s users." % len(usageDict.keys()))
     for userName in sortList(usageDict.keys()):
       usageGB = usageDict[userName]/byteToGB
-      res = gConfig.getOptionsDict('/Security/Users/%s' % userName)
+      res = gConfig.getOptionsDict('/Registry/Users/%s' % userName)
       if not res['OK']:
         gLogger.error("Username not found in the CS.","%s using %.2f GB" % (userName,usageGB))
         continue
