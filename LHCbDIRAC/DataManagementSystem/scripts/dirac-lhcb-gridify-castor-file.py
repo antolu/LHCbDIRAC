@@ -14,7 +14,7 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
 import re,os
 
-lhcb = LHCbAPI()
+lhcb = DiracLHCb()
 replicaManager = ReplicaManager()
 
 res = getProxyInfo(False,False)
