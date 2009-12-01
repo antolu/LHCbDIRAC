@@ -37,6 +37,7 @@ def checkGcc() :
     if ( string.find(compString, "g++ (GCC) 3.2.3") != -1 ) : comp = "gcc323"
 
     if ( string.find(compString, "g++ (GCC) 3.4") != -1 ) : comp = "gcc34"
+    if ( string.find(compString, "g++ (GCC) 4.3") != -1 ) : comp = "gcc43"
 
     # On Mac OS X 10.3 (and SuSE 8.2) the compiler is 3.3 ...
     if ( string.find(compString, "g++ (GCC) 3.3") != -1 ) : comp = "gcc33"
