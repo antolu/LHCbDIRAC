@@ -34,25 +34,25 @@ class SoftwareManagementAgent(AgentModule):
     #DEBUGGING OPTIONS
     self.pollingTime = 5
     self.maxcount = 1 #Agent.py base class must be fixed for run_once use-case
-    return result
+    return S_OK()
 
   #############################################################################
   def execute(self):
     """The SoftwareManagementAgent execution method.
     """
-    softwareModule = gConfig.getValue(self.section+'/ModulePath','LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation')
+    softwareModule = self.am_getOption('ModulePath','LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation')
     self.log.info('LHCb Software Distribution module: %s' %(softwareModule))
     try:
       exec 'from %s import InstallApplication,RemoveApplication' %softwareModule
     except Exception,x:
       return self.__finish('Could not import InstallApplication,RemoveApplication from %s' %(softwareModule))
 
-    activeSoftware = gConfig.getValue(self.section+'/ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
+    activeSoftware = self.am_getOption('ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
     installList = gConfig.getValue(activeSoftware,[])
     if not installList:
       return self.__finish('The active list of software could not be retreived from %s or is null' %(activeSoftware))
 
-    deprecatedSoftware = gConfig.getValue(self.section+'/DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
+    deprecatedSoftware = self.am_getOption('DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
     removeList = gConfig.getValue(deprecatedSoftware,[])
 
     localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
@@ -124,10 +124,8 @@ class SoftwareManagementAgent(AgentModule):
     """
     self.log.info('%s will stop with message: \n%s' %(AGENT_NAME,message))
     if failed:
-      fd = open(self.controlDir+'/stop_agent','w')
-      fd.write('%s Stopped at %s [UTC]' % (AGENT_NAME,time.asctime(time.gmtime())))
-      fd.close()
-      self.log.info('%s Stopped at %s [UTC] using %s/stop_agent control flag.' %(AGENT_NAME,time.asctime(time.gmtime()),self.controlDir))
+      self.log.info('%s Stopped at %s [UTC] .' %(AGENT_NAME,time.asctime(time.gmtime())))
+      self.am_stopExecution()
     else:
       self.log.info('%s Stopped at %s [UTC] after one loop.' %(AGENT_NAME,time.asctime(time.gmtime())))
     result =  S_OK(message)
