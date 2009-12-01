@@ -15,7 +15,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.SiteSEMapping       import getSitesForSE
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
-from LHCbDIRAC.LHCbSystem.Utilities.AncestorFiles import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles import getAncestorFiles
 
 import os, time, random,re
 

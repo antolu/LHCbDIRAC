@@ -10,8 +10,11 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                            import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
-from DIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
 from DIRAC.Core.Base.AgentModule                      import AgentModule
+
+from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB import ProductionDB
+
+
 import os, time
 
 

@@ -34,7 +34,7 @@ Script.parseCommandLine( ignoreErrors = True )
 
 
 from DIRAC.Interfaces.API.Dirac                             import Dirac
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction            import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction               import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 
 args = Script.getPositionalArgs()

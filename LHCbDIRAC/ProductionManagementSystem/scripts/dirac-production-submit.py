@@ -8,7 +8,7 @@ __RCSID__   = "$Id$"
 __VERSION__ = "$Revision: 1.1 $"
 import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()

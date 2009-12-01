@@ -15,7 +15,7 @@ from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.TransformationSystem.Client.TransformationDBCLI   import TransformationDBCLI
 #job submission
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction          import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
 
 def printDict(dictionary):
   """ Dictionary pretty printing

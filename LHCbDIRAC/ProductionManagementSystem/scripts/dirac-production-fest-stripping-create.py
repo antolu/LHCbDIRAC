@@ -188,8 +188,8 @@ if useOracle:
 prodScript= ['# Production API script generated using:\n#%s' %(__RCSID__)]
 
 # Import the production client
-from LHCbDIRAC.LHCbSystem.Client.Production import Production
-prodScript.append('from LHCbDIRAC.LHCbSystem.Client.Production import Production')
+from LHCbDIRAC.Interfaces.API.Production import Production
+prodScript.append('from LHCbDIRAC.Interfaces.API.Production import Production')
 
 # Create the production object
 production = Production()

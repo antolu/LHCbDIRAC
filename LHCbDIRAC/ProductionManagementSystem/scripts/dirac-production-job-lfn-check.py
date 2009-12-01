@@ -29,7 +29,7 @@ def printDict(dictionary):
     print key.rjust(key_max),' : ',str(value).ljust(value_max)
 
 
-from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML        import JobInfoFromXML
+from LHCbDIRAC.Core.Utilities.JobInfoFromXML        import JobInfoFromXML
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.DISET.RPCClient                       import RPCClient

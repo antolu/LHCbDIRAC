@@ -24,9 +24,9 @@ Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac                       import Dirac
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction      import DiracProduction
-from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML    import JobInfoFromXML
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from LHCbDIRAC.Interfaces.API.DiracProduction      import DiracProduction
+from LHCbDIRAC.Core.Utilities.JobInfoFromXML    import JobInfoFromXML
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 args = Script.getPositionalArgs()

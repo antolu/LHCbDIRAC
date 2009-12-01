@@ -8,9 +8,10 @@ from DIRAC                                                     import S_OK, S_ER
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
-from DIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
 from DIRAC.Core.Utilities.List                                 import sortList
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
+
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
 
 import re, os
 

@@ -71,10 +71,10 @@ args = Script.getPositionalArgs()
 
 prodScript = []
 
-from LHCbDIRAC.LHCbSystem.Client.Production import Production
+from LHCbDIRAC.Interfaces.API.Production import Production
 
 prodScript.append('# Production API script generated using:\n#%s' %(__RCSID__))
-prodScript.append('from LHCbDIRAC.LHCbSystem.Client.Production import Production')
+prodScript.append('from LHCbDIRAC.Interfaces.API.Production import Production')
 prodScript.append('production = Production()')
 
 def usage():

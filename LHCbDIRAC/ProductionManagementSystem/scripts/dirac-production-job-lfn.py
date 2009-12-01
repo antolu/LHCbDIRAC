@@ -15,7 +15,7 @@ args = Script.getPositionalArgs()
 if len(args)==0:
   usage()
 
-from LHCbDIRAC.LHCbSystem.Utilities.JobInfoFromXML import JobInfoFromXML
+from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
 
 
 for arg in args:

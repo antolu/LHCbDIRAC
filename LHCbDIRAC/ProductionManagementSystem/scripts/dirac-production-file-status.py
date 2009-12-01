@@ -12,7 +12,7 @@ from DIRAC.Core.Base import Script
 Script.registerSwitch( "", "ProductionID=", "Restrict query to given production ID (default is to show status for all)" )
 Script.parseCommandLine( ignoreErrors = True )
 
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from DIRAC import gConfig
 
 import time

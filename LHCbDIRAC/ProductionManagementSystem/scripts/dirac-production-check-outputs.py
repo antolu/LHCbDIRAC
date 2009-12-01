@@ -29,7 +29,7 @@ Script.registerSwitch( "v", "Verbose", "Enable Verbose Output")
 Script.parseCommandLine ( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction            import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction            import DiracProduction
 
 def getBoolean(value):
   if value.lower()=='true':

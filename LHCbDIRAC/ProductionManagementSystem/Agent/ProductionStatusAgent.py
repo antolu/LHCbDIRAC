@@ -32,11 +32,11 @@ from DIRAC.Core.Base.AgentModule                               import AgentModul
 from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
-from DIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
 
-from LHCbDIRAC.LHCbSystem.Client.Production                    import Production
-from LHCbDIRAC.LHCbSystem.Client.DiracProduction               import DiracProduction
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
+from LHCbDIRAC.Interfaces.API.Production                          import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
 import string,time
 
