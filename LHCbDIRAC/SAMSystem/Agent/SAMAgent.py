@@ -21,8 +21,6 @@ from DIRAC  import gMonitor
 
 import os,time
 
-AGENT_NAME = "SAMSystem/SAMAgent"
-
 class SAMPublisher:
 
   def __init__(self):
