@@ -28,3 +28,12 @@ ln -s ../../../$DIRACPLAT/lib/python2.5/site-packages/GSI $basedir/InstallArea/$
 $basedir/scripts/dirac-configure -S LHCb-Production -C dips://lhcbprod.pic.es:9135/Configuration/Server
 
 touch $basedir/LHCbDIRAC/__init__.py
+
+if ! [ -r $basedir/etc/vomses ]; then
+  mkdir $basedir/etc/vomses
+fi
+
+cat > $basedir/etc/vomses/lhcb <<EOF
+"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"
+EOF
+
