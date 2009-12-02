@@ -36,7 +36,7 @@ class UsersAndGroups( AgentModule ):
         lfcDNs.append( dn )
     return S_OK( lfcDNs )
   
-  def checkLFCRegisteredUsers( self, userData ):
+  def checkLFCRegisteredUsers( self, usersData ):
     self.log.info( "Checking LFC registered users" )
     usersToBeRegistered = {}
     result = self.getLFCRegisteredDNs()
