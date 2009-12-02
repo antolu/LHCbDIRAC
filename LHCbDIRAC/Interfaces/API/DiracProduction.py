@@ -33,7 +33,8 @@ from DIRAC.Core.Utilities.Time                      import toString
 from DIRAC.Core.Security.X509Chain                  import X509Chain
 from DIRAC.Core.Security                            import Locations, CS
 
-from LHCbDIRAC.Core.Utilities.ProductionData        import constructProductionLFNs
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
+from LHCbDIRAC.Core.Utilities.ProductionData                      import constructProductionLFNs
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
@@ -61,14 +62,14 @@ class DiracProduction:
     self.prodAdj = 22
     self.proxy = None
     self.commands = {'start':['Active','Manual'],'stop':['Stopped','Manual'],'automatic':['Active','Automatic'],'manual':['Active','Manual'],'completed':['Completed','Manual'],'cleaning':['Cleaning','Manual'],'flush':['Flush','Automatic'],'deleted':['Deleted','Manual'],'archived':['Archived','Manual'],'valinput':['ValidatingInput','Manual'],'valoutput':['ValidatingOutput','Manual'],'remove':['RemovingFiles','Manual'],'validated':['ValidatedOutput','Manual'],'removed':['RemovedFiles','Manual']}
+    self.prodClient = ProductionClient()
 
   #############################################################################
   def getAllProductions(self,printOutput=False):
     """Returns a dictionary of production IDs and metadata. If printOutput is
        specified, a high-level summary of the productions is printed.
     """
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getProductionSummary()
+    result = self.prodClient.getProductionSummary()
     if not result['OK']:
       return result
 
@@ -104,8 +105,7 @@ class DiracProduction:
       if not type(productionID) == type(" "):
         return self.__errorReport('Expected string, long or int for production ID')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getProductionInfo(int(productionID))
+    result = self.prodClient.getProductionInfo(int(productionID))
     if not result['OK']:
       return result
 
@@ -132,8 +132,7 @@ class DiracProduction:
   def getActiveProductions(self,printOutput=False):
     """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
     """
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getAllProductions()
+    result = self.prodClient.getAllProductions()
     if not result['OK']:
       return result
     prodList = result['Value']
@@ -164,8 +163,7 @@ class DiracProduction:
       if not type(productionID) == type(" "):
         return self.__errorReport('Expected string, long or int for production ID')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getTransformationLogging(long(productionID))
+    result = self.prodClient.getTransformationLogging(long(productionID))
     if not result['OK']:
       self.log.warn('Could not get transformation logging information for productionID %s' %(productionID))
       return result
@@ -197,8 +195,7 @@ class DiracProduction:
         if not type(productionID) == type(" "):
           return self.__errorReport('Expected string or long for production ID')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getProductionSummary()
+    result = self.prodClient.getProductionSummary()
     if not result['OK']:
       return result
 
@@ -557,10 +554,11 @@ class DiracProduction:
     self.log.verbose('Will check progress for production(s):\n%s' %(string.join(productionID,', ')))
     progress = {}
     for prod in productionID:
-      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-      #result = prodClient.getJobStats(int(prod))
       #self._prettyPrint(result)
-      result = prodClient.getJobWmsStats(int(prod))
+      result = self.prodClient.getJobWmsStats(int(prod))
+      if not result['Value']:
+        self.log.error(result)
+        return result
       progress[int(prod)] = result['Value']
 
     if not printOutput:
@@ -622,13 +620,12 @@ class DiracProduction:
 
     actions = commands[command]
     self.log.info('Setting production status to %s and submission mode to %s for productionID %s' %(actions[0],actions[1],productionID))
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.setTransformationStatus(long(productionID), actions[0])
+    result = self.prodClient.setProductionStatus(long(productionID), actions[0])
     if not result['OK']:
       self.log.warn('Problem updating transformation status with result:\n%s' %result)
       return result
     self.log.verbose('Setting transformation status to %s successful' %(actions[0]))
-    result = prodClient.setTransformationAgentType(long(productionID), actions[1])
+    result = self.prodClient.setTransformationAgentType(long(productionID), actions[1])
     if not result['OK']:
       self.log.warn('Problem updating transformation agent type with result:\n%s' %result)
       return result
@@ -647,8 +644,7 @@ class DiracProduction:
       if not type(productionID) == type(" "):
         return self.__errorReport('Expected string, long or int for production ID')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.deleteProduction(productionID)
+    result = self.prodClient.deleteProduction(productionID)
     if result['OK'] and printOutput:
       print 'Production %s is deleted from the production management system' %productionID
 
@@ -660,8 +656,7 @@ class DiracProduction:
         and provides summaries / selections based on the file status if desired.
     """
     adj = 12
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    fileSummary = prodClient.getFilesForTransformation(int(productionID),orderOutput)
+    fileSummary = self.prodClient.getFilesForTransformation(int(productionID),orderOutput)
     if not fileSummary['OK']:
       return fileSummary
 
@@ -748,8 +743,7 @@ class DiracProduction:
     else:
       return self.__errorReport('Expected single string or list of strings for LFN(s)')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    fileStatus = prodClient.getFileSummary(lfns,long(productionID))
+    fileStatus = self.prodClient.getFileSummary(lfns,long(productionID))
     if printOutput:
       self._prettyPrint(fileStatus['Value'])
     return fileStatus
@@ -788,8 +782,7 @@ class DiracProduction:
     self.log.verbose('Found LFNs:\n%s' %(string.join(lfns,'\n')))
 
     if setFlag:
-      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-      result = prodClient.setFileStatusForTransformation(productionID,[(setStatus,lfns)])
+      result = self.prodClient.setFileStatusForTransformation(productionID,setStatus,lfns)
       if printOutput:
         if not result['OK']:
           print result
@@ -807,7 +800,6 @@ class DiracProduction:
   def setFileStatus(self,lfns,productionID,status,printOutput=False):
     """ Set status for the given files in the lfns list for production specified by its ID
     """
-
     if type(productionID)==type(2):
       productionID=long(productionID)
     if not type(productionID)==type(long(1)):
@@ -821,9 +813,7 @@ class DiracProduction:
     else:
       return self.__errorReport('Expected string or list for LFNs')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.setFileStatusForTransformation(productionID,[(status,lfnList)])
-
+    result = self.prodClient.setFileStatusForTransformation(productionID,status,lfnList)
     if printOutput:
       if not result['OK']:
         print result
@@ -910,8 +900,7 @@ class DiracProduction:
   def getProdJobInfo(self,productionID,jobID,printOutput=False):
     """Retrieve production job information from Production Manager service.
     """
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    jobInfo = prodClient.getJobInfo(productionID,jobID)
+    jobInfo = self.prodClient.getJobInfo(productionID,jobID)
     if not jobInfo['OK']:
       return jobInfo
 
@@ -980,8 +969,7 @@ class DiracProduction:
     if not userID['OK']:
       return self.__errorReport(userID,'Could not establish user ID from proxy credential or configuration')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getJobsToSubmit(long(productionID),int(numberOfJobs),str(site))
+    result = self.prodClient.getJobsToSubmit(long(productionID),int(numberOfJobs),str(site))
     if not result['OK']:
       return self.__errorReport(result,'Problem while requesting data from ProductionManager')
 
@@ -1005,8 +993,7 @@ class DiracProduction:
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for number of jobs to submit')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.extendProduction(long(productionID),numberOfJobs)
+    result = self.prodClient.extendProduction(long(productionID),numberOfJobs)
     if not result['OK']:
       return self.__errorReport(result,'Could not extend production %s by %s jobs' %(productionID,numberOfJobs))
 
@@ -1077,13 +1064,10 @@ class DiracProduction:
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for max jobs')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    if derivedProd:
-      result = prodClient.publishDerivedProduction(derivedProd,xmlString,fileMask,groupSize,bkQuery,plugin,productionType,productionGroup,maxJobs,False)
-    else:
-      result = prodClient.publishProduction(xmlString,fileMask,groupSize,False,bkQuery,plugin,productionGroup,productionType,maxJobs)
+
+    result = self.prodClient.createProduction(fileName,fileMask,groupSize,bkQuery,plugin,productionGroup,productionType,derivedProd,maxJobs)
     if not result['OK']:
-      return self.__errorReport(result,'Could not create production from %s' %(fileName))
+      return self.__errorReport(result,'Could not create production from %s' %(fileName))  
 
     if printOutput:
       print 'Production %s created successfully from %s' %(result['Value'],fileName)
@@ -1107,13 +1091,12 @@ class DiracProduction:
     submitted =  []
     failed = []
     xmlString = prodDict['Body']
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     #creating a /tmp/guid/ directory for job submission files
     jfilename = self.__createJobDescriptionFile(xmlString)
     if not jfilename:
       self.log.error('Failed to create job description XML file')
       for jobNumber,paramsDict in jobDict.items():
-        result = prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result['Message'])
     prodJob = Job(jfilename)
@@ -1158,7 +1141,7 @@ class DiracProduction:
       if not updatedJob:
         failed.append(jobNumber)
         self.log.info('Job description failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-        result = prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result)
 
@@ -1171,7 +1154,7 @@ class DiracProduction:
         if not updatedJob:
           failed.append(jobNumber)
           self.log.info('Job description failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-          result = prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+          result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
           if not result['OK']:
             self.log.warn(result)
       else:
@@ -1185,7 +1168,7 @@ class DiracProduction:
         jobID = subResult['Value']
         submitted.append(jobID)
         #Now update status in the processing DB
-        result = prodClient.setJobStatusAndWmsID(long(prodID),long(jobNumber),self.submittedStatus,str(jobID))
+        result = self.prodClient.setJobStatusAndWmsID(long(prodID),long(jobNumber),self.submittedStatus,str(jobID))
         if not result['OK']:
           self.log.warn('Could not report submitted status to ProcDB for job %s %s %s' %(prodID,jobNumber,jobID))
           self.log.warn(result)
@@ -1193,7 +1176,7 @@ class DiracProduction:
         failed.append(jobNumber)
         self.log.error('Production Job Submission Failed',subResult['Message'])
         self.log.info('Job submission failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-        result = prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result)
 
