@@ -15,9 +15,9 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient  import Produc
 
 import re, os
 
-AGENT_NAME = 'ProductionManagement/ValidateOutputData'
+AGENT_NAME = 'ProductionManagement/ValidateOutputDataAgent'
 
-class ValidateOutputData(AgentModule):
+class ValidateOutputDataAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
