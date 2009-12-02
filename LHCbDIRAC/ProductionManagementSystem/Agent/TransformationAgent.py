@@ -8,9 +8,9 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base.Agent      import Agent
-from DIRAC                      import S_OK, S_ERROR, gConfig, gLogger, gMonitor
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Base.AgentModule            import AgentModule
+from DIRAC                                  import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC.Core.DISET.RPCClient             import RPCClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.SiteSEMapping       import getSitesForSE
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
@@ -21,29 +21,29 @@ import os, time, random,re
 
 AGENT_NAME = 'ProductionManagement/TransformationAgent'
 
-class TransformationAgent(Agent):
-
-  #############################################################################
-  def __init__(self):
-    """ Standard constructor for Agent
-    """
-    Agent.__init__(self,AGENT_NAME)
+class TransformationAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
     """ Make the necessary initilizations
     """
-    result = Agent.initialize(self)
-    self.pollingTime = gConfig.getValue(self.section+'/PollingTime',120)
-    self.checkLFC = gConfig.getValue(self.section+'/CheckLFCFlag','yes')
+
+    self.pollingTime = self.am_getOption('PollingTime',120)
+    self.checkLFC = self.am_getOption('CheckLFCFlag','yes')
     self.rm = ReplicaManager()
     gMonitor.registerActivity("Iteration","Agent Loops",self.name,"Loops/min",gMonitor.OP_SUM)
     self.CERNShare = 0.144
-    res = setupShifterProxyInEnv("ProductionManager")
-    if not res['OK']:
-      self.log.error( "Can't get shifter's proxy: %s" % result[ 'Message' ] )
-      return res
-    return result
+    
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
+    if not self.proxyLocation:
+      self.proxyLocation = False
+
+    if self.useProxies:
+      self.am_setModuleParam('shifter','ProductionManager')
+      self.am_setModuleParam('shifterProxyLocation',self.proxyLocation)
+
+    return S_OK()
 
   ##############################################################################
   def execute(self):
@@ -52,7 +52,7 @@ class TransformationAgent(Agent):
 
     gMonitor.addMark('Iteration',1)
     server = RPCClient('ProductionManagement/ProductionManager')
-    transID = gConfig.getValue(self.section+'/Transformation','')
+    transID = self.am_getOption('Transformation','')
     if transID:
       self.singleTransformation = long(transID)
       gLogger.info("Initializing Replication Agent for transformation %s." % transID)
