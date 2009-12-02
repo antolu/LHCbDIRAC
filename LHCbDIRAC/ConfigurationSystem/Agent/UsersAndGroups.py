@@ -10,6 +10,7 @@ from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.Security.VOMSService                 import VOMSService
+from DIRAC.Core.Security                             import Locations, X509Chain
 from DIRAC.Core.Utilities                            import List, Subprocess
 from DIRAC                                           import S_OK, S_ERROR, gConfig, Source
 
@@ -18,24 +19,61 @@ class UsersAndGroups( AgentModule ):
   def initialize( self ):
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
+    self.proxyLocation = os.path.join( self.am_getOption( "WorkDirectory" ), ".volatileId" )
+    print self.getLFCRegisteredDNs()
     return S_OK()
-
-  def getLFCRegisteredDNs( self ):
-    os.environ['LFC_HOST'] = 'lfc-lhcb.cern.ch'
-    lfcDNs = []
-    retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ) )
-    if not retlfc['OK']:
-      self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
-      return retlfc
-    if retlfc['Value'][0]:
-      self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
-      return S_ERROR( "lfc-listusrmap failed" )
-    else:
-      for item in List.fromChar( retlfc['Value'][1], '\n' ):
-        dn = item.split( ' ', 1 )[1]
-        lfcDNs.append( dn )
-    return S_OK( lfcDNs )
   
+  def __generateProxy( self ):
+    self.log.info( "Generating proxy..." )
+    certLoc = Locations.getHostCertificateAndKeyLocation()
+    if not certLoc:
+      self.log.error( "Can not find certificate!" )
+      return False
+    chain = X509Chain.X509Chain()
+    result = chain.loadChainFromFile( certLoc[0] )
+    if not result[ 'OK' ]:
+      self.log.error( "Can not load certificate file", "%s : %s" % ( certLoc[0], result[ 'Message' ] ) )
+      return False
+    result = chain.loadKeyFromFile( certLoc[1] )
+    if not result[ 'OK' ]:
+      self.log.error( "Can not load key file", "%s : %s" % ( certLoc[1], result[ 'Message' ] ) )
+      return False
+    result = chain.generateProxyToFile( self.proxyLocation, 3600 )
+    if not result[ 'OK' ]:
+      self.log.error( "Could not generate proxy file", result[ 'Message' ] )
+      return False
+    self.log.info( "Proxy generated" )
+    return True
+    
+  def getLFCRegisteredDNs( self ):
+    #Request a proxy
+    if gConfig._useServerCertificate():
+      if not self.__generateProxy():
+        return False
+    #Execute the call
+    cmdEnv = dict( os.environ )
+    cmdEnv['LFC_HOST'] = 'lfc-lhcb.cern.ch'
+    if os.path.isfile( self.proxyLocation ):
+      cmdEnv[ 'X509_USER_PROXY' ] = self.proxyLocation
+    lfcDNs = []
+    try:
+      retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = cmdEnv )
+      if not retlfc['OK']:
+        self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
+        return retlfc
+      if retlfc['Value'][0]:
+        self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+        return S_ERROR( "lfc-listusrmap failed" )
+      else:
+        for item in List.fromChar( retlfc['Value'][1], '\n' ):
+          dn = item.split( ' ', 1 )[1]
+          lfcDNs.append( dn )
+      return S_OK( lfcDNs )
+    finally:
+      if os.path.isfile( self.proxyLocation ):
+        self.log.info( "Destroying proxy..." )
+        os.unlink( self.proxyLocation )
+
   def checkLFCRegisteredUsers( self, usersData ):
     self.log.info( "Checking LFC registered users" )
     usersToBeRegistered = {}
@@ -50,7 +88,7 @@ class UsersAndGroups( AgentModule ):
         if user not in usersToBeRegistered:
           usersToBeRegistered[ user ] = []
         usersToBeRegistered[ user ].append( usersData[user]['DN'] )
-        
+
     address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
     fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
     if usersToBeRegistered:
@@ -128,7 +166,7 @@ class UsersAndGroups( AgentModule ):
       self.log.fatal( 'Could not retrieve registered user entries in VOMS' )
     usersInVOMS = result[ 'Value' ]
     self.log.info( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
-    
+
     #Consolidate users by nickname
     usersData = {}
     newUserNames = []
@@ -169,7 +207,7 @@ class UsersAndGroups( AgentModule ):
       self.log.info( "There are %s new users" % len( newUserNames ) )
     else:
       self.log.info( "There are no new users" )
-      
+
     #Get the list of users for each group
     result = csapi.listGroups()
     if not result[ 'OK' ]:
@@ -199,10 +237,10 @@ class UsersAndGroups( AgentModule ):
             numUsersInGroup += 1
             usersData[ userName ][ 'Groups' ].extend( groupsForRole )
       self.log.info( "  There are %s users in group(s) %s" % ( numUsersInGroup, ",".join( groupsForRole ) ) )
-      
+
     self.log.info( "Checking static groups" )
     for group in staticGroups:
-      self.log.info( "  Checking static group %s" % group)
+      self.log.info( "  Checking static group %s" % group )
       numUsersInGroup = 0
       result = csapi.listUsers( group )
       if not result[ 'OK' ]:
@@ -220,29 +258,29 @@ class UsersAndGroups( AgentModule ):
     if not ret['OK']:
       self.log.fatal( 'Can not update from CS', ret['Message'] )
       return ret
-    
+
     for user in usersData:
       csUserData = dict( usersData[ user ] )
       for k in ( 'DN', 'CA', 'Email' ):
-        csUserData[ k ] = ", ".join( csUserData[ k ] ) 
+        csUserData[ k ] = ", ".join( csUserData[ k ] )
       result = csapi.modifyUser( user, csUserData, createIfNonExistant = True )
       if not result[ 'OK' ]:
         self.log.error( "Cannot modify user %s" % user )
-      
+
     if obsoleteUserNames:
       self.log.info( "Deleting %s users" % len( obsoleteUserNames ) )
       csapi.deleteUsers( obsoleteUserNames )
 
-    result =  csapi.commitChanges()
+    result = csapi.commitChanges()
     if not result[ 'OK' ]:
       self.log.error( "Could not commit configuration changes", result[ 'Message' ] )
       return result
     self.log.info( "Configuration committed" )
-    
+
     #LFC Check
     if self.am_getOption( "LFCCheckEnabled", True ):
       result = self.checkLFCRegisteredUsers( usersData )
       if not result[ 'OK' ]:
         return result
-          
+
     return S_OK()
