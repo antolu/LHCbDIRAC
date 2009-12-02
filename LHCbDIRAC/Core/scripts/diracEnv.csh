@@ -67,7 +67,7 @@ else
   set userPasswd=`cat ~/.lcgpasswd`
 endif
 
-[ -z "$DIRACPLAT" ]        && setenv DIRACPLAT        `$DIRACROOT/scripts/platform.py`
+[ -z "$DIRACPLAT" ]        && setenv DIRACPLAT        `$DIRACROOT/scripts/dirac-platform`
 # If not defined it will prevent grid commands in lcg tar to find CAs
 [ -z "$X509_CERT_DIR" ]    && setenv X509_CERT_DIR    "$DIRACROOT/etc/grid-security/certificates"
 # If not defined it will prevent voms commands DIRAC to determine voms servers
