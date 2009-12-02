@@ -1,7 +1,10 @@
+########################################################################
+# $HeadURL:  $
+########################################################################
 """  RAWIntegrityAgent determines whether RAW files in Castor were migrated correctly
 """
 from DIRAC                                                  import gLogger, gConfig, gMonitor,S_OK, S_ERROR
-from DIRAC.Core.Base.Agent                                  import Agent
+from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.RequestManagementSystem.Client.RequestClient     import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer  import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
@@ -15,25 +18,18 @@ from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB       import RAWIntegrityD
 import time,os
 from types import *
 
+__RCSID__   = "$Id: $"
+
 AGENT_NAME = 'DataManagement/RAWIntegrityAgent'
 
-class RAWIntegrityAgent(Agent):
-
-  def __init__(self):
-    """ Standard constructor
-    """
-    Agent.__init__(self,AGENT_NAME)
+class RAWIntegrityAgent(AgentModule):
 
   def initialize(self):
-    result = Agent.initialize(self)
+
     self.RequestDBClient = RequestClient()
     self.ReplicaManager = ReplicaManager()
     self.RAWIntegrityDB = RAWIntegrityDB()
     self.DataLog = DataLoggingClient()
-
-    self.proxyLocation = gConfig.getValue( self.section+'/ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
 
     self.gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway')
 
@@ -52,16 +48,20 @@ class RAWIntegrityAgent(Agent):
     gMonitor.registerActivity("WaitSize","Size of migration buffer","RAWIntegriryAgent","GB",gMonitor.OP_MEAN)
     gMonitor.registerActivity("MigrationRate","Observed migration rate","RAWIntegriryAgent","MB/s",gMonitor.OP_MEAN)
 
-    return result
+    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
+    if not self.proxyLocation:
+      self.proxyLocation = False
+
+    if self.useProxies:
+      self.am_setModuleParam('shifter','DataManager')
+      self.am_setModuleParam('shifterProxyLocation',self.proxyLocation)
+
+    return S_OK()
 
 
   def execute(self):
     gMonitor.addMark("Iteration",1)
-
-    result = setupShifterProxyInEnv( "DataManager", self.proxyLocation )
-    if not result[ 'OK' ]:
-      self.log.error( "Can't get shifter's proxy:", "%s" % result[ 'Message' ] )
-      return result
 
     ############################################################
     #
