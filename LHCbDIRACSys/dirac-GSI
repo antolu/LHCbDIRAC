@@ -27,4 +27,4 @@ ln -s ../../../$DIRACPLAT/lib/python2.5/site-packages/GSI $basedir/InstallArea/$
 
 $basedir/scripts/dirac-configure -S LHCb-Production -C dips://lhcbprod.pic.es:9135/Configuration/Server
 
-cp $basedir/DIRAC/__init__.py $basedir/LHCbDIRAC
+#cp $basedir/DIRAC/__init__.py $basedir/LHCbDIRAC
