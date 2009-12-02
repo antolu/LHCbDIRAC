@@ -55,7 +55,7 @@ class ProductionClient:
     """ Deletes a production from the production management system ONLY.
     """    
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.deleteProduction(productionID)
+    return server.deleteProduction(prodID)
   
   #############################################################################
   def selectWMSJobs(self,prodID,statusList=[],newer=0):
@@ -127,7 +127,7 @@ class ProductionClient:
     """Retrieve transformation LFNs for given production ID. 
     """
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.getFilesForTransformation(productionID,orderOutput) 
+    return server.getFilesForTransformation(prodID,orderOutput) 
 
   #############################################################################    
   def getFileSummary(self,lfns,prodID):
@@ -141,28 +141,28 @@ class ProductionClient:
     """ Update file status for a given transformation.
     """  
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.setFileStatusForTransformation(productionID,status,lfns)   
+    return server.setFileStatusForTransformation(prodID,status,lfns)   
   
   #############################################################################      
   def getJobInfo(self,prodID,prodJobID):
     """ Return job info.
     """  
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.getJobInfo(productionID,prodJobID)
+    return server.getJobInfo(prodID,prodJobID)
 
   #############################################################################      
   def getJobsToSubmit(self,prodID,numberOfJobs,site):
     """ Returns the information about jobs to submit. 
     """      
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.getJobsToSubmit(productionID,numberOfJobs,site)
+    return server.getJobsToSubmit(prodID,numberOfJobs,site)
     
   #############################################################################      
   def extendProduction(self,prodID,numberOfJobs):
     """ Allows to extend a production by specified number of jobs. 
     """         
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    return server.extendProduction(productionID,numberOfJobs)
+    return server.extendProduction(prodID,numberOfJobs)
 
   #############################################################################      
   def createProduction(self,fileName,fileMask='',groupSize=1,bkQuery={},plugin='',productionGroup='',productionType='',derivedProd='',maxJobs=0):
