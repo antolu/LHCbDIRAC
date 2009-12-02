@@ -99,6 +99,10 @@ for group in availableGroups:
   if Properties.PILOT in groupProps or Properties.GENERIC_PILOT in groupProps:
     pilotGroup = group
     break
+  
+issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
+remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
+cliParams.setProxyRemainingSecs( remainingSecs - 300 )  
 
 if not pilotGroup:
   print "WARN: No pilot group defined for user %s" % proxyInfo[ 'username' ]
@@ -106,9 +110,6 @@ if not pilotGroup:
     sys.exit(1)
 else:
   cliParams.setDIRACGroup( pilotGroup )
-  issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
-  remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
-  cliParams.setProxyRemainingSecs( remainingSecs - 300 )
   #uploadProxyToMyProxy( cliParams, True )
   success = uploadProxyToDIRACProxyManager( cliParams )
   if not success and cliParams.strict:
