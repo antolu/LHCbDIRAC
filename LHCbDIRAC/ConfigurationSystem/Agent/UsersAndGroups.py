@@ -29,7 +29,7 @@ class UsersAndGroups( AgentModule ):
       return retlfc
     if retlfc['Value'][0]:
       self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
-      return retlfc
+      return S_ERROR( "lfc-listusrmap failed" )
     else:
       for item in List.fromChar( retlfc['Value'][1], '\n' ):
         dn = item.split( ' ', 1 )[1]
