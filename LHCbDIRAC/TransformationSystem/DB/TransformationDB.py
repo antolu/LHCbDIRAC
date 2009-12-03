@@ -32,9 +32,10 @@ class TransformationDB(DIRACTransformationDB.TransformationDB):
     self.dbname = dbname
     self.filters = self.__getFilters()
 
-  def addBookkeepingQuery(self,queryDict):
+  def addBookkeepingQuery(self,queryDict,connection=False):
     """ Add a new Bookkeeping query specification
     """
+    connection = self.__getConnection(connection)
     queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType',
                    'ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
     parameters = []
@@ -60,34 +61,24 @@ class TransformationDB(DIRACTransformationDB.TransformationDB):
       selections.append(queryFields[i]+"='"+str(qvalues[i])+"'")
     selectionString = ' AND '.join(selections)
     req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
-    result = self._query(req)
+    result = self._query(req,connection)
     if not result['OK']:
       return result
     if result['Value']:
       bkQueryID = result['Value'][0][0]
       return S_OK(bkQueryID)
+    
     req = "INSERT INTO BkQueries (%s) VALUES (%s)" % (','.join(parameters),','.join(values))
-    self.lock.acquire()
-    result = self._getConnection()
-    if result['OK']:
-      connection = result['Value']
-    else:
-      return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     res = self._update(req,connection)
     if not res['OK']:
-      self.lock.release()
       return res
-    req = "SELECT LAST_INSERT_ID();"
-    res = self._query(req,connection)
-    self.lock.release()
-    if not res['OK']:
-      return res
-    queryID = int(res['Value'][0][0])
+    queryID = res['Value']['lastRowId']
     return S_OK(queryID)
 
-  def getBookkeepingQuery(self,bkQueryID=0):
+  def getBookkeepingQuery(self,bkQueryID=0,connection=False):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
     """
+    connection = self.__getConnection(connection)
     queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass',
                    'FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
 
@@ -97,7 +88,7 @@ class TransformationDB(DIRACTransformationDB.TransformationDB):
       req = "SELECT BkQueryID,%s FROM BkQueries WHERE BkQueryID=%d" % (fieldsString,int(bkQueryID))
     else:
       req = "SELECT BkQueryID,%s FROM BkQueries" % (fieldsString,)
-    result = self._query(req)
+    result = self._query(req,connection)
     if not result['OK']:
       return result
     if not result['Value']:
@@ -113,28 +104,31 @@ class TransformationDB(DIRACTransformationDB.TransformationDB):
     else:
       return S_OK(resultDict)
 
-  def deleteBookkeepingQuery(self,bkQueryID):
+  def deleteBookkeepingQuery(self,bkQueryID,connection=False):
     """ Delete the specified query from the database
     """
+    connection = self.__getConnection(connection)
     req = 'DELETE FROM BkQueries WHERE BkQueryID=%d' % int(bkQueryID)
-    return self._update(req)
+    return self._update(req,connection)
 
-  def setTransformationQuery(self,transName,bkQueryID):
+  def setTransformationQuery(self,transName,bkQueryID,connection=False):
     """ Set the bookkeeping query ID of the transformation specified by transID """
-    return self.addTransformationParameter(transName,'BkQueryID',bkQueryIDs)
+    return self.addTransformationParameter(transName,'BkQueryID',bkQueryIDs,connection=connection)
   
-  def createTransformationQuery(self,transName,queryDict):
+  def createTransformationQuery(self,transName,queryDict,connection=False):
     """ Create the supplied BK query and associate it to the transformation """
-    res = self.addBookkeepingQuery(queryDict)
+    connection = self.__getConnection(connection)
+    res = self.addBookkeepingQuery(queryDict,connection=connection)
     if not res['OK']:
       return res
     bkQueryID = res['Value']
-    return self.setTransformationQuery(transName,bkQueryID)
+    return self.setTransformationQuery(transName,bkQueryID,connection=connection)
    
-  def getBookkeepingQueryForTransformation(self,transName):
+  def getBookkeepingQueryForTransformation(self,transName,connection=False):
     """ Get the BK query associated to the transformation """
-    res = self.getTransformationParameters(transName,['BkQueryID'])
+    connection = self.__getConnection(connection)
+    res = self.getTransformationParameters(transName,['BkQueryID'],connection=connection)
     if not res['OK']:
       return res
     bkQueryID = result['Value']
-    return self.getBookkeepingQuery(bkQueryID)
+    return self.getBookkeepingQuery(bkQueryID,connection=connection)
