@@ -110,7 +110,7 @@ class ProductionDB(TransformationDB):
 
 ######################## Web monitoring ############################
 
-  def getJobStats(self,productionID):
+  def getTaskStats(self,productionID):
     """ Returns dictionary with number of jobs per status in the given production. 
         The status is one of the following:
         Created - this counter returns the total number of jobs already created;
