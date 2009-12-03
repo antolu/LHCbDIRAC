@@ -42,8 +42,3 @@ class TransformationHandler(DIRACTransformationHandler.TransformationHandler):
   def createTransformationQuery(self,transName,queryDict):
     res = self.database.createTransformationQuery(transName, queryDict)                     
     return self.__parseRes(res)
-
-  def __parseRes(self,res):
-    if not res['OK']:
-      gLogger.error(res['Message'])
-    return res
