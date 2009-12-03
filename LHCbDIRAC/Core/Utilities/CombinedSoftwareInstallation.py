@@ -390,7 +390,7 @@ def SharedArea():
     sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
     DIRAC.gLogger.debug( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
     if os.environ['VO_LHCB_SW_DIR'] == '.':
-      if not os.isdir( 'lib' ):
+      if not os.path.isdir( 'lib' ):
         os.mkdir( 'lib' )
   elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
