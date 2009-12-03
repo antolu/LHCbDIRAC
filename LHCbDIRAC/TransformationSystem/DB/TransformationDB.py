@@ -12,7 +12,7 @@ import re,time,types,string
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                 import DB
-from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB
+import DIRAC.TransformationSystem.DB.TransformationDB   as DIRACTransformationDB
 
 import threading
 from types import *
@@ -21,13 +21,13 @@ MAX_ERROR_COUNT = 3
 
 #############################################################################
 
-class TransformationDB(TransformationDB):
+class TransformationDB(DIRACTransformationDB.TransformationDB):
 
   def __init__(self, dbname, dbconfig, maxQueueSize=10 ):
     """ The standard constructor takes the database name (dbname) and the name of the
         configuration section (dbconfig)
     """
-    TransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
+    DIRACTransformationDB.TransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
     self.lock = threading.Lock()
     self.dbname = dbname
     self.filters = self.__getFilters()
@@ -54,7 +54,6 @@ class TransformationDB(TransformationDB):
           qvalues.append(0)
         else:
           qvalues.append('All')
-
     # Check for the already existing queries first
     selections = []
     for i in range(len(queryFields)):
@@ -67,9 +66,7 @@ class TransformationDB(TransformationDB):
     if result['Value']:
       bkQueryID = result['Value'][0][0]
       return S_OK(bkQueryID)
-
     req = "INSERT INTO BkQueries (%s) VALUES (%s)" % (','.join(parameters),','.join(values))
-
     self.lock.acquire()
     result = self._getConnection()
     if result['OK']:
@@ -88,19 +85,6 @@ class TransformationDB(TransformationDB):
     queryID = int(res['Value'][0][0])
     return S_OK(queryID)
 
-  def getBookkeepingQueryForTransformation(self,transName):
-    """
-    """
-    transID = self.getTransformationID(transName)
-    req = "SELECT ParameterValue FROM AdditionalParameters WHERE TransformationID=%s AND ParameterName='BkQueryID" % (transID)
-    result = self._query(req)
-    if not result['OK']:
-      return result
-    if not result['Value']:
-      return S_ERROR('Transformation %s not found' % transID)
-    bkQueryID = result['Value'][0][0]
-    return self.getBookkeepingQuery(bkQueryID)
-
   def getBookkeepingQuery(self,bkQueryID=0):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
     """
@@ -116,17 +100,14 @@ class TransformationDB(TransformationDB):
     result = self._query(req)
     if not result['OK']:
       return result
-
     if not result['Value']:
       return S_ERROR('BkQuery %d not found' % int(bkQueryID))
-
     resultDict = {}
     for row in result['Value']:
       bkDict = {}
       for parameter,value in zip(['BkQueryID']+queryFields,row):
         bkDict[parameter] = value
       resultDict[bkDict['BkQueryID']] = bkDict
-
     if bkQueryID:
       return S_OK(bkDict)
     else:
@@ -136,6 +117,24 @@ class TransformationDB(TransformationDB):
     """ Delete the specified query from the database
     """
     req = 'DELETE FROM BkQueries WHERE BkQueryID=%d' % int(bkQueryID)
-    result = self._update(req)
-    return result
+    return self._update(req)
 
+  def setTransformationQuery(self,transName,bkQueryID):
+    """ Set the bookkeeping query ID of the transformation specified by transID """
+    return self.addTransformationParameter(transName,'BkQueryID',bkQueryIDs)
+  
+  def createTransformationQuery(self,transName,queryDict):
+    """ Create the supplied BK query and associate it to the transformation """
+    res = self.addBookkeepingQuery(queryDict)
+    if not res['OK']:
+      return res
+    bkQueryID = res['Value']
+    return self.setTransformationQuery(transName,bkQueryID)
+   
+  def getBookkeepingQueryForTransformation(self,transName):
+    """ Get the BK query associated to the transformation """
+    res = self.getTransformationParameters(transName,['BkQueryID'])
+    if not res['OK']:
+      return res
+    bkQueryID = result['Value']
+    return self.getBookkeepingQuery(bkQueryID)
