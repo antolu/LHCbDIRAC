@@ -107,7 +107,7 @@ class ProductionCleaningAgent(AgentModule):
     if not res['OK']:
       return res
     # Clean the production DB of the files and job information
-    res = self.productionClient.cleanProduction(prodID)
+    res = self.productionClient.cleanTransformation(prodID)
     if not res['OK']:
       return res
     gLogger.info("Successfully archived production %d" % prodID)
@@ -165,7 +165,7 @@ class ProductionCleaningAgent(AgentModule):
     if not res['OK']:
       return res
     # Clean the production DB of the files and job information
-    res = self.productionClient.cleanProduction(prodID)
+    res = self.productionClient.cleanTransformation(prodID)
     if not res['OK']:
       return res
     # Clean the log files for the jobs
