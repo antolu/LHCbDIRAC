@@ -45,7 +45,7 @@ class ProductionCleaningAgent(AgentModule):
       return S_OK('Disabled via CS flag')
 
     # Obtain the productions in the Deleted status and remove any mention of the jobs/files
-    res = self.productionClient.getProductionsWithStatus('Cleaning')
+    res = self.productionClient.getTransformationWithStatus('Cleaning')
     if not res['OK']:
       gLogger.error("Failed to get Cleaning productions",res['Message'])
     else:
@@ -58,7 +58,7 @@ class ProductionCleaningAgent(AgentModule):
           self.cleanProduction(int(prodID))
 
     # Obtain the productions where the remnant output data is to be removed
-    res = self.productionClient.getProductionsWithStatus('RemovingFiles')
+    res = self.productionClient.getTransformationWithStatus('RemovingFiles')
     if not res['OK']:
       gLogger.error("Failed to get RemovingFiles productions",res['Message'])
     else:
@@ -71,7 +71,7 @@ class ProductionCleaningAgent(AgentModule):
           self.removeProductionOutput(int(prodID))
 
     # Obtain the productions to be archived and remove the jobs in the WMS and production management
-    res = self.productionClient.getProductionsWithStatus('Completed')
+    res = self.productionClient.getTransformationWithStatus('Completed')
     if not res['OK']:
       gLogger.error("Failed to get Completed productions",res['Message'])
     else:
