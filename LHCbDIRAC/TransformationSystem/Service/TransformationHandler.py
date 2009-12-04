@@ -39,6 +39,6 @@ class TransformationHandler(DIRACTransformationHandler.TransformationHandler):
     return self.__parseRes(res)
   
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
-  def createTransformationQuery(self,transName,queryDict):
+  def export_createTransformationQuery(self,transName,queryDict):
     res = self.database.createTransformationQuery(transName, queryDict)                     
     return self.__parseRes(res)
