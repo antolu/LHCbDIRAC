@@ -103,7 +103,7 @@ class ProductionJobAgent(AgentModule):
     self.log.info("Checking Reserved jobs")    
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     wmsClient = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
-    result = prodClient.getAllProductions()
+    result = prodClient.getTransformations()
     if not result['OK']:
       return result
 
