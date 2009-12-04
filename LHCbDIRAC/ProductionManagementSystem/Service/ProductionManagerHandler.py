@@ -1,9 +1,5 @@
+""" ProductionManagerHandler is the implementation of the Production service """
 # $Id$
-"""
-ProductionManagerHandler is the implementation of the Production service
-
-    The following methods are available in the Service interface
-"""
 __RCSID__ = "$Revision: 1.56 $"
 
 from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
@@ -87,33 +83,6 @@ class ProductionManagerHandler( TransformationHandler ):
   types_getWorkflowInfo = [ StringType ]
   def export_getWorkflowInfo( self, name ):
     res = self.database.getWorkflowInfo(name)
-    return self.__parseRes(res)
-
-  types_publishProduction = [StringTypes, StringType, StringType, StringType]
-  def export_publishProduction(self, body, type, plugin, agentType, fileMask, 
-                               transformationGroup  = 'General',
-                               groupSize            = 1,
-                               inheritedFrom        = 0,
-                               maxJobs              = 0,
-                               eventsPerJob         = 0,
-                               addFiles             = True):
-    """ Publish new transformation in the ProductionDB """
-    authorDN = self._clientTransport.peerCredentials['DN']
-    authorGroup = self._clientTransport.peerCredentials['group']
-    wf = fromXMLString(body)
-    name = wf.getName()
-    description = wf.getDescrShort()
-    longDescription = wf.getDescription()
-    res = self.database.addTransformation(name, description, longDescription,authorDN, authorGroup, type, plugin,agentType,fileMask,
-                        transformationGroup =transformationGroup,
-                        groupSize           = groupSize,
-                        inheritedFrom       = inheritedFrom,
-                        body                = body, 
-                        maxJobs             = maxJobs,
-                        eventsPerJob        = eventsPerJob,
-                        addFiles            = addFiles)
-    if res['OK']:
-      gLogger.info("Published production %d" % res['Value'])  
     return self.__parseRes(res)
 
   #TODO: Remove
