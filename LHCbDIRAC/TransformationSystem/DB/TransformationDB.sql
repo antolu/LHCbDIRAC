@@ -1,12 +1,12 @@
 -- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/Core/Transformation/TransformationDB.sql,v 1.15 2009/08/26 07:17:46 rgracian Exp $
----------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------
 --  Schema definition for the TransformationDB database a generic
 --  engine to define input data streams and support dynamic data 
 --  grouping per unit of execution.
 
 SOURCE DIRAC/TransformationSystem/DB/TransformationDB.sql
 
----------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS BkQueries;
 CREATE TABLE BkQueries (
   BkQueryID int(11) NOT NULL auto_increment,
