@@ -625,7 +625,7 @@ class DiracProduction:
       self.log.warn('Problem updating transformation status with result:\n%s' %result)
       return result
     self.log.verbose('Setting transformation status to %s successful' %(actions[0]))
-    result = self.prodClient.setTransformationAgentType(long(productionID), actions[1])
+    result = self.prodClient.setTransformationParameter(long(productionID),'AgentType',actions[1])
     if not result['OK']:
       self.log.warn('Problem updating transformation agent type with result:\n%s' %result)
       return result
