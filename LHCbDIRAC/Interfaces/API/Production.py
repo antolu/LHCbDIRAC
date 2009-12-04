@@ -709,7 +709,7 @@ except Exception,x:
         self.log.info('Using %s for production body' %prodXMLFile)
       else:
         prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-        result = prodClient.getProductionBody(int(prodID))
+        result = prodClient.getTransformationParameters(int(prodID),['Body'])
         if not result['OK']:
           return S_ERROR("Error during command execution: %s" % result['Message'])
         if not result['Value']:
@@ -1047,7 +1047,7 @@ except Exception,x:
     """
     if not passDict:
       prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-      result = prodClient.getProductionBody(int(prodID))
+      result = prodClient.getTransformationParameters(int(prodID),['Body'])
       if not result['OK']:
         return S_ERROR("Error during command execution: %s" % result['Message'])
       if not result['Value']:
