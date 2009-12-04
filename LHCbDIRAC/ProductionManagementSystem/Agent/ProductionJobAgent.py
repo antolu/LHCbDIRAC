@@ -148,7 +148,7 @@ class ProductionJobAgent(AgentModule):
             # The jobs were not submitted
             for jobID in jobIDs:
               self.log.info('Resetting status for job %s of production %s from Reserved to %s' % (jobID,production,'Created'))
-              result = prodClient.setJobStatus(long(production),long(jobID),'Created')  
+              result = prodClient.setTaskStatus(long(production),long(jobID),'Created')  
               #print "AT >>>> resetting job status",long(production),long(jobID),'Created'
               #result = S_OK()
               if not result['OK']:
