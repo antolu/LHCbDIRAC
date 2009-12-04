@@ -656,7 +656,10 @@ class DiracProduction:
         and provides summaries / selections based on the file status if desired.
     """
     adj = 12
-    fileSummary = self.prodClient.getFilesForTransformation(int(productionID),orderOutput)
+    ordering = 'JobID'
+    if not orderOutput:
+      ordering = 'LFN'
+    fileSummary = self.prodClient.getTransformationFiles(int(productionID),orderAttribute=ordering)
     if not fileSummary['OK']:
       return fileSummary
 
@@ -1063,7 +1066,6 @@ class DiracProduction:
         maxJobs = int(maxJobs)
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for max jobs')
-
 
     result = self.prodClient.createProduction(fileName,fileMask,groupSize,bkQuery,plugin,productionGroup,productionType,derivedProd,maxJobs)
     if not result['OK']:
