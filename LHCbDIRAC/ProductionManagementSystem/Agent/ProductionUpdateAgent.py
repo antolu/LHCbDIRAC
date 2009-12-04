@@ -44,7 +44,7 @@ class ProductionUpdateAgent(AgentModule):
     """
     dataLog = RPCClient('DataManagement/DataLogging')
 
-    result = self.prodDB.getAllProductions()
+    result = self.prodDB.getTransformations()
     for transDict in result['Value']:
       transID = long(transDict['TransID'])
 
