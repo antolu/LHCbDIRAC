@@ -69,7 +69,7 @@ class DiracProduction:
     """Returns a dictionary of production IDs and metadata. If printOutput is
        specified, a high-level summary of the productions is printed.
     """
-    result = self.prodClient.getProductionSummary()
+    result = self.prodClient.getTransformationSummary()
     if not result['OK']:
       return result
 
@@ -105,7 +105,7 @@ class DiracProduction:
       if not type(productionID) == type(" "):
         return self.__errorReport('Expected string, long or int for production ID')
 
-    result = self.prodClient.getProductionInfo(int(productionID))
+    result = self.prodClient.getTransformation(int(productionID))
     if not result['OK']:
       return result
 
@@ -132,7 +132,7 @@ class DiracProduction:
   def getActiveProductions(self,printOutput=False):
     """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
     """
-    result = self.prodClient.getAllProductions()
+    result = self.prodClient.getTransformations()
     if not result['OK']:
       return result
     prodList = result['Value']
@@ -195,7 +195,7 @@ class DiracProduction:
         if not type(productionID) == type(" "):
           return self.__errorReport('Expected string or long for production ID')
 
-    result = self.prodClient.getProductionSummary()
+    result = self.prodClient.getTransformationSummary()
     if not result['OK']:
       return result
 
@@ -644,7 +644,7 @@ class DiracProduction:
       if not type(productionID) == type(" "):
         return self.__errorReport('Expected string, long or int for production ID')
 
-    result = self.prodClient.deleteProduction(productionID)
+    result = self.prodClient.deleteTransformation(productionID)
     if result['OK'] and printOutput:
       print 'Production %s is deleted from the production management system' %productionID
 
@@ -903,7 +903,7 @@ class DiracProduction:
   def getProdJobInfo(self,productionID,jobID,printOutput=False):
     """Retrieve production job information from Production Manager service.
     """
-    jobInfo = self.prodClient.getJobInfo(productionID,jobID)
+    jobInfo = self.prodClient.getTaskInfo(productionID,jobID)
     if not jobInfo['OK']:
       return jobInfo
 
@@ -937,16 +937,11 @@ class DiracProduction:
     """
     if not Date:
       self.log.verbose('No Date supplied, attempting to find creation date of production %s' %ProductionID)
-      result = self.getProduction(long(ProductionID))
+      result = self.getTransformationParameters(long(ProductionID),['CreationDate'])
       if not result['OK']:
         self.log.warn('Could not obtain production metadata for ID %s:\n%s' %(productionID,result))
         return result
-
-      if not result['Value'].has_key('CreationDate'):
-        self.log.warn('Could not establish creation date for production %s with metadata:\n%s' %(productionID,result))
-        return result
-
-      Date = result['Value']['CreationDate']
+      Date = result['Value']
       self.log.verbose('Production %s was created on %s' %(ProductionID,Date))
 
     return self.diracAPI.selectJobs(Status,MinorStatus,ApplicationStatus,Site,Owner,str(ProductionID).zfill(8),Date)
@@ -972,7 +967,7 @@ class DiracProduction:
     if not userID['OK']:
       return self.__errorReport(userID,'Could not establish user ID from proxy credential or configuration')
 
-    result = self.prodClient.getJobsToSubmit(long(productionID),int(numberOfJobs),str(site))
+    result = self.prodClient.getTasksToSubmit(long(productionID),int(numberOfJobs),str(site))
     if not result['OK']:
       return self.__errorReport(result,'Problem while requesting data from ProductionManager')
 
@@ -996,7 +991,7 @@ class DiracProduction:
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for number of jobs to submit')
 
-    result = self.prodClient.extendProduction(long(productionID),numberOfJobs)
+    result = self.prodClient.extendTransformation(long(productionID),numberOfJobs)
     if not result['OK']:
       return self.__errorReport(result,'Could not extend production %s by %s jobs' %(productionID,numberOfJobs))
 
@@ -1098,7 +1093,7 @@ class DiracProduction:
     if not jfilename:
       self.log.error('Failed to create job description XML file')
       for jobNumber,paramsDict in jobDict.items():
-        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setTaskStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result['Message'])
     prodJob = Job(jfilename)
@@ -1143,7 +1138,7 @@ class DiracProduction:
       if not updatedJob:
         failed.append(jobNumber)
         self.log.info('Job description failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setTaskStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result)
 
@@ -1156,7 +1151,7 @@ class DiracProduction:
         if not updatedJob:
           failed.append(jobNumber)
           self.log.info('Job description failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-          result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+          result = self.prodClient.setTaskStatus(long(prodID),long(jobNumber),self.createdStatus)
           if not result['OK']:
             self.log.warn(result)
       else:
@@ -1178,7 +1173,7 @@ class DiracProduction:
         failed.append(jobNumber)
         self.log.error('Production Job Submission Failed',subResult['Message'])
         self.log.info('Job submission failed for productionID %s and prodJobID %s, setting prodJob status to %s' %(prodID,jobNumber,self.createdStatus))
-        result = self.prodClient.setJobStatus(long(prodID),long(jobNumber),self.createdStatus)
+        result = self.prodClient.setTaskStatus(long(prodID),long(jobNumber),self.createdStatus)
         if not result['OK']:
           self.log.warn(result)
 
@@ -1282,15 +1277,12 @@ class DiracProduction:
        the current WMS status information for all jobs in that production starting from the creation
        date.
     """
-    result = self.getProduction(long(productionID))
+    result = self.getTransformationParameters(long(productionID),['CreationDate'])
     if not result['OK']:
       self.log.warn('Problem getting production metadata for ID %s:\n%s' %(productionID,result))
       return result
 
-    if not result['Value'].has_key('CreationDate'):
-      self.log.warn('Could not establish creation date for production %s with metadata:\n%s' %(productionID,result))
-      return result
-    creationDate = toString(result['Value']['CreationDate']).split()[0]
+    creationDate = toString(result['Value']).split()[0]
     result = self.selectProductionJobs(productionID,Status=status,MinorStatus=minorStatus,Site=site,Date=creationDate)
     if not result['OK']:
       self.log.warn('Problem selecting production jobs for ID %s:\n%s' %(productionID,result))
