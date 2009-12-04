@@ -8,8 +8,8 @@ CREATE DATABASE ProductionRequestDB;
 USE mysql;
 
 -- Must set passwords for database user by replacing "must_be_set".
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'FillIt';
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'FillIt';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'must_be_set';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'must_be_set';
 FLUSH PRIVILEGES;
 
 --
@@ -55,7 +55,7 @@ CREATE TABLE ProductionRequests (
     INDEX(NumberOfEvents),
     Description BLOB,
     Comments BLOB,
-    Inform   BLOB
+    Inform   BLOB,
     PRIMARY KEY(RequestID)
 );
 
