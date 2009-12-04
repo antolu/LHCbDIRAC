@@ -84,14 +84,3 @@ class ProductionManagerHandler( TransformationHandler ):
   def export_getWorkflowInfo( self, name ):
     res = self.database.getWorkflowInfo(name)
     return self.__parseRes(res)
-
-  #TODO: Remove
-  types_getAllProductions = []
-  def export_getAllProductions(self):
-    res = self.database.getTransformations()
-    return self.__parseRes(res)
-  
-  types_getProductionBody = [list(StringTypes)+[IntType,LongType]]
-  def export_getProductionBody(self, transName):
-    res = self.getTransformationParameters(transName,['Body'])
-    return self.__parseRes(res)
