@@ -86,7 +86,7 @@ class ProductionClient:
     return server.getTransformationLastUpdate(prodID)
   
   #############################################################################
-  def getAllProductions(self):
+  def getProductionSummary(self):
     """Returns a dictionary of production IDs and metadata.
     """
     server = RPCClient('ProductionManagement/ProductionManager',timeout=120)
