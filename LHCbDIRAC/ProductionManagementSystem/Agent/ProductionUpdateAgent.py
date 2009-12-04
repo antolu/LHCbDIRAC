@@ -78,7 +78,7 @@ class ProductionUpdateAgent(AgentModule):
           if status == "Removed":
             gLogger.verbose('Production/Job %d/%d removed from WMS while it is in %s status' % (transID,jobID,old_status))
             gLogger.verbose('Setting Production/Job job to Failed')
-            #result = self.prodDB.setJobStatus(transID,jobID,'Failed')            
+            #result = self.prodDB.setTaskStatus(transID,jobID,'Failed')            
             #if not result['OK']:
             #  gLogger.warn('Failed to set job status for jobID: '+str(jobID))
             if not updateDict.has_key('Failed'):
@@ -86,7 +86,7 @@ class ProductionUpdateAgent(AgentModule):
             updateDict['Failed'].append(jobID)    
           else:
             gLogger.verbose('Setting job status for Production/Job %d/%d to %s' % (transID,jobID,status))
-            #result = self.prodDB.setJobStatus(transID,jobID,status)
+            #result = self.prodDB.setTaskStatus(transID,jobID,status)
             #if not result['OK']:
             #  gLogger.warn('Failed to set job status for jobID: '+str(jobID))
             if not updateDict.has_key(status):
@@ -95,7 +95,7 @@ class ProductionUpdateAgent(AgentModule):
             
       for status in updateDict:
         gLogger.verbose('Setting status %s for Production %d for jobs %s' % (status,transID,str(updateDict[status])))
-        result = self.prodDB.setJobStatus(transID,updateDict[status],status)            
+        result = self.prodDB.setTaskStatus(transID,updateDict[status],status)            
         if not result['OK']:
           gLogger.warn('Failed to set job status %s for jobs: %s' % (status,str(updateDict[status])))        
             
