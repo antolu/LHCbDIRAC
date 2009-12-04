@@ -426,7 +426,6 @@ done
     script.write('echo PYTHONPATH is\n')
     script.write('echo $PYTHONPATH | tr ":" "\n"\n')
     script.write('env | sort >> localEnv.log\n')
-    script.write('export MALLOC_CHECK_=2\n')
     #To Deal with compiler libraries if shipped
 #    comp_path = mySiteRoot+'/'+self.systemConfig
     comp_path = localArea+'/'+self.systemConfig #TODO: why is this not used elsewhere?
