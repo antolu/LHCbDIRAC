@@ -30,7 +30,7 @@ class TransformationDB(DIRACTransformationDB.TransformationDB):
     DIRACTransformationDB.TransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.filters = self.__getFilters()
+    self.filters = self.__updateFilters()
 
   def addBookkeepingQuery(self,queryDict,connection=False):
     """ Add a new Bookkeeping query specification
