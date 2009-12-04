@@ -43,7 +43,7 @@ class ValidateOutputDataAgent(AgentModule):
     self.updateWaitingIntegrity()
     gLogger.info("-" * 40)
 
-    res = self.productionClient.getProductionsWithStatus('ValidatingOutput')
+    res = self.productionClient.getTransformationWithStatus('ValidatingOutput')
     if not res['OK']:
       gLogger.error("Failed to get ValidatingOutput productions",res['Message'])
       return res
@@ -64,7 +64,7 @@ class ValidateOutputDataAgent(AgentModule):
 
   def updateWaitingIntegrity(self):
     gLogger.info("Looking for production in the WaitingIntegrity status to update")
-    res = self.productionClient.getProductionsWithStatus('WaitingIntegrity')
+    res = self.productionClient.getTransformationWithStatus('WaitingIntegrity')
     if not res['OK']:
       gLogger.error("Failed to get WaitingIntegrity productions",res['Message'])
       return res
