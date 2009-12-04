@@ -9,6 +9,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
+from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
@@ -37,6 +38,7 @@ class UploadLogFile(ModuleBase):
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     self.logSizeLimit = gConfig.getValue('/Operations/LogFiles/SizeLimit',20*1024*1024)
     self.logExtensions = gConfig.getValue('/Operations/LogFiles/Extensions',[])
+    self.failoverSEs = gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover',[])    
     self.diracLogo = gConfig.getValue('/Operations/SAM/LogoURL','https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png')
     self.rm = ReplicaManager()
 
@@ -208,17 +210,31 @@ class UploadLogFile(ModuleBase):
     self.setJobParameter('Log URL',logURL)
     self.log.info('Logs for this job may be retrieved from %s' % logURL)
 
-    res = self.uploadFileToFailover(tarFileName,self.logLFNPath)
-    if not res['OK']:
+    #Instantiate the failover transfer client with the global request object
+    failoverTransfer = FailoverTransfer(self.request)
+    random.shuffle(self.failoverSEs)
+    self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (tarFileName, string.join(self.failoverSEs,', ')))
+    result = failoverTransfer.transferAndRegisterFile(fileName,'%s/%s' %(tarFileDir,fileName),self.logLFNPath,self.failoverSEs,fileGUID=None,fileCatalog='LcgFileCatalogCombined')
+    if not result['OK']:
       self.log.error('Failed to upload logs to all destinations')
       self.setApplicationStatus('Failed To Upload Logs')
       return S_OK()
+    
+    #Now after all operations, retrieve potentially modified request object
+    result = failoverTransfer.getRequestObject()
+    if not result['OK']:
+      self.log.error(result)
+      return S_ERROR('Could not retrieve modified request')
+
+    self.request = result['Value']    
     res = self.createLogUploadRequest(self.logSE,self.logLFNPath)
     if not res['OK']:
       self.log.error('Failed to create failover request', res['Message'])
       self.setApplicationStatus('Failed To Upload Logs To Failover')
     else:
       self.log.info('Successfully created failover request')
+      
+    self.workflow_commons['Request']=self.request    
     return S_OK()
 
   #############################################################################
@@ -290,52 +306,7 @@ class UploadLogFile(ModuleBase):
     else:
       self.log.info('Prepared %s files in the temporary directory.' % self.logdir)
       return S_OK()
-
-  #############################################################################
-  def uploadFileToFailover(self,localFile,logicalFileName,guid=None):
-    """ This method will upload the localFile supplied to a failover storage element with the supplied logical file name
-    """
-    failoverStorageElements = gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover',[])
-    self.log.info('Found %s possible failover Storage Elements.' % len(failoverStorageElements))
-    random.shuffle(failoverStorageElements)
-    for storageElement in failoverStorageElements:
-      self.log.info('Attempting to upload to %s.' % storageElement)
-      res = self.uploadDataFileToSE(localFile,logicalFileName,storageElement,guid,failover=True)
-      if res['OK']:
-        return res
-    self.log.error('Failed to upload file to all failover Storage Elements.')
-    return S_ERROR()
-
-  #############################################################################
-  def uploadDataFileToSE(self,localFile,logicalFileName,storageElement,guid,failover=False):
-    """ This method uploads the supplied local file to the supplied Storage Element with the supplied LFN.
-    """
-    catalog = False
-    if failover:
-      catalog = 'LcgFileCatalogCombined'
-    res = self.rm.putAndRegister(logicalFileName,localFile,storageElement,guid=guid,catalog=catalog)
-    self.log.verbose(res)
-    # In the event that the upload failed
-    if not res['OK'] or not res['Value']['Successful'].has_key(logicalFileName):
-      self.log.error('Failed to putAndRegisterFile','%s %s %s' % (localFile,logicalFileName,storageElement))
-      return S_ERROR()
-    self.log.info('Successfully put file %s' %(logicalFileName))
-    # In the event that there were no failed registrations
-    if not res['Value']['Failed'].has_key(logicalFileName):
-      self.log.info('Successfully registered in catalogs')
-      return S_OK()
-    # In the event that the registration failed, catalog is only LFC
-    if not res['Value']['Failed'].has_key('register'):
-      self.log.error('rm.putAndRegister failed with unknown error for failover logs',str(res))
-      return S_ERROR()
-
-    fileDict = res['Value']['Failed'][logicalFileName]['register']
-    result = self.__setRegistrationRequest(logicalFileName,storageElement,catalog,fileDict)
-    if not result['OK']:
-      self.log.error('Failed to set registration request for: LFN %s, SE %s, catalog %s with message %s' %(logicalFileName,storageElement,catalog,result['Message']))
-
-    return S_OK()
-
+    
   #############################################################################
   def createLogUploadRequest(self,targetSE,logFileLFN):
     """ Set a request to upload job log files from the output sandbox
@@ -352,22 +323,6 @@ class UploadLogFile(ModuleBase):
     fileDict['Status'] = 'Waiting'
     fileDict['LFN'] = logFileLFN
     result = self.request.setSubRequestFiles(index,'logupload',[fileDict])
-    return S_OK()
-
-  #############################################################################
-  def __setRegistrationRequest(self,lfn,se,catalog,fileDict):
-    """ Sets a registration request.
-    """
-    self.log.info('Setting registration request for %s at %s for catalog %s' % (lfn,se,catalog))
-    result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':0,
-                                                       'TargetSE':se,'Catalogue':catalog}},'register')
-    if not result['OK']:
-      return result
-
-    fileDict['Status'] = 'Waiting'
-    index = result['Value']
-    result = self.request.setSubRequestFiles(index,'register',[fileDict])
-
     return S_OK()
 
   #############################################################################
@@ -446,6 +401,5 @@ class UploadLogFile(ModuleBase):
 </html>""" )
     fopen.close()
     return S_OK()
-
-
+  
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
