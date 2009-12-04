@@ -125,7 +125,7 @@ class BookkeepingWatchAgent(AgentModule):
             self.fileLog[transID] = 0
           lfns = successfulList.keys() 
           gLogger.verbose('Adding %d lfns for transformation %d' % (len(lfns),transID) )
-          result = self.transClient.addLFNsToTransformation(lfns,transID)
+          result = self.transClient.addFilesToTransformation(transID,lfns)
           if not result['OK']:
             gLogger.warn("BookkeepingWatchAgent.execute: failed to add lfns to transformation", result['Message'])   
             self.fileLog[transID] = 0
