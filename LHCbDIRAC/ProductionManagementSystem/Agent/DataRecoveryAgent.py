@@ -246,7 +246,7 @@ class DataRecoveryAgent(AgentModule):
 
     jobFileDict = {}
     for job in prodJobIDs:
-      result = self.prodDB.getJobInfo(int(transformation),int(job))
+      result = self.prodDB.getTaskInfo(int(transformation),int(job))
       if not result['OK']:
         self.log.error('Could not get job info for %s_%s, ignoring from further consideration:\n%s' %(transformation.zfill(8),job.zfill(8),result))
         continue
