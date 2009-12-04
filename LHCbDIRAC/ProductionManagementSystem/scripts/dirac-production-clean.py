@@ -22,7 +22,7 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient       import P
 import DIRAC
 
 client = ProductionClient()
-res = client.getProductionStatus(prodID)
+res = client.getTransformationParameters(prodID,['Status'])
 if not res['OK']:
   gLogger.error("Failed to determine production status")
   gLogger.error(res['Message'])
