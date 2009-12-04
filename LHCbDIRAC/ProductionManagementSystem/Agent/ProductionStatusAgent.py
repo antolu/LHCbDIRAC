@@ -144,7 +144,7 @@ class ProductionStatusAgent(AgentModule):
     #Either request is Done, productions Completed, MC prods go to RemoveInputs
     #or request is Active, productions Active, MC prods Active (and extended correctly)
     productionClient = ProductionClient()
-    res = productionClient.getProductionsWithStatus('ValidatedOutput')
+    res = productionClient.getTransformationWithStatus('ValidatedOutput')
     if not res['OK']:
       self.log.error("Failed to get ValidatedOutput productions",res['Message'])
       return res
@@ -277,7 +277,7 @@ class ProductionStatusAgent(AgentModule):
       self.updateProductionStatus(prodID,'ValidatingInput','Active')
 
     #Final action is to update MC input productions to completed that have been treated
-    res = productionClient.getProductionsWithStatus('RemovedFiles')
+    res = productionClient.getTransformationWithStatus('RemovedFiles')
     if not res['OK']:
       gLogger.error("Failed to get RemovedFiles productions",res['Message'])
       return res
