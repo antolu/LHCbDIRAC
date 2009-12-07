@@ -121,7 +121,7 @@ class ProductionDB(TransformationDB):
         Done - jobs completed in the WMS;
         Failed - jobs completed with errors in the WMS;
     """
-    res  = self.__getTransformationID(productionID)
+    res  = self._getTransformationID(productionID)
     if not res['OK']:
       gLogger.error("Failed to get ID for transformation",res['Message'])
       return res
