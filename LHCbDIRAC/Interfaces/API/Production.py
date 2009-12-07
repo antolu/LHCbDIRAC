@@ -1095,7 +1095,7 @@ except Exception,x:
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     if type(pvalue)==type(2):
       pvalue = str(pvalue)
-    result = prodClient.addTransformationParameter(int(prodID),str(pname),str(pvalue))
+    result = prodClient.setTransformationParameter(int(prodID),str(pname),str(pvalue))
     if not result['OK']:
       self.log.error('Problem setting parameter %s for production %s and value:\n%s' %(prodID,pname,pvalue))
     return result
