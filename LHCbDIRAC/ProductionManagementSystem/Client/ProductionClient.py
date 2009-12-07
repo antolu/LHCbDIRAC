@@ -24,7 +24,7 @@ class ProductionClient(TransformationDBClient):
           
   """
   def __init__(self):
-    TransformationDBClient.__init__()
+    TransformationDBClient.__init__(self,'ProductionClient')
     self.setServer('ProductionManagement/ProductionManager')
 
   #############################################################################
