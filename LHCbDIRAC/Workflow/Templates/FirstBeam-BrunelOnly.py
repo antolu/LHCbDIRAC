@@ -77,7 +77,7 @@ production.setProdGroup('{{pDsc}}')
 production.setFileMask("%s;root" %(appType.lower()))
 production.setProdPriority(priority)
 production.setProdPlugin(plugin)
-
+production.setInputDataPolicy('download')
 if not args:
   print 'No arguments specified, will create workflow only.'
   os.chdir(start)

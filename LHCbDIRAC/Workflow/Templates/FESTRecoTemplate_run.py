@@ -82,7 +82,7 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 production.addBrunelStep("{{p1Ver}}",appType,"{{p1Opt}}",extraPackages='{{p1EP}}',eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=dataSE,histograms=True)
 production.addDaVinciStep("{{p2Ver}}","davincihist","{{p2Opt}}",extraPackages='{{p2EP}}',inputDataType=appType,histograms=True)
 production.addFinalizationStep()
-
+production.setInputDataPolicy('download')
 if recoType.lower=='express':
   production.setProdPlugin('')
 
