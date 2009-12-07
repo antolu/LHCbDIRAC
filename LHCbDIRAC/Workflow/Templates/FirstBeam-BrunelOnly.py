@@ -75,6 +75,8 @@ production.addFinalizationStep()
 production.setInputBKSelection(inputBKQuery)
 production.setProdGroup('{{pDsc}}')
 production.setFileMask("%s;root" %(appType.lower()))
+production.setProdPriority(priority)
+production.setProdPlugin(plugin)
 
 if not args:
   print 'No arguments specified, will create workflow only.'
