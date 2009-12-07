@@ -71,7 +71,7 @@ class TransformationDB(DIRACTransformationDB):
     res = self._update(req,connection)
     if not res['OK']:
       return res
-    queryID = res['Value']['lastRowId']
+    queryID = res['lastRowId']
     return S_OK(queryID)
 
   def getBookkeepingQuery(self,bkQueryID=0,connection=False):
@@ -110,18 +110,18 @@ class TransformationDB(DIRACTransformationDB):
     req = 'DELETE FROM BkQueries WHERE BkQueryID=%d' % int(bkQueryID)
     return self._update(req,connection)
 
-  def setTransformationQuery(self,transName,bkQueryID,connection=False):
+  def setTransformationQuery(self,transName,bkQueryID,author='',connection=False):
     """ Set the bookkeeping query ID of the transformation specified by transID """
-    return self.addTransformationParameter(transName,'BkQueryID',bkQueryIDs,connection=connection)
+    return self.setTransformationParameter(transName,'BkQueryID',bkQueryID,author=author,connection=connection)
   
-  def createTransformationQuery(self,transName,queryDict,connection=False):
+  def createTransformationQuery(self,transName,queryDict,author='',connection=False):
     """ Create the supplied BK query and associate it to the transformation """
     connection = self.__getConnection(connection)
     res = self.addBookkeepingQuery(queryDict,connection=connection)
     if not res['OK']:
       return res
     bkQueryID = res['Value']
-    return self.setTransformationQuery(transName,bkQueryID,connection=connection)
+    return self.setTransformationQuery(transName,bkQueryID,author=author,connection=connection)
    
   def getBookkeepingQueryForTransformation(self,transName,connection=False):
     """ Get the BK query associated to the transformation """
