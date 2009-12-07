@@ -5,14 +5,16 @@
 
 __RCSID__ = "$Id: TransformationHandler.py 18968 2009-12-03 10:33:19Z acsmith $"
 
-from DIRAC                                                      import  gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.DISET.RequestHandler                            import  RequestHandler
-from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import  TransformationDB
-import DIRAC.TransformationSystem.Service.TransformationHandler as      DIRACTransformationHandler
+from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
+from DIRAC.TransformationSystem.Service.TransformationHandler   import TransformationHandler as DIRACTransformationHandler
 from types import *
 
-class TransformationHandler(DIRACTransformationHandler.TransformationHandler):
-  
+class TransformationHandler(DIRACTransformationHandler):
+
+  def __init__(self,*args,**kargs):
+    DIRACTransformationHandler.__init__(self, *args,**kargs)
+
   types_addBookkeepingQuery = [ DictType ]
   def export_addBookkeepingQuery(self, queryDict):
     res = self.database.addBookkeepingQuery(queryDict)
@@ -42,3 +44,4 @@ class TransformationHandler(DIRACTransformationHandler.TransformationHandler):
   def export_createTransformationQuery(self,transName,queryDict):
     res = self.database.createTransformationQuery(transName, queryDict)                     
     return self.__parseRes(res)
+

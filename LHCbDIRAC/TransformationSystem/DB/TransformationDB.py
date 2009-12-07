@@ -12,7 +12,7 @@ import re,time,types,string
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                 import DB
-import DIRAC.TransformationSystem.DB.TransformationDB   as DIRACTransformationDB
+from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
 
 import threading
 from types import *
@@ -21,13 +21,13 @@ MAX_ERROR_COUNT = 3
 
 #############################################################################
 
-class TransformationDB(DIRACTransformationDB.TransformationDB):
+class TransformationDB(DIRACTransformationDB):
 
   def __init__(self, dbname, dbconfig, maxQueueSize=10 ):
     """ The standard constructor takes the database name (dbname) and the name of the
         configuration section (dbconfig)
     """
-    DIRACTransformationDB.TransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
+    DIRACTransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
     self.lock = threading.Lock()
     self.dbname = dbname
 
