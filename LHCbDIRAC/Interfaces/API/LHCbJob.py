@@ -16,7 +16,7 @@
 
    An example DaVinci application script would be::
 
-     from DIRAC.Interfaces.API.Dirac import Dirac
+     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
@@ -26,7 +26,7 @@
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
-     dirac = Dirac()
+     dirac = DiracLHCb()
      jobID = dirac.submit(j)
      print 'Submission Result: ',jobID
 
@@ -34,7 +34,7 @@
 
    Another example for executing a script in the Gaudi Application environment is::
 
-     from DIRAC.Interfaces.API.Dirac import Dirac
+     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
@@ -44,13 +44,13 @@
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
-     dirac = Dirac()
+     dirac = DiracLHCb()
      jobID = dirac.submit(j)
      print 'Submission Result: ',jobID
 
    For execution of a python Bender module::
 
-     from DIRAC.Interfaces.API.Dirac import Dirac
+     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
@@ -59,13 +59,13 @@
      j.setBenderModule('v8r3','BenderExample.PhiMC',inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
      j.setName('MyJobName')
 
-     dirac = Dirac()
+     dirac = DiracLHCb()
      jobID = dirac.submit(j)
      print 'Submission Result: ',jobID
 
    To execute a ROOT Macro, Python script and Executable consecutively an example script would be::
 
-     from DIRAC.Interfaces.API.Dirac import Dirac
+     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
      j = LHCbJob()
@@ -76,7 +76,7 @@
      j.setRootExecutable('5.18.00a','minexam')
      j.setLogLevel('verbose')
 
-     dirac = Dirac()
+     dirac = DiracLHCb()
      jobID = dirac.submit(j,mode='local')
      print 'Submission Result: ',jobID
 
