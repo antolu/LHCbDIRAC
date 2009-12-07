@@ -1,4 +1,4 @@
--- $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.3 2009/10/15 15:27:45 azhelezo Exp $
+-- $Header: /local/reps/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.3 2009/10/15 15:27:45 azhelezo Exp $
 -- ------------------------------------------------------------------------------
 DROP DATABASE IF EXISTS ProductionRequestDB;
 CREATE DATABASE ProductionRequestDB;
@@ -8,8 +8,8 @@ CREATE DATABASE ProductionRequestDB;
 USE mysql;
 
 -- Must set passwords for database user by replacing "must_be_set".
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'must_be_set';
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'must_be_set';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'FillIt';
+GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'FillIt';
 FLUSH PRIVILEGES;
 
 --
@@ -56,6 +56,7 @@ CREATE TABLE ProductionRequests (
     Description BLOB,
     Comments BLOB,
     Inform   BLOB,
+    RealNumberOfEvents BIGINT DEFAULT 0,
     PRIMARY KEY(RequestID)
 );
 

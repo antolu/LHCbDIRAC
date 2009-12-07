@@ -72,15 +72,25 @@ class ProductionRequestHandler( RequestHandler ):
       rows[id] = row
     return S_OK(rows)
 
-  types_getProductionRequestList = [LongType,StringType,StringType,
-                                    LongType,LongType]
-  def export_getProductionRequestList(self,subrequestFor,
-                                      sortBy,sortOrder,offset,limit):
+  types_getProductionRequestList_v2 = [LongType,StringType,StringType,
+                                    LongType,LongType,DictType]
+  def export_getProductionRequestList_v2(self,subrequestFor,
+                                         sortBy,sortOrder,offset,limit,filter):
     """ Get production requests in list format (for portal grid)
     """
     return self.database.getProductionRequest([],subrequestFor,
                                              sortBy,sortOrder,
-                                             offset,limit)
+                                             offset,limit,filter)
+
+  types_getProductionRequestList = [LongType,StringType,StringType,
+                                    LongType,LongType]
+  def export_getProductionRequestList(self,subrequestFor,
+                                      sortBy,sortOrder,offset,limit):
+    """ Get production requests in list format (compat version)
+    """
+    return self.database.getProductionRequest([],subrequestFor,
+                                             sortBy,sortOrder,
+                                             offset,limit,{})
 
   types_updateProductionRequest = [LongType,DictType]
   def export_updateProductionRequest(self,requestID,requestDict):
@@ -89,12 +99,19 @@ class ProductionRequestHandler( RequestHandler ):
     creds = self.__clientCredentials()
     return self.database.updateProductionRequest(requestID,requestDict,creds)
 
-  types_duplicateProductionRequest = [LongType]
-  def export_duplicateProductionRequest(self,requestID):
+  types_duplicateProductionRequest_v2 = [LongType,BooleanType]
+  def export_duplicateProductionRequest_v2(self,requestID,clearpp):
     """ Duplicate production request with subrequests.
     """
     creds = self.__clientCredentials()
-    return self.database.duplicateProductionRequest(requestID,creds)
+    return self.database.duplicateProductionRequest(requestID,creds,clearpp)
+
+  types_duplicateProductionRequest = [LongType]
+  def export_duplicateProductionRequest(self,requestID):
+    """ Duplicate production request with subrequests (compat version)
+    """
+    creds = self.__clientCredentials()
+    return self.database.duplicateProductionRequest(requestID,creds,False)
 
   types_deleteProductionRequest = [LongType]
   def export_deleteProductionRequest(self,requestID):
@@ -151,6 +168,18 @@ class ProductionRequestHandler( RequestHandler ):
     """ Update tracked productions (used by Agent)
     """
     return self.database.updateTrackedProductions(update)
+
+  types_getTrackedInput = []
+  def export_getTrackedInput(self):
+    """ Return the list of requests with dynamic input data
+    """
+    return self.database.getTrackedInput()
+
+  types_updateTrackedInput = [ListType]
+  def export_updateTrackedInput(self,update):
+    """ Update real number of input events (used by Agent)
+    """
+    return self.database.updateTrackedInput(update)
 
   types_getAllSubRequestSummary = []
   def export_getAllSubRequestSummary(self,status='',type=''):
@@ -212,7 +241,7 @@ class ProductionRequestHandler( RequestHandler ):
       author = ''
       ver = ''
       if m:
-        m = re.match("[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+) Exp",m.group(1))
+        m = re.match("[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+)",m.group(1))
         if m:
           ptime = m.group(2)
           author = m.group(3)
@@ -308,3 +337,9 @@ class ProductionRequestHandler( RequestHandler ):
         resultDict[id] = {'reqTotal':req['rqTotal'],'bkTotal':req['bkTotal'],'master':0}
 
     return S_OK(resultDict)
+
+  types_getFilterOptions = []
+  def export_getFilterOptions(self):
+    """ Return the dictionary with possible values for filter
+    """
+    return self.database.getFilterOptions()

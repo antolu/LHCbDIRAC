@@ -19,7 +19,6 @@ __RCSID__ = "$Revision: 1.23 $"
 #'Done'
 #'Cancelled'
 
-
 import string
 import time
 from DIRAC.Core.Base.DB import DB
@@ -34,8 +33,10 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 import threading
 import types
 
+import cPickle
+
 def _getMailAddress(user):
-  res = gConfig.getOptionsDict('/Registry/Users/%s' % user)
+  res = gConfig.getOptionsDict('/Security/Users/%s' % user)
   if not res['OK']:
     gLogger.error('_inform_people: User %s not found in the CS.' % user)
     return ''
@@ -46,7 +47,7 @@ def _getMailAddress(user):
   return userProp['email']
 
 def _getMemberMails(group):
-  res = gConfig.getOptionsDict('/Registry/Groups/%s' % group)
+  res = gConfig.getOptionsDict('/Security/Groups/%s' % group)
   if not res['OK']:
     gLogger.error('_inform_people: group %s is not found in CS.' % group)
     return []
@@ -119,8 +120,8 @@ def _inform_people(rec,oldstate,state,author,inform):
         gLogger.error("_inform_people: can't send email: %s" % res['Message'])
 
   if inform:
-    subj = "DIRAC: the state of Production Request %s is changed to '%s'"%\
-           (id,state)
+    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'"%\
+           (rec['RequestType'],id,state)
     body = '\n'.join(
       ['You have received this mail because you are'
        'in the subscription list for this request'])
@@ -143,7 +144,7 @@ def _inform_people(rec,oldstate,state,author,inform):
                       "You are informed as member of %s group"])
     groups = [ 'lhcb_prmgr' ]
   elif state == 'BK Check':
-    subj = "DIRAC: new Production Request %s" %id
+    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'],id)
     body = '\n'.join(["New Production is requested and it has",
                       "customized Simulation Conditions.",
                       "As member of %s group, your are asked either",
@@ -154,7 +155,7 @@ def _inform_people(rec,oldstate,state,author,inform):
     groups = [ 'lhcb_bk' ]
 
   elif state == 'Submitted':
-    subj = "DIRAC: new Production Request %s" %id
+    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'],id)
     body = '\n'.join(["New Production is requested",
                       "As member of %s group, your are asked either to sign",
                       "or to reject it.","",
@@ -198,7 +199,7 @@ class ProductionRequestDB(DB):
                     'SimCondition', 'SimCondID', 'SimCondDetail',
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
-                    'Inform',
+                    'Inform','RealNumberOfEvents',
                     'HasSubrequest', 'bk', 'bkTotal', 'rqTotal',  # runtime
                     'crTime', 'upTime' ] # runtime
 
@@ -298,6 +299,13 @@ class ProductionRequestDB(DB):
     for x in requestDict:
       if x in rec and str(requestDict[x]) != '':
         rec[x] = requestDict[x] # set only known not empty fields
+    if rec['NumberOfEvents']: # Set RealNumberOfEvents if specified
+      try:
+        num = long(rec['NumberOfEvents'])
+        if num > 0:
+          rec['RealNumberOfEvents'] = num
+      except:
+        pass
     if not rec['MasterID']:
       rec['RequestPDG'] = ''
       if not rec['RequestState']:
@@ -402,8 +410,8 @@ class ProductionRequestDB(DB):
     r ="SELECT t.*,MIN(rh.TimeStamp) AS crTime,"
     r+="           MAX(rh.TimeStamp) AS upTime "
     r+="FROM "
-    r+="(SELECT t.*,CAST(COALESCE(SUM(sr.NumberOfEvents),0)+"
-    r+="                COALESCE(t.NumberOfEvents,0) AS SIGNED)"
+    r+="(SELECT t.*,CAST(COALESCE(SUM(sr.RealNumberOfEvents),0)+"
+    r+="                COALESCE(t.RealNumberOfEvents,0) AS SIGNED)"
     r+="           AS rqTotal "
     r+=" FROM "
     r+=" (SELECT t.*,CAST(COALESCE(SUM(pp.BkEvents),0)+"
@@ -423,7 +431,7 @@ class ProductionRequestDB(DB):
 
   def getProductionRequest(self,requestIDList,subrequestsFor=0,
                            sortBy='',sortOrder='ASC',
-                           offset=0,limit=0):
+                           offset=0,limit=0,filter={}):
     """ Get the Production Request(s) details.
         If requestIDList is not empty, only productions
         from the list are retured. Otherwise
@@ -436,6 +444,35 @@ class ProductionRequestDB(DB):
         y = long(x)
     except:
       return S_ERROR("Bad parameters (all request IDs must be numbers)")
+    try: # test filters
+      sfilter = []
+      for x in filter:
+        if not x in self.requestFields[:-6]:
+          return S_ERROR("bad field in filter")
+        val = str(filter[x])
+        if val:
+          val="( "+','.join(['"'+y+'"' for y in val.split(',')])+") "
+          if x == "RequestID":
+            # Collect also masters masters
+            req = "SELECT RequestID,MasterID FROM ProductionRequests "
+            req+= "WHERE RequestID IN %s" % val
+            result = self._query(req)
+            if not result['OK']:
+              return result
+            val = []
+            for y in result['Value']:
+              if str(y[1]) != 'None':
+                val.append(str(y[1]))
+              else:
+                val.append(str(y[0]))
+            if not val:
+              return S_OK({'Rows':[], 'Total':0})
+            val="( "+','.join(val)+") "
+          sfilter.append(" t.%s IN %s " %(x,val))
+      sfilter=" AND ".join(sfilter)
+    except Exception,e:
+      return S_ERROR("Bad filter content "+str(e))
+
     if sortBy:
       if not sortBy in self.requestFields[:-6]:
         return S_ERROR("sortBy field does not exist")
@@ -453,6 +490,8 @@ class ProductionRequestDB(DB):
     else:
       if subrequestsFor:
         where ="t.ParentID=%s" % subrequestsFor
+      elif sfilter:
+        where = sfilter
       else:
         where ="t.ParentID IS NULL"
     req+=where
@@ -557,7 +596,7 @@ class ProductionRequestDB(DB):
     if old['MasterID']: # for subrequests it's simple
       if requestState == 'New':
         for x in update:
-          if not x in ['EventType','NumberOfEvents','Comments']:
+          if not x in ['EventType','NumberOfEvents','RealNumberOfEvents','Comments']:
             self.lock.release()
             return S_ERROR("%s is not allowed in subrequests" % x)
           if x != 'Comments' and not update[x]:
@@ -740,6 +779,16 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return S_OK(requestID) # nothing to update
 
+    if 'NumberOfEvents' in update: # Update RealNumberOfEvents if specified
+      num = 0
+      try:
+        num = long(rec['NumberOfEvents'])
+        if num < 0:
+          num = 0
+      except:
+        pass
+      update['RealNumberOfEvents'] = str(num)
+
     if 'Comments' in update:
       update['Comments'] = self.__prefixComments(update['Comments'],
                                                  old['Comments'],creds['User'])
@@ -898,7 +947,7 @@ class ProductionRequestDB(DB):
     return S_OK(requestID)
 
   def __getRequest(self,requestID,connection):
-    """ retrive complete request record
+    """ retrive complete request record.
         NOTE: unlock in case of errors
     """
     fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
@@ -915,7 +964,23 @@ class ProductionRequestDB(DB):
     rec = dict(zip(self.requestFields[:-6],result['Value'][0]))
     return S_OK(rec)
 
-  def __duplicateDeep(self,requestID,masterID,parentID,creds,connection):
+  def __clearProcessingPass(self,rec):
+    """ clear processing pass section.
+        Processing pass name, first app. with version are untouched
+    """
+    rec['ProID'] = None
+    detail = cPickle.loads(rec['ProDetail'])
+    nd = {}
+    for x in ['pDsc','p1Ver','p1App']:
+      if x in detail:
+        nd[x] = detail[x]
+    if 'p1App' in nd and 'p1Ver' in nd:
+      nd['pAll'] = u'%s-%s' % (nd['p1App'],nd['p1Ver'])
+      nd['p1Html'] = u'<b>Pass 1:</b> %s<br>' % nd['pAll']
+    rec['ProDetail'] = cPickle.dumps(nd)
+    
+  def __duplicateDeep(self,requestID,masterID,parentID,creds,connection,
+                      clearpp):
     """ recurcive duplication function.
         NOTE: unlock in case of errors
     """
@@ -925,7 +990,9 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return result
     rec = result['Value']
-
+    if clearpp:
+      self.__clearProcessingPass(rec)
+  
     if masterID and not rec['MasterID']:
       return S_OK("") # substructured request
 
@@ -981,19 +1048,21 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return result
     for chID in [row[0] for row in result['Value']]:
-      result = self.__duplicateDeep(chID,masterID,parentID,creds,connection)
+      result = self.__duplicateDeep(chID,masterID,parentID,creds,
+                                    connection,False)
       if not result['OK']:
         return result
 
     return S_OK(long(newRequestID))
 
 
-  def duplicateProductionRequest(self,requestID,creds):
+  def duplicateProductionRequest(self,requestID,creds,clearpp):
     """
     Duplicate production request with all it's subrequests
     (but without substructure). If that is subrequest,
     master must be in New state and user must be the
-    author.
+    author. If clearpp is set, all details in the Processing
+    pass (of the master) are cleaned.
     """
     if creds['Group'] == 'hosts':
       return S_ERROR('Authorization required')
@@ -1017,6 +1086,7 @@ class ProductionRequestDB(DB):
     masterID = pinfo['MasterID']
 
     if masterID:
+      clearpp = False
       result = self.__getStateAndAuthor(requestID,connection)
       if not result['OK']:
         return result
@@ -1025,7 +1095,8 @@ class ProductionRequestDB(DB):
         self.lock.release()
         return S_ERROR('Can not duplicate subrequest of request in progress')
 
-    result = self.__duplicateDeep(requestID,masterID,parentID,creds,connection)
+    result = self.__duplicateDeep(requestID,masterID,parentID,creds,
+                                  connection,clearpp)
     if result['OK']:
       self.lock.release()
     return result
@@ -1277,7 +1348,7 @@ class ProductionRequestDB(DB):
         with requests in 'Active' state
     """
     req1 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
-    req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active' "
+    req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
     req2+= " OR MasterID in (%s)" % req1
     req  = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
     req += "in (%s)" % req2
@@ -1305,6 +1376,68 @@ class ProductionRequestDB(DB):
       if not result['OK']:
         gLogger.info('Problem in updating progress. Not fatal: %s' %
                      result['Message'])
+    return S_OK('')
+
+  def __trackedInputSQL(self,fields):
+    req = "SELECT %s " % fields
+    req+= "FROM ProductionRequests as t WHERE"
+    req+= ' t.RequestState="Active"'
+    req+= ' AND NumberOfEvents<0 '
+    return self._query(req)
+
+  def getTrackedInput(self):
+    """ return a list of all requests with dynamic input
+        in 'Active' state
+    """
+
+    fields = ','.join(['t.'+x for x in self.requestFields[:-6]])
+    result = self.__trackedInputSQL(fields)
+    if not result['OK']:
+      return result
+    rec = []
+    for x in result['Value']:
+      r = dict(zip(self.requestFields[:-6],x))
+      if r['SimCondDetail']:
+        r.update(cPickle.loads(r['SimCondDetail']))
+      else:
+        continue
+      del r['SimCondDetail']
+      try:
+        num = long(r['RealNumberOfEvents'])
+      except:
+        num = 0
+      if num > 0:
+        continue
+      rec.append(r)
+    return S_OK(rec)
+
+  def updateTrackedInput(self,update):
+    """ update real number of input events """
+    # check parameters
+    try:
+      for x in update:
+        x['RequestID'] = long(x['RequestID'])
+        x['RealNumberOfEvents'] = long(x['RealNumberOfEvents'])
+    except:
+      return S_ERROR('Bad parameters')
+    result = self.__trackedInputSQL('RequestID')
+    if not result['OK']:
+      return result
+    allowed = dict.fromkeys([x[0] for x in result['Value']],None)
+    skiped = []
+    for x in update:
+      if not x['RequestID'] in allowed:
+        skiped.append(x['RequestID'])
+        continue
+      req ="UPDATE ProductionRequests "
+      req+="SET RealNumberOfEvents=%s " % str(x['RealNumberOfEvents'])
+      req+="WHERE RequestID=%s" % str(x['RequestID'])
+      result = self._update(req)
+      if not result['OK']:
+        skiped.append(x['RequestID'])
+    if skiped:
+      return S_ERROR("updateTrackedInput has skiped requests %s" % \
+                     ','.join(skiped))
     return S_OK('')
 
   def getProductionList(self,requestID):
@@ -1357,3 +1490,20 @@ class ProductionRequestDB(DB):
         sRequestInfo[sRequestID] = {}
       sRequestInfo[sRequestID][prodID] = {'Used':used, 'Events':events}
     return S_OK(sRequestInfo)
+
+  def getFilterOptions(self):
+    """ Return the dictionary with possible values for filter
+    """
+    opts = {}
+    for x,y in [ ('State','RequestState'),
+                 ('Type','RequestType'),
+                 ('Author','RequestAuthor'),
+                 ('EType','EventType') ] :
+      req = "SELECT DISTINCT %s FROM ProductionRequests " % y
+      req+= "WHERE %s IS NOT NULL " % y
+      req+= "ORDER BY %s" % y
+      res = self._query(req);
+      if not res['OK']:
+        return res
+      opts[x] = [row[0] for row in res['Value']]
+    return S_OK(opts);
