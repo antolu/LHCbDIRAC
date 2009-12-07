@@ -32,7 +32,7 @@ class TransformationDBClient(DIRACTransformationDBClient):
                                     transformationGroup = 'General',
                                     groupSize           = 1,
                                     inheritedFrom       = 0,
-                                    body                = '', 
+                                    body                = '',
                                     maxJobs             = 0,
                                     eventsPerJob        = 0,
                                     addFiles            = True,
@@ -40,20 +40,13 @@ class TransformationDBClient(DIRACTransformationDBClient):
                                     rpc                 = False,
                                     url                 = '',
                                     timeout             = 120):
-    server = self.__getRPC(rpc=rpc,url=url,timeout=timeout)
-    res = server.addTransformation(transName,description,longDescription,type,plugin,agentType,fileMask,
-                                    transformationGroup = transformationGroup,
-                                    groupSize           = groupSize,
-                                    inheritedFrom       = inheritedFrom,
-                                    body                = body, 
-                                    maxJobs             = maxJobs,
-                                    eventsPerJob        = eventsPerJob,
-                                    addFiles            = addFiles)
+    rpcClient = self._getRPC(rpc=rpc,url=url,timeout=timeout)
+    res = rpcClient.addTransformation(transName,description,longDescription,type,plugin,agentType,fileMask,transformationGroup,groupSize,inheritedFrom,body,maxJobs,eventsPerJob,addFiles)
     if not res['OK']:
       return res
     transID = res['Value']
     if bkQuery:
-      res = server.createTransformationQuery(transID,bkQuery)
+      res = rpcClient.createTransformationQuery(transID,bkQuery)
       if not res['OK']:
         gLogger.error("Failed to publish BKQuery for transformation","%s %s" % (transID,res['Message']))
     return S_OK(transID)
