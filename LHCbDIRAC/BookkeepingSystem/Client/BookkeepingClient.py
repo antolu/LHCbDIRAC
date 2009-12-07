@@ -743,6 +743,11 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getFileHistory(lfn)
   
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getProductionInformationsFromView(long(prodid))
+    
   '''
   Monitoring
   '''

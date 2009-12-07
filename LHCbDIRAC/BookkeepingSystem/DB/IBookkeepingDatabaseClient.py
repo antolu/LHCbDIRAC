@@ -569,6 +569,10 @@ class IBookkeepingDatabaseClient(object):
   def getConfigsAndEvtType(self, prodid):
     return self.getManager().getConfigsAndEvtType(prodid)
   
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    return self.getManager().getProductionInformationsFromView(prodid)
+  
   '''
   END MONITORING
   '''

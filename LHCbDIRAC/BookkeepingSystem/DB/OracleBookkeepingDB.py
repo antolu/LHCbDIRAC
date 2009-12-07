@@ -3202,7 +3202,12 @@ and files.qualityid= dataquality.qualityid'
  
     res = self.dbR_._query(command)
     return res
-    
+  
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    command = 'select * from productioninformations where production='+str(prodid)
+    res = self.dbR_._query(command)
+    return res
   
   #############################################################################
   #

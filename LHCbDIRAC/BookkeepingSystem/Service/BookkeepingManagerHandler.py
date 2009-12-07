@@ -973,6 +973,17 @@ class BookkeepingManagerHandler(RequestHandler):
     result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
+  #############################################################################
+  types_getProductionInformationsFromView = [LongType]
+  def export_getProductionInformationsFromView(self, prodid):
+    value = dataMGMT_.getProductionInformationsFromView(prodid)
+    if value['OK']==True:
+      infos = value['Value']
+    else:
+      infos = value['Message']
+    return S_OK({'Informations':infos})
+      
+  #############################################################################  
   types_getProductionSummary = [DictType]
   def export_getProductionSummary(self, dict):
     
