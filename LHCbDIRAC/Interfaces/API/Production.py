@@ -59,6 +59,7 @@ class Production(LHCbJob):
     self.ioDict = {}
     self.gaussList = []
     self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge']
+    self.prodPlugins = ['CCRC_RAW','BySize','Standard','ByRunCCRC_RAW']
     self.name='unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
@@ -1230,7 +1231,7 @@ except Exception,x:
   def setProdPlugin(self,plugin):
     """ Sets the plugin to be used to creating the production jobs
     """
-    available_plugins = ['CCRC_RAW','BySize','Standard']
+    available_plugins = self.prodPlugins
     if plugin in available_plugins:
       self.plugin = plugin
     else:
