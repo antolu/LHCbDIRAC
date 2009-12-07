@@ -37,11 +37,12 @@ class TransformationHandler(DIRACTransformationHandler):
   
   types_setTransformationQuery = [ [LongType, IntType, StringType], [LongType, IntType] ]
   def export_setTransformationQuery(self,transName, queryID):
-    res = self.database.setTransformationQuery(transName, queryID)
+    authorDN = self._clientTransport.peerCredentials['DN']
+    res = self.database.setTransformationQuery(transName, queryID,author=authorDN)
     return self.__parseRes(res)
   
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
   def export_createTransformationQuery(self,transName,queryDict):
-    res = self.database.createTransformationQuery(transName, queryDict)                     
+    authorDN = self._clientTransport.peerCredentials['DN']
+    res = self.database.createTransformationQuery(transName, queryDict,author=authorDN)
     return self.__parseRes(res)
-
