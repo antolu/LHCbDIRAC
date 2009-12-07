@@ -6,10 +6,10 @@
 __RCSID__ = "$Id: TransformationDBClient.py 19179 2009-12-04 09:54:19Z acsmith $"
 
 from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
-import DIRAC.TransformationSystem.Client.TransformationDBClient as     DIRACTransformationDBClient  
+from DIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient as DIRACTransformationDBClient  
 import types
     
-class TransformationDBClient(DIRACTransformationDBClient.TransformationDBClient):
+class TransformationDBClient(DIRACTransformationDBClient):
 
   """ Exposes the functionality available in the LHCbDIRAC/TransformationHandler
 
@@ -25,8 +25,8 @@ class TransformationDBClient(DIRACTransformationDBClient.TransformationDBClient)
           setTransformationQuery(transName, queryID)
           createTransformationQuery(transName,queryDict)      
   """
-  def __init__(self):
-    TransformationDBClient.__init__()
+  def __init__(self, *args, **kargs):
+    DIRACTransformationDBClient.__init__(self, *args, **kargs)
     
   def addTransformation(self,transName,description,longDescription,type,plugin,agentType,fileMask,
                                     transformationGroup = 'General',
