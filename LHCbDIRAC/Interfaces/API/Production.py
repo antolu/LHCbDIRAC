@@ -957,7 +957,8 @@ except Exception,x:
         bkQuery=self.inputBKSelection
       if self.ancestorProduction:
         derivedProduction = self.ancestorProduction
-      result = dirac.createProduction(fileName,fileMask,groupSize,bkQuery,self.plugin,self.prodGroup,self.type,derivedProduction)
+
+      result = dirac.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,plugin=self.plugin,productionGroup=self.prodGroup,productionType=self.type,derivedProd=derivedProduction)
       if not result['OK']:
         self.log.error('Problem creating production:\n%s' %result)
         return result
