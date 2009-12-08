@@ -88,7 +88,7 @@ class DiracProduction:
       for key,name in self.prodHeaders.items():
         for n,v in params.items():
           if n==key:
-            line+=v.ljust(adj)
+            line+=str(v).ljust(adj)
       message.append(line)
 
     print string.join(message,'\n')
@@ -109,13 +109,10 @@ class DiracProduction:
     if not result['OK']:
       return result
 
-    if not result['Value'].has_key('Value'):
-      return S_ERROR('Production %s not found' %productionID)
-
     #to fix TODO
     if printOutput:
       adj = self.prodAdj
-      prodInfo = result['Value']['Value']
+      prodInfo = result['Value']
       headers = self.prodHeaders.values()
       prodDict=result['Value']
       top = ''
@@ -123,10 +120,9 @@ class DiracProduction:
         top+=i.ljust(adj)
       message = ['ProductionID'.ljust(adj)+top+'\n']
       #very painful to make this consistent, better improved first on the server side
-      message.append(productionID.ljust(adj)+prodInfo['Status'].ljust(adj)+prodInfo['Type'].ljust(adj)+prodInfo['AgentType'].ljust(adj)+toString(prodInfo['CreationDate']).ljust(adj)+prodInfo['Name'].ljust(adj))
+      message.append(productionID.ljust(adj)+prodInfo['Status'].ljust(adj)+prodInfo['Type'].ljust(adj)+prodInfo['AgentType'].ljust(adj)+toString(prodInfo['CreationDate']).ljust(adj)+prodInfo['TransformationName'].ljust(adj))
       print string.join(message,'\n')
-
-    return S_OK(result['Value']['Value'])
+    return S_OK(result['Value'])
 
   #############################################################################
   def getActiveProductions(self,printOutput=False):
@@ -139,8 +135,8 @@ class DiracProduction:
     currentProductions = {}
     for prodDict in prodList:
       self.log.debug(prodDict)
-      if prodDict.has_key('AgentType') and prodDict.has_key('TransID'):
-        prodID = prodDict['TransID']
+      if prodDict.has_key('AgentType') and prodDict.has_key('TransformationID'):
+        prodID = prodDict['TransformationID']
         status = prodDict['AgentType']
         currentProductions[prodID] = status
         if status.lower() == 'automatic':
@@ -176,7 +172,7 @@ class DiracProduction:
 
     message = ['ProdID'.ljust(int(0.5*self.prodAdj))+'Message'.ljust(3*self.prodAdj)+'DateTime [UTC]'.ljust(self.prodAdj)+'AuthorCN'.ljust(2*self.prodAdj)]
     for line in result['Value']:
-      message.append(str(line['TransID']).ljust(int(0.5*self.prodAdj))+line['Message'].ljust(3*self.prodAdj)+toString(line['MessageDate']).ljust(self.prodAdj)+line['AuthorDN'].split('/')[-1].ljust(2*self.prodAdj))
+      message.append(str(line['TransformationID']).ljust(int(0.5*self.prodAdj))+line['Message'].ljust(3*self.prodAdj)+toString(line['MessageDate']).ljust(self.prodAdj)+line['AuthorDN'].split('/')[-1].ljust(2*self.prodAdj))
 
     print '\nLogging summary for productionID '+str(productionID)+'\n\n'+string.join(message,'\n')
 
@@ -555,7 +551,7 @@ class DiracProduction:
     progress = {}
     for prod in productionID:
       #self._prettyPrint(result)
-      result = self.prodClient.getJobWmsStats(int(prod))
+      result = self.prodClient.getTransformationTaskStats(int(prod))
       if not result['Value']:
         self.log.error(result)
         return result
@@ -937,7 +933,7 @@ class DiracProduction:
     """
     if not Date:
       self.log.verbose('No Date supplied, attempting to find creation date of production %s' %ProductionID)
-      result = self.getTransformationParameters(long(ProductionID),['CreationDate'])
+      result = self.prodClient.getTransformationParameters(long(ProductionID),['CreationDate'])
       if not result['OK']:
         self.log.warn('Could not obtain production metadata for ID %s:\n%s' %(productionID,result))
         return result
@@ -1277,7 +1273,7 @@ class DiracProduction:
        the current WMS status information for all jobs in that production starting from the creation
        date.
     """
-    result = self.getTransformationParameters(long(productionID),['CreationDate'])
+    result = self.prodClient.getTransformationParameters(long(productionID),['CreationDate'])
     if not result['OK']:
       self.log.warn('Problem getting production metadata for ID %s:\n%s' %(productionID,result))
       return result
