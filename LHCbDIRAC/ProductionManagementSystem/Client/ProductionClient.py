@@ -40,18 +40,16 @@ class ProductionClient(TransformationDBClient):
       return S_OK(paramDict[pname])
     else:
       return S_ERROR('Parameter %s not found for production' % pname)
-  
-  def createProduction(self,workflow,fileMask='',groupSize=1,bkQuery={},plugin='',productionGroup='',productionType='',derivedProd='',maxJobs=0,rpc=False,url='',timeout=120,agentType='manual'):
+
+  def createProduction(self,workflow,fileMask='',groupSize=1,bkQuery={},plugin='',productionGroup='',productionType='',derivedProd='',maxJobs=0,agentType='Manual',rpc=False,url='',timeout=120):
     """ Create a production, based on the supplied parameters.
         Any input data can be specified by either fileMast or bkQuery. If both are specified then the BKQuery takes precedence.
         Usage: createProduction <workflow or file> <filemask> <groupsize> <bkquery> <plugin> <prodGroup> <prodType> <maxJobs>
     """
-    #TODO: Check where agentType comes from
     if os.path.exists(xmlString):
       fopen = open(xmlString,'r')
       workflow = fopen.read()
       fopen.close()
-      
     wf = fromXMLString(workflow)
     transName = wf.getName()
     description = wf.getDescrShort()
