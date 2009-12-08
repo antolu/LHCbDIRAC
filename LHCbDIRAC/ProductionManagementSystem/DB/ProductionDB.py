@@ -133,7 +133,7 @@ class ProductionDB(TransformationDB):
     if not resultStats['OK']:
       return resultStats
     if not resultStats['Value']:
-      return S_ERROR('No records found')
+      return resultStats
     statusList = {}
     for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
       statusList[s] = 0
