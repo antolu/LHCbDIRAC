@@ -111,7 +111,7 @@ class ProductionJobAgent(AgentModule):
       return S_OK()
 
     for prod in result['Value']:
-      production = int(prod['TransID'])
+      production = int(prod['TransformationID'])
       prodStatus = prod['Status']
       if not prodStatus in ['Active','Stopped']:
         continue
