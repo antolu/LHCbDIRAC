@@ -980,8 +980,12 @@ class BookkeepingManagerHandler(RequestHandler):
     if value['OK']==True:
       infos = value['Value']
     else:
-      infos = value['Message']
-    return S_OK({'Informations':infos})
+      records = value['Message']
+      infos = []
+      parametes = ['Production','EventTypeId','FileType','NumberOfEvents','NumberOfFiles']
+      for record in records:
+        infos += [record[0],record[1],record[2], record[3], record[4]]
+    return S_OK({'ParameterNames':parametes,'Records':infos})
       
   #############################################################################  
   types_getProductionSummary = [DictType]
