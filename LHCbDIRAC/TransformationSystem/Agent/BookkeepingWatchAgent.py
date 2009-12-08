@@ -51,7 +51,7 @@ class BookkeepingWatchAgent(AgentModule):
 
     # Process each transformation
     for transDict in result['Value']:    
-      transID = long(transDict['TransID'])
+      transID = long(transDict['TransformationID'])
       transStatus = transDict['Status']
       bkQueryID = transDict['BkQueryID']
       if transStatus in ["Active"] and bkQueryID:
