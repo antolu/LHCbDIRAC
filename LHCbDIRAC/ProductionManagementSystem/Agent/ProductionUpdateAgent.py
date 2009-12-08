@@ -46,7 +46,7 @@ class ProductionUpdateAgent(AgentModule):
 
     result = self.prodDB.getTransformations()
     for transDict in result['Value']:
-      transID = long(transDict['TransID'])
+      transID = long(transDict['TransformationID'])
 
       # Get the jobs which status is to be updated
       result = self.prodDB.selectWMSJobs(transID,UPDATE_STATUS,NEWER)
