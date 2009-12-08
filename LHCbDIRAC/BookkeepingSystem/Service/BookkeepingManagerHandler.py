@@ -983,7 +983,7 @@ class BookkeepingManagerHandler(RequestHandler):
       records = value['Value']
       parameters = ['Production','EventTypeId','FileType','NumberOfEvents','NumberOfFiles']
       for record in records:
-        infos += [record[0],record[1],record[2], record[3], record[4]]
+        infos += [[record[0],record[1],record[2], record[3], record[4]]]
     else:
       return S_ERROR(value['Message'])
     return S_OK({'ParameterNames':parameters,'Records':infos})
