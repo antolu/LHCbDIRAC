@@ -6,6 +6,7 @@ from DIRAC                                                            import gLo
 from DIRAC.Core.Workflow.Workflow                                     import fromXMLString
 from DIRAC.Core.DISET.RPCClient                                       import RPCClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient     import TransformationDBClient  
+import os
 
 class ProductionClient(TransformationDBClient):
 
@@ -46,8 +47,8 @@ class ProductionClient(TransformationDBClient):
         Any input data can be specified by either fileMast or bkQuery. If both are specified then the BKQuery takes precedence.
         Usage: createProduction <workflow or file> <filemask> <groupsize> <bkquery> <plugin> <prodGroup> <prodType> <maxJobs>
     """
-    if os.path.exists(xmlString):
-      fopen = open(xmlString,'r')
+    if os.path.exists(workflow):
+      fopen = open(workflow,'r')
       workflow = fopen.read()
       fopen.close()
     wf = fromXMLString(workflow)
