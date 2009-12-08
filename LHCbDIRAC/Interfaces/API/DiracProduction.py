@@ -1058,7 +1058,7 @@ class DiracProduction:
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for max jobs')
 
-    result = self.prodClient.createProduction(fileName,fileMask,groupSize,bkQuery,plugin,productionGroup,productionType,derivedProd,maxJobs)
+    result = self.prodClient.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,plugin=plugin,productionGroup=productionGroup,productionType=productionType,derivedProd=derivedProd,maxJobs=maxJobs)
     if not result['OK']:
       return self.__errorReport(result,'Could not create production from %s' %(fileName))  
 
