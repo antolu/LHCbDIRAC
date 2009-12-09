@@ -16,8 +16,7 @@ class BookkeepingWatchAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
-    """ Make the necessary initilizations
-    """
+    """ Make the necessary initializations """
     self.fileLog = {}
     self.timeLog = {}
     self.fullTimeLog = {}
@@ -27,7 +26,7 @@ class BookkeepingWatchAgent(AgentModule):
     # Configure the TransformationDBClient
     service = self.am_getOption('TransformationService','')
     if not service:
-      gLogger.fatal("To initialise this agent the TransformationService option must be provided")
+      gLogger.fatal("To initialize this agent the TransformationService option must be provided")
       return S_ERROR()
     self.transClient = TransformationDBClient('TransformationDB')
     self.transClient.setServer(service)
