@@ -1,37 +1,35 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
 from DIRAC                                                  import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.SiteSEMapping                     import getSitesForSE
+from DIRAC.Core.Utilities.SiteSEMapping                     import getSitesForSE,getSEsForSite
 from DIRAC.Core.Utilities.List                              import breakListIntoChunks, sortList, uniqueElements
 from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles       import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+import time,random
 
-from DIRAC.TransformationSystem.Agent.TransformationPlugin  import TransformationPlugin
+from DIRAC.TransformationSystem.Agent.TransformationPlugin  import TransformationPlugin as DIRACTransformationPlugin
 
-class TransformationPlugin(TransformationPlugin):
+class TransformationPlugin(DIRACTransformationPlugin):
 
   def __init__(self,plugin):
-    TransformationPlugin.__init__(plugin)
-
+    DIRACTransformationPlugin.__init__(self,plugin)
 
   def _ByRun(self,plugin='Standard'):
-    res = self.__groupByRun()
+    res = self._groupByRun(self.data)
     if not res['OK']:
       return res
     allReplicas = self.data.copy()
-    allTasks = {}
+    allTasks = []
     for runID,runLfns in res['Value'].items():
       runReplicas = {}
       for runLfn in runLfns:
-        runReplicas[runLfn] = allReplicas[lfn]
+        runReplicas[runLfn] = allReplicas[runLfn]
       self.data = runReplicas
-      tasks = eval('self._%s()' % plugin)
-      for key,value in tasks.items():
-        if allTasks.has_key(key):
-          allTasks[key].extend(value)
-        else:
-          allTasks[key] = value
+      res = eval('self._%s()' % plugin)
+      if not res['OK']:
+        return res
+      allTasks.extend(res['Value'])
     return S_OK(allTasks)  
 
   def _ByRunBySize(self):
@@ -47,22 +45,31 @@ class TransformationPlugin(TransformationPlugin):
       shares = {"LCG.CERN.ch": 0.144}
     else:
       shares = res['Value']
-    res = self.__groupByReplicas()
+    res = getSEsForSite('LCG.CERN.ch')
+    if not res['OK']:
+      return res
+    cernSEs = res['Value']
+    res = self._groupByReplicas()
     if not res['OK']:
       return res
     tasks = []
     for replicaSE,lfns in res['Value']:
       ses = replicaSE.split(',')
-      allSites = self.__getSitesForSEs(ses)
-      if ("LCG.CERN.ch" in allSites) and len(allSites) >= 2:
-        if random.random() < shares["LCG.CERN.ch"]:
-          tasks.append(("LCG.CERN.ch",lfns))
-        else:
-          chosenSites = allSites.remove("LCG.CERN.ch")
-          tasks.append((str.join(';',chosenSites),lfns))
+      if len(ses) == 2:
+        cernSE = ''
+        for se in ses:
+          if se in cernSEs:
+            cernSE = se
+        if cernSE:
+          ses.remove(cernSE)
+          otherSE = ses[0]
+          if random.random() < shares["LCG.CERN.ch"]:
+            tasks.append((cernSE,lfns))
+          else:
+            tasks.append((otherSE,lfns))
     return S_OK(tasks)
 
-  def __groupByRun(self):
+  def _groupByRun(self,lfnDict):
     # group data by run
     bk = BookkeepingClient()
     start = time.time()
@@ -81,7 +88,7 @@ class TransformationPlugin(TransformationPlugin):
       runDict[runNumber].append(lfn)
     return S_OK(runDict)
 
-  def __checkAncestors(self,filesReplicas,ancestorDepth):
+  def _checkAncestors(self,filesReplicas,ancestorDepth):
     """ Check ancestor availability on sites. Returns a list of SEs where all the ancestors are present
     """
     # Get the ancestors from the BK
@@ -112,13 +119,13 @@ class TransformationPlugin(TransformationPlugin):
       lfnSites = {}
       for se in lfnSEs:
         if not seSiteCache.has_key(se):
-          seSiteCache[se] = self.__getSiteForSE(se)['Value']
+          seSiteCache[se] = self._getSiteForSE(se)['Value']
         lfnSites[seSiteCache[se]] = se
       for ancestorLfn in ancestorDict[lfn]:
         ancestorSEs = ancestorReplicas[ancestorLfn]
         for se in ancestorSEs:
           if not seSiteCache.has_key(se):
-            seSiteCache[se] = self.__getSiteForSE(se)['Value']
+            seSiteCache[se] = self._getSiteForSE(se)['Value']
           ancestorSites.append(seSiteCache[se])
         for lfnSite in lfnSites.keys():
           if not lfnSite in ancestorSites:
