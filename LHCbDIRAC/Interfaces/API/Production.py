@@ -73,6 +73,7 @@ class Production(LHCbJob):
 try:
   from LHCbDIRAC.Workflow.Module.<MODULE> import <MODULE>
 except Exception,x:
+  print 'Could not import LHCbDIRAC.Workflow.Module.<MODULE>, trying from WorkflowLib'
   from WorkflowLib.Module.<MODULE> import <MODULE>
 """    
     if not script:
