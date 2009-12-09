@@ -1,6 +1,6 @@
-#from DIRACEnvironment import DIRAC
+import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
@@ -30,7 +30,7 @@ def getStreamHIST(configName,configVersion,ID,fileType):
 
 def getRunRAWFiles(runID):
   """ This queries the BKK for ALL the files (EXPRESS and FULL stream) that are assocaited with a supplied runID (which is an int).
-  
+
       returns a list of RAW files.
   """
   res = bkClient.getRunFiles(runID)
@@ -44,7 +44,7 @@ def getRunRAWFiles(runID):
 
 def getHistoAncestors(histograms):
   """ This queries the BKK to get the ancestors for the files supplied. The depth is set to 3 to ensure that the rDST and the RAW are obtained.
-     
+
       returns a dictionary of format: {'rawFile':['decendant1','decendant2']}
   """
   res = bkClient.getAncestors(histograms,3)
@@ -56,7 +56,7 @@ def getHistoAncestors(histograms):
     ancestors = res['Value']['Successful'][lfn]
     if not ancestors:
       print 'Not good:', lfn
-    else:  
+    else:
       rawFile = ancestors[-1]
       rDSTFile = ancestors[:-1]
       if not raw2Histos.has_key(rawFile):
@@ -66,8 +66,8 @@ def getHistoAncestors(histograms):
   return raw2Histos
 
 def getRAWDescendants(rawLfns):
-  """ This queries the BKK to get the files produced with the supplied files as input. The depth is set to two because two steps are needed to perform Brunel then DaVinci. 
-   
+  """ This queries the BKK to get the files produced with the supplied files as input. The depth is set to two because two steps are needed to perform Brunel then DaVinci.
+
       returns a dictionary of format: {'rawFile':['decendant1','decendant2']}
   """
   # Get the files with the RAW files as input
@@ -84,7 +84,7 @@ def getRAWDescendants(rawLfns):
 def getFilesOfInterest(rawDescendants):
   """ This will take the dictionary of file decendants {'rawFile':['decendant1','decendant2']} and check the DQ Status of each of the decendants.
       It is assumed here that you are interested only in the decendants that are in UNCHECKED status.
- 
+
       returns a dictionary containing the RAW files and their decendants {'rawFile':['decendant1','decendant2']}
   """
   raw2Reco = {}
@@ -122,7 +122,7 @@ def getInfo(lfn,info):
         ft = res3[info]
         return ft
   return 'UNDEFINED'
-  
+
 def getCERNpfn(lfn):
   """
   Download file if it is a root file
@@ -143,7 +143,7 @@ def makeNiceName(lfn,run):
   names.insert(1, ex)
   nn = '_'.join(names)
   return nn
-  
+
 def download(lfn,run):
   """
   Download file if it is a root file
@@ -159,18 +159,18 @@ def download(lfn,run):
           print '##        downloaded', lfn, 'as', name
         else:
           print '## downloaded somehow failed for', lfn, 'as', name
-          
+
       else :
         print '## download failed for', lfn, run, ft
     else :
       print '## already downloaded ', lfn, 'as', name
-  
+
 def usage():
   print 'Usage: %s <ConfigName> <ConfigVersion>' %(Script.scriptName)
   print 'Examples:'
   print '   %s Fest Fest' %(Script.scriptName)
   print '   %s Lhcb Beam1' %(Script.scriptName)
-  
+
 ############################################################################
 """
 Main program : get all files
@@ -192,7 +192,7 @@ expressID = 91000000
 fullID = 90000000
 
 expressHistos = getStreamHIST(configName,configVersion,expressID,'BRUNELHIST')+getStreamHIST(configName,configVersion,expressID,'DAVINCIHIST')
-gLogger.info("Obtained %s UNCHECKED express stream histograms." % (len(expressHistos))) 
+gLogger.info("Obtained %s UNCHECKED express stream histograms." % (len(expressHistos)))
 fullHistos = getStreamHIST(configName,configVersion,fullID,'BRUNELHIST')+getStreamHIST(configName,configVersion,fullID,'DAVINCIHIST')
 gLogger.info("Obtained %s UNCHECKED full stream histograms." % (len(fullHistos)))
 
