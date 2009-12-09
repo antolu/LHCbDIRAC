@@ -71,7 +71,7 @@ class Production(LHCbJob):
     self.ancestorProduction = ''
     self.importLine = """
 try:
-  from LHCbDIRAC.Workflow.Module.<MODULE> import <MODULE>
+  from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 except Exception,x:
   print 'Could not import LHCbDIRAC.Workflow.Module.<MODULE>, trying from WorkflowLib'
   from WorkflowLib.Module.<MODULE> import <MODULE>
