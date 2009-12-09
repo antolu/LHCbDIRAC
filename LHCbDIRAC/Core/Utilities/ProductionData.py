@@ -54,7 +54,7 @@ def constructProductionLFNs(paramDict):
   lfnRoot = ''
   debugRoot = ''
   if inputData:
-    self.log.info('Making LFN_ROOT for job with inputdata: %s' %(inputData))
+    gLogger.info('Making LFN_ROOT for job with inputdata: %s' %(inputData))
     lfnRoot = _getLFNRoot(inputData,wfConfigName)
   else:
     lfnRoot = _getLFNRoot('',wfConfigName,wfConfigVersion)
