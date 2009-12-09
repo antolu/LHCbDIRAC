@@ -15,6 +15,7 @@ from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from DIRAC.Core.Utilities.Shifter                         import setupShifterProxyInEnv
 
 from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig, gMonitor
 
@@ -34,6 +35,7 @@ class ProductionJobAgent(AgentModule):
     self.jobsToSubmitPerProduction = self.am_getOption('JobsToSubmitPerProduction',50)
     self.productionStatus = self.am_getOption('SubmitStatus','automatic')
     self.enableFlag = None
+    self.prodClient = ProductionClient()
     gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
     return S_OK()
 
@@ -101,9 +103,8 @@ class ProductionJobAgent(AgentModule):
     """  
     
     self.log.info("Checking Reserved jobs")    
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
     wmsClient = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
-    result = prodClient.getTransformations()
+    result = self.prodClient.getTransformations()
     if not result['OK']:
       return result
 
@@ -118,39 +119,35 @@ class ProductionJobAgent(AgentModule):
       time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
       time_stamp_newer = str(datetime.datetime.utcnow() - datetime.timedelta(days=7))
       # Get Reserved jobs - 100 at a time
-      result = prodClient.selectJobs(production,'Reserved',250,'',time_stamp_older,time_stamp_newer)
+      result = self.prodClient.selectTransformationTasks(production,'Reserved',250,'',time_stamp_older,time_stamp_newer)
       if not result['OK']:
         continue
       jobNameList = []
-      jobIDs = result['Value'].keys()
-      for jobID in jobIDs:
+      jobIDs = []
+      for tuple in result['Value']:  # tuple = prodJobID,prodID,wmsStatus,wmsID,targetSE,creationTime,lastUpdateTime
+        jobID = tuple[0]
+        jobIDs.append(jobID)
         jobNameList.append(str(production).zfill(8)+'_'+str(jobID).zfill(8))
       if jobNameList:
         result = wmsClient.getJobs({'JobName':jobNameList})
-        print result
         if result['OK']:
           if result['Value']:
             # Some jobs have been submitted, let's get their status one by one
             for jobWmsID in result['Value']:
               result = wmsClient.getJobPrimarySummary(int(jobWmsID))
-              print result
               if result['OK']:
                 status = result['Value']['Status']
                 jobName = result['Value']['JobName']
                 jobID = int(jobName.split('_')[1])
                 self.log.info('Restoring status for job %s of production %s from Reserved to %s/%s' % (jobID,production,status,jobWmsID))
-                result = prodClient.setJobStatusAndWmsID(long(production),long(jobID),status,jobWmsID)  
-                #print "AT >>>> setting job status",long(production),long(jobID),status,jobWmsID
-                #result = S_OK()
+                result = self.prodClient.self.setTaskStatusAndWmsID(long(production),long(jobID),status,jobWmsID)  
                 if not result['OK']:
                   self.log.warn(result['Message'])
           else:
             # The jobs were not submitted
             for jobID in jobIDs:
               self.log.info('Resetting status for job %s of production %s from Reserved to %s' % (jobID,production,'Created'))
-              result = prodClient.setTaskStatus(long(production),long(jobID),'Created')  
-              #print "AT >>>> resetting job status",long(production),long(jobID),'Created'
-              #result = S_OK()
+              result = self.prodClient.setTaskStatus(long(production),long(jobID),'Created')  
               if not result['OK']:
                 self.log.warn(result['Message'])
         else:
