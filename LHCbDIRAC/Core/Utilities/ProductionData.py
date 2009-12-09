@@ -18,14 +18,15 @@ def constructProductionLFNs(paramDict):
       LFN construction is tidied.  This works using the workflow commons for
       on the fly construction.
   """
-  keys = ['PRODUCTION_ID','JOB_ID','dataType','configVersion','JobType','outputList']
+  keys = ['PRODUCTION_ID','JOB_ID','dataType','configVersion','JobType','outputList','configName']
   for k in keys:
     if not paramDict.has_key(k):
       return S_ERROR('%s not defined' %k)
 
   productionID = paramDict['PRODUCTION_ID']
   jobID = paramDict['JOB_ID']
-  wfMode = paramDict['dataType']
+#  wfMode = paramDict['dataType']
+  wfConfigName=paramDict['configName']
   wfConfigVersion=paramDict['configVersion']
   wfMask = paramDict['outputDataFileMask']
   if not type(wfMask)==type([]):
@@ -37,7 +38,7 @@ def constructProductionLFNs(paramDict):
     inputData=paramDict['InputData']
 
   fileTupleList = []
-  gLogger.verbose('WFMode = %s, WFConfigVersion = %s, WFMask = %s, WFType=%s' %(wfMode,wfConfigVersion,wfMask,wfType))
+  gLogger.verbose('wfConfigName = %s, wfConfigVersion = %s, wfMask = %s, wfType=%s' %(wfConfigName,wfConfigVersion,wfMask,wfType))
   for info in outputList:
     #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
     fileName = info['outputDataName'].split('_')
@@ -53,12 +54,14 @@ def constructProductionLFNs(paramDict):
   lfnRoot = ''
   debugRoot = ''
   if inputData:
-    lfnRoot = _getLFNRoot(inputData,wfType)
+    self.log.info('Making LFN_ROOT for job with inputdata: %s' %(inputData))
+    lfnRoot = _getLFNRoot(inputData,wfConfigName)
   else:
-    lfnRoot = _getLFNRoot('',wfType,wfConfigVersion)
+    lfnRoot = _getLFNRoot('',wfConfigName,wfConfigVersion)
+    gLogger.verbose('LFN_ROOT is: %s' %(lfnRoot))
     debugRoot= _getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
 
-  gLogger.verbose('LFN root is: %s' %(lfnRoot))
+  gLogger.verbose('LFN_ROOT is: %s' %(lfnRoot))
   if not lfnRoot:
     return S_ERROR('LFN root could not be constructed')
 
@@ -67,17 +70,17 @@ def constructProductionLFNs(paramDict):
   bkLFNs = []
   debugLFNs = []
   for fileTuple in fileTupleList:
-    lfn = _makeProductionLfn(str(jobID).zfill(8),lfnRoot,fileTuple,wfMode,str(productionID).zfill(8))
+    lfn = _makeProductionLfn(str(jobID).zfill(8),lfnRoot,fileTuple,wfConfigName,str(productionID).zfill(8))
     outputData.append(lfn)
     bkLFNs.append(lfn)
     if debugRoot:
-      debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfMode,str(productionID).zfill(8)))
+      debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,fileTuple,wfConfigName,str(productionID).zfill(8)))
 
   if debugRoot:
-    debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,('%s_core' % str(jobID).zfill(8) ,'core'),wfMode,str(productionID).zfill(8)))
+    debugLFNs.append(_makeProductionLfn(str(jobID).zfill(8),debugRoot,('%s_core' % str(jobID).zfill(8) ,'core'),wfConfigName,str(productionID).zfill(8)))
 
   #Get log file path - unique for all modules
-  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
+  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfConfigName,str(productionID).zfill(8),log=True)
   logFilePath = ['%s/%s' %(logPath,str(jobID).zfill(8))]
   logTargetPath = ['%s/%s_%s.tar' %(logPath,str(productionID).zfill(8),str(jobID).zfill(8))]
   #[ aside, why does makeProductionPath not append the jobID itself ????
@@ -138,22 +141,22 @@ def getLogPath(paramDict):
 
   productionID = paramDict['PRODUCTION_ID']
   jobID = paramDict['JOB_ID']
-  wfMode = paramDict['dataType']
+  wfConfigName = paramDict['dataType']
   wfConfigVersion=paramDict['configVersion']
   wfType=paramDict['JobType']
   inputData=''
   if paramDict.has_key('InputData'):
     inputData=paramDict['InputData']
 
-  gLogger.verbose('WFMode = %s, WFConfigVersion = %s, WFType=%s' %(wfMode,wfConfigVersion,wfType))
+  gLogger.verbose('wfConfigName = %s, wfConfigVersion = %s, wfType=%s' %(wfConfigName,wfConfigVersion,wfType))
   lfnRoot = ''
   if inputData:
     lfnRoot = _getLFNRoot(inputData,wfType)
   else:
-    lfnRoot = _getLFNRoot('',wfType,wfConfigVersion)
+    lfnRoot = _getLFNRoot('',wfConfigName,wfConfigVersion)
 
   #Get log file path - unique for all modules
-  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfMode,str(productionID).zfill(8),log=True)
+  logPath = _makeProductionPath(str(jobID).zfill(8),lfnRoot,'LOG',wfConfigName,str(productionID).zfill(8),log=True)
   logFilePath = ['%s/%s' %(logPath,str(jobID).zfill(8))]
   logTargetPath = ['%s/%s_%s.tar' %(logPath,str(productionID).zfill(8),str(jobID).zfill(8))]
 
@@ -163,11 +166,27 @@ def getLogPath(paramDict):
   return S_OK(jobOutputs)
 
 #############################################################################
-def constructUserLFNs(paramDict):
+def constructUserLFNs(jobID,owner,outputFile):
   """ Under construction, will be used for constructing output LFNs for user job
       finalization.
   """
-  return S_OK()
+  initial = owner[:1]
+  subdir = str(jobID/1000)  
+  #Make below path mandatory for LHCb:
+  lfn = '/lhcb/user/'+initial+'/'+owner+'/'+subdir+'/'
+  #Finer structure is optional, the user specifies LFN:<structure>/<fileName>
+  #this maps to mandatory path + structure + file name
+  if not re.search('^LFN:',outputFile):
+    localfile = outputFile
+
+    if outputPath:
+      # Add output Path if given
+      subdir = outputPath + '/' + subdir
+    lfn += str(jobID)+'/'+os.path.basename(localfile)
+  else:
+    lfn += string.replace(outputPath,"LFN:","")
+  
+  return S_OK({outputFile:lfn})
 
 #############################################################################
 def _makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
@@ -190,6 +209,7 @@ def _makeProductionLfn(JOB_ID,LFN_ROOT,filetuple,mode,prodstring):
   """ Constructs the logical file name according to LHCb conventions.
       Returns the lfn without 'lfn:' prepended.
   """
+  gLogger.debug('Making production LFN for JOB_ID %s, LFN_ROOT %s, mode %s, prodstring %s for\n%s' %(JOB_ID,LFN_ROOT,mode,prodstring,str(filetuple)))
   try:
     jobid = int(JOB_ID)
     jobindex = string.zfill(jobid/10000,4)
@@ -213,11 +233,10 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
   dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
   gLogger.info('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
   LFN_ROOT=''  
-  
+  gLogger.verbose('wf lfn: %s, namespace: %s, configVersion: %s' %(lfn,namespace,configVersion))
   if not lfn:
-    LFN_ROOT='/lhcb/MC/'+str(configVersion)
-    if namespace.lower() in ('test','debug'):
-      LFN_ROOT='/lhcb/MC/%s' %(namespace)
+    LFN_ROOT = '/lhcb/%s/%s' %(namespace,configVersion)
+    gLogger.info('LFN_ROOT will be %s' %(LFN_ROOT))
     return LFN_ROOT
   
   lfn = [fname.replace(' ','') for fname in lfn.split(';')]
