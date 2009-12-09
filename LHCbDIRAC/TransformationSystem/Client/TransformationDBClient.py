@@ -17,13 +17,9 @@ class TransformationDBClient(DIRACTransformationDBClient):
       The following methods are available (although not visible here).
 
       BK query manipulation
-
-          addBookkeepingQuery(queryDict)
-          getBookkeepingQueryForTransformation(transName)
-          getBookkeepingQuery(queryID)
           deleteBookkeepingQuery(queryID)
-          setTransformationQuery(transName, queryID)
           createTransformationQuery(transName,queryDict)      
+          getBookkeepingQueryForTransformation(transName)
   """
   def __init__(self, *args, **kargs):
     DIRACTransformationDBClient.__init__(self, *args, **kargs)
