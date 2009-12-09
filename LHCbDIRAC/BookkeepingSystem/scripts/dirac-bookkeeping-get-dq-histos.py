@@ -1,4 +1,4 @@
-from DIRACEnvironment import DIRAC
+#from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
