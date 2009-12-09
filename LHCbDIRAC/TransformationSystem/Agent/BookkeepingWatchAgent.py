@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import Bookk
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 import os, time, datetime
 
-AGENT_NAME = 'LHCbSystem/BookkeepingWatchAgent'
+AGENT_NAME = 'TransformationSystem/BookkeepingWatchAgent'
 
 class BookkeepingWatchAgent(AgentModule):
 
@@ -33,7 +33,6 @@ class BookkeepingWatchAgent(AgentModule):
     self.transClient.setServer(service)
     # Create the BK client
     self.bkClient = BookkeepingClient()
-
     return S_OK()
 
   ##############################################################################
@@ -43,7 +42,7 @@ class BookkeepingWatchAgent(AgentModule):
 
     gMonitor.addMark('Iteration',1)
     # Get all the transformations
-    result = self.transClient.getAllTransformations()
+    result = self.transClient.getTransformations(condDict={'Status':'Active'},extraParams=True)
     activeTransforms = []
     if not result['OK']:
       gLogger.error("BookkeepingWatchAgent.execute: Failed to get transformations.", result['Message'])
@@ -52,15 +51,14 @@ class BookkeepingWatchAgent(AgentModule):
     # Process each transformation
     for transDict in result['Value']:    
       transID = long(transDict['TransformationID'])
-      transStatus = transDict['Status']
-      bkQueryID = transDict['BkQueryID']
-      if transStatus in ["Active"] and bkQueryID:
-        # Obtain the bookkeeping query
-        result = self.transClient.getBookkeepingQuery(bkQueryID)
-        if not result['OK']:
+      if not transDict.has_key('BkQueryID'):
+        gLogger.info("BookkeepingWatchAgent.execute: Transformation %d did not have associated BK query" % transID)
+      else:
+        res = self.transClient.getBookkeepingQueryForTransformation(transID)
+        if not res['OK']:
           gLogger.warn("BookkeepingWatchAgent.execute: Failed to get BkQuery", result['Message'])
           continue
-        bkDict = result['Value']  
+        bkDict = res['Value'] 
         
         # Make sure that we include only the required elements and format them correctly
         for name,value in bkDict.items():  
