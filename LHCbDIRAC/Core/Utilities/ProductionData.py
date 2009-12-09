@@ -7,7 +7,7 @@
 
 __RCSID__ = "$Id$"
 
-import string,re
+import string,re,os
 
 #This utility can eventually contain all of the LHCb conventions regarding input data.
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
