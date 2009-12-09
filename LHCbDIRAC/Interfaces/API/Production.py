@@ -861,9 +861,9 @@ except Exception,x:
         print v
 
     #Due to problem with Transformation parameters have to remove dictionaries (lists will be joined with \n)
-    del parameters['BKInputQuery']
-    del parameters['BKProcessingPass']
-    del parameters['OutputLFNs']
+#    del parameters['BKInputQuery']
+#    del parameters['BKProcessingPass']
+#    del parameters['OutputLFNs']
 
     for n,v in parameters.items():
       result = self.setProdParameter(prodID,n,v)
