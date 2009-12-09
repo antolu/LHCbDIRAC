@@ -1816,7 +1816,7 @@ class LHCB_BKKDBManager(BaseESManager):
       fd = ''
       if savedType == 'txt':
         for lfn in files:
-          fd += str(lfn[0])+'\n'
+          fd += str(lfn)+'\n'
         return fd
     
     # get lst of event types
@@ -1827,12 +1827,18 @@ class LHCB_BKKDBManager(BaseESManager):
     for i in files:
         file = files[i]
         type = int(file['EvtTypeId'])
-        stat = int(file['EventStat'])
+        stat = 0
+        if file['EventStat'] != None:
+          stat = int(file['EventStat'])
+  
         if not evtTypes.has_key(type):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
-        evtTypes[type][2] += int(file['FileSize'])/1000000000.
+        if file['FileSize'] != None:
+          evtTypes[type][2] += int(file['FileSize'])/1000000000.
+        else:
+          evtTypes[type][2] += 0
         nbEvts += stat
         if not fileType:
             fileType = file['FileType']
