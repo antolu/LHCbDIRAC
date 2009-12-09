@@ -1,6 +1,6 @@
-import DIRAC
+from DIRACEnvironment import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
@@ -8,13 +8,17 @@ import os
 from DIRAC import gLogger
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-def getStreamHIST(ID,fileType):
+def getStreamHIST(configName,configVersion,ID,fileType):
   """ This performs a bookkeeping query to obtain the EXPRESS/FULL stream RAW files that are in the DataQuality status 'UNCHECKED'.
       This will get you the files for the runs that have not yet been checked.
 
       returns a list of RAW files.
   """
-  bkDict = {'EventType': ID, 'ConfigName':'Fest', 'ConfigVersion':'Fest','FileType':fileType,'DataQualityFlag':'UNCHECKED'}
+  bkDict = {'EventType': ID,
+            'ConfigName':configName,
+            'ConfigVersion':configVersion,
+            'FileType':fileType,
+            'DataQualityFlag':'UNCHECKED'}
   res = bkClient.getFilesWithGivenDataSets(bkDict)
   if not res['OK']:
     gLogger.error(res['Message'])
@@ -161,19 +165,35 @@ def download(lfn,run):
     else :
       print '## already downloaded ', lfn, 'as', name
   
+def usage():
+  print 'Usage: %s <ConfigName> <ConfigVersion>' %(Script.scriptName)
+  print 'Examples:'
+  print '   %s Fest Fest' %(Script.scriptName)
+  print '   %s Lhcb Beam1' %(Script.scriptName)
+  
 ############################################################################
 """
 Main program : get all files
 """
+Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
+if len(args) != 2 :
+  print 'There are', len(args), 'args'
+  usage()
+  DIRAC.exit(-1)
+
+configName = args[0]
+configVersion = args[1]
+
 gLogger.setLevel("WARNING")
 bkClient = BookkeepingClient()
 dirac = Dirac()
 expressID = 91000000
 fullID = 90000000
 
-expressHistos = getStreamHIST(expressID,'BRUNELHIST')+getStreamHIST(expressID,'DAVINCIHIST')
+expressHistos = getStreamHIST(configName,configVersion,expressID,'BRUNELHIST')+getStreamHIST(configName,configVersion,expressID,'DAVINCIHIST')
 gLogger.info("Obtained %s UNCHECKED express stream histograms." % (len(expressHistos))) 
-fullHistos = getStreamHIST(fullID,'BRUNELHIST') + getStreamHIST(fullID,'DAVINCIHIST')
+fullHistos = getStreamHIST(configName,configVersion,fullID,'BRUNELHIST')+getStreamHIST(configName,configVersion,fullID,'DAVINCIHIST')
 gLogger.info("Obtained %s UNCHECKED full stream histograms." % (len(fullHistos)))
 
 raw2Histos = {}
