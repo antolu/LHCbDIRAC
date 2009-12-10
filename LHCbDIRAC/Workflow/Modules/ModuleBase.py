@@ -15,7 +15,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 from DIRAC.Core.Security.Misc import getProxyInfoAsString
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
-from DIRAC.Core.Utilities.File import fileAdler
+from DIRAC.Core.Utilities.Adler import fileAdler
 import DIRAC
 import os,string
 

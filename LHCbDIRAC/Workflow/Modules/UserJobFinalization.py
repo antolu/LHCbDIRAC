@@ -11,7 +11,7 @@ from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.Resources.Catalog.PoolXMLCatalog                import PoolXMLCatalog
-from DIRAC.Core.Utilities.File                             import fileAdler
+from DIRAC.Core.Utilities.Adler                            import fileAdler
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
