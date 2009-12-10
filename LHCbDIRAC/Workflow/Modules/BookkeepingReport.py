@@ -346,12 +346,16 @@ class BookkeepingReport(ModuleBase):
         if not guidResult['OK']:
           self.log.error('Could not find GUID for %s with message' %(output),guidResult['Message'])
         elif guidResult['generated']:
-          self.log.error('PoolXMLFile generated GUID(s) for the following files ',string.join(guidResult['generated'],', '))
+          self.log.warn('PoolXMLFile generated GUID(s) for the following files ',string.join(guidResult['generated'],', '))
           guid = guidResult['Value'][output]
         else:
-          guidinput = guidResult['Value'][output]
+          guid = guidResult['Value'][output]
+          self.log.info('Setting POOL XML catalog GUID for %s to %s' %(output,guid))
       else:
         guid = self.step_commons[ 'guid' ][ output ]
+
+      if not guid:
+        return S_ERROR('No GUID found for %s' %output)
 
       # find the constructed lfn
       lfn = ''
