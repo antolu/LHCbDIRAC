@@ -243,7 +243,7 @@ class ModuleBase(object):
       
       final[fileName]=metadata
       final[fileName]['filedict']=fileDict
-      final[fileName]['localPath'] = '%s/%s' %(os.getcwd(),fileName)  
+      final[fileName]['localpath'] = '%s/%s' %(os.getcwd(),fileName)  
 
     #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     mandatoryKeys = ['guid','filedict'] #filedict is used for requests (this method adds guid and filedict)
