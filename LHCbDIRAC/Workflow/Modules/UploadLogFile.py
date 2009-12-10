@@ -169,7 +169,7 @@ class UploadLogFile(ModuleBase):
     res = S_ERROR()
     if not self.failoverTest:
       self.log.info('PutDirectory %s %s %s' % (self.logFilePath, os.path.realpath(self.logdir),self.logSE))
-      res = self.rm.putDirectory(self.logFilePath,os.path.realpath(self.logdir),self.logSE)
+      res = self.rm.putStorageDirectory({self.logFilePath:os.path.realpath(self.logdir)},self.logSE,singleDirectory=True)
       self.log.verbose(res)
       if res['OK']:
         self.log.info('Successfully upload log directory to %s' % self.logSE)
