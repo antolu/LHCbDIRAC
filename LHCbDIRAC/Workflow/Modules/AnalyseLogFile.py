@@ -16,12 +16,670 @@ from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from LHCbDIRAC.Core.Utilities.ProductionData             import getLogPath,constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 
-from DIRAC import                                        S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
 class AnalyseLogFile(ModuleBase):
 
-#
+  #############################################################################
+  def __init__(self):
+    """Module initialization.
+    """
+    self.log = gLogger.getSubLogger("AnalyseLogFile")    
+    self.version = __RCSID__
+    self.site = DIRAC.siteName()
+    self.systemConfig = ''
+    self.result = S_ERROR()
+    self.mailadress = ''
+    self.numberOfEventsInput = ''
+    self.numberOfEventsOutput = ''
+    self.numberOfEvents = ''
+    self.applicationName = ''
+    self.inputData = ''
+    self.InputData = ''
+    self.sourceData = ''
+    self.JOB_ID = ''
+    self.jobID = ''
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
+    self.poolXMLCatName = 'pool_xml_catalog.xml'
+    self.applicationLog = ''
+    self.applicationVersion = ''
+    self.logFilePath = ''
+    self.coreFile = ''
+    self.stepInputData = []
+    self.projectList = gConfig.getValue('/Operations/CoreSoftware/ProjectList',['Boole','Gauss','Brunel','DaVinci','LHCb','Moore']) 
+
+  #############################################################################
+  def resolveInputVariables(self):
+    """ By convention any workflow parameters are resolved here.
+    """
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
+
+    if not self.applicationName in self.projectList:
+      self.log.error('applicationName is not defined or known %s' %(self.applicationName))
+      return S_ERROR('applicationName is not defined or known %s' %(self.applicationName))    
+    
+    if self.workflow_commons.has_key('InputData'):
+       self.InputData = self.workflow_commons['InputData']
+
+    if self.workflow_commons.has_key('sourceData'):
+        self.sourceData = self.workflow_commons['sourceData']
+
+    if self.step_commons.has_key('applicationName'):
+       self.applicationName = self.step_commons['applicationName']
+       self.applicationVersion = self.step_commons['applicationVersion']
+       self.applicationLog = self.step_commons['applicationLog']
+
+    if self.workflow_commons.has_key('poolXMLCatName'):
+       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+
+    if self.step_commons.has_key('inputDataType'):
+       self.inputDataType = self.step_commons['inputDataType']
+
+    if self.step_commons.has_key('numberOfEvents'):
+       self.numberOfEvents = self.step_commons['numberOfEvents']
+
+    if self.step_commons.has_key('numberOfEventsInput'):
+       self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
+
+    if self.step_commons.has_key('numberOfEventsOutput'):
+       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']    
+    
+    #Use LHCb utility for local running via jobexec
+    if self.workflow_commons.has_key('LogFilePath'):
+      self.logFilePath = self.workflow_commons['LogFilePath']
+    else:
+      self.log.info('LogFilePath parameter not found, creating on the fly')
+      result = getLogPath(self.workflow_commons)
+      if not result['OK']:
+        self.log.error('Could not create LogFilePath',result['Message'])
+        return result
+      self.logFilePath=result['Value']['LogFilePath'][0]
+
+    return S_OK()
+
+  #############################################################################
+  def execute(self):
+    self.log.info('Initializing '+self.version)
+    result = self.resolveInputVariables()
+    if not result['OK']:
+      self.log.error(result['Message'])
+      return result
+    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
+      if not self.numberOfEventsInput or not self.numberOfEventsOutput:
+        return S_ERROR()
+      return S_OK()
+
+    # Search for core dumps in any case.
+    res = self.checkCoreDump()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+      if self.stepStatus.has_key('Message'):
+        # This seems to be wrong, since analysis of errors is not done and mails for crashes are not sent
+        if self.stepStatus['Message'] == 'Application not found':
+          self.log.info('Skip this module, failure detected in a previous step :')
+          self.log.info('Workflow status : %s' %(self.workflowStatus))
+          self.log.info('Step Status %s' %(self.stepStatus))
+          return S_OK()
+      if self.workflowStatus.has_key('Message'):
+        if not self.workflowStatus['Message'] == 'Application not found':
+          self.log.info('Skip this module, failure detected in a previous step :')
+          self.log.info('Workflow status : %s' %(self.workflowStatus))
+          self.log.info('Step Status %s' %(self.stepStatus))
+          return S_OK()
+    self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
+
+    # Resolve the step and job input data
+    self.stepInputData = []
+    if self.step_commons.has_key('inputData'):
+      for f in self.step_commons['inputData'].split(';'):
+        self.stepInputData.append(f.replace("LFN:",""))
+    self.log.info("Resolved the step input data to be %s" % str(self.stepInputData))
+    self.jobInputData = {}
+    if self.InputData:
+      for f in self.InputData.split(';'):
+        self.jobInputData[f.replace("LFN:","")] = 'OK'
+    self.log.info("Resolved the job input data to be %s" % str(self.jobInputData.keys()))
+
+    # Check the log file exists and get the contents
+    res = self.getLogString()
+    if not res['OK']:
+      self.log.error(result)
+      self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
+      return res
+
+    # Check that no errors were seen in the log
+    res = self.goodJob()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+      self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+      return res
+    # Check that the number of events handled is correct
+    res = self.nbEvent()
+    if not res['OK']:
+      self.sendErrorMail(res['Message'])
+      self.updateFileStatus(self.jobInputData, "Unused")
+      # return S_OK if the Step already failed to avoid overwriting the error
+      if not self.stepStatus['OK']: return S_OK()
+      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
+      return res
+    # return S_OK if the Step already failed to avoid overwriting the error
+    if not self.stepStatus['OK']:
+      self.updateFileStatus(self.jobInputData, "Unused")
+      return S_OK()
+    # If the job was successful Update the status of the files to processed
+    self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
+    self.setApplicationStatus('%s Step OK' % (self.applicationName))
+    return self.updateFileStatus(self.jobInputData, "Processed")
+
+  #############################################################################
+  def getLogString(self):
+    self.log.info("Attempting to open %s" % (self.applicationLog))
+    if not os.path.exists(self.applicationLog):
+      return S_ERROR('%s is not available' % (self.applicationLog))
+    if os.stat(self.applicationLog)[6] == 0:
+      return S_ERROR('%s is empty' % (self.applicationLog))
+    fd = open(self.applicationLog,'r')
+    self.logString = fd.read()
+    return S_OK()
+
+  #############################################################################
+  def checkCoreDump(self):
+    # Check for a core file
+    for file in os.listdir('.'):
+      if re.search('^core.[0-9]+$', file):
+        self.coreFile = file
+        return S_ERROR('Core dump found')
+    return S_OK()
+
+  #############################################################################
+  def goodJob(self):
+    # Check if the application finish successfully
+    self.log.info('Check application ended successfully')
+    toFind = 'Application Manager Finalized successfully'
+    if self.applicationName.lower()=='moore':
+      toFind = 'Service finalized successfully'
+    okay = self.findString(toFind)['Value']
+    if not okay:
+      return S_ERROR('Finalization Error')
+
+    # Check whether there were errors completing the event loop
+    dict_app_error = {\
+    'Terminating event processing loop due to errors'                 :     'Event loop not terminated'}
+    for errString,description in dict_app_error.items():
+      self.log.info('Check %s' % description)
+      found = self.findString(errString)['Value']
+      if found:
+        res = self.getLastFile()
+        if res['OK']:
+          lastFile = res['Value']
+          if self.jobInputData.has_key(lastFile):
+            self.jobInputData[lastFile] = "ApplicationCrash"
+            return S_ERROR(description)
+
+    # Check for a known list of problems in the application logs
+    dict_app_error = {\
+    'Cannot connect to database'                                      :     'error database connection',
+    'Could not connect'                                               :     'CASTOR error connection',
+    'SysError in <TDCacheFile::ReadBuffer>: error reading from file'  :     'DCACHE connection error',
+    'Failed to resolve'                                               :     'IODataManager error',
+    'Error: connectDataIO'                                            :     'connectDataIO error',
+    'Error:connectDataIO'                                             :     'connectDataIO error',
+    ' glibc '                                                         :     'Problem with glibc',
+    'GaussTape failed'                                                :     'GaussTape failed',
+    'Writer failed'                                                   :     'Writer failed',
+    'Bus error'                                                       :     'Bus error',
+    'User defined signal 1'                                           :     'User defined signal 1',
+    'Not found DLL'                                                   :     'Not found DLL'}
+    #'G4Exception'                                                     :     'G4Exception',
+    failed = False
+    errorList = []
+    for errString,description in dict_app_error.items():
+      self.log.info('Check %s' % description)
+      found = self.findString(errString)['Value']
+      if found:
+        failed = True
+        errorList.append(description)
+        self.log.error("Detected problem with '%s'" % description)
+    if failed:
+      description = 'Error in application detected: %s' % ', '.join(errorList)
+      return S_ERROR(description)
+
+    return self.catchPoolIOError()
+
+  #############################################################################
+  def nbEvent(self):
+    if self.applicationName.lower() == 'lhcb':
+      return self.checkLHCbEvents()
+    if self.applicationName.lower() == 'gauss':
+      return self.checkGaussEvents()
+    if self.applicationName.lower() == 'boole':
+      return self.checkBooleEvents()
+    if self.applicationName.lower() == 'brunel':
+      return self.checkBrunelEvents()
+    if self.applicationName.lower() == 'davinci':
+      return self.checkDaVinciEvents()
+    if self.applicationName.lower() == 'moore':
+      return self.checkMooreEvents()
+    return S_ERROR("Application not known")
+
+  #############################################################################
+  def checkMooreEvents(self):
+    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEventSummary()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+
+    res = self.getEventsOutput('InputCopyStream')
+    if not res['OK']:
+      return S_ERROR('No events output')
+    
+    # Get the number of events processed by DaVinci
+    res = self.getEventsProcessed('L0Muon')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("Crash in event %s" % lastEvent)
+    processedEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = self.findString('No more events in event selection')['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("Not all input events processed")
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR("Too few events processed")
+    return S_OK()
+
+  #############################################################################
+  def checkLHCbEvents(self):
+    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """
+    mailto = self.applicationName.upper()+'_EMAIL'
+
+    # Get the last event processed
+    lastEvent = self.getLastEventSummary()['Value']
+    if not lastEvent:
+      return S_ERROR('%s No events read' % mailto)
+    self.numberOfEventsInput = str(lastEvent)
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = self.numberOfEventsInput
+    # Get the number of events output by LHCb
+    res = self.getEventsOutput('InputCopyStream')
+    if not res['OK']:
+      return S_ERROR('No events output')
+    outputEvents = res['Value']
+    if outputEvents != lastEvent:
+      return S_ERROR("%s Processed events do not match" % mailto)
+    # If there were no events processed
+    if outputEvents == 0:
+      return S_ERROR("No events processed")
+    return S_OK()
+
+  #############################################################################
+  def checkGaussEvents(self):
+    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+    # You must give a requested number of events for Gauss (this is pointless as the job will run forever)
+    if not requestedEvents:
+      return S_ERROR("Missing requested events option for job")
+
+    # Get the last event processed
+    lastEvent = self.getLastEvent()['Value']
+    # Get the number of events generated by Gauss
+    res = self.getEventsProcessed('GaussGen')
+    if not res['OK']:
+      return S_ERROR("Crash in event %s" % lastEvent)
+    generatedEvents = res['Value']
+    # Get the number of events processed by Gauss
+    res = self.getEventsOutput('GaussTape')
+    if not res['OK']:
+      result = S_ERROR('No events output')
+    outputEvents = res['Value']
+
+    # Check that the correct number of events were generated
+    if generatedEvents != requestedEvents:
+      return S_ERROR('Too few events generated')
+    # Check that more than 90% of generated events are output
+    if outputEvents < 0.9*requestedEvents:
+      return S_ERROR('Too few events output')
+    return S_OK()
+
+  #############################################################################
+  def checkBooleEvents(self):
+    """ Obtain event information from the application log and determine whether the Boole job processed the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEvent()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+
+    # Get the number of events processed by Boole
+    res = self.getEventsProcessed('BooleInit')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("Crash in event %s" % lastEvent)
+    processedEvents = res['Value']
+    # Get the number of events output by Boole
+    res = self.getEventsOutput('DigiWriter')
+    if not res['OK']:
+      res = self.getEventsOutput('RawWriter')
+      if not res['OK']:
+        return S_ERROR('No events output')
+    outputEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = self.findString('No more events in event selection')['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("Not all input events processed")
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR('Too few events processed')
+    # Check that the final reported processed events match those logged as processed during execution
+    if lastEvent != processedEvents:
+      return S_ERROR("Processed events do not match")
+    # If there were no events processed
+    if processedEvents == 0:
+      return S_ERROR("No events processed")
+    # If the output events are not equal to the processed events be sure there were no failed events
+    if outputEvents != processedEvents:
+      pass # TODO: Find out whether there is a way to find failed events
+    return S_OK()
+
+  #############################################################################
+  def checkBrunelEvents(self):
+    """ Obtain event information from the application log and determine whether the Brunel job processed the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEvent()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+    # Get the number of events processed by Brunel
+    res = self.getEventsProcessed('BrunelInit')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("Crash in event %s" % lastEvent)
+    processedEvents = res['Value']
+    # Get the number of events output by Brunel
+    res = self.getEventsOutput('DstWriter')
+    if not res['OK']:
+      return S_ERROR('No events output')
+    outputEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = self.findString('No more events in event selection')['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("Not all input events processed")
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR('Too few events processed')
+    # Check that the final reported processed events match those logged as processed during execution
+    if lastEvent != processedEvents:
+      return S_ERROR("Processed events do not match")
+    # If there were no events processed
+    if processedEvents == 0:
+      return S_ERROR("No events processed")
+    # If the output events are not equal to the processed events be sure there were no failed events
+    if outputEvents != processedEvents:
+      return S_ERROR("Processed events not all output")
+    return S_OK()
+
+  #############################################################################
+  def checkDaVinciEvents(self):
+    """ Obtain event information from the application log and determine whether the DaVinci job processed the correct number of events.
+    """
+    # Get the number of requested events
+    res = self.getRequestedEvents()
+    if not res['OK']:
+      return res
+    requestedEvents = res['Value']
+
+    # Get the last event processed
+    lastEvent = self.getLastEventSummary()['Value']
+    if not self.workflow_commons.has_key('FirstStepInputEvents'):
+      self.workflow_commons['FirstStepInputEvents'] = lastEvent
+    # Get the number of events processed by DaVinci
+    res = self.getEventsProcessed('DaVinciInit')
+    if not res['OK']:
+      res = self.getLastFile()
+      if res['OK']:
+        lastFile = res['Value']
+        if self.inputFiles.has_key(lastFile):
+          self.inputFiles[lastFile] = "ApplicationCrash"
+      return S_ERROR("Crash in event %s" % lastEvent)
+    processedEvents = res['Value']
+    # Get whether all events in the input file were processed
+    noMoreEvents = self.findString('No more events in event selection')['Value']
+
+    # If were are to process all the files in the input then ensure that all were read
+    if (not requestedEvents) and (not noMoreEvents):
+      return S_ERROR("Not all input events processed")
+    # If we are to process a given number of events ensure the target was met
+    if requestedEvents:
+      if requestedEvents != processedEvents:
+        return S_ERROR("Too few events processed")
+    return S_OK()
+
+  def updateFileStatus(self,inputs,defaultStatus):
+    for fileName in inputs.keys():
+      stat = inputs[fileName]
+      if stat == "Problematic":
+        res = self.setReplicaProblematic(fileName,self.site,'Problematic')
+        if not res['OK']:
+          gLogger.error("Failed to update replica status to problematic",res['Message'])
+        self.log.info('%s is problematic at %s - reset as Unused' % (fileName,self.site))
+        stat = "Unused"
+      elif stat in ['Unused','AncestorProblem','ApplicationCrash']:
+        self.log.info("%s will be updated to status '%s'" % (fileName,stat))
+      else:
+        stat = defaultStatus
+        self.log.info("%s will be updated to default status '%s'" % (fileName,defaultStatus))
+      self.setFileStatus(int(self.PRODUCTION_ID),fileName,stat)
+    return S_OK()
+
+  #############################################################################
+  def getInputFiles(self):
+    """ Determine the list of input files accessed from the application log. The log should contain a string like:
+
+        Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
+
+        In the event that the file name contains LFN: this is removed.
+    """
+    exp = re.compile(r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'")
+    files = re.findall(exp,self.logString)
+    strippedFiles = []
+    for file in files: strippedFiles.append(file.replace('LFN:',''))
+    return S_OK(strippedFiles)
+
+  #############################################################################
+  def getOutputFiles(self):
+    """ Determine the list of output files opened from the application log. The log should contain a string like:
+
+        Data source: EventDataSvc output: DATAFILE='filename'
+    """
+    exp = re.compile(r"Data source: EventDataSvc output: DATAFILE='(\S+)'")
+    files = re.findall(exp,self.logString)
+    strippedFiles = []
+    for file in files: strippedFiles.append(files.replace('PFN:',''))
+    return S_OK(strippedFiles)
+
+  #############################################################################
+  def getLastFile(self):
+    """ Determine the last input file opened from the application log.
+    """
+    files = self.getInputFiles()['Value']
+    if files:
+      return S_OK(files[-1])
+    return S_ERROR("No input files opened")
+
+  #############################################################################
+  def getRequestedEvents(self):
+    """ Determine the number of requested events from the application log. The log should contain one of two strings:
+
+        Requested to process all events on input file   or
+        Requested to process x events
+
+        If neither of these strings are found an error is returned
+    """
+    exp = re.compile(r"Requested to process ([0-9]+|all)")
+    findline = re.search(exp,self.logString)
+    if not findline:
+      if self.applicationName.lower()=='moore':
+        if int(self.numberOfEvents)<0:
+          return S_OK(0)
+        else:
+          return S_OK(int(self.numberOfEvents))
+      else:
+        self.log.error("Could not determine requested events.")
+        return S_ERROR("Could not determine requested events")
+    events = findline.group(1)
+    if events == 'all':
+      requestedEvents = 0
+    else:
+      requestedEvents = int(events)
+    self.log.info("Determined the number of requested events to be %s." % requestedEvents)
+    return S_OK(requestedEvents)
+
+  #############################################################################
+  def getLastEvent(self):
+    """ Determine the last event handled from the application log. The log should contain the string:
+
+         Nr. in job = x
+
+        If this string is not found then 0 is returned
+    """
+    exp = re.compile(r"Nr. in job = ([0-9]+)")
+    list = re.findall(exp,self.logString)
+    if not list:
+      lastEvent = 0
+    else:
+      lastEvent = int(list[-1])
+    self.log.info("Determined the number of events handled to be %s." % lastEvent)
+    return S_OK(lastEvent)
+
+  #############################################################################
+  def getLastEventSummary(self):
+    """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
+
+        Reading Event record
+
+        If this string is not found then 0 is returned
+    """
+    exp = re.compile(r"Reading Event record ([0-9]+)")
+    list = re.findall(exp,self.logString)
+    if not list:
+      readEvents = 0
+    else:
+      readEvents = int(list[-1])
+    self.log.info("Determined the number of events read to be %s." % readEvents)
+    return S_OK(readEvents)
+
+  #############################################################################
+  def getEventsOutput(self,writer):
+    """  Determine the number of events written out by the supplied writer. The log should contain the string:
+
+         Writer            INFO Events output: x
+
+         If the string is not found an error is returned
+    """
+    possibleWriters = ['FSRWriter','DigiWriter','RawWriter','GaussTape','DstWriter','InputCopyStream']
+    if not writer in possibleWriters:
+      self.log.error("Requested writer not available.",writer)
+      return S_ERROR("Requested writer not available")
+    exp = re.compile(r"%s\s+INFO Events output: (\d+)" % writer)
+    findline = re.search(exp,self.logString)
+    if not findline:
+      self.log.error("Could not determine events output.")
+      return S_ERROR("Could not determine events output")
+    writtenEvents = int(findline.group(1))
+    self.log.info("Determined the number of events written to be %s." % writtenEvents)
+    self.numberOfEventsOutput = str(writtenEvents)
+    return S_OK(writtenEvents)
+
+  #############################################################################
+  def getEventsProcessed(self,service):
+    """ Determine the number of events reported processed by the supplied service. The log should contain the string:
+
+        Service          SUCCESS x events processed
+
+        If the string is not found an error is returned
+    """
+    possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
+    if not service in possibleServices:
+      self.log.error("Requested service not available.",service)
+      return S_ERROR("Requested service '%s' not available" % service)
+    exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
+    if service.lower()=='l0muon':
+      exp = re.compile(r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" %service)
+
+    findline = re.search(exp,self.logString)
+    if not findline:
+      self.log.error("Could not determine events processed.")
+      return S_ERROR("Could not determine events processed")
+    eventsProcessed = int(findline.group(1))
+    self.log.info("Determined the number of events processed to be %s." % eventsProcessed)
+    self.numberOfEventsInput = str(eventsProcessed)
+    return S_OK(eventsProcessed)
+
+  #############################################################################
+  def findString(self,string):
+    """ Determine whether the supplied string exists in the log
+    """
+    found = re.findall(string,self.logString)
+    return S_OK(found)
+
+# To be reviewed
 #-----------------------------------------------------------------------
 #
 
@@ -251,624 +909,4 @@ class AnalyseLogFile(ModuleBase):
       if not res[ 'OK' ]:
         self.log.warn("The mail could not be sent")
 
-#
-#-----------------------------------------------------------------------
-#
-  def __init__(self):
-      self.log = gLogger.getSubLogger("AnalyseLogFile")
-      self.version = __RCSID__
-      self.site = DIRAC.siteName()
-      self.systemConfig = ''
-      self.result = S_ERROR()
-      self.mailadress = ''
-      self.numberOfEventsInput = ''
-      self.numberOfEventsOutput = ''
-      self.numberOfEvents = ''
-      self.applicationName = ''
-      self.inputData = ''
-      self.InputData = ''
-      self.sourceData = ''
-      self.JOB_ID = ''
-      self.jobID = ''
-      if os.environ.has_key('JOBID'):
-        self.jobID = os.environ['JOBID']
-      self.poolXMLCatName = 'pool_xml_catalog.xml'
-      self.applicationLog = ''
-      self.applicationVersion = ''
-      self.logFilePath = ''
-      self.coreFile = ''
-      self.stepInputData = []
 
-
-  def resolveInputVariables(self):
-    """ By convention any workflow parameters are resolved here.
-    """
-    self.log.verbose(self.workflow_commons)
-    self.log.verbose(self.step_commons)
-    #Use LHCb utility for local running via jobexec
-    if self.workflow_commons.has_key('LogFilePath'):
-      self.logFilePath = self.workflow_commons['LogFilePath']
-    else:
-      self.log.info('LogFilePath parameter not found, creating on the fly')
-      result = getLogPath(self.workflow_commons)
-      if not result['OK']:
-        self.log.error('Could not create LogFilePath',result['Message'])
-        return result
-      self.logFilePath=result['Value']['LogFilePath'][0]
-    return S_OK()
-
-  def execute(self):
-    self.log.info('Initializing '+self.version)
-    result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error(result['Message'])
-      return result
-    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
-      if 'numberOfEventsInput' not in self.step_commons:
-        return S_ERROR()
-      if 'numberOfEventsOutput' not in self.step_commons:
-        return S_ERROR()
-      self.numberOfEventsInput = self.step_commons[ 'numberOfEventsInput' ]
-      self.numberOfEventsOutput = self.step_commons[ 'numberOfEventsOutput' ]
-      return S_OK()
-
-    # Search for core dumps in any case.
-    res = self.checkCoreDump()
-    if not res['OK']:
-      self.sendErrorMail(res['Message'])
-
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      if self.stepStatus.has_key('Message'):
-        # This seems to be wrong, since analysis of errors is not done and mails for crashes are not sent
-        if self.stepStatus['Message'] == 'Application not found':
-          self.log.info('Skip this module, failure detected in a previous step :')
-          self.log.info('Workflow status : %s' %(self.workflowStatus))
-          self.log.info('Step Status %s' %(self.stepStatus))
-          return S_OK()
-      if self.workflowStatus.has_key('Message'):
-        if not self.workflowStatus['Message'] == 'Application not found':
-          self.log.info('Skip this module, failure detected in a previous step :')
-          self.log.info('Workflow status : %s' %(self.workflowStatus))
-          self.log.info('Step Status %s' %(self.stepStatus))
-          return S_OK()
-    self.log.info( "Analyse Log File for %s" %(self.applicationLog) )
-
-    # Resolve the step and job input data
-    self.stepInputData = []
-    if self.step_commons.has_key('inputData'):
-      for f in self.step_commons['inputData'].split(';'):
-        self.stepInputData.append(f.replace("LFN:",""))
-    self.log.info("Resolved the step input data to be %s" % str(self.stepInputData))
-    self.jobInputData = {}
-    if self.InputData:
-      for f in self.InputData.split(';'):
-        self.jobInputData[f.replace("LFN:","")] = 'OK'
-    self.log.info("Resolved the job input data to be %s" % str(self.jobInputData.keys()))
-
-    # Check the log file exists and get the contents
-    res = self.getLogString()
-    if not res['OK']:
-      self.log.error(result)
-      self.updateFileStatus(self.jobInputData, "Unused")
-      # return S_OK if the Step already failed to avoid overwriting the error
-      if not self.stepStatus['OK']: return S_OK()
-      return res
-
-    # Check that no errors were seen in the log
-    res = self.goodJob()
-    if not res['OK']:
-      self.sendErrorMail(res['Message'])
-      self.updateFileStatus(self.jobInputData, "Unused")
-      # return S_OK if the Step already failed to avoid overwriting the error
-      if not self.stepStatus['OK']: return S_OK()
-      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-      return res
-    # Check that the number of events handled is correct
-    res = self.nbEvent()
-    if not res['OK']:
-      self.sendErrorMail(res['Message'])
-      self.updateFileStatus(self.jobInputData, "Unused")
-      # return S_OK if the Step already failed to avoid overwriting the error
-      if not self.stepStatus['OK']: return S_OK()
-      self.setApplicationStatus('%s Step Failed' % (self.applicationName))
-      return res
-    # return S_OK if the Step already failed to avoid overwriting the error
-    if not self.stepStatus['OK']:
-      self.updateFileStatus(self.jobInputData, "Unused")
-      return S_OK()
-    # If the job was successful Update the status of the files to processed
-    self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
-    self.setApplicationStatus('%s Step OK' % (self.applicationName))
-    return self.updateFileStatus(self.jobInputData, "Processed")
-#
-#-----------------------------------------------------------------------
-#
-  def getLogString(self):
-    self.log.info("Attempting to open %s" % (self.applicationLog))
-    if not os.path.exists(self.applicationLog):
-      return S_ERROR('%s is not available' % (self.applicationLog))
-    if os.stat(self.applicationLog)[6] == 0:
-      return S_ERROR('%s is empty' % (self.applicationLog))
-    fd = open(self.applicationLog,'r')
-    self.logString = fd.read()
-    return S_OK()
-#
-#-----------------------------------------------------------------------
-#
-  def checkCoreDump(self):
-    # Check for a core file
-    for file in os.listdir('.'):
-      if re.search('^core.[0-9]+$', file):
-        self.coreFile = file
-        return S_ERROR('Core dump found')
-    return S_OK()
-
-  def goodJob(self):
-    # Check if the application finish successfully
-    self.log.info('Check application ended successfully')
-    toFind = 'Application Manager Finalized successfully'
-    if self.applicationName.lower()=='moore':
-      toFind = 'Service finalized successfully'
-    okay = self.findString(toFind)['Value']
-    if not okay:
-      return S_ERROR('Finalization Error')
-
-    # Check whether there were errors completing the event loop
-    dict_app_error = {\
-    'Terminating event processing loop due to errors'                 :     'Event loop not terminated'}
-    for errString,description in dict_app_error.items():
-      self.log.info('Check %s' % description)
-      found = self.findString(errString)['Value']
-      if found:
-        res = self.getLastFile()
-        if res['OK']:
-          lastFile = res['Value']
-          if self.jobInputData.has_key(lastFile):
-            self.jobInputData[lastFile] = "ApplicationCrash"
-            return S_ERROR(description)
-
-    # Check for a known list of problems in the application logs
-    dict_app_error = {\
-    'Cannot connect to database'                                      :     'error database connection',
-    'Could not connect'                                               :     'CASTOR error connection',
-    'SysError in <TDCacheFile::ReadBuffer>: error reading from file'  :     'DCACHE connection error',
-    'Failed to resolve'                                               :     'IODataManager error',
-    'Error: connectDataIO'                                            :     'connectDataIO error',
-    'Error:connectDataIO'                                             :     'connectDataIO error',
-    ' glibc '                                                         :     'Problem with glibc',
-    'GaussTape failed'                                                :     'GaussTape failed',
-    'Writer failed'                                                   :     'Writer failed',
-    'Bus error'                                                       :     'Bus error',
-    'User defined signal 1'                                           :     'User defined signal 1',
-    'Not found DLL'                                                   :     'Not found DLL'}
-    #'G4Exception'                                                     :     'G4Exception',
-    failed = False
-    errorList = []
-    for errString,description in dict_app_error.items():
-      self.log.info('Check %s' % description)
-      found = self.findString(errString)['Value']
-      if found:
-        failed = True
-        errorList.append(description)
-        self.log.error("Detected problem with '%s'" % description)
-    if failed:
-      description = 'Error in application detected: %s' % ', '.join(errorList)
-      return S_ERROR(description)
-
-    return self.catchPoolIOError()
-#
-#-----------------------------------------------------------------------
-#
-  def nbEvent(self):
-    if self.applicationName.lower() == 'lhcb':
-      return self.checkLHCbEvents()
-    if self.applicationName.lower() == 'gauss':
-      return self.checkGaussEvents()
-    if self.applicationName.lower() == 'boole':
-      return self.checkBooleEvents()
-    if self.applicationName.lower() == 'brunel':
-      return self.checkBrunelEvents()
-    if self.applicationName.lower() == 'davinci':
-      return self.checkDaVinciEvents()
-    if self.applicationName.lower() == 'moore':
-      return self.checkMooreEvents()
-    return S_ERROR("Application not known")
-#
-#-----------------------------------------------------------------------
-#
-
-  def checkMooreEvents(self):
-    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
-    """
-    # Get the number of requested events
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']
-
-    # Get the last event processed
-    lastEvent = self.getLastEventSummary()['Value']
-    if not self.workflow_commons.has_key('FirstStepInputEvents'):
-      self.workflow_commons['FirstStepInputEvents'] = lastEvent
-
-    res = self.getEventsOutput('InputCopyStream')
-    if not res['OK']:
-      return S_ERROR('No events output')
-    
-    # Get the number of events processed by DaVinci
-    res = self.getEventsProcessed('L0Muon')
-    if not res['OK']:
-      res = self.getLastFile()
-      if res['OK']:
-        lastFile = res['Value']
-        if self.inputFiles.has_key(lastFile):
-          self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("Crash in event %s" % lastEvent)
-    processedEvents = res['Value']
-    # Get whether all events in the input file were processed
-    noMoreEvents = self.findString('No more events in event selection')['Value']
-
-    # If were are to process all the files in the input then ensure that all were read
-    if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("Not all input events processed")
-    # If we are to process a given number of events ensure the target was met
-    if requestedEvents:
-      if requestedEvents != processedEvents:
-        return S_ERROR("Too few events processed")
-    return S_OK()
-
-  def checkLHCbEvents(self):
-    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
-    """
-    mailto = self.applicationName.upper()+'_EMAIL'
-
-    # Get the last event processed
-    lastEvent = self.getLastEventSummary()['Value']
-    if not lastEvent:
-      return S_ERROR('%s No events read' % mailto)
-    self.numberOfEventsInput = str(lastEvent)
-    if not self.workflow_commons.has_key('FirstStepInputEvents'):
-      self.workflow_commons['FirstStepInputEvents'] = self.numberOfEventsInput
-    # Get the number of events output by LHCb
-    res = self.getEventsOutput('InputCopyStream')
-    if not res['OK']:
-      return S_ERROR('No events output')
-    outputEvents = res['Value']
-    if outputEvents != lastEvent:
-      return S_ERROR("%s Processed events do not match" % mailto)
-    # If there were no events processed
-    if outputEvents == 0:
-      return S_ERROR("No events processed")
-    return S_OK()
-
-  def checkGaussEvents(self):
-    """ Obtain event information from the application log and determine whether the Gauss job generated the correct number of events.
-    """
-    # Get the number of requested events
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']
-    # You must give a requested number of events for Gauss (this is pointless as the job will run forever)
-    if not requestedEvents:
-      return S_ERROR("Missing requested events option for job")
-
-    # Get the last event processed
-    lastEvent = self.getLastEvent()['Value']
-    # Get the number of events generated by Gauss
-    res = self.getEventsProcessed('GaussGen')
-    if not res['OK']:
-      return S_ERROR("Crash in event %s" % lastEvent)
-    generatedEvents = res['Value']
-    # Get the number of events processed by Gauss
-    res = self.getEventsOutput('GaussTape')
-    if not res['OK']:
-      result = S_ERROR('No events output')
-    outputEvents = res['Value']
-
-    # Check that the correct number of events were generated
-    if generatedEvents != requestedEvents:
-      return S_ERROR('Too few events generated')
-    # Check that more than 90% of generated events are output
-    if outputEvents < 0.9*requestedEvents:
-      return S_ERROR('Too few events output')
-    return S_OK()
-
-  def checkBooleEvents(self):
-    """ Obtain event information from the application log and determine whether the Boole job processed the correct number of events.
-    """
-    # Get the number of requested events
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']
-
-    # Get the last event processed
-    lastEvent = self.getLastEvent()['Value']
-    if not self.workflow_commons.has_key('FirstStepInputEvents'):
-      self.workflow_commons['FirstStepInputEvents'] = lastEvent
-
-    # Get the number of events processed by Boole
-    res = self.getEventsProcessed('BooleInit')
-    if not res['OK']:
-      res = self.getLastFile()
-      if res['OK']:
-        lastFile = res['Value']
-        if self.inputFiles.has_key(lastFile):
-          self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("Crash in event %s" % lastEvent)
-    processedEvents = res['Value']
-    # Get the number of events output by Boole
-    res = self.getEventsOutput('DigiWriter')
-    if not res['OK']:
-      res = self.getEventsOutput('RawWriter')
-      if not res['OK']:
-        return S_ERROR('No events output')
-    outputEvents = res['Value']
-    # Get whether all events in the input file were processed
-    noMoreEvents = self.findString('No more events in event selection')['Value']
-
-    # If were are to process all the files in the input then ensure that all were read
-    if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("Not all input events processed")
-    # If we are to process a given number of events ensure the target was met
-    if requestedEvents:
-      if requestedEvents != processedEvents:
-        return S_ERROR('Too few events processed')
-    # Check that the final reported processed events match those logged as processed during execution
-    if lastEvent != processedEvents:
-      return S_ERROR("Processed events do not match")
-    # If there were no events processed
-    if processedEvents == 0:
-      return S_ERROR("No events processed")
-    # If the output events are not equal to the processed events be sure there were no failed events
-    if outputEvents != processedEvents:
-      pass # TODO: Find out whether there is a way to find failed events
-    return S_OK()
-
-  def checkBrunelEvents(self):
-    """ Obtain event information from the application log and determine whether the Brunel job processed the correct number of events.
-    """
-    # Get the number of requested events
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']
-
-    # Get the last event processed
-    lastEvent = self.getLastEvent()['Value']
-    if not self.workflow_commons.has_key('FirstStepInputEvents'):
-      self.workflow_commons['FirstStepInputEvents'] = lastEvent
-    # Get the number of events processed by Brunel
-    res = self.getEventsProcessed('BrunelInit')
-    if not res['OK']:
-      res = self.getLastFile()
-      if res['OK']:
-        lastFile = res['Value']
-        if self.inputFiles.has_key(lastFile):
-          self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("Crash in event %s" % lastEvent)
-    processedEvents = res['Value']
-    # Get the number of events output by Brunel
-    res = self.getEventsOutput('DstWriter')
-    if not res['OK']:
-      return S_ERROR('No events output')
-    outputEvents = res['Value']
-    # Get whether all events in the input file were processed
-    noMoreEvents = self.findString('No more events in event selection')['Value']
-
-    # If were are to process all the files in the input then ensure that all were read
-    if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("Not all input events processed")
-    # If we are to process a given number of events ensure the target was met
-    if requestedEvents:
-      if requestedEvents != processedEvents:
-        return S_ERROR('Too few events processed')
-    # Check that the final reported processed events match those logged as processed during execution
-    if lastEvent != processedEvents:
-      return S_ERROR("Processed events do not match")
-    # If there were no events processed
-    if processedEvents == 0:
-      return S_ERROR("No events processed")
-    # If the output events are not equal to the processed events be sure there were no failed events
-    if outputEvents != processedEvents:
-      return S_ERROR("Processed events not all output")
-    return S_OK()
-
-  def checkDaVinciEvents(self):
-    """ Obtain event information from the application log and determine whether the DaVinci job processed the correct number of events.
-    """
-    # Get the number of requested events
-    res = self.getRequestedEvents()
-    if not res['OK']:
-      return res
-    requestedEvents = res['Value']
-
-    # Get the last event processed
-    lastEvent = self.getLastEventSummary()['Value']
-    if not self.workflow_commons.has_key('FirstStepInputEvents'):
-      self.workflow_commons['FirstStepInputEvents'] = lastEvent
-    # Get the number of events processed by DaVinci
-    res = self.getEventsProcessed('DaVinciInit')
-    if not res['OK']:
-      res = self.getLastFile()
-      if res['OK']:
-        lastFile = res['Value']
-        if self.inputFiles.has_key(lastFile):
-          self.inputFiles[lastFile] = "ApplicationCrash"
-      return S_ERROR("Crash in event %s" % lastEvent)
-    processedEvents = res['Value']
-    # Get whether all events in the input file were processed
-    noMoreEvents = self.findString('No more events in event selection')['Value']
-
-    # If were are to process all the files in the input then ensure that all were read
-    if (not requestedEvents) and (not noMoreEvents):
-      return S_ERROR("Not all input events processed")
-    # If we are to process a given number of events ensure the target was met
-    if requestedEvents:
-      if requestedEvents != processedEvents:
-        return S_ERROR("Too few events processed")
-    return S_OK()
-#
-#-----------------------------------------------------------------------
-#
-  def updateFileStatus(self,inputs,defaultStatus):
-    for fileName in inputs.keys():
-      stat = inputs[fileName]
-      if stat == "Problematic":
-        res = self.setReplicaProblematic(fileName,self.site,'Problematic')
-        if not res['OK']:
-          gLogger.error("Failed to update replica status to problematic",res['Message'])
-        self.log.info('%s is problematic at %s - reset as Unused' % (fileName,self.site))
-        stat = "Unused"
-      elif stat in ['Unused','AncestorProblem','ApplicationCrash']:
-        self.log.info("%s will be updated to status '%s'" % (fileName,stat))
-      else:
-        stat = defaultStatus
-        self.log.info("%s will be updated to default status '%s'" % (fileName,defaultStatus))
-      self.setFileStatus(int(self.PRODUCTION_ID),fileName,stat)
-    return S_OK()
-#
-#-----------------------------------------------------------------------
-#
-  def getInputFiles(self):
-    """ Determine the list of input files accessed from the application log. The log should contain a string like:
-
-        Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
-
-        In the event that the file name contains LFN: this is removed.
-    """
-    exp = re.compile(r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'")
-    files = re.findall(exp,self.logString)
-    strippedFiles = []
-    for file in files: strippedFiles.append(file.replace('LFN:',''))
-    return S_OK(strippedFiles)
-
-  def getOutputFiles(self):
-    """ Determine the list of output files opened from the application log. The log should contain a string like:
-
-        Data source: EventDataSvc output: DATAFILE='filename'
-    """
-    exp = re.compile(r"Data source: EventDataSvc output: DATAFILE='(\S+)'")
-    files = re.findall(exp,self.logString)
-    strippedFiles = []
-    for file in files: strippedFiles.append(files.replace('PFN:',''))
-    return S_OK(strippedFiles)
-
-  def getLastFile(self):
-    """ Determine the last input file opened from the application log.
-    """
-    files = self.getInputFiles()['Value']
-    if files:
-      return S_OK(files[-1])
-    return S_ERROR("No input files opened")
-
-  def getRequestedEvents(self):
-    """ Determine the number of requested events from the application log. The log should contain one of two strings:
-
-        Requested to process all events on input file   or
-        Requested to process x events
-
-        If neither of these strings are found an error is returned
-    """
-    exp = re.compile(r"Requested to process ([0-9]+|all)")
-    findline = re.search(exp,self.logString)
-    if not findline:
-      if self.applicationName.lower()=='moore':
-        if int(self.numberOfEvents)<0:
-          return S_OK(0)
-        else:
-          return S_OK(int(self.numberOfEvents))
-      else:
-        self.log.error("Could not determine requested events.")
-        return S_ERROR("Could not determine requested events")
-    events = findline.group(1)
-    if events == 'all':
-      requestedEvents = 0
-    else:
-      requestedEvents = int(events)
-    self.log.info("Determined the number of requested events to be %s." % requestedEvents)
-    return S_OK(requestedEvents)
-
-  def getLastEvent(self):
-    """ Determine the last event handled from the application log. The log should contain the string:
-
-         Nr. in job = x
-
-        If this string is not found then 0 is returned
-    """
-    exp = re.compile(r"Nr. in job = ([0-9]+)")
-    list = re.findall(exp,self.logString)
-    if not list:
-      lastEvent = 0
-    else:
-      lastEvent = int(list[-1])
-    self.log.info("Determined the number of events handled to be %s." % lastEvent)
-    return S_OK(lastEvent)
-
-  def getLastEventSummary(self):
-    """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
-
-        Reading Event record
-
-        If this string is not found then 0 is returned
-    """
-    exp = re.compile(r"Reading Event record ([0-9]+)")
-    list = re.findall(exp,self.logString)
-    if not list:
-      readEvents = 0
-    else:
-      readEvents = int(list[-1])
-    self.log.info("Determined the number of events read to be %s." % readEvents)
-    return S_OK(readEvents)
-
-  def getEventsOutput(self,writer):
-    """  Determine the number of events written out by the supplied writer. The log should contain the string:
-
-         Writer            INFO Events output: x
-
-         If the string is not found an error is returned
-    """
-    possibleWriters = ['FSRWriter','DigiWriter','RawWriter','GaussTape','DstWriter','InputCopyStream']
-    if not writer in possibleWriters:
-      self.log.error("Requested writer not available.",writer)
-      return S_ERROR("Requested writer not available")
-    exp = re.compile(r"%s\s+INFO Events output: (\d+)" % writer)
-    findline = re.search(exp,self.logString)
-    if not findline:
-      self.log.error("Could not determine events output.")
-      return S_ERROR("Could not determine events output")
-    writtenEvents = int(findline.group(1))
-    self.log.info("Determined the number of events written to be %s." % writtenEvents)
-    self.numberOfEventsOutput = str(writtenEvents)
-    return S_OK(writtenEvents)
-
-  def getEventsProcessed(self,service):
-    """ Determine the number of events reported processed by the supplied service. The log should contain the string:
-
-        Service          SUCCESS x events processed
-
-        If the string is not found an error is returned
-    """
-    possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
-    if not service in possibleServices:
-      self.log.error("Requested service not available.",service)
-      return S_ERROR("Requested service '%s' not available" % service)
-    exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
-    if service.lower()=='l0muon':
-      exp = re.compile(r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" %service)
-
-    findline = re.search(exp,self.logString)
-    if not findline:
-      self.log.error("Could not determine events processed.")
-      return S_ERROR("Could not determine events processed")
-    eventsProcessed = int(findline.group(1))
-    self.log.info("Determined the number of events processed to be %s." % eventsProcessed)
-    self.numberOfEventsInput = str(eventsProcessed)
-    return S_OK(eventsProcessed)
-
-  def findString(self,string):
-    """ Determine whether the supplied string exists in the log
-    """
-    found = re.findall(string,self.logString)
-    return S_OK(found)
