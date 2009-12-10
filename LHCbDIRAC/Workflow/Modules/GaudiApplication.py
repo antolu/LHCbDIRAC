@@ -594,21 +594,31 @@ done
       return S_ERROR( matcherror )
     # Third: find slices which match the given configuration options
     validSlices = {}
-    for sliceNumber in result[ 'Value' ]:
-      sliceConfig = result[ 'Value' ][ sliceNumber ][ 'config' ]
-      print 'Comparing:',bkProcessingPass[ step ]
-      print '      and:',sliceConfig
+    for sliceName in result[ 'Value' ]:
+      sliceConfig = result[ 'Value' ][ sliceName ][ 'config' ]
+      self.log.debug( 'Comparing:%s and %s' %( bkProcessingPass[ step ] , sliceConfig ) )
       if self.compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
-        validSlices[ int( sliceNumber ) ] = result[ 'Value' ][ sliceNumber ][ 'availability' ]
+        validSlices[ sliceName ] = result[ 'Value' ][ sliceName ][ 'availability' ]
     if len( validSlices ) == 0:
       self.log.error( "No slice found matching configuration" )
       return S_ERROR( matcherror )
-    # Fourth: find which of the matching slices is better for job sending
-    sliceNumber = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
+    # Fourth: find which of the matching slices is better for job sending (more availability)
+    sliceName = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
-    lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
-    outputFile = _makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
-    result = recoManager.submitJob( sliceNumber, self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' ) , outputFile )
+    lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
+    outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
+    poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
+    try:
+      inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
+      guid = poolXMLCatalog.getGuidByLfn( inputData )
+    except:
+      self.log.exception()
+      return S_ERROR( "Error getting GUID for inputfile" )
+    try:
+      result = recoManager.submitJob( sliceName, inputData , outputFile , guid )
+    except:
+      self.log.exception()
+      return S_ERROR( xmlrpcerror )      
     if not result[ 'OK' ]:
       self.log.error( "Error running job" , sc[ 'Message' ] )
       return S_ERROR( "Error submiting job" )
@@ -619,24 +629,26 @@ done
     jobID = result[ 'Value' ]
     retrycount = 0
     while True:
-      time.sleep(10)
-      ret = recoManager.jobStatus( jobID )
+      time.sleep(20)
+      try:
+        ret = recoManager.jobStatus( jobID )
+      except:
+        self.log.exception()        
+        return S_ERROR( xmlrpcerror )
       if not ret[ 'OK' ]:
         retrycount = retrycount + 1
-        self.log.error( "Cannot get status of jobID:" , "%s: %s" %( ret[ 'Message' ] , str( jobID ) ) )
         if retrycount > 5:
-          return S_ERROR( "Connection lost to the Reco Manager" )
+          return S_ERROR( ret[ 'Message' ] )
         continue
       retrycount = 0
-      jobInfo = ret[ 'Value' ][ str(jobID) ]
-      jobstatus = jobInfo[ 'status' ]
+      jobstatus = ret[ 'Value' ][ 'status' ]
       if jobstatus in [ 'DONE' , 'ERROR' ]:
         ret = recoManager.getJobOutput( jobID )
         if not ret[ 'OK' ]:
           outputError = "Error retrieving output of jobID: %s" %jobID
           self.log.error( outputError , ret[ 'Message' ] )
           return S_ERROR( outputError )
-        jobInfo = ret[ 'Value' ][ str(jobID) ] # ( status , inputevents , outputevents , logfile , path )
+        jobInfo = ret[ 'Value' ] # ( status , inputevents , outputevents , logfile , path )
         # Hack: create symlink to output data
         for path in jobInfo[ 'path' ].values():
           os.symlink( path , os.path.basename( path ) )
@@ -676,42 +688,5 @@ done
         elif config1[ key ] != config2[ key ]:
           return False
     return True
-
-from random import random,seed
-seed()
-class DummyRPC:
-  cache = {}
-  def sliceStatus( self ):
-    return { 'OK' : True ,'Value' :
-    { '0' : {
-             'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'},
-             'availability' : 0.25 },
-      '1' : {
-             'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'},
-             'availability' : 0.25 },
-      '2' : {
-             'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' },
-             'availability' : 0.25 },
-      '3' : {
-             'config' :  {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v34r7', 'ExtraPackages': ['AppConfig.v2r7p2'], 'DDDb': 'head-20090508', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py'], 'CondDb': 'head-20090508' },
-             'availability' : 0.25 }
-    } }
-
-  def jobStatus( self , jobID ):
-    status = int(random()*3)
-    statusdict = { 0 : 'DONE' , 1 : 'RUNNING' , 2: 'ERROR' }
-    jobstatus = statusdict[ status ]
-    jobstatus = 'DONE'
-    print '++++++++++++++++++++++++++++++'
-    from DIRAC.Core.Utilities.File import makeGuid
-    return { 'OK' : True , 'Value' : { str(jobID) : { 'status' : jobstatus , 'eventsRead' : 500 , 'eventsWritten' : 500-status , 'log' : ['This is line 1' , 'This is line 2'] , 'md5': { self.outputFile : '52b21a147c8018240f12bf286b79b9a5' } , 'guid': { self.outputFile : makeGuid() } , 'size': { self.outputFile : '12234' } } } }
-
-  def submitJob( self , selectedSlice, inputFile , outputFile ):
-    import os
-    self.outputFile = os.path.basename( outputFile )
-    out = open( self.outputFile , 'w' )
-    out.write( '%s\n' %self.outputFile )
-    out.close()
-    return { 'OK' : True , 'Value' : int(random()*1000) }
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
