@@ -56,6 +56,11 @@ class AnalyseLogFile(ModuleBase):
     """
     self.log.verbose(self.workflow_commons)
     self.log.verbose(self.step_commons)
+    
+    if not self.step_commons.has_key('applicationName'):
+      return S_ERROR('Step does not have an applicationName')
+    
+    self.applicationName = self.step_commons['applicationName']
 
     if not self.applicationName in self.projectList:
       self.log.error('applicationName is not defined or known %s' %(self.applicationName))
@@ -179,6 +184,8 @@ class AnalyseLogFile(ModuleBase):
     # If the job was successful Update the status of the files to processed
     self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
     self.setApplicationStatus('%s Step OK' % (self.applicationName))
+    self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
+    self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput   
     return self.updateFileStatus(self.jobInputData, "Processed")
 
   #############################################################################
