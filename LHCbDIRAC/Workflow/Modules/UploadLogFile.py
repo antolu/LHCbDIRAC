@@ -34,7 +34,8 @@ class UploadLogFile(ModuleBase):
     self.workflow_commons = None
     self.request = None
 
-    self.logSE = gConfig.getValue('/Resources/StorageElements/ProductionLogSE','LogSE')
+    self.setup = gConfig.getValue('/DIRAC/Setup')
+    self.logSE = gConfig.getValue('/Operations/LogStorage/%s/LogSE' %(self.setup),'LogSE')
     self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
     self.logSizeLimit = gConfig.getValue('/Operations/LogFiles/SizeLimit',20*1024*1024)
     self.logExtensions = gConfig.getValue('/Operations/LogFiles/Extensions',[])
