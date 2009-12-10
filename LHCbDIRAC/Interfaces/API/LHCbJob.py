@@ -119,8 +119,7 @@ class LHCbJob(Job):
 
        Specify application for DIRAC workflows.
 
-       For LHCb these could be e.g. Gauss, Boole, Brunel,
-       DaVinci, Bender, etc.
+       For LHCb these could be e.g. Gauss, Boole, Brunel,DaVinci, Bender, etc.
 
        The optionsFiles parameter can be the path to an options file or a list of paths to options files.
        All options files are automatically appended to the job input sandbox but the first in the case of a
@@ -152,29 +151,30 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
+    kwargs = {'appName':appName,'appVersion':appVersion,'optionsFiles':optionsFiles,'inputData':inputData,'optionsLine':optionsLine,'inputDataType':inputDataType,'logFile':logFile}
     if not type(appName) in types.StringTypes or not type(appVersion) in types.StringTypes:
-      raise TypeError,'Expected strings for application name and version'
+      return self._reportError('Expected strings for application name and version',__name__,**kwargs)
 
     if logFile:
       if type(logFile) in types.StringTypes:
         logName = logFile
       else:
-        raise TypeError,'Expected string for log file name'
+        return self._reportError('Expected string for log file name',__name__,**kwargs)
     else:
       logName = '%s_%s.log' %(appName,appVersion)
 
     if not type(inputDataType) in types.StringTypes:
-      raise TypeError,'Expected string for input data type'
+      return self._reportError('Expected string for input data type',__name__,**kwargs)
     if not inputDataType:
       inputDataType=self.inputDataType
 
     optionsFile=None
     if not optionsFiles:
-      raise TypeError,'Expected string or list for optionsFiles'
+      return self._reportError('Expected string or list for optionsFiles',__name__,**kwargs)
     if type(optionsFiles) in types.StringTypes:
       optionsFiles = [optionsFiles]
     if not type(optionsFiles) == type([]):
-      raise TypeError,'Expected string or list for optionsFiles'
+      return self._reportError('Expected string or list for optionsFiles',__name__,**kwargs)
     for optsFile in optionsFiles:
       if not optionsFile:
         self.log.verbose('Found master options file %s' %optsFile)
@@ -188,7 +188,7 @@ class LHCbJob(Job):
         if not optionsFile==optsFile:
           optionsFile +=';%s' %optsFile
       else:
-        raise TypeError,'Specified options file %s does not exist' %(optsFile)
+        return self._reportError('Specified options file %s does not exist' %(optsFile),__name__,**kwargs)
 
     #ensure optionsFile list is unique:
     tmpList = string.split(optionsFile,';')
@@ -198,7 +198,7 @@ class LHCbJob(Job):
       if type(inputData) in types.StringTypes:
         inputData = [inputData]
       if not type(inputData)==type([]):
-        raise TypeError,'Expected single LFN string or list of LFN(s) for inputData'
+        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)
       for i in xrange(len(inputData)):
         inputData[i] = inputData[i].replace('LFN:','')
       inputData = map( lambda x: 'LFN:'+x, inputData)
@@ -246,6 +246,7 @@ class LHCbJob(Job):
       if not currentApp in string.split(apps,';'):
         apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+    return S_OK()
 
   #############################################################################
   def __getGaudiApplicationStep(self,name='GaudiApplication'):
@@ -314,20 +315,21 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
-      raise TypeError,'Expected strings for application name and version'
+    kwargs = {'appName':appName,'appVersion':appVersion,'script':script,'arguments':arguments,'inputData':inputData,'inputDataType':inputDataType,'poolXMLCatalog':poolXMLCatalog,'logFile':logFile}
+    if not type(appName) in types.StringTypes or not type(appVersion) in types.StringTypes:
+      return self._reportError('Expected strings for application name and version',__name__,**kwargs)    
 
     if not script or not type(script)==type(' '):
-      raise TypeError,'Expected string for script name'
-
+      return self._reportError('Expected strings for script name',__name__,**kwargs)    
+      
     if not os.path.exists(script):
-      raise TypeError,'Script must exist locally'
+      return self._reportError('Script must exist locally',__name__,**kwargs)    
 
     if logFile:
       if type(logFile) == type(' '):
         logName = logFile
       else:
-        raise TypeError,'Expected string for log file name'
+        return self._reportError('Expected string for log file name',__name__,**kwargs)    
     else:
       shortScriptName = os.path.basename(script).split('.')[0]
       logName = '%s_%s_%s.log' %(appName,appVersion,shortScriptName)
@@ -336,16 +338,16 @@ class LHCbJob(Job):
 
     if arguments:
       if not type(arguments)==type(' '):
-        raise TypeError,'Expected string for optional script arguments'
+        return self._reportError('Expected string for optional script arguments',__name__,**kwargs)    
 
     if not type(poolXMLCatalog)==type(" "):
-      raise TypeError,'Expected string for POOL XML Catalog name'
+      return self._reportError('Expected string for POOL XML Catalog name',__name__,**kwargs)    
 
     if inputData:
       if type(inputData) in types.StringTypes:
         inputData = [inputData]
       if not type(inputData)==type([]):
-        raise TypeError,'Expected single LFN string or list of LFN(s) for inputData'
+        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)    
       for i in xrange(len(inputData)):
         inputData[i] = inputData[i].replace('LFN:','')
       inputData = map( lambda x: 'LFN:'+x, inputData)
@@ -394,6 +396,7 @@ class LHCbJob(Job):
       if not currentApp in string.split(apps,';'):
         apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+    return S_OK()
 
   #############################################################################
   def __getGaudiApplicationScriptStep(self,name='GaudiApplicationScript'):
@@ -445,18 +448,21 @@ class LHCbJob(Job):
        @param numberOfEvents: Number of events to process e.g. -1
        @type numberOfEvents: integer
     """
+    kwargs = {'benderVersion':benderVersion,'modulePath':modulePath,'inputData':inputData,'numberOfEvents':numberOfEvents}
     if not type(benderVersion)==type(' '):
-      raise TypeError, 'Bender version should be a string'
+      return self._reportError('Bender version should be a string',__name__,**kwargs)    
     if not type(modulePath)==type(' '):
-      raise TypeError, 'Bender module path should be a string'
+      return self._reportError('Bender module path should be a string',__name__,**kwargs)    
     if not type(numberOfEvents)==type(2):
       try:
         numberOfEvents=int(numberOfEvents)
       except Exception,x:
-        raise TypeError, 'Number of events should be an integer or convertible to an integer'
+        return self._reportError('Number of events should be an integer or convertible to an integer',__name__,**kwargs)    
+    if type(inputData)==type(" "):
+      inputData = [inputData]
     if not type(inputData)==type([]):
-      raise TypeError, 'Input datas should be specified as a list'
-
+      return self._reportError('Input data should be specified as a list or a string',__name__,**kwargs)    
+      
     poolCatName='xmlcatalog_file:pool_xml_catalog.xml'
     benderScript = ['#!/usr/bin/env python']
     benderScript.append('from Gaudi.Configuration import FileCatalog')
@@ -482,7 +488,8 @@ class LHCbJob(Job):
       self.addToInputSandbox.append(userModule)
     self.setInputData(inputData)
     self.setApplicationScript('Bender', benderVersion, '%s/BenderScript.py' %tmpdir, logFile='Bender%s.log' %benderVersion)
-
+    return S_OK()
+  
   #############################################################################
   def setRootMacro(self,rootVersion,rootScript,arguments='',logFile=''):
     """Helper function.
@@ -506,7 +513,7 @@ class LHCbJob(Job):
        @type logFile: string
     """
     rootType = 'c'
-    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
 
   #############################################################################
   def setRootPythonScript(self,rootVersion,rootScript,arguments='',logFile=''):
@@ -531,7 +538,7 @@ class LHCbJob(Job):
        @type logFile: string
     """
     rootType = 'py'
-    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
 
   #############################################################################
   def setRootExecutable(self,rootVersion,rootScript,arguments='',logFile=''):
@@ -556,7 +563,7 @@ class LHCbJob(Job):
        @type logFile: string
     """
     rootType='bin'
-    self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
 
   #############################################################################
   def __configureRootModule(self,rootVersion,rootScript,rootType,arguments,logFile):
@@ -564,25 +571,27 @@ class LHCbJob(Job):
 
         Supports the root macro, python and executable wrapper functions.
     """
+    kwargs = {'rootVersion':rootVersion,'rootScript':rootScript,'rootType':rootType,'arguments':arguments,'logFile':logFile}
     if not type(arguments) == types.ListType:
       arguments = [arguments]
 
     for param in [rootVersion,rootScript,rootType,logFile]:
       if not type(param) in types.StringTypes:
-        raise TypeError,'Expected strings for Root application input parameters'
+        return self._reportError('Expected strings for Root application input parameters',__name__,**kwargs)    
 
     if not os.path.exists(rootScript):
-      raise TypeError,'ROOT Script %s must exist locally' %(rootScript)
+      return self._reportError('ROOT Script %s must exist locally' %(rootScript),__name__,**kwargs)    
+     
     self.addToInputSandbox.append(rootScript)
 
     #Must check if ROOT version in available versions and define appName appVersion...
     rootVersions = gConfig.getOptions(self.rootSection,[])
     if not rootVersions['OK']:
-      raise Exception,'Could not contact DIRAC Configuration Service for supported ROOT version list'
+      return self._reportError('Could not contact DIRAC Configuration Service for supported ROOT version list',__name__,**kwargs)          
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
-      raise Exception,'Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', '))
+      return self._reportError('Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', ')),__name__,**kwargs)                
 
     rootName = os.path.basename(rootScript).replace('.','')
     if logFile:
@@ -618,7 +627,7 @@ class LHCbJob(Job):
     appRoot = '%s/%s' %(self.rootSection,rootVersion)
     currentApp = gConfig.getValue(appRoot,'')
     if not currentApp:
-      raise Exception,'Could not get value from DIRAC Configuration Service for option %s' %appRoot
+      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' %appRoot,__name__,**kwargs)                
     swPackages = 'SoftwarePackages'
     description='List of LHCb Software Packages to be installed'
     if not self.workflow.findParameter(swPackages):
@@ -628,6 +637,7 @@ class LHCbJob(Job):
       if not currentApp in string.split(apps,';'):
         apps += ';'+currentApp
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+    return S_OK()  
 
   #############################################################################
   def __getRootApplicationStep(self,name='RootApplication'):
@@ -677,8 +687,10 @@ class LHCbJob(Job):
        @type appVersion: Package version string
 
     """
+    kwargs = {'appName':appName,'appVersion':appVersion}
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
-      raise TypeError,'Expected strings for application name and version'
+      return self._reportError('Expected strings for application name and version',__name__,**kwargs)                
+    
     currentApp = '%s.%s' %(appName,appVersion)
     swPackages = 'SoftwarePackages'
     description='List of LHCb Software Packages to be installed'
@@ -690,6 +702,8 @@ class LHCbJob(Job):
         if not currentApp in string.split(apps,';'):
           apps += ';'+currentApp
         self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+
+    return S_OK()
 
   #############################################################################
   def setAncestorDepth(self,depth):
@@ -709,16 +723,18 @@ class LHCbJob(Job):
        @type depth: string or int
 
     """
+    kwargs = {'depth':depth}
     description = 'Level at which ancestor files are retrieved from the bookkeeping'
     if type(depth)==type(" "):
       try:
         self._addParameter(self.workflow,'AncestorDepth','JDL',int(depth),description)
       except Exception,x:
-        raise TypeError,'Expected integer for Ancestor Depth'
+        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
     elif type(depth)==type(1):
       self._addParameter(self.workflow,'AncestorDepth','JDL',depth,description)
     else:
-      raise TypeError,'Expected Integer for Ancestor Depth'
+      return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
+    return S_OK()
 
   #############################################################################
   def setInputDataType(self,inputDataType):
@@ -744,10 +760,11 @@ class LHCbJob(Job):
       try:
         inputDataType = str(inputDataType)
       except Exception,x:
-        raise TypeError,'Expected string for input data type'
+        return self._reportError('Expected string for input data type',__name__,**{'inputDataType':inputDataType})                
 
     self.inputDataType = inputDataType
     self._addParameter(self.workflow,'InputDataType','JDL',inputDataType,description)
+    return S_OK()
 
   #############################################################################
   def setCondDBTags(self,condDict):
@@ -765,8 +782,9 @@ class LHCbJob(Job):
        @param condDict: CondDB tags
        @type condDict: Dict of DB, tag pairs
     """
+    kwargs = {'condDict':condDict}
     if not type(condDict)==type({}):
-      raise TypeError, 'Expected dictionary for CondDB tags'
+      return self._reportError('Expected dictionary for CondDB tags',__name__,**kwargs)                
 
     conditions = []
     for db,tag in condDict.items():
@@ -775,11 +793,12 @@ class LHCbJob(Job):
         tag = str(tag)
         conditions.append(string.join([db,tag],'.'))
       except Exception,x:
-        raise TypeError,'Expected string for conditions'
+        return self._reportError('Expected string for conditions',__name__,**kwargs)                
 
     condStr = string.join(conditions,';')
     description = 'List of CondDB tags'
     self._addParameter(self.workflow,'CondDBTags','JDL',condStr,description)
+    return S_OK()
 
   #############################################################################
   def setInputDataPolicy(self,policy):
@@ -796,6 +815,7 @@ class LHCbJob(Job):
        >>> job.setInputDataPolicy('download')
 
     """
+    kwargs = {'policy':policy}
     csSection = '/Operations/InputDataPolicy'
     possible = ['Download','Protocol']
     finalPolicy = ''
@@ -804,13 +824,74 @@ class LHCbJob(Job):
         finalPolicy = p
 
     if not finalPolicy:
-      raise TypeError,'Expected one of %s for input data policy' %(string.join(possible,', '))
+      return self._reportError('Expected one of %s for input data policy' %(string.join(possible,', ')),__name__,**kwargs)                
 
     jobPolicy = gConfig.getValue('%s/%s' %(csSection,finalPolicy),'')
     if not jobPolicy:
-      raise TypeError,'Could not get value for CS option %s/%s' %(csSection,finalPolicy)
+      return self._reportError('Could not get value for CS option %s/%s' %(csSection,finalPolicy),__name__,**kwargs)                
 
     description = 'User specified input data policy'
     self._addParameter(self.workflow,'InputDataPolicy','JDL',jobPolicy,description)
+    return S_OK()
+
+#Below to be thought about further when adding user finalization
+
+#  #############################################################################
+#  def setOutputData(self,lfns,OutputSE=[],OutputPath=''):
+#    """Helper function, used in preference to Job.setOutputData() for LHCb.
+#
+#       For specifying output data to be registered in Grid storage.  If a list
+#       of OutputSEs are specified the job wrapper will try each in turn until
+#       successful.
+#
+#       Example usage:
+#
+#       >>> job = Job()
+#       >>> job.setOutputData(['DVNtuple.root'])
+#
+#       @param lfns: Output data file or files
+#       @type lfns: Single string or list of strings ['','']
+#       @param OutputSE: Optional parameter to specify the Storage
+#       @param OutputPath: Optional parameter to specify the Path in the Storage
+#       Element to store data or files, e.g. CERN-tape
+#       @type OutputSE: string or list
+#       @type OutputPath: string
+#    """
+#    if type(lfns)==list and len(lfns):
+#      outputDataStr = string.join(lfns,';')
+#      description = 'List of output data files'
+#      self._addParameter(self.workflow,'UserOutputData','JDL',outputDataStr,description)
+#    elif type(lfns)==type(" "):
+#      description = 'Output data file'
+#      self._addParameter(self.workflow,'UserOutputData','JDL',lfns,description)
+#    else:
+#      raise TypeError,'Expected string or list of output data files'
+#      return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
+#
+#    if OutputSE:
+#      description = 'User specified Output SE'
+#      if type(OutputSE) in types.StringTypes:
+#        OutputSE = [OutputSE]
+#      elif type(OutputSE) != types.ListType:
+#        raise TypeError,'Expected string or list for OutputSE'
+#        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
+#      
+#      OutputSE = ';'.join(OutputSE)
+#      self._addParameter(self.workflow,'UserOutputSE','JDL',OutputSE,description)
+#
+#    if OutputPath:
+#      description = 'User specified Output Path'
+#      if not type(OutputPath) in types.StringTypes:
+#        raise TypeError,'Expected string for OutputPath'
+#        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
+#      
+#      # Remove leading "/" that might cause problems with os.path.join
+#      while OutputPath[0] == '/': OutputPath=OutputPath[1:]
+#      self._addParameter(self.workflow,'UserOutputPath','JDL',OutputPath,description)
+
+#  #############################################################################
+#  def _addFinalization(self):
+#    """ Internal function, add LHCb user finalization module auotmatically in case
+#    """
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
