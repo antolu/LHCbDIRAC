@@ -201,8 +201,8 @@ class UploadLogFile(ModuleBase):
       self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Message']))
       self.setApplicationStatus('Failed To Create Log Tar Dir')
       return S_OK()
-    if res['Value']:
-      self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Value'][2]))
+    if res['Value'][0]: #i.e. non-zero status
+      self.log.error('Failed to create tar file from directory','%s %s' % (self.logdir,res['Value']))
       self.setApplicationStatus('Failed To Create Log Tar Dir')
       return S_OK()
 
