@@ -200,7 +200,7 @@ class ModuleBase(object):
 
     #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     mandatoryKeys = ['type','workflowSE','lfn'] #filedict is used for requests
-    for fileName,metadata in final.items():
+    for fileName,metadata in candidateFiles.items():
       for key in mandatoryKeys:
         if not metadata.has_key(key):
           return S_ERROR('File %s has missing %s' %(fileName,key))
