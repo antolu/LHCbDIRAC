@@ -215,7 +215,7 @@ class UploadLogFile(ModuleBase):
     failoverTransfer = FailoverTransfer(self.request)
     random.shuffle(self.failoverSEs)
     self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (tarFileName, string.join(self.failoverSEs,', ')))
-    result = failoverTransfer.transferAndRegisterFile(fileName,'%s/%s' %(tarFileDir,fileName),self.logLFNPath,self.failoverSEs,fileGUID=None,fileCatalog='LcgFileCatalogCombined')
+    result = failoverTransfer.transferAndRegisterFile(tarFileName,'%s/%s' %(tarFileDir,fileName),self.logLFNPath,self.failoverSEs,fileGUID=None,fileCatalog='LcgFileCatalogCombined')
     if not result['OK']:
       self.log.error('Failed to upload logs to all destinations')
       self.setApplicationStatus('Failed To Upload Logs')
