@@ -206,7 +206,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
-        appType is mdf / digi
+        appType is mdf / digi / xdigi
         currently assumes input data type is sim
     """
     eventType = self.__getEventType(eventType)
@@ -563,9 +563,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     body = string.replace(self.importLine,'<MODULE>','GaudiApplication')
     gaudiApp.setBody(body)
 
-    analyseLog = ModuleDefinition('LogChecker')
+    analyseLog = ModuleDefinition('AnalyseLogFile')
     analyseLog.setDescription('Check LogFile module')
-    body = string.replace(self.importLine,'<MODULE>','LogChecker')
+    body = string.replace(self.importLine,'<MODULE>','AnalyseLogFile')
     analyseLog.setBody(body)
 
     genBKReport = ModuleDefinition('BookkeepingReport')
@@ -580,7 +580,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiAppDefn.addModule(gaudiApp)
     gaudiAppDefn.createModuleInstance('GaudiApplication', 'gaudiApp')
     gaudiAppDefn.addModule(analyseLog)
-    gaudiAppDefn.createModuleInstance('LogChecker', 'analyseLog')
+    gaudiAppDefn.createModuleInstance('AnalyseLogFile', 'analyseLog')
     gaudiAppDefn.addModule(genBKReport)
     gaudiAppDefn.createModuleInstance('BookkeepingReport', 'genBKReport')
     gaudiAppDefn.addParameterLinked(analyseLog.parameters)
@@ -1103,28 +1103,31 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """Get a production parameter or all of them if no parameter name specified.
     """
     prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
-    result = prodClient.getTransformation(int(prodID))
+    result = prodClient.getTransformation(int(prodID),True)
     if not result['OK']:
       self.log.error(result)
       return S_ERROR('Could not retrieve parameters for production %s' %prodID)
 
-    if not result['Value'].has_key('Additional'):
+    if not result['Value']:
       self.log.info(result)
       return S_ERROR('No additional parameters available for production %s' %prodID)
 
     if pname:
-      if result['Value']['Additional'].has_key(pname):
-        return S_OK(result['Value']['Additional'][pname])
+      if result['Value'].has_key(pname):
+        return S_OK(result['Value'][pname])
       else:
         self.log.verbose(result)
         return S_ERROR('Production %s does not have parameter %s' %(prodID,pname))
 
     if printOutput:
-      for n,v in result['Value']['Additional'].items():
-        print '='*len(n),'\n',n,'\n','='*len(n)
-        print v
+      for n,v in result['Value'].items():
+        if not n.lower()=='body':
+          print '='*len(n),'\n',n,'\n','='*len(n)
+          print v
+        else:
+          print '*Omitted Body from printout*'
 
-    return S_OK(result['Value']['Additional'])
+    return result
 
   #############################################################################
   def setAlignmentDBLFN(self,lfn):
