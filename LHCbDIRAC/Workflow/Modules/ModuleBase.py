@@ -239,11 +239,11 @@ class ModuleBase(object):
       fileDict['Size'] = os.path.getsize(fileName)
       fileDict['Addler'] = fileAdler(fileName)
       fileDict['GUID'] = metadata['guid']
-      fileDict['Status'] = "Waiting"
-      fileDict['localPath'] = '%s/%s' %(os.getcwd(),fileName)     
+      fileDict['Status'] = "Waiting"   
       
       final[fileName]=metadata
       final[fileName]['filedict']=fileDict
+      final[fileName]['localPath'] = '%s/%s' %(os.getcwd(),fileName)  
 
     #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     mandatoryKeys = ['guid','filedict'] #filedict is used for requests (this method adds guid and filedict)
