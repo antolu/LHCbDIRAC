@@ -147,17 +147,19 @@ class UploadOutputData(ModuleBase):
         self.setApplicationStatus('Failed To Resolve OutputSE')
         return result
       
+      resolvedSE = result['Value']
       final[fileName]=metadata
-      final[fileName]['resolvedSE']=result['Value']
+      final[fileName]['resolvedSE']=resolvedSE
 
-    #At this point can exit and see exactly what the module will upload
+    self.log.info('The following files will be uploaded: %s' %(string.join(final.keys(),', ')))
+    for fileName,metadata in final.items():
+      self.log.info('--------%s--------' %fileName)
+      for n,v in metadata.items():
+        self.log.info('%s = %s' %(n,v))
+
+    #At this point can exit and see exactly what the module would have uploaded
     if not self.enable:
       self.log.info('Module is disabled by control flag, would have attempted to upload the following files %s' %string.join(final.keys(),', '))
-      for fileName,metadata in final.items():
-        self.log.info('--------%s--------' %fileName)
-        for n,v in metadata.items():
-          self.log.info('%s = %s' %(n,v))
-
       return S_OK('Module is disabled by control flag')
 
     #Instantiate the failover transfer client with the global request object
