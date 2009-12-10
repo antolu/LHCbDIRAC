@@ -216,8 +216,11 @@ class XMLFilesReaderManager:
       
       
       currentEventInputStat = job.getParam('EventInputStat')
-      if currentEventInputStat != None and currentEventInputStat.getValue() != None and long(sumEventInputStat) > long(currentEventInputStat.getValue()):
-        currentEventInputStat.setValue(sumEventInputStat)
+      if currentEventInputStat != None:
+        if currentEventInputStat.getValue() != None: 
+          if currentEventInputStat.getValue() != '':
+            if long(sumEventInputStat) > long(currentEventInputStat.getValue()):
+              currentEventInputStat.setValue(sumEventInputStat)
     
       ################
 
