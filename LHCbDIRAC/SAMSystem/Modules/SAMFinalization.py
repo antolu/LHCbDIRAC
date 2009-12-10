@@ -451,7 +451,7 @@ EOT
     lfnPath = self.__getLFNPathString(samNode)
     rm = ReplicaManager()
     self.log.verbose('Arguments for rm.putDirectory are: %s\n%s\n%s' %(lfnPath,os.path.realpath(logDir),self.logSE))
-    result = rm.putDirectory(lfnPath,os.path.realpath(logDir),self.logSE)
+    result = rm.putStorageDirectory({lfnPath:os.path.realpath(logDir)},self.logSE,singleDirectory=True)
     self.log.verbose(result)
     if not result['OK']:
       return result
