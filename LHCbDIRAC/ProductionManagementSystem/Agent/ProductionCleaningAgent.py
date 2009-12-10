@@ -315,7 +315,7 @@ class ProductionCleaningAgent(AgentModule):
 
   def cleanProductionLogFiles(self,directory):
     gLogger.info("Removing log files found in the directory %s" % directory)
-    res = self.replicaManager.removeStorageDirectory(directory,'LogSE',singleDirectory=True)
+    res = self.replicaManager.removeStorageDirectory(directory,'DevelopmentLogSE',singleDirectory=True)
     if not res['OK']:
       gLogger.error("Failed to remove log files",res['Message'])
       return res
