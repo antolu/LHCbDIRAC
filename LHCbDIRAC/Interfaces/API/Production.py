@@ -70,11 +70,7 @@ class Production(LHCbJob):
     self.jobFileGroupSize = 0
     self.ancestorProduction = ''
     self.importLine = """
-try:
-  from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
-except Exception,x:
-  print 'Could not import LHCbDIRAC.Workflow.Module.<MODULE>, trying from WorkflowLib'
-  from WorkflowLib.Module.<MODULE> import <MODULE>
+from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 """    
     if not script:
       self.__setDefaults()
