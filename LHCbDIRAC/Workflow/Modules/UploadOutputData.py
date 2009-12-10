@@ -9,8 +9,9 @@ __RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from LHCbDIRAC.Core.Utilities.ProductionData  import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.ResolveSE       import getDestinationSEList
+from LHCbDIRAC.Core.Utilities.ProductionData               import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
