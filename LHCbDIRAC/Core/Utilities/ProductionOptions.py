@@ -39,6 +39,11 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     if appType.lower()=='mdf':
       options.append("OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\"")
       options.append("OutputStream(\"RawWriter\").OutputLevel = INFO")
+    elif appType.lower()=='xdigi':
+      #no explicit output type like Brunel for Boole...
+      options.append('from Configurables import Boole')    
+      options.append('Boole().DigiType = "Extended"')
+      options.append("OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")        
     else:
       options.append("OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
   elif appName.lower()=='brunel':
