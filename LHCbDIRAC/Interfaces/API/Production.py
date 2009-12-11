@@ -223,6 +223,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     else:
       optionsLine = overrideOpts
 
+    #To avoid a BK update / workflow lib update
+    if appType.lower()=='xdigi': 
+      appType='digi'
+
     if not outputSE:
       outputSE='Tier1-RDST'
       self.log.info('Setting default outputSE to %s' %(outputSE))
