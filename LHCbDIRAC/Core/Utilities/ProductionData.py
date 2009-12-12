@@ -54,7 +54,7 @@ def constructProductionLFNs(paramDict):
   lfnRoot = ''
   debugRoot = ''
   if inputData:
-    gLogger.info('Making LFN_ROOT for job with inputdata: %s' %(inputData))
+    gLogger.verbose('Making LFN_ROOT for job with inputdata: %s' %(inputData))
     lfnRoot = _getLFNRoot(inputData,wfConfigName)
   else:
     lfnRoot = _getLFNRoot('',wfConfigName,wfConfigVersion)
@@ -231,12 +231,12 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
   eg : /lhcb/MC/<year>/  = getLFNRoot(None)
   """
   dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
-  gLogger.info('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
+  gLogger.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
   LFN_ROOT=''  
   gLogger.verbose('wf lfn: %s, namespace: %s, configVersion: %s' %(lfn,namespace,configVersion))
   if not lfn:
     LFN_ROOT = '/lhcb/%s/%s' %(namespace,configVersion)
-    gLogger.info('LFN_ROOT will be %s' %(LFN_ROOT))
+    gLogger.verbose('LFN_ROOT will be %s' %(LFN_ROOT))
     return LFN_ROOT
   
   lfn = [fname.replace(' ','') for fname in lfn.split(';')]
