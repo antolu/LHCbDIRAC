@@ -298,8 +298,10 @@ class GaudiApplication(ModuleBase):
     self.optfile_extra = 'gaudi_extra_options.py'
     self.managePy()
 
-    if os.path.exists(self.applicationName+'Run.sh'): os.remove(self.applicationName+'Run.sh')
-    script = open(self.applicationName+'Run.sh','w')
+    scriptName = '%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
+
+    if os.path.exists(scriptName): os.remove(scriptName)
+    script = open(scriptName,'w')
     script.write('#!/bin/sh \n')
     script.write('#####################################################################\n')
     script.write('# Dynamically generated script to run a production or analysis job. #\n')
@@ -455,8 +457,8 @@ done
 
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
-    os.chmod(self.applicationName+'Run.sh',0755)
-    comm = 'sh -c "./'+self.applicationName+'Run.sh"'
+    os.chmod(scriptName,0755)
+    comm = 'sh -c "./%s"' %scriptName
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
     self.stdError = ''
     self.result = shellCall(0,comm,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
