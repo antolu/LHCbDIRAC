@@ -572,12 +572,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     body = string.replace(self.importLine,'<MODULE>','AnalyseLogFile')
     analyseLog.setBody(body)
 
+    errorLogging = ModuleDefinition('ErrorLogging')
+    errorLogging.setDescription('Error loggging module')
+    body = string.replace(self.importLine,'<MODULE>','ErrorLogging')
+    errorLogging.setBody(body)
+
     genBKReport = ModuleDefinition('BookkeepingReport')
     genBKReport.setDescription('Bookkeeping Report module')
     body = string.replace(self.importLine,'<MODULE>','BookkeepingReport')
     genBKReport.setBody(body)    
-    #self._addParameter(genBKReport,'STEP_ID','string','','StepID')
-    #must update job addParam function to deal with self
     genBKReport.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False,"StepID"))
 
     gaudiAppDefn = StepDefinition('Gaudi_App_Step')
@@ -585,6 +588,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiAppDefn.createModuleInstance('GaudiApplication', 'gaudiApp')
     gaudiAppDefn.addModule(analyseLog)
     gaudiAppDefn.createModuleInstance('AnalyseLogFile', 'analyseLog')
+    gaudiAppDefn.addModule(errorLogging)
+    gaudiAppDefn.createModuleInstance('ErrorLogging','errorLog')
     gaudiAppDefn.addModule(genBKReport)
     gaudiAppDefn.createModuleInstance('BookkeepingReport', 'genBKReport')
     gaudiAppDefn.addParameterLinked(analyseLog.parameters)
