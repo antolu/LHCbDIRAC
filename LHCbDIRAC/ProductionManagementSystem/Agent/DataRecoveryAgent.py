@@ -218,19 +218,18 @@ class DataRecoveryAgent(AgentModule):
     """
     #Until a query for files with timestamp can be obtained must rely on the
     #WMS job last update
-    fileDict = {}    
-    for status in statusList:
-      self.log.info('Looking for files in status %s for transformation %s' %(status,transformation))
-      result =  self.prodDB.getTransformationLFNsJobs(long(transformation),status)
-      if not result['OK']:
-        return result
-      self.log.info('Selected %s files for status %s' %(len(result['Value']),status))
-      fileDict.update(result['Value'])
-    
-    if fileDict:
-      self.log.info('Selected %s files overall for transformation %s' %(len(fileDict.keys()),transformation))
-          
-    return S_OK(fileDict)
+    res = self.prodDB.getTransformationFiles(transformation,condDict={'Status':statusList})
+    if not res['OK']:
+      return res
+    resDict = {}
+    for fileDict in res['Value']:
+      lfn = fileDict['LFN']
+      jobID = fileDict['JobID']
+      lastUpdate = fileDict['LastUpdate']
+      resDict[lfn] = jobID
+    if resDict:
+      self.log.info('Selected %s files overall for transformation %s' %(len(resDict.keys()),transformation))
+    return S_OK(resDict)
   
   #############################################################################
   def obtainWMSJobIDs(self,transformation,fileDict,selectDelay,wmsStatusList,wmsRecheckStatusList):
@@ -348,11 +347,12 @@ class DataRecoveryAgent(AgentModule):
     
     if toRemove:
       self.log.info('Found descendent files of transformation %s to be removed:\n%s' %(transformation,string.join(toRemove,'\n')))
-      result = self.prodDB.getTransformationLFNStatus(int(transformation),toRemove)
+      result = self.prodDB.getTransformationFileInfo(int(transformation),toRemove)
       if not result['OK']:
         self.log.error(result)
       else:
-        self.log.info('%s = %s' %(lfn,result['Value'][lfn]))
+        for lfnDict in result['Value']:
+          self.log.info('%s = %s' %(lfnDict['LFN'],lfnDict['Status']))
             
     #Now to double-check that all ancestors are included in the job file dictionary
     finalToRemove = []
@@ -373,11 +373,12 @@ class DataRecoveryAgent(AgentModule):
           
     if strandedAncestors:
       self.log.info('Ancestor of file to be removed was not in selected input file sample:\n%s' %(string.join(strandedAncestors,'\n')))
-      result = self.prodDB.getTransformationLFNStatus(int(transformation),strandedAncestors)
+      result = self.prodDB.getTransformationFileInfo(int(transformation),strandedAncestors)
       if not result['OK']:
         self.log.error(result)
       else:
-        self.log.info('%s = %s' %(lfn,result['Value'][lfn]))   
+        for lfnDict in result['Value']:
+          self.log.info('%s = %s' %(lfnDict['LFN'],lfnDict['Status']))
         
     result={'toremove':finalToRemove,'strandedancestors':strandedAncestors}
     return S_OK(result)
