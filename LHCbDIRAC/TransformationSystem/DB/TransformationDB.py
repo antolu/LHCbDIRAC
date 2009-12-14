@@ -45,10 +45,7 @@ class TransformationDB(DIRACTransformationDB):
     if not res['OK']:
       return res
     bkQueryID = res['Value']
-    res = self.__setTransformationQuery(transName,bkQueryID,author=author,connection=connection)
-    if not res['OK']:
-      return res
-    return self._createTransformationTable(transName,connection=connection)    
+    return self.__setTransformationQuery(transName,bkQueryID,author=author,connection=connection)
    
   def getBookkeepingQueryForTransformation(self,transName,connection=False):
     """ Get the BK query associated to the transformation """
