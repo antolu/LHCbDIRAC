@@ -119,12 +119,15 @@ class ProductionJobAgent(AgentModule):
       time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
       time_stamp_newer = str(datetime.datetime.utcnow() - datetime.timedelta(days=7))
       # Get Reserved jobs - 100 at a time
-      result = self.prodClient.selectTransformationTasks(production,'Reserved',250,'',time_stamp_older,time_stamp_newer)
-      if not result['OK']:
+      condDict = {"TransformationID":production,"WmsStatus":'Reserved'}
+      res = self.prodClient.getTransformationTasks(condDict=condDict,older=time_stamp_older,newer=time_stamp_newer, timeStamp='LastUpdateTime', limit=100)
+      if not res['OK']:
+        return res
+      if not res['Records']:
         continue
       jobNameList = []
       jobIDs = []
-      for tuple in result['Value']:  # tuple = prodJobID,prodID,wmsStatus,wmsID,targetSE,creationTime,lastUpdateTime
+      for tuple in res['Records']:  # tuple = prodJobID,prodID,wmsStatus,wmsID,targetSE,creationTime,lastUpdateTime
         jobID = tuple[0]
         jobIDs.append(jobID)
         jobNameList.append(str(production).zfill(8)+'_'+str(jobID).zfill(8))
