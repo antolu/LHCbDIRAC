@@ -47,16 +47,13 @@ class ProductionUpdateAgent(AgentModule):
     result = self.prodDB.getTransformations()
     for transDict in result['Value']:
       transID = long(transDict['TransformationID'])
-
-      # Get the jobs which status is to be updated
-      result = self.prodDB.selectWMSJobs(transID,UPDATE_STATUS,NEWER)
-      if not result['OK']:
-        gLogger.warn('Failed to get jobs from Production Database: '+str(result['Message']))
-        continue
-      jobDict = result['Value']
-      if not jobDict:
-        continue
-      jobIDs = jobDict.keys()
+      res = self.prodDB.getTransformationTasks(condDict={'TransformationID':transID,'WmsStatus':UPDATE_STATUS},newer=NEWER)
+      if not res['OK']:
+        gLogger.error("Failed to get WMS job IDs for production %d" % prodID,res['Message'])
+        return res
+      jobIDs = []
+      for jobDict in res['Value']:
+        jobIDs.append(jobDict['JobWmsID'])
       # Get the job statuses from WMS
       jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
       result = jobSvc.getJobsStatus(jobIDs)
