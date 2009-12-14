@@ -899,7 +899,6 @@ class DiracProduction:
   def getProdJobInfo(self,productionID,jobID,printOutput=False):
     """Retrieve production job information from Production Manager service.
     """
-    jobInfo = self.prodClient.getTaskInfo(productionID,jobID)
     res = self.prodClient.getTransformationTasks(condDict={'TransformationID':productionID,'JobID':jobID},inputVector=True)
     if not res['OK']:
       return res
