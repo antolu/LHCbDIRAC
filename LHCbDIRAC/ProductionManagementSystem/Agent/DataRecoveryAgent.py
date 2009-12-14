@@ -244,30 +244,21 @@ class DataRecoveryAgent(AgentModule):
     self.log.info('The following %s production jobIDs apply to the selected files:\n%s' %(len(prodJobIDs),prodJobIDs))
 
     jobFileDict = {}
-    for job in prodJobIDs:
-      result = self.prodDB.getTaskInfo(int(transformation),int(job))
-      if not result['OK']:
-        self.log.error('Could not get job info for %s_%s, ignoring from further consideration:\n%s' %(transformation.zfill(8),job.zfill(8),result))
-        continue
-      
-      params = result['Value']
-      if not params.has_key('InputVector'):
-        self.log.error('Could not find input vector for %s_%s, ignoring from further consideration' %(transformation.zfill(8),job.zfill(8)))
-        continue
-      
+    condDict = {'TransformationID':transformation,'JobID':prodJobIDs}
+    delta = datetime.timedelta( hours = selectDelay )
+    now = dateTime()
+    olderThan = now-delta
+
+    res = self.getTransformationTasks(condDict=condDict,older=olderThan,timeStamp='LastUpdateTime',inputVector=True)
+    if not res['OK']:
+      return res
+    for jobDict in res['Value']:
+      job = jobDict['JobID']
       wmsID = params['JobWmsID']
       lastUpdate = params['LastUpdateTime']
       wmsStatus = params['WmsStatus']
       jobInputData = params['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
-
-      #Exclude jobs first by not having an old enough last update time   
-      delta = datetime.timedelta( hours = selectDelay )
-      interval = timeInterval(lastUpdate,delta)
-      now = dateTime()
-      if interval.includes(now):
-        self.log.info('Job %s was last updated less than %s hours ago, ignoring %s files from further consideration' %(wmsID,selectDelay,len(jobInputData)))
-        continue
       
       #Exclude jobs not having appropriate WMS status now         
       if not wmsStatus in wmsStatusList:
