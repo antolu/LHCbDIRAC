@@ -655,7 +655,7 @@ class DiracProduction:
     ordering = 'JobID'
     if not orderOutput:
       ordering = 'LFN'
-    fileSummary = self.prodClient.getTransformationFiles(int(productionID),orderAttribute=ordering)
+    fileSummary = self.prodClient.getTransformationFiles(condDict={'Transformation':int(productionID)},orderAttribute=ordering)
     if not fileSummary['OK']:
       return fileSummary
 
