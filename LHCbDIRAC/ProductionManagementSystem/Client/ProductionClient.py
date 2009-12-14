@@ -72,9 +72,6 @@ class ProductionClient(TransformationDBClient):
   def setProductionStatus(self,prodID,status,rpc=False,url='',timeout=120):
     return self.setTransformationStatus(prodID, status,rpc=rpc,url=url,timeout=timeout)
 
-  def selectWMSJobs(self,prodID,statusList=[],newer=0,rpc=False,url='',timeout=120):
-    return self.selectWMSTasks(prodID,statusList,newer,rpc=rpc,url=url,timeout=timeout)
-
   def getJobWMSStats(self,prodID,rpc=False,url='',timeout=120):
     return self.getTransformationTaskStats(prodID,rpc=rpc,url=url,timeout=timeout)
 
