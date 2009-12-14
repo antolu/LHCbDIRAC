@@ -375,11 +375,13 @@ class ProductionCleaningAgent(AgentModule):
     return S_OK()
 
   def __getProductionWMSIDs(self,prodID):
-    res = self.productionClient.selectWMSJobs(prodID)
+    res = self.productionClient.getTransformationTasks(condDict={'TransformationID':prodID})
     if not res['OK']:
       gLogger.error("Failed to get WMS job IDs for production %d" % prodID,res['Message'])
       return res
-    jobIDs = res['Value'].keys()
+    jobIDs = []
+    for jobDict in res['Value']:
+      jobIDs.append(jobDict['JobWmsID'])
     gLogger.info("Found %d jobs for production" % len(jobIDs))
     return S_OK(jobIDs)
 
