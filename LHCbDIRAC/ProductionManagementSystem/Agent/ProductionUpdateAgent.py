@@ -22,7 +22,7 @@ WAITING_STATUS = ['Submitted','Received','Checking','Staging','Waiting']
 RUNNING_STATUS = ['Running','Stalled']
 FINAL_STATUS = ['Done','Failed','Completed']
 # Update job statuses no more frequently than NEWER minutes
-NEWER = 2
+NEWER = 10
 
 class ProductionUpdateAgent(AgentModule):
 
@@ -44,8 +44,8 @@ class ProductionUpdateAgent(AgentModule):
     for transDict in result['Value']:
       transID = long(transDict['TransformationID'])
       gLogger.info("Attempting to update transformation %d" % transID)
-      time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=NEWER))
-      res = self.prodDB.getTransformationTasks(condDict={'TransformationID':transID,'WmsStatus':UPDATE_STATUS},timeStamp='LastUpdateTime',older=time_stamp_older )
+      time_stamp = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=NEWER))
+      res = self.prodDB.getTransformationTasks(condDict={'TransformationID':transID,'WmsStatus':UPDATE_STATUS},timeStamp='LastUpdateTime',older=time_stamp )
       if not res['OK']:
         gLogger.error("Failed to get WMS job IDs for production %d" % prodID,res['Message'])
         return res
