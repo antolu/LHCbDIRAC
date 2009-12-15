@@ -74,7 +74,7 @@ class RequestTrackingAgent(AgentModule):
   def initialize(self):
     """Sets defaults"""
     self.pollingTime = self.am_getOption('PollingTime',1200)
-    self.setup       = self.am_getOption('Setup','LHCb-Production')
+    self.setup       = self.am_getOption('Setup','')
     return S_OK()
 
   def getTrackedProductions(self):
