@@ -1107,7 +1107,7 @@ class DiracProduction:
             prodJob.setInputData(paramValue)
             inputData = paramValue
         if paramName=='Site':
-          if type(site) in types.ListType:
+          if type(site) == types.ListType:
             self.log.verbose('Setting destination site to list: %s' %(string.join(site,', ')))
             prodJob.setDestination(site)
           elif site and not site==paramValue and paramValue.lower()!='any':
