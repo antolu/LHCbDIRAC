@@ -1107,24 +1107,12 @@ class DiracProduction:
             prodJob.setInputData(paramValue)
             inputData = paramValue
         if paramName=='Site':
-          if re.search(';',paramValue) and not site:
-            site = paramValue.split(';')
-            self.log.verbose('Setting destination site to list: %s' %(string.join(paramValue,', ')))
+          if not site:
+            self.log.verbose('Setting allocated site to: %s' %(paramValue))
             prodJob.setDestination(paramValue)
-          elif re.search(';',paramValue) and site:
-            self.log.warn('Overwriting allocated sites %s with %s' %(string.join(paramValue,', '),site))
-            prodJob.setDestination(site)
           else:
-            if site and not site==paramValue and paramValue.lower()!='any':
-              return self.__errorReport('Specified destination site %s does not match allocated site %s' %(site,paramName))
-            elif paramValue.lower()=='any' and site:
-              destsite = site
-              self.log.verbose('Setting destination site to %s' %(destsite))
-              prodJob.setDestination(destsite)
-            else:
-              destsite = paramValue
-              self.log.verbose('Setting destination site to %s' %(destsite))
-              prodJob.setDestination(destsite)
+            self.log.verbose('Setting destination to chosen site %s' %site)
+            prodJob.setDestination(site)
 
         if paramName=='TargetSE':
           self.log.verbose('Job is targeted to SE: %s' %(paramValue))
