@@ -55,7 +55,9 @@ class ProductionUpdateAgent(AgentModule):
         continue
       jobIDs = []
       for jobDict in jobDictList:
-        jobIDs.append(jobDict['JobWmsID'])
+        wmsID = jobDict['JobWmsID']
+        if wmsID:
+          jobIDs.append(wmsID)
       # Get the job statuses from WMS
       jobSvc = RPCClient('WorkloadManagement/JobMonitoring')
       result = jobSvc.getJobsStatus(jobIDs)
@@ -67,11 +69,13 @@ class ProductionUpdateAgent(AgentModule):
       updateDict = {}
       for jobDict in jobDictList:
         jobWMS = int(jobDict['JobWmsID'])
+        if not jobWMS:
+          continue
         jobID = jobDict['JobID']
         old_status = jobDict['WmsStatus']
         status = "Removed"
         if jobWMS in statusDict.keys():
-          status = statusDict[jobWMS]['Status']    
+          status = statusDict[jobWMS]['Status']
         if old_status != status:
           if status == "Removed":
             gLogger.verbose('Production/Job %d/%d removed from WMS while it is in %s status' % (transID,jobID,old_status))
