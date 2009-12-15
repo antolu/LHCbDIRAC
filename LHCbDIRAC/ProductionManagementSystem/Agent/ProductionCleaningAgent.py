@@ -164,10 +164,6 @@ class ProductionCleaningAgent(AgentModule):
     res = self.cleanProductionJobs(prodID)
     if not res['OK']:
       return res
-    # Clean the production DB of the files and job information
-    res = self.productionClient.cleanTransformation(prodID)
-    if not res['OK']:
-      return res
     # Clean the log files for the jobs
     for directory in directories:
       if re.search('/LOG/',directory):
@@ -186,6 +182,10 @@ class ProductionCleaningAgent(AgentModule):
     if not directories:
       bkFlag = ''
     res = self.cleanBKFiles(prodID,'Yes')
+    if not res['OK']:
+      return res
+    # Clean the production DB of the files and job information
+    res = self.productionClient.cleanTransformation(prodID)
     if not res['OK']:
       return res
     gLogger.info("Successfully cleaned production %d" % prodID)
