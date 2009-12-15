@@ -1107,9 +1107,12 @@ class DiracProduction:
             prodJob.setInputData(paramValue)
             inputData = paramValue
         if paramName=='Site':
-          if site and not site==paramValue and paramValue.lower()!='any':
+          if type(site) in types.ListType:
+            self.log.verbose('Setting destination site to list: %s' %(string.join(site,', ')))
+            prodJob.setDestination(site)
+          elif site and not site==paramValue and paramValue.lower()!='any':
             return self.__errorReport('Specified destination site %s does not match allocated site %s' %(site,paramName))
-          if paramValue.lower()=='any' and site:
+          elif paramValue.lower()=='any' and site:
             destsite = site
             self.log.verbose('Setting destination site to %s' %(destsite))
             prodJob.setDestination(destsite)
