@@ -81,7 +81,7 @@ class ProductionCleaningAgent(AgentModule):
       else:
         gLogger.info("Found %d productions in Completed status" % len(prods))
         for prodID in sortList(prods):
-          res = self.productionClient.getTransformationParameters(prodID,'LastUpdate')
+          res = self.productionClient.getTransformationParameters(prodID,['LastUpdate'])
           if not res['OK']:
             gLogger.error("Failed to get last update time for production %d" % prodID)
           else:
