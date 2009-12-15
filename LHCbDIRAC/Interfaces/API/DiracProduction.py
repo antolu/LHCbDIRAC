@@ -1107,9 +1107,12 @@ class DiracProduction:
             prodJob.setInputData(paramValue)
             inputData = paramValue
         if paramName=='Site':
-          if re.search(';',site): #type(site) == types.ListType:
-            site = site.split(';')
-            self.log.verbose('Setting destination site to list: %s' %(string.join(site,', ')))
+          if re.search(';',paramValue) and not site:
+            site = paramValue.split(';')
+            self.log.verbose('Setting destination site to list: %s' %(string.join(paramValue,', ')))
+            prodJob.setDestination(paramValue)
+          elif re.search(';',paramValue) and site:
+            self.log.warn('Overwriting allocated sites %s with %s' %(string.join(paramValue,', '),site))
             prodJob.setDestination(site)
           else:
             if site and not site==paramValue and paramValue.lower()!='any':
