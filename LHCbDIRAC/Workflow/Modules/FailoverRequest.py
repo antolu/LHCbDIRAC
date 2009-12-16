@@ -96,6 +96,9 @@ class FailoverRequest(ModuleBase):
       self.log.error(result['Message'])
       return result
 
+    if not self.fileReport:
+      self.fileReport =  FileReport('ProductionManagement/ProductionManager')
+
     if self.inputData:
       inputFiles = self.fileReport.getFiles()
       for lfn in self.inputData:
@@ -111,14 +114,12 @@ class FailoverRequest(ModuleBase):
           self.log.info('Forcing status to "Unused" due to workflow failure for: %s' %(lfn))
           self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
     else:
-      if self.fileReport:
-        self.log.info('Workflow status OK, setting input file status to Processed')      
-        inputFiles = self.fileReport.getFiles()
-        for lfn in inputFiles:
-          self.log.info('Setting status to "Processed" for: %s' %(lfn))
-          self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')
-      else:
-        self.log.info('Workflow status OK, no input files to update')    
+      inputFiles = self.fileReport.getFiles()
+      if inputFiles:
+        self.log.info('Workflow status OK, setting input file status to Processed')                
+      for lfn in inputFiles:
+        self.log.info('Setting status to "Processed" for: %s' %(lfn))
+        self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')  
 
     result = self.fileReport.commit()
     if not result['OK']:
