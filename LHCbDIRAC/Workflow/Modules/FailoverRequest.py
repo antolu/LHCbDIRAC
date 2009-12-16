@@ -7,7 +7,7 @@
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
@@ -111,11 +111,14 @@ class FailoverRequest(ModuleBase):
           self.log.info('Forcing status to "Unused" due to workflow failure for: %s' %(lfn))
           self.fileReport.setFileStatus(int(self.productionID),lfn,'Unused')
     else:
-      self.log.verbose('Workflow status ok, setting input file status to processed')
-      inputFiles = self.fileReport.getFiles()
-      for lfn in inputFiles:
-        self.log.info('Setting status to "Processed" for: %s' %(lfn))
-        self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')
+      if self.fileReport:
+        self.log.info('Workflow status OK, setting input file status to Processed')      
+        inputFiles = self.fileReport.getFiles()
+        for lfn in inputFiles:
+          self.log.info('Setting status to "Processed" for: %s' %(lfn))
+          self.fileReport.setFileStatus(int(self.productionID),lfn,'Processed')
+      else:
+        self.log.info('Workflow status OK, no input files to update')    
 
     result = self.fileReport.commit()
     if not result['OK']:
