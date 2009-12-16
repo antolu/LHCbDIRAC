@@ -16,6 +16,7 @@ from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 from DIRAC.Core.Security.Misc import getProxyInfoAsString
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Core.Utilities.Adler import fileAdler
+from DIRAC.TransformationSystem.Client.FileReport import FileReport
 import DIRAC
 import os,string
 
@@ -117,16 +118,16 @@ class ModuleBase(object):
     """
     self.log.verbose('setFileStatus(%s,%s,%s)' %(production,lfn,status))
 
-    if self.workflow_commons.has_key('FileReport'):
-      self.fileReport = self.workflow_commons['FileReport']
-    else:
-      self.fileReport = None
+    if not self.workflow_commons.has_key('FileReport'):
+      fileReport =  FileReport('ProductionManagement/ProductionManager')
+      self.workflow_commons['FileReport'] = fileReport
 
-    if not self.fileReport:
-      return S_OK('No reporting tool given')
-    result = self.fileReport.setFileStatus(production,lfn,status)
+    fileReport = self.workflow_commons['FileReport']
+    result = fileReport.setFileStatus(production,lfn,status)
     if not result['OK']:
       self.log.warn(result['Message'])
+
+    self.workflow_commons['FileReport']=fileReport
 
     return result
 
