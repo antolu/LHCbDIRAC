@@ -55,7 +55,7 @@ class BookkeepingWatchAgent(AgentModule):
       else:
         res = self.transClient.getBookkeepingQueryForTransformation(transID)
         if not res['OK']:
-          gLogger.warn("BookkeepingWatchAgent.execute: Failed to get BkQuery", result['Message'])
+          gLogger.warn("BookkeepingWatchAgent.execute: Failed to get BkQuery", res['Message'])
           continue
         bkDict = res['Value'] 
         
@@ -126,5 +126,15 @@ class BookkeepingWatchAgent(AgentModule):
           if not result['OK']:
             gLogger.warn("BookkeepingWatchAgent.execute: failed to add lfns to transformation", result['Message'])   
             self.fileLog[transID] = 0
+          else:
+            if result['Value']['Failed']:
+              for lfn,error in res['Value']['Failed'].items():
+                gLogger.warn("BookkeepingWatchAgent.execute: Failed to add %s to transformation" % lfn,error)
+            if result['Value']['Successful']:
+              added = 0
+              for lfn,status in result['Value']['Successful'].items():
+                if status == 'Added':
+                  added+=1
+              gLogger.info("BookkeepingWatchAgent.execute: Added %d files to transformation" % added)   
     
     return S_OK() 
