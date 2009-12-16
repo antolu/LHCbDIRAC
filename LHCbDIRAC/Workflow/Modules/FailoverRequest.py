@@ -9,6 +9,7 @@ __RCSID__ = "$Id$"
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC.TransformationSystem.Client.FileReport          import FileReport
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import os
