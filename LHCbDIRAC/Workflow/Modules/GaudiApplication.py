@@ -80,17 +80,18 @@ class GaudiApplication(ModuleBase):
       #write opts
       inputDataFiles = []
       for lfn in self.inputData:
+        lfn = lfn.replace('LFN:','').replace('lfn:','')
         if self.inputDataType == "MDF":
-          inputDataFiles.append(""" "DATAFILE='%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
         elif self.inputDataType in ("ETC","SETC","FETC"):
-          inputDataFiles.append(""" "COLLECTION='TagCreator/EventTuple' DATAFILE='%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """%(lfn))
+          inputDataFiles.append(""" "COLLECTION='TagCreator/EventTuple' DATAFILE='LFN:%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """%(lfn))
         elif self.inputDataType == 'RDST':
           if re.search('rdst$',lfn):
-            inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+            inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
           else:
             self.log.info('Ignoring file %s for %s step with input data type %s' %(lfn,self.applicationName,self.inputDataType))
         else:
-          inputDataFiles.append(""" "DATAFILE='%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+          inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
       inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
       evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
       options.append(evtSelOpt)
