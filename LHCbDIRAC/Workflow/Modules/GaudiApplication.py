@@ -77,6 +77,7 @@ class GaudiApplication(ModuleBase):
 
     options = []
     if self.inputData:
+      
       #write opts
       inputDataFiles = []
       for lfn in self.inputData:
@@ -99,7 +100,8 @@ class GaudiApplication(ModuleBase):
       if self.applicationName.lower()=='moore':
         options = []
         options.append('from Configurables import Moore')
-        options.append("Moore().inputFiles = %s" %(self.inputData))
+        mooreInput = ['LFN:%s' %i.replace('lfn:','').replace('LFN:','') for i in self.inputData]        
+        options.append("Moore().inputFiles = %s" %(mooreInput))
 
     poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(self.poolXMLCatName)
     options.append(poolOpt)
