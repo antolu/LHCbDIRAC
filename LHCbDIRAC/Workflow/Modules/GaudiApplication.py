@@ -611,7 +611,7 @@ done
     sliceName = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
     lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
-    outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
+    outputFile = _makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
     poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
     try:
       inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
