@@ -610,7 +610,7 @@ done
     # Fourth: find which of the matching slices is better for job sending (more availability)
     sliceName = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
-    lfnRoot = getLFNRoot( self.inputData, configName, configVersion )
+    lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
     outputFile = makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
     poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
     try:
