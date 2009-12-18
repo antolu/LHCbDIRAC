@@ -625,7 +625,7 @@ done
       self.log.exception()
       return S_ERROR( xmlrpcerror )      
     if not result[ 'OK' ]:
-      self.log.error( "Error running job" , sc[ 'Message' ] )
+      self.log.error( "Error running job" , result[ 'Message' ] )
       return S_ERROR( "Error submiting job" )
     # The submission went well
     if os.path.exists( self.applicationLog ):
