@@ -612,6 +612,7 @@ done
     # Fifth: submit the file and wait.
     lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
     outputFile = _makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
+    outputFile = outputFile.lstrip( 'LFN:' ).lstrip( 'lfn:' )
     poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
     try:
       inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
