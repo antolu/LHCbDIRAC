@@ -610,12 +610,12 @@ done
     # Fourth: find which of the matching slices is better for job sending (more availability)
     sliceName = sorted( validSlices.iteritems(), key = itemgetter(1), reverse = True )[0][0]
     # Fifth: submit the file and wait.
-    lfnRoot = _getLFNRoot( self.inputData, configName, configVersion )
+    inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
+    lfnRoot = _getLFNRoot( inputData, configName, configVersion )
     outputFile = _makeProductionLfn( self.JOB_ID, lfnRoot, (outputDataName, outputDataType), dataType, self.PRODUCTION_ID )
     outputFile = outputFile.lstrip( 'LFN:' ).lstrip( 'lfn:' )
     poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
     try:
-      inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
       guid = poolXMLCatalog.getGuidByLfn( inputData )
     except:
       self.log.exception()
