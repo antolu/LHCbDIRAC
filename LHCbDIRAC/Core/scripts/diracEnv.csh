@@ -71,7 +71,7 @@ endif
 # If not defined it will prevent grid commands in lcg tar to find CAs
 [ -z "$X509_CERT_DIR" ]    && setenv X509_CERT_DIR    "$DIRACROOT/etc/grid-security/certificates"
 # If not defined it will prevent voms commands DIRAC to determine voms servers
-[ -z "$DIRAC_VOMSES" ]     && setenv DIRAC_VOMSES     "$DIRACROOT/etc/vomses"
+[ -z "$DIRAC_VOMSES" ]     && setenv DIRAC_VOMSES     "$DIRACROOT/etc/grid-security/vomses"
 # If not defined it will prevent voms commands in lcg tar to check voms server credentials
 [ -z "$X509_VOMS_DIR" ]    && setenv X509_VOMS_DIR    "$DIRACROOT/etc/grid-security/vomsdir"
 # If not defined it will prevent gsissh command in lcg tar to work
