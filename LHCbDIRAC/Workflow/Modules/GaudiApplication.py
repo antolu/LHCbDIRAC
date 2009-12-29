@@ -622,10 +622,15 @@ done
       return S_ERROR( "Error getting GUID for inputfile" )
     try:
       result = recoManager.submitJob( sliceName, inputData , outputFile , guid )
-    except:
+    except:  
       self.log.exception()
       return S_ERROR( xmlrpcerror )      
     if not result[ 'OK' ]:
+      if 'fileID' in result['Value']:
+        fileID = result[ 'Value' ]
+        res = recoManager.getJobOutput(fileID)
+        loglines = res['Value']['log']
+        writeLogFromList( loglines )
       self.log.error( "Error running job" , result[ 'Message' ] )
       return S_ERROR( "Error submiting job" )
     # The submission went well
@@ -663,10 +668,7 @@ done
         self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
         self.step_commons[ 'guid' ] = jobInfo[ 'guid' ]
         loglines = jobInfo[ 'log' ]
-        log = open( self.step_commons[ 'applicationLog' ] , 'w' )
-        for line in loglines:
-          log.write( "%s\n" %line )
-        log.close()
+        writeLogFromList( loglines )
         self.log.info( "Status after the application execution is %s" %jobstatus )
         failed = False
         if jobstatus == 'ERROR':
@@ -694,5 +696,11 @@ done
         elif config1[ key ] != config2[ key ]:
           return False
     return True
+    
+  def writeLogFromList( self , loglines ):
+    log = open( self.step_commons[ 'applicationLog' ] , 'w' )
+    for line in loglines:
+      log.write( "%s\n" %line )
+    log.close()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
