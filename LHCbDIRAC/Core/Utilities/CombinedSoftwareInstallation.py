@@ -28,7 +28,7 @@ import os, shutil, sys, urllib, re, string
 import DIRAC
 
 InstallProject = 'install_project.py'
-InstallProjectURL = 'http://cern.ch/lhcbproject/dist/'
+InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class CombinedSoftwareInstallation:
 
@@ -83,13 +83,13 @@ class CombinedSoftwareInstallation:
     if not self.jobConfig:
       DIRAC.gLogger.error( 'No architecture requested' )
       return DIRAC.S_ERROR( 'No architecture requested' )
-    
+
     if self.ce.has_key('Site') and self.ce['Site'] == 'DIRAC.ONLINE-FARM.ch':
       return DIRAC.S_OK()
       print dir(self)
       print self.job
       return onlineExecute( self.job['SoftwarePackages'] )
-    
+
     if not self.jobConfig in self.ceConfigs:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
         DIRAC.gLogger.info( 'Assume locally running job' )
@@ -108,7 +108,7 @@ class CombinedSoftwareInstallation:
         DIRAC.gLogger.info('%s was successfully installed for %s' %(app,self.jobConfig))
 
     return DIRAC.S_OK()
-    
+
 def log( n, line ):
   DIRAC.gLogger.info( line )
 
@@ -531,7 +531,7 @@ def onlineExecute( softwarePackages ):
   # Second: Get slice information from the Online Farm
   server_url = 'http://storeio01.lbdaq.cern.ch:8889';
   # recoManager = xmlrpclib.Server(server_url);
-  recoManager = DummyRPC()    
+  recoManager = DummyRPC()
   connectionError = "Cannot connect to Reconstruction Manager"
   try:
     result = recoManager.globalStatus()
@@ -553,16 +553,16 @@ def onlineExecute( softwarePackages ):
     if not valid:
       return S_ERROR( matcherror )
   return DIRAC.S_OK()
-  
+
 class DummyRPC:
   def globalStatus( self ):
     return { 'OK' : True ,'Value' :
     { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 },
     '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 } ,
     '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
-    } 
     }
-  
+    }
+
 def compareConfigs( self , config1 , config2 ):
   if len(config1.keys()) != len(config2.keys()):
     return False
@@ -576,4 +576,4 @@ def compareConfigs( self , config1 , config2 ):
       elif config1[ key ] != config2[ key ]:
         return False
   return True
-      
+

@@ -24,7 +24,7 @@ import string, os, sys, re, shutil, urllib
 SAM_TEST_NAME='CE-lhcb-softreport'
 SAM_LOG_FILE='sam-softreport.log'
 InstallProject = 'install_project.py'
-InstallProjectURL = 'http://cern.ch/lhcbproject/dist/'
+InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class SoftwareReport(ModuleBaseSAM):
 
@@ -260,7 +260,11 @@ def CheckPackage(self, app, config, area):
    check if given application is available in the given area
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    try:
+      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
+    except:
+      self.log.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
+      return False
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       self.log.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
@@ -338,12 +342,12 @@ def CheckSharedArea(self, area):
 
     return False
 
-  lbenv = ret['outputEnv']  
-  
+  lbenv = ret['outputEnv']
+
   if not lbenv.has_key('LBSCRIPTS_HOME'):
     self.log.error('LBSCRIPTS_HOME is not defined')
     return False
-  
+
   if not os.path.exists(lbenv['LBSCRIPTS_HOME']+'/InstallArea/scripts/usedProjects'):
     self.log.error('UsedProjects is not in the path')
     return False

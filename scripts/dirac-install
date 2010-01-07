@@ -30,7 +30,7 @@ DEFAULT_SITE = "DIRAC.Client.local"
 
 # Some default values that can be changed via options
 DIRAC_CVS_REPOSITORY = ':pserver:anonymous@isscvs.cern.ch:/local/reps/dirac'
-DIRAC_HTTP_SERVER    = 'http://cern.ch/lhcbproject/dist/DIRAC3'
+DIRAC_HTTP_SERVER    = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/DIRAC3'
 # DIRAC_HTTP_SERVER    = 'http://lhcbweb.pic.es/distribution/DIRAC3'
 DIRAC_VERSION        = 'HEAD'
 DIRAC_PYTHON         = '25'
@@ -135,11 +135,11 @@ srcNo = len(src_tars)
 binNo = len(bin_tars)
 
 vomsesDict =  {'lhcb': '"lhcb" "voms.cern.ch" "15003" "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch" "lhcb" "24"'}
-vomsDirDict = {'lhcb': ( { "host": "lcg-voms.cern.ch", 
-                         "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch", 
-                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"}, 
-                         { "host": "voms.cern.ch", 
-                         "DN": "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch", 
+vomsDirDict = {'lhcb': ( { "host": "lcg-voms.cern.ch",
+                         "DN": "/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch",
+                         "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"},
+                         { "host": "voms.cern.ch",
+                         "DN": "/DC=ch/DC=cern/OU=computers/CN=voms.cern.ch",
                          "CA": "/DC=ch/DC=cern/CN=CERN Trusted Certification Authority"} ) }
 
 # Current python versions in use
@@ -346,7 +346,7 @@ class Dirac:
   def skipCA( self ):
     """
      Skip installation of CA's.
-     To be used when installing on a Grid enabled node with properly maintained CA's, ie WLCG WN, UI 
+     To be used when installing on a Grid enabled node with properly maintained CA's, ie WLCG WN, UI
     """
     dirac.skipCAUpdate = True
 
@@ -976,7 +976,7 @@ class Dirac:
     platformFile = os.path.join( self.scriptsPath, 'platform.py' )
     try:
       f = open(platformFile,'w')
-      
+
 ###################################################################################
 ###################################################################################
 #
@@ -2398,7 +2398,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
     Script.registerSwitch( "U",  "Upload",    "Upload compiled distribution to lhcbweb (if -b)" )
     Script.registerSwitch( "V:", "vo=",       "Run vo specific configuration (default=lhcb)" )
     Script.registerSwitch( "W:", "gateway=",  "Configure <gateway> as DIRAC Gateway for the site" )
-    
+
 
     from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
     localCfg = LocalConfiguration()
@@ -2429,13 +2429,13 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           arch = 'rh73_'+arch+'_gcc296'
         localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
-        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )     
-    elif voName == 'eela':  
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
+    elif voName == 'eela':
       localCfg.addDefaultEntry( '/DIRAC/Setup', 'EELA-Production' )
       if not csServers:
         csServers = 'dips://mareela.in2p3.fr:9135/Configuration/Server'
-                                
-      # A.T. This is not really LHCb specific                          
+
+      # A.T. This is not really LHCb specific
       dirac.lhcbPlatform()
       if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
         if DIRAC.platformTuple[1] == 'i686':
@@ -2455,12 +2455,12 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
         localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
         localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
-    elif voName == 'magic':  
-      localCfg.addDefaultEntry( '/DIRAC/Setup', 'MAGIC-Test' )   
+    elif voName == 'magic':
+      localCfg.addDefaultEntry( '/DIRAC/Setup', 'MAGIC-Test' )
       if not csServers:
         csServers = 'dips://dirac02.pic.es:9002/Configuration/Server'
-                                
-      # A.T. This is not really LHCb specific                          
+
+      # A.T. This is not really LHCb specific
       dirac.lhcbPlatform()
       if dirac.lhcb_platform == 'ERROR' and DIRAC.platformTuple[0] == 'Linux':
         if DIRAC.platformTuple[1] == 'i686':
@@ -2479,7 +2479,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
           arch = 'rh73_'+arch+'_gcc296'
         localCfg.addDefaultEntry( '/LocalSite/Architecture', arch )
       else:
-        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )                            
+        localCfg.addDefaultEntry( '/LocalSite/Architecture', dirac.lhcb_platform )
     else:
       pass
 
@@ -2499,18 +2499,18 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
 
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
     if ceName:
-    
+
       siteName = None
       gridSections = DIRAC.gConfig.getSections('/Resources/Sites/')
       if not gridSections['OK']:
         dirac.logEXCEP('Could not get grid sections list')
-    
+
       grids = gridSections['Value']
-      
-      for grid in grids:  
-    
+
+      for grid in grids:
+
         siteSections = DIRAC.gConfig.getSections('/Resources/Sites/%s/' % grid)
-        if not siteSections['OK']: 
+        if not siteSections['OK']:
           dirac.logEXCEP('Could not get %s site list' % grid)
 
         sites = siteSections['Value']
@@ -2521,10 +2521,10 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
             break
         if siteName:
           break
-    
+
       if not siteName:
-        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % ceName )    
-    
+        dirac.logEXCEP('Could not determine DIRAC site name for CE: %s' % ceName )
+
       dirac.logINFO( 'Setting /LocalSite/Site = %s' % siteName )
       localCfg.addDefaultEntry( '/LocalSite/Site', siteName )
       dirac.logINFO( 'Setting /LocalSite/GridCE = %s' % ceName )
@@ -2539,7 +2539,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
       localCfg.addDefaultEntry( '/LocalSite/LocalSE', localSE )
       dirac.logINFO( 'Setting /LocalSite/LocalSE = %s' % localSE )
 
-    # FIXME: this will be remove soon since DIRAC.SiteName() returns the proper default 
+    # FIXME: this will be remove soon since DIRAC.SiteName() returns the proper default
     localCfg.addDefaultEntry( '/LocalSite/Site', DEFAULT_SITE )
 
     Script.parseCommandLine( script = myShortName, ignoreErrors = True )
@@ -2598,7 +2598,7 @@ if myShortName in [ 'dirac-install', 'dirac-update']:
         quotedArgs.append('"%s"' % arg.replace('"','\"'))
       else:
         quotedArgs.append(arg)
-    args         = str.join(' ',quotedArgs) + ' -v %s' % dirac.version   
+    args         = str.join(' ',quotedArgs) + ' -v %s' % dirac.version
     if os.path.exists( dirac.localPython ):
       myCmd = '%s %s %s ' % ( dirac.localPython, updateScript, args )
     else:
