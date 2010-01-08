@@ -2631,7 +2631,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'HCAL':None, \
                     'MUON':None, \
                     'L0':None, \
-                    'HLT':None}
+                    'HLT':None,
+                    'VeloPosition':None}
         
     for param in conditions:
       if not datataking.__contains__(param):
