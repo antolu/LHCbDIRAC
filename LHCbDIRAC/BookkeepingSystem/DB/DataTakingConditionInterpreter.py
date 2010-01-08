@@ -31,93 +31,90 @@ class Conditions:
    
   def interpret(self, context):
     if context.getInput().has_key(self.BeamCond()):
-      if context.getInput()[self.BeamCond()] != self.getCondition():
-        context.setOutput(self.Template(context.getInput()[self.BeamCond()]))
+      context.setOutput(self.Template(context.getInput()[self.BeamCond()]))
           
     if context.getInput().has_key(self.Beamenergy()):
-      if context.getInput()[self.Beamenergy()] != self.getCondition():
-        context.setOutput(self.Template(context.getInput()[self.Beamenergy()]))
+      context.setOutput(self.Template(context.getInput()[self.Beamenergy()]))
     
     if context.getInput().has_key(self.VeloCond()):
-      if context.getInput()[self.VeloCond()] != self.getCondition():
+      if context.getParticionName().upper() =='LHCB' or context.getParticionName().upper() =='VELO':
         context.setOutput(self.Template(context.getInput()[self.VeloCond()]))
       
     if context.getInput().has_key(self.MagneticField()):
-      if context.getInput()[self.MagneticField()] != self.getCondition():
-        context.setOutput(self.Template(context.getInput()[self.MagneticField()]))
+      context.setOutput(self.Template(context.getInput()[self.MagneticField()]))
       
     if context.getInput().has_key(self.Ecal()):
-      if context.getInput()[self.Ecal()] != self.getCondition():
+      if context.getInput()[self.Ecal()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Ecal()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Ecal()]))
       
     
     if context.getInput().has_key(self.Hcal()):
-      if context.getInput()[self.Hcal()] != self.getCondition():
+      if context.getInput()[self.Hcal()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Hcal()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Hcal()]))
       
     if context.getInput().has_key(self.Hlt()):
-      if context.getInput()[self.Hlt()] != self.getCondition():
+      if context.getInput()[self.Hlt()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Hlt()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Hlt()]))
           
     if context.getInput().has_key(self.It()):
-      if context.getInput()[self.It()] != self.getCondition():
+      if context.getInput()[self.It()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.It()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.It()]))
           
     if context.getInput().has_key(self.Lo()):
-      if context.getInput()[self.Lo()] != self.getCondition():
+      if context.getInput()[self.Lo()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Lo()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Lo()]))
           
     if context.getInput().has_key(self.Muon()):
-      if context.getInput()[self.Muon()] != self.getCondition():
+      if context.getInput()[self.Muon()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Muon()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Muon()]))
           
     if context.getInput().has_key(self.Ot()):
-      if context.getInput()[self.Ot()] != self.getCondition():
+      if context.getInput()[self.Ot()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Ot()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Ot()]))
       
     if context.getInput().has_key(self.Rich1()):
-      if context.getInput()[self.Rich1()] != self.getCondition():
+      if context.getInput()[self.Rich1()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Rich1()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Rich1()]))
           
     if context.getInput().has_key(self.Rich2()):
-      if context.getInput()[self.Rich2()] != self.getCondition():
+      if context.getInput()[self.Rich2()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Rich2()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Rich2()]))
           
     if context.getInput().has_key(self.Spd_prs()):
-      if context.getInput()[self.Spd_prs()] != self.getCondition():
+      if context.getInput()[self.Spd_prs()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-        context.setOutput(self.Template(context.getInput()[self.Spd_prs()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Spd_prs()]))
           
     if context.getInput().has_key(self.Tt()):
-      if context.getInput()[self.Tt()] != self.getCondition():
+      if context.getInput()[self.Tt()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-      context.setOutput(self.Template(context.getInput()[self.Tt()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Tt()]))
           
     if context.getInput().has_key(self.Velo()):
-      if context.getInput()[self.Velo()] != self.getCondition():
+      if context.getInput()[self.Velo()] == self.getCondition():
         if context.getParticionName().upper() =='LHCB':
-          self.Excl()
-      context.setOutput(self.Template(context.getInput()[self.Velo()]))
+          self.Excl(context)
+          context.setOutput(self.Template(context.getInput()[self.Velo()]))
          
          
   def BeamCond(self):
@@ -174,7 +171,7 @@ class Conditions:
   def Template2(self, value):
     return ''
   
-  def Excl(self):
+  def Excl(self, context):
     if context.getOutput().find('Excl') < 0:
       context.setOutput('Excl-')
 
@@ -193,8 +190,17 @@ class BeamEnergyCondition(Conditions):
   def Beamenergy(self):
     return 'BeamEnergy'
   
-  def Template(self, value):
-    return value + '-'
+  def Template(self, value):   
+    try:
+      if value != None:
+        if (value.strip() != 'None'):
+          if value == 'UNKOWN' or float(value) == 0 or float(value) == 7864 or float(value) >= 7864: 
+            return 'BeamOff-'
+          else:
+            return 'Beam'+str(int(float(value))) +'GeV-'
+    except Exception ,e:
+      print e
+    return 'BeamOff-'
 
 #############################################################################
 class MagneticFieldCondition(Conditions):
@@ -203,7 +209,14 @@ class MagneticFieldCondition(Conditions):
     return 'MagneticField'
   
   def Template(self, value):
-    return 'Mag'+value+'-'
+    if value.upper()=='OFF':
+      return 'MagOff-'
+    elif value.upper() == 'DOWN':
+      return 'MagDown-'
+    elif value.upper() == 'UP':
+      return 'MagUp-' 
+    else:
+      return 'Mag'+value+'-'
 
 #############################################################################
 class VeloPosition(Conditions):
@@ -213,7 +226,7 @@ class VeloPosition(Conditions):
 
   def Template(self, value):
     if value == self.getCondition():
-      return 'Ve-'
+      return 'VE-'
   
 #############################################################################  
 class EcalCondition(Conditions):
@@ -335,7 +348,7 @@ if __name__ == "__main__":
                     'BeamCond':'Beam', \
                     'BeamEnergy':'450GeV', \
                     'MagneticField':'ON', \
-                    'VELO':'INCLUDED', \
+                    'VELO':'NOT INCLUDED', \
                     'IT':'INCLUDED',  \
                     'TT':'UNKOWN', \
                     'OT':'NOT INCLUDED', \
@@ -351,7 +364,7 @@ if __name__ == "__main__":
 
   print datataking
   
-  context = Context(datataking)
+  context = Context(datataking, 'RICH1')
   conditions = [BeamCondition(), BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
                 MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
   

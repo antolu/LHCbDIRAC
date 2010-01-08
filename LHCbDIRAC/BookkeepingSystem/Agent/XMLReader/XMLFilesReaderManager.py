@@ -18,6 +18,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager                           
 from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
 from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
+from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import *
 import os,sys,datetime
 
 __RCSID__ = "$Id$"
@@ -311,6 +312,16 @@ class XMLFilesReaderManager:
     condParams = job.getDataTakingCond()
     if condParams != None:
       datataking = condParams.getParams()
+      
+      config = job.getJobConfiguration()
+      context = Context(datataking, config.getConfigName())
+      conditions = [BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
+              MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
+      for condition in conditions:
+        condition.interpret(context)
+      
+      datataking['Description'] = context.getOutput()
+        
       res = dataManager_.getDataTakingCondId(datataking)
       dataTackingPeriodID = None
       if res['OK']:
