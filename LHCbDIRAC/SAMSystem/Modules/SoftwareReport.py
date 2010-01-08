@@ -82,6 +82,8 @@ class SoftwareReport(ModuleBaseSAM):
     softwareDict = {}
     soft_present_pb = []
     softwareDictPb = {}
+    soft_remove = []
+    softwareDictRemove = {}
 
     if not self.result['OK']:
       return self.result
@@ -147,7 +149,16 @@ class SoftwareReport(ModuleBaseSAM):
 #to be remove...
 #
 #      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
-      CheckSharedArea(self,sharedArea)
+      ret_area = CheckSharedArea(self,sharedArea)
+      if not ret_area['OK']:
+        return self.finalize('Problem softwarereport',ret_area['Message'],'error')
+
+      soft_remove = ret_area['Value']
+      for app in soft_remove.keys():
+        for ver in soft_remove[app]:
+          appName = app+'.'+ver
+          softwareDictRemove[appName] = 'ALL'
+
       for systemConfig in localPlatforms['Value'].keys():
 #        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
         packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig),[])
@@ -160,12 +171,13 @@ class SoftwareReport(ModuleBaseSAM):
 
           if installPackage in packageList:
             self.log.info('Attempting to check %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-            orig = sys.stdout
-            catch = open(self.logFile,'a')
-            sys.stdout=catch
+#            orig = sys.stdout
+#            catch = open(self.logFile,'a')
+#            catch = open('jojo.log','w')
+#            sys.stdout=catch
             result = CheckPackage(self, appNameVersion, systemConfig, sharedArea )
-            sys.stdout=orig
-            catch.close()
+#            sys.stdout=orig
+#            catch.close()
             #result = True
             if not result: #or not result['OK']:
               soft_present_pb.append((appNameVersion[0], appNameVersion[1] , systemConfig))
@@ -203,6 +215,10 @@ class SoftwareReport(ModuleBaseSAM):
     fd.write('<H1>Applications NOT properly installed in the area</H1>')
     self.log.info(softwareDictPb)
     fd.write(self.getSoftwareReport(softwareDictPb))
+    self.log.info('Applications that could be remove in the area')
+    fd.write('<H1>Applications that could be remove in the area</H1>')
+    self.log.info(softwareDictRemove)
+    fd.write(self.getSoftwareReport(softwareDictRemove))
     fd.close()
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
@@ -241,12 +257,14 @@ class SoftwareReport(ModuleBaseSAM):
 
     self.log.debug(rows)
 
-    table = """<table border="1" bordercolor="#000000" width="50%" bgcolor="#BCCDFE">
+    table = """
+
+<table border='1' bordercolor='#000000' width='50%' bgcolor='#BCCDFE'>
 <tr>
 <td>Project Name</td>
 <td>Project Version</td>
 <td>System Configurations</td>
-</tr>"""+rows+"""
+</tr>""" +rows+ """
 </table>
 """
     self.log.debug(table)
@@ -260,11 +278,7 @@ def CheckPackage(self, app, config, area):
    check if given application is available in the given area
   """
   if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    try:
-      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
-    except:
-      self.log.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
-      return False
+    localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
     if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
       self.log.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
       return False
@@ -328,7 +342,7 @@ def CheckSharedArea(self, area):
   """
 
   if not area:
-    return False
+    return S_ERROR('No shared area')
 
   localArea = area
   if re.search(':',area):
@@ -340,17 +354,17 @@ def CheckSharedArea(self, area):
     gLogger.warn('Error during lbLogin\n%s' %ret)
     self.log.error('Error during lbLogin\n%s' %ret)
 
-    return False
+    return S_ERROR('Error during lbLogin')
 
   lbenv = ret['outputEnv']
 
   if not lbenv.has_key('LBSCRIPTS_HOME'):
     self.log.error('LBSCRIPTS_HOME is not defined')
-    return False
+    return S_ERROR('LBSCRIPTS_HOME is not defined')
 
   if not os.path.exists(lbenv['LBSCRIPTS_HOME']+'/InstallArea/scripts/usedProjects'):
     self.log.error('UsedProjects is not in the path')
-    return False
+    return S_ERROR('UsedProjects is not in the path')
 
 
   # Now run the installation
@@ -370,10 +384,10 @@ def CheckSharedArea(self, area):
   os.chdir(curDir)
   if not ret['OK']:
 #    self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return False
+    return S_ERROR()
   if ret['Value'][0]: # != 0
 #    self.log.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return False
+    return S_ERROR()
 
   if ret['Value'][2]:
     self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
@@ -389,6 +403,6 @@ def CheckSharedArea(self, area):
             software_remove[line[1]]=[line[3]]
   self.log.info('Applications that could be remove')
   self.log.info(software_remove)
-  return True
+  return S_OK(software_remove)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
