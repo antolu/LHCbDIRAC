@@ -2645,7 +2645,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                                                                                   datataking['IT'], datataking['TT'], datataking['OT'], \
                                                                                   datataking['RICH1'], datataking['RICH2'], \
                                                                                   datataking['SPD_PRS'], datataking['ECAL'], \
-                                                                                  datataking['HCAL'], datataking['MUON'], datataking['L0'], datataking['HLT'] ])
+                                                                                  datataking['HCAL'], datataking['MUON'], datataking['L0'], datataking['HLT'], datataking['VeloPosition'] ])
     return res
   
   #############################################################################
