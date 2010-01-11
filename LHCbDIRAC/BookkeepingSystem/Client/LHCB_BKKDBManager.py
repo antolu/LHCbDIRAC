@@ -346,7 +346,7 @@ class LHCB_BKKDBManager(BaseESManager):
         for record in dbResult:
           simid = str(record[0])
           description = record[1]
-          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12],'HCAL':record[13],'MUON':record[14],'L0':record[15],'HLT':record[16]}
+          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12],'HCAL':record[13],'MUON':record[14],'L0':record[15],'HLT':record[16], 'VeloPosition':record[17]}
           entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
         self._cacheIt(entityList)
       else:
@@ -767,7 +767,7 @@ class LHCB_BKKDBManager(BaseESManager):
         for record in dbResult:
           simid = str(record[0])
           description = record[1]
-          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12]}
+          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12],'HCAL':record[13],'MUON':record[14],'L0':record[15],'HLT':record[16], 'VeloPosition':record[17]}
           entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
         self._cacheIt(entityList)
       else:
