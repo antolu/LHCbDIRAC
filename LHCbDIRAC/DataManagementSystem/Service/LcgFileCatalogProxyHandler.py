@@ -57,7 +57,7 @@ class LcgFileCatalogProxyHandler(RequestHandler):
       result = method(*args,**kargs)
       return result
     except Exception,x:
-      errStr = "LcgFileCatalogProxyHandler.__proxyWrapper: Exception while performing %s" % name"
+      errStr = "LcgFileCatalogProxyHandler.__proxyWrapper: Exception while performing %s" % name
       gLogger.exception(errStr,name,x)
       return S_ERROR(errStr)
 
