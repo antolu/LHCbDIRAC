@@ -2,7 +2,7 @@
 # Created    : 2008-09-23
 # Maintainer : Joel Closier
 #============================================================================
-package           LHCbDIRACSys
+package           LHCbDiracSys
 
 #============================================================================
 # Structure, i.e. directories to process.
@@ -11,8 +11,8 @@ branches          cmt doc src
 
 include_path      none
 
-use LHCbDIRACPolicy v1r0
-use LHCbDIRACConfig v1r0
+use LHCbDiracPolicy v1r0
+use LHCbDiracConfig v1r0
 use DIRAC v0r87
 
 use BookkeepingSystem		 v1r0 LHCbDIRAC

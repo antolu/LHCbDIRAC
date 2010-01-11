@@ -2,7 +2,7 @@
 # Created    : 2008-09-24
 # Maintainer : Philippe Charpentier
 #============================================================================
-package           LHCbDIRACPolicy
+package           LHCbDiracPolicy
 
 cmtpath_pattern \
    macro <project>_install_python "" \
