@@ -19,6 +19,14 @@ cd $basedir
 
 tar zxvf $LHCBTAR/DIRAC3/DIRAC-external-client-v4r0-${DIRACPLAT}-python25.tar.gz $DIRACPLAT/lib/python2.5/site-packages/GSI/
 
+if ! [ -r $basedir/InstallArea/scripts ]; then
+  ln -s ../scripts $basedir/InstallArea/scripts
+fi
+
+if ! [ -r $basedir/InstallArea/python ]; then
+  ln -s ../ $basedir/InstallArea/python
+fi
+
 if ! [ -r $basedir/InstallArea/$CMTCONFIG/python2.5 ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/python2.5
 fi
