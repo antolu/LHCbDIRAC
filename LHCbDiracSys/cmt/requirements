@@ -11,7 +11,7 @@ branches          cmt doc src
 
 include_path      none
 
-use LHCbDiracPolicy v2r0
+use LHCbDiracPolicy v2r1
 use LHCbDiracConfig v2r0
 use DIRAC v5r0p0-pre2
 
@@ -23,7 +23,7 @@ use Interfaces               if_2010011201 LHCbDIRAC
 use ProductionManagementSystem   pm_2010011201 LHCbDIRAC
 use ResourceStatusSystem     rs_2010011201 LHCbDIRAC
 use SAMSystem                sa_2010011201 LHCbDIRAC
-use TransformationSystem     tf_2010011201 LHCbDIRAC
+use TransformationSystem     ts_2010011201 LHCbDIRAC
 use Web                      we_2010011201 LHCbDIRAC
 use Workflow                 wo_2010011201 LHCbDIRAC
 use WorkloadManagementSystem wm_2010011201 LHCbDIRAC
