@@ -1,8 +1,8 @@
-project LHCbDIRAC
+project LHCbDirac
 use LHCBGRID LHCBGRID_v2r*
-use LCGCMT LCGCMT_57a
+use LCGCMT LCGCMT_56b
 
 build_strategy with_installarea
 setup_strategy root
 
-container LHCbDIRACSys
+container LHCbDiracSys
