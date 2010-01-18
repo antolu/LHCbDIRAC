@@ -143,7 +143,7 @@ class ProductionJobAgent(AgentModule):
                 jobName = result['Value']['JobName']
                 jobID = int(jobName.split('_')[1])
                 self.log.info('Restoring status for job %s of production %s from Reserved to %s/%s' % (jobID,production,status,jobWmsID))
-                result = self.prodClient.self.setTaskStatusAndWmsID(long(production),long(jobID),status,jobWmsID)  
+                result = self.prodClient.setTaskStatusAndWmsID(long(production),long(jobID),status,jobWmsID)  
                 if not result['OK']:
                   self.log.warn(result['Message'])
           else:
