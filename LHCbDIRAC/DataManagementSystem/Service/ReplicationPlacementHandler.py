@@ -11,12 +11,12 @@ from types import *
 # This is a global instance of the TransformationDB class
 replicationDB = False
 
-def initializeTransformationManagerHandler( serviceInfo ):
+def initializeReplicationPlacementHandler( serviceInfo ):
   global replicationDB
   replicationDB = ReplicationPlacementDB()
   return S_OK()
 
-class TransformationManagerHandler(TransformationHandler):
+class ReplicationPlacementHandler(TransformationHandler):
 
   def __init__(self,*args,**kargs):
     self.setDatabase(replicationDB)
