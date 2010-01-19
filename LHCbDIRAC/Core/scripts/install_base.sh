@@ -15,10 +15,11 @@ DESTDIR=/opt/dirac
 SiteName=VOLHCBXX.CERN.CH
 DIRACSETUP=LHCb-Development
 DIRACVERSION=vXrYpZ
-EXTVERSION=vXrYpZ
 DIRACARCH=
-DIRACPYTHON=24
+DIRACPYTHON=25
 DIRACDIRS="startup runit data work control requestDB"
+DIRACDBs=""
+LCGVERSION=2009-08-13
 
 export DIRACINSTANCE=Development
 export LOGLEVEL=VERBOSE
@@ -42,12 +43,12 @@ mkdir -p $DESTDIR || exit 1
 CURDIR=`dirname $0`
 CURDIR=`cd $CURDIR; pwd -P`
 
-ROOT=`dirname $DESTDIR`/DIRAC
+ROOT=`dirname $DESTDIR`/dirac
 
 echo
 echo "Installing under $ROOT"
 echo
-[ -L $ROOT ] || ln -sf $DESTDIR/pro $ROOT || exit
+[ -d $ROOT ] || exit
 
 if [ ! -d $DESTDIR/etc ]; then
   mkdir -p $DESTDIR/etc || exit 1
@@ -91,13 +92,15 @@ for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-# to make sure we do not use DIRAC python
-dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
-PATH=`echo $PATH | sed "s/$dir://"`
+echo python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+     python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
 
-echo $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName 2>/dev/null || exit 1
-     $CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
+echo 
+     # once the dirac-configure is fixed add --SkipCAChecks and remove the line afterwards
+     $VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb || exit 1
+     rm -rf $ROOT/etc/grid-security/certificates/
 
+echo
 #
 # Create pro and old links
 old=$DESTDIR/old
@@ -114,25 +117,26 @@ cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1,
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
 $DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
-chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
 
 #
 # fix user .bashrc
 #
-grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
-  echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
-chmod +x $DESTDIR/pro/scripts/install_service.sh
-cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 
 #
 # Configure MySQL if not yet done
 #
+if [ ! -z "$DIRACDBs" ] ; then
+  source $DESTDIR/pro/scripts/install_mysql.sh $DIRACHOST
+  $DESTDIR/pro/mysql/share/mysql/mysql.server start
 
-$CURDIR/install_mysql.sh $DIRACHOST
-/opt/dirac/pro/mysql/share/mysql/mysql.server start
+  #
+  # Check necessary DBs are there
+  #
+  $DESTDIR/pro/scripts/install_mysql_db.sh $DIRACDBs
+fi
 
 ##############################################################
 # INSTALL SERVICES
