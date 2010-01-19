@@ -303,9 +303,9 @@ class DataRecoveryAgent(AgentModule):
       self.log.info('None of the jobs have pending requests')
       return S_OK(jobFileDict)
     
-    for jobID,requestName in result['Value']:
-      del jobfileDict[jobID]  
-      self.log.info('Removing jobID %s from consideration until requests are completed')
+    for jobID,requestName in result['Value'].items():
+      del jobFileDict[jobID]  
+      self.log.info('Removing jobID %s from consideration until requests are completed' %(jobID))
     
     return S_OK(jobFileDict)
   
