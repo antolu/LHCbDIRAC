@@ -13,4 +13,4 @@ class ReplicationPlacementDB(TransformationDB):
   def __init__( self, maxQueueSize=10 ):
     """ Constructor
     """
-    TransformationDB.__init__(self,'ReplicationPlacementDB', 'DataManagement/ReplicationPlacement', maxQueueSize)
+    TransformationDB.__init__(self,'ReplicationPlacementDB', 'DataManagement/ReplicationPlacementDB', maxQueueSize)
