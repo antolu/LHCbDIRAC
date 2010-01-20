@@ -1,1 +1,3 @@
 package SAMSystem
+
+use LHCbDiracPolicy *
