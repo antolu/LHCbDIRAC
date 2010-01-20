@@ -36,6 +36,7 @@ class ProductionJobAgent(AgentModule):
     self.productionStatus = self.am_getOption('SubmitStatus','automatic')
     self.enableFlag = None
     self.prodClient = ProductionClient()
+    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
     gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
     return S_OK()
 
@@ -66,6 +67,9 @@ class ProductionJobAgent(AgentModule):
 
     for production,status in activeProductions.items():
       if status.lower()==self.productionStatus:
+        res = self.toBeExecuted(production)
+        if (not res['OK']) or (not res['Value']):
+          continue
         self.log.info('Attempting to submit %s jobs for production %s' %(self.jobsToSubmitPerProduction,production))
         start = time.time()
         result = diracProd.submitProduction(production,self.jobsToSubmitPerProduction)
@@ -114,7 +118,10 @@ class ProductionJobAgent(AgentModule):
     for prod in result['Value']:
       production = int(prod['TransformationID'])
       prodStatus = prod['Status']
+      type = prod['Type']
       if not prodStatus in ['Active','Stopped']:
+        continue
+      if not type in self.transformationTypes:
         continue
       time_stamp_older = str(datetime.datetime.utcnow() - datetime.timedelta(hours=1))
       time_stamp_newer = str(datetime.datetime.utcnow() - datetime.timedelta(days=7))
@@ -157,5 +164,14 @@ class ProductionJobAgent(AgentModule):
           continue       
     
     return S_OK()
+
+  def toBeExecuted(self,prodID):
+    res = self.prodClient.getTransformationParameters(prodID,['Type'])
+    if not res['OK']:
+      self.log.error("Failed to get Type for production %s" % prodID)
+      return res
+    if res['Value'] in self.transformationTypes:
+      return S_OK(True)
+    return S_OK(False)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
