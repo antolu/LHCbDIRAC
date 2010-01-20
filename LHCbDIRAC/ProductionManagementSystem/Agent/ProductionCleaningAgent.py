@@ -24,8 +24,7 @@ class ProductionCleaningAgent(AgentModule):
 
   #############################################################################
   def initialize(self):
-    """Sets defaults
-    """
+    """Sets defaults """
     self.replicaManager = ReplicaManager()
     self.productionClient = ProductionClient()
     self.wmsClient = WMSClient()
@@ -78,8 +77,6 @@ class ProductionCleaningAgent(AgentModule):
     if not res['OK']:
       gLogger.error("Failed to get %s productions" % status,res['Message'])
       return res
-    if not res['Value']:
-      gLogger.info("No productions found in %s status" % status)
     prods = []
     for prodID in res['Value']:
       res = self.productionClient.getTransformationParameters(prodID,['Type'])
@@ -88,6 +85,8 @@ class ProductionCleaningAgent(AgentModule):
       else:
         if res['Value'] in self.transformationTypes:
           prods.append(prodID)
+    if not prods:
+      gLogger.info("No productions found in %s status" % status)
     return S_OK(prods)
 
   #############################################################################
