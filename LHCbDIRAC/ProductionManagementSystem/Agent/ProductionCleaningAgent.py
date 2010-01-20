@@ -33,6 +33,7 @@ class ProductionCleaningAgent(AgentModule):
     self.bkClient = BookkeepingClient()
     self.am_setModuleParam("shifterProxy", "DataManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
+    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
     return S_OK()
 
   #############################################################################
@@ -44,55 +45,51 @@ class ProductionCleaningAgent(AgentModule):
       self.log.info('ProductionCleaningAgent is disabled by configuration option %s/EnableFlag' %(self.section))
       return S_OK('Disabled via CS flag')
 
-    # Obtain the productions in the Deleted status and remove any mention of the jobs/files
-    res = self.productionClient.getTransformationWithStatus('Cleaning')
-    if not res['OK']:
-      gLogger.error("Failed to get Cleaning productions",res['Message'])
-    else:
-      prods = res['Value']
-      if not prods:
-        gLogger.info("No productions found in Cleaning status")
-      else:
-        gLogger.info("Found %d productions in Cleaning status" % len(prods))
-        for prodID in sortList(prods):
-          self.cleanProduction(int(prodID))
+    # Obtain the productions in Cleaning status and remove any mention of the jobs/files
+    res = self.getTransformationWithStatus('Cleaning')
+    if res['OK']:
+      for prodID in sortList(res['Value']):
+        self.cleanProduction(int(prodID))
 
-    # Obtain the productions where the remnant output data is to be removed
-    res = self.productionClient.getTransformationWithStatus('RemovingFiles')
-    if not res['OK']:
-      gLogger.error("Failed to get RemovingFiles productions",res['Message'])
-    else:
-      prods = res['Value']
-      if not prods:
-        gLogger.info("No productions found in RemovingFiles status")
-      else:
-        gLogger.info("Found %d productions in RemovingFiles status" % len(prods))
-        for prodID in sortList(prods):
-          self.removeProductionOutput(int(prodID))
+    # Obtain the productions in RemovingFiles status and (wait for it) removes the output files
+    res = self.getTransformationWithStatus('RemovingFiles')
+    if res['OK']:
+      for prodID in sortList(res['Value']):
+        self.removeProductionOutput(int(prodID))
 
-    # Obtain the productions to be archived and remove the jobs in the WMS and production management
-    res = self.productionClient.getTransformationWithStatus('Completed')
-    if not res['OK']:
-      gLogger.error("Failed to get Completed productions",res['Message'])
-    else:
-      prods = res['Value']
-      if not prods:
-        gLogger.info("No productions found in Completed status")
-      else:
-        gLogger.info("Found %d productions in Completed status" % len(prods))
-        for prodID in sortList(prods):
-          res = self.productionClient.getTransformationParameters(prodID,['LastUpdate'])
-          if not res['OK']:
-            gLogger.error("Failed to get last update time for production %d" % prodID)
-          else:
-            lastUpdateTime = res['Value']
-            timeDelta = timedelta(days=7)
-            maxCTime = datetime.utcnow() -  timeDelta
-            if lastUpdateTime < maxCTime:
-              self.archiveProduction(prodID)
-
+    # Obtain the productions in Completed status and archive if inactive for X days
+    res = self.getTransformationWithStatus('Completed')
+    if res['OK']:
+      for prodID in sortList(res['Value']):
+        res = self.productionClient.getTransformationParameters(prodID,['LastUpdate'])
+        if not res['OK']:
+          gLogger.error("Failed to get last update time for production %d" % prodID)
+        else:
+          lastUpdateTime = res['Value']
+          timeDelta = timedelta(days=7)
+          maxCTime = datetime.utcnow() -  timeDelta
+          if lastUpdateTime < maxCTime:
+            self.archiveProduction(prodID)
+ 
     return S_OK()
   
+  def getTransformationWithStatus(self,status):
+    res = self.productionClient.getTransformationWithStatus(status)
+    if not res['OK']:
+      gLogger.error("Failed to get %s productions" % status,res['Message'])
+      return res
+    if not res['Value']:
+      gLogger.info("No productions found in %s status" % status)
+    prods = []
+    for prodID in res['Value']:
+      res = self.productionClient.getTransformationParameters(prodID,['Type'])
+      if not res['OK']:
+        gLogger.error("Failed to get Type for production %d" % prodID)
+      else:
+        if res['Value'] in self.transformationTypes:
+          prods.append(prodID)
+    return S_OK(prods)
+
   #############################################################################
   #
   # These are the functional methods for archiving and cleaning productions
