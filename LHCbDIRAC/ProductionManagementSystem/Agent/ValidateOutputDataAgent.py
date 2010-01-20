@@ -28,6 +28,7 @@ class ValidateOutputDataAgent(AgentModule):
     self.productionClient = ProductionClient()
     self.am_setModuleParam("shifterProxy", "DataManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
+    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
     return S_OK()
 
   #############################################################################
@@ -54,11 +55,16 @@ class ValidateOutputDataAgent(AgentModule):
     gLogger.info("Found %s productions in ValidatingOutput status" % len(prods))
     for prodID in sortList(prods):
       gLogger.info("-" * 40)
-      res = self.checkProductionIntegrity(int(prodID))
+      res = self.productionClient.getTransformationParameters(prodID,['Type'])
       if not res['OK']:
-        gLogger.error("Failed to perform full integrity check for production %d" % prodID)
+        gLogger.error("Failed to get Type for production %d" % prodID)
       else:
-        gLogger.info("-" * 40)
+        if res['Value'] in self.transformationTypes:
+          res = self.checkProductionIntegrity(int(prodID))
+          if not res['OK']:
+            gLogger.error("Failed to perform full integrity check for production %d" % prodID)
+          else:
+            gLogger.info("-" * 40)
 
     return S_OK()
 
