@@ -31,6 +31,7 @@ class ProductionUpdateAgent(AgentModule):
     """ Make the necessary initilizations
     """
     self.pollingTime = self.am_getOption('PollingTime',120)
+    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
     self.prodDB = ProductionDB()
     return S_OK()
 
@@ -38,11 +39,12 @@ class ProductionUpdateAgent(AgentModule):
   def execute(self):
     """ Main execution method
     """
-    dataLog = RPCClient('DataManagement/DataLogging')
-
     result = self.prodDB.getTransformations()
     for transDict in result['Value']:
       transID = long(transDict['TransformationID'])
+      type = transDict['Type']
+      if type not in self.transformationTypes:
+        continue
       gLogger.info("Attempting to update transformation %d" % transID)
       time_stamp = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=NEWER))
       res = self.prodDB.getTransformationTasks(condDict={'TransformationID':transID,'WmsStatus':UPDATE_STATUS},timeStamp='LastUpdateTime',older=time_stamp )
