@@ -12,9 +12,8 @@ from DIRAC.Core.DISET.RPCClient                                     import RPCCl
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient   import ProductionClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer          import RequestContainer
 from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
+from DIRAC.Core.Utilities.List                                      import sortList
 import os, time, string, datetime, re
-
-#from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
 
 AGENT_NAME = 'ProductionManagement/ReplicationSubmissionAgent'
 
@@ -41,6 +40,11 @@ class ReplicationSubmissionAgent(AgentModule):
     if not enableFlag == 'True':
       gLogger.info("%s.execute: Agent is disabled by configuration option %s/EnableFlag" % (AGENT_NAME,self.section))
       return S_OK()
+
+    # Update the task statuses
+    res = self.updateTaskStatus()
+    if not res['OK']:
+      gLogger.warn('%s.execute: Failed to update task states' % AGENT_NAME, res['Message'])
 
     # Determine whether to update tasks stuck in Reserved status
     checkReserved = self.am_getOption('CheckReservedTasks','True')
@@ -176,4 +180,75 @@ class ReplicationSubmissionAgent(AgentModule):
       if not res['OK']:
         gLogger.warn("%s.checkReservedTasks: Failed to update task status and ID after recovery" % AGENT_NAME, "%s %s" % (taskName,res['Message']))
 
+    return S_OK()
+
+  def updateTaskStatus(self):
+    gLogger.info("%s.updateTaskStatus: Updating the Status of replication tasks" % AGENT_NAME)
+
+    # Get the transformations to be updated
+    submitType = self.am_getOption('TransformationType',['Replication'])
+    submitStatus = self.am_getOption('SubmitStatus',['Active','Stopped'])
+    selectCond = {'Type' : submitType, 'Status' : submitStatus}
+    res = self.transClient.getTransformations(condDict=selectCond)
+    if not res['OK']:
+      gLogger.error("%s.updateTaskStatus: Failed to get transformations." % AGENT_NAME,res['Message'])
+      return res
+    if not res['Value']:
+      gLogger.info("%s.updateTaskStatus: No transformations found." % AGENT_NAME)
+      return res
+    transIDs = []
+    for transformation in res['Value']:
+      transIDs.append(transformation['TransformationID'])
+
+    # Get the tasks which are in a UPDATE state
+    updateStatus = self.am_getOption('UpdateStatus',['Created','Submitted','Received','Waiting','Running'])
+    condDict = {"TransformationID":transIDs,"WmsStatus":updateStatus}
+    timeStamp = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=10))
+    res = self.transClient.getTransformationTasks(condDict=condDict,older=timeStamp, timeStamp='LastUpdateTime')
+    if not res['OK']:
+      gLogger.error("%s.updateTaskStatus: Failed to get tasks to update" % AGENT_NAME, res['Message'])
+      return S_OK()
+    if not res['Value']:
+      gLogger.info("%s.updateTaskStatus: No tasks found to update" % AGENT_NAME)
+      return S_OK()
+    oldTaskNameStatus = {}
+    for taskDict in res['Value']:
+      transID = taskDict['TransformationID']
+      taskID = taskDict['JobID']
+      status = taskDict['WmsStatus']
+      taskName = str(transID).zfill(8)+'_'+str(taskID).zfill(8)
+      oldTaskNameStatus[taskName] = status
+
+    # Get the state of the replication requests
+    updateStatusDict = {}
+    for taskName in oldTaskNameStatus.keys():
+      transID,taskID = taskName.split('_')
+      transID = int(transID)
+      taskID = int(taskID)
+      if not updateStatusDict.has_key(transID):
+        updateStatusDict[transID] = {}
+      res = self.requestClient.getRequestStatus(taskName,'RequestManagement/RequestManager')
+      if res['OK']:
+        requestStatus = res['Value']['RequestStatus']
+        if requestStatus != oldTaskNameStatus[taskName]:
+          if not updateStatusDict[transID].has_key(requestStatus):
+            updateStatusDict[transID][requestStatus] = []
+          updateStatusDict[transID][requestStatus].append(taskID)
+      elif re.search("Failed to retreive RequestID for Request", res['Message']):
+        if not updateStatusDict[transID].has_key('Failed'):
+          updateStatusDict[transID]['Failed'] = []
+        updateStatusDict[transID]['Failed'].append(taskID)
+      else:
+        gLogger.info("%s.updateTaskStatus: Failed to get requestID for request" % AGENT_NAME, res['Message'])
+
+    # Perform the updates of the task statuses
+    for transID in sortList(updateStatusDict.keys()):
+      statusDict = updateStatusDict[transID]
+      for status in sortList(statusDict.keys()):
+        taskIDs = statusDict[status]
+        gLogger.info("%s.updateTaskStatus: Updating %d task(s) from transformation %d to %s" % (AGENT_NAME,len(taskIDs),transID,status))
+        for taskID in taskIDs:
+          res = self.transClient.setTaskStatus(transID,taskID,status)        
+          if not res['OK']:
+            gLogger.error("%s.updateTaskStatus: Failed to update task status" % AGENT_NAME, res['Message'])
     return S_OK()
