@@ -41,6 +41,11 @@ class ReplicationSubmissionAgent(AgentModule):
       gLogger.info("%s.execute: Agent is disabled by configuration option %s/EnableFlag" % (AGENT_NAME,self.section))
       return S_OK()
 
+    # Update the files statuses
+    res = self.updateFileStatus()
+    if not res['OK']:
+      gLogger.warn('%s.execute: Failed to update file states' % AGENT_NAME, res['Message'])
+
     # Update the task statuses
     res = self.updateTaskStatus()
     if not res['OK']:
@@ -180,6 +185,48 @@ class ReplicationSubmissionAgent(AgentModule):
       if not res['OK']:
         gLogger.warn("%s.checkReservedTasks: Failed to update task status and ID after recovery" % AGENT_NAME, "%s %s" % (taskName,res['Message']))
 
+    return S_OK()
+
+  def updateFileStatus(self):
+    gLogger.info("%s.updateFileStatus: Updating the Status of task files" % AGENT_NAME)
+   
+    #Get the transformations to be updated
+    submitType = self.am_getOption('TransformationType',['Replication']) 
+    submitStatus = self.am_getOption('SubmitStatus',['Active','Stopped'])
+    selectCond = {'Type' : submitType, 'Status' : submitStatus}   
+    res = self.transClient.getTransformations(condDict=selectCond)
+    if not res['OK']:
+      gLogger.error("%s.updateFileStatus: Failed to get transformations." % AGENT_NAME,res['Message'])
+      return res
+    if not res['Value']:
+      gLogger.info("%s.updateFileStatus: No transformations found." % AGENT_NAME)
+      return res 
+    transIDs = []
+    for transformation in res['Value']:
+      transIDs.append(transformation['TransformationID'])
+
+    # Get the files which are in a UPDATE state
+    updateStatus = self.am_getOption('UpdateStatus',['Created','Submitted','Received','Waiting','Running'])
+    timeStamp = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=10))
+    condDict = {'TransformationID' : transIDs, 'Status' : 'Assigned' }
+    res = self.transClient.getTransformationFiles(condDict=condDict,older=timeStamp, timeStamp='LastUpdate')
+    if not res['OK']:
+      gLogger.error("%s.updateFileStatus: Failed to get transformation files to update." % AGENT_NAME,res['Message'])
+      return res
+    if not res['Value']:
+      gLogger.info("%s.updateFileStatus: No transformation files found to update." % AGENT_NAME)
+      return res
+    taskDict = {}
+    for fileDict in res['Value']:
+      transID = fileDict['TransformationID']
+      taskID = fileDict['JobID']
+      transName = str(transID).zfill(8)+'_'+str(taskID).zfill(8) 
+      if not taskDict.has_key(transName):
+        taskDict[transName] = []
+      taskDict[transName].append(fileDict['LFN'])
+    for transName,lfns in taskDict.items():
+      print transName,len(lfns)
+    gLogger.info("%s.updateFileStatus: MUST INSERT THE CODE TO OBTAIN THE STATUS FROM THE REQUESTDB." % AGENT_NAME)
     return S_OK()
 
   def updateTaskStatus(self):
