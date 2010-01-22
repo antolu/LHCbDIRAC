@@ -28,7 +28,7 @@ class ValidateOutputDataAgent(AgentModule):
     self.productionClient = ProductionClient()
     self.am_setModuleParam("shifterProxy", "DataManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
-    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
+    self.transformationTypes = self.am_getOption('TransformationTypes',['MCSimulation','DataReconstruction','DataStripping','MCStripping','Merge'])
     return S_OK()
 
   #############################################################################

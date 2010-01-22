@@ -31,7 +31,7 @@ class ProductionUpdateAgent(AgentModule):
     """ Make the necessary initilizations
     """
     self.pollingTime = self.am_getOption('PollingTime',120)
-    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
+    self.transformationTypes = self.am_getOption('TransformationTypes',['MCSimulation','DataReconstruction','DataStripping','MCStripping','Merge'])
     self.prodDB = ProductionDB()
     return S_OK()
 

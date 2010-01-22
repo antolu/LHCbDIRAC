@@ -36,7 +36,7 @@ class ProductionJobAgent(AgentModule):
     self.productionStatus = self.am_getOption('SubmitStatus','automatic')
     self.enableFlag = None
     self.prodClient = ProductionClient()
-    self.transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
+    self.transformationTypes = self.am_getOption('TransformationTypes',['MCSimulation','DataReconstruction','DataStripping','MCStripping','Merge'])
     gMonitor.registerActivity("SubmittedJobs","Automatically submitted jobs","Production Monitoring","Jobs", gMonitor.OP_ACUM)
     return S_OK()
 
