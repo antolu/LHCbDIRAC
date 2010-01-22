@@ -7,17 +7,17 @@
 """
 
 from xml.dom.minidom                                                              import parse, parseString
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                            import JobReader
-from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                        import ReplicaReader
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                    import FileSystemClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                            import JobReader
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                        import ReplicaReader
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 #from DIRAC.BookkeepingSystem.Client.BookkeepingClient                             import BookkeepingClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
-from DIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
+from LHCbDIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt            import ErrorReporterMgmt
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import *
 import os,sys,datetime
 

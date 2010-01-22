@@ -6,8 +6,8 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica      import Replica
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam import ReplicaParam
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.Replica      import Replica
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam import ReplicaParam
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"

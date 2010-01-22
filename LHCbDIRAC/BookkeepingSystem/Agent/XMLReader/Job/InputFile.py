@@ -6,7 +6,7 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
 
 __RCSID__ = "$Id$"
 

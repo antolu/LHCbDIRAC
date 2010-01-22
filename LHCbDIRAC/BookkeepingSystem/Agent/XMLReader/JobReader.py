@@ -6,19 +6,19 @@
 
 """
 
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobConfiguration           import JobConfiguration
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobOption                  import JobOption
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.InputFile                  import InputFile
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters              import JobParameters
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Job                        import Job
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                  import FileParam
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions       import SimulationConditions
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.DataTakingConditions       import DataTakingConditions
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.FileReplica            import FileReplica
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    import Quality
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobConfiguration           import JobConfiguration
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobOption                  import JobOption
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.InputFile                  import InputFile
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters              import JobParameters
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.Job                        import Job
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                  import FileParam
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions       import SimulationConditions
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.DataTakingConditions       import DataTakingConditions
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.FileReplica            import FileReplica
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    import Quality
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                  import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"

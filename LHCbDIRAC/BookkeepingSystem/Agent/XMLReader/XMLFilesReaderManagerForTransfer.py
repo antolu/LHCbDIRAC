@@ -7,13 +7,13 @@
 """
 
 from xml.dom.ext.reader                                                        import Sax
-from DIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                 import FileSystemClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                         import JobReader
-from DIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                     import ReplicaReader
+from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.FileSystemClient                 import FileSystemClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.JobReader                         import JobReader
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.ReplicaReader                     import ReplicaReader
 from DIRAC.ConfigurationSystem.Client.Config                                   import gConfig
 from DIRAC                                                                     import gLogger, S_OK, S_ERROR
-from DIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
-from DIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                          import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions          import SimulationConditions
 import os,sys
 
 __RCSID__ = "$Id$"
