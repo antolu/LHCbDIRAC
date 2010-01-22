@@ -267,7 +267,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
             outputSE='Tier1_MC-DST'
             self.log.info('Setting default outputSE to %s' %(outputSE))
           else:
-            outputSE='Tier1-DST' #for real data master dst
+            outputSE='Tier1_M-DST' #for real data master dst
             self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
@@ -301,7 +301,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if inputDataType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
-        outputSE='Tier1-DST'
+        outputSE='Tier1_M-DST'
         self.log.info('Setting default outputSE to %s' %(outputSE))
     elif inputDataType.lower()=='dst':
       if not dataType:
@@ -311,7 +311,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           outputSE='Tier1_MC-DST'
           self.log.info('Setting default outputSE to %s' %(outputSE))
         else:
-          outputSE='Tier1-DST'
+          outputSE='Tier1_M-DST'
           self.log.info('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
@@ -976,9 +976,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     bkDict['Production']=int(prodID)
     if bkQuery:
       if bkQuery.has_key('ProcessingPass'):
-        inputProcPass = bkQuery['ProcessingPass']
-        self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
-        bkDict['InputProductionTotalProcessingPass']=inputProcPass
+        if not bkQuery['ProcessingPass']=='All':        
+          inputProcPass = bkQuery['ProcessingPass']
+          self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
+          bkDict['InputProductionTotalProcessingPass']=inputProcPass
 
     if bkScript:
       self.log.info('Writing BK publish script...')
