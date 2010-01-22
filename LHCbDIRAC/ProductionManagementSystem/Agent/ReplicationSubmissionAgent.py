@@ -12,6 +12,7 @@ from DIRAC.Core.DISET.RPCClient                                     import RPCCl
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient   import ProductionClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer          import RequestContainer
 from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
+from DIRAC.TransformationSystem.Client.FileReport                   import FileReport
 from DIRAC.Core.Utilities.List                                      import sortList
 import os, time, string, datetime, re
 
@@ -188,7 +189,7 @@ class ReplicationSubmissionAgent(AgentModule):
     return S_OK()
 
   def updateFileStatus(self):
-    gLogger.info("%s.updateFileStatus: Updating the Status of task files" % AGENT_NAME)
+    gLogger.info("%s.updateFileStatus: Updating Status of task files" % AGENT_NAME)
    
     #Get the transformations to be updated
     submitType = self.am_getOption('TransformationType',['Replication']) 
@@ -208,7 +209,7 @@ class ReplicationSubmissionAgent(AgentModule):
     # Get the files which are in a UPDATE state
     updateStatus = self.am_getOption('UpdateStatus',['Created','Submitted','Received','Waiting','Running'])
     timeStamp = str(datetime.datetime.utcnow() - datetime.timedelta(minutes=10))
-    condDict = {'TransformationID' : transIDs, 'Status' : 'Assigned' }
+    condDict = {'TransformationID' : transIDs, 'Status' : ['Assigned']}
     res = self.transClient.getTransformationFiles(condDict=condDict,older=timeStamp, timeStamp='LastUpdate')
     if not res['OK']:
       gLogger.error("%s.updateFileStatus: Failed to get transformation files to update." % AGENT_NAME,res['Message'])
@@ -222,11 +223,35 @@ class ReplicationSubmissionAgent(AgentModule):
       taskID = fileDict['JobID']
       transName = str(transID).zfill(8)+'_'+str(taskID).zfill(8) 
       if not taskDict.has_key(transName):
-        taskDict[transName] = []
-      taskDict[transName].append(fileDict['LFN'])
-    for transName,lfns in taskDict.items():
-      print transName,len(lfns)
-    gLogger.info("%s.updateFileStatus: MUST INSERT THE CODE TO OBTAIN THE STATUS FROM THE REQUESTDB." % AGENT_NAME)
+        taskDict[transName] = {}
+      taskDict[transName][fileDict['LFN']] = fileDict['Status']
+    gLogger.info("%s.updateFileStatus: Found %s active files from %s tasks." % (AGENT_NAME,len(res['Value']),len(taskDict)))
+
+    for transName,lfnDict in taskDict.items():
+      lfns = lfnDict.keys()
+      fileReport = FileReport(server='ProductionManagement/ProductionManager')
+      transID,taskID = transName.split('_')
+      res = self.requestClient.getRequestFileStatus(transName,lfns,'RequestManagement/RequestManager')
+      if not res['OK']:
+        gLogger.error("%s.updateFileStatus: Failed to get files status for request." % AGENT_NAME,res['Message'])
+        continue
+      for lfn,status in res['Value'].items():
+        if status == lfnDict[lfn]:
+          continue
+        if status == 'Done':
+          fileReport.setFileStatus(int(transID),lfn,'Processed')
+        elif status == 'Failed':
+          fileReport.setFileStatus(int(transID),lfn,'Failed')
+      if not fileReport.getFiles():
+        gLogger.info("%s.updateFileStatus: No files to update for %s" % (AGENT_NAME,transName))
+        continue
+      res = fileReport.commit()
+      if not res['OK']:
+        gLogger.error("%s.updateFileStatus: Failed to update transformation file status." % AGENT_NAME, res['Message'])
+      else:
+        for status,update in res['Value'].items():
+          gLogger.info("%s.updateFileStatus: Updated %s files for %s to %s." % (AGENT_NAME, update, transName, status))
+    gLogger.info("%s.updateFileStatus: Transformation file status update complete" % AGENT_NAME)  
     return S_OK()
 
   def updateTaskStatus(self):
