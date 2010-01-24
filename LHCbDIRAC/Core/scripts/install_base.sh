@@ -88,17 +88,19 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-for dir in etc $DIRACDIRS ; do
-  ln -s ../../$dir $VERDIR   || exit 1
-done
 
 echo python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
      python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
 
 echo 
-     # once the dirac-configure is fixed add --SkipCAChecks and remove the line afterwards
-     $VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb || exit 1
-     rm -rf $ROOT/etc/grid-security/certificates/
+
+for dir in etc $DIRACDIRS ; do
+  ln -s ../../$dir $VERDIR   || exit 1
+done
+
+# once the dirac-configure is fixed add --SkipCAChecks and remove the line afterwards
+$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCAChecks || exit 1
+# rm -rf $ROOT/etc/grid-security/certificates/
 
 echo
 #
