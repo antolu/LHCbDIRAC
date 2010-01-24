@@ -1,8 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /local/reps/dirac/DIRAC3/scripts/install_volhcb03.sh,v 1.14 2009/10/07 13:42:53 rgracian Exp $
-# File :   install_volhcb01.sh
-# Author : Ricardo Graciani
+# File :   install_base.sh
 ########################################################################
 #
 # User that is allow to execute the script
@@ -15,21 +13,20 @@ DIRACHOST=volhcb03.cern.ch
 DESTDIR=/opt/dirac
 #
 SiteName=VOLHCB03.CERN.CH
-DIRACSETUP=LHCb-Development
-DIRACVERSION=v0r3p4
-EXTVERSION=v0r3p0
-DIRACVERSION=HEAD
-EXTVERSION=HEAD
-DIRACARCH=Linux_i686_glibc-2.3.4
-DIRACPYTHON=24
+DIRACSETUP=LHCb-Certification
+DIRACVERSION=v5r0p0-pre11
+DIRACARCH=Linux_x86_64_glibc-2.5
+DIRACPYTHON=25
 DIRACDIRS="startup runit data work control requestDB"
+DIRACDBs=""
+LCGVERSION=2009-08-13
 
-export DIRACINSTANCE=Development
+export DIRACINSTANCE=Certification
 export LOGLEVEL=VERBOSE
 #
 # Uncomment to install from CVS (default install from TAR)
 # it implies -b (build from sources)
-DIRACCVS=yes
+#DIRACCVS=yes
 #
 # check if we are called in the rigth host
 if [ "`hostname`" != "$DIRACHOST" ] ; then
@@ -40,24 +37,18 @@ if [ $USER != $DIRACUSER ] ; then
   echo $0 should be run by $DIRACUSER
   exit
 fi
-# check if the mask is properly set
-if [ "`umask`" != "0002" ] ; then
-  echo umask should be set to 0002 at system level for users
-  exit
-fi
-#
 # make sure $DESTDIR is available
 mkdir -p $DESTDIR || exit 1
 
 CURDIR=`dirname $0`
 CURDIR=`cd $CURDIR; pwd -P`
 
-ROOT=`dirname $DESTDIR`/DIRAC3
+ROOT=`dirname $DESTDIR`/dirac
 
 echo
 echo "Installing under $ROOT"
 echo
-[ -L $ROOT ] || ln -sf $DESTDIR/pro $ROOT || exit
+[ -d $ROOT ] || exit
 
 if [ ! -d $DESTDIR/etc ]; then
   mkdir -p $DESTDIR/etc || exit 1
@@ -74,7 +65,7 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://volhcb01.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-wms-dirac.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -82,39 +73,7 @@ DIRAC
     CertFile = $DESTDIR/etc/grid-security/hostcert.pem
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
-
 }
-Systems
-{
-  RequestManagement
-  {
-    $DIRACINSTANCE
-    {
-      URLs
-      {
-        localURL = dips://localhost:9143/RequestManagement/RequestManager
-      }
-      Services
-      {
-        RequestManager
-        {
-          Backend = file
-          Path = $DESTDIR/requestDB
-        }
-      }
-    }
-  }
-}
-Resources
-{
-  FileCatalogs
-  {
-    LcgFileCatalogCombined
-    {
-      ReadOnlyHosts = lfc-lhcb-ro.cern.ch
-    }
-  }
-} 
 EOF
 
 fi
@@ -129,16 +88,20 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
+
+echo python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+     python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+
 for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-# to make sure we do not use DIRAC python
-dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
-PATH=`echo $PATH | sed "s/$dir://"`
+echo 
+     # once the dirac-configure is fixed add --SkipCAChecks and remove the line afterwards
+     $VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCAChecks || exit 1
+     # rm -rf $ROOT/etc/grid-security/certificates/
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -e $EXTVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
-
+echo
 #
 # Create pro and old links
 old=$DESTDIR/old
@@ -155,78 +118,139 @@ cmd="from compileall import compile_dir ; compile_dir('"$DESTDIR/pro"', force=1,
 $DESTDIR/pro/$DIRACARCH/bin/python -c "$cmd" 1> /dev/null || exit 1
 $DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
-chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
 
 #
 # fix user .bashrc
 #
-grep -q "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" $HOME/.bashrc || \
-  echo "export CVSROOT=:pserver:anonymous@isscvs.cern.ch:/local/reps/dirac" >>  $HOME/.bashrc
 grep -q "source $DESTDIR/bashrc" $HOME/.bashrc || \
   echo "source $DESTDIR/bashrc" >> $HOME/.bashrc
-chmod +x $DESTDIR/pro/scripts/install_service.sh
-cp $CURDIR/dirac-install $DESTDIR/pro/scripts
 
 #
 # Configure MySQL if not yet done
 #
+if [ ! -z "$DIRACDBs" ] ; then
+  source $DESTDIR/pro/scripts/install_mysql.sh $DIRACHOST
+  $DESTDIR/pro/mysql/share/mysql/mysql.server start
 
-$CURDIR/install_mysql.sh $DIRACHOST
-sed -i 's/^log-bin=/# log-bin=/' $DESTDIR/pro/mysql/etc/my.cnf
-/opt/dirac/pro/mysql/share/mysql/mysql.server start
+  #
+  # Check necessary DBs are there
+  #
+  $DESTDIR/pro/scripts/install_mysql_db.sh $DIRACDBs
+fi
 
-$DESTDIR/pro/scripts/install_service.sh Configuration Server
+##############################################################
+# INSTALL SERVICES
+# (modify SystemName and ServiceName)
+#
+
+$DESTDIR/pro/scripts/install_service.sh Framework BundleDelivery
+$DESTDIR/pro/scripts/install_service.sh Framework Monitoring
+$DESTDIR/pro/scripts/install_service.sh Framework Notification
+$DESTDIR/pro/scripts/install_service.sh Framework Plotting
+$DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
+$DESTDIR/pro/scripts/install_service.sh Framework SecurityLogging
+$DESTDIR/pro/scripts/install_service.sh Framework SystemLogging
+$DESTDIR/pro/scripts/install_service.sh Framework SystemLoggingReport
+$DESTDIR/pro/scripts/install_service.sh Framework UserProfileManager
 
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobManager
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobMonitoring
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement InputSandbox
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement OutputSandbox
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobHistoryAgent
-# Missing in CS
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement InputDataAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPathAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobPolicyAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSanityAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement JobSchedulingAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement ProcessingDBAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement StalledJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement TaskQueueAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement Director
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotStatusAgent
-$DESTDIR/pro/scripts/install_agent.sh   WorkloadManagement PilotMonitor
+$DESTDIR/pro/scripts/install_service.sh WorkloadManagement SandboxStore
 
+# LHCb specific services
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionJobAgent
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement ProductionUpdateAgent
-$DESTDIR/pro/scripts/install_agent.sh   ProductionManagement TransformationAgent
+$DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionRequest
 
-$DESTDIR/pro/scripts/install_service.sh RequestManagement    RequestManager
-$DESTDIR/pro/scripts/install_agent.sh   RequestManagement    ZuziaAgent
+$DESTDIR/pro/scripts/install_service.sh Bookkeeping BookkeepingManager
+$DESTDIR/pro/scripts/install_oracle-client.sh
 
+# If any special CS entried required modify and uncomment the following:
 
-$DESTDIR/pro/scripts/install_service.sh Stager Stager
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorAgent
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerMonitorWMS
-$DESTDIR/pro/scripts/install_agent.sh   Stager StagerAgent
+#cat > $DESTDIR/etc/SystemName_ServiceName.cfg <<EOF
+#Systems
+#{
+#  SystemName
+#  {
+#    $DIRACINSTANCE
+#    {
+#      Services
+#      {
+#        ServiceName
+#        {
+#          Option = Value
+#        }
+#      }
+#    }
+#  }
+#}
+#EOF
 
-$DESTDIR/pro/scripts/install_agent.sh   LHCb   UsersAndGroups
+##############################################################
+# INSTALL AGENTS
+# (modify SystemName and AgentName)
+#
 
-$DESTDIR/pro/scripts/install_service.sh Framework ProxyManager
-$DESTDIR/pro/scripts/install_service.sh Framework Notification
-$DESTDIR/pro/scripts/install_agent.sh   Framework MyProxyRenewalAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement StatesAccountingAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement InputDataAgent
+#$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement MightyOptimizer
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement ThreadedMightyOptimizer
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement JobHistoryAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement JobCleaningAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement StalledJobAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement PilotMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement TaskQueueDirector
 
+# LHCb specific agents
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement BKInputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement AncestorFilesAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement CondDBAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement JobLogUploadAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement SiteAvailabilityAgent
 
-# RequestManagement
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement BookkeepingWatchAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement DataRecoveryAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ProductionCleaningAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ProductionJobAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ProductionStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ProductionUpdateAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ReplicationSubmissionAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement RequestTrackingAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement TransformationAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement ValidateOutputDataAgent
+
+# If any special CS entried required modify and uncomment the following:
+#cat > $DESTDIR/etc/SystemName_AgentName.cfg <<EOF
+#Systems
+#{
+#  SystemName
+#  {
+#    $DIRACINSTANCE
+#    {
+#      Agents
+#      {
+#        AgentName
+#        {
+#          Option = Value
+#        }
+#      }
+#    }
+#  }
+#}
+#EOF
+
+######################################################################
 
 if [ ! -z "$DIRACCVS" ] ; then
 
 
-	cd `dirname $DESTDIR`
-	mv DIRAC3/DIRAC DIRAC3/DIRAC.save
+        cd `dirname $DESTDIR`
+        mv DIRAC3/DIRAC DIRAC3/DIRAC.save
 
 echo
 echo
@@ -239,8 +263,7 @@ echo
 echo
 cat << EOF
 umask 0002
-# export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
-export CVSROOT=:ext:isscvs.cern.ch:/local/reps/dirac
+export CVSROOT=:kserver:isscvs.cern.ch:/local/reps/dirac
 cd `dirname $DESTDIR`
 cvs -Q co -r $DIRACVERSION DIRAC3/DIRAC DIRAC3/LHCbSystem
 cvs update -A DIRAC3/DIRAC DIRAC3/LHCbSystem
@@ -249,7 +272,5 @@ ln -s ../LHCbSystem .
 EOF
 
 fi
-
-
 
 exit
