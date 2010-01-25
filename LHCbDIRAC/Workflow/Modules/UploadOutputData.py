@@ -234,7 +234,10 @@ class UploadOutputData(ModuleBase):
 
     # Set removal requests just in case
     for lfn in lfnList:
-      result = self.__setFileRemovalRequest(lfn)
+      result = self.request.addSubRequest({'Attributes':{'Operation':'removeFile','TargetSE':'','ExecutionOrder':1}},'removal')
+      index = result['Value']
+      fileDict = {'LFN':lfn,'PFN':'','Status':'Waiting'}
+      self.request.setSubRequestFiles(index,'removal',[fileDict])
 
     return S_OK()
 
