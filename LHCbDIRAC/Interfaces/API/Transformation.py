@@ -23,10 +23,13 @@ class Transformation(DIRACTransformation):
     self.transClient.setServer("ProductionManagement/ProductionManager")
 
     self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW'] # TODO INCLUDE REPLICATION PLUGINS
-    self.paramValues['BKQuery'] = {}
-    self.paramValues['BKQueryID'] = 0
+    print self.paramValues.keys()
+    if not  self.paramValues.has_key('BkQuery'):
+      self.paramValues['BkQuery'] = {}
+    if not self.paramValues.has_key('BkQueryID'):
+      self.paramValues['BkQueryID'] = 0
     
-  def generateBKQuery(self,test=False,printOutput=False):
+  def generateBkQuery(self,test=False,printOutput=False):
     parameters = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
     queryDict = {'FileType':'DST'}
     parameterDefaults = queryDict.copy()
@@ -42,10 +45,10 @@ class Transformation(DIRACTransformation):
     if (queryDict.has_key('SimulationConditions')) and (queryDict.has_key('DataTakingConditions')):
       return S_ERROR("SimulationConditions and DataTakingConditions can not be defined simultaneously")
     if test:
-      self.testBKQuery(queryDict,printOutput=printOutput)
+      self.testBkQuery(queryDict,printOutput=printOutput)
     return S_OK(queryDict)
 
-  def testBKQuery(self,bkQuery,printOutput=False):
+  def testBkQuery(self,bkQuery,printOutput=False):
     client = BookkeepingClient()
     res = client.getFilesWithGivenDataSets(bkQuery)
     if not res['OK']:
@@ -55,47 +58,51 @@ class Transformation(DIRACTransformation):
       self._prettyPrint(res)
     return S_OK(res['Value'])  
 
-  def setBKQuery(self,queryDict,test=False):
+  def setBkQuery(self,queryDict,test=False):
     if test:
-      res = self.testBKQuery(queryDict)
+      res = self.testBkQuery(queryDict)
       if not res['OK']:
         return res
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
+      #TODO Return the BK queryID from the service
       res = self.transClient.createTransformationQuery(transID,queryDict)
       if not res['OK']:
         return res
-      self.item_called = 'BKQueryID'
+      self.item_called = 'BkQueryID'
       self.paramValues[self.item_called] = res['Value']
-    self.item_called = 'BKQuery'
+    self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = queryDict
     return S_OK()
 
-  def getBKQuery(self,printOutput=False):
-    if self.paramValues['BKQuery']:
-      return S_OK(self.paramValues['BKQuery'])
+  def getBkQuery(self,printOutput=False):
+    if self.paramValues['BkQuery']:
+      return S_OK(self.paramValues['BkQuery'])
+    #TODO Remove the BkQueryID from the returned dictionary
     res = self.__executeOperation('getBookkeepingQueryForTransformation',printOutput=printOutput)
     if not res['OK']:
       return res
-    self.item_called = 'BKQuery'
+    self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = res['Value']
     return S_OK(res['Value'])
     
-  def removeTransformationBKQuery(self):
-    if not self.paramValues['BKQueryID']:
+  def removeTransformationBkQuery(self):
+    if not self.paramValues['BkQueryID']:
       gLogger.info("The BK Query is not defined")
       return S_OK()
-    queryID = self.paramValues['BKQueryID']
+    queryID = self.paramValues['BkQueryID']
+    transID = self.paramValues['TransformationID']
     if self.exists and transID:
-      res = self.transClient.deleteBookkeepingQuery(queryID)
+      #TODO: only remove if not being used by other transformation
+      res = self.transClient.deleteBookkeepingQuery(int(queryID))
       if not res['OK']:
         return res
-      res = self.transClient.setTransformationParameter('BKQuery',0)
+      res = self.transClient.setTransformationParameter(transID,'BkQueryID',0)
       if not res['OK']:
         return res
-    self.item_called = 'BKQueryID'
+    self.item_called = 'BkQueryID'
     self.paramValues[self.item_called] = 0
-    self.item_called = 'BKQuery'
+    self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = {}
     return S_OK()
 
@@ -108,9 +115,9 @@ class Transformation(DIRACTransformation):
       gLogger.info("Will attempt to create transformation with the following parameters")
       self._prettyPrint(self.paramValues)
 
-    bkQuery = self.paramValues['BKQuery']
+    bkQuery = self.paramValues['BkQuery']
     if bkQuery:
-      res = self.setBKQuery(bkQuery)
+      res = self.setBkQuery(bkQuery)
       if not res['OK']:
         return self._errorReport(res,'Failed BK query sanity check')
     
@@ -128,7 +135,7 @@ class Transformation(DIRACTransformation):
                                              maxJobs             = self.paramValues['MaxNumberOfJobs'],
                                              eventsPerJob        = self.paramValues['EventsPerJob'],
                                              addFiles            = addFiles,
-                                             bkQuery             = self.paramValues['BKQuery'])
+                                             bkQuery             = self.paramValues['BkQuery'])
     if not res['OK']:
       self._prettyPrint(res)
       return res
@@ -138,7 +145,7 @@ class Transformation(DIRACTransformation):
     gLogger.info("Created transformation %d" % transID)
     for paramName,paramValue in self.paramValues.items():
       if not self.paramTypes.has_key(paramName):
-        if not paramName in ['BKQueryID','BKQuery']:
+        if not paramName in ['BkQueryID','BkQuery']:
           res = self.transClient.setTransformationParameter(transID,paramName,paramValue)
           if not res['OK']:
             gLogger.error("Failed to add parameter", "%s %s" % (paramName,res['Message']))
