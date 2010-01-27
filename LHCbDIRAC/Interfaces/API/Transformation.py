@@ -26,29 +26,23 @@ class Transformation(DIRACTransformation):
     self.paramValues['BKQuery'] = {}
     self.paramValues['BKQueryID'] = 0
     
-  def generateBKQuery(self,test=False):
-    defaultParams = {     'SimulationConditions'     : 'All',
-                          'DataTakingConditions'     : 'All',
-                          'ProcessingPass'           : 'All',
-                          'FileType'                 : 'All',
-                          'EventType'                : 0,
-                          'ConfigName'               : 'All', 
-                          'ConfigVersion'            : 'All',
-                          'ProductionID'             : 0,
-                          'DataQualityFlag'          : 'All'}
-    queryDict = {}
-    for parameter, default in defaultParams.items():
-      res = self._promptUser("Please enter %s" % parameter,default=default)
+  def generateBKQuery(self,test=False,printOutput=False):
+    parameters = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
+    queryDict = {'FileType':'DST'}
+    parameterDefaults = queryDict.copy()
+    for parameter in parameters:
+      default = parameterDefaults.get(parameter, 'All')
+      res = self._promptUser("Please enter %s" % parameter,choices=[],default=default)
       if not res['OK']:
         return res
-      if res['Value'].lower() != default.lower():
+      if res['Value'] != default:
         queryDict[parameter] = res['Value']
     if not queryDict:
-      return S_ERROR("Some of the parameters must be set")
-    if (queryDict['SimulationConditions'] != "All") and (queryDict['DataTakingConditions'] != "All"):
+      return S_ERROR("At least one of the parameters must be set")
+    if (queryDict.has_key('SimulationConditions')) and (queryDict.has_key('DataTakingConditions')):
       return S_ERROR("SimulationConditions and DataTakingConditions can not be defined simultaneously")
     if test:
-      self.testBKQuery(queryDict)
+      self.testBKQuery(queryDict,printOutput=printOutput)
     return S_OK(queryDict)
 
   def testBKQuery(self,bkQuery,printOutput=False):
