@@ -9,6 +9,7 @@ import string, os, shutil, types, pprint
 from DIRAC                                                        import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Interfaces.API.Transformation                          import Transformation as DIRACTransformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient 
 
 COMPONENT_NAME='Transformation'
 
@@ -25,13 +26,46 @@ class Transformation(DIRACTransformation):
     self.paramValues['BKQuery'] = {}
     self.paramValues['BKQueryID'] = 0
     
-  def _checkBKQuery(self,queryDict):
-    return S_OK()
+  def generateBKQuery(self,test=False):
+    defaultParams = {     'SimulationConditions'     : 'All',
+                          'DataTakingConditions'     : 'All',
+                          'ProcessingPass'           : 'All',
+                          'FileType'                 : 'All',
+                          'EventType'                : 0,
+                          'ConfigName'               : 'All', 
+                          'ConfigVersion'            : 'All',
+                          'ProductionID'             : 0,
+                          'DataQualityFlag'          : 'All'}
+    queryDict = {}
+    for parameter, default in defaultParams.items():
+      res = self._promptUser("Please enter %s" % parameter,default=default)
+      if not res['OK']:
+        return res
+      if res['Value'].lower() != default.lower():
+        queryDict[parameter] = res['Value']
+    if not queryDict:
+      return S_ERROR("Some of the parameters must be set")
+    if (queryDict['SimulationConditions'] != "All") and (queryDict['DataTakingConditions'] != "All"):
+      return S_ERROR("SimulationConditions and DataTakingConditions can not be defined simultaneously")
+    if test:
+      self.testBKQuery(queryDict)
+    return S_OK(queryDict)
 
-  def setBKQuery(self,queryDict):
-    res = self._checkBKQuery(queryDict)
+  def testBKQuery(self,bkQuery,printOutput=False):
+    client = BookkeepingClient()
+    res = client.getFilesWithGivenDataSets(bkQuery)
     if not res['OK']:
-      return res
+      return self._errorReport(res,'Failed to perform BK query')
+    gLogger.info('The supplied query returned %d files' % len(res['Value']))
+    if printOutput:
+      self._prettyPrint(res)
+    return S_OK(res['Value'])  
+
+  def setBKQuery(self,queryDict,test=False):
+    if test:
+      res = self.testBKQuery(queryDict)
+      if not res['OK']:
+        return res
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
       res = self.transClient.createTransformationQuery(transID,queryDict)
