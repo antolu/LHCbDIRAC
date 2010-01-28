@@ -35,6 +35,13 @@ class TransformationDB(DIRACTransformationDB):
     """ Delete the specified query from the database
     """
     connection = self.__getConnection(connection)
+    req = "SELECT COUNT(*) FROM AdditionalParameters WHERE ParameterName = 'BkQueryID' AND ParameterValue = %d" % bkQueryID
+    res = self._query(req)
+    if not res['OK']:
+      return res
+    count = res['Value'][0][0]
+    if count != 0:
+      return S_OK()
     req = 'DELETE FROM BkQueries WHERE BkQueryID=%d' % int(bkQueryID)
     return self._update(req,connection)
 
@@ -45,7 +52,10 @@ class TransformationDB(DIRACTransformationDB):
     if not res['OK']:
       return res
     bkQueryID = res['Value']
-    return self.__setTransformationQuery(transName,bkQueryID,author=author,connection=connection)
+    res = self.__setTransformationQuery(transName,bkQueryID,author=author,connection=connection)
+    if not res['OK']:
+      return res
+    return S_OK(bkQueryID)
    
   def getBookkeepingQueryForTransformation(self,transName,connection=False):
     """ Get the BK query associated to the transformation """
@@ -123,7 +133,8 @@ class TransformationDB(DIRACTransformationDB):
       bkDict = {}
       for parameter,value in zip(['BkQueryID']+queryFields,row):
         bkDict[parameter] = value
-      resultDict[bkDict['BkQueryID']] = bkDict
+      rowQueryID = bkDict.pop('BkQueryID')
+      resultDict[rowQueryID] = bkDict
     if bkQueryID:
       return S_OK(bkDict)
     else:
