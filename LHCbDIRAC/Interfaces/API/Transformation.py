@@ -65,7 +65,6 @@ class Transformation(DIRACTransformation):
         return res
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
-      #TODO Return the BK queryID from the service
       res = self.transClient.createTransformationQuery(transID,queryDict)
       if not res['OK']:
         return res
@@ -78,7 +77,6 @@ class Transformation(DIRACTransformation):
   def getBkQuery(self,printOutput=False):
     if self.paramValues['BkQuery']:
       return S_OK(self.paramValues['BkQuery'])
-    #TODO Remove the BkQueryID from the returned dictionary
     res = self.__executeOperation('getBookkeepingQueryForTransformation',printOutput=printOutput)
     if not res['OK']:
       return res
@@ -93,7 +91,6 @@ class Transformation(DIRACTransformation):
     queryID = self.paramValues['BkQueryID']
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
-      #TODO: only remove if not being used by other transformation
       res = self.transClient.deleteBookkeepingQuery(int(queryID))
       if not res['OK']:
         return res
