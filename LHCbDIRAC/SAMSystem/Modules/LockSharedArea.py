@@ -93,7 +93,7 @@ class LockSharedArea(ModuleBaseSAM):
 
     # Change the permissions on the shared area
     self.log.info('Current account: %s' %self.runinfo['identity'])
-    if not re.search('\d',self.runinfo['identityShort']):
+    if not re.search('\d$',self.runinfo['identityShort']):
       self.log.info('%s uses static accounts' %DIRAC.siteName())
       isPoolAccount = False
     else:
