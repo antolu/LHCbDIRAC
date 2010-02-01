@@ -72,7 +72,7 @@ class LHCbSAMJob(Job):
 try:
   from LHCbDIRAC.SAMSystem.Modules.<MODULE> import <MODULE>
 except Exception,x:
-  print 'Could not import <MODULE> from LHCbDIRAC.SAMSystem.Modules:\n%s' %(x)
+  print 'Could not import <MODULE> from LHCbDIRAC.SAMSystem.Modules: %s' %(x)
 """
     self.__setDefaults()
 
