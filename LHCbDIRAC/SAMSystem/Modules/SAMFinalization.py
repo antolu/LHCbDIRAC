@@ -331,7 +331,7 @@ class SAMFinalization(ModuleBaseSAM):
     if self.publishResultsFlag and self.enable:
       result = self.__getSAMClient()
       if not result['OK']:
-        self.setJobParameter(testName,'Failed to locate SAM client with message %s' %(result['Message']))
+        self.setJobParameter(self.testName,'Failed to locate SAM client with message %s' %(result['Message']))
         return result
 
     lfnPath = self.__getLFNPathString(samNode)
