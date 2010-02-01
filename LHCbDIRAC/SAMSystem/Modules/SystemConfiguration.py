@@ -112,20 +112,6 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('Link in shared area %s/lib does not exist' %sharedArea)
 
-   # result = self.runCommand('Removing *_parameters.txt files from shared area','rm -fv %s/*_parameters.txt' %(sharedArea))
-    result = self.__deleteSharedAreaFiles(sharedArea,'*_parameters.txt')
-    if not result['OK']:
-      return self.finalize('Could not remove shared area parameters files',result['Message'],'error')
-
- #   result = self.runCommand('Removing lcg-ManageVOTag.* files from shared area','rm -fv %s/lcg-ManageVOTag.*' %(sharedArea))
-    result = self.__deleteSharedAreaFiles(sharedArea,'lcg-ManageVOTag.*')
-    if not result['OK']:
-      return self.finalize('Could not remove shared area VO tag files',result['Message'],'error')
-
-    result = self.__deleteSharedAreaFiles(sharedArea,'lhcb.*')
-    if not result['OK']:
-      return self.finalize('Could not remove shared area lhcb.* files',result['Message'],'error')
-
     self.log.info('Checking shared area contents: %s' %(sharedArea))
     result = self.runCommand('Checking contents of shared area directory: %s' %sharedArea,'ls -al %s' %sharedArea)
     if not result['OK']:
@@ -141,16 +127,6 @@ class SystemConfiguration(ModuleBaseSAM):
     else:
       self.log.info('%s uses pool accounts' %DIRAC.siteName())
 
-    # FIXME: this prints lots of errors if not running with write privileges
-    # R.G I have removed the -R to reduce the amount of errors.
-    if os.path.exists('%s/lcg/external/dcache_client' %sharedArea):
-      cmd = 'chmod 775 %s/lcg/external/dcache_client' %sharedArea
-      result = self.runCommand('Changing dCache client permissions',cmd)
-      if not result['OK']:
-        self.setApplicationStatus('Shared Area Permissions Problem')
-        return self.finalize(cmd,result['Message'],'error')
-    else:
-      self.log.info('%s/lcg/external/dcache_client does not exist' %sharedArea)
 
     systemConfigs = gConfig.getValue('/LocalSite/Architecture',[])
     self.log.info('Current system configurations are: %s ' %(string.join(systemConfigs,', ')))
@@ -164,17 +140,6 @@ class SystemConfiguration(ModuleBaseSAM):
         compatible = True
     if not compatible:
       return self.finalize('Site does not have an officially compatible platform',string.join(systemConfigs,', '),'critical')
-
-    libsToRemove = ['tls/libc.so.6','libgcc_s.so.1','tls/libm.so.6','tls/libpthread.so.0']
-    for arch in systemConfigs:
-      for lib in libsToRemove:
-        libPath = '%s/%s/%s' %(sharedArea,arch,lib)
-        if os.path.exists('%s' %libPath):
-          self.log.info('Removing %s' %(libPath))
-          cmd = 'rm -rf %s' %libPath
-          result = self.runCommand('Removing incorrect compatibility library',cmd)
-          if not result['OK']:
-            return self.finalize('Failed to remove incorrect compatibility library',result['Message'],'error')
 
     for arch in systemConfigs:
       libPath = '%s/%s/' %(sharedArea,arch)
