@@ -380,7 +380,7 @@ def CheckSharedArea(self, area):
   self.log.info( 'Executing %s' % ' '.join(cmdTuple) )
   timeout = 300
   ret = systemCall( timeout, cmdTuple, env=lbenv )
-#  self.log.info(ret)
+  self.log.info(ret)
   os.chdir(curDir)
   if not ret['OK']:
     self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
