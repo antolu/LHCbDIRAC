@@ -374,7 +374,7 @@ def CheckSharedArea(self, area):
   #NOTE: must cd to LOCAL area directory (install_project requirement)
   os.chdir(localArea)
   software_remove = {}
-  lbEnv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']
+  lbenv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']+'/lib'
   self.log.info('Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'])
 
   cmdTuple = ['usedProjects']
@@ -388,10 +388,10 @@ def CheckSharedArea(self, area):
   os.chdir(curDir)
   if not ret['OK']:
     self.log.error('Software check failed, missing software', '\n%s' %(ret['Value'][2]))
-    return S_ERROR('Software check failed, missing software', '\n%s' %(ret['Value'][2]))
+    return S_ERROR('Software check failed, missing software \n%s' %(ret['Value'][2]))
   if ret['Value'][0]: # != 0
     self.log.error('Software check failed with non-zero status', '\n%s' %(ret['Value'][2]))
-    return S_ERROR('Software check failed with non-zero status', '\n%s' %(ret['Value'][2]))
+    return S_ERROR('Software check failed with non-zero status \n%s' %(ret['Value'][2]))
 
   if ret['Value'][2]:
     self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
