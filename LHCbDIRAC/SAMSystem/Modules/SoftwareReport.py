@@ -385,11 +385,11 @@ def CheckSharedArea(self, area):
   self.log.info(ret)
   os.chdir(curDir)
   if not ret['OK']:
-    self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return S_ERROR('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    self.log.error('Software check failed, missing software', '\n%s' %(ret['Value'][2]))
+    return S_ERROR('Software check failed, missing software', '\n%s' %(ret['Value'][2]))
   if ret['Value'][0]: # != 0
-    self.log.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return S_ERROR('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    self.log.error('Software check failed with non-zero status', '\n%s' %(ret['Value'][2]))
+    return S_ERROR('Software check failed with non-zero status', '\n%s' %(ret['Value'][2]))
 
   if ret['Value'][2]:
     self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
