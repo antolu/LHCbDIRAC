@@ -23,7 +23,6 @@ class Transformation(DIRACTransformation):
     self.transClient.setServer("ProductionManagement/ProductionManager")
 
     self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW'] # TODO INCLUDE REPLICATION PLUGINS
-    print self.paramValues.keys()
     if not  self.paramValues.has_key('BkQuery'):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key('BkQueryID'):
@@ -137,6 +136,11 @@ class Transformation(DIRACTransformation):
       self._prettyPrint(res)
       return res
     transID = res['Value']
+    res = self.transClient.getTransformationParameters(transID,['BkQueryID'])
+    if not res['OK']:
+      self._prettyPrint(res)
+      return res
+    self.setBkQueryID(res['Value'])
     self.exists = True
     self.setTransformationID(transID)
     gLogger.info("Created transformation %d" % transID)
