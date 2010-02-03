@@ -1,0 +1,1 @@
+""" LHCbDIRAC.TransformationSystem/test package """
