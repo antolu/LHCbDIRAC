@@ -374,6 +374,8 @@ def CheckSharedArea(self, area):
   #NOTE: must cd to LOCAL area directory (install_project requirement)
   os.chdir(localArea)
   software_remove = {}
+  lbEnv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']
+  self.log.info('Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'])
 
   cmdTuple = ['usedProjects']
   cmdTuple += ['-r']
