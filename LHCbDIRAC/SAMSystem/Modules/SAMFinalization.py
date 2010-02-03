@@ -20,6 +20,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
+import LHCbDIRAC
 
 import string, os, sys, re, glob, shutil
 
@@ -46,8 +47,8 @@ class SAMFinalization(ModuleBaseSAM):
     self.samVO = gConfig.getValue('/Operations/SAM/VO','lhcb')
     self.samLogFiles = gConfig.getValue('/Operations/SAM/LogFiles',[])
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
-    self.siteRoot = gConfig.getValue('LocalSite/Root','')
-    self.samPublishClient = '%s/DIRAC/LHCbSystem/Testing/SAM/Distribution/sam.tar.gz' %(self.siteRoot)
+    self.siteRoot = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))
+    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' %(self.siteRoot)
     self.samPublishScript = 'sam/bin/same-publish-tuples'
     self.logSE = 'LogSE'
     self.jobID = None
