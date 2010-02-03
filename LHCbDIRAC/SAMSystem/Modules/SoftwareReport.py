@@ -311,6 +311,8 @@ def CheckPackage(self, app, config, area):
   self.log.info( 'Defining MYSITEROOT = %s' % area )
   cmtEnv['CMTCONFIG']  = config
   self.log.info( 'Defining CMTCONFIG = %s' % config )
+  cmtEnv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']
+  self.log.info('Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'])
 
   cmdTuple =  [sys.executable]
   cmdTuple += [InstallProject]
