@@ -151,7 +151,7 @@ class SoftwareReport(ModuleBaseSAM):
 #      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
       ret_area = CheckSharedArea(self,sharedArea)
       if not ret_area['OK']:
-        return self.finalize('Problem softwarereport',ret_area['Message'],'error')
+        return self.finalize('Problem SoftwareReport',ret_area['Message'],'error')
 
       soft_remove = ret_area['Value']
       for app in soft_remove.keys():
@@ -383,11 +383,11 @@ def CheckSharedArea(self, area):
 #  self.log.info(ret)
   os.chdir(curDir)
   if not ret['OK']:
-#    self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return S_ERROR()
+    self.log.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return S_ERROR('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
   if ret['Value'][0]: # != 0
-#    self.log.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return S_ERROR()
+    self.log.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
+    return S_ERROR('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
 
   if ret['Value'][2]:
     self.log.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
