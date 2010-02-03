@@ -466,6 +466,7 @@ EOT
     """Locates the shipped SAM client tarball and unpacks it in the job working
        directory if the publishing and enable flags are set to True.
     """
+    self.log.info('self.siteRoot %s\n' %(self.samPublishClient))
     if not os.path.exists(self.samPublishClient):
       return S_ERROR('%s does not exist' %(self.samPublishClient))
     shutil.copy(self.samPublishClient,os.getcwd())
