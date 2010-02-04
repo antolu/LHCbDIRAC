@@ -22,7 +22,7 @@ class Transformation(DIRACTransformation):
     #TODO REMOVE THIS
     self.transClient.setServer("ProductionManagement/ProductionManager")
 
-    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW'] # TODO INCLUDE REPLICATION PLUGINS
+    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast'] # TODO INCLUDE REPLICATION PLUGINS
     if not  self.paramValues.has_key('BkQuery'):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key('BkQueryID'):
@@ -166,3 +166,9 @@ class Transformation(DIRACTransformation):
 
   def _checkCCRC_RAW(self):
     return self._checkStandardPlugin()
+
+  def _checkLHCbMCDSTBroadcastPlugin(self):
+    return S_OK()
+
+  def _checkLHCbDSTBroadcastPlugin(self):            
+    return S_OK()                            
