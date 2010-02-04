@@ -17,7 +17,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
 
-import shutil, re, string, os, sys, time, glob
+import re, string, os, sys, time, glob
 
 class GaudiApplication(ModuleBase):
 
@@ -620,17 +620,18 @@ done
     except:
       self.log.exception()
       return S_ERROR( "Error getting GUID for inputfile" )
+    logFile = os.path.abspath( self.step_commons[ 'applicationLog' ] )
     try:
-      result = recoManager.submitJob( sliceName, inputData , outputFile , guid )
+      result = recoManager.submitJob( sliceName, inputData , outputFile , logFile, guid )
     except:  
       self.log.exception()
       return S_ERROR( xmlrpcerror )      
     if not result[ 'OK' ]:
-      if 'fileID' in result['Value']:
-        fileID = result[ 'Value' ]
-        res = recoManager.getJobOutput(fileID)
-        loglines = res['Value']['log']
-        writeLogFromList( loglines )
+      # if 'fileID' in result['Value']:
+      #   fileID = result[ 'Value' ]
+      #   res = recoManager.getJobOutput(fileID)
+        # log = res['Value']['log']
+        # writeLogFromList( loglines )
       self.log.error( "Error running job" , result[ 'Message' ] )
       return S_ERROR( "Error submiting job" )
     # The submission went well
@@ -667,8 +668,8 @@ done
         self.step_commons[ 'numberOfEventsOutput' ] = str( jobInfo[ 'eventsWritten' ] )
         self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
         self.step_commons[ 'guid' ] = jobInfo[ 'guid' ]
-        loglines = jobInfo[ 'log' ]
-        writeLogFromList( loglines )
+        # loglines = jobInfo[ 'log' ]
+        # writeLogFromList( loglines )
         self.log.info( "Status after the application execution is %s" %jobstatus )
         failed = False
         if jobstatus == 'ERROR':
@@ -697,10 +698,10 @@ done
           return False
     return True
     
-  def writeLogFromList( self , loglines ):
-    log = open( self.step_commons[ 'applicationLog' ] , 'w' )
-    for line in loglines:
-      log.write( "%s\n" %line )
-    log.close()
+  # def writeLogFromList( self , loglines ):
+  #   log = open( self.step_commons[ 'applicationLog' ] , 'w' )
+  #   for line in loglines:
+  #     log.write( "%s\n" %line )
+  #   log.close()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
