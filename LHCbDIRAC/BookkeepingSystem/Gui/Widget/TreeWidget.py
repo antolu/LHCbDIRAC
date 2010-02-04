@@ -11,6 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import In
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
+import DIRAC
 
 __RCSID__ = "$Id$"
 
@@ -30,14 +31,18 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.__parent = parent.parentWidget()
     self.setupUi(self)
     self.configNameRadioButton.setChecked(True)
-    
+    self.Bookmarks.hide()
     self.__controler = ControlerTree(self, parent.parentWidget().getControler())
     self.connect(self.configNameRadioButton, SIGNAL("clicked()"), self.__controler.configButton)
     self.connect(self.radioButton_2, SIGNAL("clicked()"), self.__controler.eventTypeButton)
     self.connect(self.productionRadioButton, SIGNAL("clicked()"), self.__controler.productionRadioButton)
     self.connect(self.runLookup, SIGNAL("clicked()"), self.__controler.runRadioButton)
+    self.connect(self.bookmarksButton, SIGNAL("clicked()"), self.__controler.bookmarksButtonPressed)
     self.tree.setupControler()
     
+    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    bookmarksIcon = QIcon(picturesPath+"/images/bookmarks.png")
+    self.bookmarksButton.setIcon(bookmarksIcon)
     
     self.standardQuery.setChecked(True)
     self.connect(self.standardQuery, SIGNAL("clicked()"), self.__controler.standardQuery)
@@ -67,6 +72,11 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     '''
     self.tree.header().setResizeMode(1, QHeaderView.ResizeToContents)
     self.tree.header().setResizeMode(0, QHeaderView.ResizeToContents)
+  
+  #############################################################################
+  def showBookmarks(self):
+    self.Bookmarks.show()
+  
   #############################################################################  
   def getTree(self):
     return self.tree

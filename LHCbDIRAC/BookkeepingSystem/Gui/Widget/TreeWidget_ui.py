@@ -2,13 +2,14 @@
 
 # Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Mon Jun 22 18:01:07 2009
+# Created: Thu Feb  4 12:48:55 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreePanel         import TreePanel
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.BookmarksWidget    import BookmarksWidget
 
 class Ui_TreeWidget(object):
     def setupUi(self, TreeWidget):
@@ -17,6 +18,10 @@ class Ui_TreeWidget(object):
 
         self.gridlayout = QtGui.QGridLayout(TreeWidget)
         self.gridlayout.setObjectName("gridlayout")
+
+        self.Bookmarks = BookmarksWidget(TreeWidget)
+        self.Bookmarks.setObjectName("Bookmarks")
+        self.gridlayout.addWidget(self.Bookmarks,0,0,3,1)
 
         self.groupBox = QtGui.QGroupBox(TreeWidget)
         self.groupBox.setObjectName("groupBox")
@@ -34,15 +39,22 @@ class Ui_TreeWidget(object):
 
         self.pageSize = QtGui.QLineEdit(self.groupBox)
         self.pageSize.setObjectName("pageSize")
-        self.gridlayout1.addWidget(self.pageSize,2,1,1,1)
+        self.gridlayout1.addWidget(self.pageSize,2,1,1,2)
 
         self.label = QtGui.QLabel(self.groupBox)
         self.label.setObjectName("label")
         self.gridlayout1.addWidget(self.label,2,0,1,1)
 
         spacerItem = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
-        self.gridlayout1.addItem(spacerItem,2,2,1,1)
-        self.gridlayout.addWidget(self.groupBox,0,0,1,1)
+        self.gridlayout1.addItem(spacerItem,2,3,1,1)
+
+        self.bookmarksButton = QtGui.QPushButton(self.groupBox)
+        self.bookmarksButton.setObjectName("bookmarksButton")
+        self.gridlayout1.addWidget(self.bookmarksButton,0,3,1,1)
+
+        spacerItem1 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
+        self.gridlayout1.addItem(spacerItem1,0,2,1,1)
+        self.gridlayout.addWidget(self.groupBox,0,1,1,1)
 
         self.tree = TreePanel(TreeWidget)
         self.tree.setEnabled(True)
@@ -55,7 +67,7 @@ class Ui_TreeWidget(object):
         self.tree.setSortingEnabled(False)
         self.tree.setAnimated(False)
         self.tree.setObjectName("tree")
-        self.gridlayout.addWidget(self.tree,1,0,1,1)
+        self.gridlayout.addWidget(self.tree,1,1,1,1)
 
         self.selection = QtGui.QGroupBox(TreeWidget)
         self.selection.setObjectName("selection")
@@ -78,7 +90,7 @@ class Ui_TreeWidget(object):
         self.runLookup = QtGui.QRadioButton(self.selection)
         self.runLookup.setObjectName("runLookup")
         self.gridlayout2.addWidget(self.runLookup,3,0,1,1)
-        self.gridlayout.addWidget(self.selection,2,0,1,1)
+        self.gridlayout.addWidget(self.selection,2,1,1,1)
 
         self.configNameRadioButton1 = QtGui.QAction(TreeWidget)
         self.configNameRadioButton1.setObjectName("configNameRadioButton1")
@@ -92,6 +104,7 @@ class Ui_TreeWidget(object):
         self.advancedQuery.setText(QtGui.QApplication.translate("TreeWidget", "Advanced Queries", None, QtGui.QApplication.UnicodeUTF8))
         self.pageSize.setText(QtGui.QApplication.translate("TreeWidget", "ALL", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("TreeWidget", "Page Size:", None, QtGui.QApplication.UnicodeUTF8))
+        self.bookmarksButton.setText(QtGui.QApplication.translate("TreeWidget", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(0,QtGui.QApplication.translate("TreeWidget", "                                Tree                                                     ", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(1,QtGui.QApplication.translate("TreeWidget", "Description", None, QtGui.QApplication.UnicodeUTF8))
         self.selection.setTitle(QtGui.QApplication.translate("TreeWidget", "Queries", None, QtGui.QApplication.UnicodeUTF8))

@@ -6,6 +6,8 @@
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 import types
 __RCSID__ = "$Id$"
@@ -65,8 +67,13 @@ class ControlerTree(ControlerAbstract):
   
   #############################################################################  
   def runRadioButton(self):
-    message = Message({'action':'runLookup'})
-    self.getParent().messageFromChild(self, message)
+    self.browsePath('')
+    #message = Message({'action':'runLookup'})
+    #self.getParent().messageFromChild(self, message)
+  
+  #############################################################################
+  def bookmarksButtonPressed(self):
+    self.getWidget().showBookmarks()
     
   #############################################################################  
   def standardQuery(self):
@@ -167,6 +174,46 @@ class ControlerTree(ControlerAbstract):
           message = Message({'action':'list','items':feedback['items']})
           ct.messageFromParent(message)
   
+  #############################################################################
+  def __openPath(self, fullpath, item):
+    
+    if item != None:
+      for i in range(item.childCount()):
+        node = item.child(i)
+        userObject = node.getUserObject() 
+        if userObject != None: 
+          if userObject['fullpath'] == fullpath:
+            self.getWidget().getTree().expandItem(node)
+            return node
+    else:
+      message = 'The path is wrong!'
+      gLogger.error(message)
+      QMessageBox.critical(self.getWidget(), "ERROR", message,QMessageBox.Ok)
+      
+    
+        
+  def browsePath(self, path):
+    path = '/CFGN_MC/CFGV_MC09/SCON_427976/PAS_MC09-Brunelv35-withTruth/EVT_30000000/PROD_ALL/FTY_DST'
+    #path = '/CFGN_MC/CFGV_MC09/SCON_4279/PAS_MC09-Brunelv35-withTruth/EVT_30000000/PROD_ALL/FTY_DST'
+    npath = path.split('/')
+    n = self.getWidget().getTree().findItems(npath[1].split('_')[1],Qt.MatchExactly,0)
+    parentItem = n[0] 
+    self.getWidget().getTree().expandItem(parentItem)
+    node = '/'+npath[1]
+    for i in range(2,len(npath)):
+      if npath[i] != '':
+        if npath[i].split('_')[1] == 'ALL':
+          node += '/'+npath[i]
+        else:
+          node += '/'+npath[i]
+          item = self.__openPath(node, parentItem)
+          parentItem = item
+          
+    if parentItem != None and parentItem.childCount() > 0:
+      node = parentItem.child(0) # this two line open the File Dialog window
+      self._on_item_clicked(node)
+        
+        
   #############################################################################  
   def _on_itemDuble_clicked(self, parentItem, column):
     self._on_item_clicked(parentItem)

@@ -28,7 +28,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.advancedSave, SIGNAL("clicked()"), self.__controler.advancedSave)
     self.connect(self.nextButton, SIGNAL("clicked()"), self.__controler.next)
     
-    picturesPath = DIRAC.rootPath+'/DIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
     self.saveButton.setIcon(saveIcon)
     self.advancedSave.setIcon(saveIcon)

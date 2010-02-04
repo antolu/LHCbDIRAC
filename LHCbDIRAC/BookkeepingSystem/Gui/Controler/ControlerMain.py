@@ -313,7 +313,7 @@ class ControlerMain(ControlerAbstract):
     #message = Message({'action':'list','items':items})
     #self.getControler().messageFromParent(message)
   #############################################################################  
-  
+    
   #############################################################################  
   def setFileName(self, fileName):
     self.__fileName = fileName
