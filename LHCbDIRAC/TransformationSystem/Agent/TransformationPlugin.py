@@ -69,6 +69,20 @@ class TransformationPlugin(DIRACTransformationPlugin):
             tasks.append((otherSE,lfns))
     return S_OK(tasks)
 
+  def _LHCbDSTBroadcast(self):
+    """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
+    sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST','NIKHEF-DST','PIC-DST','RAL-DST'])
+    destinations = int(self.params.get('Destinations',6))
+    return self._lhcbBroadcast(sourceSEs, targetSEs, 'CERN_M-DST')
+
+  def _LHCbMCDSTBroadcast(self):
+    """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
+    sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','PIC_MC_M-DST','RAL_MC_M-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','CNAF_MC-DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
+    destinations = int(self.params.get('Destinations',2))
+    return self._lhcbBroadcast(sourceSEs, targetSEs, 'CERN_MC_M-DST')
+
   def _groupByRun(self,lfnDict):
     # group data by run
     bk = BookkeepingClient()
@@ -88,6 +102,47 @@ class TransformationPlugin(DIRACTransformationPlugin):
       runDict[runNumber].append(lfn)
     return S_OK(runDict)
 
+  def _lhcbBroadcast(self,sourceSEs,targetSEs,cernSE):
+    filesOfInterest = {}
+    fileGroups = self._getFileGroups(self.data)
+    for replicaSE,lfns in fileGroups.items():
+      sources = replicaSE.split(',')
+      atSource = False
+      for se in sources:
+        if se in sourceSEs:
+          atSource = True
+      if atSource:
+        for lfn in lfns:
+          filesOfInterest[lfn] = sources
+
+    targetSELfns = {}
+    for lfn,sources in filesOfInterest.items():
+      targets = []
+      sourceSites = self._getSitesForSEs(sources)
+      if not 'LCG.CERN.ch' in sourceSites:
+        sourceSites.append('LCG.CERN.ch')  
+        targets.append(cernSE)
+      else:
+        randomTape = randomize(sourceSEs)[0]
+        site = self._getSiteForSE(randomTape)['Value']
+        sourceSites.append(site)
+        targets.append(randomTape)
+      for targetSE in randomize(targetSEs):
+        if (destinations) and (len(targets) >= destinations):
+          continue
+        site = self._getSiteForSE(targetSE)['Value']
+        if not site in sourceSites:
+          targets.append(targetSE)
+          sourceSites.append(site)
+      strTargetSEs = str.join(',',sortList(targets))
+      if not targetSELfns.has_key(strTargetSEs):
+        targetSELfns[strTargetSEs] = []
+      targetSELfns[strTargetSEs].append(lfn)
+    tasks = []
+    for strTargetSEs,lfns in targetSELfns.items():
+      tasks.append((strTargetSEs,lfns))
+    return S_OK(tasks)
+  
   def _checkAncestors(self,filesReplicas,ancestorDepth):
     """ Check ancestor availability on sites. Returns a list of SEs where all the ancestors are present
     """
@@ -138,50 +193,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
         ancestorProblems.append(lfn)          
     return S_OK()
   
-  #TODO: Update the way the data replicas are passed.
-
-  def _MCBroadcast(self):
-    """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs
-    """
-    if not self.params:
-      return S_ERROR("TransformationPlugin._MCBroadcast: The 'MCBroadcast' plugin requires additional parameters.")
-
-    destinations = int(self.params['Destinations'])
-
-    seFiles = {}
-    for lfn,se in self.data:
-      lfnTargetSEs = self.params['TargetSE'].split(',')
-      random.shuffle(lfnTargetSEs)
-      lfnSourceSEs = self.params['SourceSE'].split(',')
-      random.shuffle(lfnSourceSEs)
-      sourceSites = [se.split('_')[0].split('-')[0]]
-      if se in lfnSourceSEs:
-        # If the file is not at CERN then it should be
-        if not 'CERN' in sourceSites:
-          targets = ['CERN_MC_M-DST']
-          sourceSites.append('CERN')
-        # Otherwise make sure it is at another tape SE
-        else:
-          otherTape = se
-          while otherTape == se:
-            random.shuffle(lfnSourceSEs) 
-            otherTape = lfnSourceSEs[-1]
-          targets = [otherTape]
-          sourceSites.append(otherTape.split('_')[0].split('-')[0])
-        for targetSE in lfnTargetSEs:
-          possibleTargetSite = targetSE.split('_')[0].split('-')[0]
-          if not possibleTargetSite in sourceSites: 
-            if len(sourceSites) < destinations:
-              targets.append(targetSE)
-              sourceSites.append(possibleTargetSite)
-        strTargetSE = ','.join(targets)
-        if not seFiles.has_key(se):
-          seFiles[se] = {}
-        if not seFiles[se].has_key(strTargetSE):
-          seFiles[se][strTargetSE] = []
-        seFiles[se][strTargetSE].append(lfn)
-    return S_OK(seFiles)
-
+  # TODO shares
   def _LoadBalance(self):
     """ This plug-in will load balances the input files across the selected target SEs.
     """
