@@ -653,7 +653,7 @@ done
           return S_ERROR( ret[ 'Message' ] )
         continue
       retrycount = 0
-      jobstatus = ret[ 'Value' ][ 'status' ]
+      jobstatus = ret[ 'Value' ]
       if jobstatus in [ 'DONE' , 'ERROR' ]:
         ret = recoManager.getJobOutput( jobID )
         if not ret[ 'OK' ]:
