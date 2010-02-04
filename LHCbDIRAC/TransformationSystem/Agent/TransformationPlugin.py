@@ -2,7 +2,7 @@
 """
 from DIRAC                                                  import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SiteSEMapping                     import getSitesForSE,getSEsForSite
-from DIRAC.Core.Utilities.List                              import breakListIntoChunks, sortList, uniqueElements
+from DIRAC.Core.Utilities.List                              import breakListIntoChunks, sortList, uniqueElements,randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles       import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
@@ -74,14 +74,14 @@ class TransformationPlugin(DIRACTransformationPlugin):
     sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
     targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST','NIKHEF-DST','PIC-DST','RAL-DST'])
     destinations = int(self.params.get('Destinations',6))
-    return self._lhcbBroadcast(sourceSEs, targetSEs, 'CERN_M-DST')
+    return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_M-DST')
 
   def _LHCbMCDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','PIC_MC_M-DST','RAL_MC_M-DST'])
     targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','CNAF_MC-DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
     destinations = int(self.params.get('Destinations',2))
-    return self._lhcbBroadcast(sourceSEs, targetSEs, 'CERN_MC_M-DST')
+    return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_MC_M-DST')
 
   def _groupByRun(self,lfnDict):
     # group data by run
@@ -102,7 +102,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       runDict[runNumber].append(lfn)
     return S_OK(runDict)
 
-  def _lhcbBroadcast(self,sourceSEs,targetSEs,cernSE):
+  def _lhcbBroadcast(self,sourceSEs,targetSEs,destinations,cernSE):
     filesOfInterest = {}
     fileGroups = self._getFileGroups(self.data)
     for replicaSE,lfns in fileGroups.items():
@@ -123,7 +123,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
         sourceSites.append('LCG.CERN.ch')  
         targets.append(cernSE)
       else:
-        randomTape = randomize(sourceSEs)[0]
+        randomTape = cernSE
+        while randomTape == cernSE:
+          randomTape = randomize(sourceSEs)[0]
         site = self._getSiteForSE(randomTape)['Value']
         sourceSites.append(site)
         targets.append(randomTape)
@@ -139,7 +141,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
         targetSELfns[strTargetSEs] = []
       targetSELfns[strTargetSEs].append(lfn)
     tasks = []
-    for strTargetSEs,lfns in targetSELfns.items():
+    for strTargetSEs in sortList(targetSELfns.keys()):
+      lfns = targetSELfns[strTargetSEs]
       tasks.append((strTargetSEs,lfns))
     return S_OK(tasks)
   
@@ -232,6 +235,3 @@ class TransformationPlugin(DIRACTransformationPlugin):
         seFiles[sourceSE][targetSE] = selectedFiles[currIndex:currIndex+offset]
         currIndex += offset
     return S_OK(seFiles)
-  
-  
-  
