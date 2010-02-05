@@ -133,7 +133,7 @@ class SoftwareInstallation(ModuleBaseSAM):
       shutil.copy('%s/%s' %(os.getcwd(),installProjectName),'%s/%s' %(sharedArea,installProjectName))
 
     # Change the permissions on the shared area (if a pool account is used)
-    if not re.search('\d',self.runinfo['identityShort']):
+    if not re.search('\d$',self.runinfo['identityShort']):
       isPoolAccount = False
     else:
       isPoolAccount = True
@@ -214,23 +214,23 @@ class SoftwareInstallation(ModuleBaseSAM):
               self.__changePermissions(sharedArea)
             return self.finalize('Could not determine name and version of package:',installPackage,'error')
 
-          if removePackage in packageList:
-            self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-            orig = sys.stdout
-            catch = open(self.logFile,'a')
-            sys.stdout=catch
-            result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
-            sys.stdout=orig
-            catch.close()
-            result = True
-            if not result: # or not result['OK']:
-              if isPoolAccount:
-                self.__changePermissions(sharedArea)
-              return self.finalize('Problem during execution, stopping.',result,'error')
-            else:
-              self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+#          if removePackage in packageList:
+          self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          orig = sys.stdout
+          catch = open(self.logFile,'a')
+          sys.stdout=catch
+          result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
+          sys.stdout=orig
+          catch.close()
+          result = True
+          if not result: # or not result['OK']:
+            if isPoolAccount:
+              self.__changePermissions(sharedArea)
+            return self.finalize('Problem during execution, stopping.',result,'error')
           else:
-            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
+            self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+#          else:
+#            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
     else:
       self.log.info('Software installation is disabled via enable flag')
 
