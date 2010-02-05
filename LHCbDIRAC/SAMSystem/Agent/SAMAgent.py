@@ -2,7 +2,7 @@
 # $HeadURL$
 ########################################################################
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SAMAgent.py 18857 2009-12-02 12:07:41Z atsareg $"
 
 """  SAM Agent submits SAM jobs
 """

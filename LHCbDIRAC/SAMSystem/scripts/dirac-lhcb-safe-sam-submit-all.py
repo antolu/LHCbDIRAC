@@ -4,7 +4,7 @@
 # File :   dirac-lhcb-safe-sam-submit-all
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id$"
+__RCSID__   = "$Id: dirac-lhcb-safe-sam-submit-all.py 18764 2009-12-01 13:19:40Z paterson $"
 __VERSION__ = "$Revision: 1.1 $"
 import sys
 import DIRAC

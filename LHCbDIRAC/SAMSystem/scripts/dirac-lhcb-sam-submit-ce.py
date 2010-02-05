@@ -4,7 +4,7 @@
 # File :   dirac-lhcb-sam-submit-ce
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id$"
+__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce.py 18813 2009-12-01 14:46:33Z paterson $"
 __VERSION__ = "$Revision: 1.2 $"
 import sys,string
 import DIRAC

@@ -1,5 +1,5 @@
 ############################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/Testing/SAM/Distribution/__init__.py $
+# $HeadURL$
 ############################################################
 
 """

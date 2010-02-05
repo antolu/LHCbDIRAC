@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/Testing/SAM/Modules/SAMFinalization.py $
+# $HeadURL$
 # Author : Stuart Paterson
 ########################################################################
 
