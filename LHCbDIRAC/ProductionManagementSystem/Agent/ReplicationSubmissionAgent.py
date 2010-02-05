@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ProductionManagementSystem/Agent/ReplicationSubmissionAgent.py $
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/DIRAC/TransformationSystem/Agent/ReplicationSubmissionAgent.py $
 ########################################################################
 
 """  The Replication Submission Agent takes replication tasks created in the transformation database and submits the replication requests to the transfer management system. """
@@ -9,14 +9,15 @@ __RCSID__ = "$Id: ReplicationSubmissionAgent.py 20001 2010-01-20 12:47:38Z acsmi
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                                    import AgentModule
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient   import ProductionClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer          import RequestContainer
 from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
 from DIRAC.TransformationSystem.Client.FileReport                   import FileReport
+from DIRAC.TransformationSystem.Client.TransforamtionDBClient       import TransformationDBClient
+
 from DIRAC.Core.Utilities.List                                      import sortList
 import os, time, string, datetime, re
 
-AGENT_NAME = 'ProductionManagement/ReplicationSubmissionAgent'
+AGENT_NAME = 'TransformationSystem/ReplicationSubmissionAgent'
 
 class ReplicationSubmissionAgent(AgentModule):
 
@@ -24,11 +25,10 @@ class ReplicationSubmissionAgent(AgentModule):
   def initialize(self):
     """Sets defaults
     """
-    self.am_setModuleParam('shifter','ProductionManager')
+    self.am_setModuleParam('shifter','DataManager')
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     gMonitor.registerActivity("SubmittedTasks","Automatically submitted tasks","Transformation Monitoring","Tasks", gMonitor.OP_ACUM)
-
-    self.transClient = ProductionClient()
+    self.transClient = TransformationDBClient()
     self.requestClient = RequestClient()
     return S_OK()
 
@@ -229,7 +229,7 @@ class ReplicationSubmissionAgent(AgentModule):
 
     for transName,lfnDict in taskDict.items():
       lfns = lfnDict.keys()
-      fileReport = FileReport(server='ProductionManagement/ProductionManager')
+      fileReport = FileReport(server='TransformationSystem/TransformationManager')
       transID,taskID = transName.split('_')
       res = self.requestClient.getRequestFileStatus(transName,lfns,'RequestManagement/RequestManager')
       if not res['OK']:
