@@ -1,4 +1,5 @@
 ########################################################################
+# $HeadURL$
 # $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/Testing/SAM/Modules/SoftwareInstallation.py $
 # Author : Stuart Paterson
 ########################################################################
