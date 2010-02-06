@@ -12,7 +12,7 @@ from DIRAC                                                    import gLogger, S_
 from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.Utilities                                     import List
 from DIRAC.Core.Utilities.Shifter                             import setupShifterProxyInEnv
-from DIRAC.Core.Utilities.ldapsearchBDII                      import ldapSite, ldapCluster,ldapCE,ldapCEState
+from DIRAC.Core.Utilities.Grid                                import ldapSite, ldapCluster,ldapCE,ldapCEState
 from DIRAC.FrameworkSystem.Client.NotificationClient          import NotificationClient
 from DIRAC.ConfigurationSystem.Client.CSAPI                   import CSAPI
 

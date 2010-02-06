@@ -8,8 +8,8 @@ __RCSID__ = "$Id: RANKMonitoringAgent.py 18832 2009-12-01 16:40:02Z atsareg $"
 """
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.AgentModule                              import AgentModule
-from DIRAC.Core.Utilities.ldapsearchBDII import ldapCEState
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.Utilities.Grid import ldapCEState
 from DIRAC  import gMonitor
 
 import sys, os
