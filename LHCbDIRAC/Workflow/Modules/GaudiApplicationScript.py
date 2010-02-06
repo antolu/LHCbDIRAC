@@ -15,16 +15,14 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Utilities.Subprocess                     import shellCall
-from DIRAC.Core.Utilities                                import ldLibraryPath
-from DIRAC.Core.Utilities                                import Source
-from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
-from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from DIRAC.Core.Utilities.Os                                import sourceEnv
+from DIRAC.Resources.Catalog.PoolXMLCatalog                 import PoolXMLCatalog
+from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
-from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig, platformTuple
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig, platformTuple, shellCall
 
 import DIRAC
 
@@ -175,7 +173,7 @@ class GaudiApplicationScript(ModuleBase):
     timeout = 600
 
     # Run ExtCMT
-    ret = Source( timeout, [extCMT], cmtEnv )
+    ret = sourceEnv( timeout, [extCMT], cmtEnv )
     if ret['OK']:
       if ret['stdout']:
         self.log.info( ret['stdout'] )
@@ -192,7 +190,7 @@ class GaudiApplicationScript(ModuleBase):
       return self.result
 
     # Run SetupProject
-    ret = Source( timeout, setupProject, setupProjectEnv )
+    ret = sourceEnv( timeout, setupProject, setupProjectEnv )
     if ret['OK']:
       if ret['stdout']:
         self.log.info( ret['stdout'] )
