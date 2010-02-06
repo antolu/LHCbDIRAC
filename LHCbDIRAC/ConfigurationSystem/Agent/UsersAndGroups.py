@@ -12,7 +12,7 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.Security.VOMSService                 import VOMSService
 from DIRAC.Core.Security                             import Locations, X509Chain
 from DIRAC.Core.Utilities                            import List, Subprocess
-from DIRAC                                           import S_OK, S_ERROR, gConfig, Source
+from DIRAC                                           import S_OK, S_ERROR, gConfig
 
 class UsersAndGroups( AgentModule ):
 
