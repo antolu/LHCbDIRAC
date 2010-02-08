@@ -241,6 +241,12 @@ class TreePanel(QTreeWidget):
     self.connect (self.__jobAction, SIGNAL("triggered()"), self.__controler.moreInformations)
     self.__popUp.addAction(self.__jobAction)
     
+  
+    self.__bookmarksAction = QAction(self.tr("Bookmarks"), self)
+    self.connect (self.__bookmarksAction, SIGNAL("triggered()"), self.__controler.bookmarks)
+    self.__popUp.addAction(self.__bookmarksAction)
+  
+  
     '''
     self.__closeAction = QAction(self.tr("Close"), self)
     self.connect (self.__closeAction, SIGNAL("triggered()"), self.__controler.close)

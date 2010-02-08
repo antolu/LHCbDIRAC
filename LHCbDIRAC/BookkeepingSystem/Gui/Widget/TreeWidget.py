@@ -27,6 +27,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     @param parent parent widget (QWidget)
     """
+    self.__controler = None
     QWidget.__init__(self, parent)
     self.__parent = parent.parentWidget()
     self.setupUi(self)
@@ -38,11 +39,17 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.productionRadioButton, SIGNAL("clicked()"), self.__controler.productionRadioButton)
     self.connect(self.runLookup, SIGNAL("clicked()"), self.__controler.runRadioButton)
     self.connect(self.bookmarksButton, SIGNAL("clicked()"), self.__controler.bookmarksButtonPressed)
+    self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.hidewidget)
+    
     self.tree.setupControler()
     
     picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
-    bookmarksIcon = QIcon(picturesPath+"/images/bookmarks.png")
+    bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
     self.bookmarksButton.setIcon(bookmarksIcon)
+    
+    closeIcon = QIcon(picturesPath+"/images/reloadpage.png")
+    self.closeButton.setIcon(closeIcon)
+    self.closeButton.hide()
     
     self.standardQuery.setChecked(True)
     self.connect(self.standardQuery, SIGNAL("clicked()"), self.__controler.standardQuery)
@@ -56,7 +63,8 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     self.__fileDialog = FileDialog(self)
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
-    
+    self.Bookmarks.setupControler(self)
+    self.__controler.addChild('Bookmarks', self.Bookmarks.getControler())
     
     #self.__dialog.show()
     #self.__dialog.hide()
@@ -72,10 +80,18 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     '''
     self.tree.header().setResizeMode(1, QHeaderView.ResizeToContents)
     self.tree.header().setResizeMode(0, QHeaderView.ResizeToContents)
+    
   
   #############################################################################
   def showBookmarks(self):
+    self.bookmarksButton.hide()
+    self.closeButton.show()
     self.Bookmarks.show()
+  
+  def hidewidget(self):
+    self.bookmarksButton.show()
+    self.closeButton.hide()
+    self.Bookmarks.hide()
   
   #############################################################################  
   def getTree(self):

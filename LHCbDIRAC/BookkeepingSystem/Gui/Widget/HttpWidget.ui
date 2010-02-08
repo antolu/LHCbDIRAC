@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>HttpWidget</class>
- <widget class="QWidget" name="HttpWidget" >
-  <property name="geometry" >
+ <widget class="QWidget" name="HttpWidget">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,82 +10,173 @@
     <height>336</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="palette">
+   <palette>
+    <active>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>178</green>
+        <blue>249</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>193</red>
+        <green>193</green>
+        <blue>221</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </active>
+    <inactive>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>178</green>
+        <blue>249</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>255</red>
+        <green>255</green>
+        <blue>255</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>193</red>
+        <green>193</green>
+        <blue>221</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </inactive>
+    <disabled>
+     <colorrole role="Button">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>170</red>
+        <green>178</green>
+        <blue>249</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Base">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>193</red>
+        <green>193</green>
+        <blue>221</blue>
+       </color>
+      </brush>
+     </colorrole>
+     <colorrole role="Window">
+      <brush brushstyle="SolidPattern">
+       <color alpha="255">
+        <red>193</red>
+        <green>193</green>
+        <blue>221</blue>
+       </color>
+      </brush>
+     </colorrole>
+    </disabled>
+   </palette>
+  </property>
+  <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" >
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="back" >
-       <property name="toolTip" >
+      <widget class="QPushButton" name="back">
+       <property name="toolTip">
         <string>Back</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Back</string>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>back.png</normaloff>back.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="next" >
-       <property name="enabled" >
+      <widget class="QPushButton" name="next">
+       <property name="enabled">
         <bool>true</bool>
        </property>
-       <property name="toolTip" >
+       <property name="toolTip">
         <string>Next</string>
        </property>
-       <property name="layoutDirection" >
+       <property name="layoutDirection">
         <enum>Qt::RightToLeft</enum>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Next</string>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>next.png</normaloff>next.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="stop" >
-       <property name="toolTip" >
+      <widget class="QPushButton" name="stop">
+       <property name="toolTip">
         <string>Stop</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Stop</string>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>stop.png</normaloff>stop.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="reload" >
-       <property name="toolTip" >
+      <widget class="QPushButton" name="reload">
+       <property name="toolTip">
         <string>Reload</string>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Reload</string>
        </property>
-       <property name="icon" >
+       <property name="icon">
         <iconset>
          <normaloff>reload.png</normaloff>reload.png</iconset>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="url" />
+      <widget class="QLineEdit" name="url"/>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QWebView" name="webView" >
-     <property name="url" >
+    <widget class="QWebView" name="webView">
+     <property name="url">
       <url>
        <string>about:blank</string>
       </url>

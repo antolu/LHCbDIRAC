@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ProcessingPassDialog.ui'
 #
-# Created: Fri Mar 20 17:44:58 2009
+# Created: Mon Feb  8 17:42:52 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,6 +13,45 @@ class Ui_ProcessingPassDialog(object):
     def setupUi(self, ProcessingPassDialog):
         ProcessingPassDialog.setObjectName("ProcessingPassDialog")
         ProcessingPassDialog.resize(QtCore.QSize(QtCore.QRect(0,0,813,342).size()).expandedTo(ProcessingPassDialog.minimumSizeHint()))
+
+        palette = QtGui.QPalette()
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Window,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Window,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Window,brush)
+        ProcessingPassDialog.setPalette(palette)
 
         self.gridlayout = QtGui.QGridLayout(ProcessingPassDialog)
         self.gridlayout.setObjectName("gridlayout")
@@ -26,14 +65,12 @@ class Ui_ProcessingPassDialog(object):
         self.tabwidget = QtGui.QTabWidget(self.widget)
         self.tabwidget.setObjectName("tabwidget")
 
-        '''
         self.tab = QtGui.QWidget()
         self.tab.setObjectName("tab")
 
         self.hboxlayout = QtGui.QHBoxLayout(self.tab)
         self.hboxlayout.setObjectName("hboxlayout")
         self.tabwidget.addTab(self.tab,"")
-        '''
         self.gridlayout1.addWidget(self.tabwidget,0,0,1,1)
         self.gridlayout.addWidget(self.widget,0,0,1,1)
 
@@ -63,7 +100,7 @@ class Ui_ProcessingPassDialog(object):
 
     def retranslateUi(self, ProcessingPassDialog):
         ProcessingPassDialog.setWindowTitle(QtGui.QApplication.translate("ProcessingPassDialog", "Feicim - Processing Pass Viewer", None, QtGui.QApplication.UnicodeUTF8))
-        #self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab), QtGui.QApplication.translate("ProcessingPassDialog", "PassGroup", None, QtGui.QApplication.UnicodeUTF8))
+        self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab), QtGui.QApplication.translate("ProcessingPassDialog", "PassGroup", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("ProcessingPassDialog", "Description", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("ProcessingPassDialog", "Total Processing pass", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("ProcessingPassDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))

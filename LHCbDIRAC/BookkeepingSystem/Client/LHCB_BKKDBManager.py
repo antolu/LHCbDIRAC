@@ -1275,6 +1275,7 @@ class LHCB_BKKDBManager(BaseESManager):
       # this must be a folder
       entity = objects.Entity()
       name = newPathElement
+           
       newPathElement = self.LHCB_BKDB_PREFIXES[level]+ \
       self.LHCB_BKDB_PREFIX_SEPARATOR + \
       newPathElement
@@ -1284,7 +1285,8 @@ class LHCB_BKKDBManager(BaseESManager):
       fullPath  = presentPath.rstrip(INTERNAL_PATH_SEPARATOR)
       fullPath += INTERNAL_PATH_SEPARATOR + \
       newPathElement
-
+      
+      
       entity.update({'name':name, 'fullpath':fullPath,'expandable':expandable})
       
       if leveldescription <> None:
@@ -1306,6 +1308,7 @@ class LHCB_BKKDBManager(BaseESManager):
       entity = objects.Entity(value)
       type = self.LHCB_BKDB_FILE_TYPE
       name = newPathElement
+                  
       newPathElement = self.LHCB_BKDB_PREFIXES[level]+ \
       self.LHCB_BKDB_PREFIX_SEPARATOR + \
       newPathElement

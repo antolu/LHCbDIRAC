@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Thu Feb  4 12:48:55 2010
+# Created: Mon Feb  8 17:29:25 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,25 +39,60 @@ class Ui_TreeWidget(object):
 
         self.pageSize = QtGui.QLineEdit(self.groupBox)
         self.pageSize.setObjectName("pageSize")
-        self.gridlayout1.addWidget(self.pageSize,2,1,1,2)
+        self.gridlayout1.addWidget(self.pageSize,4,1,1,2)
 
         self.label = QtGui.QLabel(self.groupBox)
         self.label.setObjectName("label")
-        self.gridlayout1.addWidget(self.label,2,0,1,1)
+        self.gridlayout1.addWidget(self.label,4,0,1,1)
 
         spacerItem = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
-        self.gridlayout1.addItem(spacerItem,2,3,1,1)
+        self.gridlayout1.addItem(spacerItem,4,3,1,1)
 
         self.bookmarksButton = QtGui.QPushButton(self.groupBox)
+
+        palette = QtGui.QPalette()
+
+        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
+        self.bookmarksButton.setPalette(palette)
+        self.bookmarksButton.setAutoFillBackground(False)
         self.bookmarksButton.setObjectName("bookmarksButton")
         self.gridlayout1.addWidget(self.bookmarksButton,0,3,1,1)
 
         spacerItem1 = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
         self.gridlayout1.addItem(spacerItem1,0,2,1,1)
+
+        self.closeButton = QtGui.QToolButton(self.groupBox)
+        self.closeButton.setObjectName("closeButton")
+        self.gridlayout1.addWidget(self.closeButton,0,4,1,1)
         self.gridlayout.addWidget(self.groupBox,0,1,1,1)
 
         self.tree = TreePanel(TreeWidget)
         self.tree.setEnabled(True)
+
+        palette = QtGui.QPalette()
+
+        brush = QtGui.QBrush(QtGui.QColor(254,255,230))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(254,255,230))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(229,225,197))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
+        self.tree.setPalette(palette)
         self.tree.setProperty("cursor",QtCore.QVariant(QtCore.Qt.ArrowCursor))
         self.tree.setLineWidth(1)
         self.tree.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
@@ -105,6 +140,7 @@ class Ui_TreeWidget(object):
         self.pageSize.setText(QtGui.QApplication.translate("TreeWidget", "ALL", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("TreeWidget", "Page Size:", None, QtGui.QApplication.UnicodeUTF8))
         self.bookmarksButton.setText(QtGui.QApplication.translate("TreeWidget", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
+        self.closeButton.setText(QtGui.QApplication.translate("TreeWidget", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(0,QtGui.QApplication.translate("TreeWidget", "                                Tree                                                     ", None, QtGui.QApplication.UnicodeUTF8))
         self.tree.headerItem().setText(1,QtGui.QApplication.translate("TreeWidget", "Description", None, QtGui.QApplication.UnicodeUTF8))
         self.selection.setTitle(QtGui.QApplication.translate("TreeWidget", "Queries", None, QtGui.QApplication.UnicodeUTF8))

@@ -24,8 +24,8 @@ class TableModel(QAbstractTableModel):
   
   #############################################################################  
   def columnCount(self, parent): 
-    return len(self.arraydata[0]) 
- 
+    return len(self.arraydata[0])
+    
   #############################################################################  
   def data(self, index, role): 
     if not index.isValid(): 

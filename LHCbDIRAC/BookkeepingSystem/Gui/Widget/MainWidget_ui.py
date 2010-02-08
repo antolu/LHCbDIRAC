@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Tue Jun 23 09:31:38 2009
+# Created: Mon Feb  8 17:29:26 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -16,6 +16,57 @@ class Ui_MainWidget(object):
         MainWidget.setWindowModality(QtCore.Qt.ApplicationModal)
         MainWidget.setEnabled(True)
         MainWidget.resize(QtCore.QSize(QtCore.QRect(0,0,400,500).size()).expandedTo(MainWidget.minimumSizeHint()))
+
+        palette = QtGui.QPalette()
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(190,187,215))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Window,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.ToolTipBase,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(190,187,215))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Window,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.ToolTipBase,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(190,187,215))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(190,187,215))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Window,brush)
+
+        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.ToolTipBase,brush)
+        MainWidget.setPalette(palette)
         MainWidget.setCursor(QtCore.Qt.ArrowCursor)
 
         self.centralwidget = QtGui.QWidget(MainWidget)
@@ -31,7 +82,7 @@ class Ui_MainWidget(object):
         MainWidget.setCentralWidget(self.centralwidget)
 
         self.menubar = QtGui.QMenuBar(MainWidget)
-        self.menubar.setGeometry(QtCore.QRect(0,0,400,25))
+        self.menubar.setGeometry(QtCore.QRect(0,0,400,24))
         self.menubar.setObjectName("menubar")
 
         self.menuFile = QtGui.QMenu(self.menubar)

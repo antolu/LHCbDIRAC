@@ -53,6 +53,9 @@ class ControlerTree(ControlerAbstract):
     elif message.action() =='PageSizeIsNull':
       self.__offset = 0
       self.__pagesize = 0
+    elif message.action() == 'openPathLocation':
+      path = message['Path']
+      self.browsePath(path)
     else:
       return self.getParent().messageFromChild(self, message) # send to main controler!
   
@@ -67,13 +70,15 @@ class ControlerTree(ControlerAbstract):
   
   #############################################################################  
   def runRadioButton(self):
-    self.browsePath('')
-    #message = Message({'action':'runLookup'})
-    #self.getParent().messageFromChild(self, message)
+    message = Message({'action':'runLookup'})
+    self.getParent().messageFromChild(self, message)
   
   #############################################################################
   def bookmarksButtonPressed(self):
     self.getWidget().showBookmarks()
+  
+  def hidewidget(self):
+    self.getWidget().hidewidget()
     
   #############################################################################  
   def standardQuery(self):
@@ -175,14 +180,14 @@ class ControlerTree(ControlerAbstract):
           ct.messageFromParent(message)
   
   #############################################################################
-  def __openPath(self, fullpath, item):
+  def __openPath(self, name, item):
     
     if item != None:
       for i in range(item.childCount()):
         node = item.child(i)
         userObject = node.getUserObject() 
         if userObject != None: 
-          if userObject['fullpath'] == fullpath:
+          if userObject['name'] == name:
             self.getWidget().getTree().expandItem(node)
             return node
     else:
@@ -193,19 +198,16 @@ class ControlerTree(ControlerAbstract):
     
         
   def browsePath(self, path):
-    path = '/CFGN_MC/CFGV_MC09/SCON_427976/PAS_MC09-Brunelv35-withTruth/EVT_30000000/PROD_ALL/FTY_DST'
+    #path = '/MC/MC09/Beam3,5TeV-VeloClosed-MagDown-Nu1/MC09-Sim05Reco02-withTruth'
     #path = '/CFGN_MC/CFGV_MC09/SCON_4279/PAS_MC09-Brunelv35-withTruth/EVT_30000000/PROD_ALL/FTY_DST'
     npath = path.split('/')
-    n = self.getWidget().getTree().findItems(npath[1].split('_')[1],Qt.MatchExactly,0)
+    n = self.getWidget().getTree().findItems(npath[1],Qt.MatchExactly,0)
     parentItem = n[0] 
     self.getWidget().getTree().expandItem(parentItem)
     node = '/'+npath[1]
     for i in range(2,len(npath)):
       if npath[i] != '':
-        if npath[i].split('_')[1] == 'ALL':
-          node += '/'+npath[i]
-        else:
-          node += '/'+npath[i]
+          node = npath[i]
           item = self.__openPath(node, parentItem)
           parentItem = item
           
@@ -240,6 +242,33 @@ class ControlerTree(ControlerAbstract):
       elif type(node) != types.DictType and node.expandable() :
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)
+  
+  #############################################################################
+  def bookmarks(self):
+    currentItem = self.getWidget().getTree().getCurrentItem()
+    curent = currentItem
+    path = ''
+    nodes = [ curent ]
+    while curent != None:
+      curent = curent.parent() 
+      nodes +=  [curent]
+      
+    nodes.reverse()
+    for i in  nodes:
+      if i != None:
+        node = i.getUserObject()
+        if node != None:
+          path += '/'+ node['name'] 
+    
+    controlers = self.getChildren()
+    ct = controlers['Bookmarks']
+    message = Message({'action':'showValues','paths':{'Title':path,'Path':path}})
+    f = ct.messageFromParent(message)
+    if not f['OK']:
+      gLogger.error(f['Message'])
+    
+    
+    
   #############################################################################  
   def getPageSize(self):
     value = self.getWidget().getPageSize()
