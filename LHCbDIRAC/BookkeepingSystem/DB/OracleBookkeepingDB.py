@@ -929,7 +929,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('Wrong configuration name and version!')
                     
     if production != 'ALL':
-      condition += ' and jobs.production='+str(production)
+      if type(production) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in production:
+          cond += 'jobs.production='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      else:
+       condition += ' and jobs.production='+str(production)
     
     tables = ' files,jobs '
     pcondition = ''
@@ -952,16 +960,33 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tables += ',productions'
     
     if ftype != 'ALL':
-      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
-      res = self.dbR_._query(fileType)
-      if not res['OK']:
-        gLogger.error('File Type not found:',res['Message'])
-      elif len(res['Value'])==0:
-        return S_ERROR('File type not found!')
+      if type(ftype) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in ftype:
+          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+        res = self.dbR_._query(fileType)
+        if not res['OK']:
+          gLogger.error('File Type not found:',res['Message'])
+        elif len(res['Value'])==0:
+          return S_ERROR('File type not found!')
+        else:
+          ftypeId = res['Value'][0][0]
+          cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+         
       else:
-        ftypeId = res['Value'][0][0]
-        condition += ' and files.FileTypeId='+str(ftypeId)
-    
+        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+        res = self.dbR_._query(fileType)
+        if not res['OK']:
+          gLogger.error('File Type not found:',res['Message'])
+        elif len(res['Value'])==0:
+          return S_ERROR('File type not found!')
+        else:
+          ftypeId = res['Value'][0][0]
+          condition += ' and files.FileTypeId='+str(ftypeId)
+      
     if evt != 0:
       condition +=  ' and files.eventtypeid='+str(evt)
     
