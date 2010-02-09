@@ -126,3 +126,31 @@ class TreeWidget(QWidget, Ui_TreeWidget):
   #############################################################################
   def productionLookupRadioButtonIsChecked(self):
     return self.productionRadioButton.isChecked()
+  
+  #############################################################################
+  def setSimRadioButton(self):
+    if self.configNameRadioButton.isChecked():
+      self.configNameRadioButton.setChecked(False)
+    else:
+      self.configNameRadioButton.setChecked(True)
+  
+  #############################################################################
+  def setEvtButton(self):
+    if self.radioButton_2.isChecked():
+      self.radioButton_2.setChecked(False)
+    else:
+      self.radioButton_2.setChecked(True)
+  
+  #############################################################################
+  def setProdButton(self):
+    if self.productionRadioButton.isChecked():
+      self.productionRadioButton.setChecked(False)
+    else:
+      self.productionRadioButton.setChecked(True)
+  
+  #############################################################################
+  def setRunButton(self):
+    if self.runLookup.isChecked():
+      self.runLookup.setChecked(False)
+    else:
+      self.runLookup.setChecked(True)

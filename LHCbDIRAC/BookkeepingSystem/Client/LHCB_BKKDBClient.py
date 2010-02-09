@@ -102,3 +102,13 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getFileHistory(self, lfn):
     return self.getManager().getFileHistory(lfn)
+  
+  #############################################################################
+  def getCurrentParameter(self):
+    return self.getManager().getCurrentParameter()
+  
+  #############################################################################
+  def getQueriesTypes(self):
+    return self.getManager().getQueriesTypes()
+  
+  

@@ -44,12 +44,15 @@ class ControlerAddBookmarks(ControlerAbstract):
   def okButton(self):
     title = self.getWidget().getTitle()
     path = self.getWidget().getPath()
-    message = Message({'action':'addBookmarks','bookmark':{'Title':title,'Path':path}})
-    feedback = self.getParent().messageFromChild(self, message)
-    if not feedback['OK']:
-      gLogger.error(feedback['Message'])
+    if len(path.split(':/')) > 0:
+      message = Message({'action':'addBookmarks','bookmark':{'Title':title,'Path':path}})
+      feedback = self.getParent().messageFromChild(self, message)
+      if not feedback['OK']:
+        gLogger.error(feedback['Message'])
+      else:
+        self.getWidget().close()
     else:
-      self.getWidget().close()
+      gLogger.error('Wrong path!')
   
   #############################################################################
   def cancelButton(self):

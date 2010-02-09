@@ -198,24 +198,71 @@ class ControlerTree(ControlerAbstract):
     
         
   def browsePath(self, path):
-    #path = '/MC/MC09/Beam3,5TeV-VeloClosed-MagDown-Nu1/MC09-Sim05Reco02-withTruth'
-    #path = '/CFGN_MC/CFGV_MC09/SCON_4279/PAS_MC09-Brunelv35-withTruth/EVT_30000000/PROD_ALL/FTY_DST'
-    npath = path.split('/')
-    n = self.getWidget().getTree().findItems(npath[1],Qt.MatchExactly,0)
-    parentItem = n[0] 
-    self.getWidget().getTree().expandItem(parentItem)
-    node = '/'+npath[1]
-    for i in range(2,len(npath)):
-      if npath[i] != '':
-          node = npath[i]
-          item = self.__openPath(node, parentItem)
-          parentItem = item
+    info = path.split(':/')
+    if len(info) > 1:
+      prefix = info[0]
+      path = info[1]
+      message = Message({'action':'BookmarksPrefices'})
+      feedback = self.getParent().messageFromChild(self, message)
+      if feedback['OK']:
+        curentprefix = feedback['Value']
+        if curentprefix != prefix:
+          answer = QMessageBox.information(self.getWidget(), "Different query or query type", " Do you want to refresh the tree? If yes, Your selection will lost!!!", QMessageBox.Yes,  QMessageBox.No)
+          if answer == QMessageBox.Yes:
+            qType = prefix.split('+')
+            if qType[0] == 'sim':
+              self.configButton()
+              self.getWidget().setSimRadioButton()
+            elif qType[0] == 'evt':
+              self.eventTypeButton()
+              self.getWidget().setEvtButton()
+              
+            elif qType[0] == 'prod':
+              self.productionRadioButton()
+              self.getWidget().setProdButton()
+              
+            elif qType[0] == 'run':
+              self.runRadioButton()
+              self.getWidget().setRunButton()
+              
+            if qType[1] == 'std':
+              self.standardQuery()
+              self.getWidget().setStandardQueryValue()
+              
+            elif qType[1] == 'adv':
+              self.advancedQuery()
+              self.getWidget().setAdvancedQueryValue()
+                   
+            self.__openTreeNodes(path)
+          elif answer == QMessageBox.No:
+            return
+        else:
+          self.__openTreeNodes(path)  
+      else:
+        QMessageBox.critical(self.getWidget(), "Error", str(feedback['Message']),QMessageBox.Ok)
+        gLoogger.error(feedback['Message'])
+      
+    else:
+      QMessageBox.critical(self.getWidget(), "Error", 'Wrong path!',QMessageBox.Ok)
+      gLogger.error('Wrong path!')      
+  
+  #############################################################################
+  def __openTreeNodes(self, path):
+      npath = path.split('/')
+      n = self.getWidget().getTree().findItems(npath[1],Qt.MatchExactly,0)
+      parentItem = n[0] 
+      self.getWidget().getTree().expandItem(parentItem)
+      node = '/'+npath[1]
+      for i in range(2,len(npath)):
+        if npath[i] != '':
+            node = npath[i]
+            item = self.__openPath(node, parentItem)
+            parentItem = item
+            
+      if parentItem != None and parentItem.childCount() > 0:
+        node = parentItem.child(0) # this two line open the File Dialog window
+        self._on_item_clicked(node)
           
-    if parentItem != None and parentItem.childCount() > 0:
-      node = parentItem.child(0) # this two line open the File Dialog window
-      self._on_item_clicked(node)
-        
-        
   #############################################################################  
   def _on_itemDuble_clicked(self, parentItem, column):
     self._on_item_clicked(parentItem)
@@ -257,16 +304,23 @@ class ControlerTree(ControlerAbstract):
     for i in  nodes:
       if i != None:
         node = i.getUserObject()
-        if node != None:
+        if node != None and node.has_key('name'):
           path += '/'+ node['name'] 
     
-    controlers = self.getChildren()
-    ct = controlers['Bookmarks']
-    message = Message({'action':'showValues','paths':{'Title':path,'Path':path}})
-    f = ct.messageFromParent(message)
-    if not f['OK']:
-      gLogger.error(f['Message'])
-    
+    message = Message({'action':'BookmarksPrefices'})
+    feedback = self.getParent().messageFromChild(self, message)
+    if not feedback['OK']:
+      gLogger.error(feedback['Message'])
+    else:
+      values = feedback['Value']
+      controlers = self.getChildren()
+      ct = controlers['Bookmarks']
+      fullpath = values+':/'+path
+      message = Message({'action':'showValues','paths':{'Title':path,'Path':fullpath}})
+      f = ct.messageFromParent(message)
+      if not f['OK']:
+        gLogger.error(f['Message'])
+      
     
     
   #############################################################################  

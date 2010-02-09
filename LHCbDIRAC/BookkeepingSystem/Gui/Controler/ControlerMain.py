@@ -253,8 +253,14 @@ class ControlerMain(ControlerAbstract):
           return res['Value']
         else:
           QMessageBox.information(self.getWidget(), "Error", res['Message'], QMessageBox.Ok)
+      elif message.action() == 'BookmarksPrefices':
+        param = self.__bkClient.getCurrentParameter()
+        type = self.__bkClient.getQueriesTypes()
+        prefix = param +'+' + type
+        return S_OK(prefix)
       else:        
-        print 'Unknown message!',message.action(),message
+        gLogger.error('Unknown message!',message.action())
+        return S_ERROR('Unknown message!')
     
     elif sender.__class__.__name__=='ControlerProductionLookup':
       if message.action() =='showAllProduction':

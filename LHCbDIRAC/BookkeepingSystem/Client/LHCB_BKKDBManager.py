@@ -69,7 +69,10 @@ class LHCB_BKKDBManager(BaseESManager):
   LHCB_BKDB_PREFIXES=[]
 
   LHCB_BKDB_PARAMETERS = ['Configuration', 'Event type' ,'Productions', 'Runlookup' ]
-    
+  
+  LHCB_BKDB_PARAMETERS_SHORTNAME = {LHCB_BKDB_PARAMETERS[0]:'sim', LHCB_BKDB_PARAMETERS[1]:'evt' ,LHCB_BKDB_PARAMETERS[2]:'prod', LHCB_BKDB_PARAMETERS[3]:'run' }
+  
+  LHCB_QUERIES_TYPE = ['adv','std']
   LHCB_BKDB_PREFIX_SEPARATOR = "_"
   
   ############################################################################# 
@@ -126,6 +129,17 @@ class LHCB_BKKDBManager(BaseESManager):
   def getPossibleParameters(self):
     return self.LHCB_BKDB_PARAMETERS
   
+  #############################################################################
+  def getCurrentParameter(self):
+    return self.LHCB_BKDB_PARAMETERS_SHORTNAME[self.parameter_]
+  
+  #############################################################################
+  def getQueriesTypes(self):
+    if self.advancedQuery_:
+      return self.LHCB_QUERIES_TYPE[0]
+    else:
+      return self.LHCB_QUERIES_TYPE[1]
+      
   ############################################################################# 
   def setParameter(self, name):
     if self.LHCB_BKDB_PARAMETERS.__contains__(name):

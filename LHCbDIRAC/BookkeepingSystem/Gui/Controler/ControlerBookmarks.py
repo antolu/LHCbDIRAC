@@ -9,6 +9,8 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC.Core.DISET.RPCClient                                          import RPCClient
 from DIRAC.FrameworkSystem.Client.UserProfileClient                      import UserProfileClient
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
@@ -51,7 +53,7 @@ run
         return S_ERROR(retVal['Message'])
       return S_OK()
     else:
-      gLogger.error('Unkown message', message)
+      gLogger.error('Unkown message:ControlerBookmarks', message)
     return S_ERROR('Unkown message')
   
   def filltable(self):
@@ -85,6 +87,7 @@ run
     else:
       data = {}
     if title in data:
+      QMessageBox.critical(self.getWidget(), "Error","The bookmark with the title \"" + title + "\" is already exists",QMessageBox.Ok)
       return S_ERROR("The bookmark with the title \"" + title + "\" is already exists")
     else:
       data[title] = path
@@ -105,6 +108,7 @@ run
     if title in data:
       del data[title]
     else:
+      QMessageBox.critical(self.getWidget(), "Error","Can't delete not existing bookmark: \"" + title + "\"",QMessageBox.Ok)
       return S_ERROR("Can't delete not existing bookmark: \"" + title + "\"")
     result = upc.storeVar( "Bookmarks", data )
     if result["OK"]:
