@@ -964,17 +964,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condition += ' and '
         cond = ' ( '
         for i in ftype:
-          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
-        res = self.dbR_._query(fileType)
-        if not res['OK']:
-          gLogger.error('File Type not found:',res['Message'])
-        elif len(res['Value'])==0:
-          return S_ERROR('File type not found!')
-        else:
-          ftypeId = res['Value'][0][0]
-          cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
-        cond = cond[:-3] + ')'
-        condition += cond
+          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(i)+'\''
+          res = self.dbR_._query(fileType)
+          if not res['OK']:
+            gLogger.error('File Type not found:',res['Message'])
+          elif len(res['Value'])==0:
+            return S_ERROR('File type not found!')
+          else:
+            ftypeId = res['Value'][0][0]
+            cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
+          cond = cond[:-3] + ')'
+          condition += cond
          
       else:
         fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
@@ -988,6 +988,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
           condition += ' and files.FileTypeId='+str(ftypeId)
       
     if evt != 0:
+      if type(evt) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in evt:
+          cond +=  ' files.eventtypeid='+str(i) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+    else:
       condition +=  ' and files.eventtypeid='+str(evt)
     
     if startDate != None:
