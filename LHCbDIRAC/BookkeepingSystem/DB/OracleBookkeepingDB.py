@@ -974,9 +974,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
             ftypeId = res['Value'][0][0]
             cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
           cond = cond[:-3] + ')'
-          condition += cond
-         
-      else:
+          condition += cond  
+      elif type(ftype) == types.StringType:
         fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
         res = self.dbR_._query(fileType)
         if not res['OK']:
@@ -995,8 +994,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
           cond +=  ' files.eventtypeid='+str(i) + ' or '
         cond = cond[:-3] + ')'
         condition += cond
-    else:
-      condition +=  ' and files.eventtypeid='+str(evt)
+      elif type(evt) == types.StringType or type(evt) == types.IntType:
+        condition +=  ' and files.eventtypeid='+str(evt)
     
     if startDate != None:
       condition += ' and files.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
