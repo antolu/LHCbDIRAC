@@ -111,4 +111,6 @@ class LHCB_BKKDBClient(BaseESClient):
   def getQueriesTypes(self):
     return self.getManager().getQueriesTypes()
   
-  
+  #############################################################################
+  def getProcessingPassDescfromProduction(self, prod):
+    return self.getManager().getProcessingPassDescfromProduction(prod)

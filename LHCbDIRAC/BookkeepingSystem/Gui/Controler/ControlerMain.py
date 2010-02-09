@@ -248,11 +248,13 @@ class ControlerMain(ControlerAbstract):
           QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
       
       elif message.action()=='ProductionInformations': 
-        res = self.__bkClient.getMoreProductionInformations(int(message['production']))
+        res = self.__bkClient.getProcessingPassDescfromProduction(int(message['production']))
         if res['OK']:
           return res['Value']
         else:
           QMessageBox.information(self.getWidget(), "Error", res['Message'], QMessageBox.Ok)
+          return S_ERROR()
+        
       elif message.action() == 'BookmarksPrefices':
         param = self.__bkClient.getCurrentParameter()
         type = self.__bkClient.getQueriesTypes()

@@ -284,8 +284,9 @@ class ControlerTree(ControlerAbstract):
         message = Message({'action':'ProductionInformations','production':node['name']})
         feedback = self.getParent().messageFromChild(self, message)
         if feedback != None:
-          message = Message({'action':'list','items':feedback})
-          ct.messageFromParent(message)
+          message = Message({'action':'showprocessingpass','items':feedback})
+          ctproc = controlers['ProcessingPassDialog']
+          ctproc.messageFromParent(message)
       elif type(node) != types.DictType and node.expandable() :
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)

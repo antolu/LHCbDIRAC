@@ -1117,8 +1117,12 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getInputAndOutputJobFiles = [ListType]
   def export_getInputAndOutputJobFiles(self, jobids):
     return dataMGMT_.getInputAndOutputJobFiles(jobids)
-    
-    
+  
+  #############################################################################
+  types_getProcessingPassDescfromProduction = [IntType]
+  def export_getProcessingPassDescfromProduction(self, prod):
+    return dataMGMT_.getProcessingPassDescfromProduction(prod)
+  
   
   '''
   End Monitoring

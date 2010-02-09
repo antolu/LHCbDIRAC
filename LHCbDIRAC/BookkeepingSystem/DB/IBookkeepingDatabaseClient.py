@@ -41,6 +41,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().eventType(eventTypeId)
   
   #############################################################################
+  def getProcessingPassDescfromProduction(self, prod):
+    return self.getManager().getProcessingPassDescfromProduction(prod)
+  
+  #############################################################################
   def getLogfile(self, lfn):
     return self.getManager().getLogfile(lfn)
   

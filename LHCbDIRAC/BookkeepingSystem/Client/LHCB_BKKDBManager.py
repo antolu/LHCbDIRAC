@@ -1953,3 +1953,7 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getFileHistory(self, lfn):
     return self.db_.getFileHistory(lfn)
+  
+  #############################################################################
+  def getProcessingPassDescfromProduction(self, prod):
+    return self.db_.getProcessingPassDescfromProduction(prod)

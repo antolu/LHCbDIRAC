@@ -748,6 +748,11 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getProductionInformationsFromView(long(prodid))
     
+  #############################################################################
+  def getProcessingPassDescfromProduction(self, prod):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getProcessingPassDescfromProduction(int(prod))
+  
   '''
   Monitoring
   '''
