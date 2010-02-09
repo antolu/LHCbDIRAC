@@ -23,13 +23,8 @@ class BookkeepingWatchAgent(AgentModule):
     self.pollingTime = self.am_getOption('PollingTime',120)
     self.fullUpdatePeriod = self.am_getOption('FullUpdatePeriod',86400)
     gMonitor.registerActivity("Iteration","Agent Loops",AGENT_NAME,"Loops/min",gMonitor.OP_SUM)
-    # Configure the TransformationDBClient
-    service = self.am_getOption('TransformationService','')
-    if not service:
-      gLogger.fatal("To initialize this agent the TransformationService option must be provided")
-      return S_ERROR()
     self.transClient = TransformationDBClient('TransformationDB')
-    self.transClient.setServer(service)
+    self.transClient.setServer('ProductionManagement/ProductionManager')
     # Create the BK client
     self.bkClient = BookkeepingClient()
     return S_OK()
