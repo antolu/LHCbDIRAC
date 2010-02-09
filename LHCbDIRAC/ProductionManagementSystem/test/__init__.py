@@ -1,0 +1,1 @@
+""" LHCbDIRAC.ProductionManagement.test package """
