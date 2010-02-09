@@ -973,8 +973,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
           else:
             ftypeId = res['Value'][0][0]
             cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
-          cond = cond[:-3] + ')'
-          condition += cond  
+        cond = cond[:-3] + ')'
+        condition += cond  
       elif type(ftype) == types.StringType:
         fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
         res = self.dbR_._query(fileType)
