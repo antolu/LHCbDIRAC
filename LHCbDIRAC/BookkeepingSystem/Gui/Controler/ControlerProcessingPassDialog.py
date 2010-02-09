@@ -18,6 +18,7 @@ class ControlerProcessingPassDialog(ControlerAbstract):
   #############################################################################  
   def messageFromParent(self, message):
     if message.action() == 'showprocessingpass':
+        feedback = message['items']
         widget = self.getWidget()
         widget.setTotalProccesingPass('PorcessingPass')
         tabwidget = widget.getTabWidget()
@@ -43,7 +44,7 @@ class ControlerProcessingPassDialog(ControlerAbstract):
             mainWidget[desc]=main
         self.getWidget().show()
         
-    if message.action()=='list':
+    elif message.action()=='list':
       item = message['items']
       message = Message({'action':'procDescription','groupdesc':item['name']})
       feedback = self.getParent().messageFromChild(self, message)
