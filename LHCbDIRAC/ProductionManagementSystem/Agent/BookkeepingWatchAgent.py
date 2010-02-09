@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import Bookk
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 import os, time, datetime
 
-AGENT_NAME = 'TransformationSystem/BookkeepingWatchAgent'
+AGENT_NAME = 'ProductionSystem/BookkeepingWatchAgent'
 
 class BookkeepingWatchAgent(AgentModule):
 
