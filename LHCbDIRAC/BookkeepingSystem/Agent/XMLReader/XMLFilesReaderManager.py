@@ -147,7 +147,7 @@ class XMLFilesReaderManager:
 
         if paramName == "FullStat":
           fullStat = long(param.getParamValue())
-          if phys <= 0:
+          if fullStat <= 0:
             self.errorMgmt_.reportError (13,"The fullStat not greater 0!", deleteFileName, errorReport)
             return S_ERROR("The fullStat not greater 0!")
 
