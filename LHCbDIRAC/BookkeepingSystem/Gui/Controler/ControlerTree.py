@@ -290,6 +290,8 @@ class ControlerTree(ControlerAbstract):
       elif type(node) != types.DictType and node.expandable() :
           message = Message({'action':'list','items':node})
           ct.messageFromParent(message)
+    else:
+      QMessageBox.critical(self.getWidget(), "Info", 'Please right click on the folder to see more information!',QMessageBox.Ok)
   
   #############################################################################
   def bookmarks(self):

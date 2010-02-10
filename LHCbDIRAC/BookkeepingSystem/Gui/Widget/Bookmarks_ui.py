@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Bookmarks.ui'
 #
-# Created: Mon Feb  8 17:29:34 2010
+# Created: Wed Feb 10 10:58:29 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -96,6 +96,7 @@ class Ui_BookmarksWidget(object):
         self.gridlayout2.setObjectName("gridlayout2")
 
         self.lineEdit = QtGui.QLineEdit(self.groupBox_2)
+        self.lineEdit.setEnabled(False)
         self.lineEdit.setObjectName("lineEdit")
         self.gridlayout2.addWidget(self.lineEdit,1,0,1,2)
 
