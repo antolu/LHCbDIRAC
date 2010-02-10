@@ -25,7 +25,7 @@ print 'Do you want to add this new file type? (yes or no)'
 value = raw_input('Choice:')
 choice=value.lower()
 if choice in ['yes','y']:
-  res = bk.insertFileTypes(ftype, desc)
+  res = bk.insertFileTypes(ftype.upper(), desc)
   if res['OK']:
     print 'The filetypes added successfully!'
   else:
