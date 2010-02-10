@@ -65,6 +65,29 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
 
   #############################################################################
+  def getAvailableFileTypes(self):
+    command = ' select distinct filetypes.name from filetypes'
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
+  def insertFileTypes(self, ftype, desc):
+    command = 'select max(filetypeid) from filetypes'
+    res = self.dbR_._query(command)
+    if res['OK']:
+      value = res['Value']
+      if len(value) > 0:
+        id = int(value[0][0]) + 1
+        command = ' insert into filetypes (description, filetypeid, name, version) values('+desc+','+str(id)+','+ftype+', \'ROOT_All\')'
+        res = self.dbW_._query(command)
+        return res
+      else:
+        return S_ERROR('Can not create a new filetypeID')
+    else:
+      return S_ERROR(res['Message'])
+        
+        
+  #############################################################################
   def getAvailableConfigNames(self):
     command = ' select distinct Configname from bookkeepingview'
     res = self.dbR_._query(command)

@@ -753,6 +753,16 @@ class BookkeepingClient:
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getProcessingPassDescfromProduction(int(prod))
   
+  #############################################################################
+  def getAvailableFileTypes(self):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getAvailableFileTypes()
+  
+  #############################################################################
+  def insertFileTypes(self, ftype, desc):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.insertFileTypes(ftype, desc)
+  
   '''
   Monitoring
   '''

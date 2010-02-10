@@ -1123,7 +1123,16 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProcessingPassDescfromProduction(self, prod):
     return dataMGMT_.getProcessingPassDescfromProduction(prod)
   
+  #############################################################################
+  types_getAvailableFileTypes = []
+  def export_getAvailableFileTypes(self):
+    return dataMGMT_.getAvailableFileTypes()
   
+  #############################################################################
+  types_insertFileTypes = [StringType, StringType]
+  def export_insertFileTypes(self, ftype, desc):
+    return dataMGMT_.insertFileTypes(ftype, desc)
+
   '''
   End Monitoring
   '''

@@ -45,6 +45,14 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProcessingPassDescfromProduction(prod)
   
   #############################################################################
+  def getAvailableFileTypes(self):
+    return self.getManager().getAvailableFileTypes()
+  
+  #############################################################################
+  def insertFileTypes(self, ftype, desc):
+    return self.getManager().insertFileTypes(ftype, desc)
+  
+  #############################################################################
   def getLogfile(self, lfn):
     return self.getManager().getLogfile(lfn)
   
