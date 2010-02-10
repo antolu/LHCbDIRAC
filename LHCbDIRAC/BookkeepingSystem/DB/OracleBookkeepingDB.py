@@ -1723,7 +1723,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def insertTag(self, name, tag):
-    return self.dbR_.executeStoredProcedure('BKK_ORACLE.insertTag', [name, tag])
+    return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertTag', [name, tag], False)
   
   #############################################################################  
   def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):

@@ -176,7 +176,6 @@ class BookkeepingManagerHandler(RequestHandler):
     for i in values:
       tags = values[i]
       for tag in tags:
-        print i, tag
         res = dataMGMT_.insertTag(i, tag)
       if not res['OK']:
         return S_ERROR(res['Message'])
