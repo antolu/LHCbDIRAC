@@ -6,6 +6,7 @@ __RCSID__   = "$Id: OutputDataPolicy.py 19570 2010-01-07 08:42:02Z joel $"
 __VERSION__ = "$Revision: 1.40 $"
 
 import DIRAC
+from DIRAC                                          import gLogger
 from DIRAC.Interfaces.API.Job                       import Job
 from LHCbDIRAC.Core.Utilities.ProductionData        import constructProductionLFNs
 
@@ -29,13 +30,13 @@ class OutputDataPolicy:
         outputList += eval(line.split("#")[0].split("=")[-1])
 
     commons['outputList']=outputList
-    commons['PRODUCTION_ID']=productionID
+    commons['PRODUCTION_ID']=prodID
     commons['JOB_ID']=jobID
     if inputData:
       commons['InputData']=inputData
 
-    self.log.debug(commons)
+    gLogger.debug(commons)
     result = constructProductionLFNs(commons)
     if not result['OK']:
-      self.log.error(result['Message'])
+      gLogger.error(result['Message'])
     return result
