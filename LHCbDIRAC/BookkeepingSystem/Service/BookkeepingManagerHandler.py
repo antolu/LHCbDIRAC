@@ -174,7 +174,9 @@ class BookkeepingManagerHandler(RequestHandler):
   types_insertTag = [DictType]
   def export_insertTag(self, values):
     for i in values:
-      res = dataMGMT_.insertTag(i, values[i])
+      tags = values[i]
+      for tag in tags:
+        res = dataMGMT_.insertTag(i, tag)
       if not res['OK']:
         return S_ERROR(res['Message'])
     return S_OK('The tags are entered to the DB!' )
