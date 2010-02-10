@@ -95,6 +95,11 @@ class BookkeepingClient:
      server = self.__getServer()
      result = server.insertInputFile(long(jobID), long(FileId))
      return result
+  #############################################################################
+  def insertTag(self, values):
+    server = self.__getServer()
+    result = server.insertTag(values)
+    return result
 
   #############################################################################
   def insertOutputFile(self, file):

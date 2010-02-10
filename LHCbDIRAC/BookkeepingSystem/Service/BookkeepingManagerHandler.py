@@ -170,7 +170,15 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getSimConditions(self):
     return dataMGMT_.getSimConditions()
   
-  
+  #############################################################################
+  types_insertTag = [DictType]
+  def export_insertTag(self, values):
+    for i in values:
+      res = dataMGMT_.insertTag(i, values[i])
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+    return S_OK('The tags are entered to the DB!' )
+    
   #############################################################################
   #@@ENDchecking
   #############################################################################

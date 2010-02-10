@@ -1721,6 +1721,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def insert_pass_index(self, groupdesc, step0, step1, step2, step3, step4, step5, step6):
     return self.dbW_.executeStoredFunctions('BKK_ORACLE.insert_pass_index', LongType, [groupdesc, step0, step1, step2, step3, step4, step5, step6])
   
+  #############################################################################
+  def insertTag(self, name, tag):
+    return self.dbR_.executeStoredProcedure('BKK_ORACLE.insertTag', [name, tag])
+  
   #############################################################################  
   def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):
     keys = steps.keys()

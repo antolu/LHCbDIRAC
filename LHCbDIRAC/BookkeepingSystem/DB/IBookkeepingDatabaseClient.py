@@ -53,6 +53,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insertFileTypes(ftype, desc)
   
   #############################################################################
+  def insertTag(self, name, tag):
+    return self.getManager().insertTag(name, tag)
+  
+  #############################################################################
   def getLogfile(self, lfn):
     return self.getManager().getLogfile(lfn)
   
