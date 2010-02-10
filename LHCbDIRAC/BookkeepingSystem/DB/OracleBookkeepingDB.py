@@ -78,7 +78,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       value = res['Value']
       if len(value) > 0:
         id = int(value[0][0]) + 1
-        command = ' insert into filetypes (description, filetypeid, name, version) values('+desc+','+str(id)+','+ftype+', \'ROOT_All\')'
+        command = ' insert into filetypes (description, filetypeid, name, version) values(\''+desc+'\','+str(id)+',\''+ftype+'\' , \'ROOT_All\')'
         res = self.dbW_._query(command)
         return res
       else:
