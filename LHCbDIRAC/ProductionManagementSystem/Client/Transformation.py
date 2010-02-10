@@ -6,10 +6,10 @@ Script.parseCommandLine()
 
 import string, os, shutil, types, pprint
 
-from DIRAC                                                        import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.TransformationSystem.Client.Transformation             import Transformation as DIRACTransformation
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient 
+from DIRAC                                                                import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.TransformationSystem.Client.Transformation                     import Transformation as DIRACTransformation
+from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient   import TransformationDBClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient 
 
 COMPONENT_NAME='Transformation'
 

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-from LHCbDIRAC.TransformationSystem.Client.Transformation     import Transformation
-from DIRAC.Core.Utilities.List                               import sortList
+from LHCbDIRAC.ProductionManagementSystem.Client.Transformation     import Transformation
+from DIRAC.Core.Utilities.List                                      import sortList
 import unittest,types,time,re
 
 class TestClientTransformationTestCase(unittest.TestCase):

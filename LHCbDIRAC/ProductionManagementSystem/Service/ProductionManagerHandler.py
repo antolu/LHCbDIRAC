@@ -2,11 +2,11 @@
 # $Id$
 __RCSID__ = "$Revision: 1.56 $"
 
-from DIRAC                                                              import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.DISET.RequestHandler                                    import RequestHandler
-from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB               import ProductionDB
-from LHCbDIRAC.TransformationSystem.Service.TransformationHandler       import TransformationHandler
-from DIRAC.Core.Workflow.Workflow                                       import *
+from DIRAC                                                                     import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.DISET.RequestHandler                                           import RequestHandler
+from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB                      import ProductionDB
+from LHCbDIRAC.ProductionManagementSystem.Service.TransformationHandler        import TransformationHandler
+from DIRAC.Core.Workflow.Workflow                                              import *
 from types import *
 
 # This is a global instance of the ProductionDB class

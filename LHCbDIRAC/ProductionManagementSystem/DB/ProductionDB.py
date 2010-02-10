@@ -4,9 +4,9 @@
 
 __RCSID__ = "$Revision: 1.65 $"
 
-from DIRAC                                                  import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Base.DB                                     import DB
-from LHCbDIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB
+from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.Base.DB                                             import DB
+from LHCbDIRAC.ProductionManagementSystem.DB.TransformationDB       import TransformationDB
 
 class ProductionDB(TransformationDB):
 

@@ -2,10 +2,10 @@
 # $Id$
 __RCSID__ = "$Revision: 1.6 $"
 
-from DIRAC                                                            import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Workflow.Workflow                                     import fromXMLString
-from DIRAC.Core.DISET.RPCClient                                       import RPCClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient     import TransformationDBClient  
+from DIRAC                                                                    import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.Workflow.Workflow                                             import fromXMLString
+from DIRAC.Core.DISET.RPCClient                                               import RPCClient
+from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient       import TransformationDBClient  
 import os
 
 class ProductionClient(TransformationDBClient):
