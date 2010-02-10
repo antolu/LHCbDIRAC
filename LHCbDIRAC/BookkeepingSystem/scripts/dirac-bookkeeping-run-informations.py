@@ -34,7 +34,7 @@ if res['OK']:
     print "  Configuration Version:",val['Configuration Version']
     print "  Stream:",val['Stream']
     print "  FillNumber:",val['FillNumber']
-    print "  PhysicStat:",val['PhysicStat']
+    print "  FullStat:",val['FullStat']
     print "  Data taking description:",val['DataTakingDescription']
     print "  Processing pass:",val['ProcessingPass']
     print "  Number of events",val['Number of events']

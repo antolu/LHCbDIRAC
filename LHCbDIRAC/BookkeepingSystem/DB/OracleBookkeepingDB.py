@@ -759,7 +759,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
@@ -768,7 +768,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          jobs.configurationid=configurations.configurationid and \
@@ -840,14 +840,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all += 1
          
     if ftype == 'ALL':
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt,quality, jeventinput \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jeventinput \
       FROM \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt,quality,jeventinput \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,fullst,quality,jeventinput \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
-        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput\
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput\
         from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
@@ -856,12 +856,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
     else:
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt,quality, jeventinput from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt,quality, jeventinput \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality, jeventinput from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality, jeventinput \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput  \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput  \
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
@@ -1460,14 +1460,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
          
     if ftype == 'ALL':
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,physt,quality, jevent \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jevent \
       FROM \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,physt,quality, jevent \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,fullst,quality, jevent \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
-        jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality, jobs.eventinputstat jevent\
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent\
         from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
@@ -1475,12 +1475,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.qualityid=dataquality.qualityid \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
     else:
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,physt,quality,jevent from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,physt,quality,jevent \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality,jevent from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality,jevent \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.physicStat physt, dataquality.dataqualityflag quality, jobs.eventinputsatat jevent \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputsatat jevent \
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
@@ -1527,7 +1527,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          files.filetypeid=filetypes.filetypeid and \
@@ -1535,7 +1535,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all +=1
     else:
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
-         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.physicStat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          files.qualityid= dataquality.qualityid' + condition 
@@ -2580,7 +2580,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'JobId':None, \
                     'MD5Sum':None, \
                     'FileSize':None, \
-                    'PhysicStat':None }
+                    'FullStat':None }
       
       for param in file:
         if not attrList.__contains__(param):
@@ -2607,7 +2607,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['JobId'], \
                     attrList['MD5Sum'], \
                     attrList['FileSize'], \
-                    attrList['PhysicStat'], utctime ] ) 
+                    attrList['FullStat'], utctime ] ) 
       return result
       
   #############################################################################
@@ -2778,7 +2778,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         records = res['Value']  
         for record in records:
-          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'PhysicStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12],'RunNumber':record[13]}
+          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'FullStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12],'RunNumber':record[13]}
           result[file]= row
     return S_OK(result)
   
@@ -3048,7 +3048,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['DataTakingDescription']=value[0][3]
     result['ProcessingPass']=value[0][4]
     
-    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.physicstat), files.eventtypeid from files,jobs \
+    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.fullstat), files.eventtypeid from files,jobs \
          where files.JobId=jobs.JobId and  \
          files.gotReplica=\'Yes\' and \
          jobs.runnumber='+str(runnb)+' Group by files.eventtypeid'
@@ -3061,7 +3061,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['Number of file']=value[0][0]
     result['Number of events']=value[0][1]
     result['File size']=value[0][2]
-    result['PhysicStat']=value[0][3]
+    result['FullStat']=value[0][3]
     result['Stream']=value[0][4]
 
     return S_OK(result)
@@ -3298,7 +3298,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getFileHistory(self, lfn):
     command = 'select  files.fileid, files.filename,files.adler32,files.creationdate,files.eventstat,files.eventtypeid,files.gotreplica, \
-files.guid,files.jobid,files.md5sum, files.filesize,files.physicstat, dataquality.dataqualityflag, files.inserttimestamp from files, dataquality \
+files.guid,files.jobid,files.md5sum, files.filesize,files.fullstat, dataquality.dataqualityflag, files.inserttimestamp from files, dataquality \
 where files.fileid in ( select inputfiles.fileid from files,inputfiles where files.jobid= inputfiles.jobid and files.filename=\''+str(lfn)+'\')\
 and files.qualityid= dataquality.qualityid'
  

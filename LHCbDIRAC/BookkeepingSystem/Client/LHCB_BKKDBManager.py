@@ -619,7 +619,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -647,9 +647,9 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program name":pname, \
                  "Program version":pversion}
     
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality', 'EventInputStat']
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
     for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'DataQuality':record[14], 'EventInputStat':record[15],'Selection':selection}
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'DataQuality':record[14], 'EventInputStat':record[15],'Selection':selection}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
     self._cacheIt(entityList)    
@@ -1099,7 +1099,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1265,7 +1265,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'PhysicStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1697,7 +1697,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype)
     
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality', 'EventInputStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       
       if result['OK']:
         dbResult = result['Value']
@@ -1727,7 +1727,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
     
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','PhysicStat', 'DataQuality', 'EventInputStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       
       if result['OK']:
         dbResult = result['Value']

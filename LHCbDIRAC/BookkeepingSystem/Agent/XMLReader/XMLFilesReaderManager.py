@@ -145,11 +145,11 @@ class XMLFilesReaderManager:
               self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName, errorReport)
               return S_ERROR("The event number not greater 0!")
 
-        if paramName == "PhysicStat":
-          phys = long(param.getParamValue())
+        if paramName == "FullStat":
+          fullStat = long(param.getParamValue())
           if phys <= 0:
-            self.errorMgmt_.reportError (13,"The PhysicStat not greater 0!", deleteFileName, errorReport)
-            return S_ERROR("The PhysicStat not greater 0!")
+            self.errorMgmt_.reportError (13,"The fullStat not greater 0!", deleteFileName, errorReport)
+            return S_ERROR("The fullStat not greater 0!")
 
         if paramName == "EventType":
           value = long(param.getParamValue())

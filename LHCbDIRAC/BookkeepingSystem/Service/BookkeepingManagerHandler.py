@@ -883,7 +883,7 @@ class BookkeepingManagerHandler(RequestHandler):
     records = []
     if retVal['OK']:
       values = retVal['Value']
-      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'PhysicStat', 'Dataquality', 'FileInsertDate']
+      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'FullStat', 'Dataquality', 'FileInsertDate']
       sum = 0
       for record in values:
         value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13]]
