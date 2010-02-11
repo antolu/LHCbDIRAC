@@ -53,7 +53,7 @@ class DiracSAM(Dirac):
     return S_OK()
 
   #############################################################################
-  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,reportEnable=False,install_project=None,script=''):
+  def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,reportEnable=True,install_project=None,script=''):
     """Submit a SAM test job to an individual CE.
     """
     job = None
