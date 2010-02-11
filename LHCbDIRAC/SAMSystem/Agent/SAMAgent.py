@@ -21,6 +21,8 @@ from DIRAC  import gMonitor
 
 import os,time
 
+AGENT_NAME = "SAM/SAMAgent"
+
 class SAMPublisher:
 
   def __init__(self):
@@ -88,7 +90,7 @@ class SAMAgent(AgentModule):
   def initialize(self):
     self.pollingTime = self.am_getOption('PollingTime',3600*6)
     gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
-    
+
     self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
     self.proxyLocation = self.am_getOption('ProxyLocation', '' )
     if not self.proxyLocation:
@@ -112,7 +114,7 @@ class SAMAgent(AgentModule):
 
   def execute(self):
 
-    gLogger.debug("Executing %s"%(self.name))
+    gLogger.debug("Executing %s"%(AGENT_NAME))
 
     self._clearSAMjobs()
     self._siteAccount()
@@ -127,7 +129,7 @@ class SAMAgent(AgentModule):
 
   def _siteAccount(self):
 
-    gLogger.debug("Executing %s"%(self.name))
+    gLogger.debug("Executing %s"%(AGENT_NAME))
 
     wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
     result = wmsAdmin.getSiteMask()
@@ -221,7 +223,7 @@ class SAMAgent(AgentModule):
     for job in oldWaitingJobs:
       gLogger.debug("Kill Old SAM Job",repr(job))
       dirac.delete(int(job))
-    gLogger.info("%s:"%(self.name)," %d SAM jobs were deleted"%(len(oldWaitingJobs)))
+    gLogger.info("%s:"%(AGENT_NAME)," %d SAM jobs were deleted"%(len(oldWaitingJobs)))
     self.deletedJobs = len(oldWaitingJobs)
 
     ceOldWaitingJobs = ceOldWaitingJobs.keys()
