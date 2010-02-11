@@ -5,7 +5,7 @@
 __RCSID__ = "$Id: WorkflowTaskAgent.py 20001 2010-01-20 12:47:38Z acsmith $"
 
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
-from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent             import DIRACWorkflowTaskAgent
+from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent             import WorkflowTaskAgent as DIRACWorkflowTaskAgent
 
 AGENT_NAME = 'ProductionManagement/WorkflowTaskAgent'
 
