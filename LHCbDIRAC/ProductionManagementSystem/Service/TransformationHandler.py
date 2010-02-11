@@ -21,6 +21,12 @@ class TransformationHandler(DIRACTransformationHandler):
     res = self.database.createTransformationQuery(transName, queryDict,author=authorDN)
     return self.__parseRes(res)
 
+  types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
+  def export_deleteTransformationBookkeepingQuery(self, transName):
+    authorDN = self._clientTransport.peerCredentials['DN']
+    res = self.database.deleteTransformationBookkeepingQuery(transName,author=authorDN)
+    return self.__parseRes(res)  
+
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
   def export_deleteBookkeepingQuery(self, queryID):
     res = self.database.deleteBookkeepingQuery(queryID)

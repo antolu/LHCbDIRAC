@@ -17,10 +17,7 @@ class Transformation(DIRACTransformation):
 
   #############################################################################
   def __init__(self,transID=0):
-    DIRACTransformation.__init__(self,transID=transID)
-    self.transClient = TransformationDBClient()
-    #TODO REMOVE THIS
-    self.transClient.setServer("ProductionManagement/ProductionManager")
+    DIRACTransformation.__init__(self,transID=transID,transClient=TransformationDBClient())
 
     self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast'] # TODO INCLUDE REPLICATION PLUGINS
     if not  self.paramValues.has_key('BkQuery'):
@@ -83,17 +80,13 @@ class Transformation(DIRACTransformation):
     self.paramValues[self.item_called] = res['Value']
     return S_OK(res['Value'])
     
-  def removeTransformationBkQuery(self):
+  def deleteTransformationBkQuery(self):
     if not self.paramValues['BkQueryID']:
       gLogger.info("The BK Query is not defined")
       return S_OK()
-    queryID = self.paramValues['BkQueryID']
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
-      res = self.transClient.deleteBookkeepingQuery(int(queryID))
-      if not res['OK']:
-        return res
-      res = self.transClient.setTransformationParameter(transID,'BkQueryID',0)
+      res = self.transClient.deleteTransformationBookkeepingQuery(transID)
       if not res['OK']:
         return res
     self.item_called = 'BkQueryID'

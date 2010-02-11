@@ -12,7 +12,7 @@ class TestClientTransformationTestCase(unittest.TestCase):
           setBkQuery()
           getBkQuery()
           getBkQueryID()
-          removeTransformationBkQuery()
+          deleteTransformationBkQuery()
 
         Tests the creation of a transformation with a BK query to ensure the BKQuery and corresponding ID is stored correctly. 
         A new transformation object is created with the transID just created and the BK parameters tested.
@@ -63,7 +63,7 @@ class TestClientTransformationTestCase(unittest.TestCase):
     self.assertEqual(res['Value'],bkQueryID)
   
     # Remove the BkQuery associated to the transformation and test it is removed properly
-    res = oTrans.removeTransformationBkQuery()
+    res = oTrans.deleteTransformationBkQuery()
     self.assert_(res['OK'])
     res = oTrans.getBkQuery()
     self.assertFalse(res['OK'])

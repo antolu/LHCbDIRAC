@@ -18,11 +18,12 @@ class TransformationDBClient(DIRACTransformationDBClient):
 
       BK query manipulation
           deleteBookkeepingQuery(queryID)
+          deleteTransformationBookkeepingQuery(transName)
           createTransformationQuery(transName,queryDict)      
           getBookkeepingQueryForTransformation(transName)
   """
   def __init__(self, *args, **kargs):
-    DIRACTransformationDBClient.__init__(self, *args, **kargs)
+    self.setServer('ProductionManagement/ProductionManager')
     
   def addTransformation(self,transName,description,longDescription,type,plugin,agentType,fileMask,
                                     transformationGroup = 'General',
