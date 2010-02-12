@@ -203,26 +203,32 @@ class XMLFilesReaderManager:
           newJobParams.setValue(str(runnumber))
           job.addJobParams(newJobParams)
       
-      inputfiles = job.getJobInputFiles()
-      sumEventInputStat = 0
-      for i in inputfiles:
-        fname = i.getFileName()
-        res = dataManager_.getJobInfo(fname)
-        if res['OK']:
-          value = res["Value"]
-          if len(value) > 0 and value[0][2] != None:
-            sumEventInputStat += value[0][2]
-        else:
-          return S_ERROR(res['Message'])
-      
-      
-      currentEventInputStat = job.getParam('EventInputStat')
-      if currentEventInputStat != None:
-        if currentEventInputStat.getValue() != None: 
-          if currentEventInputStat.getValue() != '':
-            if long(sumEventInputStat) > long(currentEventInputStat.getValue()):
-              currentEventInputStat.setValue(sumEventInputStat)
+    inputfiles = job.getJobInputFiles()
+    sumEventInputStat = 0
+    for i in inputfiles:
+      fname = i.getFileName()
+      res = dataManager_.getJobInfo(fname)
+      if res['OK']:
+        value = res["Value"]
+        if len(value) > 0 and value[0][2] != None:
+          sumEventInputStat += value[0][2]
+      else:
+        return S_ERROR(res['Message'])
     
+      
+    currentEventInputStat = job.getParam('EventInputStat')
+    if currentEventInputStat != None:
+      if currentEventInputStat.getValue() != None: 
+        if currentEventInputStat.getValue() != '':
+          if long(sumEventInputStat) > long(currentEventInputStat.getValue()):
+            currentEventInputStat.setValue(sumEventInputStat)
+    
+    if not job.exists('EventInputStat') and len(inputfiles) > 0:
+      newJobParams = JobParameters()
+      newJobParams.setName('EventInputStat')
+      newJobParams.setValue(str(sumEventInputStat))
+      job.addJobParams(newJobParams)
+  
       ################
 
     config = job.getJobConfiguration()
