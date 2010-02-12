@@ -339,7 +339,12 @@ class VeloCondition(Conditions):
     return 'VeloPosition'
   
   def Template(self, value):
-    return 'Velo'+value+'-'
+    if value.upper()=='OPEN':
+      return 'VeloOpen-'
+    elif value.upper() == 'CLOSED':
+      return 'VeloClosed-' 
+    else:    
+      return 'Velo'+value+'-'
 
 #############################################################################
 
