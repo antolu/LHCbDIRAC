@@ -32,7 +32,7 @@ class ModuleBase(object):
     if not result['OK']:
       self.log.error('Could not obtain proxy information in module environment with message:\n', result['Message'])
     else:
-      self.log.info('Payload proxy information:\n', result['Value'])
+      self.log.verbose('Payload proxy information:\n', result['Value'])
 
   #############################################################################
   def setApplicationStatus(self,status, sendFlag=True):
