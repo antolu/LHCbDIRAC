@@ -9,17 +9,18 @@
 
 __RCSID__ = "$Id: UserJobFinalization.py,v 1.17 2009/07/29 14:06:24 paterson Exp $"
 
-from WorkflowLib.Module.ModuleBase                         import *
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC.Core.Security.Misc                              import getProxyInfo
+from DIRAC.Core.Utilities                                  import List
+
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData               import constructUserLFNs
+from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList 
+
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+
 import DIRAC
-
-try:
-  from LHCbDIRAC.Core.Utilities.ProductionData  import constructUserLFNs
-except Exception,x:
-  from DIRAC.LHCbSystem.Utilities.ProductionData  import constructUserLFNs
-
 import string,os,random
 
 class UserJobFinalization(ModuleBase):
@@ -31,16 +32,21 @@ class UserJobFinalization(ModuleBase):
     ModuleBase.__init__(self)
     self.version = __RCSID__
     self.log = gLogger.getSubLogger( "UserJobFinalization" )
-    self.commandTimeOut = 30*60
-    self.rm = ReplicaManager()
     self.jobID = ''
     self.enable=True
     self.failoverTest=False #flag to put file to failover SE by default
+    self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER',[])    
     self.failoverSEs = gConfig.getValue('/Resources/StorageElementGroups/Tier1-Failover',[])
     #List all parameters here
     self.userFileCatalog='LcgFileCatalogCombined'
     self.request = None
-
+    self.lastStep = False
+    #Always allow any files specified by users    
+    self.outputDataFileMask = ''
+    self.userOutputData = '' 
+    self.userOutputSE = ''
+    self.userOutputPath = ''
+    
   #############################################################################
   def resolveInputVariables(self):
     """ By convention the module parameters are resolved here.
@@ -77,16 +83,30 @@ class UserJobFinalization(ModuleBase):
 
     #Use LHCb utility for local running via dirac-jobexec
     if self.workflow_commons.has_key('UserOutputData'):
-        self.userOutputLFNs = self.workflow_commons['UserOutputData']
-        if not type(self.userOutputLFNs)==type([]):
-          self.userOutputLFNs = [i.strip() for i in self.userOutputLFNs.split(';')]
+        self.userOutputData = self.workflow_commons['UserOutputData']
+        if not type(self.userOutputData)==type([]):
+          self.userOutputData = [i.strip() for i in self.userOutputData.split(';')]
+    
+    if self.workflow_commons.has_key('UserOutputSE'):
+      specifiedSE = self.workflow_commons['UserOutputSE']
+      if not type(specifiedSE)==type([]):
+        self.userOutputSE = [i.strip() for i in specifiedSE.split(';')]
     else:
-      self.log.info('UserOutputData parameter not found, creating on the fly')
-      result = constructUserLFNs(self.workflow_commons)
-      if not result['OK']:
-        self.log.error('Could not create production LFNs',result['Message'])
-        return result
-      self.userOutputLFNs=result['Value']['UserOutputData']
+      self.log.verbose('No UserOutputSE specified, using default value: %s' %(string.join(self.defaultOutputSE,', ')))
+      self.userOutputSE = self.defaultOutputSE
+
+    if self.workflow_commons.has_key('UserOutputPath'):
+      self.userOutputPath = self.workflow_commons['UserOutputPath']
+
+    #Have to work out if the module is part of the last step i.e. 
+    #user jobs can have any number of steps and we only want 
+    #to run the finalization once.
+    currentStep = int(self.step_commons['STEP_NUMBER'])
+    totalSteps = int(self.workflow_commons['TotalSteps'])
+    if currentStep==totalSteps:
+      self.lastStep=True
+    else:
+      self.log.verbose('Current step = %s, total steps of workflow = %s, UserJobFinalization will enable itself only at the last workflow step.' %(currentStep,totalSteps))    
 
     return S_OK('Parameters resolved')
 
@@ -94,28 +114,56 @@ class UserJobFinalization(ModuleBase):
   def execute(self):
     """ Main execution function.
     """
-    self.log.info('Initializing %s' %self.version)
-
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error(result['Message'])
       return result
-
+        
+    if not self.lastStep:
+      return S_OK('Will wait for the last step to execute user job finalization')
+  
+    self.log.info('Initializing %s' %self.version)
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.verbose('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
       return S_OK('No output data upload attempted')
     
-    #TODO: resolve the behaviour for user stuff
-    
+    if not self.userOutputData:
+      self.log.info('No user output data is specified for this job, nothing to do')
+      return S_OK('No output data to upload')
+        
     #Determine the final list of possible output files for the
     #workflow and all the parameters needed to upload them.
-    result = self.getCandidateFiles(self.outputList,self.userOutputLFNs,self.outputDataFileMask)
+    outputList = []
+    for i in self.userOutputData:
+      outputList.append({'outputDataType':string.upper(string.split(i,'.')[-1]),'outputDataSE':self.userOutputSE,'outputDataName':os.path.basename(i)})
+
+    userOutputLFNs = []
+    if self.userOutputData:
+      self.log.info('Constructing user output LFNs...')
+      if not self.jobID:
+        self.jobID = 12345
+      owner = ''
+      if self.workflow_commons.has_key('Owner'):
+        owner = self.workflow_commons['Owner']
+      else:
+        owner = self.getCurrentOwner()['Value']
+      
+      result = constructUserLFNs(self.jobID,owner,self.userOutputData,self.userOutputPath)
+      if not result['OK']:
+        self.log.error('Could not create production LFNs',result['Message'])
+        return result
+      userOutputLFNs=result['Value']
+
+    self.log.info('Calling getCandidateFiles( %s, %s, %s)' %(outputList,userOutputLFNs,self.outputDataFileMask))
+    result = self.getCandidateFiles(outputList,userOutputLFNs,self.outputDataFileMask)
+    print result
     if not result['OK']:
       self.setApplicationStatus(result['Message'])
       return result
     
     fileDict = result['Value']      
     result = self.getFileMetadata(fileDict)
+    print result
     if not result['OK']:
       self.setApplicationStatus(result['Message'])
       return result
@@ -125,18 +173,31 @@ class UserJobFinalization(ModuleBase):
       return S_OK()
 
     fileMetadata = result['Value']
-
+    #outputSEList = List.randomize(metadata['workflowSE'])
+    
+    #First get the local (or assigned) SE to try first for upload and others in random fashion
+    result = getDestinationSEList('Tier1-USER',DIRAC.siteName(),outputmode='local')
+    if not result['OK']:
+      self.log.error('Could not resolve output data SE',result['Message'])
+      self.setApplicationStatus('Failed To Resolve OutputSE')
+      return result      
+    
+    localSE=result['Value']
+    orderedSEs = self.defaultOutputSE  
+    for se in localSE:  
+      orderedSEs.remove(se)
+        
+    orderedSEs = localSE + List.randomize(orderedSEs)    
+    if self.userOutputSE:
+      for userSE in self.userOutputSE:
+        if not userSE in orderedSEs:
+          orderedSEs = self.userOutputSE + orderedSEs    
+    
     #Get final, resolved SE list for files
     final = {}
     for fileName,metadata in fileMetadata.items():
-      result = getDestinationSEList(metadata['workflowSE'],DIRAC.siteName(),self.outputMode)
-      if not result['OK']:
-        self.log.error('Could not resolve output data SE',result['Message'])
-        self.setApplicationStatus('Failed To Resolve OutputSE')
-        return result
-      
       final[fileName]=metadata
-      final[fileName]['resolvedSE']=result['Value']
+      final[fileName]['resolvedSE']=orderedSEs
 
     #At this point can exit and see exactly what the module will upload
     if not self.enable:
@@ -192,6 +253,7 @@ class UserJobFinalization(ModuleBase):
       result = self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
       return S_ERROR('Failed to upload output data')
+    
 
     self.workflow_commons['Request']=self.request
     return S_OK('Output data uploaded')
@@ -223,5 +285,19 @@ class UserJobFinalization(ModuleBase):
       result = self.__setFileRemovalRequest(lfn)
 
     return S_OK()
+
+  #############################################################################
+  def getCurrentOwner(self):
+    """Simple function to return current DIRAC username.
+    """
+    result = getProxyInfo()
+    if not result['OK']:
+      return S_ERROR('Could not obtain proxy information')
+    
+    if not result['Value'].has_key('username'):
+      return S_ERROR('Could not get username from proxy')
+    
+    username = result['Value']['username']
+    return S_OK(username)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
