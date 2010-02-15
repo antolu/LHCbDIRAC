@@ -7,9 +7,8 @@
 
 __RCSID__ = "$Id$"
 
-import string,re,os
+import string,re,os,types,datetime
 
-#This utility can eventually contain all of the LHCb conventions regarding input data.
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 #############################################################################
@@ -166,27 +165,44 @@ def getLogPath(paramDict):
   return S_OK(jobOutputs)
 
 #############################################################################
-def constructUserLFNs(jobID,owner,outputFile):
-  """ Under construction, will be used for constructing output LFNs for user job
-      finalization.
+def constructUserLFNs(jobID,owner,outputFiles,outputPath):
+  """ This method is used to supplant the standard job wrapper output data policy
+      for LHCb.  The initial convention adopted for user output files is the following:
+      
+      /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<yearMonth e.g. 2010_02>/<subdir>/<fileName>
   """
   initial = owner[:1]
   subdir = str(jobID/1000)  
-  #Make below path mandatory for LHCb:
-  lfn = '/lhcb/user/'+initial+'/'+owner+'/'+subdir+'/'
-  #Finer structure is optional, the user specifies LFN:<structure>/<fileName>
-  #this maps to mandatory path + structure + file name
-  if not re.search('^LFN:',outputFile):
-    localfile = outputFile
-
-    if outputPath:
-      # Add output Path if given
-      subdir = outputPath + '/' + subdir
-    lfn += str(jobID)+'/'+os.path.basename(localfile)
-  else:
-    lfn += string.replace(outputPath,"LFN:","")
+  timeTup = datetime.date.today().timetuple() 
+  yearMonth = '%s_%s' %(timeTup[0],timeTup[1])
+  outputLFNs = {}
   
-  return S_OK({outputFile:lfn})
+  #Strip out any leading or trailing slashes but allow fine structure
+  if outputPath:
+    outputPathList = string.split(outputPath,os.sep)
+    newPath = []
+    for i in outputPathList:
+      if i:
+        newPath.append(i)
+    outputPath = string.join(newPath,os.sep)
+  
+  if not type(outputFiles) == types.ListType:
+    outputFiles = [outputFiles]
+    
+  for outputFile in outputFiles:
+    #strip out any fine structure in the output file specified by the user, restrict to output file names
+    #the output path field can be used to describe this    
+    outputFile = outputFile.replace('LFN:','')
+    lfn = os.sep+os.path.join('lhcb','user',initial,owner,outputPath,yearMonth,subdir,str(jobID))+os.sep+os.path.basename(outputFile)
+    outputLFNs[outputFile]=lfn
+  
+  outputData = outputLFNs.values()
+  if outputData:
+    gLogger.info('Created the following output data LFN(s):\n%s' %(string.join(outputData,'\n')))
+  else:
+    gLogger.info('No output LFN(s) constructed')
+    
+  return S_OK(outputData)
 
 #############################################################################
 def _makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
