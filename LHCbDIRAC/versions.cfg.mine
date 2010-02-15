@@ -1,0 +1,233 @@
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/versions.cfg $
+Versions
+{
+
+  NextRelease
+  {
+    BookkeepingSystem = bk_2010021001
+    SAMSystem = sa_2010021501
+
+  }
+
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  # BUGFIX: many typos fixed after the code checker pass (R.Graciani)
+  v5r0p0-pre10
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010020701
+
+    # CHANGE: Use rearranged utilities
+    ConfigurationSystem = cs_2010020701
+
+    # CHANGE: updated install_xxx.sh scripts
+    Core = co_2010012501
+    DataManagementSystem = dm_2010020701
+    Interfaces = if_2010012501
+
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: Agent for submit/monitor replication transformations
+    # BUGFIX: consider all production type agents
+    ProductionManagementSystem = pm_2010020701
+
+    ResourceStatusSystem = rs_2010020701
+    SAMSystem = sa_2010020501
+
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010020701
+
+    Workflow = wo_2010020701
+    WorkloadManagementSystem = wm_2010012001
+  }
+
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  # BUGFIX: many typos fixed after the code checker pass (R.Graciani)
+  v5r0p0-pre9
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010012201
+
+    ConfigurationSystem = cs_2010012001
+
+    # CHANGE: updated install_xxx.sh scripts
+    Core = co_2010012501
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012501
+
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: Agent for submit/monitor replication transformations
+    # BUGFIX: consider all production type agents
+    ProductionManagementSystem = pm_2010012501
+
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  # BUGFIX: many typos fixed after the code checker pass (R.Graciani)
+
+  v5r0p0-pre8
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010012201
+
+    ConfigurationSystem = cs_2010012001
+
+    # CHANGE: updated install_xxx.sh scripts
+    Core = co_2010012501
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012501
+
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: Agent for submit/monitor replication transformations
+    # BUGFIX: consider all production type agents
+    ProductionManagementSystem = pm_2010012501
+
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  v5r0p0-pre7
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010012201
+    ConfigurationSystem = cs_2010012001
+    Core = co_2010012001
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012001
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: Agent for submit/monitor replication transformations
+    # BUGFIX: consider all production type agents
+    ProductionManagementSystem = pm_2010012202
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  v5r0p0-pre6
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010012201
+    ConfigurationSystem = cs_2010012001
+    Core = co_2010012001
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012001
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: Agent for submit/monitor replication transformations
+    ProductionManagementSystem = pm_2010012201
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  v5r0p0-pre5
+  {
+    # CHANGE: Import Bookkeeping modules consistently from LHCbDIRAC package
+    BookkeepingSystem = bk_2010012201
+    ConfigurationSystem = cs_2010012001
+    Core = co_2010012001
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012001
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    ProductionManagementSystem = pm_2010012001
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+  # NEW: use LHCbDiracPolicy in cmt/requirements
+  v5r0p0-pre3
+  {
+    BookkeepingSystem = bk_2010012001
+    ConfigurationSystem = cs_2010012001
+    Core = co_2010012001
+    DataManagementSystem = dm_2010012001
+    Interfaces = if_2010012001
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    ProductionManagementSystem = pm_2010012001
+    ResourceStatusSystem = rs_2010012001
+    SAMSystem = sa_2010012001
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    TransformationSystem = tr_2010012001
+    Workflow = wo_2010012001
+    WorkloadManagementSystem = wm_2010012001
+  }
+  v5r0p0-pre2
+  {
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    BookkeepingSystem = bk_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    ConfigurationSystem = cs_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    Core = co_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    DataManagementSystem = dm_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    Interfaces = if_2010012001
+    # CHANGE: Removed generic code to TransformationSystem(s)
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    ProductionManagementSystem = pm_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    ResourceStatusSystem = rs_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    SAMSystem = sa_2010012001
+    # NEW: Contains only code which references the LHCbDIRAC/BookkeepingSystem
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    TransformationSystem = tr_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    Workflow = wo_2010012001
+    # NEW: use LHCbDiracPolicy in cmt/requirements
+    WorkloadManagementSystem = wm_2010012001
+  }
+  v5r0p0-pre1
+  {
+    BookkeepingSystem = bk_2010011201
+    ConfigurationSystem = cs_2010011201
+    Core = co_2010011201
+    DataManagementSystem = dm_2010011201
+    Interfaces = if_2010011201
+    ProductionManagementSystem = pm_2010011201
+    ResourceStatusSystem = rs_2010011201
+    SAMSystem = sa_2010011201
+    TransformationSystem = ts_2010011201
+    Workflow = wo_2010011201
+    WorkloadManagementSystem = wm_2010011201
+  }
+  test
+  {
+    BookkeepingSystem = trunk
+    ConfigurationSystem = trunk
+    Core = trunk
+    DataManagementSystem = trunk
+    Interfaces = trunk
+    ProductionManagementSystem = trunk
+    ResourceStatusSystem = trunk
+    SAMSystem = trunk
+    TransformationSystem = trunk
+    Workflow = trunk
+    WorkloadManagementSystem = trunk
+  }
+}
+packageExtraFiles = __init__.py, versions.cfg, cmt
+fileVersion = $Id $
