@@ -3,12 +3,11 @@
 ########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the user workflow.
-     
-    UNDER DEVELOPMENT
 """
 
 __RCSID__ = "$Id: UserJobFinalization.py,v 1.17 2009/07/29 14:06:24 paterson Exp $"
 
+from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.Core.Security.Misc                              import getProxyInfo
@@ -46,6 +45,7 @@ class UserJobFinalization(ModuleBase):
     self.userOutputData = '' 
     self.userOutputSE = ''
     self.userOutputPath = ''
+    self.jobReport = None
     
   #############################################################################
   def resolveInputVariables(self):
@@ -53,6 +53,10 @@ class UserJobFinalization(ModuleBase):
     """
     self.log.verbose(self.workflow_commons)
     self.log.verbose(self.step_commons)
+
+    #Earlier modules may have populated the report objects
+    if self.workflow_commons.has_key('JobReport'):
+      self.jobReport = self.workflow_commons['JobReport']
 
     if self.step_commons.has_key('Enable'):
       self.enable=self.step_commons['Enable']
@@ -139,7 +143,7 @@ class UserJobFinalization(ModuleBase):
 
     userOutputLFNs = []
     if self.userOutputData:
-      self.log.info('Constructing user output LFNs...')
+      self.log.info('Constructing user output LFN(s) for %s' %(string.join(self.userOutputData,', ')))
       if not self.jobID:
         self.jobID = 12345
       owner = ''
@@ -156,24 +160,22 @@ class UserJobFinalization(ModuleBase):
 
     self.log.info('Calling getCandidateFiles( %s, %s, %s)' %(outputList,userOutputLFNs,self.outputDataFileMask))
     result = self.getCandidateFiles(outputList,userOutputLFNs,self.outputDataFileMask)
-    print result
     if not result['OK']:
       self.setApplicationStatus(result['Message'])
-      return result
+      return S_OK()
     
     fileDict = result['Value']      
     result = self.getFileMetadata(fileDict)
-    print result
     if not result['OK']:
       self.setApplicationStatus(result['Message'])
-      return result
+      return S_OK()
 
     if not result['Value']:
       self.log.info('No output data files were determined to be uploaded for this workflow')
+      self.setApplicationStatus('No Output Data Files To Upload')
       return S_OK()
 
     fileMetadata = result['Value']
-    #outputSEList = List.randomize(metadata['workflowSE'])
     
     #First get the local (or assigned) SE to try first for upload and others in random fashion
     result = getDestinationSEList('Tier1-USER',DIRAC.siteName(),outputmode='local')
@@ -183,17 +185,19 @@ class UserJobFinalization(ModuleBase):
       return result      
     
     localSE=result['Value']
+    self.log.verbose('Site Local SE for user outputs is: %s' %(localSE))
     orderedSEs = self.defaultOutputSE  
     for se in localSE:  
       orderedSEs.remove(se)
-        
+
+    replicateSE = self.userOutputSE       
     orderedSEs = localSE + List.randomize(orderedSEs)    
     if self.userOutputSE:
       for userSE in self.userOutputSE:
         if not userSE in orderedSEs:
-          orderedSEs = self.userOutputSE + orderedSEs    
+          orderedSEs = self.userOutputSE + orderedSEs
     
-    #Get final, resolved SE list for files
+    self.log.info('Ordered list of output SEs is: %s' %(string.join(orderedSEs,', ')))    
     final = {}
     for fileName,metadata in fileMetadata.items():
       final[fileName]=metadata
@@ -213,24 +217,39 @@ class UserJobFinalization(ModuleBase):
     failoverTransfer = FailoverTransfer(self.request)
 
     #One by one upload the files with failover if necessary
+    replication = {}
     failover = {}
     if not self.failoverTest:
       for fileName,metadata in final.items():
         self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName, string.join(metadata['resolvedSE'],', ')))
-        result = failoverTransfer.transferAndRegisterFile(fileName,metadata['localpath'],metadata['lfn'],metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog=None)
+        result = failoverTransfer.transferAndRegisterFile(fileName,metadata['localpath'],metadata['lfn'],metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog=self.userFileCatalog)
         if not result['OK']:
           self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
-          failover[fileName]=metadata 
+          failover[fileName]=metadata
+        else:
+          #Only attempt replication after successful upload
+          lfn = metadata['lfn']
+          seList = metadata['resolvedSE']
+          replicateSE = ''
+          if result['Value'].has_key('uploadedSE'):
+            uploadedSE = result['Value']['uploadedSE']            
+            for se in seList:
+              if not replicateSE == uploadedSE:
+                replicateSE = se
+                break
+          
+          if replicateSE and lfn:
+            self.log.info('Will attempt to replicate %s to %s' %(lfn,replicateSE))    
+            replication[lfn]=replicateSE            
     else:
       failover = final
 
     cleanUp = False
     for fileName,metadata in failover.items():
-      self.log.info('Setting default catalog for failover transfer to LcgFileCatalogCombined')
       random.shuffle(self.failoverSEs)
       targetSE = metadata['resolvedSE'][0]
       metadata['resolvedSE']=self.failoverSEs
-      result = failoverTransfer.transferAndRegisterFileFailover(fileName,metadata['localpath'],metadata['lfn'],targetSE,metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog='LcgFileCatalogCombined')
+      result = failoverTransfer.transferAndRegisterFileFailover(fileName,metadata['localpath'],metadata['lfn'],targetSE,metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog=self.userFileCatalog)
       if not result['OK']:
         self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
         cleanUp = True
@@ -240,7 +259,7 @@ class UserJobFinalization(ModuleBase):
     result = failoverTransfer.getRequestObject()
     if not result['OK']:
       self.log.error(result)
-      return S_ERROR('Could not retrieve modified request')
+      return S_ERROR('Could Not Retrieve Modified Request')
 
     self.request = result['Value']
 
@@ -249,13 +268,45 @@ class UserJobFinalization(ModuleBase):
       lfns = []
       for fileName,metadata in final.items():
          lfns.append(metadata['lfn'])
-
       result = self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
-      return S_ERROR('Failed to upload output data')
+      return S_ERROR('Failed To Upload Output Data')
     
+    #If there is now at least one replica for uploaded files can trigger replication
+    rm = ReplicaManager()
+    for lfn,repSE in replication.items():
+      result = rm.replicate(lfn,repSE)
+      if not result['OK']:
+        self.log.info('Replication failed with below error but file exists in Grid storage with at least one replica:\n%s' %(result))
 
     self.workflow_commons['Request']=self.request
+    
+    #Now must ensure if any pending requests are generated that these are propagated to the job wrapper
+    reportRequest = None
+    if self.jobReport:
+      result = self.jobReport.generateRequest()
+      if not result['OK']:
+        self.log.warn('Could not generate request for job report with result:\n%s' %(result))
+      else:
+        reportRequest = result['Value']
+    if reportRequest:
+      self.log.info('Populating request with job report information')
+      self.request.update(reportRequest)
+    
+    if not self.request.isEmpty()['Value']:
+      request_string = self.request.toXML()['Value']
+      # Write out the request string
+      fname = 'user_job_%s_request.xml' %(self.jobID)
+      xmlfile = open(fname,'w')
+      xmlfile.write(request_string)
+      xmlfile.close()
+      self.log.info('Creating failover request for deferred operations for job %s:' %self.jobID)
+      result = self.request.getDigest()
+      if result['OK']:
+        digest = result['Value']
+        self.log.info(digest)
+          
+    self.setApplicationStatus('Job Finished Successfully')
     return S_OK('Output data uploaded')
 
   #############################################################################
