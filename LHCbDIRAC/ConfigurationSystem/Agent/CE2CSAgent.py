@@ -18,12 +18,10 @@ from DIRAC.ConfigurationSystem.Client.CSAPI                   import CSAPI
 
 import sys, os
 
-AGENT_NAME = "ConfigurationSystem/CE2CSAgent"
-
 class CE2CSAgent(AgentModule):
 
   def initialize( self ):
-
+    self.name = self.am_getModuleParam("fullName")
     self.logLevel = self.am_getOption('LogLevel','INFO')
     gLogger.info("LogLevel",self.logLevel)
     gLogger.setLevel(self.logLevel)
@@ -79,7 +77,7 @@ class CE2CSAgent(AgentModule):
     response = ldapCEState('')
     if not response['OK']:
       gLogger.error( "Error during BDII request",response['Message'])
-      return responce
+      return response
 
     newces = {}
     for queue in response['Value']:
