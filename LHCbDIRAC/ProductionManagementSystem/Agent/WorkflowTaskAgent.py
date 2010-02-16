@@ -15,5 +15,7 @@ class WorkflowTaskAgent(DIRACWorkflowTaskAgent):
   def initialize(self):
     """ Sets defaults """
     res = DIRACWorkflowTaskAgent.initialize(self)
+    self.am_setModuleParam('shifterProxy','ProductionManager')
+    self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     self.transClient.setServer('ProductionManagement/ProductionManager')
     return res

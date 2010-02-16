@@ -15,5 +15,7 @@ class RequestTaskAgent(DIRACRequestTaskAgent):
   def initialize(self):
     """ Sets defaults """
     res =  DIRACRequestTaskAgent.initialize(self)
+    self.am_setModuleParam('shifterProxy','ProductionManager')
+    self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     self.transClient.setServer('ProductionManagement/ProductionManager')
     return res
