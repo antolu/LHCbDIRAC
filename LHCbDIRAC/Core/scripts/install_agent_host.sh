@@ -184,9 +184,9 @@ $DESTDIR/pro/scripts/install_agent.sh Configuration          CE2CSAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         TransferAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         RAWIntegrityAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         StorageUsageAgent
-$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSSubmit
-$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSMonitor
-$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSRegister
+$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSSubmitAgent
+$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSRegisterAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         RemovalAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         LFCvsSEAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         SEvsLFCAgent
@@ -194,7 +194,6 @@ $DESTDIR/pro/scripts/install_agent.sh DataManagement         UserStorageUsageAge
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         UserStorageQuotaAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         RegistrationAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         ReplicationScheduler
-$DESTDIR/pro/scripts/install_agent.sh DataManagement         BookkeepingWatchAgent
 
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement   BookkeepingWatchAgent
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement   DataRecoveryAgent
@@ -235,7 +234,6 @@ $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     TaskQueueDirector
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     BKInputDataAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     AncestorFilesAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     CondDBAgent
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     JobLogUploadAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     SiteAvailabilityAgent
 
 
