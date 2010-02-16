@@ -184,7 +184,6 @@ $DESTDIR/pro/scripts/install_agent.sh Configuration          CE2CSAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         TransferAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         RAWIntegrityAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         StorageUsageAgent
-$DESTDIR/pro/scripts/install_agent.sh DataManagement         ReplicationPlacementAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSSubmit
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSMonitor
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         FTSRegister
@@ -192,14 +191,20 @@ $DESTDIR/pro/scripts/install_agent.sh DataManagement         RemovalAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         LFCvsSEAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         SEvsLFCAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         UserStorageUsageAgent
+$DESTDIR/pro/scripts/install_agent.sh DataManagement         UserStorageQuotaAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         RegistrationAgent
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         ReplicationScheduler
 $DESTDIR/pro/scripts/install_agent.sh DataManagement         BookkeepingWatchAgent
 
-$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ProductionUpdateAgent
-$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ProductionJobAgent
-$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   RequestTrackingAgent
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement   BookkeepingWatchAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   DataRecoveryAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ProductionCleaningAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ProductionStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   RequestTrackingAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   RequestTaskAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   WorkflowTaskAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   TransformationAgent
+$DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ValidateOutputDataAgent
 
 $DESTDIR/pro/scripts/install_agent.sh RequestManagement      DISETForwardingAgent
 $DESTDIR/pro/scripts/install_agent.sh RequestManagement      ZuziaAgent
@@ -216,16 +221,24 @@ $DESTDIR/pro/scripts/install_agent.sh Stager                 StagerAgent
 $DESTDIR/pro/scripts/install_agent.sh Stager                 StagerMonitorAgent
 $DESTDIR/pro/scripts/install_agent.sh Stager                 StagerMonitorWMSAgent
 
-$DESTDIR/pro/scripts/install_agent.sh Transformation         TransformationAgent
-$DESTDIR/pro/scripts/install_agent.sh Transformation         BookkeepingWatchAgent
-
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     PilotStatusAgent
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     PilotMonitor
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     StatesAccountingAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     InputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     ThreadedMightyOptimizer
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     JobHistoryAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     JobCleaningAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     StalledJobAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     PilotStatusAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     PilotMonitorAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     TaskQueueDirector
+
+# LHCb specific agents
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     BKInputDataAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     AncestorFilesAgent
 $DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     CondDBAgent
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     AgentName
-$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     AgentName
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     JobLogUploadAgent
+$DESTDIR/pro/scripts/install_agent.sh WorkloadManagement     SiteAvailabilityAgent
+
+
 
 # If any special CS entried required modify and uncomment the following:
 #cat > $DESTDIR/etc/SystemName_AgentName.cfg <<EOF
