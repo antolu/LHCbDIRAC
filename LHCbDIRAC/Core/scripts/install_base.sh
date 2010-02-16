@@ -65,7 +65,7 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://lhcb-wms-dirac.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -74,7 +74,14 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 }
-EOF
+Systems
+{
+  Databases
+  {
+    User = Dirac
+    Password = To be Defined
+  }
+}EOF
 
 fi
 
