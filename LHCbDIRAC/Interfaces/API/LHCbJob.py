@@ -209,6 +209,7 @@ class LHCbJob(Job):
     stepNumber = self.gaudiStepCount
     stepDefn = '%sStep%s' %(appName,stepNumber)
     step =  self.__getGaudiApplicationStep(stepDefn)
+    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
 
     stepName = 'Run%sStep%s' %(appName,stepNumber)
 
@@ -260,10 +261,20 @@ class LHCbJob(Job):
     module.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
     body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
     module.setBody(body)
+    #Add user job finalization module 
+    moduleName = 'UserJobFinalization'
+    userData = ModuleDefinition(moduleName)
+    userData.setDescription('Uploads user output data files with LHCb specific policies.')
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
+    userData.setBody(body)
+    
     # Create Step definition
     step = StepDefinition(name)
     step.addModule(module)
-    moduleInstance = step.createModuleInstance('GaudiApplication',name)
+    step.addModule(userData)
+    step.createModuleInstance('GaudiApplication',name)
+    step.createModuleInstance('UserJobFinalization',name)    
+
     # Define step parameters
     step.addParameter(Parameter("applicationName","","string","","",False, False, "Application Name"))
     step.addParameter(Parameter("applicationVersion","","string","","",False, False, "Application Name"))
@@ -358,6 +369,7 @@ class LHCbJob(Job):
     stepNumber = self.gaudiStepCount
     stepDefn = '%sStep%s' %(appName,stepNumber)
     step =  self.__getGaudiApplicationScriptStep(stepDefn)
+    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
 
     stepName = 'Run%sStep%s' %(appName,stepNumber)
 
@@ -410,10 +422,20 @@ class LHCbJob(Job):
     module.setDescription('A  Gaudi Application script module that can execute any provided script in the given project name and version environment')
     body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
     module.setBody(body)
+    #Add user job finalization module 
+    moduleName = 'UserJobFinalization'
+    userData = ModuleDefinition(moduleName)
+    userData.setDescription('Uploads user output data files with LHCb specific policies.')
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
+    userData.setBody(body)
+    
     # Create Step definition
     step = StepDefinition(name)
     step.addModule(module)
-    moduleInstance = step.createModuleInstance('GaudiApplicationScript',name)
+    step.addModule(userData)    
+    step.createModuleInstance('GaudiApplicationScript',name)
+    step.createModuleInstance('UserJobFinalization',name)    
+        
     # Define step parameters
     step.addParameter(Parameter("applicationName","","string","","",False, False, "Application Name"))
     step.addParameter(Parameter("applicationVersion","","string","","",False, False, "Application Name"))
@@ -603,6 +625,7 @@ class LHCbJob(Job):
     stepNumber = self.gaudiStepCount
     stepDefn = '%sStep%s' %(rootName,stepNumber)
     step =  self.__getRootApplicationStep(stepDefn)
+    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
 
     stepName = 'Run%sStep%s' %(rootName,stepNumber)
 
@@ -645,16 +668,25 @@ class LHCbJob(Job):
 
         This method controls the definition for a RootApplication step.
     """
-    # Create the GaudiApplication module first
+    # Create the RootApplication module first
     moduleName = 'RootApplication'
     module = ModuleDefinition(moduleName)
     module.setDescription('A generic Root Application module that can execute macros, python scripts or executables')
     body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
     module.setBody(body)
+    #Add user job finalization module 
+    moduleName = 'UserJobFinalization'
+    userData = ModuleDefinition(moduleName)
+    userData.setDescription('Uploads user output data files with LHCb specific policies.')
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
+    userData.setBody(body)    
+    
     # Create Step definition
     step = StepDefinition(name)
     step.addModule(module)
-    moduleInstance = step.createModuleInstance('RootApplication',name)
+    step.addModule(userData)    
+    step.createModuleInstance('RootApplication',name)
+    step.createModuleInstance('UserJobFinalization',name)      
     # Define step parameters
     step.addParameter(Parameter("rootVersion","","string","","",False, False, "Root version."))
     step.addParameter(Parameter("rootScript","","string","","",False, False, "Root script."))
@@ -836,62 +868,150 @@ class LHCbJob(Job):
 
 #Below to be thought about further when adding user finalization
 
-#  #############################################################################
-#  def setOutputData(self,lfns,OutputSE=[],OutputPath=''):
-#    """Helper function, used in preference to Job.setOutputData() for LHCb.
-#
-#       For specifying output data to be registered in Grid storage.  If a list
-#       of OutputSEs are specified the job wrapper will try each in turn until
-#       successful.
-#
-#       Example usage:
-#
-#       >>> job = Job()
-#       >>> job.setOutputData(['DVNtuple.root'])
-#
-#       @param lfns: Output data file or files
-#       @type lfns: Single string or list of strings ['','']
-#       @param OutputSE: Optional parameter to specify the Storage
-#       @param OutputPath: Optional parameter to specify the Path in the Storage
-#       Element to store data or files, e.g. CERN-tape
-#       @type OutputSE: string or list
-#       @type OutputPath: string
-#    """
-#    if type(lfns)==list and len(lfns):
-#      outputDataStr = string.join(lfns,';')
-#      description = 'List of output data files'
-#      self._addParameter(self.workflow,'UserOutputData','JDL',outputDataStr,description)
-#    elif type(lfns)==type(" "):
-#      description = 'Output data file'
-#      self._addParameter(self.workflow,'UserOutputData','JDL',lfns,description)
-#    else:
-#      raise TypeError,'Expected string or list of output data files'
-#      return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
-#
-#    if OutputSE:
-#      description = 'User specified Output SE'
-#      if type(OutputSE) in types.StringTypes:
-#        OutputSE = [OutputSE]
-#      elif type(OutputSE) != types.ListType:
-#        raise TypeError,'Expected string or list for OutputSE'
-#        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
-#      
-#      OutputSE = ';'.join(OutputSE)
-#      self._addParameter(self.workflow,'UserOutputSE','JDL',OutputSE,description)
-#
-#    if OutputPath:
-#      description = 'User specified Output Path'
-#      if not type(OutputPath) in types.StringTypes:
-#        raise TypeError,'Expected string for OutputPath'
-#        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
-#      
-#      # Remove leading "/" that might cause problems with os.path.join
-#      while OutputPath[0] == '/': OutputPath=OutputPath[1:]
-#      self._addParameter(self.workflow,'UserOutputPath','JDL',OutputPath,description)
+  #############################################################################
+  def setOutputData(self,lfns,OutputSE=[],OutputPath=''):
+    """Helper function, used in preference to Job.setOutputData() for LHCb.
 
-#  #############################################################################
-#  def _addFinalization(self):
-#    """ Internal function, add LHCb user finalization module auotmatically in case
-#    """
+       For specifying output data to be registered in Grid storage.  If a list
+       of OutputSEs are specified the job wrapper will try each in turn until
+       successful.
 
+       Example usage:
+
+       >>> job = Job()
+       >>> job.setOutputData(['DVNtuple.root'])
+
+       @param lfns: Output data file or files
+       @type lfns: Single string or list of strings ['','']
+       @param OutputSE: Optional parameter to specify the Storage
+       @param OutputPath: Optional parameter to specify the Path in the Storage
+       Element to store data or files, e.g. CERN-tape
+       @type OutputSE: string or list
+       @type OutputPath: string
+    """
+    kwargs = {'lfns':lfns,'OutputSE':OutputSE,'OutputPath':OutputPath}    
+    if type(lfns)==list and len(lfns):
+      outputDataStr = string.join(lfns,';')
+      description = 'List of output data files'
+      self._addParameter(self.workflow,'UserOutputData','JDL',outputDataStr,description)
+    elif type(lfns)==type(" "):
+      description = 'Output data file'
+      self._addParameter(self.workflow,'UserOutputData','JDL',lfns,description)
+    else:
+      return self._reportError('Expected file name string or list of file names for output data',**kwargs) 
+    
+    if OutputSE:
+      description = 'User specified Output SE'
+      if type(OutputSE) in types.StringTypes:
+        OutputSE = [OutputSE]
+      elif type(OutputSE) != types.ListType:
+        return self._reportError('Expected string or list for OutputSE',**kwargs)         
+      OutputSE = ';'.join(OutputSE)
+      self._addParameter(self.workflow,'UserOutputSE','JDL',OutputSE,description)
+
+    if OutputPath:
+      description = 'User specified Output Path'
+      if not type(OutputPath) in types.StringTypes:
+        return self._reportError('Expected string for OutputPath',**kwargs)
+      # Remove leading "/" that might cause problems with os.path.join
+      while OutputPath[0] == '/': OutputPath=OutputPath[1:]
+      self._addParameter(self.workflow,'UserOutputPath','JDL',OutputPath,description)
+
+    return S_OK()
+  
+  #############################################################################
+  def setExecutable(self,executable,arguments='',logFile=''):
+    """Helper function.
+
+       Specify executable script to run with optional arguments and log file
+       for standard output.
+
+       These can be either:
+
+        - Submission of a python or shell script to DIRAC
+           - Can be inline scripts e.g. C{'/bin/ls'}
+           - Scripts as executables e.g. python or shell script file
+
+       Example usage:
+
+       >>> job = Job()
+       >>> job.setExecutable('myScript.py')
+
+       @param executable: Executable
+       @type executable: string
+       @param arguments: Optional arguments to executable
+       @type arguments: string
+       @param logFile: Optional log file name
+       @type logFile: string
+    """
+    kwargs = {'executable':executable,'arguments':arguments,'logFile':logFile}
+    if not type(executable) == type(' ') or not type(arguments) == type(' ') or not type(logFile) == type(' '):
+      return self._reportError('Expected strings for executable and arguments',**kwargs)
+
+    if os.path.exists(executable):
+      self.log.verbose('Found script executable file %s' % (executable))
+      self.addToInputSandbox.append(executable)
+      logName = '%s.log' %(os.path.basename(executable))
+      moduleName = os.path.basename(executable)
+    else:
+      self.log.verbose('Found executable code')
+      logName = 'CodeOutput.log'
+      moduleName = 'CodeSegment'
+
+    if logFile:
+      if type(logFile) == type(' '):
+        logName = logFile
+
+    self.gaudiStepCount +=1
+
+    moduleName = moduleName.replace('.','')
+    stepNumber = self.gaudiStepCount
+    stepDefn = 'ScriptStep%s' %(stepNumber)
+    step =  self.__getLHCbScriptStep(stepDefn)
+    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')    
+    stepName = 'RunScriptStep%s' %(stepNumber)
+    logPrefix = 'Script%s_' %(stepNumber)
+    logName = '%s%s' %(logPrefix,logName)
+    self.addToOutputSandbox.append(logName)
+    self.workflow.addStep(step)
+
+    # Define Step and its variables
+    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance.setValue("name",moduleName)
+    stepInstance.setValue("logFile",logName)
+    stepInstance.setValue("executable",executable)
+    if arguments:
+      stepInstance.setValue("arguments",arguments)
+    
+    return S_OK()    
+
+  #############################################################################
+  def __getLHCbScriptStep(self,name='Script'):
+    """Internal function. This method controls the definition for a script module.
+    """
+    # Create the script module first
+    moduleName = 'Script'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A  script module that can execute any provided script.')
+    body = 'from DIRAC.Core.Workflow.Modules.Script import Script\n'
+    module.setBody(body)
+    #Add user job finalization module 
+    moduleName = 'UserJobFinalization'
+    userData = ModuleDefinition(moduleName)
+    userData.setDescription('Uploads user output data files with LHCb specific policies.')
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
+    userData.setBody(body)    
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    step.addModule(userData)
+    step.createModuleInstance('Script',name)
+    step.createModuleInstance('UserJobFinalization',name)    
+    # Define step parameters
+    step.addParameter(Parameter("name","","string","","",False, False,'Name of executable'))
+    step.addParameter(Parameter("executable","","string","","",False, False, 'Executable Script'))
+    step.addParameter(Parameter("arguments","","string","","",False, False, 'Arguments for executable Script'))
+    step.addParameter(Parameter("logFile","","string","","",False,False,'Log file name'))
+    return step
+    
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
