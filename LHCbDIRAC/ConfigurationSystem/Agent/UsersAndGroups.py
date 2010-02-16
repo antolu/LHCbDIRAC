@@ -83,11 +83,12 @@ class UsersAndGroups( AgentModule ):
       return result
     lfcDNs = result[ 'Value' ]
     for user in usersData:
-      if usersData[ user ][ 'DN' ] not in lfcDNs:
-        self.log.info( 'DN %s need to be registered in LFC for user %s' % ( usersData[user]['DN'], user ) )
-        if user not in usersToBeRegistered:
-          usersToBeRegistered[ user ] = []
-        usersToBeRegistered[ user ].append( usersData[user]['DN'] )
+      for userDN in usersData[ user ][ 'DN' ]:
+        if userDN not in lfcDNs:
+          self.log.info( 'DN %s need to be registered in LFC for user %s' % ( userDN, user ) )
+          if user not in usersToBeRegistered:
+            usersToBeRegistered[ user ] = []
+          usersToBeRegistered[ user ].append( userDN )
 
     address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
     fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
@@ -99,9 +100,12 @@ class UsersAndGroups( AgentModule ):
       body += 'source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh \n\n'
       for lfcuser in usersToBeRegistered:
         for lfc_dn in usersToBeRegistered[lfcuser]:
+          print lfc_dn
           body += 'add_DN_LFC --userDN="' + lfc_dn.strip() + '" --nickname=' + lfcuser + '\n'
 
-    NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+    return S_OK()
+
 
   def execute( self ):
 
