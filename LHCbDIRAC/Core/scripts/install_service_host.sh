@@ -158,7 +158,6 @@ $DESTDIR/pro/scripts/install_service.sh Bookkeeping          BookkeepingManager
 
 $DESTDIR/pro/scripts/install_service.sh DataManagement       DataIntegrity
 $DESTDIR/pro/scripts/install_service.sh DataManagement       RAWIntegrity
-$DESTDIR/pro/scripts/install_service.sh DataManagement       ReplicationPlacement
 $DESTDIR/pro/scripts/install_service.sh DataManagement       StorageUsage
 $DESTDIR/pro/scripts/install_service.sh DataManagement       TransferDBMonitoring
 $DESTDIR/pro/scripts/install_service.sh DataManagement       DataLogging
