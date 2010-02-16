@@ -110,7 +110,7 @@ class CombinedSoftwareInstallation:
     return DIRAC.S_OK()
 
 def log( n, line ):
-  DIRAC.gLogger.info( line )
+  DIRAC.gLogger.verbose( line )
 
 def MySiteRoot():
   """Returns the MySiteRoot for the current local and / or shared areas.
