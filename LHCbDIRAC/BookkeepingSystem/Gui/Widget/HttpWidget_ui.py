@@ -8,7 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-import LHCbDIRAC
+import LHCbDIRAC, os
 
 class Ui_HttpWidget(object):
     def setupUi(self, HttpWidget):

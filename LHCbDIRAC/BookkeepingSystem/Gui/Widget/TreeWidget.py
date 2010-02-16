@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import In
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
-import LHCbDIRAC
+import LHCbDIRAC, os
 
 __RCSID__ = "$Id$"
 

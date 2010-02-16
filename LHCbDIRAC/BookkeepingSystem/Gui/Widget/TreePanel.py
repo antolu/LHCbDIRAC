@@ -7,7 +7,7 @@ from PyQt4.QtGui import *
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
-import LHCbDIRAC, types
+import LHCbDIRAC, types, os
 
 __RCSID__ = "$Id$"
 

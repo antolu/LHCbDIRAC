@@ -7,7 +7,7 @@ from PyQt4.QtCore                               import *
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
-import LHCbDIRAC
+import LHCbDIRAC, os
 
 __RCSID__ = "$Id$"
 

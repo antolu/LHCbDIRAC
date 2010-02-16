@@ -8,7 +8,7 @@ from PyQt4.QtGui   import *
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarks_ui           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                       import Item
-import LHCbDIRAC
+import LHCbDIRAC, os
 __RCSID__ = " $"
 
 

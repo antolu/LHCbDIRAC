@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerBookmarks               
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                                     import Item
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarksWidget                      import AddBookmarksWidget
-import LHCbDIRAC
+import LHCbDIRAC, os
 __RCSID__ = " $"
 
 
