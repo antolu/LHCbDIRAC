@@ -198,18 +198,13 @@ class DataRecoveryAgent(AgentModule):
   def getEligibleTransformations(self,status,typeList):
     """ Select transformations of given status and type.
     """
-    result = self.prodDB.getProductionList()
-    if not result['OK']:
-      return result
-    
-    transformations={}
-    prods = result['Value']
-    for prod in prods:
-      if prod['Status']==status and prod['Type'] in typeList:
-        typeName = prod['Type']
-        prodID = prod['TransformationID']
-        transformations[str(prodID)]=typeName
-        
+    res = self.prodDB.getTransformations(condDict = {'Status':status,'Type':typeList})
+    if not res['OK']:
+      return res
+    transformations = {}
+    for prod in res['Value']:
+      prodID = prod['TransformationID']
+      transformations[str(prodID)]=prod['Type']
     return S_OK(transformations)
   
   #############################################################################
