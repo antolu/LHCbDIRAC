@@ -81,7 +81,8 @@ Systems
     User = Dirac
     Password = To be Defined
   }
-}EOF
+}
+EOF
 
 fi
 
