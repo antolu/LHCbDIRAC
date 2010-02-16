@@ -52,7 +52,7 @@ class UserStorageQuotaAgent(AgentModule):
         userQuota = float(self.defaultQuota)
       else:
         userQuota = float(res['Value']['Quota'])
-      userMail = res['Value']['email']
+      userMail = res['Value']['Email']
       # Diffirent behaviour for 90% exceeded, 110% exceeded and 150% exceeded
       if (1.5*userQuota) < usageGB:      
         gLogger.info("%s is at %d%s of quota %d GB (%.1f GB)." % (userName,(usageGB*100)/userQuota,'%',userQuota,usageGB))
