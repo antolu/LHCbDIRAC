@@ -22,7 +22,7 @@ class UsersAndGroups( AgentModule ):
     self.proxyLocation = os.path.join( self.am_getOption( "WorkDirectory" ), ".volatileId" )
     print self.getLFCRegisteredDNs()
     return S_OK()
-  
+
   def __generateProxy( self ):
     self.log.info( "Generating proxy..." )
     certLoc = Locations.getHostCertificateAndKeyLocation()
@@ -44,7 +44,7 @@ class UsersAndGroups( AgentModule ):
       return False
     self.log.info( "Proxy generated" )
     return True
-    
+
   def getLFCRegisteredDNs( self ):
     #Request a proxy
     if gConfig._useServerCertificate():
@@ -96,7 +96,7 @@ class UsersAndGroups( AgentModule ):
       subject = 'New LFC Users found'
       self.log.info( subject, ", ".join( usersToBeRegistered ) )
       body = 'Command to add new entries into LFC: \n'
-      body += 'login to volhcb11 and run : \n'
+      body += 'login to volhcbXX and run : \n'
       body += 'source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh \n\n'
       for lfcuser in usersToBeRegistered:
         for lfc_dn in usersToBeRegistered[lfcuser]:
