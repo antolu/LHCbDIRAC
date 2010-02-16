@@ -74,6 +74,14 @@ DIRAC
     KeyFile = $DESTDIR/etc/grid-security/hostkey.pem
   }
 }
+Systems
+{
+  Databases
+  {
+    User = Dirac
+    Password = To be Defined
+  }
+}
 EOF
 
 fi
