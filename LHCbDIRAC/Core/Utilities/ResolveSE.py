@@ -36,9 +36,9 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
     return S_OK(alias_se)
 
   localSEs = getSEsForSite(site)
-  gLogger.info('Local SE list is: %s' %(localSEs))
+  gLogger.verbose('Local SE list is: %s' %(localSEs))
   groupSEs = gConfig.getValue('/Resources/StorageElementGroups/'+outputSE,[])
-  gLogger.info('Group SE list is: %s' %(groupSEs))
+  gLogger.verbose('Group SE list is: %s' %(groupSEs))
   if not groupSEs:
     return S_ERROR('Failed to resolve SE '+outputSE)
 
@@ -70,7 +70,6 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
       count += 1
 
     if not assignedCountry:
-      gLogger.info('Could not establish associated country for site')
       return S_ERROR('Could not determine associated SE list for %s' %country)
 
     alias_se = gConfig.getValue('/Resources/Countries/%s/AssociatedSEs/%s' %(assignedCountry,outputSE),[])
@@ -78,7 +77,7 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
       gLogger.info('Found alias SE for site: %s' %alias_se)
       return S_OK(alias_se)
     else:
-      gLogger.info('Could not establish alias SE for country %s from section: /Resources/Countries/%s/AssociatedSEs/%s' %(country,assignedCountry,outputSE))
+      gLogger.error('Could not establish alias SE for country %s from section: /Resources/Countries/%s/AssociatedSEs/%s' %(country,assignedCountry,outputSE))
       return S_ERROR('Failed to resolve SE '+outputSE)
 
   # For collective Any and All modes return the whole group
@@ -89,7 +88,7 @@ def getDestinationSEList(outputSE,site,outputmode='Any'):
     if se in localSEs:
       newSEList.append(se)
   SEs = uniqueElements(newSEList+groupSEs)
-  gLogger.info('Found unique SEs: %s' %(SEs))
+  gLogger.verbose('Found unique SEs: %s' %(SEs))
   return S_OK(SEs)
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
