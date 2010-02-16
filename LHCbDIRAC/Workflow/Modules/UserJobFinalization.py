@@ -158,7 +158,7 @@ class UserJobFinalization(ModuleBase):
         return result
       userOutputLFNs=result['Value']
 
-    self.log.info('Calling getCandidateFiles( %s, %s, %s)' %(outputList,userOutputLFNs,self.outputDataFileMask))
+    self.log.verbose('Calling getCandidateFiles( %s, %s, %s)' %(outputList,userOutputLFNs,self.outputDataFileMask))
     result = self.getCandidateFiles(outputList,userOutputLFNs,self.outputDataFileMask)
     if not result['OK']:
       self.setApplicationStatus(result['Message'])
