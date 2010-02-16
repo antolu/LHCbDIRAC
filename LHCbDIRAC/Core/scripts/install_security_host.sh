@@ -17,7 +17,7 @@ DIRACSETUP=LHCb-NewProduction
 DIRACVERSION=v5r0p0-pre22
 DIRACARCH=Linux_x86_64_glibc-2.5
 DIRACPYTHON=25
-DIRACDIRS="startup runit control"
+DIRACDIRS="startup runit control work"
 DIRACDBs="ProxyDB"
 LCGVERSION=2009-08-13
 
