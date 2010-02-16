@@ -27,7 +27,7 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     
-    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     addIcon = QIcon(picturesPath+"/images/add.png")
     self.addButton.setIcon(addIcon)
     

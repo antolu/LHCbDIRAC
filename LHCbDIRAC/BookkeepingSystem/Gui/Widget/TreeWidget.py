@@ -43,7 +43,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     self.tree.setupControler()
     
-    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
     self.bookmarksButton.setIcon(bookmarksIcon)
     

@@ -21,7 +21,7 @@ class InfoDialog(QDialog, Ui_Dialog):
     self.__controler = ControlerInfoDialog(self, parent.getControler())
     self.connect(self.pushButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.pushButton.setIcon(closeIcon)
     

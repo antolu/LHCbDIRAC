@@ -44,7 +44,7 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
-    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
     
     self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")

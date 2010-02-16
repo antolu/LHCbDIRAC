@@ -22,7 +22,7 @@ class ProcessingPassDialog(QDialog,Ui_ProcessingPassDialog):
     self.__controler = ControlerProcessingPassDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
         
