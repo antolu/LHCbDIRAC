@@ -70,7 +70,7 @@ run
         tabledata = [['','']]
         self.getWidget().filltable(header, tabledata)
     else:
-      gLogger.info('You do not have bookmarks!',retVal['Message'])
+      gLogger.info('You do not have yet bookmarks for the bookkeeping !',retVal['Message'])
         
     
   #############################################################################
