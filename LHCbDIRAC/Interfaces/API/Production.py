@@ -24,16 +24,11 @@ import string, re, os, time, shutil, types, copy
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
-try:
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
-  from LHCbDIRAC.Interfaces.API.LHCbJob                     import *
-  from LHCbDIRAC.Core.Utilities.ProductionOptions           import getOptions
-except Exception,x:
-  from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  from DIRAC.Interfaces.API.DiracProduction             import DiracProduction
-  from DIRAC.LHCbSystem.Client.LHCbJob                  import *
-  from DIRAC.LHCbSystem.Utilities.ProductionOptions     import getOptions    
+from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProduction
+from LHCbDIRAC.Interfaces.API.LHCbJob                           import *
+from LHCbDIRAC.Core.Utilities.ProductionOptions                 import getOptions
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
@@ -158,6 +153,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if extraPackages:
       if not re.search(';',extraPackages):
         extraPackages=[extraPackages]
+      else:
+        extraPackages=string.split(extraPackages,';')  
     if optionsFile:
       if not re.search(';',optionsFile):
         optionsFile = [optionsFile]
@@ -187,14 +184,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     firstEventNumber=1
     if not overrideOpts:
       optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
 
     if not outputSE:
       outputSE='Tier1-RDST'
-      self.log.info('Setting default outputSE to %s' %(outputSE))
+      self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
     gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,'','None',histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
@@ -218,7 +215,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not overrideOpts:
       optionsLine = getOptions('Boole',appType,extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -229,10 +226,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not outputSE:
       outputSE='Tier1-RDST'
-      self.log.info('Setting default outputSE to %s' %(outputSE))
+      self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if extraOutputFile:
-      self.log.info('Adding output file to Boole step %s' %extraOutputFile)
+      self.log.verbose('Adding output file to Boole step %s' %extraOutputFile)
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,extraOutputFile,condDBTag,ddDBTag,'')
@@ -259,20 +256,20 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         dataType='MC'
         if not outputSE:
           outputSE='Tier1_MC-DST'
-          self.log.info('Setting default outputSE to %s' %(outputSE))
+          self.log.verbose('Setting default outputSE to %s' %(outputSE))
       elif inputDataType.lower()=='fetc':
         #Must rely on data type for fetc only
         if not outputSE:
           if dataType.lower()=='mc':
             outputSE='Tier1_MC-DST'
-            self.log.info('Setting default outputSE to %s' %(outputSE))
+            self.log.verbose('Setting default outputSE to %s' %(outputSE))
           else:
             outputSE='Tier1_M-DST' #for real data master dst
-            self.log.info('Setting default outputSE to %s' %(outputSE))
+            self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -302,21 +299,21 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1_M-DST'
-        self.log.info('Setting default outputSE to %s' %(outputSE))
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))
     elif inputDataType.lower()=='dst':
       if not dataType:
         raise TypeError,'Must clarify MC / DATA for DST->DST processing'
       if not outputSE:
         if dataType.upper()=='MC':
           outputSE='Tier1_MC-DST'
-          self.log.info('Setting default outputSE to %s' %(outputSE))
+          self.log.verbose('Setting default outputSE to %s' %(outputSE))
         else:
           outputSE='Tier1_M-DST'
-          self.log.info('Setting default outputSE to %s' %(outputSE))
+          self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -347,11 +344,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not outputSE:
       outputSE='Tier1_MC-DST'
-    self.log.info('Setting default outputSE to %s' %(outputSE))
+    self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('Moore',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for Moore are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for Moore are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -380,11 +377,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     appType = inputDataType
     if not outputSE:
       outputSE='Tier1_MC_M-DST'
-      self.log.info('Setting default outputSE to %s' %(outputSE))
+      self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('Merge',appType,extraOpts=None,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.info('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
+      self.log.verbose('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
@@ -512,10 +509,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     dddbOpt = "@{DDDBTag}"
     conddbOpt = "@{CondDBTag}"
     if not condDBTag.lower() == 'global':
-      self.log.info('Specific CondDBTag setting found for %s step, setting to: %s' %(appName,condDBTag))
+      self.log.verbose('Specific CondDBTag setting found for %s step, setting to: %s' %(appName,condDBTag))
       conddbOpt = condDBTag
     if not ddDBTag.lower() == 'global':
-      self.log.info('Specific DDDBTag setting found for %s step, setting to: %s' %(appName,ddDBTag))
+      self.log.verbose('Specific DDDBTag setting found for %s step, setting to: %s' %(appName,ddDBTag))
       dddbOpt = ddDBTag
 
     #to construct the BK processing pass structure, starts from step '0'
@@ -713,7 +710,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
       if os.path.exists(prodXMLFile):
-        self.log.info('Using %s for production body' %prodXMLFile)
+        self.log.verbose('Using %s for production body' %prodXMLFile)
       else:
         prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
         result = prodClient.getTransformationParameters(int(prodID),['Body'])
@@ -748,7 +745,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if prodWorkflow.findParameter('InputData'): #now only comes from BK query
       prodWorkflow.findParameter('InputData').setValue('')
-      self.log.info('Resetting input data for production to null in workflow template, now comes from a BK query...')
+      self.log.verbose('Resetting input data for production to null in workflow template, now comes from a BK query...')
       prodWorkflow.toXMLFile(prodXMLFile)
 
     for i in prodWorkflow.step_instances:
@@ -781,7 +778,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     inputDataFile = ''
     if parameters['BKInputQuery']:
       bkserver = RPCClient('Bookkeeping/BookkeepingManager')
-      self.log.info('Production has input data query, will attempt to retrieve an input data file for LFN construction')
+      self.log.verbose('Production has input data query, will attempt to retrieve an input data file for LFN construction')
       bkDict = parameters['BKInputQuery']
       for name,value in bkDict.items():
         if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
@@ -798,9 +795,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       else:
          if result['Value']:
            inputDataFile = result['Value'][0]
-           self.log.info('Found an input data set from input BK query: %s' %inputDataFile)
+           self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
          else:
-           self.log.info('No input datasets found from BK query')
+           self.log.verbose('No input datasets found from BK query')
 
     dummyProdJobID = '99999999'
     result = self.getOutputLFNs(prodID,dummyProdJobID,inputDataFile,prodXMLFile)
@@ -878,7 +875,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK()
 
   #############################################################################
-  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString='',requestID=0,reqUsed=0):
+  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString='',requestID=0,reqUsed=0,transformation=True,transReplicas=0):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -890,6 +887,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                           adding to BK
                    False - will print BK parameters but publish the production
 
+        transformation = True - will create a transformation to distribute the output data if bkScript is False
+                         False - will not create the transformation
+                         TODO: create transformation script if bkScript=True or transformation=False
+
         The workflow XML is created regardless of the flags.
     """
     prodID = self.defaultProdID
@@ -900,7 +901,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     workflowName = self.workflow.getName()
     fileName = '%s.xml' %workflowName
-    self.log.info('Workflow XML file name is: %s' %fileName)
+    self.log.verbose('Workflow XML file name is: %s' %fileName)
 
     try:
       self.createWorkflow()
@@ -924,9 +925,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     for record in simConds['Value']:
       simulationDescriptions.append(str(record[1]))
 
+    realDataFlag = False
     if not bkConditions in simulationDescriptions:
       self.log.info('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
       bkDict['DataTakingConditions']=bkConditions
+      realDataFlag = True
     else:
       self.log.info('Found simulation conditions for %s' %bkConditions)
       sim = {}
@@ -971,7 +974,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       prodID = result['Value']
       self.log.info('Production %s successfully created' %prodID)
     else:
-      self.log.info('Publish flag is disabled, using default production ID')
+      self.log.verbose('Publish flag is disabled, using default production ID')
 
     bkDict['Production']=int(prodID)
     if bkQuery:
@@ -982,19 +985,18 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           bkDict['InputProductionTotalProcessingPass']=inputProcPass
 
     if bkScript:
-      self.log.info('Writing BK publish script...')
+      self.log.verbose('Writing BK publish script...')
       self._writeBKScript(bkDict,prodID)
     else:
-      self.log.info('Production BK parameters are:')
       for n,v in bkDict.items():
-        print n,v
+        self.log.verbose('%s BK parameter is: %s' %(n,v))
 
     if publish and not bkScript:
-      self.log.info('Attempting to publish production to the BK')
+      self.log.verbose('Attempting to publish production to the BK')
       result = bkClient.addProduction(bkDict)
       if not result['OK']:
         self.log.error(result)
-      self.log.info('BK publishing result: %s' %result)
+      self.log.verbose('BK publishing result: %s' %result)
 
     if requestID:
       reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
@@ -1011,7 +1013,45 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       except Exception,x:
         self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
 
+    if transformation and not bkScript:
+      if not bkQuery.has_key('FileType'):
+        return S_ERROR('BK query does not include FileType!')
+      bkFileType = bkQuery['FileType'] 
+      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag)
+      if not result['OK']:
+        self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
+      else:
+        self.log.info('Transformation %s was created for production %s' %(result['Value'],prodID))
+    else:
+      self.log.info('transformation is %s, bkScript generation is %s, no transformation will be created' %(transformation,bkScript))
+
     return S_OK(prodID)
+  
+  #############################################################################
+  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True):
+    """ Create a transformation to distribute the output data for a given production.
+    """
+    inputProd = int(inputProd)
+    replicas = int(replicas)
+    plugin = 'LHCbMCDSTBroadcast'
+    if realData:
+     plugin = 'LHCbDSTBroadcast'
+    transformation = Transformation()
+    tName = '%sReplication_Prod%s' %(fileType,inputProd)
+    if reqID:
+      tName = 'Request_%s_%s' %(reqID,tName)
+    transformation.setTransformationName(tName)
+    transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
+    transformation.setDescription('Replication of transformation %s output data' % inputProd)
+    transformation.setLongDescription('This transformation is to replicate the %s data from transformation %s according to the computing model' %(fileType,inputProd))
+    transformation.setType('Replication')
+    transformation.setPlugin(plugin)
+    if replicas > 1:
+     transformation.setDestinations(replicas)
+    transformation.addTransformation()
+    transformation.setStatus('Active')
+    transformation.setAgentType('Automatic')
+    return transformation.getTransformationID()
 
   #############################################################################
   def _writeBKScript(self,bkDict,prodID):
@@ -1035,7 +1075,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """ Will construct the output LFNs for the production for visual inspection.
     """
     if not prodXMLFile:
-      self.log.info('Using workflow object to generate XML file')
+      self.log.verbose('Using workflow object to generate XML file')
       prodXMLFile=self.workflow.toXMLFile('%s.xml' %self.name)
     dirac = DiracProduction()
     if not prodID:
@@ -1046,7 +1086,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not result['OK']:
       return result
     lfns = result['Value']
-    self.log.info(lfns)
+    self.log.verbose(lfns)
     return result
 
   #############################################################################
@@ -1073,20 +1113,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not passDict:
         return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
 
-    #for e.g. MDF case must remove some info
-#    if stepBKCutOff:
-#      tmpPassDict = passDict
-#      stepKeys = passDict.keys()
-#      stepKeys.sort()
-#      for step in stepKeys:
-#        if int(step.replace('Step',''))>stepBKCutOff:
-#          self.log.info('Removing %s from BK processing pass' %step)
-#          del tmpPassDict[step]
-#      passDict=tmpPassDict
-
     #add merge step...
     for stepID in passDict.keys():
-      self.log.info('Adding BK processing step %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
+      self.log.verbose('Adding BK processing step %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
       self.bkSteps[stepID]=passDict[stepID]
     self.__addBKPassStep()
     self.gaudiStepCount+=len(passDict.keys())
