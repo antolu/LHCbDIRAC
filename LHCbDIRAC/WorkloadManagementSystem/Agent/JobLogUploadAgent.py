@@ -39,7 +39,7 @@ class JobLogUploadAgent(AgentModule,RequestAgentMixIn):
       errStr = 'The RequestManagement/localURL option must be defined.'
       gLogger.fatal(errStr)
       return S_ERROR(errStr)
-    return result
+    return S_OK()
 
   def execute(self):
     """ Takes the DISET requests and forwards to destination service
