@@ -45,7 +45,7 @@ class UserStorageQuotaAgent(AgentModule):
       if not res['OK']:
         gLogger.error("Username not found in the CS.","%s using %.2f GB" % (userName,usageGB))
         continue
-      elif not res['Value'].has_key('email'):
+      elif not res['Value'].has_key('Email'):
         gLogger.error("CS does not contain email information for user.",userName)
         continue
       elif not res['Value'].has_key('Quota'):
