@@ -65,7 +65,7 @@ DIRAC
   Configuration
   {
     Servers = dips://lhcbprod.pic.es:9135/Configuration/Server
-    Servers += dips://lhcb-serv1-dirac.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
