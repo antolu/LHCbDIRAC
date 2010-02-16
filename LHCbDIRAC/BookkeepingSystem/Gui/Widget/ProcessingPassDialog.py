@@ -8,7 +8,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog_ui           im
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                        import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
-import DIRAC,os
+import LHCbDIRAC,os
 
 __RCSID__ = "$Id$"
 
@@ -22,7 +22,7 @@ class ProcessingPassDialog(QDialog,Ui_ProcessingPassDialog):
     self.__controler = ControlerProcessingPassDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
         

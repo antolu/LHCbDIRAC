@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerBookmarks               
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                                     import Item
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarksWidget                      import AddBookmarksWidget
-import DIRAC
+import LHCbDIRAC
 __RCSID__ = " $"
 
 
@@ -27,7 +27,7 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     addIcon = QIcon(picturesPath+"/images/add.png")
     self.addButton.setIcon(addIcon)
     

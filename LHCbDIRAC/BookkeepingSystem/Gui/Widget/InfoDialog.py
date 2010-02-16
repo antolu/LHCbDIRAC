@@ -7,7 +7,7 @@ from PyQt4.QtCore                               import *
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
-import DIRAC
+import LHCbDIRAC
 
 __RCSID__ = "$Id$"
 
@@ -21,7 +21,7 @@ class InfoDialog(QDialog, Ui_Dialog):
     self.__controler = ControlerInfoDialog(self, parent.getControler())
     self.connect(self.pushButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.pushButton.setIcon(closeIcon)
     

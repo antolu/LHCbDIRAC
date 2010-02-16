@@ -8,7 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-import DIRAC
+import LHCbDIRAC
 
 class Ui_HttpWidget(object):
     def setupUi(self, HttpWidget):
@@ -19,7 +19,7 @@ class Ui_HttpWidget(object):
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.back = QtGui.QPushButton(HttpWidget)
-        picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+        picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(picturesPath+"/images/back.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.back.setIcon(icon)

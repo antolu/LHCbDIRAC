@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import In
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
-import DIRAC
+import LHCbDIRAC
 
 __RCSID__ = "$Id$"
 
@@ -43,7 +43,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     self.tree.setupControler()
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
     self.bookmarksButton.setIcon(bookmarksIcon)
     

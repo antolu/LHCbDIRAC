@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFi
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
-import DIRAC,os
+import LHCbDIRAC,os
 
 __RCSID__ = "$Id$"
 
@@ -28,7 +28,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.advancedSave, SIGNAL("clicked()"), self.__controler.advancedSave)
     self.connect(self.nextButton, SIGNAL("clicked()"), self.__controler.next)
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
     self.saveButton.setIcon(saveIcon)
     self.advancedSave.setIcon(saveIcon)

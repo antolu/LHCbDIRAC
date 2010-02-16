@@ -7,7 +7,7 @@ from PyQt4.QtGui import *
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
-import DIRAC, types
+import LHCbDIRAC, types
 
 __RCSID__ = "$Id$"
 
@@ -44,7 +44,7 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
     
     self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")

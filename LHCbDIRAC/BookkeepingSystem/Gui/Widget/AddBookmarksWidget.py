@@ -8,7 +8,7 @@ from PyQt4.QtGui   import *
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarks_ui           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                       import Item
-import DIRAC
+import LHCbDIRAC
 __RCSID__ = " $"
 
 
@@ -25,7 +25,7 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     
-    picturesPath = DIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = LHCbDIRAC.rootPath+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
     #addIcon = QIcon(picturesPath+"/images/add.png")
     #self.addButton.setIcon(addIcon)
     

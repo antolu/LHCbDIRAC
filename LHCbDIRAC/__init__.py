@@ -1,6 +1,11 @@
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 
+import os
+pythonPath = os.path.realpath( __path__[0] )
+rootPath = os.path.dirname( pythonPath )
+
+
 # Define Version
 
 majorVersion = 5
