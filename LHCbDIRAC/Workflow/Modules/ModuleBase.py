@@ -228,7 +228,7 @@ class ModuleBase(object):
       for fileName in candidateFiles.keys():
         candidateFiles[fileName]['guid']=''
     elif pfnGUID['generated']:
-      self.log.info('PoolXMLFile generated GUID(s) for the following files ',string.join(pfnGUID['generated'],', '))
+      self.log.verbose('PoolXMLFile generated GUID(s) for the following files ',string.join(pfnGUID['generated'],', '))
     else:
       self.log.info('GUIDs found for all specified POOL files: %s' %(string.join(candidateFiles.keys(),', ')))
 
