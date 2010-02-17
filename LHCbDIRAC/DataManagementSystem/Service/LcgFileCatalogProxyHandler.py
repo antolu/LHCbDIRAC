@@ -9,21 +9,7 @@ from DIRAC.Resources.Catalog.FileCatalog            import FileCatalog
 from DIRAC.Core.Utilities.Shifter                   import setupShifterProxyInEnv
 from types import *
 
-base_path = ''
-
 def initializeLcgFileCatalogProxyHandler(serviceInfo):
-  global base_path
-  cfgPath = serviceInfo['serviceSectionPath']
-  res = gConfig.getOption( "%s/BasePath" % cfgPath )
-  if res['OK']:
-    base_path =  res['Value']
-    gLogger.info('The base path obtained is %s. Checking its existence...' % base_path)
-    if not os.path.exists(base_path):
-      gLogger.info('%s did not exist. Creating....' % base_path)
-      os.makedirs(base_path)
-  else:
-    gLogger.error('Failed to get the base path')
-    return S_ERROR('Failed to get the base path')
   return S_OK()
 
 class LcgFileCatalogProxyHandler(RequestHandler):
@@ -73,10 +59,10 @@ class LcgFileCatalogProxyHandler(RequestHandler):
       if not res['OK']:
         return res
       chain = res['Value']  
-      proxyBase = "%s/proxies" % base_path
+      proxyBase = "/tmp/proxies"
       if not os.path.exists(proxyBase):
         os.makedirs(proxyBase)
-      proxyLocation = "%s/proxies/%s-%s" % (base_path,clientUsername,clientGroup)
+      proxyLocation = "%s/proxies/%s-%s" % (proxyBase,clientUsername,clientGroup)
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
       res = gProxyManager.dumpProxyToFile(chain,proxyLocation)
       if not res['OK']:
