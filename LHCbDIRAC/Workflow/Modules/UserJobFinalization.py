@@ -102,6 +102,12 @@ class UserJobFinalization(ModuleBase):
     if self.workflow_commons.has_key('UserOutputPath'):
       self.userOutputPath = self.workflow_commons['UserOutputPath']
 
+    return S_OK('Parameters resolved')
+
+  #############################################################################
+  def execute(self):
+    """ Main execution function.
+    """
     #Have to work out if the module is part of the last step i.e. 
     #user jobs can have any number of steps and we only want 
     #to run the finalization once.
@@ -110,22 +116,16 @@ class UserJobFinalization(ModuleBase):
     if currentStep==totalSteps:
       self.lastStep=True
     else:
-      self.log.verbose('Current step = %s, total steps of workflow = %s, UserJobFinalization will enable itself only at the last workflow step.' %(currentStep,totalSteps))    
-
-    return S_OK('Parameters resolved')
-
-  #############################################################################
-  def execute(self):
-    """ Main execution function.
-    """
+      self.log.verbose('Current step = %s, total steps of workflow = %s, UserJobFinalization will enable itself only at the last workflow step.' %(currentStep,totalSteps))            
+        
+    if not self.lastStep:
+      return S_OK()    
+    
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error(result['Message'])
       return result
-        
-    if not self.lastStep:
-      return S_OK('Will wait for the last step to execute user job finalization')
-  
+
     self.log.info('Initializing %s' %self.version)
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.verbose('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
@@ -152,7 +152,7 @@ class UserJobFinalization(ModuleBase):
       else:
         owner = self.getCurrentOwner()['Value']
       
-      result = constructUserLFNs(self.jobID,owner,self.userOutputData,self.userOutputPath)
+      result = constructUserLFNs(int(self.jobID),owner,self.userOutputData,self.userOutputPath)
       if not result['OK']:
         self.log.error('Could not create production LFNs',result['Message'])
         return result
