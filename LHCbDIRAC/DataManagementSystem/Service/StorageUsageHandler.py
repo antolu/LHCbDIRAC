@@ -1,5 +1,6 @@
 """ StorageUsageHandler is the implementation of the Storage Usage service in the DISET framework
 """
+__RCSID__   = "$Id: DataIntegrityHandler.py 18161 2009-11-11 12:07:09Z acasajus $"
 from DIRAC import gLogger, gConfig, rootPath, S_OK, S_ERROR
 
 from types import *
