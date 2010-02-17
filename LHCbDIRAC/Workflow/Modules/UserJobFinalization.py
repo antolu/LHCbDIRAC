@@ -253,7 +253,7 @@ class UserJobFinalization(ModuleBase):
       if not result['OK']:
         self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
         cleanUp = True
-        break #no point continuing if one completely fails
+        continue #for users can continue even if one completely fails
 
     #Now after all operations, retrieve potentially modified request object
     result = failoverTransfer.getRequestObject()
@@ -265,11 +265,9 @@ class UserJobFinalization(ModuleBase):
 
     #If some or all of the files failed to be saved to failover
     if cleanUp:
-      lfns = []
-      for fileName,metadata in final.items():
-         lfns.append(metadata['lfn'])
-      result = self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
+      #Leave any uploaded files just in case it is useful for the user
+      #do not try to replicate any files.
       return S_ERROR('Failed To Upload Output Data')
     
     #If there is now at least one replica for uploaded files can trigger replication
@@ -308,34 +306,6 @@ class UserJobFinalization(ModuleBase):
           
     self.setApplicationStatus('Job Finished Successfully')
     return S_OK('Output data uploaded')
-
-  #############################################################################
-  def __cleanUp(self,lfnList):
-    """ Clean up uploaded data for the LFNs in the list
-    """
-    # Clean up the current request
-    for req_type in ['transfer','register']:
-      for lfn in lfnList:
-        result = self.request.getNumSubRequests(req_type)
-        if result['OK']:
-          nreq = result['Value']
-          if nreq:
-            # Go through subrequests in reverse order in order not to spoil the numbering
-            ind_range = [0]
-            if nreq > 1:
-              ind_range = range(nreq-1,-1,-1)
-            for i in ind_range:
-              result = self.request.getSubRequestFiles(i,req_type)
-              if result['OK']:
-                fileList = result['Value']
-                if fileList[0]['LFN'] == lfn:
-                  result = self.request.removeSubRequest(i,req_type)
-
-    # Set removal requests just in case
-    for lfn in lfnList:
-      result = self.__setFileRemovalRequest(lfn)
-
-    return S_OK()
 
   #############################################################################
   def getCurrentOwner(self):
