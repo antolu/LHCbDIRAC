@@ -147,6 +147,7 @@ $DESTDIR/pro/scripts/install_service.sh Configuration Server
 $DESTDIR/pro/scripts/install_service.sh Framework     ProxyManager
 $DESTDIR/pro/scripts/install_service.sh Framework     SecurityLogging
 $DESTDIR/pro/scripts/install_service.sh Framework     BundleDelivery
+$DESTDIR/pro/scripts/install_service.sh Framework     Gateway
 
 # If any special CS entried required modify and uncomment the following:
 
