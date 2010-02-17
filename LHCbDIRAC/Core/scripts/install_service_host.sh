@@ -81,6 +81,35 @@ Systems
     User = Dirac
     Password = To be Defined
   }
+  Bookkeeping
+  {
+    $DIRACINSTANCE
+    {
+      Databases
+      {
+        BookkeepingDB
+        {
+          LHCbDIRACBookkeepingUser = LHCB_DIRACBOOKKEEPING_USERS
+          LHCbDIRACBookkeepingServer = LHCB_DIRACBOOKKEEPING_SERVER
+          LHCbDIRACBookkeepingPassword = To be set
+          LHCbDIRACBookkeepingTNS = LHCB_DIRACBOOKKEEPING
+        }
+      }
+    }
+  }
+  RequestManagement
+  {
+    $DIRACINSTANCE
+    {
+      Services
+      {
+        RequestManager
+        {
+          Backend = mysql
+        }
+      }
+    }
+  }
 }
 EOF
 
