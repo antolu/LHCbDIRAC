@@ -206,7 +206,6 @@ $DESTDIR/pro/scripts/install_agent.sh ProductionManagement   TransformationAgent
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement   ValidateOutputDataAgent
 
 $DESTDIR/pro/scripts/install_agent.sh RequestManagement      DISETForwardingAgent
-$DESTDIR/pro/scripts/install_agent.sh RequestManagement      ZuziaAgent
 
 $DESTDIR/pro/scripts/install_agent.sh ResourceStatus         RS2HistoryAgent
 $DESTDIR/pro/scripts/install_agent.sh ResourceStatus         RSInspectorAgent
