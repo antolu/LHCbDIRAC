@@ -1,5 +1,6 @@
 """ Simple DISET interface to the RAW Integrity DB to allow access to the RAWIntegrityDB
 """
+__RCSID__   = "$Id: DataIntegrityHandler.py 18161 2009-11-11 12:07:09Z acasajus $"
 from DIRAC                                              import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                    import RequestHandler
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB   import RAWIntegrityDB
