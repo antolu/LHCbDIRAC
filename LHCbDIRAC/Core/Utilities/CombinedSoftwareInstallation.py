@@ -329,7 +329,7 @@ def CheckApplication(app, config, area):
 #  setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
 
   # Run ExtCMT
-  ret = DIRAC.Source( timeout, [extCMT], cmtEnv )
+  ret = DIRAC.Os.sourceEnv( timeout, [extCMT], cmtEnv )
 #  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
     DIRAC.gLogger.error('Problem during SetupProject call')
@@ -357,7 +357,7 @@ def CheckApplication(app, config, area):
   setupProject.append( appName )
   setupProject.append( appVersion )
 
-  ret = DIRAC.Source( timeout, setupProject, setupProjectEnv )
+  ret = DIRAC.Os.sourceEnv( timeout, setupProject, setupProjectEnv )
 #  DIRAC.gLogger.debug(ret)
   if not ret['OK']:
     DIRAC.gLogger.info( ret['Message'])
@@ -551,7 +551,7 @@ def onlineExecute( softwarePackages ):
         valid = True
         break
     if not valid:
-      return S_ERROR( matcherror )
+      return DIRAC.S_ERROR( matcherror )
   return DIRAC.S_OK()
 
 class DummyRPC:
