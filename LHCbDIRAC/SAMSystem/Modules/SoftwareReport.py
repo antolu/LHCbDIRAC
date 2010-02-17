@@ -353,7 +353,7 @@ def CheckSharedArea(self, area):
     localArea = string.split(area,':')[0]
 
   lbLogin = '%s/LbLogin' %localArea
-  ret = DIRAC.Source( 300,[lbLogin], dict(os.environ))
+  ret = DIRAC.Os.sourceEnv( 300,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
     self.log.error('Error during lbLogin\n%s' %ret)
