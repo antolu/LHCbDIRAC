@@ -234,7 +234,7 @@ class UserJobFinalization(ModuleBase):
           if result['Value'].has_key('uploadedSE'):
             uploadedSE = result['Value']['uploadedSE']            
             for se in seList:
-              if not replicateSE == uploadedSE:
+              if not se == uploadedSE:
                 replicateSE = se
                 break
           
@@ -277,7 +277,7 @@ class UserJobFinalization(ModuleBase):
     for lfn,repSE in replication.items():
       result = rm.replicate(lfn,repSE)
       if not result['OK']:
-        self.log.info('Replication failed with below error but file exists in Grid storage with at least one replica:\n%s' %(result))
+        self.log.info('Replication failed with below error but file already exists in Grid storage with at least one replica:\n%s' %(result))
 
     self.workflow_commons['Request']=self.request
     
