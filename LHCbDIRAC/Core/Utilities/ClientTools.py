@@ -15,6 +15,7 @@ import DIRAC
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.Utilities.Os import sourceEnv
 
 #############################################################################
 def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True):
@@ -110,14 +111,14 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
     gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
   lbLogin = '%s/LbLogin' %sharedArea
-  ret = DIRAC.Source( 300,[lbLogin], dict(os.environ))
+  ret = sourceEnv( 300,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
 
   setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
   setupProject.append(appName)
   setupProject.append(appVersion)
-  ret = DIRAC.Source( 300, setupProject, ret['outputEnv'] )
+  ret = sourceEnv( 300, setupProject, ret['outputEnv'] )
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
 
@@ -332,7 +333,7 @@ def _setupRootEnvironment(daVinciVersion=''):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
     gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
   lbLogin = '%s/LbLogin' %sharedArea
-  ret = DIRAC.Source( 300,[lbLogin], dict(os.environ))
+  ret = sourceEnv( 300,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
     return ret
@@ -341,7 +342,7 @@ def _setupRootEnvironment(daVinciVersion=''):
     setupProject.append('DaVinci %s ROOT' % daVinciVersion)
   else:
     setupProject.append('DaVinci ROOT')
-  ret = DIRAC.Source( 300, setupProject, ret['outputEnv'])
+  ret = sourceEnv( 300, setupProject, ret['outputEnv'])
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
     return ret

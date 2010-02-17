@@ -15,6 +15,7 @@ import DIRAC
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import MySiteRoot
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Utilities.Os import sourceEnv
 
 #############################################################################
 def getCondDBFiles():
@@ -58,7 +59,7 @@ def getCondDBFiles():
   gLogger.info('Using software area at %s' %softwareArea)
 
   lbLogin = '%s/LbLogin' %softwareArea
-  ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
+  ret = sourceEnv( 60,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.error('Error during lbLogin\n%s' %ret)
     return ret
@@ -67,7 +68,7 @@ def getCondDBFiles():
   setupProject.append( '--ignore-missing' )
   setupProject.append( 'Brunel' )
 
-  ret = DIRAC.Source( 60, setupProject, ret['outputEnv'] )
+  ret = sourceEnv( 60, setupProject, ret['outputEnv'] )
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
     return ret
