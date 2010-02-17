@@ -19,6 +19,8 @@ from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfigurati
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
+import DIRAC
+
 import string, os, sys, re, shutil, urllib
 
 SAM_TEST_NAME='CE-lhcb-softreport'
@@ -351,7 +353,7 @@ def CheckSharedArea(self, area):
     localArea = string.split(area,':')[0]
 
   lbLogin = '%s/LbLogin' %localArea
-  ret = DIRAC.Source( 60,[lbLogin], dict(os.environ))
+  ret = DIRAC.Source( 300,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
     self.log.error('Error during lbLogin\n%s' %ret)
