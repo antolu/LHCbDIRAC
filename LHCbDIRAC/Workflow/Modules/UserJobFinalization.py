@@ -219,6 +219,7 @@ class UserJobFinalization(ModuleBase):
     #One by one upload the files with failover if necessary
     replication = {}
     failover = {}
+    uploaded = []
     if not self.failoverTest:
       for fileName,metadata in final.items():
         self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName, string.join(metadata['resolvedSE'],', ')))
@@ -229,6 +230,7 @@ class UserJobFinalization(ModuleBase):
         else:
           #Only attempt replication after successful upload
           lfn = metadata['lfn']
+          uploaded.append(lfn)          
           seList = metadata['resolvedSE']
           replicateSE = ''
           if result['Value'].has_key('uploadedSE'):
@@ -254,6 +256,14 @@ class UserJobFinalization(ModuleBase):
         self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
         cleanUp = True
         continue #for users can continue even if one completely fails
+      else:
+        lfn = metadata['lfn']
+        uploaded.append(lfn)
+
+    #For files correctly uploaded must report LFNs to job parameters
+    if uploaded:
+      report = string.join( uploaded, ', ' )
+      self.jobReport.setJobParameter( 'UploadedOutputData', report )
 
     #Now after all operations, retrieve potentially modified request object
     result = failoverTransfer.getRequestObject()
