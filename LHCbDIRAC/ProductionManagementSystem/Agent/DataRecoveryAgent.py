@@ -213,7 +213,7 @@ class DataRecoveryAgent(AgentModule):
     """
     #Until a query for files with timestamp can be obtained must rely on the
     #WMS job last update
-    res = self.prodDB.getTransformationFiles(transformation,condDict={'Status':statusList})
+    res = self.prodDB.getTransformationFiles(condDict={'TransformationID':transformation,'Status':statusList})
     if not res['OK']:
       return res
     resDict = {}
