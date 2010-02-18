@@ -97,8 +97,11 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
-echo python dirac-install.py -t client -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
-     python dirac-install.py -t client -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+
+wget -q -O dirac-install.py http://svnweb.cern.ch/guest/dirac/DIRAC/trunk/DIRAC/Core/scripts/dirac-install.py
+
+echo python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+     python dirac-install.py -t server -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
 
 echo 
 
