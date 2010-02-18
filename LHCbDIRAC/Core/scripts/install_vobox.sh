@@ -15,9 +15,11 @@ DiracVersion=$2
 DESTDIR=/opt/vobox/lhcb/dirac
 DIRACSETUP=LHCb-Production
 DIRACVERSION=$DiracVersion
-DIRACARCH=Linux_i686_glibc-2.3.4
-DIRACPYTHON=24
+DIRACARCH=Linux_x86_64_glibc-2.5
+# DIRACARCH=Linux_i686_glibc-2.3.4
+DIRACPYTHON=25
 DIRACDIRS="startup runit data work requestDB"
+LCGVERSION=2009-08-13
 
 export LOGLEVEL=INFO
 # Can not be done !!!!
@@ -26,17 +28,18 @@ export LOGLEVEL=INFO
 # make sure $DESTDIR is available
 #
 # umask 0002
+# make sure $DESTDIR is available
 mkdir -p $DESTDIR || exit 1
 
 CURDIR=`dirname $0`
 CURDIR=`cd $CURDIR; pwd -P`
 
-ROOT=`dirname $DESTDIR`/DIRAC3
+ROOT=`dirname $DESTDIR`/dirac
 
 echo
 echo "Installing under $ROOT"
 echo
-[ -L $ROOT ] || ln -sf $DESTDIR/pro $ROOT || exit
+[ -d $ROOT ] || exit
 
 if [ ! -d $DESTDIR/etc ]; then
   mkdir -p $DESTDIR/etc || exit 1
@@ -48,9 +51,9 @@ DIRAC
   Setup = $DIRACSETUP
   Configuration
   {
-    Servers =  dips://volhcb09.cern.ch:9135/Configuration/Server
-    Servers+=  dips://volhcb01.cern.ch:9135/Configuration/Server
-    Servers+=  dips://lhcbprod.pic.es:9135/Configuration/Server
+    Servers  =  dips://lhcb-sec-dirac.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcb-serv1-dirac.cern.ch:9135/Configuration/Server
+    Servers += dips://lhcbprod.pic.es:9135/Configuration/Server
     Name = LHCb-Prod
   }
   Security
@@ -94,16 +97,18 @@ done
 # VERDIR
 VERDIR=$DESTDIR/versions/${DIRACVERSION}-`date +"%s"`
 mkdir -p $VERDIR   || exit 1
+echo python dirac-install.py -t client -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+     python dirac-install.py -t client -P $VERDIR -r $DIRACVERSION -g $LCGVERSION -p $DIRACARCH -i $DIRACPYTHON -e LHCbDIRAC || exit 1
+
+echo 
+
 for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-# to make sure we do not use DIRAC python
-dir=`echo $DESTDIR/pro/$DIRACARCH/bin | sed 's/\//\\\\\//g'`
-PATH=`echo $PATH | sed "s/$dir://"`
+$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCAChecks || exit 1
 
-$CURDIR/dirac-install -S -P $VERDIR -v $DIRACVERSION -p $DIRACARCH -i $DIRACPYTHON -o /LocalSite/Root=$ROOT -o /LocalSite/Site=$SiteName || exit 1
-
+echo
 #
 # Create pro and old links
 old=$DESTDIR/old
@@ -121,6 +126,7 @@ $DESTDIR/pro/$DIRACARCH/bin/python -O -c "$cmd" 1> /dev/null  || exit 1
 
 chmod +x $DESTDIR/pro/scripts/install_bashrc.sh
 $DESTDIR/pro/scripts/install_bashrc.sh    $DESTDIR $DIRACVERSION $DIRACARCH python$DIRACPYTHON || exit 1
+sed -i 's:.*X509.*::' $DESTDIR/bashrc
 
 #
 # fix user .bashrc
