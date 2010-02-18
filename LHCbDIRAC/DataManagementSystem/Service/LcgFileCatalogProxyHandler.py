@@ -7,7 +7,11 @@ from DIRAC                                          import gLogger, gConfig, S_O
 from DIRAC.Core.DISET.RequestHandler                import RequestHandler
 from DIRAC.Resources.Catalog.FileCatalog            import FileCatalog
 from DIRAC.Core.Utilities.Shifter                   import setupShifterProxyInEnv
+from DIRAC.Core.Utilities.Subprocess                    import pythonCall
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient    import gProxyManager
+import os,shutil
 from types import *
+
 
 def initializeLcgFileCatalogProxyHandler(serviceInfo):
   return S_OK()
