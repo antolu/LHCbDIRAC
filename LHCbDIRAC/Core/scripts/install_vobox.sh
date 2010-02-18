@@ -142,6 +142,7 @@ chmod +x $DESTDIR/pro/scripts/install_service.sh
 # Hack until permission are fix on cvs for install_service.sh
 $DESTDIR/pro/scripts/install_service.sh Configuration Server
 $DESTDIR/pro/scripts/install_service.sh RequestManagement RequestManager
+$DESTDIR/pro/scripts/install_service.sh Framework SystemAdministrator
 $DESTDIR/pro/scripts/install_agent.sh   RequestManagement ZuziaAgent
 
 # startup script
