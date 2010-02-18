@@ -87,12 +87,6 @@ class TransformationPlugin(DIRACTransformationPlugin):
  
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
-    # Get the existing destinations from the transformationDB
-    res = self._getExistingCounters()
-    if not res['OK']:
-      gLogger.error("Failed to get existing file share",res['Message'])
-      return res
-    existingCount = res['Value']
 
     # Get the requested shares from the CS 
     res = self._getCPUShares()
@@ -103,6 +97,21 @@ class TransformationPlugin(DIRACTransformationPlugin):
     if cpuShares.has_key('LCG.CERN.ch'):
       cpuShares.pop('LCG.CERN.ch')
     cpuShares = self._normaliseShares(cpuShares)
+    gLogger.info("Obtained the following target shares (%):")
+    for site in sortList(cpuShares.keys()):
+      gLogger.info("%s: %.1f" % (site.ljust(15),cpuShares[site]))
+
+    # Get the existing destinations from the transformationDB
+    res = self._getExistingCounters()
+    if not res['OK']:
+      gLogger.error("Failed to get existing file share",res['Message'])
+      return res
+    existingCount = res['Value']
+    if existingCount:
+      gLogger.info("Existing storage element utilization (%):") 
+      normalisedExistingCount = self._normaliseShares(existingCount)
+      for se in sortList(normalisedExistingCount.keys()):
+        gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
 
     bk = BookkeepingClient()
     transClient = TransformationDBClient()
