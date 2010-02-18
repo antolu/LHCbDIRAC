@@ -19,7 +19,7 @@ class Transformation(DIRACTransformation):
   def __init__(self,transID=0):
     DIRACTransformation.__init__(self,transID=transID,transClient=TransformationDBClient())
 
-    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast'] # TODO INCLUDE REPLICATION PLUGINS
+    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast','RAWShares'] 
     if not  self.paramValues.has_key('BkQuery'):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key('BkQueryID'):
@@ -148,17 +148,20 @@ class Transformation(DIRACTransformation):
             gLogger.info("oTransformation.set%s(...)" % paramName)
     return S_OK()
 
-  def _checkByRun(self):
+  def _checkByRunPlugin(self):
     return self._checkStandardPlugin()
 
-  def _checkByRunBySize(self):
+  def _checkByRunBySizePlugin(self):
     return self._checkStandardPlugin()
 
-  def _checkByRunCCRC_RAW(self):
+  def _checkByRunCCRC_RAWPlugin(self):
     return self._checkStandardPlugin()
 
-  def _checkCCRC_RAW(self):
+  def _checkCCRC_RAWPlugin(self):
     return self._checkStandardPlugin()
+
+  def _checkRAWSharesPlugin(self):
+    return S_OK()
 
   def _checkLHCbMCDSTBroadcastPlugin(self):
     return S_OK()
