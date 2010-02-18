@@ -16,80 +16,11 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def __init__(self,plugin):
     DIRACTransformationPlugin.__init__(self,plugin)
 
-  def _getCPUShares(self,normalise=False):
-    res = gConfig.getOptionsDict('/Resources/Shares/CPU')
-    if not res['OK']:
-      return res
-    if not res['Value']:
-      return S_ERROR("/Resources/Shares/CPU option contains no shares")
-    shares = res['Value']
-    if normalise:
-      shares = self._normaliseShares(shares)
-    if not shares:
-      return S_ERROR("No non-zero shares defined")
-    return S_OK(shares)
-
-  def _getExistingCounters(self,normalise=False):
-    res = TransformationDBClient().getCounters('TransformationFiles',['UsedSE'],{'TransformationID':self.params['TransformationID']}) 
-    if not res['OK']:
-      return res
-    usageDict = {}
-    for usedDict,count in res['Value']:
-      usedSE = usedDict['UsedSE']
-      if usedSE != 'Unknown':
-        usageDict[usedSE] = count
-    if normalise:
-      usageDict = self._normaliseShares(usageDict)
-    return S_OK(usageDict)
-
-  def _normaliseShares(self,shares):
-    total = 0.0
-    for site in shares.keys():   
-      share = float(shares[site])
-      if not share:
-        shares.pop(site)
-      else:
-        shares[site] = share
-        total += share
-    for site in shares.keys():
-      share = 100.0*(shares[site]/total)
-      shares[site] = share
-    return shares
-
-  def __getNextDestination(self,existingCount,cpuShares):
-    # resolve the current share by site from the existing share by SE
-    siteShare = {}
-    for se,count in existingCount.items():
-      res = getSitesForSE(se)
-      if not res['OK']:
-        return res
-      for site in res['Value']:
-        if site in cpuShares.keys():
-          if not siteShare.has_key(site):
-            siteShare[site] = 0
-          siteShare[site]+= count
-    # then normalise the shares
-    siteShare = self._normaliseShares(siteShare)
-    # then fill the missing share values to 0
-    for site in cpuShares.keys():
-      if (not siteShare.has_key(site)):
-        siteShare[site] = 0.0
-    # determine which site is furthest from its share
-    chosenSite = ''
-    minShareShortFall = - float("inf")
-    for site,cpuShare in cpuShares.items():
-      existingShare = siteShare[site]
-      shareShortFall = cpuShare-existingShare
-      if shareShortFall > minShareShortFall:
-        minShareShortFall = shareShortFall
-        chosenSite = site
-    return S_OK(chosenSite)
- 
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
 
     # Get the requested shares from the CS 
-    res = self._getCPUShares()
+    res = self._getShares('CPU')
     if not res['OK']:
       return res  
     cpuShares = res['Value']
@@ -138,7 +69,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       if res['Value']:
         assignedSE = res['Value'][0]['UsedSE']  
       else:
-        res = self.__getNextDestination(existingCount,cpuShares)
+        res = self._getNextDestination(existingCount,cpuShares)
         if not res['OK']:
           gLogger.error("Failed to get next destination SE",res['Message']) 
           continue
@@ -177,40 +108,6 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
   def _ByRunBySize(self):
     return self._ByRun(plugin='BySize')
-
-  def _ByRunCCRC_RAW(self):
-    return self._ByRun(plugin='CCRC_RAW')
-
-  def _CCRC_RAW(self):
-    res = gConfig.getOptionsDict("/Resources/Shares/CPU")
-    if (not res['OK']) or (not res['Value']) or (not res['Value'].has_key("LCG.CERN.ch")):
-      gLogger.warn("CPU shares should be defined in /Resources/Shares/CPU")
-      shares = {"LCG.CERN.ch": 0.144}
-    else:
-      shares = res['Value']
-    res = getSEsForSite('LCG.CERN.ch')
-    if not res['OK']:
-      return res
-    cernSEs = res['Value']
-    res = self._groupByReplicas()
-    if not res['OK']:
-      return res
-    tasks = []
-    for replicaSE,lfns in res['Value']:
-      ses = replicaSE.split(',')
-      if len(ses) == 2:
-        cernSE = ''
-        for se in ses:
-          if se in cernSEs:
-            cernSE = se
-        if cernSE:
-          ses.remove(cernSE)
-          otherSE = ses[0]
-          if random.random() < shares["LCG.CERN.ch"]:
-            tasks.append((cernSE,lfns))
-          else:
-            tasks.append((otherSE,lfns))
-    return S_OK(tasks)
 
   def _LHCbDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
@@ -338,43 +235,3 @@ class TransformationPlugin(DIRACTransformationPlugin):
         gLogger.error("File ancestors not found at corresponding sites",lfn)
         ancestorProblems.append(lfn)          
     return S_OK()
-  
-  # TODO shares
-  def _LoadBalance(self):
-    """ This plug-in will load balances the input files across the selected target SEs.
-    """
-    if not self.params:
-      return S_ERROR("TransformationPlugin._LoadBalance: The 'LoadBalance' plugin requires additional parameters.")
-
-    targetSEs = {}
-    totalRatio = 0
-
-    ses = self.params['TargetSE'].split(',')
-    for targetSE in ses:
-      targetSEs[targetSE] = int(self.params[targetSE])
-      totalRatio += int(self.params[targetSE])
-
-    sourceSE = ''
-    if self.params.has_key('SourceSE'):
-      sourceSE = self.params['SourceSE']
-    seFiles = {}
-
-    selectedFiles = []
-    for lfn,se in self.data:
-      useFile = False
-      if not sourceSE:
-        useFile = True
-      elif sourceSE == se:
-        useFile = True
-      if useFile:
-        selectedFiles.append(lfn)
-
-    multiplier = int(len(selectedFiles)/float(totalRatio))
-    if multiplier > 0:
-      currIndex = 0
-      seFiles[sourceSE] = {}
-      for targetSE,load in targetSEs.items():
-        offset = (load*multiplier)
-        seFiles[sourceSE][targetSE] = selectedFiles[currIndex:currIndex+offset]
-        currIndex += offset
-    return S_OK(seFiles)
