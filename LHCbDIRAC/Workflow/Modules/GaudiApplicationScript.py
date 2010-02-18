@@ -337,12 +337,12 @@ exit $?
         self.applicationLog ) )
 
     script.close()
-
+      
   #############################################################################
   def redirectLogOutput(self, fd, message):
-    print message
     sys.stdout.flush()
     if message:
+      if re.search('INFO Evt',message): print message
       if self.applicationLog:
         log = open(self.applicationLog,'a')
         log.write(message+'\n')
@@ -351,8 +351,7 @@ exit $?
         self.log.error("Application Log file not defined")
       if fd == 1:
         self.stdError += message
-      
-
+        
   #############################################################################
   def __report(self,status):
     """Wraps around setJobApplicationStatus of state update client
