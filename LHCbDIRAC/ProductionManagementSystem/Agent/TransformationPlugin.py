@@ -1,19 +1,153 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-from DIRAC                                                  import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.SiteSEMapping                     import getSitesForSE,getSEsForSite
-from DIRAC.Core.Utilities.List                              import breakListIntoChunks, sortList, uniqueElements,randomize
-from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles       import getAncestorFiles
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+from DIRAC                                                               import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Utilities.SiteSEMapping                                  import getSitesForSE,getSEsForSite
+from DIRAC.Core.Utilities.List                                           import breakListIntoChunks, sortList, uniqueElements,randomize
+from DIRAC.DataManagementSystem.Client.ReplicaManager                    import ReplicaManager
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                    import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient  import TransformationDBClient
 import time,random
 
-from DIRAC.TransformationSystem.Agent.TransformationPlugin  import TransformationPlugin as DIRACTransformationPlugin
+from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
 
 class TransformationPlugin(DIRACTransformationPlugin):
 
   def __init__(self,plugin):
     DIRACTransformationPlugin.__init__(self,plugin)
+
+  def _getCPUShares(self,normalise=False):
+    res = gConfig.getOptionsDict('/Resources/Shares/CPU')
+    if not res['OK']:
+      return res
+    if not res['Value']:
+      return S_ERROR("/Resources/Shares/CPU option contains no shares")
+    shares = res['Value']
+    if normalise:
+      shares = self._normaliseShares(shares)
+    if not shares:
+      return S_ERROR("No non-zero shares defined")
+    return S_OK(shares)
+
+  def _getExistingCounters(self,normalise=False):
+    res = TransformationDBClient().getCounters('TransformationFiles',['UsedSE'],{'TransformationID':self.params['TransformationID']}) 
+    if not res['OK']:
+      return res
+    usageDict = {}
+    for usedDict,count in res['Value']:
+      usedSE = usedDict['UsedSE']
+      if usedSE != 'Unknown':
+        usageDict[usedSE] = count
+    if normalise:
+      usageDict = self._normaliseShares(usageDict)
+    return S_OK(usageDict)
+
+  def _normaliseShares(self,shares):
+    total = 0.0
+    for site in shares.keys():   
+      share = float(shares[site])
+      if not share:
+        shares.pop(site)
+      else:
+        shares[site] = share
+        total += share
+    for site in shares.keys():
+      share = 100.0*(shares[site]/total)
+      shares[site] = share
+    return shares
+
+  def __getNextDestination(self,existingCount,cpuShares):
+    # resolve the current share by site from the existing share by SE
+    siteShare = {}
+    for se,count in existingCount.items():
+      res = getSitesForSE(se)
+      if not res['OK']:
+        return res
+      for site in res['Value']:
+        if site in cpuShares.keys():
+          if not siteShare.has_key(site):
+            siteShare[site] = 0
+          siteShare[site]+= count
+    # then normalise the shares
+    siteShare = self._normaliseShares(siteShare)
+    # then fill the missing share values to 0
+    for site in cpuShares.keys():
+      if (not siteShare.has_key(site)):
+        siteShare[site] = 0.0
+    # determine which site is furthest from its share
+    chosenSite = ''
+    minShareShortFall = - float("inf")
+    for site,cpuShare in cpuShares.items():
+      existingShare = siteShare[site]
+      shareShortFall = cpuShare-existingShare
+      if shareShortFall > minShareShortFall:
+        minShareShortFall = shareShortFall
+        chosenSite = site
+    return S_OK(chosenSite)
+ 
+  def _RAWShares(self):
+    possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
+    # Get the existing destinations from the transformationDB
+    res = self._getExistingCounters()
+    if not res['OK']:
+      gLogger.error("Failed to get existing file share",res['Message'])
+      return res
+    existingCount = res['Value']
+
+    # Get the requested shares from the CS 
+    res = self._getCPUShares()
+    if not res['OK']:
+      return res  
+    cpuShares = res['Value']
+    # Remove the CERN component and renormalise
+    if cpuShares.has_key('LCG.CERN.ch'):
+      cpuShares.pop('LCG.CERN.ch')
+    cpuShares = self._normaliseShares(cpuShares)
+
+    bk = BookkeepingClient()
+    transClient = TransformationDBClient()
+    res = self._groupByRun(self.data)
+    if not res['OK']:
+      return res
+    runFileDict = res['Value']
+    tasks = []
+    for runID in sortList(runFileDict.keys()):
+      unusedLfns = runFileDict[runID]
+      start = time.time()
+      res = bk.getRunFiles(runID)
+      gLogger.verbose("Obtained BK run files in %.2f seconds" % (time.time()-start))
+      if not res['OK']:
+        gLogger.error("Failed to get run files","%s %s" % (runID,res['Message']))
+        continue
+      runFiles = res['Value']
+      start = time.time()
+      res = transClient.getTransformationFiles(condDict = {'TransformationID':self.params['TransformationID'],'LFN':runFiles.keys(),'Status':['Assigned','Processed']})
+      gLogger.verbose("Obtained transformation run files in %.2f seconds" % (time.time()-start))
+      if not res['OK']:
+        gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
+        continue
+      if res['Value']:
+        assignedSE = res['Value'][0]['UsedSE']  
+      else:
+        res = self.__getNextDestination(existingCount,cpuShares)
+        if not res['OK']:
+          gLogger.error("Failed to get next destination SE",res['Message']) 
+          continue
+        targetSite = res['Value']
+        res = getSEsForSite(targetSite)
+        if not res['OK']:
+          continue
+        ses = res['Value']
+        for se in res['Value']:
+          if se in possibleTargets:
+            assignedSE = se
+        if not assignedSE:
+          continue
+      tasks.append((assignedSE,unusedLfns))
+      if not existingCount.has_key(assignedSE):
+        existingCount[assignedSE] = 0
+      existingCount[assignedSE] += len(unusedLfns)
+    return S_OK(tasks)
 
   def _ByRun(self,plugin='Standard'):
     res = self._groupByRun(self.data)
@@ -39,9 +173,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
     return self._ByRun(plugin='CCRC_RAW')
 
   def _CCRC_RAW(self):
-    res = gConfig.getOptionsDict("/Operations/Shares/CPU")
+    res = gConfig.getOptionsDict("/Resources/Shares/CPU")
     if (not res['OK']) or (not res['Value']) or (not res['Value'].has_key("LCG.CERN.ch")):
-      gLogger.warn("CPU shares should be defined in /Operations/Shares/CPU")
+      gLogger.warn("CPU shares should be defined in /Resources/Shares/CPU")
       shares = {"LCG.CERN.ch": 0.144}
     else:
       shares = res['Value']
