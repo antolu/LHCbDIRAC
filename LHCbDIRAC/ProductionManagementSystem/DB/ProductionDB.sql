@@ -42,4 +42,4 @@ CREATE TABLE Workflows (
     PRIMARY KEY(WFName)
 );
 
-SOURCE LHCbDIRAC/TransformationSystem/DB/TransformationDB.sql
+SOURCE LHCbDIRAC/ProductionManagementSystem/DB/TransformationDB.sql
