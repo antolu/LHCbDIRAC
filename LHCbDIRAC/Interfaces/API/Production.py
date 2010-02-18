@@ -12,9 +12,7 @@
     - Now have create() method that takes a workflow or Production object
       and publishes to the production management system, in addition this
       can automatically construct and publish the BK pass info
-
-    To add:
-    - Use getOutputLFNs() function to add production output directory parameter
+    - Uses getOutputLFNs() function to add production output directory parameter
 """
 
 __RCSID__ = "$Id$"
@@ -93,10 +91,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('DataType','string','MC','Priority') #MC or DATA
     self._setParameter('outputMode','string','Local','SEResolutionPolicy')
 
- #TODO: resolve this problem
- #   inputData = self.inputDataDefault
- #   self._setParameter('sourceData',inputData,'string','LinkToInputData')
-
     #Options related parameters
     self._setParameter('CondDBTag','string','sim-20090112','CondDBTag')
     self._setParameter('DDDBTag','string','head-20090112','DetDescTag')
@@ -105,11 +99,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('configName','string','MC','ConfigName')
     self._setParameter('configVersion','string','2009','ConfigVersion')
     self._setParameter('conditions','string','','SimOrDataTakingCondsString')
-    #To review
-    #workflow.addParameter(Parameter("OUTPUT_MAX","20","string","","",True,False,"nb max of output to keep"))
-
-    #To handle
-    #workflow.addParameter(Parameter("sourceData",indata,"string","","",True, False, "Application Name"))
 
   #############################################################################
   def _setParameter(self,name,parameterType,parameterValue,description):
@@ -240,7 +229,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         appType is rdst / dst / xdst
         inputDataType is mdf / digi
         enough to set one of the above
-        TODO: stripping case - to review
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
@@ -888,8 +876,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                    False - will print BK parameters but publish the production
 
         transformation = True - will create a transformation to distribute the output data if bkScript is False
-                         False - will not create the transformation
-                         TODO: create transformation script if bkScript=True or transformation=False
+                         False - will not create the transformation or a transformation script in case bkScript=True
 
         The workflow XML is created regardless of the flags.
     """
@@ -927,11 +914,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     realDataFlag = False
     if not bkConditions in simulationDescriptions:
-      self.log.info('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
+      self.log.verbose('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
       bkDict['DataTakingConditions']=bkConditions
       realDataFlag = True
     else:
-      self.log.info('Found simulation conditions for %s' %bkConditions)
+      self.log.verbose('Found simulation conditions for %s' %bkConditions)
       sim = {}
       for record in simConds['Value']:
         if bkConditions==str(record[1]):
@@ -981,7 +968,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if bkQuery.has_key('ProcessingPass'):
         if not bkQuery['ProcessingPass']=='All':        
           inputProcPass = bkQuery['ProcessingPass']
-          self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
+          self.log.verbose('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
           bkDict['InputProductionTotalProcessingPass']=inputProcPass
 
     if bkScript:
@@ -1021,14 +1008,17 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not result['OK']:
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
       else:
-        self.log.info('Transformation %s was created for production %s' %(result['Value'],prodID))
+        self.log.info('Successfully created transformation %s for production %s' %(result['Value'],prodID))
+    elif transformation:
+      self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
+      self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)      
     else:
-      self.log.info('transformation is %s, bkScript generation is %s, no transformation will be created' %(transformation,bkScript))
+      self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))      
 
     return S_OK(prodID)
   
   #############################################################################
-  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True):
+  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False):
     """ Create a transformation to distribute the output data for a given production.
     """
     inputProd = int(inputProd)
@@ -1040,7 +1030,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     tName = '%sReplication_Prod%s' %(fileType,inputProd)
     if reqID:
       tName = 'Request_%s_%s' %(reqID,tName)
-    transformation.setTransformationName(tName)
+    
+    transformation.setTransformationName(tName)    
     transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
     transformation.setDescription('Replication of transformation %s output data' % inputProd)
     transformation.setLongDescription('This transformation is to replicate the %s data from transformation %s according to the computing model' %(fileType,inputProd))
@@ -1051,6 +1042,30 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     transformation.addTransformation()
     transformation.setStatus('Active')
     transformation.setAgentType('Automatic')
+    
+    if script:
+      transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
+      transLines.append('# by %s' %self.prodVersion)
+      transLines.append('from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation')
+      transLines.append('transformation=Transformation()')
+      transLines.append('transformation.setTransformationName("%s")' %(tName))
+      transLines.append('transformation.setBKQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
+      transLines.append('transformation.setDescription("Replication of transformation %s output data")' %(inputProd))
+      transLines.append('transformation.setType("Replication")')
+      transLines.append('transformation.setPlugin(plugin)')
+      if replicas > 1:
+        transLines.append('transformation.setDestinations(%s)' %replicas)
+      transLines.append('transformation.addTransformation()')
+      transLines.append('transformation.setStatus("Active")')
+      transLines.append('transformation.setAgentType("Automatic")')
+      transLines.append('print transformation.getTransformationID()')
+      if os.path.exists('%.py' %tname):
+        shutil.move('%.py' %tname,'%s.py.backup' %tName)
+      fopen = open('%.py' %tname,'w')
+      fopen.write(string.join(transLines,'\n')+'\n')
+      fopen.close()
+      return S_OK()
+      
     return transformation.getTransformationID()
 
   #############################################################################
@@ -1063,7 +1078,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     fopen = open(bkName,'w')
     bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
     bkLines.append('# by %s' %self.prodVersion)
-    bkLines.append('from DIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
+    bkLines.append('from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
     bkLines.append('bkClient = BookkeepingClient()')
     bkLines.append('bkDict = %s' %bkDict)
     bkLines.append('print bkClient.addProduction(bkDict)')
