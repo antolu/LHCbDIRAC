@@ -67,7 +67,16 @@ class TransformationPlugin(DIRACTransformationPlugin):
         gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
         continue
       if res['Value']:
-        assignedSE = res['Value'][0]['UsedSE']  
+        assignedSE = res['Value'][0]['UsedSE']
+        res = getSitesForSE(assignedSE,gridName='LCG')
+        if not res['OK']:
+          continue
+        targetSite = ''
+        for site in res['Value']:
+          if site in cpuShares.keys():
+            targetSite = site
+        if not targetSite:
+          continue
       else:
         res = self._getNextSite(existingCount,cpuShares)
         if not res['OK']:
@@ -83,6 +92,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             assignedSE = se
         if not assignedSE:
           continue
+
       tasks.append((assignedSE,unusedLfns))
       if not existingCount.has_key(targetSite):
         existingCount[targetSite] = 0
