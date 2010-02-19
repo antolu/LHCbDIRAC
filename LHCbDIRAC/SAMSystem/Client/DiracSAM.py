@@ -57,6 +57,9 @@ class DiracSAM(Dirac):
     """Submit a SAM test job to an individual CE.
     """
     job = None
+    # if we install the applications we do not run the report
+    if softwareEnable:
+      reportEnable = False
     try:
       job = LHCbSAMJob()
       job.setDestinationCE(ce)
