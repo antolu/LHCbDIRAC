@@ -21,6 +21,7 @@ import string, re, os, time, shutil, types, copy
 
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
+from DIRAC.Interfaces.API.Dirac                       import Dirac
 
 from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
@@ -243,13 +244,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if inputDataType.lower()=='digi':
         dataType='MC'
         if not outputSE:
-          outputSE='Tier1_MC-DST'
+          outputSE='Tier1_MC_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
       elif inputDataType.lower()=='fetc':
         #Must rely on data type for fetc only
         if not outputSE:
           if dataType.lower()=='mc':
-            outputSE='Tier1_MC-DST'
+            outputSE='Tier1_MC_M-DST'
             self.log.verbose('Setting default outputSE to %s' %(outputSE))
           else:
             outputSE='Tier1_M-DST' #for real data master dst
@@ -293,7 +294,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         raise TypeError,'Must clarify MC / DATA for DST->DST processing'
       if not outputSE:
         if dataType.upper()=='MC':
-          outputSE='Tier1_MC-DST'
+          outputSE='Tier1_MC_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
         else:
           outputSE='Tier1_M-DST'
@@ -331,7 +332,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       raise TypeError,'Only MC data type is supported'
 
     if not outputSE:
-      outputSE='Tier1_MC-DST'
+      outputSE='Tier1_MC_M-DST'
     self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
@@ -684,6 +685,18 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       shutil.move(name,'%s.backup' %name)
     self.workflow.toXMLFile(name)
 
+  #############################################################################
+  def runLocal(self):
+    """ Create XML workflow for local testing then reformulate as a job and run locally.
+    """
+    name = '%s.xml' % self.name
+    if os.path.exists(name):
+      shutil.move(name,'%s.backup' %name)
+    self.workflow.toXMLFile(name)
+    j = LHCbJob(name)
+    d = Dirac()
+    return d.submit(j,mode='local')
+        
   #############################################################################
   def getDetailedInfo(self,productionID):
     """ Return detailed information for a given production.
