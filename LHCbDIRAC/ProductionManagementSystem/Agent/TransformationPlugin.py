@@ -33,7 +33,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       gLogger.info("%s: %.1f" % (site.ljust(15),cpuShares[site]))
 
     # Get the existing destinations from the transformationDB
-    res = self._getExistingCounters()
+    res = self._getExistingCounters(requestedSites=cpuShares.keys())
     if not res['OK']:
       gLogger.error("Failed to get existing file share",res['Message'])
       return res
@@ -69,7 +69,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       if res['Value']:
         assignedSE = res['Value'][0]['UsedSE']  
       else:
-        res = self._getNextDestination(existingCount,cpuShares)
+        res = self._getNextSite(existingCount,cpuShares)
         if not res['OK']:
           gLogger.error("Failed to get next destination SE",res['Message']) 
           continue
@@ -84,9 +84,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
         if not assignedSE:
           continue
       tasks.append((assignedSE,unusedLfns))
-      if not existingCount.has_key(assignedSE):
-        existingCount[assignedSE] = 0
-      existingCount[assignedSE] += len(unusedLfns)
+      if not existingCount.has_key(targetSite):
+        existingCount[targetSite] = 0
+      existingCount[targetSite] += len(unusedLfns)
     return S_OK(tasks)
 
   def _ByRun(self,plugin='Standard'):
