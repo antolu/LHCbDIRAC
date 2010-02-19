@@ -210,7 +210,6 @@ $DESTDIR/pro/scripts/install_service.sh Stager               Stager
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement   JobManager
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement   JobMonitoring
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement   JobStateUpdate
-$DESTDIR/pro/scripts/install_service.sh WorkloadManagement   JobStateUpdate
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement   Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement   WMSAdministrator
 
