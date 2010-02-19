@@ -518,7 +518,11 @@ done
         else:
           finalOutputs.append(output)
       self.log.info('Final step outputs are: %s' %(finalOutputs))
-      self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
+      if self.workflow_commons.has_key('outputList'):
+        self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
+      else:
+        self.workflow_commons['outputList'] = finalOutputs
+          
       self.log.info('Attempting to recreate the production output LFNs...')
       result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
