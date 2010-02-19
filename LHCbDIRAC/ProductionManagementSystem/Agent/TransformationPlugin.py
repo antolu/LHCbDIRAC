@@ -7,7 +7,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager                    import 
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                    import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient  import TransformationDBClient
-import time,random
+import time,random,sys
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
 
@@ -18,6 +18,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
+    bk = BookkeepingClient()
+    transClient = TransformationDBClient()
 
     # Get the requested shares from the CS 
     res = self._getShares('CPU')
@@ -32,6 +34,23 @@ class TransformationPlugin(DIRACTransformationPlugin):
     for site in sortList(cpuShares.keys()):
       gLogger.info("%s: %.1f" % (site.ljust(15),cpuShares[site]))
 
+    # Ensure that our files only have one existing replica at CERN
+    replicaGroups = self._getFileGroups(self.data)
+    alreadyReplicated = {}
+    for replicaSE,lfns in replicaGroups.items():
+      existingSEs = replicaSE.split(',')
+      if len(existingSEs) > 1:
+        for lfn in lfns:
+          self.data.pop(lfn)
+        existingSEs.remove('CERN-RAW')
+        targetSE = existingSEs[0]
+        if not alreadyReplicated.has_key(targetSE):
+          alreadyReplicated[targetSE] = []
+        alreadyReplicated[targetSE].extend(lfns)
+    for se,lfns in alreadyReplicated.items():
+      gLogger.info("Attempting to update %s files to Processed at %s" % (len(lfns),se))
+      transClient.setFileUsedSEForTransformation(self.params['TransformationID'],se,lfns)
+
     # Get the existing destinations from the transformationDB
     res = self._getExistingCounters(requestedSites=cpuShares.keys())
     if not res['OK']:
@@ -44,12 +63,13 @@ class TransformationPlugin(DIRACTransformationPlugin):
       for se in sortList(normalisedExistingCount.keys()):
         gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
 
-    bk = BookkeepingClient()
-    transClient = TransformationDBClient()
+    # Group the remaining data by run 
     res = self._groupByRun(self.data)
     if not res['OK']:
       return res
     runFileDict = res['Value']
+
+    # For each of the runs determine the destination of any previous files
     tasks = []
     for runID in sortList(runFileDict.keys()):
       unusedLfns = runFileDict[runID]
