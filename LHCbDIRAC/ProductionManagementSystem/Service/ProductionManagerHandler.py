@@ -66,7 +66,7 @@ class ProductionManagerHandler(TransformationHandler):
     res = self.database.getWorkflow(name)
     if not res['OK']:
       return res
-    wf = fromXMLString(result['Value'])
+    wf = fromXMLString(res['Value'])
     return S_OK(wf.getDescription())
 
   types_deleteWorkflow = [ StringType ]
