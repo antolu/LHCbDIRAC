@@ -23,32 +23,32 @@ class IFileManager(object):
    
   #############################################################################    
   def list(self, path=""):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
     
   #############################################################################        
   def cp(self, frm, to):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
       
   #############################################################################  
   def mv(self, frm, to):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()      
   
   #############################################################################  
   def mkdir(self, path):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
  
   #############################################################################  
   def rm(self, path):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()
       
   #############################################################################  
   def rename(self, oldname, newname):
-    gLoogger.warn("not implemented")
+    gLogger.warn("not implemented")
     return S_ERROR()  
   
   #############################################################################  
