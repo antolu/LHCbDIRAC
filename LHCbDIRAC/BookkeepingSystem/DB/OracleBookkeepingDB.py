@@ -2275,19 +2275,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
         jobsId = [job_id]
         files = []
         while (depth-1) and jobsId:
-           for job_id in jobsId:
-             command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
-             jobsId=[]
-             res = self.dbR_._query(command)
-             if not res['OK']:
-               gLogger.error('Ancestor',result["Message"])
-             else:
-               dbResult = res['Value']
-               for record in dbResult:
-                 jobsId +=[record[1]]
-                 if record[2] != 'No':
-                   files += [record[0]]
-           depth-=1 
+          for job_id in jobsId:
+            command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+            jobsId=[]
+            res = self.dbR_._query(command)
+            if not res['OK']:
+              gLogger.error('Ancestor',result["Message"])
+            else:
+              dbResult = res['Value']
+              for record in dbResult:
+                jobsId +=[record[1]]
+                if record[2] != 'No':
+                  files += [record[0]]
+          depth-=1 
         
         ancestorList[fileName]=files    
       else:
@@ -2364,18 +2364,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         jobsId = [job_id]
         files = []
         while (depth-1) and jobsId:
-           for job_id in jobsId:
-             command = 'select files.fileName,files.jobid, files.gotreplica, files.eventstat, files.eventtypeid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
-             jobsId=[]
-             res = self.dbR_._query(command)
-             if not res['OK']:
-               gLogger.error('Ancestor',result["Message"])
-             else:
-               dbResult = res['Value']
-               for record in dbResult:
-                 jobsId +=[record[1]]
-                 files += [{'FileName':record[0],'GotReplica':record[2],'EventStat':record[3],'EventType':record[4]}]
-           depth-=1 
+          for job_id in jobsId:
+            command = 'select files.fileName,files.jobid, files.gotreplica, files.eventstat, files.eventtypeid from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid='+str(job_id)
+            jobsId=[]
+            res = self.dbR_._query(command)
+            if not res['OK']:
+              gLogger.error('Ancestor',result["Message"])
+            else:
+              dbResult = res['Value']
+              for record in dbResult:
+                jobsId +=[record[1]]
+                files += [{'FileName':record[0],'GotReplica':record[2],'EventStat':record[3],'EventType':record[4]}]
+          depth-=1 
         
         ancestorList[fileName]=files    
       else:
@@ -2406,7 +2406,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
       res = self.dbR_._query(command)
       if not res["OK"]:
-        gLogger.error('Ancestor',result['Message'])
+        gLogger.error('Ancestor',res['Message'])
       elif len(res['Value']) == 0:
         logicalFileNames['Failed']+=[fileName]
       else:
@@ -2419,7 +2419,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
             command = 'select jobid from inputfiles where fileid='+str(file_id)
             res = self.dbR_._query(command)
             if not res["OK"]:
-              gLogger.error('Ancestor',result['Message'])
+              gLogger.error('Ancestor',res['Message'])
             elif len(res['Value']) != 0:
               job_ids = res['Value']
               
@@ -2429,15 +2429,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
                 fileids = []
                 res = self.dbR_._query(command)
                 if not res["OK"]:
-                  gLogger.error('Ancestor',result['Message'])
+                  gLogger.error('Ancestor',res['Message'])
                 elif len(res['Value']) == 0:
                   logicalFileNames['NotProcessed']+=[fileName]
                 else:
-                   dbResult = res['Value']
-                   for record in dbResult:
-                     fileids +=[record[1]]
-                     if record[2] != 'No':
-                       files += [record[0]]
+                  dbResult = res['Value']
+                  for record in dbResult:
+                    fileids +=[record[1]]
+                    if record[2] != 'No':
+                      files += [record[0]]
           depth-=1 
         
         ancestorList[fileName]=files    
