@@ -16,12 +16,9 @@
 __RCSID__ = "$Id: SiteAvailabilityAgent.py 18191 2009-11-11 16:46:41Z paterson $"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
-from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
-from DIRAC.Core.Utilities.Time                             import timeInterval,dateTime
 
-from DIRAC                                                 import gConfig, S_OK, S_ERROR
+from DIRAC                                                 import S_OK, S_ERROR, List, Time
 
-import re, time
 
 class SiteAvailabilityAgent( OptimizerModule ):
 
@@ -37,7 +34,7 @@ class SiteAvailabilityAgent( OptimizerModule ):
     return S_OK()
 
   #############################################################################
-  def checkJob( self, job, classadJob ):
+  def checkJob( self, job, classAdJob ):
     """ The main agent execution method
     """
     # First, get Site and BannedSites from the Job
@@ -161,7 +158,7 @@ class SiteAvailabilityAgent( OptimizerModule ):
     result = S_OK()
 
     bannedSites = classAdJob.getAttributeString('BannedSites')
-    bannedSites = string.replace( string.replace( bannedSites, '{', '' ), '}', '' )
+    bannedSites = bannedSites.replace( '}', '' ).replace( '{', '' )
     bannedSites = List.fromChar( bannedSites )
 
     if not 'ANY' in site and not 'Unknown' in site:
@@ -202,7 +199,7 @@ class SiteAvailabilityAgent( OptimizerModule ):
 
     return S_OK({'active':sites,'banned':candidates})
 
- #############################################################################
+  #############################################################################
   def __checkLastUpdateTime(self,job):
     """Returns S_OK() if the LastUpdateTime is within the time delta and 
        S_ERROR if this is outside the acceptable range. 
@@ -216,10 +213,10 @@ class SiteAvailabilityAgent( OptimizerModule ):
       self.log.verbose('LastUpdateTime is null for job %s:\n%s\nNo actions will be taken' %(job,result))
       return S_OK()
     
-    lastUpdate = fromString(result['Value'])
-    delta = datetime.timedelta( hours = selectDelay )
-    interval = timeInterval(lastUpdate,delta)
-    now = dateTime()
+    lastUpdate = Time.fromString(result['Value'])
+    delta = Time.hour * selectDelay
+    interval = Time.timeInterval(lastUpdate,delta)
+    now = Time.dateTime()
     if not interval.includes(now):
       return S_ERROR('Job has been waiting longer than select delay')
       
