@@ -61,13 +61,13 @@ class ErrorLoggingDB(DB):
     """ Get error info
     """  
     
-    req = "SELECT %s FROM ErrorLog WHERE ErrorID=%d" % (attribute,int(alarmID))
+    req = "SELECT %s FROM ErrorLog WHERE ErrorID=%d" % (attribute,int(errorID))
     result = self._query(req)
     if not result['OK']:
       return result
     
     if not result['Value']:
-      return S_ERROR('Error %d not found' % int(alarmID))
+      return S_ERROR('Error %d not found' % int(errorID))
     
     value = result['Value'][0][0]
     return S_OK(value)
