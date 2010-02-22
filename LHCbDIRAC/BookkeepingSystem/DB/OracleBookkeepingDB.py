@@ -796,15 +796,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         
     if procPass != 'ALL':
       descriptions = procPass.split('+')
+      if len(descriptions) == 1:
+        descriptions = procPass.split(' ')
       totalproc = ''
       for desc in descriptions:
-        result = self.getGroupId(desc.strip())
-        if not result['OK']:
-          return S_ERROR(result['Message'])
-        elif len(result['Value']) == 0:
-          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
-        val = result['Value'][0][0]
-        totalproc += str(val)+"<"
+        if descriptions != '':
+          result = self.getGroupId(desc.strip())
+          if not result['OK']:
+            return S_ERROR(result['Message'])
+          elif len(result['Value']) == 0:
+            return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+          val = result['Value'][0][0]
+          totalproc += str(val)+"<"
       totalproc = totalproc[:-1]
       condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
       condition += ' and productions.PRODUCTION=jobs.production'
