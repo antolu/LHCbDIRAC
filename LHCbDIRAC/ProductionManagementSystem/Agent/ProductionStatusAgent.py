@@ -35,7 +35,6 @@ from DIRAC.Interfaces.API.Dirac                                import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
-from LHCbDIRAC.Interfaces.API.Production                          import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
 import string,time
@@ -64,7 +63,6 @@ class ProductionStatusAgent(AgentModule):
     self.updatedProductions = {}
     self.updatedRequests = []
     reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
-    prodAPI=Production()
     result =  reqClient.getProductionRequestSummary('Active','Simulation')
     if not result['OK']:
       self.log.error('Could not retrieve production request summary:\n%s\nwill be attempted on next execution cycle' %result)
@@ -112,24 +110,6 @@ class ProductionStatusAgent(AgentModule):
     if not prodValOutputs.keys():
       self.log.info('No productions have yet reached the necessary number of BK events')
       return S_OK()
-
-    #Now we have the production IDs to change, need to ensure parameters are present before
-    #proceeding with other actions, this is temporary (will be added at creation time normally)
-#    toRemove = []
-#    for production in prodValOutputs.keys():
-#      result = self.setProdParams(production)
-#      if not result['OK']:
-#        toRemove.append(production)
-
-#    for p in toRemove: del prodValOutputs[p]
-
-#    toRemove = []
-#    for production in prodValInputs.keys():
-#      result = self.setProdParams(production)
-#      if not result['OK']:
-#        toRemove.append(production)
-
-#    for p in toRemove: del prodValInputs[p]
 
     #Now have to update productions to ValidatingOutput / Input after cleaning jobs
     for prod,req in prodValOutputs.items():
@@ -206,6 +186,7 @@ class ProductionStatusAgent(AgentModule):
           self.updateProductionStatus(mcProd,'ValidatingInput','RemovingFiles')
 
         self.updateProductionStatus(prod,'ValidatedOutput','Completed')
+        self.updateAssociatedTransformation(prod)
         self.updateRequestStatus(reqID,'Done')
 
     completedParents = []
@@ -251,6 +232,7 @@ class ProductionStatusAgent(AgentModule):
         for prod,used in prodProgress.items():
           if used['Used']:
             self.updateProductionStatus(prod,'ValidatedOutput','Completed')
+            self.updateAssociatedTransformation(prod)          
           else:
             self.updateProductionStatus(prod,'ValidatingInput','RemovingFiles')
 
@@ -297,6 +279,27 @@ class ProductionStatusAgent(AgentModule):
     return S_OK()
 
   #############################################################################
+  def updateAssociatedTransformation(self,prodID,status='Completed'):
+    """ This function checks for a production parameter "AssociatedTransformation"
+        and if found will also update the transformation ID to the supplied status.
+    """
+    productionClient = ProductionClient()
+    result = productionClient.getParameters(prodID,'AssociatedTransformation')
+    if not result['OK']:
+      self.log.info('No associated transformation found for productionID %s' %prodID)
+      return S_OK()
+    
+    transID = int(result['Value'])
+    res = productionClient.setProductionStatus(transID,status)
+    if not res['OK']:
+      self.log.error("Failed to update status of transformation %s to %s" % (transID,status))
+    else:
+      self.updatedProductions[transID]={'to':status,'from':'Active'}    
+    self.log.verbose('Changing status for transformation %s to %s' %(transID,status))
+    
+    return S_OK()
+
+  #############################################################################
   def mailProdManager(self):
     """ Notify the production manager of the changes as productions should be
         manually extended in some cases.
@@ -331,22 +334,6 @@ class ProductionStatusAgent(AgentModule):
       self.log.error(result)
 
     return result
-
-  #############################################################################
-  def setProdParams(self,prodID):
-    """ This method checks if production parameters are present and sets them
-        if missing.
-    """
-    #return S_OK()
-    prodAPI = Production()
-    if not prodAPI.getParameters(prodID)['OK']:
-      self.log.info('===>Adding parameters for production %s' %(prodID))
-      result = prodAPI._setProductionParameters(prodID)
-      if not result['OK']:
-        self.log.error('Could not add production parameters for %s with message:\n%s' %(prodID,result['Message']))
-        return result
-
-    return S_OK()
 
   #############################################################################
   def cleanActiveJobsUpdateStatus(self,prodID,origStatus,status):
