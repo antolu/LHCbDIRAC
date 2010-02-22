@@ -705,8 +705,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
   #############################################################################
   def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False):
-    """ This method will publish production parameters
-        N.B. a problem prevents saving of dictionaries at the MySQL level
+    """ This method will publish production parameters.
     """
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
@@ -862,11 +861,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       for n,v in parameters.items():
         print '='*len(n),n,'='*len(n)
         print v
-
-    #Due to problem with Transformation parameters have to remove dictionaries (lists will be joined with \n)
-#    del parameters['BKInputQuery']
-#    del parameters['BKProcessingPass']
-#    del parameters['OutputLFNs']
 
     for n,v in parameters.items():
       result = self.setProdParameter(prodID,n,v)
@@ -1024,7 +1018,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.info('Successfully created transformation %s for production %s' %(result['Value'],prodID))
     elif transformation:
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
-      self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)      
+      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)
+      if not transID['OK']:
+        self.log.error('Problem discovering transformation ID, result was: %s' %transID)
+      else:  
+        transID = transID['Value']  
+        result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
+        if not result['OK']:
+          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))      
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))      
 
