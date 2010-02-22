@@ -244,7 +244,7 @@ class DataRecoveryAgent(AgentModule):
     now = dateTime()
     olderThan = now-delta
 
-    res = self.getTransformationTasks(condDict=condDict,older=olderThan,timeStamp='LastUpdateTime',inputVector=True)
+    res = self.prodDB.getTransformationTasks(condDict=condDict,older=olderThan,timeStamp='LastUpdateTime',inputVector=True)
     if not res['OK']:
       return res
     for jobDict in res['Value']:
