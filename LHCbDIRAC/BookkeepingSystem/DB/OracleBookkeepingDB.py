@@ -800,7 +800,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         descriptions = procPass.split(' ')
       totalproc = ''
       for desc in descriptions:
-        if descriptions != '':
+        if desc != '':
           result = self.getGroupId(desc.strip())
           if not result['OK']:
             return S_ERROR(result['Message'])
