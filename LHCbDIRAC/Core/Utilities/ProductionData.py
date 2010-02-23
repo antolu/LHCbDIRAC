@@ -174,7 +174,7 @@ def constructUserLFNs(jobID,owner,outputFiles,outputPath):
   initial = owner[:1]
   subdir = str(jobID/1000)  
   timeTup = datetime.date.today().timetuple() 
-  yearMonth = '%s_%s' %(timeTup[0],timeTup[1])
+  yearMonth = '%s_%s' %(timeTup[0],string.zfill(str(timeTup[1]),2))
   outputLFNs = {}
   
   #Strip out any leading or trailing slashes but allow fine structure
