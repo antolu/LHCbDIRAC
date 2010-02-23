@@ -66,7 +66,7 @@ class LcgFileCatalogProxyHandler(RequestHandler):
       proxyBase = "/tmp/proxies"
       if not os.path.exists(proxyBase):
         os.makedirs(proxyBase)
-      proxyLocation = "%s/proxies/%s-%s" % (proxyBase,clientUsername,clientGroup)
+      proxyLocation = "%s/%s-%s" % (proxyBase,clientUsername,clientGroup)
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
       res = gProxyManager.dumpProxyToFile(chain,proxyLocation)
       if not res['OK']:
