@@ -132,6 +132,7 @@ def _inform_people(rec,oldstate,state,author,inform):
         else:
           eMail = _getMailAddress(author)
       if eMail:
+        notification = NotificationClient()
         res = notification.sendMail(eMail,subj,
                                     body+footer+'lhcb_user'+ppath,
                                     fromAddress,True)
