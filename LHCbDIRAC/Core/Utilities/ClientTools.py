@@ -349,6 +349,25 @@ def _setupRootEnvironment(daVinciVersion=''):
   appEnv = ret['outputEnv']
   return S_OK(appEnv)
 
+
+def getLFNlist(datacard):
+  """ take gaudi card generated from BKK and return list of LFNs, useful to be passed to splitByFiles
+  """
+  inputFile = open(datacard,'r')  
+  lfns = []
+  for line in inputFile:
+    l = line.lstrip()
+    if l[0:1]=="#" : continue 
+    if l[0:3]=="from" : continue 
+    if l.find("EventSelector")>-1:continue 
+    if l.rfind("DATAFILE")==-1: continue
+    wds = l.split("'")
+    lfn = wds[1].lstrip("LFN:")
+    lfns.append(lfn)
+  inputFile.close()
+  gLogger.verbose('\nObtained %s LFNs from file' % len(lfns))
+  return lfns
+
 #############################################################################
 def log( n, line ):
   gLogger.debug( line )
