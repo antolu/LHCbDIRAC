@@ -350,29 +350,29 @@ class VeloCondition(Conditions):
 
 if __name__ == "__main__":
   datataking = {  'Description':'Blalbla',\
-                    'BeamCond':'Beam', \
-                    'BeamEnergy':'450GeV', \
-                    'MagneticField':'ON', \
-                    'VELO':'NOT INCLUDED', \
+                    'BeamCond':'UNKNOWN', \
+                    'BeamEnergy':'0.0', \
+                    'MagneticField':'OFF', \
+                    'VELO':'INCLUDED', \
                     'IT':'INCLUDED',  \
-                    'TT':'UNKOWN', \
-                    'OT':'NOT INCLUDED', \
-                    'RICH1':'NOT INCLUDED',  \
-                    'RICH2':'NOT INCLUDED', \
-                    'SPD_PRS':'NOT INCLUDED',\
-                    'ECAL':'NOT INCLUDED', \
-                    'HCAL':'NOT INCLUDED', \
-                    'MUON':'NOT INCLUDED', \
-                    'L0':'NOT INCLUDED', \
-                    'HLT':'INCLUDED', \
-                    'VeloPosition':'Open'}
+                    'TT':'INCLUDED', \
+                    'OT':'INCLUDED', \
+                    'RICH1':'INCLUDED',  \
+                    'RICH2':'INCLUDED', \
+                    'SPD_PRS':'INCLUDED',\
+                    'ECAL':'INCLUDED', \
+                    'HCAL':'INCLUDED', \
+                    'MUON':'INCLUDED', \
+                    'L0':'INCLUDED', \
+                    'HLT':'UNKOWN', \
+                    'VeloPosition':'OPEN'}
 
   print datataking
   
-  context = Context(datataking, 'RICH1')
-  conditions = [BeamCondition(), BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
-                MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
-  
+  context = Context(datataking, 'FEST')
+  conditions = [BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
+              MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
+      
  
   for condition in conditions:
     condition.interpret(context)
