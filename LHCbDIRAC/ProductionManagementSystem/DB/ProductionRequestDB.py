@@ -372,7 +372,7 @@ class ProductionRequestDB(DB):
       except Exception,e:
         self.lock.release()
         return S_ERROR('ParentID is not a number')
-      result = self.__getStateAndAuthor(ParentID,connection)
+      result = self.__getStateAndAuthor(parentID,connection)
       if not result['OK']:
         return result
 
