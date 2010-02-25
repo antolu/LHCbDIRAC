@@ -261,8 +261,9 @@ class ControlerMain(ControlerAbstract):
         prefix = param +'+' + type
         return S_OK(prefix)
       else:        
-        gLogger.error('Unknown message!',message.action())
-        return S_ERROR('Unknown message!')
+        gLogger.error('Unknown message!',str(message.action())+str(message))
+        return S_ERROR('Unknown message!'+ str(message.action())+str(message))
+
     
     elif sender.__class__.__name__=='ControlerProductionLookup':
       if message.action() =='showAllProduction':
@@ -292,7 +293,8 @@ class ControlerMain(ControlerAbstract):
         ct = controlers['TreeWidget']
         ct.messageFromParent(message)        
       else:
-        print 'Unknown message!',message.action(),message
+        gLogger.error('Unkown message!', message)
+        return S_ERROR()
       
   #############################################################################  
   def root(self):
@@ -321,7 +323,7 @@ class ControlerMain(ControlerAbstract):
     #message = Message({'action':'list','items':items})
     #self.getControler().messageFromParent(message)
   #############################################################################  
-    
+  
   #############################################################################  
   def setFileName(self, fileName):
     self.__fileName = fileName
