@@ -352,6 +352,11 @@ class DataRecoveryAgent(AgentModule):
         self.log.error('No ancestors found for the following file with message:\n%s' %(string.join(result['Value']['Failed'],'\n')))
         continue
       toCheck = result['Value']['Successful'].values()
+      # I THINK THIS IS THE BUG. 
+      # res['Value']['Successful'] has lfns as keys and lists of lfns as values.
+      # therefore the result['Value']['Successful'].values() is a list of lists
+      # when looping over toCheck fname (being a list) will never be in jobFileDict.values() (itself a list)
+      # therefore these files are considered to be updated to Unused
       finalToRemove.append(i)
       for fname in toCheck:
         if not fname in jobFileDict.values():
@@ -403,5 +408,3 @@ class DataRecoveryAgent(AgentModule):
       self.log.info('%s => %s' %(lfn,message))
     
     return S_OK()
-            
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#    
