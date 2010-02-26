@@ -178,7 +178,7 @@ def CheckInstallSoftware(app,config,area):
   cmdTuple += ['-d']
   cmdTuple += [ '-p', appName ]
   cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '-b' ]
+  cmdTuple += [ '--check' ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
 
