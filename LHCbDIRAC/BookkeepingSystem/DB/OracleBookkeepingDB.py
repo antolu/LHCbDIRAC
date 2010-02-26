@@ -3356,8 +3356,8 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getAvailableTags(self):
     command = 'select name, tag from tags'
-    res = self.dbR_._query(command)
-    if res['OK']:
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
       parameters = ['TagName','TagValue']
       dbResult = retVal['Value']
       records = []
@@ -3368,4 +3368,4 @@ and files.qualityid= dataquality.qualityid'
         nbRecords += 1
       return S_OK({'TotalRecords':nbRecords,'ParameterNames':parameters,'Records':records,'Extras': {}})        
     else:
-      return res
+      return retVal
