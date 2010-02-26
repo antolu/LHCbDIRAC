@@ -807,4 +807,9 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionInformation(long(prodid))
 
+  #############################################################################
+  def getAvailableTags(self):
+      server = self.__getServer()
+      return server.getAvailableTags()
+  
    #----------------------------------- END Event Types------------------------------------------------------------------

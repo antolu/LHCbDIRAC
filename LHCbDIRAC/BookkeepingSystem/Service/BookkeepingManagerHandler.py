@@ -1142,7 +1142,12 @@ class BookkeepingManagerHandler(RequestHandler):
   types_insertFileTypes = [StringType, StringType]
   def export_insertFileTypes(self, ftype, desc):
     return dataMGMT_.insertFileTypes(ftype, desc)
-
+  
+  #############################################################################
+  types_getAvailableTags = []
+  def export_getAvailableTags(self):
+    return dataMGMT_.getAvailableTags()
+  
   '''
   End Monitoring
   '''

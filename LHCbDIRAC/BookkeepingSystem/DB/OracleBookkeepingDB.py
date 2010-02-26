@@ -3353,4 +3353,19 @@ and files.qualityid= dataquality.qualityid'
   def getConfigsAndEvtType(self, prodid):
     return self.dbR_.executeStoredProcedure('BKK_MONITORING.getConfigsAndEvtType',[prodid])
   
-  
+  #############################################################################
+  def getAvailableTags(self):
+    command = 'select name, tag from tags'
+    res = self.dbR_._query(command)
+    if res['OK']:
+      parameters = ['TagName','TagValue']
+      dbResult = retVal['Value']
+      records = []
+      nbRecords = 0
+      for record in dbResult:
+        row = [record[0],record[1]]
+        records += [row]
+        nbRecords += 1
+      return S_OK({'TotalRecords':nbRecords,'ParameterNames':parameters,'Records':records,'Extras': {}})        
+    else:
+      return res
