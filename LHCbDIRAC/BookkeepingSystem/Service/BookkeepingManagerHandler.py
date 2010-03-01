@@ -433,10 +433,7 @@ class BookkeepingManagerHandler(RequestHandler):
       datataking = str(values['DataTakingConditions'])
     
     if values.has_key('ProcessingPass'):
-      if values['ProcessingPass'] == 'Stripping01-L0HLT1':
-        procPass = 'MC09-Sim03Reco02-withoutTruth+Stripping01-L0HLT1'
-      else:
-        procPass = values['ProcessingPass']
+      procPass = values['ProcessingPass']
     else:
       procPass = 'ALL'
     
@@ -481,9 +478,13 @@ class BookkeepingManagerHandler(RequestHandler):
       endd = values['EndDate']
     else:
       endd = None
-    
+    if values.has_key('NbOfEvents'):
+      nbofevents = True
+    else:
+      nbofevents = False
+      
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:

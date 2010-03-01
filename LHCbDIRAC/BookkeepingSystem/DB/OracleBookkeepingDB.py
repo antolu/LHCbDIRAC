@@ -980,7 +980,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False):
     
     configid = None
     condition = ''
@@ -1106,7 +1106,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                    data_Taking_conditions.description=\''+datataking+'\' and \
                    productions.simcondid= data_Taking_conditions.Daqperiodid '+ pcondition
     
-    command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+    if nbofEvents:
+      command = ' select sum(files.eventstat) from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production in (' + simcondition + daqcondition+')'
+    else:
+      command = ' select filename from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
                    and jobs.production in (' + simcondition + daqcondition+')'
                    
     res = self.dbR_._query(command)
