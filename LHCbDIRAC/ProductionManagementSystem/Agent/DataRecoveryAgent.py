@@ -249,10 +249,10 @@ class DataRecoveryAgent(AgentModule):
       return res
     for jobDict in res['Value']:
       job = jobDict['JobID']
-      wmsID = params['JobWmsID']
-      lastUpdate = params['LastUpdateTime']
-      wmsStatus = params['WmsStatus']
-      jobInputData = params['InputVector']
+      wmsID = jobDict['JobWmsID']
+      lastUpdate = jobDict['LastUpdateTime']
+      wmsStatus = jobDict['WmsStatus']
+      jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
       #Exclude jobs not having appropriate WMS status now         
@@ -313,6 +313,8 @@ class DataRecoveryAgent(AgentModule):
     toRemove=[]
     strandedAncestors=[]
     for job,fileList in jobFileDict.items():
+      if not fileList:
+        continue
       self.log.info('Checking BK descendents for job %s...' %job)
       #check any input data has descendant files...
       result = self.bkClient.getDescendents(fileList,bkDepth)
