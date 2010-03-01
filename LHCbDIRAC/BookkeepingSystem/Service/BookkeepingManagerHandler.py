@@ -479,7 +479,7 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       endd = None
     if values.has_key('NbOfEvents'):
-      nbofevents = True
+      nbofevents = values['NbOfEvents']
     else:
       nbofevents = False
       
