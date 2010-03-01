@@ -16,6 +16,8 @@ import DIRAC
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Os import sourceEnv
+from DIRAC.Core.Utilities.Subprocess import shellCall,systemCall
+import time
 
 #############################################################################
 def packageInputs(appName,appVersion,optionsFiles=[],destinationDir='',optsFlag=True,libFlag=True):
@@ -99,29 +101,9 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
   """Set up project environment and expand options.
   """
   gLogger.verbose('Options files to locate are: %s' %string.join(optionsFiles,', '))
-  setupProject = ['SetupProject']
-  setupProject.append( '--ignore-missing' )
-  setupProject.append( appName )
-  setupProject.append( appVersion )
-
-  if os.environ.has_key('VO_LHCB_SW_DIR'):
-    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
-    gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-  elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
-    sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
-    gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
-  lbLogin = '%s/LbLogin' %sharedArea
-  ret = sourceEnv( 300,[lbLogin], dict(os.environ))
-  if not ret['OK']:
-    gLogger.warn('Error during lbLogin\n%s' %ret)
-
-  setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
-  setupProject.append(appName)
-  setupProject.append(appVersion)
-  ret = sourceEnv( 300, setupProject, ret['outputEnv'] )
+  ret = __setupProjectEnvironment(appName,version=appVersion,extra='--ignore-missing')
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
-
   appEnv = ret['outputEnv']
   toCheck = []
   toInclude = []
@@ -230,6 +212,67 @@ def _errorReport(error,message=None):
   return S_ERROR(message)
 
 #############################################################################
+def readFileEvents(turl):
+  """ Open the supplied file through Gaudi, read the events, and return the timing for each operation """
+  # Setup the application enviroment  
+  gLogger.info("Setting up the Gaudi environment")
+  startTime = time.time()
+  res = __setupProjectEnvironment('Gaudi',extra='ROOT')
+  if not res['OK']:
+    return _errorReport(res['Message'],"Failed to setup the Gaudi environment")
+  gaudiEnv = res['Value']
+  gLogger.info("Gaudi environment successful in %.1f seconds" % (time.time()-startTime))
+  workingDirectory = os.getcwd()
+  fopen = open('%s/GaudiScript.py' % workingDirectory,'w')
+  fopen.write('import GaudiPython\n')
+  fopen.write('from Gaudi.Configuration import *\n')
+  fopen.write('import time\n')
+  fopen.write('appMgr = GaudiPython.AppMgr(outputlevel=6)\n')
+  fopen.write('appMgr.config( files = ["$GAUDIPOOLDBROOT/options/GaudiPoolDbRoot.opts"])\n')
+  fopen.write('sel = appMgr.evtsel()\n')
+  fopen.write('startTime = time.time()\n')
+  fopen.write('sel.open(["%s"])\n' % turl)
+  fopen.write('evt = appMgr.evtsvc()\n')
+  fopen.write('appMgr.run(1)\n')
+  fopen.write('oOpenTime = open("%s/OpenTime.txt","w")\n' % workingDirectory)
+  fopen.write('openTime = time.time()-startTime\n')
+  fopen.write('oOpenTime.write("%.4f" % openTime)\n')
+  fopen.write('oOpenTime.close()\n')
+  fopen.write('readTimes = []\n')
+  fopen.write('while 1:\n')
+  fopen.write('  startTime = time.time()\n')
+  fopen.write('  appMgr.run(1)\n')
+  fopen.write('  readTime = time.time()-startTime\n')
+  fopen.write('  if not evt["/Event"]:\n')
+  fopen.write('    break\n')
+  fopen.write('  readTimes.append(readTime)\n')
+  fopen.write('oReadTime = open("%s/ReadTime.txt","w")\n' % workingDirectory)
+  fopen.write('for readTime in readTimes:\n')
+  fopen.write('  oReadTime.write("%s\\n" % readTime)\n')
+  fopen.write('oReadTime.close()\n')
+  fopen.write('print "SUCCESS"\n')
+  fopen.close()
+  gLogger.info("Generated GaudiPython script at %s/GaudiScript.py" % workingDirectory) 
+  # Execute the root script
+  cmd = ['python']
+  cmd.append('%s/GaudiScript.py' % workingDirectory)
+  gLogger.info("Executing GaudiPython script: %s" % cmd)
+  res = systemCall(1800,cmd,env=gaudiEnv,callbackFunction=log)
+  if not res['OK']:
+    return _errorReport(res['Message'],"Failed to execute %s" % cmd)
+  if res['Value'][0]:
+    return _errorReport(res['Value'][2],"Failed to execute %s: %s" % (cmd,res['Value'][0]))
+  resDict = {}
+  oOpenTime = open('%s/OpenTime.txt' % workingDirectory)
+  resDict['OpenTime'] = eval(oOpenTime.read())
+  oOpenTime.close()
+  oReadTime = open('%s/ReadTime.txt' % workingDirectory)
+  resDict['ReadTimes'] = []
+  for readTime in oReadTime.read().splitlines():
+    resDict['ReadTimes'].append(float(readTime))
+  return S_OK(resDict)
+
+#############################################################################
 def getRootFilesGUIDs(fileNames,cleanUp=True):
   """ Bulk function for getting the GUIDs for a list of files
   """
@@ -326,22 +369,26 @@ def _mergeRootFiles(outputFile,inputFiles,rootEnv):
 
 #############################################################################
 def _setupRootEnvironment(daVinciVersion=''):
+  return __setupProjectEnvironment('DaVinci',version=daVinciVersion,extra='ROOT')
+
+def __setupProjectEnvironment(project,version='',extra=''):
   if os.environ.has_key('VO_LHCB_SW_DIR'):
     sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
     gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
   elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
     sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
     gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
-  lbLogin = '%s/LbLogin' %sharedArea
+  lbLogin = '%s/LbLogin' % sharedArea
   ret = sourceEnv( 300,[lbLogin], dict(os.environ))
   if not ret['OK']:
     gLogger.warn('Error during lbLogin\n%s' %ret)
     return ret
   setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
-  if daVinciVersion:
-    setupProject.append('DaVinci %s ROOT' % daVinciVersion)
-  else:
-    setupProject.append('DaVinci ROOT')
+  if version:
+    project = "%s %s" % (project,version)
+  if extra:
+    project = "%s %s" % (project,extra)
+  setupProject.append(project)
   ret = sourceEnv( 300, setupProject, ret['outputEnv'])
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
@@ -349,8 +396,8 @@ def _setupRootEnvironment(daVinciVersion=''):
   appEnv = ret['outputEnv']
   return S_OK(appEnv)
 
-
-def getLFNlist(datacard):
+#############################################################################
+def parseGaudiCard(datacard):
   """ take gaudi card generated from BKK and return list of LFNs, useful to be passed to splitByFiles
   """
   inputFile = open(datacard,'r')  
@@ -371,5 +418,3 @@ def getLFNlist(datacard):
 #############################################################################
 def log( n, line ):
   gLogger.debug( line )
-
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
