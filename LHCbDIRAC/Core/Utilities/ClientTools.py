@@ -270,6 +270,7 @@ def readFileEvents(turl):
   resDict['ReadTimes'] = []
   for readTime in oReadTime.read().splitlines():
     resDict['ReadTimes'].append(float(readTime))
+  oReadTime.close()
   return S_OK(resDict)
 
 #############################################################################
