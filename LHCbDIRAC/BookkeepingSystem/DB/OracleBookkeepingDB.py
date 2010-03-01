@@ -3373,3 +3373,10 @@ and files.qualityid= dataquality.qualityid'
       return S_OK({'TotalRecords':nbRecords,'ParameterNames':parameters,'Records':records,'Extras': {}})        
     else:
       return retVal
+  
+  #############################################################################
+  def getProcessedEvents(self, prodid):
+    command = 'select sum(jobs.numberofevents) from jobs where jobs.production='+str(prodid)
+    res = self.dbR_._query(command)
+    return res
+  

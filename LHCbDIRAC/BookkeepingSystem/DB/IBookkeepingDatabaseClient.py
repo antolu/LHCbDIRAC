@@ -593,6 +593,10 @@ class IBookkeepingDatabaseClient(object):
   def getAvailableTags(self):
     return self.getManager().getAvailableTags()
   
+  #############################################################################
+  def getProcessedEvents(self, prodid):
+    return self.getManager().getProcessedEvents(prodid)
+  
   '''
   END MONITORING
   '''
