@@ -212,16 +212,16 @@ def _errorReport(error,message=None):
   return S_ERROR(message)
 
 #############################################################################
-def readFileEvents(turl):
+def readFileEvents(turl,appVersion):
   """ Open the supplied file through Gaudi, read the events, and return the timing for each operation """
   # Setup the application enviroment  
-  gLogger.info("Setting up the Gaudi environment")
+  gLogger.info("Setting up the DaVinci %s environment" %appVersion)
   startTime = time.time()
-  res = __setupProjectEnvironment('Gaudi',extra='ROOT')
+  res = __setupProjectEnvironment('DaVinci',version=appVersion,extra='')
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the Gaudi environment")
   gaudiEnv = res['Value']
-  gLogger.info("Gaudi environment successful in %.1f seconds" % (time.time()-startTime))
+  gLogger.info("DaVinci %s environment successful in %.1f seconds" % (appVersion,time.time()-startTime))
   workingDirectory = os.getcwd()
   fopen = open('%s/GaudiScript.py' % workingDirectory,'w')
   fopen.write('import GaudiPython\n')
