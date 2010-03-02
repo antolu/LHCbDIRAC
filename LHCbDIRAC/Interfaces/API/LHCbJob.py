@@ -74,11 +74,25 @@
      j.setRootMacro('5.18.00a','test.C')
      j.setRootPythonScript('5.18.00a','test.py')
      j.setRootExecutable('5.18.00a','minexam')
-     j.setLogLevel('verbose')
 
      dirac = DiracLHCb()
      jobID = dirac.submit(j,mode='local')
      print 'Submission Result: ',jobID
+     
+   To execute a protocol access test (for experts) the following example script should suffice:
+   
+     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+
+     j = LHCbJob()
+     j.setCPUTime(50000)
+     j.setSystemConfig('slc4_ia32_gcc34')
+     j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
+     j.setLogLevel('verbose')
+
+     dirac = DiracLHCb()
+     jobID = dirac.submit(j,mode='wms')
+     print 'Submission Result: ',jobID   
 
 """
 
@@ -1014,4 +1028,117 @@ class LHCbJob(Job):
     step.addParameter(Parameter("logFile","","string","","",False,False,'Log file name'))
     return step
     
+  #############################################################################
+  def setProtocolAccessTest(self,protocols,rootVersion,inputData='',logFile=''):
+    """Helper function.
+
+       Perform a protocol access test at an optional site with the input data specified.
+
+       Example usage:
+
+       >>> job = Job()
+       >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
+
+       @param executable: Executable
+       @type executable: string
+    """
+    kwargs = {'protocols':protocols,'inputData':inputData,'logFile':logFile,'rootVersion':rootVersion}
+    if not protocols:
+      return self._reportError('A list of protocols is required for this test',__name__,**kwargs)
+    
+    if not type(logFile) == type(' ') or not type(rootVersion) == type(' '):
+      return self._reportError('Expected strings for input parameters',__name__,**kwargs)
+
+    if logFile:
+      if not type(logFile) in types.StringTypes:
+        return self._reportError('Expected string for log file name',__name__,**kwargs)
+      logPrefix = 'Step%s_' %(stepNumber)
+      logFile = '%s%s' %(logPrefix,logFile)
+    self.addToOutputSandbox.append('*.log')
+
+    if inputData:
+      if type(inputData) in types.StringTypes:
+        inputData = [inputData]
+      if not type(inputData)==type([]):
+        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)
+      for i in xrange(len(inputData)):
+        inputData[i] = inputData[i].replace('LFN:','')
+      inputData = map( lambda x: 'LFN:'+x, inputData)
+      inputDataStr = string.join(inputData,';')
+      self.addToInputData.append(inputDataStr)
+
+    if type(protocols) == type(' '):
+      protocols = [protocols]
+    protocols = string.join(protocols,';')
+
+    #Must check if ROOT version in available versions and define appName appVersion...
+    rootVersions = gConfig.getOptions(self.rootSection,[])
+    if not rootVersions['OK']:
+      return self._reportError('Could not contact DIRAC Configuration Service for supported ROOT version list',__name__,**kwargs)          
+
+    rootList = rootVersions['Value']
+    if not rootVersion in rootList:
+      return self._reportError('Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', ')),__name__,**kwargs)                
+    
+    self.gaudiStepCount +=1
+    stepNumber = self.gaudiStepCount
+    stepDefn = 'ProtocolTestStep%s' %(stepNumber)
+    step =  self.__getProtocolStep(stepDefn)
+    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
+
+    stepName = 'RunProtocolTestStep%s' %(stepNumber)
+
+    self.workflow.addStep(step)
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
+
+    # Define Step and its variables
+    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance.setValue("protocols",protocols)
+    if logFile:
+      stepInstance.setValue("applicationLog",logFile)
+    if inputData:
+      stepInstance.setValue("inputData",string.join(inputData,';'))
+
+    # now we have to tell DIRAC to install the necessary software
+    appRoot = '%s/%s' %(self.rootSection,rootVersion)
+    currentApp = gConfig.getValue(appRoot,'')
+    if not currentApp:
+      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' %appRoot,__name__,**kwargs)                    
+    
+    appVersion = currentApp.split('.')[1]
+    stepInstance.setValue("applicationVersion",appVersion)    
+    stepInstance.setValue("rootVersion",rootVersion)       
+    swPackages = 'SoftwarePackages'
+    description='List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter(swPackages):
+      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    else:
+      apps = self.workflow.findParameter(swPackages).getValue()
+      if not currentApp in string.split(apps,';'):
+        apps += ';'+currentApp
+      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+
+  #############################################################################
+  def __getProtocolStep(self,name='ProtocolAccessTest'):
+    """Internal function. This method controls the definition for the ProtocolAccessTest module.
+    """
+    # Create the ProtocolAccessTest module first
+    moduleName = 'ProtocolAccessTest'
+    module = ModuleDefinition(moduleName)
+    module.setDescription('A module to perform a Protocol Access Test')
+    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
+    module.setBody(body)
+    # Create Step definition
+    step = StepDefinition(name)
+    step.addModule(module)
+    step.createModuleInstance('ProtocolAccessTest',name)
+    # Define step parameters
+    step.addParameter(Parameter("protocols","","string","","",False, False, 'List of Protocols'))
+    step.addParameter(Parameter("applicationLog","","string","","",False,False,'Log file name'))
+    step.addParameter(Parameter("applicationVersion","","string","","",False,False,'DaVinci version'))
+    step.addParameter(Parameter("rootVersion","","string","","",False,False,'ROOT version'))
+    step.addParameter(Parameter("inputData","","string","","",False, False, 'Input Data')) 
+    return step
+
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
