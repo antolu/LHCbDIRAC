@@ -1039,8 +1039,14 @@ class LHCbJob(Job):
        >>> job = Job()
        >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
 
-       @param executable: Executable
-       @type executable: string
+       @param protocols: data access protocols
+       @type protocols: string or list of protocols
+       @param rootVersion: ROOT version to use
+       @type rootVersion: string
+       @param inputData: Input data for application
+       @type inputData: single LFN string or list of LFNs
+       @param logFile: log file name
+       @type logFile: string                   
     """
     kwargs = {'protocols':protocols,'inputData':inputData,'logFile':logFile,'rootVersion':rootVersion}
     if not protocols:
