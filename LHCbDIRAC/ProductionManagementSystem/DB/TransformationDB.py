@@ -30,6 +30,8 @@ class TransformationDB(DIRACTransformationDB):
     DIRACTransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
     self.lock = threading.Lock()
     self.dbname = dbname
+    self.queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
+    self.intFields = ['EventType','ProductionID']
 
   def deleteBookkeepingQuery(self,bkQueryID,connection=False):
     """ Delete the specified query from the database
@@ -96,29 +98,23 @@ class TransformationDB(DIRACTransformationDB):
     """ Add a new Bookkeeping query specification
     """
     connection = self.__getConnection(connection)
-    queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType',
-                   'ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
-    parameters = []
     values = []
-    qvalues = []
-    for field in queryFields:
-      if field in queryDict.keys():
-        parameters.append(field)
-        if field == 'ProductionID' or field == 'EventType':
-          values.append(str(queryDict[field]))
-          qvalues.append(str(queryDict[field]))
-        else:
-          values.append("'"+queryDict[field]+"'")
-          qvalues.append(queryDict[field])
+    for field in self.queryFields:
+      if not field in queryDict.keys():
+        value = 'All'        
       else:
-        if field == 'ProductionID' or field == 'EventType':
-          qvalues.append(0)
-        else:
-          qvalues.append('All')
+        value = queryDict[field]
+        if type(value) in (IntType,LongType,FloatType):
+          value = str(value)
+        if type(value) in (ListType,TupleType):
+          value = [str(x) for x in value]          
+          value = ';;;'.join(value) 
+      values.append(value)
+
     # Check for the already existing queries first
     selections = []
-    for i in range(len(queryFields)):
-      selections.append(queryFields[i]+"='"+str(qvalues[i])+"'")
+    for i in range(len(self.queryFields)):
+      selections.append("%s='%s'" % (self.queryFields[i],values[i]))
     selectionString = ' AND '.join(selections)
     req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
     result = self._query(req,connection)
@@ -127,7 +123,10 @@ class TransformationDB(DIRACTransformationDB):
     if result['Value']:
       bkQueryID = result['Value'][0][0]
       return S_OK(bkQueryID)
-    req = "INSERT INTO BkQueries (%s) VALUES (%s)" % (','.join(parameters),','.join(values))
+
+    # Insert the new bk query
+    values = ["'%s'" % x for x in values]
+    req = "INSERT INTO BkQueries (%s) VALUES (%s)" % (','.join(self.queryFields),','.join(values))
     res = self._update(req,connection)
     if not res['OK']:
       return res
@@ -138,13 +137,11 @@ class TransformationDB(DIRACTransformationDB):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
     """
     connection = self.__getConnection(connection)
-    queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass',
-                   'FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
-    fieldsString = ','.join(queryFields)
+    fieldsString = ','.join(self.queryFields)
     if bkQueryID:
       req = "SELECT BkQueryID,%s FROM BkQueries WHERE BkQueryID=%d" % (fieldsString,int(bkQueryID))
     else:
-      req = "SELECT BkQueryID,%s FROM BkQueries" % (fieldsString,)
+      req = "SELECT BkQueryID,%s FROM BkQueries" % (fieldsString)
     result = self._query(req,connection)
     if not result['OK']:
       return result
@@ -153,12 +150,20 @@ class TransformationDB(DIRACTransformationDB):
     resultDict = {}
     for row in result['Value']:
       bkDict = {}
-      for parameter,value in zip(['BkQueryID']+queryFields,row):
-        bkDict[parameter] = value
-      rowQueryID = bkDict.pop('BkQueryID')
+      for parameter,value in zip(['BkQueryID']+self.queryFields,row):
+        if parameter == 'BkQueryID':
+          rowQueryID = value
+        elif value != 'All':
+          if re.search(';;;',value):
+            value = value.split(';;;')
+          if parameter in self.intFields:
+            if type(value) in StringTypes:
+              value = long(value)
+            if type(value) == ListType:
+              value = [int(x) for x in value]
+          bkDict[parameter] = value
       resultDict[rowQueryID] = bkDict
     if bkQueryID:
       return S_OK(bkDict)
     else:
       return S_OK(resultDict)
-
