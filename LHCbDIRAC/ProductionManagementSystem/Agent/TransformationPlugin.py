@@ -189,7 +189,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def __getBookkeepingMetadata(self,lfns):
     bk = BookkeepingClient()
     start = time.time()
-    res = bk.getFileMetadata(lfnDict.keys())
+    res = bk.getFileMetadata(lfns)
     gLogger.verbose("Obtained BK file metadata in %.2f seconds" % (time.time()-start))
     if not res['OK']: 
       gLogger.error("Failed to get bookkeeping metadata",res['Message'])
