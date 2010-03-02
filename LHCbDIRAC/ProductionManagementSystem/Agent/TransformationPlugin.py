@@ -119,25 +119,41 @@ class TransformationPlugin(DIRACTransformationPlugin):
       existingCount[targetSite] += len(unusedLfns)
     return S_OK(tasks)
 
-  def _ByRun(self,plugin='Standard'):
-    res = self._groupByRun(self.data)
+  def _ByRun(self,param='', plugin='Standard'):
+    res = self.__groupByRunAndParam(self.data,param=param)
     if not res['OK']:
       return res
     allReplicas = self.data.copy()
     allTasks = []
-    for runID,runLfns in res['Value'].items():
-      runReplicas = {}
-      for runLfn in runLfns:
-        runReplicas[runLfn] = allReplicas[runLfn]
-      self.data = runReplicas
-      res = eval('self._%s()' % plugin)
-      if not res['OK']:
-        return res
-      allTasks.extend(res['Value'])
+    runDict = res['Value']
+    for runID in sortList(runDict.keys()):
+      paramDict = runDict[runID]
+      for paramValue in sortList(paramDict.keys()):
+        runParamLfns = paramDict[paramValue]
+        runParamReplicas = {}
+        for lfn in runParamLfns:
+          runParamReplicas[lfn] = allReplicas[lfn]
+        self.data = runParamReplicas
+        res = eval('self._%s()' % plugin)
+        if not res['OK']:
+          return res
+        allTasks.extend(res['Value'])
     return S_OK(allTasks)  
 
   def _ByRunBySize(self):
     return self._ByRun(plugin='BySize')
+  
+  def _ByRunFileTypeSize(self):
+    return self._ByRun(param='FileType',plugin='BySize')
+  
+  def _ByRunFileType(self):
+    return self._ByRun(param='FileType')
+
+  def _ByRunEventTypeSize(self):
+    return self._ByRun(param='EventTypeId',plugin='BySize')
+  
+  def _ByRunEventType(self):
+    return self._ByRun(param='EventTypeId')
 
   def _LHCbDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
@@ -153,24 +169,31 @@ class TransformationPlugin(DIRACTransformationPlugin):
     destinations = int(self.params.get('Destinations',2))
     return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_MC_M-DST')
 
-  def _groupByRun(self,lfnDict):
-    # group data by run
+  def __groupByRunAndParam(self,lfnDict,param=''):
+    runDict = {}
+    res = self.__getBookkeepingMetadata(lfnDict.keys())
+    if not res['OK']:
+      return res
+    for lfn,metadata in res['Value'].items():
+      runNumber = 0
+      if metadata.has_key("RunNumber"):
+        runNumber = metadata["RunNumber"]
+      if not runDict.has_key(runNumber):
+        runDict[runNumber] = {}
+      paramValue = metadata.get(param)
+      if not runDict[runNumber].has_key(paramValue):
+        runDict[runNumber][paramValue] = []
+      runDict[runNumber][paramValue].append(lfn)
+    return S_OK(runDict)
+
+  def __getBookkeepingMetadata(self,lfns):
     bk = BookkeepingClient()
     start = time.time()
     res = bk.getFileMetadata(lfnDict.keys())
     gLogger.verbose("Obtained BK file metadata in %.2f seconds" % (time.time()-start))
     if not res['OK']: 
       gLogger.error("Failed to get bookkeeping metadata",res['Message'])
-      return res
-    runDict = {}
-    for lfn,metadata in res['Value'].items():
-      runNumber = 0
-      if metadata.has_key("RunNumber"):
-        runNumber = metadata["RunNumber"]
-      if not runDict.has_key(runNumber):
-        runDict[runNumber] = []
-      runDict[runNumber].append(lfn)
-    return S_OK(runDict)
+    return res
 
   def _lhcbBroadcast(self,sourceSEs,targetSEs,destinations,cernSE):
     filesOfInterest = {}
