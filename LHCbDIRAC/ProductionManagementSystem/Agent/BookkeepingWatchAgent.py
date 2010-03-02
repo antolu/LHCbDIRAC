@@ -52,21 +52,8 @@ class BookkeepingWatchAgent(AgentModule):
         if not res['OK']:
           gLogger.warn("BookkeepingWatchAgent.execute: Failed to get BkQuery", res['Message'])
           continue
-        bkDict = res['Value'] 
+        bkDict = res['Value']
         
-        # Make sure that we include only the required elements and format them correctly
-        for name,value in bkDict.items():  
-          if name == "BkQueryID" :
-            del bkDict[name]
-          elif name == "ProductionID" or name == "EventType":
-            if int(value) == 0:
-              del bkDict[name]
-            else:
-              bkDict[name] = str(value)
-          else:
-            if value.lower() == "all": 
-              del bkDict[name]
-
         # Determine the correct time stamp to use for this transformation
         if self.timeLog.has_key(transID):
           if self.fullTimeLog.has_key(transID):
