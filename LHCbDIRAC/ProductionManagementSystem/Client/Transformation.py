@@ -121,7 +121,7 @@ class Transformation(DIRACTransformation):
                                              groupSize           = self.paramValues['GroupSize'],
                                              inheritedFrom       = self.paramValues['InheritedFrom'],
                                              body                = self.paramValues['Body'],
-                                             maxJobs             = self.paramValues['MaxNumberOfJobs'],
+                                             maxTasks            = self.paramValues['MaxNumberOfTasks'],
                                              eventsPerJob        = self.paramValues['EventsPerJob'],
                                              addFiles            = addFiles,
                                              bkQuery             = self.paramValues['BkQuery'])

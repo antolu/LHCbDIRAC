@@ -30,7 +30,7 @@ class TransformationDBClient(DIRACTransformationDBClient):
                                     groupSize           = 1,
                                     inheritedFrom       = 0,
                                     body                = '',
-                                    maxJobs             = 0,
+                                    maxTasks            = 0,
                                     eventsPerJob        = 0,
                                     addFiles            = True,
                                     bkQuery             = {},
@@ -38,7 +38,7 @@ class TransformationDBClient(DIRACTransformationDBClient):
                                     url                 = '',
                                     timeout             = 120):
     rpcClient = self._getRPC(rpc=rpc,url=url,timeout=timeout)
-    res = rpcClient.addTransformation(transName,description,longDescription,type,plugin,agentType,fileMask,transformationGroup,groupSize,inheritedFrom,body,maxJobs,eventsPerJob,addFiles)
+    res = rpcClient.addTransformation(transName,description,longDescription,type,plugin,agentType,fileMask,transformationGroup,groupSize,inheritedFrom,body,maxTasks,eventsPerJob,addFiles)
     if not res['OK']:
       return res
     transID = res['Value']

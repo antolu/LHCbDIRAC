@@ -60,7 +60,7 @@ class ProductionClient(TransformationDBClient):
                                   groupSize           = groupSize,
                                   inheritedFrom       = derivedProd,
                                   body                = workflow, 
-                                  maxJobs             = maxJobs,
+                                  maxTasks            = maxJobs,
                                   eventsPerJob        = 0,
                                   addFiles            = True,
                                   bkQuery             = bkQuery)
