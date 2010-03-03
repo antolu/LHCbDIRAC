@@ -219,7 +219,7 @@ class DataRecoveryAgent(AgentModule):
     resDict = {}
     for fileDict in res['Value']:
       lfn = fileDict['LFN']
-      jobID = fileDict['JobID']
+      jobID = fileDict['TaskID']
       lastUpdate = fileDict['LastUpdate']
       resDict[lfn] = jobID
     if resDict:
@@ -239,7 +239,7 @@ class DataRecoveryAgent(AgentModule):
     self.log.info('The following %s production jobIDs apply to the selected files:\n%s' %(len(prodJobIDs),prodJobIDs))
 
     jobFileDict = {}
-    condDict = {'TransformationID':transformation,'JobID':prodJobIDs}
+    condDict = {'TransformationID':transformation,'TaskID':prodJobIDs}
     delta = datetime.timedelta( hours = selectDelay )
     now = dateTime()
     olderThan = now-delta
@@ -248,7 +248,7 @@ class DataRecoveryAgent(AgentModule):
     if not res['OK']:
       return res
     for jobDict in res['Value']:
-      job = jobDict['JobID']
+      job = jobDict['TaskID']
       wmsID = jobDict['JobWmsID']
       lastUpdate = jobDict['LastUpdateTime']
       wmsStatus = jobDict['WmsStatus']

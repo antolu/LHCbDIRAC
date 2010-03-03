@@ -652,7 +652,7 @@ class DiracProduction:
         and provides summaries / selections based on the file status if desired.
     """
     adj = 12
-    ordering = 'JobID'
+    ordering = 'TaskID'
     if not orderOutput:
       ordering = 'LFN'
     fileSummary = self.prodClient.getTransformationFiles(condDict={'Transformation':int(productionID)},orderAttribute=ordering)
@@ -899,7 +899,7 @@ class DiracProduction:
   def getProdJobInfo(self,productionID,jobID,printOutput=False):
     """Retrieve production job information from Production Manager service.
     """
-    res = self.prodClient.getTransformationTasks(condDict={'TransformationID':productionID,'JobID':jobID},inputVector=True)
+    res = self.prodClient.getTransformationTasks(condDict={'TransformationID':productionID,'TaskID':jobID},inputVector=True)
     if not res['OK']:
       return res
     if not res['Value']:
