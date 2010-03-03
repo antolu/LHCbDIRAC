@@ -127,9 +127,9 @@ class ProductionDB(TransformationDB):
       return res
     productionID = res['Value']
     if productionID:
-      resultStats = self.getCounters('TransformationTasks',['WmsStatus'],{'TransformationID':productionID}) 
+      resultStats = self.getCounters('TransformationTasks',['ExternalStatus'],{'TransformationID':productionID}) 
     else:
-      resultStats = self.getCounters('TransformationTasks',['WmsStatus','TransformationID'],{})   
+      resultStats = self.getCounters('TransformationTasks',['ExternalStatus','TransformationID'],{})   
     if not resultStats['OK']:
       return resultStats
     if not resultStats['Value']:
@@ -138,7 +138,7 @@ class ProductionDB(TransformationDB):
     for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
       statusList[s] = 0
     for attrDict,count in resultStats['Value']:
-      status = attrDict['WmsStatus']
+      status = attrDict['ExternalStatus']
       stList = ['Created']
       # Choose the status to report
       if not status == "Created" and not status == "Reserved":

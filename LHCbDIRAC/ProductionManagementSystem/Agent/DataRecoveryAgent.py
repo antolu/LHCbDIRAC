@@ -251,7 +251,7 @@ class DataRecoveryAgent(AgentModule):
       job = jobDict['TaskID']
       wmsID = jobDict['JobWmsID']
       lastUpdate = jobDict['LastUpdateTime']
-      wmsStatus = jobDict['WmsStatus']
+      wmsStatus = jobDict['ExternalStatus']
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
