@@ -127,9 +127,9 @@ class ProductionDB(TransformationDB):
       return res
     productionID = res['Value']
     if productionID:
-      resultStats = self.getCounters('Jobs',['WmsStatus'],{'TransformationID':productionID}) 
+      resultStats = self.getCounters('TransformationTasks',['WmsStatus'],{'TransformationID':productionID}) 
     else:
-      resultStats = self.getCounters('Jobs',['WmsStatus','TransformationID'],{})   
+      resultStats = self.getCounters('TransformationTasks',['WmsStatus','TransformationID'],{})   
     if not resultStats['OK']:
       return resultStats
     if not resultStats['Value']:
