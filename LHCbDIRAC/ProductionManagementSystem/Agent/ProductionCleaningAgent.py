@@ -377,7 +377,7 @@ class ProductionCleaningAgent(AgentModule):
       return res
     jobIDs = []
     for jobDict in res['Value']:
-      jobIDs.append(jobDict['JobWmsID'])
+      jobIDs.append(jobDict['ExternalID'])
     gLogger.info("Found %d jobs for production" % len(jobIDs))
     return S_OK(jobIDs)
 

@@ -249,7 +249,7 @@ class DataRecoveryAgent(AgentModule):
       return res
     for jobDict in res['Value']:
       job = jobDict['TaskID']
-      wmsID = jobDict['JobWmsID']
+      wmsID = jobDict['ExternalID']
       lastUpdate = jobDict['LastUpdateTime']
       wmsStatus = jobDict['ExternalStatus']
       jobInputData = jobDict['InputVector']
