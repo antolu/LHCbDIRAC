@@ -122,7 +122,7 @@ class Transformation(DIRACTransformation):
                                              inheritedFrom       = self.paramValues['InheritedFrom'],
                                              body                = self.paramValues['Body'],
                                              maxTasks            = self.paramValues['MaxNumberOfTasks'],
-                                             eventsPerJob        = self.paramValues['EventsPerJob'],
+                                             eventsPerTask        = self.paramValues['EventsPerTask'],
                                              addFiles            = addFiles,
                                              bkQuery             = self.paramValues['BkQuery'])
     if not res['OK']:
