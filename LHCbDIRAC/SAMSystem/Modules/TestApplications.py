@@ -17,6 +17,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.DetectOS import import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
@@ -26,6 +27,7 @@ import string, os, sys, re, shutil
 
 SAM_TEST_NAME='' #Defined in the workflow
 SAM_LOG_FILE=''  #Defined using workflow parameters
+natOS = NativeMachine()
 
 class TestApplications(ModuleBaseSAM):
 
@@ -37,7 +39,8 @@ class TestApplications(ModuleBaseSAM):
     self.version = __RCSID__
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
+#    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
+    self.appSystemConfig = natOS.CMTNativeConfig()
     self.log = gLogger.getSubLogger( "TestApplications" )
     self.result = S_ERROR()
 
