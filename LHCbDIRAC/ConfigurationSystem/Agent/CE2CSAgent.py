@@ -21,41 +21,36 @@ import sys, os
 class CE2CSAgent(AgentModule):
 
   def initialize( self ):
+    self.vo = self.am_getOption("/DIRAC/VirtualOrganization")
+    if not self.vo:
+      gLogger.fatal("No /DIRAC/VirtualOrganization option defined")
+      return S_ERROR()
+
     self.name = self.am_getModuleParam("fullName")
     self.logLevel = self.am_getOption('LogLevel','INFO')
     gLogger.info("LogLevel",self.logLevel)
     gLogger.setLevel(self.logLevel)
     self.pollingTime = self.am_getOption('PollingTime',120)
     gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
+
+    # TODO: Have no default and if no mail is found then use the diracAdmin group and resolve all associated mail addresses.
     self.addressTo = self.am_getOption('MailTo','lhcb-SAM@cern.ch')
-    gLogger.info("MailTo",self.addressTo)
     self.addressFrom =  self.am_getOption('MailFrom','lhcb-SAM@cern.ch')
+    gLogger.info("MailTo",self.addressTo)
     gLogger.info("MailFrom",self.addressFrom)
     self.subject = "CE2CSAgent"
-    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
 
-    if self.useProxies:
-      self.am_setModuleParam( "shifterProxy", "SAMManager" )
-      
+    self.am_setModuleParam( "shifterProxy", "SAMManager" )
     return S_OK()
 
   def execute(self):
-
     gLogger.info("Executing %s"%(self.name))
-      
     os.system('dirac-proxy-info')
-    
     self.csAPI = CSAPI()      
-
     self._lookForCE()
     self._infoFromCE()
     gLogger.info("Executing %s finished"%(self.name) )
-    
     return S_OK()
-
 
   def _lookForCE(self):
   
@@ -74,7 +69,7 @@ class CE2CSAgent(AgentModule):
       ces = List.fromChar( opt.get('CE',''))
       knownces += ces
 
-    response = ldapCEState('')
+    response = ldapCEState('',vo=self.vo)
     if not response['OK']:
       gLogger.error( "Error during BDII request",response['Message'])
       return response
@@ -138,7 +133,7 @@ class CE2CSAgent(AgentModule):
       osstring = "SystemName: %s, SystemVersion: %s, SystemRelease: %s"%(SystemName,SystemVersion,SystemRelease)
       gLogger.info(osstring)
 
-      response = ldapCEState(ce)
+      response = ldapCEState(ce,vo=self.vo)
       if not response['OK']:
         gLogger.warn("Error during BDII request",response['Message'])
         continue
@@ -336,7 +331,7 @@ class CE2CSAgent(AgentModule):
               self.csAPI.modifyValue(section,newpilot)
             changed = True
 
-        result = ldapCEState(ce)        #getBDIICEVOView
+        result = ldapCEState(ce,vo=self.vo)        #getBDIICEVOView
         if not result['OK']:
           gLogger.warn( 'Error in bdii for queue %s'%ce, result['Message'])
           continue
