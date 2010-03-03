@@ -20,7 +20,7 @@ from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestination
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import DIRAC
-import string,os,random
+import string,os,random,time
 
 class UserJobFinalization(ModuleBase):
 
@@ -187,15 +187,20 @@ class UserJobFinalization(ModuleBase):
     localSE=result['Value']
     self.log.verbose('Site Local SE for user outputs is: %s' %(localSE))
     orderedSEs = self.defaultOutputSE  
-    for se in localSE:  
-      orderedSEs.remove(se)
+    for se in localSE:
+      if se in orderedSEs:
+        orderedSEs.remove(se)
+    for se in self.userOutputSE:
+      if se in orderedSEs:
+        orderedSEs.remove(se)  
 
-    replicateSE = self.userOutputSE       
     orderedSEs = localSE + List.randomize(orderedSEs)    
     if self.userOutputSE:
+      prependSEs = []
       for userSE in self.userOutputSE:
         if not userSE in orderedSEs:
-          orderedSEs = self.userOutputSE + orderedSEs
+          prependSEs.append(userSE)
+      orderedSEs = prependSEs + orderedSEs
     
     self.log.info('Ordered list of output SEs is: %s' %(string.join(orderedSEs,', ')))    
     final = {}
@@ -282,6 +287,8 @@ class UserJobFinalization(ModuleBase):
     
     #If there is now at least one replica for uploaded files can trigger replication
     rm = ReplicaManager()
+    self.log.info('Sleeping for 10 seconds before attempting replication of recently uploaded files')
+    time.sleep(10)
     for lfn,repSE in replication.items():
       result = rm.replicate(lfn,repSE)
       if not result['OK']:
@@ -313,7 +320,7 @@ class UserJobFinalization(ModuleBase):
       if result['OK']:
         digest = result['Value']
         self.log.info(digest)
-          
+    
     self.setApplicationStatus('Job Finished Successfully')
     return S_OK('Output data uploaded')
 
