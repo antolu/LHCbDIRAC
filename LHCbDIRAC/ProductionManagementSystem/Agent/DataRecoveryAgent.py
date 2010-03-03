@@ -184,13 +184,13 @@ class DataRecoveryAgent(AgentModule):
           continue
       else:
         self.log.info('No problematic files to be removed...')
-        
-      result = self.updateFileStatus(transformation,filesToUpdate,updateStatus)
-      if not result['OK']:
-        self.log.error('Files were not updated with result:\n%s' %(result))
-        continue        
       
-      self.log.info('%s files were recovered for transformation %s' %(len(filesToUpdate),transformation))
+      if filesToUpdate:
+        result = self.updateFileStatus(transformation,filesToUpdate,updateStatus)
+        if not result['OK']:
+          self.log.error('Files were not updated with result:\n%s' %(result))
+          continue        
+        self.log.info('%s files were recovered for transformation %s' %(len(filesToUpdate),transformation))
 
     return S_OK()
 
@@ -335,7 +335,7 @@ class DataRecoveryAgent(AgentModule):
     
     if toRemove:
       self.log.info('Found descendent files of transformation %s to be removed:\n%s' %(transformation,string.join(toRemove,'\n')))
-      result = self.prodDB.getTransformationFileInfo(int(transformation),toRemove)
+      result = self.prodDB.getTransformationFiles(condDict={'TransformationID':int(transformation),'LFN':toRemove})
       if not result['OK']:
         self.log.error(result)
       else:
@@ -366,7 +366,7 @@ class DataRecoveryAgent(AgentModule):
           
     if strandedAncestors:
       self.log.info('Ancestor of file to be removed was not in selected input file sample:\n%s' %(string.join(strandedAncestors,'\n')))
-      result = self.prodDB.getTransformationFileInfo(int(transformation),strandedAncestors)
+      result = self.prodDB.getTransformationFiles(condDict={'TransformationID':int(transformation),'LFN':strandedAncestors})
       if not result['OK']:
         self.log.error(result)
       else:
