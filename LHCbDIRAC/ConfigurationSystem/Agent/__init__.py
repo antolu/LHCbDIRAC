@@ -3,7 +3,7 @@
 ############################################################
 
 """
-   LHCbDIRAC.Framework.Agent
+   DIRAC.Configuration.Agent
 
 """
 
