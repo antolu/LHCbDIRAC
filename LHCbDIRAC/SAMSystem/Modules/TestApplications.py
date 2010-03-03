@@ -17,7 +17,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
-from LHCbDIRAC.Core.Utilities.DetectOS import import NativeMachine
+from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import *
 
