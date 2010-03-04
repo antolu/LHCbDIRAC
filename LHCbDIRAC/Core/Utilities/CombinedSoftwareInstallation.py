@@ -264,38 +264,37 @@ def CheckApplication(app, config, area):
   """
    check if given application is available in the given area
   """
-  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    try:
-      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
-    except:
-      DIRAC.gLogger.exception()
-      return False
-    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
-      return False
-
   if not area:
     return False
 
   localArea = area
   if re.search(':',area):
     localArea = string.split(area,':')[0]
+    sharedArea = string.split(area,':')[1]
 
   appName    = app[0]
   appVersion = app[1]
 
+  curDir = os.getcwd()
+
   installProject = os.path.join( localArea, InstallProject )
   if not os.path.exists( installProject ):
-    try:
-      shutil.copy( InstallProject, localArea )
-    except:
-      DIRAC.gLogger.error( 'Failed to get:', installProject )
+    installProject = os.path.join( sharedArea, InstallProject )
+    if not os.path.exists( installProject ):
+      DIRAC.gLogger.warn( 'Failed to find:', InstallProject )
       return False
-
-  # Now run the installation
-  curDir = os.getcwd()
+    else:
   #NOTE: must cd to LOCAL area directory (install_project requirement)
-  os.chdir(localArea)
+      DIRAC.gLogger.info(' change directory to %s ' % sharedArea)
+      os.chdir(sharedArea)
+      area = sharedArea
+      localArea = sharedArea
+  else:
+    os.chdir(localArea)
+
+  DIRAC.gLogger.info(' install_project is %s' % installProject )
+  # Now run the installation
+
 
   cmtEnv = dict(os.environ)
   cmtEnv['MYSITEROOT'] = area
