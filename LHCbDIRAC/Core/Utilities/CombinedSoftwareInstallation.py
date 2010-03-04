@@ -158,6 +158,7 @@ def CheckInstallSoftware(app,config,area):
       return False
     else:
   #NOTE: must cd to LOCAL area directory (install_project requirement)
+      DIRAC.gLogger.info(' change directory to %s ' % sharedArea)
       os.chdir(sharedArea)
   else:
     os.chdir(localArea)
