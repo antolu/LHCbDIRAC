@@ -150,6 +150,8 @@ def CheckInstallSoftware(app,config,area):
   appName    = app[0]
   appVersion = app[1]
 
+  curDir = os.getcwd()
+
   installProject = os.path.join( localArea, InstallProject )
   if not os.path.exists( installProject ):
     installProject = os.path.join( sharedArea, InstallProject )
@@ -165,7 +167,6 @@ def CheckInstallSoftware(app,config,area):
 
   DIRAC.gLogger.info(' install_project is %s' % installProject )
   # Now run the installation
-  curDir = os.getcwd()
 
 
   cmtEnv = dict(os.environ)
