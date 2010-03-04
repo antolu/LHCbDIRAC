@@ -23,8 +23,10 @@
       o remove if any present
     - Mark the input file status as 'Unused' in the ProductionDB
 
-    N.B. This agent will stop if it finds any descendent files for input
-    data of a given production. The problem here is that the 
+    N.B. This agent will stop if it finds any duplicate descendent files for input
+    data of a given production. The problem here is that the there is no way 
+    except via manual intervention to identify all subsequent transformations 
+    using any problematic descendents as input. 
 """
 
 __RCSID__   = "$Id: DataRecovery.py 18182 2009-11-11 14:45:10Z paterson $"
@@ -59,9 +61,13 @@ class DataRecoveryAgent(AgentModule):
     self.prodDB = ProductionDB()
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
-    #The task ID naem is different between dev and production...
-    self.taskIDName = 'TaskID'
-#    self.taskIDName = 'JobID' 
+    #Several names are different between dev and production...
+#    self.taskIDName = 'TaskID'
+#    self.externalStatus = 'WmsStatus'
+#    self.externalID = 'JobWmsID'
+    self.taskIDName = 'JobID' 
+    self.externalStatus = 'ExternalStatus'
+    self.externalID = 'ExternalID'
     self.am_setOption('PollingTime',4*60*60)    
     self.am_setModuleParam("shifterProxy", "ProductionManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
@@ -262,7 +268,7 @@ class DataRecoveryAgent(AgentModule):
     
     for jobDict in res['Value']:
       missingKey=False
-      for key in [self.taskIDName,'JobWmsID','LastUpdateTime','WmsStatus','InputVector']:
+      for key in [self.taskIDName,self.externalID,'LastUpdateTime',self.externalStatus,'InputVector']:
         if not jobDict.has_key(key):
           self.log.info('Missing key %s for job dictionary, the following is available:\n%s' %(key,jobDict))
           missingKey=True
@@ -272,9 +278,9 @@ class DataRecoveryAgent(AgentModule):
         continue
         
       job = jobDict[self.taskIDName]
-      wmsID = jobDict['JobWmsID']
+      wmsID = jobDict[self.externalID]
       lastUpdate = jobDict['LastUpdateTime']
-      wmsStatus = jobDict['WmsStatus']
+      wmsStatus = jobDict[self.externalStatus]
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
