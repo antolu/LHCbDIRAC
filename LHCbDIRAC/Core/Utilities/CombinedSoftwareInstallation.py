@@ -154,7 +154,7 @@ def CheckInstallSoftware(app,config,area):
   if not os.path.exists( installProject ):
     installProject = os.path.join( sharedArea, InstallProject )
     if not os.path.exists( installProject ):
-      DIRAC.gLogger.warn( 'Failed to find:', installProject )
+      DIRAC.gLogger.warn( 'Failed to find:', InstallProject )
       return False
     else:
   #NOTE: must cd to LOCAL area directory (install_project requirement)
@@ -162,7 +162,7 @@ def CheckInstallSoftware(app,config,area):
   else:
     os.chdir(localArea)
 
-
+  DIRAC.gLogger.info(' install_project is %s' % installProject )
   # Now run the installation
   curDir = os.getcwd()
 
