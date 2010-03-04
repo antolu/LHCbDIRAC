@@ -26,9 +26,11 @@ __VERSION__ = "$Revision: 1.40 $"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
+from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 InstallProject = 'install_project.py'
 InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
+natOS = NativeMachine()
 
 class CombinedSoftwareInstallation:
 
@@ -61,12 +63,16 @@ class CombinedSoftwareInstallation:
     self.jobConfig = ''
     if self.job.has_key( 'SystemConfig' ):
       self.jobConfig = self.job['SystemConfig']
+    else:
+      self.jobConfig = natOS.CMTSupportedConfig()[0]
 
     self.ceConfigs = []
     if self.ce.has_key('CompatiblePlatforms'):
       self.ceConfigs = self.ce['CompatiblePlatforms']
       if type(self.ceConfigs) == type(''):
         self.ceConfigs = [self.ceConfigs]
+    else:
+      self.ceConfigs = [self.jobConfig]
 
     self.sharedArea = SharedArea()
     self.localArea  = LocalArea()
@@ -81,7 +87,7 @@ class CombinedSoftwareInstallation:
       # There is nothing to do
       return DIRAC.S_OK()
     if not self.jobConfig:
-      DIRAC.gLogger.error( 'No architecture requested' )
+      DIRAC.gLogger.warn( 'No architecture requested' )
       return DIRAC.S_ERROR( 'No architecture requested' )
 
     if self.ce.has_key('Site') and self.ce['Site'] == 'DIRAC.ONLINE-FARM.ch':
@@ -99,13 +105,13 @@ class CombinedSoftwareInstallation:
         return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in self.apps:
-      DIRAC.gLogger.info('Attempting to install %s_%s for %s with site root %s' %(app[0],app[1],self.jobConfig,self.mySiteRoot))
+      DIRAC.gLogger.info('Checking %s_%s for %s with site root %s' %(app[0],app[1],self.jobConfig,self.mySiteRoot))
       result = CheckInstallSoftware(app,self.jobConfig,self.mySiteRoot)
       if not result:
-        DIRAC.gLogger.error('Failed to install software','%s_%s' %(app))
-        return DIRAC.S_ERROR('Failed to install software')
+        DIRAC.gLogger.error('software not installed','%s_%s' %(app))
+        return DIRAC.S_ERROR('Software not installed')
       else:
-        DIRAC.gLogger.info('%s was successfully installed for %s' %(app,self.jobConfig))
+        DIRAC.gLogger.info('%s is installed for %s' %(app,self.jobConfig))
 
     return DIRAC.S_OK()
 
@@ -132,17 +138,6 @@ def CheckInstallSoftware(app,config,area):
      to check where components should be installed.  In this case the 'area'
      is localArea:sharedArea.
   """
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
-  if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-    try:
-      localname,headers = urllib.urlretrieve('%s%s' %(InstallProjectURL,InstallProject),InstallProject)
-    except:
-      DIRAC.gLogger.exception()
-      return False
-    #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/',InstallProject),InstallProject)
-    if not os.path.exists('%s/%s' %(os.getcwd(),InstallProject)):
-      DIRAC.gLogger.error('%s/%s could not be downloaded' %(InstallProjectURL,InstallProject))
-      return False
 
   if not area:
     return False
@@ -150,22 +145,27 @@ def CheckInstallSoftware(app,config,area):
   localArea = area
   if re.search(':',area):
     localArea = string.split(area,':')[0]
+    sharedArea = string.split(area,':')[1]
 
   appName    = app[0]
   appVersion = app[1]
 
   installProject = os.path.join( localArea, InstallProject )
   if not os.path.exists( installProject ):
-    try:
-      shutil.copy( InstallProject, localArea )
-    except:
-      DIRAC.gLogger.warn( 'Failed to create:', installProject )
+    installProject = os.path.join( sharedArea, InstallProject )
+    if not os.path.exists( installProject ):
+      DIRAC.gLogger.warn( 'Failed to find:', installProject )
       return False
+    else:
+  #NOTE: must cd to LOCAL area directory (install_project requirement)
+      os.chdir(sharedArea)
+  else:
+    os.chdir(localArea)
+
 
   # Now run the installation
   curDir = os.getcwd()
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
-  os.chdir(localArea)
+
 
   cmtEnv = dict(os.environ)
   cmtEnv['MYSITEROOT'] = area
@@ -181,7 +181,6 @@ def CheckInstallSoftware(app,config,area):
   cmdTuple += [ '--check' ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
-
   ret = DIRAC.systemCall( 1800, cmdTuple, env=cmtEnv, callbackFunction=log )
   os.chdir(curDir)
   if not ret['OK']:
