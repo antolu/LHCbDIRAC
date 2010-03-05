@@ -69,7 +69,7 @@ class ControlerFileDialog(ControlerAbstract):
           fileName += '.py'
       model = self.getWidget().getModel()
       lfns = {}
-      if len(self.__selectedFiles) > 1:
+      if len(self.__selectedFiles) >= 1:
         for i in self.__selectedFiles:
           lfns[i] = model[i]
       else:
