@@ -62,10 +62,10 @@ class DataRecoveryAgent(AgentModule):
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
     #Several names are different between dev and production...
-#    self.taskIDName = 'TaskID'
+    self.taskIDName = 'TaskID'
 #    self.externalStatus = 'WmsStatus'
 #    self.externalID = 'JobWmsID'
-    self.taskIDName = 'JobID' 
+#    self.taskIDName = 'JobID' 
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
     self.am_setOption('PollingTime',4*60*60)    
@@ -176,7 +176,7 @@ class DataRecoveryAgent(AgentModule):
       if problematicFiles:
         self.log.info('The following problematic files are to be removed for %s\n%s' %(transformation,string.join(problematicFiles,'\n')))
         ######### N.B. ##########
-        self.log.info('*N.B. removal of files is disabled since all subsequent transformations using any descendents as input also need to be updated!*')
+        self.log.info('*N.B. removal of files is not possible since all subsequent transformations using any descendents as input also need to be checked!*')
         self.log.info('!!!!!!!!Production %s is problematic and must be investigated by hand!!!!!!!!' %transformation)
         continue
         ######### N.B. ##########
@@ -284,7 +284,7 @@ class DataRecoveryAgent(AgentModule):
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
-      self.log.info('Job %s, prod job %s last update %s' %(wmsID,job,lastUpdate))
+      self.log.info('Job %s, prod job %s last update %s, production management system status %s' %(wmsID,job,lastUpdate,wmsStatus))
       #Exclude jobs not having appropriate WMS status (recheck if not as expected in case of surprises)         
       if not wmsStatus in wmsStatusList:
         self.log.info('Job %s is in status %s, not one of %s, status will be rechecked with WMS (in case last production update is incorrect)' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
@@ -298,8 +298,8 @@ class DataRecoveryAgent(AgentModule):
           self.log.info('After rechecking with WMS: job %s status is %s, not one of %s, ignoring from further consideration' %(wmsID,jobMonStatus,string.join(wmsStatusList,', ')))
           continue
         else:
-          self.log.info('After rechecking with WMS: job %s status is in fact %s (not %s) so will be considered' %(wmsID,jobMonStatus,wmsStatus))
-    
+          self.log.info('After rechecking with WMS: job %s status is in fact %s (not %s as in Production system) so will be considered' %(wmsID,jobMonStatus,wmsStatus))
+        
       finalJobData = []
       #Must map unique files -> jobs in expected state
       for lfn,prodID in fileDict.items():
@@ -431,7 +431,7 @@ class DataRecoveryAgent(AgentModule):
 
     self.log.info('Updating %s files to "%s" status for %s' %(len(fileList),fileStatus,transformation))
     result = self.prodDB.setFileStatusForTransformation(int(transformation),fileStatus,fileList,force=True)
-    self.log.verbose(res)
+    self.log.verbose(result)
     if not result['OK']:
       self.log.error(result)
       return result
