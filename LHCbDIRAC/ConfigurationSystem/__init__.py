@@ -3,7 +3,7 @@
 ############################################################
 
 """
-   LHCbDIRAC.FrameworkSystem package
+   LHCbDIRAC.ConfigurationSystem package
 
 """
 
