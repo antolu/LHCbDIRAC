@@ -20,7 +20,7 @@ from DIRAC.Core.Utilities.List                      import breakListIntoChunks, 
 from DIRAC.Interfaces.API.Dirac                     import Dirac
 from LHCbDIRAC.Core.Utilities.ClientTools           import mergeRootFiles,getRootFileGUID
 
-import os, glob, fnmatch
+import os, glob, fnmatch,string
 
 COMPONENT_NAME='DiracLHCb'
 
@@ -31,7 +31,9 @@ class DiracLHCb(Dirac):
     """Internal initialization of the DIRAC API.
     """
     Dirac.__init__(self,WithRepo=WithRepo, RepoLocation=RepoLocation)
+    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'    
 
+  #############################################################################
   def addRootFile(self,lfn,fullPath,diracSE,printOutput=False):
     res = getRootFileGUID(fullPath)
     if not res['OK']:
@@ -39,6 +41,7 @@ class DiracLHCb(Dirac):
     res = self.addFile(lfn,fullPath,diracSE,fileGuid=res['Value'],printOutput=printOutput)
     return res
 
+  #############################################################################
   def rootMergeRepository(self,outputFileName,inputFileMask='*.root',location='Sandbox',requestedStates=['Done']):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
     
@@ -88,6 +91,23 @@ class DiracLHCb(Dirac):
     if not res['OK']:
       return self.__errorReport(res['Message'],"Failed to perform final ROOT merger")
     return S_OK()
+
+  #############################################################################
+  def getRootVersions(self,printOutput=False):
+    """ Return the list of currently supported LHCb Root versions.
+    """
+    rootVersions = gConfig.getOptionsDict(self.rootSection)
+    if not rootVersions['OK']:
+      return self._reportError(rootVersions,'Could not contact DIRAC Configuration Service for supported ROOT version list')
+
+    if printOutput:
+      rootList = []
+      rootDict = rootVersions['Value']
+      for r,d in rootDict.items():
+        rootList.append('%s = %s' %(r,d))
+      self.log.info('Supported versions of ROOT (and corresponding DaVinci versions) in LHCb are:\n%s' %(string.join(rootList,'\n')))
+      
+    return rootVersions
 
   #############################################################################
   def __errorReport(self,error,message=None):
