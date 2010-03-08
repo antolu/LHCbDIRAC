@@ -50,7 +50,7 @@ class SAMFinalization(ModuleBaseSAM):
     self.siteRoot = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))
     self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' %(self.siteRoot)
     self.samPublishScript = 'sam/bin/same-publish-tuples'
-    self.logSE = 'LogSE'
+    self.logSE = 'LogSE-new'
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
