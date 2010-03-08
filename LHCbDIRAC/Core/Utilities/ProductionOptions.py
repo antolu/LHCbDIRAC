@@ -103,6 +103,86 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   return options
 
 #############################################################################
+def getModuleOptions(applicationName,numberOfEvents,inputDataOptions,extraOptions='',runNumber=0,firstEventNumber=1):
+  """ Return the standard options for a Gaudi application project to be used at run time
+      by the workflow modules.  The input data options field is a python list (output of 
+      getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case.
+  """
+  optionsLines=[]
+  optionsLines.append('\n\n#//////////////////////////////////////////////////////')
+  optionsLines.append('# Dynamically generated options in a production or analysis job\n')
+  if applicationName.lower()=='davinci' or applicationName.lower()=='lhcb':
+    optionsLines.append('from Gaudi.Configuration import *')
+  else:
+    optionsLines.append('from %s.Configuration import *' %applicationName)
+
+  if extraOptions:
+    for opt in extraOptions.split(';'):
+      if opt:
+        optionsLines.append(opt)
+        
+  if inputDataOptions:
+    optionsLines+=inputDataOptions
+    
+  if applicationName == 'Gauss':
+    optionsLines.append("GaussGen = GenInit(\"GaussGen\")")
+    optionsLines.append("GaussGen.RunNumber = %s" %(runNumber))
+    optionsLines.append("GaussGen.FirstEventNumber = %s" %(firstEventNumber))
+
+  if numberOfEvents != 0:
+      optionsLines.append("ApplicationMgr().EvtMax = %s" %(numberOfEvents))
+
+  finalLines = string.join(optionsLines,'\n')+'\n'
+  return S_OK(finalLines)
+
+#############################################################################
+def getDataOptions(applicationName,inputDataList,inputDataType,poolXMLCatalogName):
+  """Given a list of input data and a specified input data type this function will
+     return the correctly formatted EventSelector options for Gaudi applications
+     specified by name.  The options are returned as a python list.
+  """
+  options = []
+  if inputDataList:
+    gLogger.info('Formatting options for %s: %s LFN(s) of type %s' %(applicationName,inputDataType))  
+
+    inputDataOpt = getEventSelectorInput(inputDataList,inputDataType)['Value']
+    evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
+    options.append(evtSelOpt)
+
+    if applicationName.lower()=='moore':
+      options = []
+      options.append('from Configurables import Moore')
+      mooreInput = ['LFN:%s' %i.replace('lfn:','').replace('LFN:','') for i in inputDataList]        
+      options.append("Moore().inputFiles = %s" %(mooreInput))
+
+  poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(poolXMLCatalogName)
+  options.append(poolOpt)
+  return S_OK(options)
+
+#############################################################################
+def getEventSelectorInput(inputDataList,inputDataType):
+  """ Returns the correctly formatted event selector options for accessing input
+      data using Gaudi applications.
+  """
+  inputDataFiles = []
+  for lfn in inputDataList:
+    lfn = lfn.replace('LFN:','').replace('lfn:','')
+    if inputDataType == "MDF":
+      inputDataFiles.append(""" "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ %(lfn))
+    elif inputDataType in ("ETC","SETC","FETC"):
+      inputDataFiles.append(""" "COLLECTION='TagCreator/EventTuple' DATAFILE='LFN:%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """%(lfn))
+    elif inputDataType == 'RDST':
+      if re.search('rdst$',lfn):
+        inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+      else:
+        gLogger.info('Ignoring file %s for %s step with input data type %s' %(lfn,applicationName,inputDataType))
+    else:
+      inputDataFiles.append(""" "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ %(lfn))
+
+  inputDataOpt = string.join(inputDataFiles,'\n')[:-2]
+  return S_OK(inputDataOpt)
+
+#############################################################################
 def printOptions(project='',printOutput=True):
   """ A simple method to print all currently used project options in a nicely
       formatted way.  This also allows to restrict printing to options for a
@@ -138,7 +218,7 @@ def printOptions(project='',printOutput=True):
 
 #############################################################################
 def getTestOptions(projectName):
-  """ Function to retrieve arbitrary working options for running a test job. Not
+  """ Under development. Function to retrieve arbitrary working options for running a test job. Not
       all processing cases are supported, this is intended only to return working options
       for a simple test job as a computing exercise only.
   """
