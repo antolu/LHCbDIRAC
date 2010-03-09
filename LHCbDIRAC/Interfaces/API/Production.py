@@ -1017,6 +1017,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       else:
         self.log.info('Successfully created transformation %s for production %s' %(result['Value'],prodID))
     elif transformation:
+      if not bkQuery.has_key('FileType'):
+        return S_ERROR('BK query does not include FileType!')
+      bkFileType = bkQuery['FileType'] 
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
       transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)
       if not transID['OK']:
