@@ -137,16 +137,23 @@ class GaudiApplication(ModuleBase):
     if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return self.onlineExecute()
 
-    sharedArea = MySiteRoot()
-    if sharedArea == '':
+    softwareArea = MySiteRoot()
+    if softwareArea == '':
       self.log.error( 'MySiteRoot Not found' )
       return S_ERROR(' MySiteRoot Not Found')
 
-    mySiteRoot=sharedArea
+    mySiteRoot=softwareArea
     self.log.info('MYSITEROOT is %s' %mySiteRoot)
-    localArea = sharedArea
-    if re.search(':',sharedArea):
-      localArea = string.split(sharedArea,':')[0]
+    localArea = softwareArea
+    if re.search(':',softwareArea):
+      jobAgentSoftware = string.split(softwareArea,':')[0]
+      if os.path.exists('%s/LbLogin.sh' %(jobAgentSoftware)):
+        localArea = jobAgentSoftware
+        self.log.info('Will use LbLogin.sh from local software area at %s' %(localArea))
+      else:
+        localArea = string.split(softwareArea,':')[1]
+        self.log.info('Using the LbLogin.sh from the site shared area directory at %s' %(localArea))
+        
     self.log.info('Setting local software area to %s' %localArea)
 
     if self.optionsFile and not self.optionsFile == "None":
