@@ -173,13 +173,18 @@ class BookkeepingManagerHandler(RequestHandler):
   #############################################################################
   types_insertTag = [DictType]
   def export_insertTag(self, values):
+    successfull = {}
+    faild = {} 
+    
     for i in values:
       tags = values[i]
       for tag in tags:
         res = dataMGMT_.insertTag(i, tag)
-      if not res['OK']:
-        return S_ERROR(res['Message'])
-    return S_OK('The tags are entered to the DB!' )
+        if not res['OK']:
+          faild[tag]=i
+        else:
+          successfull[tag]=i
+    return {'Successfull':successfull, 'Faild':faild}
     
   #############################################################################
   #@@ENDchecking
