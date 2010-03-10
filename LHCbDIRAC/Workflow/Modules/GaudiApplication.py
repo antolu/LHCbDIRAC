@@ -196,7 +196,7 @@ class GaudiApplication(ModuleBase):
     firstEventNumberGauss = 1
     if self.applicationName.lower() == "gauss" and self.PRODUCTION_ID and self.JOB_ID:
       runNumberGauss =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)    
-      firstEventNumberGauss = int(numberOfEvents) * (int(self.JOB_ID) - 1) + 1
+      firstEventNumberGauss = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
 
     projectOpts = getModuleOptions(self.applicationName,self.numberOfEvents,inputDataOpts,self.optionsLine,runNumberGauss,firstEventNumberGauss)['Value'] #always OK
     self.log.info('Extra options generated for %s %s %s step:' %(self.applicationName,self.applicationVersion))
