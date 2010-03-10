@@ -143,7 +143,7 @@ def getDataOptions(applicationName,inputDataList,inputDataType,poolXMLCatalogNam
   """
   options = []
   if inputDataList:
-    gLogger.info('Formatting options for %s: %s LFN(s) of type %s' %(applicationName,inputDataType))  
+    gLogger.info('Formatting options for %s: %s LFN(s) of type %s' %(applicationName,len(inputDataList),inputDataType))  
 
     inputDataOpt = getEventSelectorInput(inputDataList,inputDataType)['Value']
     evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
