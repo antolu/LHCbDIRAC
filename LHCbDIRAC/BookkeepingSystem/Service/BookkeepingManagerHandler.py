@@ -186,7 +186,7 @@ class BookkeepingManagerHandler(RequestHandler):
           faild[tag]=i
         else:
           successfull[tag]=i
-    return {'Successfull':successfull, 'Faild':faild}
+    return S_OK({'Successfull':successfull, 'Faild':faild})
     
   #############################################################################
   #@@ENDchecking
