@@ -180,7 +180,6 @@ class BookkeepingManagerHandler(RequestHandler):
       tags = values[i]
       for tag in tags:
         retVal = dataMGMT_.insertTag(i, tag)
-        print 'ssss',retVal
         print retVal.keys()
         if not retVal['OK']:
           faild[tag]=i
