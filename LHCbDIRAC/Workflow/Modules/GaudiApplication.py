@@ -30,6 +30,10 @@ class GaudiApplication(ModuleBase):
     self.version = __RCSID__
     self.debug = True
     self.log = gLogger.getSubLogger( "GaudiApplication" )
+    self.jobID = None
+    if os.environ.has_key('JOBID'):
+      self.jobID = os.environ['JOBID']
+    
     self.optfile = ''
     self.systemConfig = ''
     self.applicationLog = ''
