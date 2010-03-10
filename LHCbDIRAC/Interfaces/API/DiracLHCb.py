@@ -207,7 +207,7 @@ class DiracLHCb(Dirac):
         
         Example Usage:
         
-        >>> dirac.bookkeepingQuery(ConfigName='LHCb',ConfigVersion='Beam1',EventType='90000000',ProcessingPass='Real Data')
+        >>> dirac.bookkeepingQuery(ConfigName='LHCb',ConfigVersion='Collision09',EventType='90000000',ProcessingPass='Real Data',DataTakingConditions='Beam450GeV-VeloOpen-MagDown')
         {'OK':True,'Value':<files>}
         
        @param  ConfigName: BK ConfigName
