@@ -13,6 +13,8 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 import string
 
+gLogger = gLogger.getSubLogger('ProductionOptions')
+
 #############################################################################
 def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applicationName}_@{STEP_ID}_Hist.root',condDB='@{CondDBTag}',ddDB='@{DDDBTag}',production=True):
   """ Simple function to create the default options for a given project name.
