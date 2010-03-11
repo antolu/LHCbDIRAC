@@ -33,7 +33,7 @@ class GaudiApplication(ModuleBase):
     self.jobID = None
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
-    
+
     self.optfile = ''
     self.systemConfig = ''
     self.applicationLog = ''
@@ -49,7 +49,7 @@ class GaudiApplication(ModuleBase):
     self.extraPackages = ''
     self.applicationType = ''
     self.jobType = ''
-    self.stdError = ''    
+    self.stdError = ''
 
   #############################################################################
   def resolveInputVariables(self):
@@ -153,7 +153,7 @@ class GaudiApplication(ModuleBase):
       else:
         localArea = string.split(softwareArea,':')[1]
         self.log.info('Using the LbLogin.sh from the site shared area directory at %s' %(localArea))
-        
+
     self.log.info('Setting local software area to %s' %localArea)
 
     if self.optionsFile and not self.optionsFile == "None":
@@ -186,7 +186,7 @@ class GaudiApplication(ModuleBase):
     #Prepare standard project run time options
     generatedOpts = 'gaudi_extra_options.py'
     if os.path.exists(generatedOpts): os.remove(generatedOpts)
-    
+
     #Input data resolution has two cases. Either there is explicitly defined
     #input data for the application step (a subset of total workflow input data reqt)
     #*or* this is defined at the job level and the job wrapper has created a
@@ -201,12 +201,12 @@ class GaudiApplication(ModuleBase):
         self.inputData = self.InputData.split(';')
     else:
       self.log.verbose('Job has no input data requirement')
-        
+
     inputDataOpts = getDataOptions(self.applicationName,self.inputData,self.inputDataType,self.poolXMLCatName)['Value'] #always OK
     runNumberGauss = 0
     firstEventNumberGauss = 1
     if self.applicationName.lower() == "gauss" and self.PRODUCTION_ID and self.JOB_ID:
-      runNumberGauss =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)    
+      runNumberGauss =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)
       firstEventNumberGauss = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
 
     projectOpts = getModuleOptions(self.applicationName,self.numberOfEvents,inputDataOpts,self.optionsLine,runNumberGauss,firstEventNumberGauss)['Value'] #always OK
@@ -216,10 +216,10 @@ class GaudiApplication(ModuleBase):
     options.write(projectOpts)
     options.close()
 
-    #Create final shell script wrapper to drive the application execution 
+    #Create final shell script wrapper to drive the application execution
     scriptName = '%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
     if os.path.exists(scriptName): os.remove(scriptName)
-    
+
     script = open(scriptName,'w')
     script.write('#!/bin/sh \n')
     script.write('#####################################################################\n')
@@ -235,6 +235,7 @@ class GaudiApplication(ModuleBase):
 
     script.write('declare -x MYSITEROOT='+mySiteRoot+'\n')
     script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
+    self.log.info('CMTCONFIG is : %s' %(self.systemConfig))
     script.write('declare -x CSEC_TRACE=1\n')
     script.write('declare -x CSEC_TRACEFILE=csec.log\n')
     script.write('. %s/LbLogin.sh\n' %localArea)
@@ -367,13 +368,13 @@ done
         os.remove(f)
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
-    
+
     if status != 0:
       self.log.error( "%s execution completed with errors" % self.applicationName )
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( self.stdError )
       self.log.error('%s Exited With Status %s' %(self.applicationName,status))
-      return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))      
+      return S_ERROR('%s Exited With Status %s' %(self.applicationName,status))
     else:
       self.log.info( "%s execution completed succesfully" % self.applicationName )
 
@@ -406,7 +407,7 @@ done
         self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
       else:
         self.workflow_commons['outputList'] = finalOutputs
-          
+
       self.log.info('Attempting to recreate the production output LFNs...')
       result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
@@ -434,7 +435,7 @@ done
         self.log.error("Application Log file not defined")
       if fd == 1:
         self.stdError += message
-        
+
   #############################################################################
   def onlineExecute( self ):
     """Use for the Online Farm."""
@@ -511,9 +512,9 @@ done
     logFile = os.path.abspath( self.step_commons[ 'applicationLog' ] )
     try:
       result = recoManager.submitJob( sliceName, inputData , outputFile , logFile, guid )
-    except:  
+    except:
       self.log.exception()
-      return S_ERROR( xmlrpcerror )      
+      return S_ERROR( xmlrpcerror )
     if not result[ 'OK' ]:
       # if 'fileID' in result['Value']:
       #   fileID = result[ 'Value' ]
@@ -533,7 +534,7 @@ done
       try:
         ret = recoManager.jobStatus( jobID )
       except:
-        self.log.exception()        
+        self.log.exception()
         return S_ERROR( xmlrpcerror )
       if not ret[ 'OK' ]:
         retrycount = retrycount + 1
@@ -585,7 +586,7 @@ done
         elif config1[ key ] != config2[ key ]:
           return False
     return True
-    
+
   # def writeLogFromList( self , loglines ):
   #   log = open( self.step_commons[ 'applicationLog' ] , 'w' )
   #   for line in loglines:
