@@ -36,7 +36,7 @@ import types
 import cPickle
 
 def _getMailAddress(user):
-  res = gConfig.getOptionsDict('/Security/Users/%s' % user)
+  res = gConfig.getOptionsDict('/Registry/Users/%s' % user)
   if not res['OK']:
     gLogger.error('_inform_people: User %s not found in the CS.' % user)
     return ''
@@ -47,7 +47,7 @@ def _getMailAddress(user):
   return userProp['email']
 
 def _getMemberMails(group):
-  res = gConfig.getOptionsDict('/Security/Groups/%s' % group)
+  res = gConfig.getOptionsDict('/Registry/Groups/%s' % group)
   if not res['OK']:
     gLogger.error('_inform_people: group %s is not found in CS.' % group)
     return []
