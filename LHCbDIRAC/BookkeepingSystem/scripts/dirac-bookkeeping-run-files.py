@@ -12,6 +12,8 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.ConfigurationSystem.Client import PathFinder
 import sys
+from DIRAC.Core.Base import Script
+Script.parseCommandLine( ignoreErrors = True )
 
 if not len(sys.argv) == 2:
   print 'Usage: dirac-bookkeeping-run-files.py runID'

@@ -10,6 +10,9 @@ __VERSION__ = "$ $"
 import sys,string,re
 import DIRAC
 
+from DIRAC.Core.Base import Script
+Script.parseCommandLine( ignoreErrors = True )
+
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
