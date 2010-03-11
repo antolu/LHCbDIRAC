@@ -13,9 +13,8 @@ from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities            import DEncode
 import types,cPickle,os, tempfile
 
-Script.parseCommandLine()
-
-
+Script.parseCommandLine( ignoreErrors = True )
+print 'dsdsd'
 __RCSID__ = "$Id$"
 
 class BookkeepingClient:
