@@ -11,6 +11,7 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions,getModuleOptions
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
@@ -80,6 +81,9 @@ class GaudiApplication(ModuleBase):
 
     if self.step_commons.has_key('extraPackages'):
       self.extraPackages = self.step_commons['extraPackages']
+      if not self.extraPackages == '':
+        if type(self.extraPackages) != type([]):
+          self.extraPackages = self.extraPackages.split(';')      
 
     if self.workflow_commons.has_key('poolXMLCatName'):
       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
@@ -92,6 +96,22 @@ class GaudiApplication(ModuleBase):
 
     if self.step_commons.has_key('inputData'):
       self.inputData = self.step_commons['inputData']
+
+    #Input data resolution has two cases. Either there is explicitly defined
+    #input data for the application step (a subset of total workflow input data reqt)
+    #*or* this is defined at the job level and the job wrapper has created a
+    #pool_xml_catalog.xml slice for all requested files.
+
+    if self.inputData:
+      self.log.info('Input data defined in workflow for this Gaudi Application step')
+      if type(self.inputData) != type([]):
+        self.inputData = self.inputData.split(';')
+    elif self.InputData:
+      self.log.info('Input data defined taken from JDL parameter')
+      if type(self.inputData) != type([]):
+        self.inputData = self.InputData.split(';')
+    else:
+      self.log.verbose('Job has no input data requirement')
 
     if self.workflow_commons.has_key('JobType'):
       self.jobType = self.workflow_commons['JobType']
@@ -114,7 +134,7 @@ class GaudiApplication(ModuleBase):
        self.log.info('Step Status %s' %(self.stepStatus))
        return S_OK()
 
-    if not self.applicationName or not self.applicationName:
+    if not self.applicationName or not self.applicationVersion:
       return S_ERROR( 'No Gaudi Application defined' )
     elif not self.systemConfig:
       return S_ERROR( 'No LHCb platform selected' )
@@ -122,7 +142,7 @@ class GaudiApplication(ModuleBase):
       return S_ERROR( 'No Log file provided' )
 
     if not self.optionsFile and not self.optionsLine:
-      self.log.warn( 'No options File nor options Line provided' )
+      self.log.warn( 'No optionsFile or optionsLine specified in workflow' )
 
     self.log.info('Initializing %s' %(self.version))
 
@@ -137,28 +157,7 @@ class GaudiApplication(ModuleBase):
     if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return self.onlineExecute()
 
-    softwareArea = MySiteRoot()
-    if softwareArea == '':
-      self.log.error( 'MySiteRoot Not found' )
-      return S_ERROR(' MySiteRoot Not Found')
-
-    mySiteRoot=softwareArea
-    self.log.info('MYSITEROOT is %s' %mySiteRoot)
-    localArea = softwareArea
-    if re.search(':',softwareArea):
-      jobAgentSoftware = string.split(softwareArea,':')[0]
-      if os.path.exists('%s/LbLogin.sh' %(jobAgentSoftware)):
-        localArea = jobAgentSoftware
-        self.log.info('Will use LbLogin.sh from local software area at %s' %(localArea))
-      else:
-        localArea = string.split(softwareArea,':')[1]
-        self.log.info('Using the LbLogin.sh from the site shared area directory at %s' %(localArea))
-
-    self.log.info('Setting local software area to %s' %localArea)
-
     if self.optionsFile and not self.optionsFile == "None":
-      print self.optionsFile
-      print self.optionsFile.split(';')
       for fileopt in self.optionsFile.split(';'):
         if os.path.exists('%s/%s' %(cwd,os.path.basename(fileopt))):
           self.optfile += ' '+os.path.basename(fileopt)
@@ -187,21 +186,6 @@ class GaudiApplication(ModuleBase):
     generatedOpts = 'gaudi_extra_options.py'
     if os.path.exists(generatedOpts): os.remove(generatedOpts)
 
-    #Input data resolution has two cases. Either there is explicitly defined
-    #input data for the application step (a subset of total workflow input data reqt)
-    #*or* this is defined at the job level and the job wrapper has created a
-    #pool_xml_catalog.xml slice for all requested files.
-    if self.inputData:
-      self.log.info('Input data defined in workflow for this Gaudi Application step')
-      if type(self.inputData) != type([]):
-        self.inputData = self.inputData.split(';')
-    elif self.InputData:
-      self.log.info('Input data defined taken from JDL parameter')
-      if type(self.inputData) != type([]):
-        self.inputData = self.InputData.split(';')
-    else:
-      self.log.verbose('Job has no input data requirement')
-
     inputDataOpts = getDataOptions(self.applicationName,self.inputData,self.inputDataType,self.poolXMLCatName)['Value'] #always OK
     runNumberGauss = 0
     firstEventNumberGauss = 1
@@ -227,98 +211,6 @@ class GaudiApplication(ModuleBase):
     script.write('#####################################################################\n')
     script.write('#'+self.version+'\n')
     script.write('#####################################################################\n')
-
-    orig_ld_path = self.root
-    if os.environ.has_key('LD_LIBRARY_PATH'):
-      orig_ld_path = os.environ['LD_LIBRARY_PATH']
-      self.log.info('Original LD_LIBRARY_PATH is: %s' %(orig_ld_path))
-
-    script.write('declare -x MYSITEROOT='+mySiteRoot+'\n')
-    script.write('declare -x CMTCONFIG='+self.systemConfig+'\n')
-    self.log.info('CMTCONFIG is : %s' %(self.systemConfig))
-    script.write('declare -x CSEC_TRACE=1\n')
-    script.write('declare -x CSEC_TRACEFILE=csec.log\n')
-    script.write('. %s/LbLogin.sh\n' %localArea)
-
-    # DLL fix which creates fake CMT package
-    cmtFlag = ' '
-    ld_base_path = os.path.abspath('.')
-    if os.path.exists(ld_base_path+'/lib/requirements'):
-      self.log.debug('User requirements file found, creating fake CMT package...')
-      script.write('echo Creating Fake CMT package for user requirements file...\n')
-      cmtStr = ld_base_path+'/'+self.applicationName+'_'+self.applicationVersion
-      cmtProjStr = self.applicationName+'_'+self.applicationVersion
-      cmtUpperStr = string.upper(self.applicationName)+' '+string.upper(self.applicationName)+'_'+self.applicationVersion
-      script.write('mkdir -p '+cmtStr+'/cmttemp/v1/cmt\n')
-      script.write('mkdir -p '+cmtStr+'/cmt\n')
-      script.write('echo use '+cmtUpperStr+' >  '+cmtStr+'/cmt/project.cmt\n')
-      script.write('export User_release_area='+ld_base_path+'\n')
-      script.write('cp '+ld_base_path+'/lib/requirements '+cmtStr+'/cmttemp/v1/cmt\n')
-      script.write('export CMTPATH='+cmtStr+'\n')
-      cmtFlag = '--use="cmttemp v1" '
-    script.write('echo $LHCBPYTHON\n')
-
-    if not self.extraPackages == '':
-      if type(self.extraPackages) != type([]):
-        self.extraPackages = self.extraPackages.split(';')
-
-      self.log.info('Found extra package versions: %s' %(string.join(self.extraPackages,', ')))
-      for package in self.extraPackages:
-        cmtFlag += '--use="%s %s" ' %(package.split('.')[0],package.split('.')[1])
-
-    externals = ''
-    if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName() )['OK']:
-      externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName(), [] )
-      externals = string.join(externals,' ')
-      self.log.info('Found externals policy for %s = %s' %( DIRAC.siteName(), externals ) )
-    else:
-      externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
-      externals = string.join(externals,' ')
-      self.log.info('Using default externals policy for %s = %s' %( DIRAC.siteName(), externals ) )
-
-    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
-
-    if self.generator_name == '':
-      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+' \n')
-    else:
-      script.write('. '+setupProjectPath+'/SetupProject.sh --debug --ignore-missing '+cmtFlag+' --tag_add='+self.generator_name+' ' \
-                 +self.applicationName+' '+self.applicationVersion+' '+externals+' \n')
-
-    script.write('if [ $SetupProjectStatus != 0 ] ; then \n')
-    script.write('   exit 1\nfi\n')
-
-   #To fix Shr variable problem with component libraries
-    if os.path.exists(ld_base_path+'/lib'):
-      script.write("""
-varlist=`env | cut -d = -f1`
-liblist=`dir %s/lib`
-for var in $varlist; do
-  flag=`echo $var | awk '{print index($0,"Shr")}'`
-  if [ $flag -gt 0 ]; then
-     for lib in $liblist; do
-       length=`echo $lib | awk '{print index($0,".so")}'`
-       libbase=`echo $lib | awk '{print substr($0,4,(length-6))}'`
-       libfinal=${libbase}Shr
-       if [ $libfinal == $var ]; then
-          echo Found user substitution for a standard library $lib pointed by $var
-          newShrPath=lib${libbase}
-          declare -x $var=%s/lib/$newShrPath
-       fi
-     done
-  fi
-done
-""" % (ld_base_path,ld_base_path))
-
-    #To ensure correct LD LIBRARY PATH now reconstruct
-    script.write('declare -x LD_LIBRARY_PATH\n')
-    #Finally prepend directories for user libraries
-    script.write('declare -x LD_LIBRARY_PATH='+ld_base_path+'/lib:${LD_LIBRARY_PATH}\n') #DLLs always in lib dir
-    shippedPythonComponents = '%s/python' %ld_base_path
-    if os.path.exists(shippedPythonComponents):
-      self.log.info('Found shipped python directory, prepending to PYTHONPATH')
-      script.write('declare -x PYTHONPATH=%s:${PYTHONPATH}\n' %shippedPythonComponents)
-
     script.write('echo =============================\n')
     script.write('echo LD_LIBRARY_PATH is\n')
     script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
@@ -329,7 +221,6 @@ done
     script.write('echo PYTHONPATH is\n')
     script.write('echo $PYTHONPATH | tr ":" "\n"\n')
     script.write('env | sort >> localEnv.log\n')
-
     # Use the application loader shipped with the application if any (ALWAYS will be here)
     comm = 'gaudirun.py  %s %s\n' %(self.optfile,generatedOpts)
     print 'Command = %s' %(comm)
@@ -342,25 +233,29 @@ done
     script.write('quit\n')
     script.write('EOF\n')
     script.write('fi\n')
-
     script.write('exit $appstatus\n')
     script.close()
 
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
+    #Now obtain the project environment for execution
+    result = getProjectEnvironment(self.systemConfig,self.applicationName,self.applicationVersion,self.extraPackages,'','','',self.generator_name,self.poolXMLCatName,None)
+    if not result['OK']:
+      self.log.error('Could not obtain project environment with result: %s' %(result))
+      return result # this will distinguish between LbLogin / SetupProject / actual application failures
+    
+    projectEnvironment = result['Value']
+    
     os.chmod(scriptName,0755)
     comm = 'sh -c "./%s"' %scriptName
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
     #result = {'OK':True,'Value':(0,'Disabled Execution','')}
-    result = shellCall(0,comm,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    result = shellCall(0,comm,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     if not result['OK']:
       return S_ERROR('Problem Executing Application')
 
     resultTuple = result['Value']
-
     status = resultTuple[0]
-    # stdOutput = resultTuple[1]
-    # stdError = resultTuple[2]
 
     for f in toClean:
       self.log.verbose('Removing temporary file: %s' %f)
