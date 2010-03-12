@@ -6,7 +6,7 @@ __path__ = extend_path(__path__, __name__)
 majorVersion = 5
 minorVersion = 1
 patchLevel   = 0
-preVersion   = 4
+preVersion   = 5
 
 version      = "v%sr%s" % ( majorVersion, minorVersion )
 buildVersion = "v%dr%d" % ( majorVersion, minorVersion )
