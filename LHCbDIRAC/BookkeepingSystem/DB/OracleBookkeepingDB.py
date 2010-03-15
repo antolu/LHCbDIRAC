@@ -1057,18 +1057,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         else:
           ftypeId = res['Value'][0][0]
           condition += ' and files.FileTypeId='+str(ftypeId)
-      
+
     if evt != 0:
-      if type(evt) == types.ListType:
+      if type(evt) in (types.ListType,types.TupleType):
         condition += ' and '
         cond = ' ( '
         for i in evt:
           cond +=  ' files.eventtypeid='+str(i) + ' or '
         cond = cond[:-3] + ')'
         condition += cond
-      elif type(evt) == types.StringType or type(evt) == types.IntType:
+      elif type(evt) in (types.StringTypes + (types.IntType,types.LongType)):
         condition +=  ' and files.eventtypeid='+str(evt)
-    
+              
     if startDate != None:
       condition += ' and files.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
     
