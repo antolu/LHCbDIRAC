@@ -111,9 +111,12 @@ class TestApplications(ModuleBaseSAM):
       return self.finalize('Could not obtain compatible platforms for %s' %localArch,'/Resources/Computing/OSCompatibility/%s' %localArch,'error')
 
     if not self.appSystemConfig in localPlatforms:
-      self.log.info('%s is not in list of supported system configurations at this site: %s' %(self.appSystemConfig,string.join(localPlatforms,',')))
-      self.writeToLog('%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' %(self.appSystemConfig,string.join(localPlatforms,',')))
-      return self.finalize('%s Test Disabled' %self.testName,'Status NOTICE (=30)','notice')
+      if not self.appSystemConfig in localArch:
+        self.log.info('%s is not in list of supported system configurations at this site: %s' %(self.appSystemConfig,string.join(localPlatforms,',')))
+        self.writeToLog('%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' %(self.appSystemConfig,string.join(localPlatforms,',')))
+        return self.finalize('%s Test Disabled' %self.testName,'Status NOTICE (=30)','notice')
+      else:
+        self.appSystemConfig = localPlatforms[0]
 
     options = self.__getOptions(self.appNameVersion.split('.')[0], self.appNameVersion.split('.')[1], self.appNameOptions)
     if not options['OK']:
