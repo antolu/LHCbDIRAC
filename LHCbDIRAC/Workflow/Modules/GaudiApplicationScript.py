@@ -19,7 +19,7 @@ from DIRAC.Core.Utilities.Os                                import sourceEnv
 from DIRAC.Resources.Catalog.PoolXMLCatalog                 import PoolXMLCatalog
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot, CheckApplication
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, platformTuple, shellCall
@@ -48,8 +48,6 @@ class GaudiApplicationScript(ModuleBase):
     self.applicationName = ''
     self.applicationVersion = ''
     self.systemConfig = ''
-    self.inputDataType = 'DATA'
-    self.inputData = '' # to be resolved, check at the step level
     self.poolXMLCatName = 'pool_xml_catalog.xml'
 
   #############################################################################
@@ -81,12 +79,6 @@ class GaudiApplicationScript(ModuleBase):
     if self.step_commons.has_key('arguments'):
       self.arguments = self.step_commons['arguments']
 
-    if self.step_commons.has_key('inputDataType'):
-      self.inputDataType = self.step_commons['inputDataType']
-
-    if self.step_commons.has_key('inputData'):
-      self.inputData = self.step_commons['inputData']
-
     if self.step_commons.has_key('poolXMLCatName'):
       self.poolXMLCatName = self.step_commons['poolXMLCatName']
     return S_OK()
@@ -95,10 +87,11 @@ class GaudiApplicationScript(ModuleBase):
   def execute(self):
     """The main execution method of the module.
     """
-    self.log.info('Initializing '+self.version)
+    self.log.info('Initializing %s' %(self.version))
     self.log.verbose('Step commons is:\n%s' %self.step_commons)
     self.log.verbose('Workflow commons is:\n%s' %self.workflow_commons)
     self.resolveInputVariables()
+
     self.result = S_OK()
     if not self.applicationName or not self.applicationVersion:
       self.result = S_ERROR( 'No Gaudi Application defined' )
@@ -107,138 +100,23 @@ class GaudiApplicationScript(ModuleBase):
     elif not self.script:
       self.result = S_ERROR('No script defined')
     elif not self.applicationLog:
-      self.applicationLog = '%s.log' %self.script
+      self.applicationLog = '%s.log' %(os.path.basename(self.script))
 
     if not self.result['OK']:
       return self.result
 
-    #self.__report( 'Initializing GaudiApplicationScript module' )
-    self.cwd  = os.getcwd()
-    self.root = gConfig.getValue( '/LocalSite/Root', self.cwd )
+    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    self.log.info( "Executing application %s %s for system configuration %s" %(self.applicationName,self.applicationVersion,self.systemConfig))
+    self.log.verbose("/LocalSite/Root directory for job is %s" %(self.root))
 
-    self.log.debug( self.version )
-    self.log.info( "Executing application %s %s" % ( self.applicationName, self.applicationVersion ) )
-    self.log.info( "System configuration for job is %s" % ( self.systemConfig ) )
-    self.log.info( "Root directory for job is %s" % ( self.root ) )
+    #Now obtain the project environment for execution
+    result = getProjectEnvironment(self.systemConfig,self.applicationName,self.applicationVersion,poolXMLCatalogName=self.poolXMLCatName)
+    if not result['OK']:
+      self.log.error('Could not obtain project environment with result: %s' %(result))
+      return result # this will distinguish between LbLogin / SetupProject / actual application failures
 
-    sharedArea = MySiteRoot()
-    appRoot = CheckApplication( ( self.applicationName, self.applicationVersion ), self.systemConfig, sharedArea )
-    if appRoot:
-      mySiteRoot = sharedArea
-    else:
-      self.log.error( 'Application Not found' )
-      self.setApplicationStatus( 'Application Not Found' )
-      self.result = S_ERROR( 'Application Not Found' )
-
-    if not self.result['OK']:
-      return self.result
-
-    localArea = sharedArea
-    if re.search(':',sharedArea):
-      localArea = string.split(sharedArea,':')[0]
-    self.log.info('Setting local software area to %s' %localArea)
-
-    #self.__report( 'Application Found' )
-    self.log.info( 'Application Root Found:', appRoot )
-
-    cmtEnv = dict(os.environ)
-    if 'CMTPROJECTPATH' in cmtEnv:
-      print 'CMTPROJECTPATH',cmtEnv['CMTPROJECTPATH']
-      del cmtEnv['CMTPROJECTPATH']
-
-    gaudiEnv = {}
-
-    cmtEnv['MYSITEROOT'] = mySiteRoot
-    cmtEnv['CMTCONFIG']  = self.systemConfig
-
-    extCMT       = os.path.join( localArea, 'LbLogin' )
-    setupProject = '%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %extCMT)),'SetupProject')
-
-    setupProject = [setupProject]
-    setupProject.append( '--ignore-missing' )
-    setupProject.append( self.applicationName )
-    setupProject.append( self.applicationVersion )
-
-    externals = ''
-    if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName() )['OK']:
-      externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % DIRAC.siteName(), [] )
-      externals = string.join( externals,' ')
-      self.log.info( 'Found externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
-    else:
-      externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default', [] )
-      externals = string.join( externals, ' ' )
-      self.log.info( 'Using default externals policy for %s = %s' % ( DIRAC.siteName(), externals ) )
-
-    setupProject.append( externals )
-    timeout = 600
-
-    # Run ExtCMT
-    ret = sourceEnv( timeout, [extCMT], cmtEnv )
-    if ret['OK']:
-      if ret['stdout']:
-        self.log.info( ret['stdout'] )
-      if ret['stderr']:
-        self.log.warn( ret['stderr'] )
-      setupProjectEnv = ret['outputEnv']
-    else:
-      self.log.error( ret['Message'])
-      if ret['stdout']:
-        self.log.info( ret['stdout'] )
-      if ret['stderr']:
-        self.log.warn( ret['stderr'] )
-      self.result = ret
-      return self.result
-
-    # Run SetupProject
-    ret = sourceEnv( timeout, setupProject, setupProjectEnv )
-    if ret['OK']:
-      if ret['stdout']:
-        self.log.info( ret['stdout'] )
-      if ret['stderr']:
-        self.log.warn( ret['stderr'] )
-      gaudiEnv = ret['outputEnv']
-    else:
-      self.log.error( ret['Message'])
-      if ret['stdout']:
-        self.log.info( ret['stdout'] )
-      if ret['stderr']:
-        self.log.warn( ret['stderr'] )
-      self.result = ret
-      return self.result
-
-    # Now link all libraries in a single directory
-    appDir = os.path.join( self.cwd, '%s_%s' % ( self.applicationName, self.applicationVersion ))
-    if os.path.exists( appDir ):
-      self.log.verbose('Using existing %s_%s directory' % ( self.applicationName, self.applicationVersion ))
-#      import shutil
-#      shutil.rmtree( appDir )
-    # add shipped libraries if available
-    # extraLibs = os.path.join( mySiteRoot, self.systemConfig )
-    #if os.path.exists( extraLibs ):
-    #  gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % extraLibs
-    #  self.log.info( 'Adding %s to LD_LIBRARY_PATH' % extraLibs )
-    # Add compat libs
-
-    localPath = os.path.abspath('.')
-    if os.path.exists('%s/lib' %localPath):
-      self.log.info('Found local lib directory, prepending to LD_LIBRARY_PATH')
-      origLD = '' #just in case LD_LIBRARY_PATH is not defined
-      if gaudiEnv.has_key('LD_LIBRARY_PATH'):
-        origLD = gaudiEnv['LD_LIBRARY_PATH']
-        gaudiEnv['LD_LIBRARY_PATH']='%s/lib:%s' %(localPath,origLD)
-      else:
-        gaudiEnv['LD_LIBRARY_PATH']='%s/lib' %localPath
-
-    compatLib = os.path.join( self.root, self.systemConfig, 'compat' )
-    if os.path.exists(compatLib):
-      gaudiEnv['LD_LIBRARY_PATH'] += ':%s' % compatLib
-
-    f = open( 'localEnv.log', 'w' )
-    for k in gaudiEnv:
-      v = gaudiEnv[k]
-      f.write( '%s="%s"\n' % ( k,v ) )
-    f.close()
-
+    projectEnvironment = result['Value']    
+    
     gaudiCmd = []
     if re.search('.py$',self.script):
       gaudiCmd.append('python')
@@ -248,38 +126,36 @@ class GaudiApplicationScript(ModuleBase):
       gaudiCmd.append(os.path.basename(self.script))
       gaudiCmd.append(self.arguments)
 
-    if not self.poolXMLCatName=='pool_xml_catalog.xml':
-      if not os.path.exists(self.poolXMLCatName):
-        self.log.info('Creating requested POOL XML Catalog: %s' %(self.poolXMLCatName))
-        shutil.copy('pool_xml_catalog.xml',self.poolXMLCatName)
+    command = ' '.join(gaudiCmd)
+    print 'Command = %s' %(command)  #Really print here as this is useful to see
 
-    self.log.info('POOL XML Catalog file is %s' %(self.poolXMLCatName))
+    #Set some parameter names
+    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
+    scriptName = '%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
+    coreDumpName = '%s_Step%s' %(self.applicationName,self.STEP_NUMBER)
+    
+    #Wrap final execution command with defaults
+    finalCommand = addCommandDefaults(command,envDump=dumpEnvName,coreDumpLog=coreDumpName)['Value'] #should always be S_OK()
+
+    #Create debug shell script to reproduce the application execution
+    debugResult = createDebugScript(scriptName,command,env=projectEnvironment,envLogFile=dumpEnvName,coreDumpLog=coreDumpName) #will add command defaults internally
+    if debugResult['OK']:
+      self.log.verbose('Created debug script %s for Step %s' %(debugResult['Value'],self.STEP_NUMBER))
 
     if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
-    #self.__report('%s %s' %(self.applicationName,self.applicationVersion))
-    self.writeGaudiRun(gaudiCmd, gaudiEnv)
-    self.stdError = ''
-    ret = shellCall(0,'which python',env=gaudiEnv,callbackFunction=self.redirectLogOutput)
-    self.log.info( 'Running:', ' '.join(gaudiCmd)  )
-    ret = shellCall(0,' '.join(gaudiCmd),env=gaudiEnv,callbackFunction=self.redirectLogOutput)
 
-    if not ret['OK']:
-      self.log.error(gaudiCmd)
-      self.log.error(ret)
-      self.result = S_ERROR()
-      return self.result
+    self.stdError = ''    
+    result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    if not result['OK']:
+      self.log.error(result)
+      return S_ERROR('Problem Executing Application')
 
-      self.result = ret
-      return self.result
-
-    resultTuple = ret['Value']
+    resultTuple = result['Value']
 
     status = resultTuple[0]
     # stdOutput = resultTuple[1]
     # stdError = resultTuple[2]
-
     self.log.info( "Status after %s execution is %s" %(os.path.basename(self.script),str(status)) )
-
     failed = False
     if status != 0:
       self.log.info( "%s execution completed with non-zero status:" % os.path.basename(self.script) )
@@ -293,50 +169,11 @@ class GaudiApplicationScript(ModuleBase):
     if failed==True:
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( self.stdError )
-      #self.__report('%s Exited With Status %s' %(os.path.basename(self.script),status))
       return S_ERROR('%s Exited With Status %s' %(os.path.basename(self.script),status))
 
-    # Return OK assuming that subsequent CheckLogFile will spot problems
-    self.__report('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
     #Above can't be removed as it is the last notification for user jobs
+    self.setApplicationStatus('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
     return S_OK('%s (%s %s) Successful' %(os.path.basename(self.script),self.applicationName,self.applicationVersion))
-
-  #############################################################################
-  def writeGaudiRun( self, gaudiCmd, gaudiEnv, shell='/bin/bash'):
-    """
-     Write a shell script that can be used to run the application
-     with the same environment as in GaudiApplication.
-     This script is not used internally, but can be used "a posteriori" for
-     debugging purposes
-    """
-    if shell.find('csh'):
-      ext = 'csh'
-      environ = []
-      for var in gaudiEnv:
-        environ.append('setenv %s "%s"' % (var, gaudiEnv[var]) )
-    else:
-      ext = 'sh'
-      for var in gaudiEnv:
-        environ.append('export %s="%s"' % (var, gaudiEnv[var]) )
-
-    scriptName = '%sRun.%s' % ( self.applicationName, ext )
-    script = open( scriptName, 'w' )
-    script.write( """#! %s
-#
-# This is a debug script to run %s %s interactively
-#
-%s
-#
-%s | tee %s
-#
-exit $?
-#
-""" % (shell, self.applicationName, self.applicationVersion,
-        '\n'.join(environ),
-        ' '.join(gaudiCmd),
-        self.applicationLog ) )
-
-    script.close()
       
   #############################################################################
   def redirectLogOutput(self, fd, message):
@@ -351,20 +188,5 @@ exit $?
         self.log.error("Application Log file not defined")
       if fd == 1:
         self.stdError += message
-        
-  #############################################################################
-  def __report(self,status):
-    """Wraps around setJobApplicationStatus of state update client
-    """
-    if not self.jobID:
-      return S_OK('JobID not defined') # e.g. running locally prior to submission
-
-    self.log.verbose('setJobApplicationStatus(%s,%s,%s)' %(self.jobID,status,'GaudiApplication'))
-    jobReport = RPCClient('WorkloadManagement/JobStateUpdate',timeout=120)
-    jobStatus = jobReport.setJobApplicationStatus(int(self.jobID),status,'GaudiApplication')
-    if not jobStatus['OK']:
-      self.log.warn(jobStatus['Message'])
-
-    return jobStatus
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
