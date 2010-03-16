@@ -11,7 +11,7 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions,getModuleOptions
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
@@ -145,31 +145,29 @@ class GaudiApplication(ModuleBase):
       self.log.warn( 'No optionsFile or optionsLine specified in workflow' )
 
     self.log.info('Initializing %s' %(self.version))
-
-    cwd = os.getcwd()
-    self.root = gConfig.getValue('/LocalSite/Root',cwd)
-    self.log.debug(self.version)
-    self.log.info( "Executing application %s %s" % ( self.applicationName, self.applicationVersion ) )
-    self.log.info("Platform for job is %s" % ( self.systemConfig ) )
-    self.log.info("Root directory for job is %s" % ( self.root ) )
+    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
+    self.log.info( "Executing application %s %s for system configuration %s" %(self.applicationName,self.applicationVersion,self.systemConfig))
+    self.log.verbose("/LocalSite/Root directory for job is %s" %(self.root))
 
     ## FIXME: need to agree what the name of the Online Farm is
     if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return self.onlineExecute()
 
+    #Resolve options files
     if self.optionsFile and not self.optionsFile == "None":
       for fileopt in self.optionsFile.split(';'):
-        if os.path.exists('%s/%s' %(cwd,os.path.basename(fileopt))):
+        if os.path.exists('%s/%s' %(os.getcwd(),os.path.basename(fileopt))):
           self.optfile += ' '+os.path.basename(fileopt)
         # Otherwise take the one from the application options directory
         elif re.search('\$',fileopt):
           self.log.info('Found options file containing environment variable: %s' %fileopt)
           self.optfile += '  %s' %(fileopt)
         else:
-          self.log.info('Assume options file %s is in $%sOPTS' %(fileopt,self.applicationName.upper()))
-          self.optfile+=' $%sOPTS/%s' %(self.applicationName.upper(),fileopt)
+          self.log.error('Cannot process options: "%s" not found via environment variable or in local directory' %(fileopt))
 
-    print 'Final options files:',self.optfile
+    self.log.info('Final options files: %s' %(self.optfile))
+
+    #In case we need to work around the CORAL LFC access
     toClean = []
     if re.search('disablelfc',self.optfile.lower()):
       self.log.info('CORAL LFC Access is disabled, obtaining XML files...')
@@ -200,44 +198,6 @@ class GaudiApplication(ModuleBase):
     options.write(projectOpts)
     options.close()
 
-    #Create final shell script wrapper to drive the application execution
-    scriptName = '%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
-    if os.path.exists(scriptName): os.remove(scriptName)
-
-    script = open(scriptName,'w')
-    script.write('#!/bin/sh \n')
-    script.write('#####################################################################\n')
-    script.write('# Dynamically generated script to run a production or analysis job. #\n')
-    script.write('#####################################################################\n')
-    script.write('#'+self.version+'\n')
-    script.write('#####################################################################\n')
-    script.write('echo =============================\n')
-    script.write('echo LD_LIBRARY_PATH is\n')
-    script.write('echo $LD_LIBRARY_PATH | tr ":" "\n"\n')
-    script.write('echo =============================\n')
-    script.write('echo PATH is\n')
-    script.write('echo $PATH | tr ":" "\n"\n')
-    script.write('echo =============================\n')
-    script.write('echo PYTHONPATH is\n')
-    script.write('echo $PYTHONPATH | tr ":" "\n"\n')
-    script.write('env | sort >> localEnv.log\n')
-    # Use the application loader shipped with the application if any (ALWAYS will be here)
-    comm = 'gaudirun.py  %s %s\n' %(self.optfile,generatedOpts)
-    print 'Command = %s' %(comm)
-    script.write(comm)
-    script.write('declare -x appstatus=$?\n')
-    script.write('# check for core dumps and analyze it if present\n')
-    script.write('if [ -e core.* ] ; then\n')
-    script.write('  gdb python core.* >> %s_coredump.log << EOF\n' % self.applicationName )
-    script.write('where\n')
-    script.write('quit\n')
-    script.write('EOF\n')
-    script.write('fi\n')
-    script.write('exit $appstatus\n')
-    script.close()
-
-    if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
-
     #Now obtain the project environment for execution
     result = getProjectEnvironment(self.systemConfig,self.applicationName,self.applicationVersion,self.extraPackages,'','','',self.generator_name,self.poolXMLCatName,None)
     if not result['OK']:
@@ -245,12 +205,29 @@ class GaudiApplication(ModuleBase):
       return result # this will distinguish between LbLogin / SetupProject / actual application failures
     
     projectEnvironment = result['Value']
+
+    command = 'gaudirun.py  %s %s' %(self.optfile,generatedOpts)
+    print 'Command = %s' %(command)  #Really print here as this is useful to see
+
+    #Set some parameter names
+    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
+    scriptName = '%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER)
+    coreDumpName = '%s_Step%s' %(self.applicationName,self.STEP_NUMBER)
     
-    os.chmod(scriptName,0755)
-    comm = 'sh -c "./%s"' %scriptName
+    #Wrap final execution command with defaults
+    finalCommand = addCommandDefaults(command,envDump=dumpEnvName,coreDumpLog=coreDumpName)['Value'] #should always be S_OK()
+
+    #Create debug shell script to reproduce the application execution
+    debugResult = createDebugScript(scriptName,command,env=projectEnvironment,envLogFile=dumpEnvName,coreDumpLog=coreDumpName) #will add command defaults internally
+    if debugResult['OK']:
+      self.log.verbose('Created debug script %s for Step %s' %(debugResult['Value'],self.STEP_NUMBER))
+
+    if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
+
+    self.log.info('Running %s %s step %s'  %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))    
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
     #result = {'OK':True,'Value':(0,'Disabled Execution','')}
-    result = shellCall(0,comm,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     if not result['OK']:
       return S_ERROR('Problem Executing Application')
 
@@ -263,7 +240,6 @@ class GaudiApplication(ModuleBase):
         os.remove(f)
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
-
     if status != 0:
       self.log.error( "%s execution completed with errors" % self.applicationName )
       self.log.error( "==================================\n StdError:\n" )
@@ -273,9 +249,7 @@ class GaudiApplication(ModuleBase):
     else:
       self.log.info( "%s execution completed succesfully" % self.applicationName )
 
-    #For the MC stripping case, must add the streams generated by DaVinci
-    #initially only the MC case separates the streams... if the same applies
-    #for real data the last condition below can be removed then e.g. configName = MC or data
+    #For the stripping case, must add the streams generated by DaVinci, ONLY know what's produced after running it...
     if self.jobType.lower()=='datastripping' and self.applicationName.lower()=='davinci' and self.applicationType.lower()=='dst' and self.inputDataType.lower()=='dst':
       self.log.info('DataStripping DaVinci DST step, will attempt to add output data files to the global list of output data')
       finalOutputs=[]
