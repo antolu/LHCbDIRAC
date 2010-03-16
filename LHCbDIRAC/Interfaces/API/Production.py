@@ -498,10 +498,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     conddbOpt = "@{CondDBTag}"
     if not condDBTag.lower() == 'global':
       self.log.verbose('Specific CondDBTag setting found for %s step, setting to: %s' %(appName,condDBTag))
-      conddbOpt = condDBTag
+      conddbOpt = condDBTag.replace(' ','')
     if not ddDBTag.lower() == 'global':
       self.log.verbose('Specific DDDBTag setting found for %s step, setting to: %s' %(appName,ddDBTag))
-      dddbOpt = ddDBTag
+      dddbOpt = ddDBTag.replace(' ','')
 
     #to construct the BK processing pass structure, starts from step '0'
     stepID = 'Step%s' %(self.gaudiStepCount-1)
@@ -1283,8 +1283,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setDBTags(self,conditions='sim-20090112',detector='head-20090112'):
     """ Sets destination for all jobs.
     """
-    self._setParameter('CondDBTag','string',conditions,'CondDBTag')
-    self._setParameter('DDDBTag','string',detector,'DetDescTag')
+    self._setParameter('CondDBTag','string',conditions.replace(' ',''),'CondDBTag')
+    self._setParameter('DDDBTag','string',detector.replace(' ',''),'DetDescTag')
 
   #############################################################################
   def setProdPriority(self,priority):
