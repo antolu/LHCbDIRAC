@@ -21,10 +21,11 @@ import string,re,os,shutil
 gLogger = gLogger.getSubLogger('ProductionEnvironment')
 groupLogin = 'LbLogin.sh'
 projectEnv = 'SetupProject.sh'
+defaultCatalogName = 'pool_xml_catalog.xml'
 timeout = 600
 
 #############################################################################
-def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion='',extraPackages='',runTimeProject='',site='',directory='',generatorName='',poolXMLCatalogName='pool_xml_catalog.xml',env=None):
+def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion='',extraPackages='',runTimeProject='',site='',directory='',generatorName='',poolXMLCatalogName=defaultCatalogName,env=None):
   """ This function uses all below methods to get the complete project environment
       thus ensuring consistent behaviour from all modules.  The environment is 
       returned as a dictionary and can be passed directly to a shellCall as well
@@ -51,6 +52,73 @@ def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion
   return runEnvironmentScripts([lbLogin,setupProject],environment)
 
 #############################################################################
+def addCommandDefaults(command,postExecution='',envDump='localEnv.log',coreDumpLog='Step'):
+  """ Wrap the actual execution command with some defaults that are useful for 
+      debugging. This is always executed by a shellCall so can use standard 
+      commands. 
+  """
+  #First some preamble
+  cmdList = []
+  cmdSep = 'echo "%s"' %('='*50)
+  cmdList.append(cmdSep)
+  cmdList.append('echo "Log file from execution of: %s"' %(command))
+  for variable in ['LD_LIBRARY_PATH','PYTHONPATH','PATH']:
+    cmdList.append(cmdSep)
+    cmdList.append('echo "%s is:"' %(variable))
+    cmdList.append('echo $%s | tr ":" "\n"' %(variable))
+
+  cmdList.append(cmdSep)
+  cmdList.append('env | sort >> %s' %(envDump))
+  #Now do what is requested
+  cmdList.append(command)
+  cmdList.append('declare -x appstatus=$?')
+  #Add any requested postExecution commands
+  if postExecution:
+    cmdList.append(postExecution)
+  #Now add some standard post execution commands
+  cmdList.append('if [ -e core.* ] ; then  gdb python core.* >> %s_coredump.log << EOF' %(coreDumpLog))
+  cmdList.append('where')
+  cmdList.append('quit')
+  cmdList.append('EOF')
+  cmdList.append('fi')
+  cmdList.append('exit $appstatus')  
+  return S_OK(string.join(cmdList,';'))
+  
+#############################################################################
+def createDebugScript(name,command,env=None,postExecution='',envLogFile='localEnv.log',coreDumpLog='Step'):
+  """ Create a shell script for the specified commands to be executed. If no
+      environment is passed it defaults to os.environ.
+  """
+  if not env:
+    env = dict(os.environ)
+  
+  version = __RCSID__
+  if os.path.exists(name): 
+    os.remove(name)
+  
+  script = []
+  msg = '# Dynamically generated script to reproduce execution environment.'
+  script.append('#!/bin/sh')
+  script.append('#'*len(msg))
+  script.append(msg)
+  script.append('#'*len(msg))
+  script.append('# %s' %(version))
+  script.append('#'*len(msg)+'\n')
+    
+  for var in env:
+    script.append('export %s="%s"' %(var,env[var]))
+  
+  command = addCommandDefaults(command,postExecution,envLogFile,coreDumpLog)['Value']
+  for cmd in command.split(';'):
+    script.append('%s' %(cmd))
+    
+  fopen = open(name,'w')
+  fopen.write('%s\n' %(string.join(script,'\n')))
+  fopen.close()
+  os.chmod(name,0755)
+  return S_OK(name)
+
+#############################################################################
 def runEnvironmentScripts(commandsList,env=None):
   """ Wrapper to run the provided commands using the specified initial environment
       (defaults to the os.environ) and return the final resulting environment as
@@ -64,6 +132,8 @@ def runEnvironmentScripts(commandsList,env=None):
   names = []
   for command in commandsList:
     gLogger.info('Attempting to run: %s' %(command))
+    name = os.path.basename(string.split(command,' ')[0])
+    names.append(name)          
     #very annoying sourceEnv feature, implies .sh will be added for you so have to remove it!
     exeCommand = command.replace(groupLogin,groupLogin[:-3]).replace(projectEnv,projectEnv[:-3])
     exeCommand = string.split(exeCommand,' ')
@@ -74,16 +144,15 @@ def runEnvironmentScripts(commandsList,env=None):
         gLogger.info(result['stdout'])
       if result['stderr']:
         gLogger.error(result['stderr'])
-      name = os.path.basename(string.split(command,' ')[0])
-      names.append(name)
       return S_ERROR('%s Execution Failed' %(name))
+
     env = result['outputEnv']
 
-  gLogger.info('%s were executed successfully' %(string.join(names,',')))
+  gLogger.info('%s were executed successfully' %(string.join(names,', ')))
   return S_OK(env)
 
 #############################################################################
-def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemConfig,directory='',poolXMLCatalogName='pool_xml_catalog.xml',env=None):
+def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemConfig,directory='',poolXMLCatalogName=defaultCatalogName,env=None):
   """ Sets default environment variables for project execution, will use the
       environment passed or the current os.environ if not provided.  The 
       current working directory is assumed if not provided.
@@ -93,10 +162,14 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
   if not directory:
     directory = os.getcwd()
 
-  if not poolXMLCatalogName=='pool_xml_catalog.xml':
+  if not poolXMLCatalogName==defaultCatalogName:
     if not os.path.exists(poolXMLCatalogName):
-      gLogger.info('Creating requested POOL XML Catalog file: %s' %(poolXMLCatalogName))
-      shutil.copy('pool_xml_catalog.xml',poolXMLCatalogName)
+      if os.path.exists(defaultCatalogName):
+        gLogger.info('Creating requested POOL XML Catalog file: %s' %(poolXMLCatalogName))
+        shutil.copy(os.path.join(directory,defaultCatalogName),os.path.join(directory,poolXMLCatalogName))
+      else:
+        gLogger.error('Could not find default catalog %s in directory %s' %(defaultCatalogName,directory))
+        return S_ERROR('Could not find %s' %defaultCatalogName)
 
   if 'CMTPROJECTPATH' in env:
     gLogger.verbose('Removing CMTPROJECTPATH from environment; %s' %env['CMTPROJECTPATH'])
@@ -209,13 +282,15 @@ def getProjectCommand(location,applicationName,applicationVersion,extraPackages=
     externals = gConfig.getValue('/Operations/ExternalsPolicy/Default',[])
     externals = string.join(externals,' ')
     gLogger.info('Using default externals policy for %s = %s' %(site,externals))
+  
+  cmd.append(externals)
 
   if additional:
     gLogger.info('Requested additional options: %s' %(additional))
     cmd.append(additional)
 
   finalCommand = string.join(cmd,' ')
-  gLogger.info('%s command = %s' %(projectEnv,finalCommand))
+  gLogger.verbose('%s command = %s' %(projectEnv,finalCommand))
   return S_OK(finalCommand)
 
 #############################################################################
