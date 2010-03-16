@@ -15,8 +15,8 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -124,76 +124,45 @@ class ErrorLogging(ModuleBase):
       self.log.error(result['Message'])
       return S_OK()
 
-    sharedArea = MySiteRoot()
-    if sharedArea == '':
-      self.log.error( 'MySiteRoot Not found' )
-      return S_OK()
-
     self.log.info('Executing ErrorLogging module for: %s %s %s' %(self.applicationName,self.applicationVersion,self.applicationLog))
     if not os.path.exists(self.applicationLog):
-      self.log.error('Application log file not found locally: %s' %self.applicationLog)
+      self.log.error('Application log file from previous module not found locally: %s' %self.applicationLog)
       return S_OK()
 
-    self.log.info('MYSITEROOT is %s' %sharedArea)
-    localArea = sharedArea
-    if re.search(':',sharedArea):
-      localArea = string.split(sharedArea,':')[0]
-    self.log.info('Found local software area %s' %localArea)
+    #Now obtain the project environment for execution
+    result = getProjectEnvironment(self.systemConfig,self.applicationName,applicationVersion=self.applicationVersion,extraPackages=self.extraPackages)
+    if not result['OK']:
+      self.log.error('Could not obtain project environment with result: %s' %(result))
+      return S_OK()
     
+    projectEnvironment = result['Value']
+    command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' %(self.applicationLog,self.applicationName,self.applicationVersion)
+    
+    #Set some parameter names
+    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' %(self.stepNumber)
     scriptName = 'Error_Log_%s_%s_Run_%s.sh' %(self.applicationName,self.applicationVersion,self.stepNumber)
+    coreDumpName = 'ErrorLogging_Step%s' %(self.stepNumber)
+    
+    #Wrap final execution command with defaults
+    finalCommand = addCommandDefaults(command,envDump=dumpEnvName,coreDumpLog=coreDumpName)['Value'] #should always be S_OK()
+
+    #Create debug shell script to reproduce the application execution
+    debugResult = createDebugScript(scriptName,command,env=projectEnvironment,envLogFile=dumpEnvName,coreDumpLog=coreDumpName) #will add command defaults internally
+    if debugResult['OK']:
+      self.log.verbose('Created debug script %s for Step %s' %(debugResult['Value'],self.stepNumber))
     
     if os.path.exists(self.defaultName): os.remove(self.defaultName)
     
     if os.path.exists(scriptName): os.remove(scriptName)
 
-    if os.path.exists(self.errorLogFile): os.remove(self.errorLogFile)
+    if os.path.exists(self.errorLogFile): os.remove(self.errorLogFile)  
 
-    setupProjectPath = os.path.dirname(os.path.realpath('%s/LbLogin.sh' %localArea))
-
-    cmtUseFlag = ''
-    for package in self.extraPackages:
-      cmtUseFlag += '--use="%s %s" ' %(package.split('.')[0],package.split('.')[1])    
-
-    setupProjectCommand = '. %s/SetupProject.sh --debug --ignore-missing %s %s %s' %(setupProjectPath,cmtUseFlag,self.applicationName,self.applicationVersion)
-    errorLogCommand = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' %(self.applicationLog,self.applicationName,self.applicationVersion)
-
-    lines = []    
-    lines.append('#!/bin/sh')
-    lines.append('# Dynamically generated script to run error logging, created using:\n#%s' %self.version)
-    lines.append('declare -x MYSITEROOT=%s' %sharedArea)
-    lines.append('declare -x CMTCONFIG=%s' %self.systemConfig)
-    lines.append('. %s/LbLogin.sh' %localArea)
-    lines.append('%s' %setupProjectCommand)    
-    lines.append('echo =============================')
-    lines.append('echo LD_LIBRARY_PATH is\n')
-    lines.append('echo $LD_LIBRARY_PATH | tr ":" "\n"')
-    lines.append('echo =============================')
-    lines.append('echo PATH is\n')
-    lines.append('echo $PATH | tr ":" "\n"')
-    lines.append('echo =============================')
-    lines.append('echo PYTHONPATH is\n')
-    lines.append('echo $PYTHONPATH | tr ":" "\n"')
-    lines.append('echo =============================')    
-    lines.append('echo Executing %s ...' %errorLogCommand)
-    lines.append('echo =============================')
-    lines.append(errorLogCommand)
-    lines.append('declare -x errorLogStatus=$?')
-    lines.append('echo LogErr.py exited with status $errorLogStatus')
-    lines.append('exit $errorLogStatus\n')
-
-    fname = open(scriptName,'w')
-    fname.write(string.join(lines,'\n'))
-    fname.close()
-    
-    os.chmod(scriptName,0755)
-    comm = 'sh -c "./%s"' %(scriptName)   
-
-    result = shellCall(120,comm,callbackFunction=self.redirectLogOutput)
+    result = shellCall(120,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput)
     status = result['Value'][0]
-    self.log.info("Status after the application execution is %s" %(status))
+    self.log.info("Status after the ErrorLogging execution is %s (if non-zero this is ignored)" %(status))
 
     if status:
-      self.log.error( "Error logging for %s %s step %s  completed with errors:" %(self.applicationName,self.applicationVersion,self.stepNumber))
+      self.log.error( "Error logging for %s %s step %s completed with errors:" %(self.applicationName,self.applicationVersion,self.stepNumber))
       self.log.error( "==================================\n StdError:\n" )
       self.log.error( self.stdError )
       self.log.info('Exiting without affecting workflow status')
