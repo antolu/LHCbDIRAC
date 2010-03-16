@@ -12,7 +12,6 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions,getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
