@@ -53,7 +53,6 @@ class Production(LHCbJob):
     self.ioDict = {}
     self.gaussList = []
     self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge']
-    self.prodPlugins = ['CCRC_RAW','BySize','Standard','ByRunCCRC_RAW']
     self.name='unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
@@ -281,7 +280,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     appTypes = ['dst','fetc','rdst','davincihist']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
-    if not inputDataType in ('rdst','dst'):
+    if not inputDataType.lower() in ('rdst','dst'):
       raise TypeError,'Only DST input data type currently supported'
 
     if inputDataType.lower()=='rdst':
@@ -1303,11 +1302,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setProdPlugin(self,plugin):
     """ Sets the plugin to be used to creating the production jobs
     """
-    available_plugins = self.prodPlugins
-    if plugin in available_plugins:
-      self.plugin = plugin
-    else:
+    if not plugin:
       self.plugin = 'Standard'
+    else:
+      self.plugin = plugin
 
   #############################################################################
   def setInputFileMask(self,fileMask):
