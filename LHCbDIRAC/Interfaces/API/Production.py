@@ -52,7 +52,7 @@ class Production(LHCbJob):
     self.defaultProdJobID = '12345'
     self.ioDict = {}
     self.gaussList = []
-    self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge']
+    self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge','Test']
     self.name='unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
