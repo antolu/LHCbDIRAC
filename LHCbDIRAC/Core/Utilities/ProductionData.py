@@ -257,7 +257,7 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
     gLogger.verbose('LFN_ROOT will be %s' %(LFN_ROOT))
     return LFN_ROOT
   
-  lfn = [fname.replace(' ','') for fname in lfn.split(';')]
+  lfn = [fname.replace(' ','').replace('LFN:','') for fname in lfn.split(';')]
   lfnroot = lfn[0].split('/')
   for part in lfnroot:
     if not part in dataTypes:
@@ -274,7 +274,7 @@ def _getLFNRoot(lfn,namespace='',configVersion=0):
       tmpLfnRoot[2] = namespace
     else:
       tmLfnRoot[-1] = namespace
-        
+    
     LFN_ROOT = string.join(tmpLfnRoot,os.path.sep)
 
   return LFN_ROOT
