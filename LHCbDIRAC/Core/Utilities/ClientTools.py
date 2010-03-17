@@ -396,7 +396,7 @@ def __setupProjectEnvironment(project,version=''):
     return result
   
   setupProject=result['Value']
-  return runEnvironmentScripts([lbLogin,setupProject],env)  
+  return runEnvironmentScripts([lbLogin,setupProject],env)
 
 #############################################################################
 def parseGaudiCard(datacard):
