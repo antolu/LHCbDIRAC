@@ -19,8 +19,9 @@ from DIRAC                                          import gConfig, gLogger, S_O
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList
 from DIRAC.Interfaces.API.Dirac                     import Dirac
 
-from LHCbDIRAC.Core.Utilities.ClientTools           import mergeRootFiles,getRootFileGUID
+from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles,getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles     import getAncestorFiles
 
 import os,glob,fnmatch,string,time
 
@@ -42,7 +43,7 @@ class DiracLHCb(Dirac):
                              'EventType'                : 'All',
                              'ConfigName'               : 'All',
                              'ConfigVersion'            : 'All',
-                             'ProductionID'             : 'All',
+                             'ProductionID'             :     0,
                              'DataQualityFlag'          : 'All'}
     
   #############################################################################
@@ -201,6 +202,77 @@ class DiracLHCb(Dirac):
     return S_OK(result)
 
   #############################################################################
+  def getBKAncestors(self,lfns,depth):
+    """ This function allows to retrieve ancestor files from the Bookkeeping.
+    
+        Example Usage:
+        
+        >>> dirac.getBKAncestors('/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst',2)
+        {'OK': True, 'Value': ['/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst', '/lhcb/data/2009/RAW/FULL/LHCb/COLLISION09/63807/063807_0000000004.raw']}
+        
+       @param lfn: Logical File Name (LFN)
+       @type lfn: string or list
+       @param depth: Ancestor depth
+       @type depth: integer      
+    """
+    return getAncestorFiles(lfns,depth)
+
+  #############################################################################
+  def bkQueryPath(self,bkPath):
+    """ This function allows to create and perform a BK query given a supplied
+        BK path. The following BK path convention is expected:
+       
+       /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>
+       
+       so an example for 2009 collsions data would be:
+       
+       /LHCb/Collision09/Beam450GeV-VeloOpen-MagDown/Real Data + RecoToDST-07/90000000/DST
+       
+       or for MC09 simulated data:
+       
+       /MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/2010-Sim01Reco01-withTruth/27163001/DST
+       
+       Example Usage:
+       
+       >>> dirac.bkQueryPath('/MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/2010-Sim01Reco01-withTruth/27163001/DST')
+       {'OK': True, 'Value': [<LFN1>,<LFN2>]}
+       
+       @param bkPath: BK path as described above
+       @type bkPath: string        
+    """
+    if not type(bkPath)==type(' '):
+      return S_ERROR('Expected string for bkPath')
+    
+    #remove any double slashes, spaces must be preserved 
+    bkPath = string.split(string.replace(bkPath,'//','/'),'/')
+    #remove any empty components from leading and trailing slashes
+    tmp = []
+    for i in bkPath:
+      if i:
+        tmp.append(i)
+    bkPath = tmp
+    
+    if not len(bkPath)==6:
+      return S_ERROR('Expected 6 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>')
+    
+    query = self.bkQueryTemplate.copy()
+    query['ConfigName']=bkPath[0]
+    query['ConfigVersion']=bkPath[1]    
+    query['ProcessingPass']=bkPath[3]
+    query['EventType']=bkPath[4]
+    query['FileType']=bkPath[5]
+
+    #The problem here is that we don't know if it's a sim or data taking condition, assume that if configName=MC this is simulation
+    if bkPath[0].lower()=='mc':
+      query['SimulationConditions']=bkPath[2]
+    else:
+      query['DataTakingConditions']=bkPath[2]
+
+    result = self.bkQuery(query)
+    self.log.verbose(result)
+    return result
+    
+  #############################################################################
   def bookkeepingQuery(self,SimulationConditions='All',DataTakingConditions='All',ProcessingPass='All',FileType='All',EventType='All',ConfigName='All',ConfigVersion='All',ProductionID=0,DataQualityFlag='ALL'):
     """ This function will create and perform a BK query using the supplied arguments 
         and return a list of LFNs.
@@ -229,7 +301,7 @@ class DiracLHCb(Dirac):
        @param  SimulationConditions: BK SimulationConditions
        @type SimulationConditions: string        
     """
-    query = self.bkQueryTemplate
+    query = self.bkQueryTemplate.copy()
     query['SimulationConditions']=SimulationConditions
     query['DataTakingConditions']=DataTakingConditions
     query['ProcessingPass']=ProcessingPass
@@ -283,9 +355,9 @@ class DiracLHCb(Dirac):
     if not bkQueryDict.has_key('EventType') or not bkQueryDict.has_key('ConfigName') or not bkQueryDict.has_key('ConfigVersion'):
       return S_ERROR('The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition')
     
-    self.log.info('Final BK query dictionary is:')
+    self.log.verbose('Final BK query dictionary is:')
     for n,v in bkQueryDict.items():
-      self.log.info('%s : %s' %(n,v))
+      self.log.verbose('%s : %s' %(n,v))
 
     start = time.time()
     bk = BookkeepingClient()                      
@@ -294,7 +366,7 @@ class DiracLHCb(Dirac):
     self.log.info('BK query time: %.2f sec' %rtime)
     
     if not result['OK']:
-      return S_ERROR('BK query returned an error: %s' %(result['Message']))
+      return S_ERROR('BK query returned an error: "%s"' %(result['Message']))
     
     if not result['Value']:
       return self.__errorReport('No BK files selected')
