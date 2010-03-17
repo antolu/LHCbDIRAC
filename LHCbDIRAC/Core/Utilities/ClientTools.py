@@ -9,14 +9,16 @@
 
 __RCSID__ = "$Id$"
 
-import string,re,os,shutil,types, tempfile
+import string,re,os,shutil,types,tempfile
 
 import DIRAC
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
-from DIRAC.Core.Utilities.Os import sourceEnv
 from DIRAC.Core.Utilities.Subprocess import shellCall,systemCall
+
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation,getProjectCommand,runEnvironmentScripts
+
 import time
 
 #############################################################################
@@ -101,7 +103,7 @@ def _getOptsFiles(appName,appVersion,optionsFiles,destinationDir):
   """Set up project environment and expand options.
   """
   gLogger.verbose('Options files to locate are: %s' %string.join(optionsFiles,', '))
-  ret = __setupProjectEnvironment(appName,version=appVersion,extra='--ignore-missing')
+  ret = __setupProjectEnvironment(appName,version=appVersion)
   if not ret['OK']:
     gLogger.warn('Error during SetupProject\n%s' %ret)
   appEnv = ret['outputEnv']
@@ -217,7 +219,7 @@ def readFileEvents(turl,appVersion):
   # Setup the application enviroment  
   gLogger.info("Setting up the DaVinci %s environment" %appVersion)
   startTime = time.time()
-  res = __setupProjectEnvironment('DaVinci',version=appVersion,extra='')
+  res = __setupProjectEnvironment('DaVinci',version=appVersion)
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the Gaudi environment")
   gaudiEnv = res['Value']
@@ -278,7 +280,7 @@ def getRootFilesGUIDs(fileNames,cleanUp=True):
   """ Bulk function for getting the GUIDs for a list of files
   """
   # Setup the root enviroment  
-  res = _setupRootEnvironment()
+  res = __setupProjectEnvironment('DaVinci')
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the ROOT environment")
   rootEnv = res['Value']
@@ -287,16 +289,18 @@ def getRootFilesGUIDs(fileNames,cleanUp=True):
     fileGUIDs[fileName] = _getROOTGUID(fileName,rootEnv)
   return S_OK(fileGUIDs)
 
+#############################################################################
 def getRootFileGUID(fileName,cleanUp=True):
   """ Function to retrieve a file GUID using Root.
   """
   # Setup the root enviroment
-  res = _setupRootEnvironment()
+  res = __setupProjectEnvironment('DaVinci')
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the ROOT environment")
   rootEnv = res['Value']
   return S_OK(_getROOTGUID(fileName,rootEnv))
 
+#############################################################################
 def _getROOTGUID(rootFile,rootEnv,cleanUp=True):
   # Write the script to be executed
   fopen = open('tmpRootScript.py','w')
@@ -333,7 +337,7 @@ def _getROOTGUID(rootFile,rootEnv,cleanUp=True):
 #############################################################################
 def mergeRootFiles(outputFile,inputFiles,daVinciVersion='',cleanUp=True):
   # Setup the root enviroment
-  res = _setupRootEnvironment(daVinciVersion)
+  res = __setupProjectEnvironment('DaVinci',version=daVinciVersion)
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to setup the ROOT environment")
   rootEnv = res['Value']
@@ -369,33 +373,30 @@ def _mergeRootFiles(outputFile,inputFiles,rootEnv):
   return S_OK()
 
 #############################################################################
-def _setupRootEnvironment(daVinciVersion=''):
-  return __setupProjectEnvironment('DaVinci',version=daVinciVersion,extra='ROOT')
+def __setupProjectEnvironment(project,version=''):
+  """ Uses the ProductionEnvironment utility to get a basic project environment
+      necessary for some of the commands here.  CMTCONFIG / SystemConfiguration
+      is taken from the local environment by default as no specific platform is
+      required.
+  """
+  result = getScriptsLocation()
+  if not result['OK']:
+    return result
+  
+  lbLogin = result['Value']['LbLogin.sh']
+  setupProjectLocation = result['Value']['SetupProject.sh']
+  mySiteRoot = result['Value']['MYSITEROOT']
+  
+  env = dict(os.environ)
+  gLogger.verbose('Setting MYSITEROOT to %s' %(mySiteRoot))
+  env['MYSITEROOT']=mySiteRoot
 
-def __setupProjectEnvironment(project,version='',extra=''):
-  if os.environ.has_key('VO_LHCB_SW_DIR'):
-    sharedArea = os.path.join(os.environ['VO_LHCB_SW_DIR'],'lib')
-    gLogger.verbose( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-  elif DIRAC.gConfig.getValue('/LocalSite/SharedArea',''):
-    sharedArea = DIRAC.gConfig.getValue('/LocalSite/SharedArea')
-    gLogger.verbose( 'Using SharedArea at "%s"' % sharedArea )
-  lbLogin = '%s/LbLogin' % sharedArea
-  ret = sourceEnv( 300,[lbLogin], dict(os.environ))
-  if not ret['OK']:
-    gLogger.warn('Error during lbLogin\n%s' %ret)
-    return ret
-  setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
-  if version:
-    project = "%s %s" % (project,version)
-  if extra:
-    project = "%s %s" % (project,extra)
-  setupProject.append(project)
-  ret = sourceEnv( 300, setupProject, ret['outputEnv'])
-  if not ret['OK']:
-    gLogger.warn('Error during SetupProject\n%s' %ret)
-    return ret
-  appEnv = ret['outputEnv']
-  return S_OK(appEnv)
+  result = getProjectCommand(setupProjectLocation,project,version)
+  if not result['OK']:
+    return result
+  
+  setupProject=result['Value']
+  return runEnvironmentScripts([lbLogin,setupProject],env)  
 
 #############################################################################
 def parseGaudiCard(datacard):
