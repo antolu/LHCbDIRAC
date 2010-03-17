@@ -221,12 +221,12 @@ class GaudiApplication(ModuleBase):
     if debugResult['OK']:
       self.log.verbose('Created debug script %s for Step %s' %(debugResult['Value'],self.STEP_NUMBER))
 
-    if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
+    #if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
     self.log.info('Running %s %s step %s'  %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))    
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
-    #result = {'OK':True,'Value':(0,'Disabled Execution','')}
-    result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    result = {'OK':True,'Value':(0,'Disabled Execution','')}
+    #result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     if not result['OK']:
       return S_ERROR('Problem Executing Application')
 
@@ -254,6 +254,7 @@ class GaudiApplication(ModuleBase):
       finalOutputs=[]
       toMatch = ''
       outputDataSE = ''
+      checkEvents = {}
       for output in self.stepOutputs:
         if output['outputDataType']=='dst':
           outputDataSE = output['outputDataSE']
@@ -267,6 +268,8 @@ class GaudiApplication(ModuleBase):
               strippingFiles.append(check)
           for f in strippingFiles:
             bkType = string.upper(string.join(string.split(f,'.')[1:],'.'))
+            fileType = string.lower(bkType.split('.')[0])
+            checkEvents[bkType]=fileType            
             finalOutputs.append({'outputDataName':f,'outputDataType':'DST','outputDataSE':outputDataSE,'outputBKType':bkType})
         else:
           finalOutputs.append(output)
@@ -285,6 +288,28 @@ class GaudiApplication(ModuleBase):
       self.workflow_commons['LogFilePath']=result['Value']['LogFilePath']
       self.workflow_commons['ProductionOutputData']=result['Value']['ProductionOutputData']
       self.step_commons['listoutput']=finalOutputs
+      
+      #Now will attempt to find the number of output events per stream and convey them via the workflow commons dictionary
+      fopen = open(self.applicationLog,'r')
+      lines = fopen.readlines()
+      fopen.close()
+      
+      streamEvents = {}
+      for line in lines:
+        if re.search('OStream\.',line):
+          for bkType,typeToMatch in checkEvents.items():
+            if re.search(' \sostream\.%s ' %(typeToMatch),string.lower(line)):
+              try:
+                #2010-03-17 13:16:48 UTC TimingAuditor.T...   INFO     OStream.Bhadron           |   634.903 |  1424.462 |  170.182    6128.6 |       5 |     7.122 |
+                self.log.verbose('Checking " %s "' %(line.strip()))
+                eventsForStream = line.strip().replace('|',' ').split()[-2] #only lines like the above comment have the full stream name printed...
+                streamEvents[bkType] = eventsForStream
+                self.log.info('Found %s events for output stream %s' %(eventsForStream,bkType))
+              except Exception,x:
+                self.log.error('Could not extract stream events from DaVinci log file... something has changed\n"%s" => "%s"' %(line,x))
+
+      if streamEvents:
+        self.workflow_commons['StreamEvents']=streamEvents
 
     # Still have to set the application status e.g. user job case.
     self.setApplicationStatus('%s %s Successful' %(self.applicationName,self.applicationVersion))
