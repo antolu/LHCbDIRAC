@@ -307,10 +307,16 @@ class BookkeepingReport(ModuleBase):
       self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
       typeName = outputtype.upper()
       typeVersion = '1'
+      fileStats = statistics
       if bkTypeDict.has_key(output):
         typeVersion='ROOT_All'
         typeName=string.upper(bkTypeDict[output])
         self.log.info('Setting explicit BK type version for %s to %s and file type to %s' %(output,typeVersion,typeName))
+        if self.workflow_commons.has_key('StreamEvents'):
+          streamEvents = self.workflow_commons['StreamEvents']
+          if streamEvents.has_key(typeName):
+            fileStats = streamEvents[typeName]
+            self.log.info('Found explicit number of events = %s for file %s, type %s' %(fileStats,output,typeName))
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
@@ -383,7 +389,7 @@ class BookkeepingReport(ModuleBase):
 
       if typeName in dataTypes:
         s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
-        s = s+'    <Parameter  Name="EventStat"       Value="'+statistics+'"/>\n'
+        s = s+'    <Parameter  Name="EventStat"       Value="'+fileStats+'"/>\n'
         s = s+'    <Parameter  Name="FileSize"        Value="'+outputsize+'"/>\n'
 
 
