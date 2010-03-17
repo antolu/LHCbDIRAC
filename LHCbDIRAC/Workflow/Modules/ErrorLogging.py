@@ -186,7 +186,6 @@ class ErrorLogging(ModuleBase):
   def redirectLogOutput(self, fd, message):
     sys.stdout.flush()
     if message:
-      print message
       if self.errorLogFile:
         log = open(self.errorLogFile,'a')
         log.write(message+'\n')
