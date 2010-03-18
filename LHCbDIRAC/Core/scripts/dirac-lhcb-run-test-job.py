@@ -37,7 +37,7 @@ from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 #Constants (some can be overidden, some are messy)
 
 events = 2
-systemConfig='slc4_ia32_gcc34'
+systemConfig='x86_64-slc5-gcc43-opt'
 cpuTime=3600
 logLevel='info'
 submissionMode='local'
