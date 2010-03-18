@@ -46,7 +46,8 @@ class Production(LHCbJob):
     self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr'])
     self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),'@{applicationName}_@{STEP_ID}_Hist.root')
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
-    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
+    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
+    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),'/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw')
     self.defaultProdID = '12345'
     self.defaultProdJobID = '12345'
@@ -1005,12 +1006,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
       except Exception,x:
         self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
-
+      
     if transformation and not bkScript:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
       bkFileType = bkQuery['FileType']
-      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag)
+      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,prodPlugin=self.plugin)
       if not result['OK']:
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
       else:
@@ -1020,7 +1021,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         return S_ERROR('BK query does not include FileType!')
       bkFileType = bkQuery['FileType']
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
-      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)
+      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True,prodPlugin=self.plugin)
       if not transID['OK']:
         self.log.error('Problem discovering transformation ID, result was: %s' %transID)
       else:
@@ -1034,9 +1035,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK(prodID)
 
   #############################################################################
-  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False):
+  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin=''):
     """ Create a transformation to distribute the output data for a given production.
     """
+    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize':
+      self.log.info('Found ByFileType plugin, adding all possible BK file types for query')
+      fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
+      gLogger.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
+          
     inputProd = int(inputProd)
     replicas = int(replicas)
     plugin = 'LHCbMCDSTBroadcast'
@@ -1065,7 +1071,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       transLines.append('from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation')
       transLines.append('transformation=Transformation()')
       transLines.append('transformation.setTransformationName("%s")' %(tName))
-      transLines.append('transformation.setBKQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
+      if type(fileType)==type([]):
+        transLines.append("""transformation.setBKQuery({"ProductionID":%s,"FileType":%s})""" %(inputProd,fileType))
+      else:  
+        transLines.append('transformation.setBKQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
       transLines.append('transformation.setDescription("Replication of transformation %s output data")' %(inputProd))
       transLines.append('transformation.setType("Replication")')
       transLines.append('transformation.setPlugin(plugin)')
@@ -1302,10 +1311,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setProdPlugin(self,plugin):
     """ Sets the plugin to be used to creating the production jobs
     """
-    if not plugin:
-      self.plugin = 'Standard'
-    else:
-      self.plugin = plugin
+    self.plugin = plugin
 
   #############################################################################
   def setInputFileMask(self,fileMask):
