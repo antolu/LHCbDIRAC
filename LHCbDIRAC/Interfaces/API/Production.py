@@ -46,7 +46,7 @@ class Production(LHCbJob):
     self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr'])
     self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),'@{applicationName}_@{STEP_ID}_Hist.root')
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
-    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
+    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),'/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw')
     self.defaultProdID = '12345'
     self.defaultProdJobID = '12345'
@@ -64,7 +64,7 @@ class Production(LHCbJob):
     self.ancestorProduction = ''
     self.importLine = """
 from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
-"""    
+"""
     if not script:
       self.__setDefaults()
 
@@ -133,26 +133,26 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         of the production.
     """
     separator = ';'
-    if not extraPackages: 
+    if not extraPackages:
       extraPackages=[]
-    
+
     if not optionsFile:
       optionsFile=[]
-    
+
     if extraPackages:
       if not re.search(';',extraPackages):
         extraPackages=[extraPackages]
       else:
-        extraPackages=string.split(extraPackages,';')  
+        extraPackages=string.split(extraPackages,';')
     if optionsFile:
       if not re.search(';',optionsFile):
         optionsFile = [optionsFile]
-    
+
     for p in extraPackages:
       self.log.verbose('Checking extra package: %s' %(p))
       if not re.search('.',p):
         raise TypeError,'Must have extra packages in the following format "Name.Version" not %s' %(p)
-    
+
     for o in optionsFile:
       if re.search('DECFILESROOT',o):
         self.log.verbose('Production has event type %s specified, checking event type options: %s' %(self.firstEventType,o))
@@ -196,7 +196,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         currently assumes input data type is sim
     """
     eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)    
+    self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=0
     numberOfEvents='-1'
     inputDataType='sim'
@@ -210,7 +210,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = overrideOpts
 
     #To avoid a BK update / workflow lib update
-    if appType.lower()=='xdigi': 
+    if appType.lower()=='xdigi':
       appType='digi'
 
     if not outputSE:
@@ -232,7 +232,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
-    
+
     if appType.lower()=='rdst':
       dataType='DATA'
       if not outputSE:
@@ -319,7 +319,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
-    
+
     firstEventNumber=0
     appTypes = ['dst']
     if not appType in appTypes:
@@ -349,8 +349,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
-    eventType = self.__getEventType(eventType)    
-    self.__checkArguments(extraPackages, optionsFile)    
+    eventType = self.__getEventType(eventType)
+    self.__checkArguments(extraPackages, optionsFile)
     if inputProduction:
       result = self._setInputProductionBKStepInfo(inputProduction,passDict)
       if not result['OK']:
@@ -390,7 +390,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self.gaudiStepCount +=1
     MergeMDFModule = ModuleDefinition('MergeMDF')
     MergeMDFModule.setDescription('Merge MDF Files Module')
-    
+
     body = string.replace(self.importLine,'<MODULE>','MergeMDF')
     MergeMDFModule.setBody(body)
 
@@ -565,7 +565,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     genBKReport = ModuleDefinition('BookkeepingReport')
     genBKReport.setDescription('Bookkeeping Report module')
     body = string.replace(self.importLine,'<MODULE>','BookkeepingReport')
-    genBKReport.setBody(body)    
+    genBKReport.setBody(body)
     genBKReport.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False,"StepID"))
 
     gaudiAppDefn = StepDefinition('Gaudi_App_Step')
@@ -619,26 +619,26 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     dataUpload.setDescription('Uploads the output data')
     self._addParameter(dataUpload,'Enable','bool','True','EnableFlag')
     body = string.replace(self.importLine,'<MODULE>','UploadOutputData')
-    dataUpload.setBody(body)    
+    dataUpload.setBody(body)
 
     if removeInputData:
       removeInputs = ModuleDefinition('RemoveInputData')
       removeInputs.setDescription('Removes input data after merged output data uploaded to an SE')
       self._addParameter(removeInputs,'Enable','bool','True','EnableFlag')
       body = string.replace(self.importLine,'<MODULE>','RemoveInputData')
-      removeInputs.setBody(body)        
+      removeInputs.setBody(body)
 
     logUpload = ModuleDefinition('UploadLogFile')
     logUpload.setDescription('Uploads the log files')
     self._addParameter(logUpload,'Enable','bool','True','EnableFlag')
     body = string.replace(self.importLine,'<MODULE>','UploadLogFile')
-    logUpload.setBody(body)         
+    logUpload.setBody(body)
 
     failoverRequest = ModuleDefinition('FailoverRequest')
     failoverRequest.setDescription('Sends any failover requests')
     self._addParameter(failoverRequest,'Enable','bool','True','EnableFlag')
     body = string.replace(self.importLine,'<MODULE>','FailoverRequest')
-    failoverRequest.setBody(body)      
+    failoverRequest.setBody(body)
 
     finalization = StepDefinition('Job_Finalization')
 
@@ -695,7 +695,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     j = LHCbJob(name)
     d = Dirac()
     return d.submit(j,mode='local')
-        
+
   #############################################################################
   def getDetailedInfo(self,productionID):
     """ Return detailed information for a given production.
@@ -972,7 +972,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     bkDict['Production']=int(prodID)
     if bkQuery:
       if bkQuery.has_key('ProcessingPass'):
-        if not bkQuery['ProcessingPass']=='All':        
+        if not bkQuery['ProcessingPass']=='All':
           inputProcPass = bkQuery['ProcessingPass']
           self.log.verbose('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
           bkDict['InputProductionTotalProcessingPass']=inputProcPass
@@ -1009,7 +1009,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if transformation and not bkScript:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
-      bkFileType = bkQuery['FileType'] 
+      bkFileType = bkQuery['FileType']
       result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag)
       if not result['OK']:
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
@@ -1018,21 +1018,21 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     elif transformation:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
-      bkFileType = bkQuery['FileType'] 
+      bkFileType = bkQuery['FileType']
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
       transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True)
       if not transID['OK']:
         self.log.error('Problem discovering transformation ID, result was: %s' %transID)
-      else:  
-        transID = transID['Value']  
+      else:
+        transID = transID['Value']
         result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
         if not result['OK']:
-          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))      
+          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
     else:
-      self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))      
+      self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
     return S_OK(prodID)
-  
+
   #############################################################################
   def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False):
     """ Create a transformation to distribute the output data for a given production.
@@ -1046,8 +1046,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     tName = '%sReplication_Prod%s' %(fileType,inputProd)
     if reqID:
       tName = 'Request_%s_%s' %(reqID,tName)
-    
-    transformation.setTransformationName(tName)    
+
+    transformation.setTransformationName(tName)
     transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
     transformation.setDescription('Replication of transformation %s output data' % inputProd)
     transformation.setLongDescription('This transformation is to replicate the %s data from transformation %s according to the computing model' %(fileType,inputProd))
@@ -1058,7 +1058,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     transformation.addTransformation()
     transformation.setStatus('Active')
     transformation.setAgentType('Automatic')
-    
+
     if script:
       transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
       transLines.append('# by %s' %self.prodVersion)
@@ -1081,7 +1081,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen.write(string.join(transLines,'\n')+'\n')
       fopen.close()
       return S_OK()
-      
+
     return transformation.getTransformationID()
 
   #############################################################################
