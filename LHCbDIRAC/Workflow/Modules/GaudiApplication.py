@@ -221,12 +221,12 @@ class GaudiApplication(ModuleBase):
     if debugResult['OK']:
       self.log.verbose('Created debug script %s for Step %s' %(debugResult['Value'],self.STEP_NUMBER))
 
-    #if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
+    if os.path.exists(self.applicationLog): os.remove(self.applicationLog)
 
     self.log.info('Running %s %s step %s'  %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))    
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
-    result = {'OK':True,'Value':(0,'Disabled Execution','')}
-    #result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
+    #result = {'OK':True,'Value':(0,'Disabled Execution','')}
+    result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     if not result['OK']:
       return S_ERROR('Problem Executing Application')
 
