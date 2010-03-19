@@ -49,8 +49,16 @@ def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion
     return result
   
   setupProject=result['Value']
-  return runEnvironmentScripts([lbLogin,setupProject],environment)
-
+  
+  result = runEnvironmentScripts([lbLogin,setupProject],environment)
+  if not result['OK']:
+    return result  
+  
+  environment = result['Value']
+    
+  #Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
+  return setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemConfiguration,directory,poolXMLCatalogName,environment)
+    
 #############################################################################
 def addCommandDefaults(command,postExecution='',envDump='localEnv.log',coreDumpLog='Step'):
   """ Wrap the actual execution command with some defaults that are useful for 
@@ -211,6 +219,8 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
       os.mkdir(os.path.join(directory,'cmttemp','v1','cmt'))      
     if not os.path.exists(os.path.join(package,'cmt')):
       os.mkdir(os.path.join(package,'cmt'))
+    
+    if os.path.exists(os.path.join(package,'cmt','project.cmt')): os.remove(os.path.join(package,'cmt','project.cmt'))
         
     fopen = open(os.path.join(package,'cmt','project.cmt'),'w')
     fopen.write('use %s %s_%s' %(string.upper(applicationName),string.upper(applicationName),string.upper(applicationVersion)))
