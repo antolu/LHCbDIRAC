@@ -122,9 +122,15 @@ class TestApplications(ModuleBaseSAM):
     if not options['OK']:
       return self.finalize('Inputs for %s %s could not be found' %(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1]),options['Message'],'critical')
 
+    if os.path.exists('std.out'):
+      shutil.copy('std.out','std.out.save')
+
     result = self.__runApplication(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1],options['Value'])
     if not result['OK']:
       return self.finalize('Failure during %s %s execution' %(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1]),result['Message'],'error')
+
+    if os.path.exists('std.out.save'):
+      shutil.copy('std.out.save','std.out')
 
     self.log.info('Test %s completed successfully' %self.testName)
     self.setApplicationStatus('%s Successful' %self.testName)
