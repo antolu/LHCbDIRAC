@@ -479,7 +479,9 @@ class AnalyseLogFile(ModuleBase):
       return S_ERROR("No events processed")
     # If the output events are not equal to the processed events be sure there were no failed events
     if outputEvents != processedEvents:
-      return S_ERROR("Processed events not all output")
+      #return S_ERROR("Processed events not all output")
+      self.log.warn('Number of processed events %s does not match output events %s (considered OK for Brunel)' %(processedEvents,outputEvents))
+    
     return S_OK()
 
   #############################################################################
