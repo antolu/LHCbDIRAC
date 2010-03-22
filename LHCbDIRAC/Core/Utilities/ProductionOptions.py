@@ -11,7 +11,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-import string
+import string,re
 
 gLogger = gLogger.getSubLogger('ProductionOptions')
 
