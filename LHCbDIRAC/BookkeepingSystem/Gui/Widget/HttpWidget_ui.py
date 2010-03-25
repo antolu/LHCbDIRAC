@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'HttpWidget.ui'
 #
-# Created: Tue Feb  3 18:58:28 2009
+# Created: Thu Mar 25 12:02:20 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!

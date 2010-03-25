@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'AddBookmarks.ui'
 #
-# Created: Mon Feb  8 17:29:39 2010
+# Created: Thu Mar 25 12:00:47 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,45 +13,6 @@ class Ui_AddBookmarks(object):
     def setupUi(self, AddBookmarks):
         AddBookmarks.setObjectName("AddBookmarks")
         AddBookmarks.resize(QtCore.QSize(QtCore.QRect(0,0,344,156).size()).expandedTo(AddBookmarks.minimumSizeHint()))
-
-        palette = QtGui.QPalette()
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Window,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Window,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Window,brush)
-        AddBookmarks.setPalette(palette)
 
         self.gridlayout = QtGui.QGridLayout(AddBookmarks)
         self.gridlayout.setObjectName("gridlayout")

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'TreeWidget.ui'
 #
-# Created: Tue Feb  9 16:23:19 2010
+# Created: Thu Mar 25 12:04:45 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -49,21 +49,6 @@ class Ui_TreeWidget(object):
         self.gridlayout1.addItem(spacerItem,4,3,1,1)
 
         self.bookmarksButton = QtGui.QPushButton(self.groupBox)
-
-        palette = QtGui.QPalette()
-
-        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(249,244,171))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
-        self.bookmarksButton.setPalette(palette)
         self.bookmarksButton.setAutoFillBackground(False)
         self.bookmarksButton.setObjectName("bookmarksButton")
         self.gridlayout1.addWidget(self.bookmarksButton,0,3,1,1)
@@ -78,21 +63,6 @@ class Ui_TreeWidget(object):
 
         self.tree = TreePanel(TreeWidget)
         self.tree.setEnabled(True)
-
-        palette = QtGui.QPalette()
-
-        brush = QtGui.QBrush(QtGui.QColor(254,255,230))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(254,255,230))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(229,225,197))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
-        self.tree.setPalette(palette)
         self.tree.setProperty("cursor",QtCore.QVariant(QtCore.Qt.ArrowCursor))
         self.tree.setLineWidth(1)
         self.tree.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)

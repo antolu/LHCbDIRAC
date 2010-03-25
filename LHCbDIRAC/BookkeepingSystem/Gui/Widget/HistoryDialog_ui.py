@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'HistoryDialog.ui'
 #
-# Created: Mon Feb  8 17:39:00 2010
+# Created: Thu Mar 25 12:02:02 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,45 +13,6 @@ class Ui_HistoryDialog(object):
     def setupUi(self, HistoryDialog):
         HistoryDialog.setObjectName("HistoryDialog")
         HistoryDialog.resize(QtCore.QSize(QtCore.QRect(0,0,909,498).size()).expandedTo(HistoryDialog.minimumSizeHint()))
-
-        palette = QtGui.QPalette()
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Active,QtGui.QPalette.Window,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(255,255,255))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Inactive,QtGui.QPalette.Window,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(170,178,249))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Button,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Base,brush)
-
-        brush = QtGui.QBrush(QtGui.QColor(193,193,221))
-        brush.setStyle(QtCore.Qt.SolidPattern)
-        palette.setBrush(QtGui.QPalette.Disabled,QtGui.QPalette.Window,brush)
-        HistoryDialog.setPalette(palette)
 
         self.gridlayout = QtGui.QGridLayout(HistoryDialog)
         self.gridlayout.setObjectName("gridlayout")

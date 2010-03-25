@@ -1,19 +1,13 @@
-########################################################################
-# $Id$
-########################################################################
-
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'TableWidget.ui'
 #
-# Created: Mon Aug  4 18:47:28 2008
-#      by: PyQt4 UI code generator 4.2
+# Created: Thu Mar 25 12:04:19 2010
+#      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-
-__RCSID__ = "$Id$"
 
 class Ui_TableWidget(object):
     def setupUi(self, TableWidget):
