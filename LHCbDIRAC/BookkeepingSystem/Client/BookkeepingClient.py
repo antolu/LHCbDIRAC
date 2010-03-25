@@ -10,7 +10,10 @@ from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities            import DEncode
+from DIRAC.Core.Base                 import Script
 import types,cPickle,os, tempfile
+
+Script.parseCommandLine( ignoreErrors = True )
 
 __RCSID__ = "$Id$"
 
