@@ -1041,7 +1041,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           if not res['OK']:
             gLogger.error('File Type not found:',res['Message'])
           elif len(res['Value'])==0:
-            return S_ERROR('File type not found!')
+            return S_ERROR('File type not found!'+str(i))
           else:
             ftypeId = res['Value'][0][0]
             cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
@@ -1053,7 +1053,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         if not res['OK']:
           gLogger.error('File Type not found:',res['Message'])
         elif len(res['Value'])==0:
-          return S_ERROR('File type not found!')
+          return S_ERROR('File type not found!'+str(ftype))
         else:
           ftypeId = res['Value'][0][0]
           condition += ' and files.FileTypeId='+str(ftypeId)
