@@ -21,6 +21,7 @@ import string, re, os, time, shutil, types, copy
 
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
+from DIRAC.Core.Utilities.List                        import removeEmptyElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
 
 from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
@@ -166,7 +167,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK()
 
   #############################################################################
-  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts='',condDBTag='global',ddDBTag='global'):
+  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,overrideOpts='',extraOpts='',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
     """
     eventType = self.__getEventType(eventType)
@@ -178,6 +179,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
+
+    if extraOpts:
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
 
     if not outputSE:
       outputSE='Tier1-RDST'
@@ -191,7 +197,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaussStep.setValue('generatorName',generatorName)
 
   #############################################################################
-  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global'):
+  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',extraOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
         currently assumes input data type is sim
@@ -210,6 +216,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     else:
       optionsLine = overrideOpts
 
+    if extraOpts:
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      
     if not outputSE:
       outputSE='Tier1-RDST'
       self.log.verbose('Setting default outputSE to %s' %(outputSE))
@@ -258,18 +269,21 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
+
     if extraOpts:
-      optionsLine = "%s;%s" % (optionsLine,extraOpts.replace('\n',';'))
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+
     firstEventNumber=0
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
+  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst /undefined at the moment ;)
         inputDataType is rdst / fetc
-
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
@@ -303,6 +317,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     else:
       optionsLine = overrideOpts
 
+    if extraOpts:
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+#      print optionsLine
+
     if appType.lower()=='davincihist':
       appType='dst'
 
@@ -310,7 +330,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
 
   #############################################################################
-  def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,overrideOpts='',numberOfEvents='-1',dataType='MC',condDBTag='global',ddDBTag='global',outputAppendName=''):
+  def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='MC',condDBTag='global',ddDBTag='global',outputAppendName=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst and inputDataType is raw only at the moment.
     """
@@ -338,11 +358,16 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     else:
       optionsLine = overrideOpts
 
+    if extraOpts:
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Moore',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,outputAppendName)
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',extraOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
@@ -370,6 +395,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = string.join(optionsLine,';')
     else:
       optionsLine = overrideOpts
+
+    if extraOpts:
+      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
+      extraOpts = string.join(extraOpts,';')
+      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed, doesn't look like this is used anywhere...
     if inputDataType.lower()=='mdf':
@@ -523,11 +553,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       apps = self.workflow.findParameter(swPackages).getValue()
       apps = apps.split(';')
       apps.append(nameVersion)
-      tmp = []
-      for app in apps:
-        if app:
-          tmp.append(app)
-      apps = string.join(tmp,';')
+      apps = removeEmptyElements(apps)
+      apps = string.join(apps,';')
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
   #############################################################################
@@ -1034,7 +1061,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin=''):
     """ Create a transformation to distribute the output data for a given production.
     """
-    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize':
+    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun':
       self.log.info('Found ByFileType plugin, adding all possible BK file types for query')
       fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
       gLogger.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
