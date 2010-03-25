@@ -141,7 +141,7 @@ class XMLFilesReaderManager:
             return S_ERROR('EventStat value is null')
           else:
             eventNb = long(param.getParamValue())
-            if eventNb <= 0:
+            if eventNb < 0:
               self.errorMgmt_.reportError (13,"The event number not greater 0!", deleteFileName, errorReport)
               return S_ERROR("The event number not greater 0!")
 
