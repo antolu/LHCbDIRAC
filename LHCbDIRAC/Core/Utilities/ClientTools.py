@@ -225,6 +225,9 @@ def readFileEvents(turl,appVersion):
   gaudiEnv = res['Value']
   gLogger.info("DaVinci %s environment successful in %.1f seconds" % (appVersion,time.time()-startTime))
   workingDirectory = os.getcwd()
+  fopen = open('%s/.rootrc' % workingDirectory,'w')
+  fopen.write('XNet.Debug: 3\n')
+  fopen.close()
   fopen = open('%s/GaudiScript.py' % workingDirectory,'w')
   fopen.write('import GaudiPython\n')
   fopen.write('from Gaudi.Configuration import *\n')
@@ -259,7 +262,7 @@ def readFileEvents(turl,appVersion):
   cmd = ['python']
   cmd.append('%s/GaudiScript.py' % workingDirectory)
   gLogger.info("Executing GaudiPython script: %s" % cmd)
-  res = systemCall(1800,cmd,env=gaudiEnv,callbackFunction=log)
+  res = systemCall(1800,cmd,env=gaudiEnv)#,callbackFunction=log)
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to execute %s" % cmd)
   if res['Value'][0]:
