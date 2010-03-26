@@ -187,19 +187,19 @@ class ProtocolAccessTest(ModuleBase):
       for protocol in sortList(protocolDict.keys()):
         turl = protocolDict[protocol]
         res = readFileEvents(turl,self.applicationVersion)
-        print '""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""' 
+        openTime = 'F'
+        events = mean = stdDev = median = '-'
         if not res['OK']:
           self.log.info("Failed to read events for protocol %s: %s" % (protocol,res))
-          openTime = 'F'
-          events = mean = stdDev = median = '-'
         else:
           openTime = "%.4f" % res['Value']['OpenTime'] 
           readTimes = res['Value']['ReadTimes']
-          statsDict = self.__generateStats(readTimes)
-          events = "%d" % statsDict['Elements']
-          mean = "%.7f" % statsDict['Mean']
-          stdDev = "%.7f" % statsDict['StdDev']
-          median = "%.7f" % statsDict['Median']
+          if readTimes:
+            statsDict = self.__generateStats(readTimes)
+            events = "%d" % statsDict['Elements']
+            mean = "%.7f" % statsDict['Mean']
+            stdDev = "%.7f" % statsDict['StdDev']
+            median = "%.7f" % statsDict['Median']
         statsString = "%s %s %s %s %s %s %s" % (lfn.ljust(70),protocol.ljust(10),str(openTime).ljust(10),str(events).ljust(10),str(mean).ljust(10),str(stdDev).ljust(10),str(median).ljust(10))
         statsStrings.append(statsString)
         timingResults = open(self.applicationLog,'a')
