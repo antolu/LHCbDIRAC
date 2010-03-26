@@ -18,7 +18,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager               import Repli
 from LHCbDIRAC.Workflow.Modules.ModuleBase                          import ModuleBase
 from LHCbDIRAC.Core.Utilities.ClientTools                           import readFileEvents
 
-import os,sys,re,string
+import os,sys,re,string,shutil
 
 COMPONENT_NAME = 'ProtocolAccessTest'
 
@@ -202,6 +202,8 @@ class ProtocolAccessTest(ModuleBase):
             median = "%.7f" % statsDict['Median']
         statsString = "%s %s %s %s %s %s %s" % (lfn.ljust(70),protocol.ljust(10),str(openTime).ljust(10),str(events).ljust(10),str(mean).ljust(10),str(stdDev).ljust(10),str(median).ljust(10))
         statsStrings.append(statsString)
+        shutil.move('full.output', '%s.output' % protocol)
+        shutil.move('ReadTime.txt','%s.readtimes' % protocol)  
         timingResults = open(self.applicationLog,'a')
         timingResults.write('%s\n' % statsString)
         timingResults.close()
