@@ -244,10 +244,14 @@ def readFileEvents(turl,appVersion):
   fopen.write('oOpenTime.write("%.4f" % openTime)\n')
   fopen.write('oOpenTime.close()\n')
   fopen.write('readTimes = []\n')
+  fopen.write('failedEvents = 0\n')
   fopen.write('while 1:\n')
   fopen.write('  startTime = time.time()\n')
-  fopen.write('  appMgr.run(1)\n')
+  fopen.write('  res = appMgr.run(1)\n')
   fopen.write('  readTime = time.time()-startTime\n')
+  fopen.write('  if res.FAILURE:\n')
+  fopen.write('    failedEvents+=1\n')
+  fopen.write('    print "ERROR",res.getCode()\n')
   fopen.write('  if not evt["/Event"]:\n')
   fopen.write('    break\n')
   fopen.write('  readTimes.append(readTime)\n')
@@ -265,8 +269,12 @@ def readFileEvents(turl,appVersion):
   res = systemCall(1800,cmd,env=gaudiEnv)#,callbackFunction=log)
   if not res['OK']:
     return _errorReport(res['Message'],"Failed to execute %s" % cmd)
-  if res['Value'][0]:
-    return _errorReport(res['Value'][2],"Failed to execute %s: %s" % (cmd,res['Value'][0]))
+  errorCode,stdout,stderr = res['Value']
+  if errorCode:
+    return _errorReport(stderr,"Failed to execute %s: %s" % (cmd,errorCode))
+  oFile = open('%s/full.output' % (workingDirectory),'w')
+  oFile.write(stdout)
+  oFile.close()
   resDict = {}
   oOpenTime = open('%s/OpenTime.txt' % workingDirectory)
   resDict['OpenTime'] = eval(oOpenTime.read())
