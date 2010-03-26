@@ -1061,6 +1061,8 @@ class LHCbJob(Job):
       logPrefix = 'Step%s_' %(stepNumber)
       logFile = '%s%s' %(logPrefix,logFile)
     self.addToOutputSandbox.append('*.log')
+    self.addToOutputSandbox.append('*.output')
+    self.addToOutputSandbox.append('*.readtimes')
 
     if inputData:
       if type(inputData) in types.StringTypes:
