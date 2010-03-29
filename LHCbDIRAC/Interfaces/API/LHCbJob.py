@@ -1062,6 +1062,7 @@ class LHCbJob(Job):
       logFile = '%s%s' %(logPrefix,logFile)
     self.addToOutputSandbox.append('*.log')
     self.addToOutputSandbox.append('*.output')
+    self.addToOutputSandbox.append('*.error')
     self.addToOutputSandbox.append('*.readtimes')
 
     if inputData:
