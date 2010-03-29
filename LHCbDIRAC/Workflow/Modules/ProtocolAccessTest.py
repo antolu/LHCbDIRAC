@@ -202,9 +202,12 @@ class ProtocolAccessTest(ModuleBase):
             median = "%.7f" % statsDict['Median']
         statsString = "%s %s %s %s %s %s %s" % (lfn.ljust(70),protocol.ljust(10),str(openTime).ljust(10),str(events).ljust(10),str(mean).ljust(10),str(stdDev).ljust(10),str(median).ljust(10))
         statsStrings.append(statsString)
-        shutil.move('full.output', '%s.output' % protocol)
-        shutil.move('full.error', '%s.error' % protocol)
-        shutil.move('ReadTime.txt','%s.readtimes' % protocol)  
+        if os.path.exists('full.output'):
+          shutil.move('full.output', '%s.output' % protocol)
+        if os.path.exists('full.error'):
+          shutil.move('full.error', '%s.error' % protocol)
+        if os.path.exists('ReadTime.txt'):
+          shutil.move('ReadTime.txt','%s.readtimes' % protocol)  
         timingResults = open(self.applicationLog,'a')
         timingResults.write('%s\n' % statsString)
         timingResults.close()
