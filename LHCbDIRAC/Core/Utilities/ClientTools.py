@@ -14,7 +14,7 @@ import string,re,os,shutil,types,tempfile
 import DIRAC
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.Utilities.List import breakListIntoChunks,sortList
 from DIRAC.Core.Utilities.Subprocess import shellCall,systemCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation,getProjectCommand,runEnvironmentScripts
@@ -273,12 +273,14 @@ def readFileEvents(turl,appVersion):
   errorCode,stdout,stderr = res['Value']
   if errorCode:
     return _errorReport(stderr,"Failed to execute %s: %s" % (cmd,errorCode))
-  oFile = open('%s/full.output' % (workingDirectory),'w')
-  oFile.write(stdout)
-  oFile.close()
-  oFile = open('%s/full.error' % (workingDirectory),'w')
-  oFile.write(stderr)
-  oFile.close()
+  oOutput = open('%s/full.output' % (workingDirectory),'w')
+  oOutput.write(stdout)
+  oOutput.close()
+  oError = open('%s/full.error' % (workingDirectory),'w')
+  for key in sortList(gaudiEnv.keys()):
+    oError.write("%s : %s\n" % (key.ljust(25),gaudiEnv[key]))
+  oError.write(stderr)
+  oError.close()
   resDict = {}
   oOpenTime = open('%s/OpenTime.txt' % workingDirectory)
   resDict['OpenTime'] = eval(oOpenTime.read())
