@@ -227,6 +227,7 @@ def readFileEvents(turl,appVersion):
   workingDirectory = os.getcwd()
   fopen = open('%s/.rootrc' % workingDirectory,'w')
   fopen.write('XNet.Debug: 3\n')
+  fopen.write('XrdSecDEBUG: 10\n')
   fopen.close()
   fopen = open('%s/GaudiScript.py' % workingDirectory,'w')
   fopen.write('import GaudiPython\n')
@@ -274,6 +275,9 @@ def readFileEvents(turl,appVersion):
     return _errorReport(stderr,"Failed to execute %s: %s" % (cmd,errorCode))
   oFile = open('%s/full.output' % (workingDirectory),'w')
   oFile.write(stdout)
+  oFile.close()
+  oFile = open('%s/full.error' % (workingDirectory),'w')
+  oFile.write(stderr)
   oFile.close()
   resDict = {}
   oOpenTime = open('%s/OpenTime.txt' % workingDirectory)
