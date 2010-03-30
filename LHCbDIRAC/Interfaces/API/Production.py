@@ -1074,6 +1074,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         if re.search('\.DST$',fType):
           tmpTypes.append(fType)
       fileType = tmpTypes
+      fileType.append('DST')
       self.log.info('Data types for replication will be: %s' %(string.join(fileType,', ')))
           
     inputProd = int(inputProd)
