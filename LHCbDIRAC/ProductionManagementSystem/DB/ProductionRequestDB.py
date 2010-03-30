@@ -41,10 +41,10 @@ def _getMailAddress(user):
     gLogger.error('_inform_people: User %s not found in the CS.' % user)
     return ''
   userProp = res['Value']
-  if not 'email' in userProp:
+  if not 'Email' in userProp:
     gLogger.error('_inform_people: User %s has no EMail set in CS.' % user)
     return ''
-  return userProp['email']
+  return userProp['Email']
 
 def _getMemberMails(group):
   res = gConfig.getOptionsDict('/Registry/Groups/%s' % group)
