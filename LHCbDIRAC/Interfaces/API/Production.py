@@ -1015,7 +1015,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error(result)
       self.log.verbose('BK publishing result: %s' %result)
 
-    if requestID:
+    if requestID and publish:
       reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
       reqDict = {'ProductionID':long(prodID),'RequestID':requestID,'Used':reqUsed,'BkEvents':0}
       result = reqClient.addProductionToRequest(reqDict)
@@ -1049,9 +1049,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('Problem discovering transformation ID, result was: %s' %transID)
       else:
         transID = transID['Value']
-        result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
-        if not result['OK']:
-          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
+        if transID and prodID:
+          result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
+          if not result['OK']:
+            self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
@@ -1061,32 +1062,30 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin=''):
     """ Create a transformation to distribute the output data for a given production.
     """
+    streams=False
     if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun':
+      streams=True
       self.log.info('Found ByFileType plugin, adding all possible BK file types for query')
       fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
       self.log.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
+      tmpTypes = []
+      #restrict to '.DST' file types:
+      for fType in fileType:
+        if re.search('\.DST$',fType):
+          tmpTypes.append(fType)
+      fileType = tmpTypes
+      self.log.info('Data types for replication will be: %s' %(string.join(fileType,', ')))
           
     inputProd = int(inputProd)
     replicas = int(replicas)
     plugin = 'LHCbMCDSTBroadcast'
     if realData:
      plugin = 'LHCbDSTBroadcast'
-    transformation = Transformation()
     tName = '%sReplication_Prod%s' %(fileType,inputProd)
+    if streams:
+      tName = 'StreamsReplication_Prod%s' %(inputProd)
     if reqID:
       tName = 'Request_%s_%s' %(reqID,tName)
-
-    transformation.setTransformationName(tName)
-    transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
-    transformation.setDescription('Replication of transformation %s output data' % inputProd)
-    transformation.setLongDescription('This transformation is to replicate the %s data from transformation %s according to the computing model' %(fileType,inputProd))
-    transformation.setType('Replication')
-    transformation.setPlugin(plugin)
-    if replicas > 1:
-     transformation.setDestinations(replicas)
-    transformation.addTransformation()
-    transformation.setStatus('Active')
-    transformation.setAgentType('Automatic')
 
     if script:
       transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
@@ -1095,24 +1094,38 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       transLines.append('transformation=Transformation()')
       transLines.append('transformation.setTransformationName("%s")' %(tName))
       if type(fileType)==type([]):
-        transLines.append("""transformation.setBKQuery({"ProductionID":%s,"FileType":%s})""" %(inputProd,fileType))
+        transLines.append("""transformation.setBkQuery({"ProductionID":%s,"FileType":%s})""" %(inputProd,fileType))
       else:  
-        transLines.append('transformation.setBKQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
+        transLines.append('transformation.setBkQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
       transLines.append('transformation.setDescription("Replication of transformation %s output data")' %(inputProd))
+      transLines.append('transformation.setLongDescription("This transformation is to replicate the output data from transformation %s according to the computing model")' %(inputProd))
       transLines.append('transformation.setType("Replication")')
-      transLines.append('transformation.setPlugin(plugin)')
+      transLines.append('transformation.setPlugin("%s")' %plugin)
       if replicas > 1:
         transLines.append('transformation.setDestinations(%s)' %replicas)
       transLines.append('transformation.addTransformation()')
       transLines.append('transformation.setStatus("Active")')
       transLines.append('transformation.setAgentType("Automatic")')
       transLines.append('print transformation.getTransformationID()')
-      if os.path.exists('%.py' %tname):
-        shutil.move('%.py' %tname,'%s.py.backup' %tName)
-      fopen = open('%.py' %tname,'w')
+      if os.path.exists('%s.py' %tName):
+        shutil.move('%s.py' %tName,'%s.py.backup' %tName)
+      fopen = open('%s.py' %tName,'w')
       fopen.write(string.join(transLines,'\n')+'\n')
       fopen.close()
       return S_OK()
+
+    transformation = Transformation()      
+    transformation.setTransformationName(tName)
+    transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
+    transformation.setDescription('Replication of transformation %s output data' % inputProd)
+    transformation.setLongDescription('This transformation is to replicate the output data from transformation %s according to the computing model' %(inputProd))
+    transformation.setType('Replication')
+    transformation.setPlugin(plugin)
+    if replicas > 1:
+     transformation.setDestinations(replicas)
+    transformation.addTransformation()
+    transformation.setStatus('Active')
+    transformation.setAgentType('Automatic')
 
     return transformation.getTransformationID()
 
