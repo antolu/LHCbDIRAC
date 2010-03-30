@@ -64,7 +64,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
         gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
 
     # Group the remaining data by run 
-    res = self._groupByRun(self.data)
+    res = self.__groupByRunAndParam(self.data,param='Standard')
     if not res['OK']:
       return res
     runFileDict = res['Value']
@@ -72,7 +72,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     # For each of the runs determine the destination of any previous files
     tasks = []
     for runID in sortList(runFileDict.keys()):
-      unusedLfns = runFileDict[runID]
+      unusedLfns = runFileDict[runID][None]
       start = time.time()
       res = bk.getRunFiles(runID)
       gLogger.verbose("Obtained BK run files in %.2f seconds" % (time.time()-start))
@@ -112,7 +112,6 @@ class TransformationPlugin(DIRACTransformationPlugin):
             assignedSE = se
         if not assignedSE:
           continue
-
       tasks.append((assignedSE,unusedLfns))
       if not existingCount.has_key(targetSite):
         existingCount[targetSite] = 0
