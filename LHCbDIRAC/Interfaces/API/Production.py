@@ -1064,7 +1064,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun':
       self.log.info('Found ByFileType plugin, adding all possible BK file types for query')
       fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
-      gLogger.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
+      self.log.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
           
     inputProd = int(inputProd)
     replicas = int(replicas)
