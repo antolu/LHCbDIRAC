@@ -191,7 +191,7 @@ class XMLFilesReaderManager:
           print 'PPPP',param
           newFileParams = FileParam()
           newFileParams.setParamName('EventTypeId')
-          newFileParams.setParamValue(param.setParamValue())
+          newFileParams.setParamValue(param.getParamValue())
           file.addFileParam(newFileParams)
         else:
            return S_ERROR('I can not fill the EventTypeId because there is no input files!')
