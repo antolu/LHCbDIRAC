@@ -186,8 +186,13 @@ class XMLFilesReaderManager:
                 file.addFileParam(newFileParams)
           else:
             return S_ERROR(res['Message']) 
+        elif job.getOutputFileParam('EventTypeId') != None:
+          newFileParams = FileParam()
+          newFileParams.setParamName('EventTypeId')
+          newFileParams.setParamValue(job.getOutputFileParam('EventTypeId'))
+          file.addFileParam(newFileParams)
         else:
-          return S_ERROR('I can not fill the EventTypeId because there is no input files!')
+           return S_ERROR('I can not fill the EventTypeId because there is no input files!')
       
       infiles = job.getJobInputFiles()
       if not job.exists('RunNumber') and len(infiles) > 0:

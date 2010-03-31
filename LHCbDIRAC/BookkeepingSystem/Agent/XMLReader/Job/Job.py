@@ -85,6 +85,14 @@ class Job:
   def getJobOutputFiles(self):
     return self.jobOutputfiles_
   
+  #############################################################################
+  def getOutputFileParam(self, paramName):
+    for i in self.jobOutputfiles_:
+      param = i.getParam(paramName)
+      if param != None:
+        return param
+    return None
+    
   #############################################################################  
   def addSimulationCond(self, cond):
     self.simulationCond_ = cond
