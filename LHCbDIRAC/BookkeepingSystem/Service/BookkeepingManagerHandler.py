@@ -969,6 +969,7 @@ class BookkeepingManagerHandler(RequestHandler):
     cname = prodinfos[0][0]
     cversion = prodinfos[0][1]
     eventType = prodinfos[0][2]
+    print prodinfos
     path += cname+'/'+cversion+'/'
       
     value = dataMGMT_.getSteps(prodid)
