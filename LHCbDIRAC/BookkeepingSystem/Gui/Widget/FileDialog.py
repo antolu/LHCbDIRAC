@@ -64,7 +64,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__historyDialog = HistoryDialog(self)
     self.__controler.addChild('HistoryDialog',self.__historyDialog.getControler())
     
-    self.setWindowFlags(Qt.Window | Qt.WindowMinimizeButtonHint)
+    self.setWindowFlags(self.windowFlags() & ~Qt.WindowMinimizeButtonHint)
     
   #############################################################################
   def closeEvent (self, event ):
