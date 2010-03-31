@@ -796,8 +796,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
         
     if procPass != 'ALL':
       descriptions = procPass.split('+')
-      if len(descriptions) == 1:
-        descriptions = procPass.split(' ')
       totalproc = ''
       for desc in descriptions:
         if desc != '':
