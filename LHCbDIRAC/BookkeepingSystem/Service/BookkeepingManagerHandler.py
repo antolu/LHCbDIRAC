@@ -968,7 +968,6 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_ERROR('This production does not contains any jobs!')
     cname = prodinfos[0][0]
     cversion = prodinfos[0][1]
-    eventType = prodinfos[0][2]
     path += cname+'/'+cversion+'/'
       
     value = dataMGMT_.getSteps(prodid)
