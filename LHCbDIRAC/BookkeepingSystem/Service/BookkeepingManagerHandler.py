@@ -969,7 +969,6 @@ class BookkeepingManagerHandler(RequestHandler):
     cname = prodinfos[0][0]
     cversion = prodinfos[0][1]
     eventType = prodinfos[0][2]
-    print prodinfos
     path += cname+'/'+cversion+'/'
       
     value = dataMGMT_.getSteps(prodid)
@@ -994,8 +993,9 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       path += '/'+res['Value']
     prefix = '\n'+path
+   
     for i in nbOfEvents:
-      path += '/'+str(prodinfos[i][2])+prefix +'/'+i[0]
+      path += prefix + '/'+str(i[2])+'/'+i[0]
     result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
