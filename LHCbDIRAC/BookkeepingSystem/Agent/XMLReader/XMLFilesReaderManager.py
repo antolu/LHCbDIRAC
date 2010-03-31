@@ -188,7 +188,6 @@ class XMLFilesReaderManager:
             return S_ERROR(res['Message']) 
         elif job.getOutputFileParam('EventTypeId') != None:
           param = job.getOutputFileParam('EventTypeId')
-          print 'PPPP',param
           newFileParams = FileParam()
           newFileParams.setParamName('EventTypeId')
           newFileParams.setParamValue(param.getParamValue())
