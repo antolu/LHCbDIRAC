@@ -162,6 +162,8 @@ $DESTDIR/pro/scripts/install_service.sh WorkloadManagement Matcher
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement WMSAdministrator
 $DESTDIR/pro/scripts/install_service.sh WorkloadManagement SandboxStore
 
+$DESTDIR/pro/scripts/install_service.sh Stager Stager
+
 # LHCb specific services
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionManager
 $DESTDIR/pro/scripts/install_service.sh ProductionManagement ProductionRequest
@@ -223,6 +225,10 @@ $DESTDIR/pro/scripts/install_agent.sh ProductionManagement ReplicationSubmission
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement RequestTrackingAgent
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement TransformationAgent
 $DESTDIR/pro/scripts/install_agent.sh ProductionManagement ValidateOutputDataAgent
+
+$DESTDIR/pro/scripts/install_agent.sh Stager StagerAgent
+$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorAgent
+$DESTDIR/pro/scripts/install_agent.sh Stager StagerMonitorWMSAgent
 
 # If any special CS entried required modify and uncomment the following:
 #cat > $DESTDIR/etc/SystemName_AgentName.cfg <<EOF
