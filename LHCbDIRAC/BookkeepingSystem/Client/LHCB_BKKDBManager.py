@@ -1852,10 +1852,12 @@ class LHCB_BKKDBManager(BaseESManager):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
-        if file['FileSize'] != None:
-          evtTypes[type][2] += int(file['FileSize'])/1000000000.
-        else:
+        if files[i]['FileSize'] == None:
           evtTypes[type][2] += 0
+        else:
+          evtTypes[type][2] += int(file['FileSize'])/1000000000.
+          
+          
         nbEvts += stat
         if not fileType:
             fileType = file['FileType']
@@ -1921,7 +1923,9 @@ class LHCB_BKKDBManager(BaseESManager):
           elif fileType in mdfTypes:
               s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\"" 
           elif fileType in etcTypes:
-              s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\"" 
+              s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\""
+          else:
+            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
     if pythonOpts:
         s += "]\n"
     else:

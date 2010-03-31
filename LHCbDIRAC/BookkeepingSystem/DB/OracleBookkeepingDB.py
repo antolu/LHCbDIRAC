@@ -2590,7 +2590,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'Guid':None,  \
                     'JobId':None, \
                     'MD5Sum':None, \
-                    'FileSize':None, \
+                    'FileSize':0, \
                     'FullStat':None }
       
       for param in file:
