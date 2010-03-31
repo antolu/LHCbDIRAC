@@ -993,10 +993,9 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_ERROR(res['Message'])
     else:
       path += '/'+res['Value']
-    path += '/'+str(eventType)
     prefix = '\n'+path
     for i in nbOfEvents:
-      path += prefix +'/'+i[0]
+      path += '/'+str(prodinfos[i][2])+prefix +'/'+i[0]
     result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
     return S_OK(result)
   
