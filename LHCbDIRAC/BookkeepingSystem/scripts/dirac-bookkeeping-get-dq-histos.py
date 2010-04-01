@@ -2,8 +2,6 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
-Script.parseCommandLine( ignoreErrors = True )
-args = Script.getPositionalArgs()
 import os
 from DIRAC import gLogger
 from DIRAC.Interfaces.API.Dirac import Dirac
