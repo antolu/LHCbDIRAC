@@ -114,7 +114,7 @@ class TransformationDB(DIRACTransformationDB):
     # Check for the already existing queries first
     selections = []
     for i in range(len(self.queryFields)):
-      selections.append("%s='%s'" % (self.queryFields[i],values[i]))
+      selections.append("%s= BINARY '%s'" % (self.queryFields[i],values[i]))
     selectionString = ' AND '.join(selections)
     req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
     result = self._query(req,connection)
