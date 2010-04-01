@@ -1,7 +1,18 @@
+#!/usr/bin/env python
+########################################################################
+# $HeadURL$
+# File :   dirac-bookkeeping-eventtype-mgt-update
+# Author : Zoltan Mathe
+########################################################################
+__RCSID__   = "$Id$"
+__VERSION__ = "$ $"
+
 import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
+Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
 import os
 from DIRAC import gLogger
 from DIRAC.Interfaces.API.Dirac import Dirac
