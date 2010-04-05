@@ -1006,6 +1006,16 @@ class ProductionRequestDB(DB):
     if rec['RequestState']:
       rec['RequestState'] = 'New'
 
+    # Clear RealNumberOfEvents if required
+    try:
+      num = 0
+      num = long(rec['NumberOfEvents'])
+      if num < 0:
+        num = 0
+    except:
+      pass
+    rec['RealNumberOfEvents'] = str(num)
+
     recl = [ rec[x] for x in self.requestFields[1:-6] ]
     result = self._fixedEscapeValues(recl)
     if not result['OK']:
