@@ -363,7 +363,7 @@ class DataRecoveryAgent(AgentModule):
     if toRemove:
       self.log.info('Found descendent files of transformation %s to be removed:\n%s' %(transformation,string.join(toRemove,'\n')))
       result = self.prodDB.getTransformationFiles(condDict={'TransformationID':int(transformation),'LFN':toRemove})
-      self.log.debug(res)
+      self.log.verbose(result)
       if not result['OK']:
         self.log.error(result)
       else:
