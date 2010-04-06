@@ -284,6 +284,10 @@ class DataRecoveryAgent(AgentModule):
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
+      if not wmsID:
+        self.log.info('Prod job %s status is %s (ID = %s) so will not recheck with WMS' %(job,wmsStatus,wmsID))
+        continue
+      
       self.log.info('Job %s, prod job %s last update %s, production management system status %s' %(wmsID,job,lastUpdate,wmsStatus))
       #Exclude jobs not having appropriate WMS status (recheck if not as expected in case of surprises)         
       if not wmsStatus in wmsStatusList:
