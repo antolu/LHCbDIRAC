@@ -25,7 +25,7 @@ class AnalyseLogFile(ModuleBase):
   def __init__(self):
     """Module initialization.
     """
-    self.log = gLogger.getSubLogger("AnalyseLogFile")    
+    self.log = gLogger.getSubLogger("AnalyseLogFile")
     self.version = __RCSID__
     self.site = DIRAC.siteName()
     self.systemConfig = ''
@@ -48,7 +48,7 @@ class AnalyseLogFile(ModuleBase):
     self.logFilePath = ''
     self.coreFile = ''
     self.stepInputData = []
-    self.projectList = gConfig.getValue('/Operations/CoreSoftware/ProjectList',['Boole','Gauss','Brunel','DaVinci','LHCb','Moore']) 
+    self.projectList = gConfig.getValue('/Operations/CoreSoftware/ProjectList',['Boole','Gauss','Brunel','DaVinci','LHCb','Moore'])
 
   #############################################################################
   def resolveInputVariables(self):
@@ -56,16 +56,16 @@ class AnalyseLogFile(ModuleBase):
     """
     self.log.verbose(self.workflow_commons)
     self.log.verbose(self.step_commons)
-    
+
     if not self.step_commons.has_key('applicationName'):
       return S_ERROR('Step does not have an applicationName')
-    
+
     self.applicationName = self.step_commons['applicationName']
 
     if not self.applicationName in self.projectList:
       self.log.error('applicationName is not defined or known %s' %(self.applicationName))
-      return S_ERROR('applicationName is not defined or known %s' %(self.applicationName))    
-    
+      return S_ERROR('applicationName is not defined or known %s' %(self.applicationName))
+
     if self.workflow_commons.has_key('InputData'):
        self.InputData = self.workflow_commons['InputData']
 
@@ -90,8 +90,8 @@ class AnalyseLogFile(ModuleBase):
        self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
 
     if self.step_commons.has_key('numberOfEventsOutput'):
-       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']    
-    
+       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
+
     #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key('LogFilePath'):
       self.logFilePath = self.workflow_commons['LogFilePath']
@@ -185,7 +185,7 @@ class AnalyseLogFile(ModuleBase):
     self.log.info("AnalyseLogFile - %s is OK" % (self.applicationLog))
     self.setApplicationStatus('%s Step OK' % (self.applicationName))
     self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
-    self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput   
+    self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
     return self.updateFileStatus(self.jobInputData, "Processed")
 
   #############################################################################
@@ -242,6 +242,7 @@ class AnalyseLogFile(ModuleBase):
     'Error: connectDataIO'                                            :     'connectDataIO error',
     'Error:connectDataIO'                                             :     'connectDataIO error',
     ' glibc '                                                         :     'Problem with glibc',
+    'segmentation violation'                                          :     'segmentation violation',
     'GaussTape failed'                                                :     'GaussTape failed',
     'Writer failed'                                                   :     'Writer failed',
     'Bus error'                                                       :     'Bus error',
@@ -297,7 +298,7 @@ class AnalyseLogFile(ModuleBase):
     res = self.getEventsOutput('InputCopyStream')
     if not res['OK']:
       return S_ERROR('No events output')
-    
+
     # Get the number of events processed by DaVinci
     res = self.getEventsProcessed('L0Muon')
     if not res['OK']:
@@ -481,7 +482,7 @@ class AnalyseLogFile(ModuleBase):
     if outputEvents != processedEvents:
       #return S_ERROR("Processed events not all output")
       self.log.warn('Number of processed events %s does not match output events %s (considered OK for Brunel)' %(processedEvents,outputEvents))
-    
+
     return S_OK()
 
   #############################################################################
@@ -876,7 +877,7 @@ class AnalyseLogFile(ModuleBase):
                 guidinput = guidResult['Value'][inputname]
               else:
                 guidinput = guidResult['Value'][inputname]
-                
+
               result = rm.putAndRegister(lfninput,inputname,'CERN-DEBUG',guidinput,catalog='LcgFileCatalogCombined')
               if not result['OK']:
                   self.log.error('Could not save INPUT data file',result['Message'])
