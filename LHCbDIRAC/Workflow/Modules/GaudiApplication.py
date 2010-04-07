@@ -12,7 +12,6 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions,getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
-from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
@@ -166,19 +165,6 @@ class GaudiApplication(ModuleBase):
 
     self.log.info('Final options files: %s' %(self.optfile))
 
-    #In case we need to work around the CORAL LFC access
-    toClean = []
-    if re.search('disablelfc',self.optfile.lower()):
-      self.log.info('CORAL LFC Access is disabled, obtaining XML files...')
-      result = getCondDBFiles()
-      if not result['OK']:
-        self.log.error('Could not obtain CondDB XML files with message:\n%s' %(result['Message']))
-        return result
-      else:
-        self.log.info('Successfully obtained Oracle CondDB XML access files')
-        self.log.verbose(result)
-        for f in result['Value']: toClean.append(f)
-
     #Prepare standard project run time options
     generatedOpts = 'gaudi_extra_options.py'
     if os.path.exists(generatedOpts): os.remove(generatedOpts)
@@ -232,11 +218,6 @@ class GaudiApplication(ModuleBase):
 
     resultTuple = result['Value']
     status = resultTuple[0]
-
-    for f in toClean:
-      self.log.verbose('Removing temporary file: %s' %f)
-      if os.path.exists(f):
-        os.remove(f)
 
     self.log.info( "Status after the application execution is %s" % str( status ) )
     if status != 0:
