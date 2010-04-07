@@ -16,6 +16,8 @@ import DIRAC
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.Os import sourceEnv
 
+gLogger = gLogger.getSubLogger( "CondDBAccess" )
+
 #############################################################################
 def getCondDBFiles(appConfigRoot,localSite='',directory=''):
   """ Function to set up the necessary CORAL XML files to bypass LFC access.
@@ -36,7 +38,6 @@ def getCondDBFiles(appConfigRoot,localSite='',directory=''):
   if not os.path.exists(appConfigRoot):
     return S_ERROR('APPCONFIGROOT ( %s ) does not exist!' %(appConfigRoot))    
 
-  gLogger = gLogger.getSubLogger( "CondDBAccess" )
   ambiguousString = ['p', 'a', 's', 's', 'w', 'o', 'r', 'd', 'c', 'r', 'a', 'z', 'i', 'n', 'e', 's', 's']
   ambiguous = string.join(ambiguousString).replace(' ','').replace('craziness','')
   otherString = ['c', 'o', 'n', 'd', 'd', 'b', 'u', 's', 'e', 'r']
@@ -44,8 +45,6 @@ def getCondDBFiles(appConfigRoot,localSite='',directory=''):
     
   condDBSite = localSite.split('.')[1]
   gLogger.verbose('Running at site: %s, CondDB site is: %s' %(localSite,condDBSite))
-
-  appConfigRoot 
   lookupFile = '%s/conddb/dblookup-%s.xml' %(appConfigRoot,condDBSite)
   defaultLookup = '%s/conddb/dblookup-CERN.xml' %(appConfigRoot)
   if not os.path.exists(lookupFile):
@@ -83,9 +82,5 @@ def getCondDBFiles(appConfigRoot,localSite='',directory=''):
   fopen.close()
 
   return S_OK([localLookup,localAuth])
-
-#############################################################################
-def log( n, line ):
-  gLogger.verbose( line )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
