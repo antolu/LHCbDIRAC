@@ -12,6 +12,7 @@ __RCSID__ = "$Id: ProductionOptions.py 22518 2010-03-08 16:36:37Z paterson $"
 from DIRAC.Core.Utilities.Os import sourceEnv
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -55,6 +56,19 @@ def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion
     return result  
   
   environment = result['Value']
+
+  #This is a really awful horrible horrible hack that we are forced to add in 
+  #order to bypass CORAL / LFC interactions.
+  if environment.has_key('APPCONFIGROOT'):
+    gLogger.verbose('APPCONFIGROOT found, will obtain XML files to disable CORAL LFC Access (even if this is unnecessary...)')
+    try:
+      result = getCondDBFiles(environment['APPCONFIGROOT'],site,directory)
+      if result['OK']:
+        gLogger.verbose('Successfully obtained Oracle CondDB XML access files (just in case)')                  
+      else:
+        gLogger.warn('Could not obtain CondDB XML files with message:\n%s' %(result['Message']))        
+    except Exception,x:
+      gLogger.warn('Could not obtain CondDB XML files with exception:\n%s' %(x))
     
   #Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
   return setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemConfiguration,directory,poolXMLCatalogName,environment)
@@ -226,7 +240,7 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
     fopen.write('use %s %s_%s' %(string.upper(applicationName),string.upper(applicationName),string.upper(applicationVersion)))
     fopen.close()
     shutil.copy(os.path.join(directory,'lib','requirements'),os.path.join(package,'cmttemp','v1','cmt'))
-        
+  
   return S_OK(env)
 
 #############################################################################
