@@ -3,7 +3,8 @@
 # Author: Stuart Paterson
 ########################################################################
 
-"""  The CondDB access module allows.
+"""  The CondDB access module allows to perform a nasty hack to disable
+     the LFC lookup in CORAL used by Gaudi.
 """
 
 __RCSID__ = "$Id$"
@@ -12,13 +13,11 @@ import string,os,shutil,re
 
 import DIRAC
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import MySiteRoot
-
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.Os import sourceEnv
 
 #############################################################################
-def getCondDBFiles():
+def getCondDBFiles(appConfigRoot,localSite='',directory=''):
   """ Function to set up the necessary CORAL XML files to bypass LFC access.
       Any project environment will pick up the latest AppConfig.
       Relies on the following APPCONFIG conventions:
@@ -28,57 +27,25 @@ def getCondDBFiles():
       $APPCONFIGOPTS/UseOracle.py
       $APPCONFIGOPTS/DisableLFC.py - Trigger in GaudiApplication for getting these files
   """
-  gLogger.getSubLogger( "CondDBAccess" )
+  if not localSite:
+    localSite = DIRAC.gConfig.getValue('/LocalSite/Site','LCG.CERN.ch')
+    
+  if not directory:
+    directory = os.getcwd()
+    
+  if not os.path.exists(appConfigRoot):
+    return S_ERROR('APPCONFIGROOT ( %s ) does not exist!' %(appConfigRoot))    
+
+  gLogger = gLogger.getSubLogger( "CondDBAccess" )
   ambiguousString = ['p', 'a', 's', 's', 'w', 'o', 'r', 'd', 'c', 'r', 'a', 'z', 'i', 'n', 'e', 's', 's']
   ambiguous = string.join(ambiguousString).replace(' ','').replace('craziness','')
   otherString = ['c', 'o', 'n', 'd', 'd', 'b', 'u', 's', 'e', 'r']
   other = string.join(otherString).replace(' ','').replace('conddb','')
-
-  localSite = DIRAC.gConfig.getValue('/LocalSite/Site','LCG.CERN.ch')
+    
   condDBSite = localSite.split('.')[1]
   gLogger.verbose('Running at site: %s, CondDB site is: %s' %(localSite,condDBSite))
 
-  softwareArea = ''
-  sharedArea = MySiteRoot()
-  if sharedArea == '':
-    gLogger.error( 'MySiteRoot Not found' )
-    return S_ERROR(' MySiteRoot Not Found')
-
-  if re.search(':',sharedArea):
-    localArea = string.split(sharedArea,':')[0]
-    if os.path.exists('%s/LbLogin.sh' %localArea):
-      softwareArea = localArea
-    else:
-      softwareArea =  string.split(sharedArea,':')[1]
-  else:
-    softwareArea = sharedArea
-
-  if not softwareArea:
-    return S_ERROR('Could not find software area')
-
-  gLogger.info('Using software area at %s' %softwareArea)
-
-  lbLogin = '%s/LbLogin' %softwareArea
-  ret = sourceEnv( 60,[lbLogin], dict(os.environ))
-  if not ret['OK']:
-    gLogger.error('Error during lbLogin\n%s' %ret)
-    return ret
-
-  setupProject = ['%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %lbLogin)),'SetupProject')]
-  setupProject.append( '--ignore-missing' )
-  setupProject.append( 'Brunel' )
-
-  ret = sourceEnv( 60, setupProject, ret['outputEnv'] )
-  if not ret['OK']:
-    gLogger.warn('Error during SetupProject\n%s' %ret)
-    return ret
-
-  appEnv = ret['outputEnv']
-  if not appEnv.has_key('APPCONFIGROOT'):
-    gLogger.error('APPCONFIGROOT is not defined in LbLogin / SetupProject environment')
-    return S_ERROR('APPCONFIGROOT undefined')
-
-  appConfigRoot = appEnv['APPCONFIGROOT']
+  appConfigRoot 
   lookupFile = '%s/conddb/dblookup-%s.xml' %(appConfigRoot,condDBSite)
   defaultLookup = '%s/conddb/dblookup-CERN.xml' %(appConfigRoot)
   if not os.path.exists(lookupFile):
@@ -88,13 +55,25 @@ def getCondDBFiles():
       gLogger.error('Could not find %s' %defaultLookup)
       return S_ERROR('Missing %s' %defaultLookup)
 
-  #copy loal so as not to read from the shared area
-  localLookup = '%s/dblookup.xml' %(os.getcwd())
-  shutil.copy(lookupFile,localLookup)
-  authFile = '%s/conddb/authentication.xml' %(appConfigRoot)
-  localAuth = '%s/authentication.xml' %(os.getcwd())
-  shutil.copy(authFile,localAuth)
+  #copy local so as not to read from the shared area
+  localLookup = '%s/dblookup.xml' %(directory)
+  if not os.path.exists(localLookup):
+    shutil.copy(lookupFile,localLookup)
+  else:
+    gLogger.debug('Local lookup file already present: %s' %localLookup)  
 
+  authFile = '%s/conddb/authentication.xml' %(appConfigRoot)
+  if not os.path.exists(authFile):
+    gLogger.error('Could not find %s' %authFile)
+    return S_ERROR('Missing %s' %(authFile))
+  
+  localAuth = '%s/authentication.xml' %(directory)
+  if not os.path.exists(localAuth):
+    shutil.copy(authFile,localAuth)
+  else:
+    gLogger.debug('Local authorization file already present: %s' %localAuth)
+    return S_OK([localLookup,localAuth])
+  
   fopen = open(localAuth,'r')
   authString = fopen.read()
   fopen.close()
