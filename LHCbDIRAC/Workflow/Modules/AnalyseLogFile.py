@@ -848,7 +848,13 @@ class AnalyseLogFile(ModuleBase):
 
     if self.stepInputData:
       msg = msg + '\n\nInput Data:\n'
-      result = constructProductionLFNs(self.workflow_commons)
+      if 'outputList' not in self.workflow_commons:
+        # if there is no output data defined we need some default
+        paramDict = dict(self.workflow_commons)
+        paramDict['outputList'] = []
+        result = constructProductionLFNs(paramDict)
+      else:
+        result = constructProductionLFNs(self.workflow_commons)
       if not result['OK']:
         print self.workflow_commons
         self.log.error('Could not create production LFNs',result['Message'])
