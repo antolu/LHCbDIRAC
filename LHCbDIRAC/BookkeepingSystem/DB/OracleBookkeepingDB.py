@@ -3392,11 +3392,13 @@ and files.qualityid= dataquality.qualityid'
     
     command = ' select jobs.runnumber from jobs where'+ condition
     retVal = self.dbR_._query(command)
+    runIds = []
     if retVal['OK']:
-      runIds = []
       records = retVal['Value']
+      print records 
       for record in records:
-        runIds += record[0]
+        print record
+        runIds += [record[0]]
     else:
       return S_ERROR(retVal['Message'])
     
