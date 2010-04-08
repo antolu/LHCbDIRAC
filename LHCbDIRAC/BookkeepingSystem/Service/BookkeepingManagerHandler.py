@@ -1163,6 +1163,11 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getAvailableTags(self):
     return dataMGMT_.getAvailableTags()
   
+  #############################################################################
+  types_getRunsWithAGivenDates = [DictType]
+  def export_getRunsWithAGivenDates(self, dict):
+    return dataMGMT_.getRunsWithAGivenDates(dict)
+  
   '''
   End Monitoring
   '''

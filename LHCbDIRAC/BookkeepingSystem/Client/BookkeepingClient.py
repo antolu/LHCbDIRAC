@@ -816,4 +816,11 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProcessedEvents(int(prodid))
   
+  #############################################################################
+  def getRunsWithAGivenDates(self, dict):
+    server = self.__getServer()
+    return server.getRunsWithAGivenDates(dict)
+  
+  
+  
    #----------------------------------- END Event Types------------------------------------------------------------------

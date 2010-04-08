@@ -555,6 +555,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getFileHistory(lfn)
   
   #############################################################################
+  def getRunsWithAGivenDates(self, dict):
+    return self.getManager().getRunsWithAGivenDates(dict)
+  
+  #############################################################################
   '''
     MONITORING
   '''
