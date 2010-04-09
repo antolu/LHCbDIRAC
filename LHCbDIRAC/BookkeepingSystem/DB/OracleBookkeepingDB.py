@@ -3400,5 +3400,26 @@ and files.qualityid= dataquality.qualityid'
           runIds += [record[0]]
     else:
       return S_ERROR(retVal['Message'])
+    processedRuns = []
+    notProcessedRuns = []
+    for i in runIds:
+      command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and jobs.runnumber='+str(i)
+      retVal = self.dbR_._query(command)
+      if retVal['OK']:
+        files = retVal['Value']
+        ok = True
+        for file in files:
+          print file[0]
+          retVal = self.getDescendents(file[0],1)
+          files = retVal['Value']
+          successful = files['Successful']
+          failed = files['Failed']
+          if len(failed) != 0 and len(successful[successful.keys()[0]]) == 0 and len(failed) != 0:
+            ok = False
+            break
+        if ok:
+          processedRuns += [i]
+        else:
+          notProcessedRuns += [i]  
     
-    return S_OK(runIds)
+    return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
