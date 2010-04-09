@@ -3382,7 +3382,7 @@ and files.qualityid= dataquality.qualityid'
   def getRunsWithAGivenDates(self, dict):
     condition = ''
     if dict.has_key('StartDate'):
-      condition += ' jobs.jobstart >= TO_TIMESTAMP (\''+str(dict['StartDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      condition += ' and jobs.jobstart >= TO_TIMESTAMP (\''+str(dict['StartDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
     
     if dict.has_key('EndDate'):
       condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(dict['EndDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
@@ -3390,7 +3390,7 @@ and files.qualityid= dataquality.qualityid'
       d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
       condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
     
-    command = ' select jobs.runnumber from jobs where'+ condition
+    command = ' select jobs.runnumber from jobs where jobs.production < 0'+ condition
     retVal = self.dbR_._query(command)
     runIds = []
     if retVal['OK']:
