@@ -3410,7 +3410,7 @@ and files.qualityid= dataquality.qualityid'
         ok = True
         print files
         for file in files:
-          print '!!!!!',file
+          print '!!!!!',file[0]
         '''
         for file in files:
           print '!!!!',file[0]
