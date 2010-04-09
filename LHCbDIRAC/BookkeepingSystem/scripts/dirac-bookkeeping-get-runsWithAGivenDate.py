@@ -40,6 +40,6 @@ else:
   if not res['Value']:
     print 'No runs found for a given date %s' % runID
   else:
-    print 'Runs',res['Value']['Runs']
-    print 'Processed runs', res['Value']['ProcessedRuns']
-    print 'Not processed runs', res['Value']['NotProcessedRuns']
+    print 'Runs:',res['Value']['Runs']
+    print 'Processed runs:', res['Value']['ProcessedRuns']
+    print 'Not processed runs:', res['Value']['NotProcessedRuns']
