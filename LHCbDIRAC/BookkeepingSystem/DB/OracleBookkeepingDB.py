@@ -3408,18 +3408,15 @@ and files.qualityid= dataquality.qualityid'
       if retVal['OK']:
         files = retVal['Value']
         ok = True
-        print files
         for file in files:
           name = file[0]
-          retVal = self.getDescendents(name,1)
+          retVal = self.getDescendents([name],1)
           files = retVal['Value']
           successful = files['Successful']
           failed = files['Failed']
-          print 'dsds',successful[successful.keys()[0]]
-          #if len(failed) != 0 and len(successful[successful.keys()[0]]) == 0 and len(failed) != 0:
-          #  ok = False
-          #  break
-        
+          if len(failed) != 0 and len(successful[successful.keys()[0]]) == 0 and len(failed) != 0:
+            ok = False
+            break
         if ok:
           processedRuns += [i]
         else:
