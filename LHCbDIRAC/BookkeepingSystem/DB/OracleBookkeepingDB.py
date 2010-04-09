@@ -3394,11 +3394,10 @@ and files.qualityid= dataquality.qualityid'
     retVal = self.dbR_._query(command)
     runIds = []
     if retVal['OK']:
-      records = retVal['Value']
-      print records 
+      records = retVal['Value'] 
       for record in records:
-        print record
-        runIds += [record[0]]
+        if record[0] != None:
+          runIds += [record[0]]
     else:
       return S_ERROR(retVal['Message'])
     
