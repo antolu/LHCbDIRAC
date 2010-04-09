@@ -3409,6 +3409,7 @@ and files.qualityid= dataquality.qualityid'
         files = retVal['Value']
         ok = True
         print files
+        '''
         for file in files:
           print '!!!!',file[0]
           retVal = self.getDescendents(file[0],1)
@@ -3418,6 +3419,7 @@ and files.qualityid= dataquality.qualityid'
           if len(failed) != 0 and len(successful[successful.keys()[0]]) == 0 and len(failed) != 0:
             ok = False
             break
+        '''
         if ok:
           processedRuns += [i]
         else:
