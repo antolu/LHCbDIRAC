@@ -3410,8 +3410,8 @@ and files.qualityid= dataquality.qualityid'
         ok = True
         print files
         for file in files:
-          print file
-          retVal = self.getDescendents(file,1)
+          print '!!!!',file[0]
+          retVal = self.getDescendents(file[0],1)
           files = retVal['Value']
           successful = files['Successful']
           failed = files['Failed']
