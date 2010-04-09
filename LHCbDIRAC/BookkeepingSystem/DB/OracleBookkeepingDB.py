@@ -3402,7 +3402,6 @@ and files.qualityid= dataquality.qualityid'
       return S_ERROR(retVal['Message'])
     processedRuns = []
     notProcessedRuns = []
-    notProcessedFiles = {}
     for i in runIds:
       command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and files.gotreplica=\'Yes\' and jobs.production<0 and jobs.runnumber='+str(i)
       retVal = self.dbR_._query(command)
@@ -3417,10 +3416,9 @@ and files.qualityid= dataquality.qualityid'
           failed = files['Failed']
           if len(successful[successful.keys()[0]]) == 0: 
             ok = False
-            notProcessedFiles[i] = successful.keys()[0]
         if ok:
           processedRuns += [i]
         else:
           notProcessedRuns += [i]  
     
-    return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns,'NotProcessedFiles':notProcessedFiles})
+    return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
