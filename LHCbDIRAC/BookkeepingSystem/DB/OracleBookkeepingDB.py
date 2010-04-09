@@ -3404,7 +3404,7 @@ and files.qualityid= dataquality.qualityid'
     notProcessedRuns = []
     notProcessedFiles = {}
     for i in runIds:
-      command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and jobs.runnumber='+str(i)
+      command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and files.gotreplica=\'Yes\' and jobs.runnumber='+str(i)
       retVal = self.dbR_._query(command)
       if retVal['OK']:
         files = retVal['Value']
