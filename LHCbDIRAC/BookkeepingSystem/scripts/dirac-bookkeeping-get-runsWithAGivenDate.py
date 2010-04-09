@@ -16,6 +16,7 @@ start = ''
 end = ''
 if not len(sys.argv) == 2:
   print 'Usage: dirac-bookkeeping-get-runsWithAGivenDate.py StartDate EndDate'
+  print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py yyyy-mm-dd'
   print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py 2010-04-02'
   print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py 2010-04-02 2010-04-10'
   sys.exit(0)
