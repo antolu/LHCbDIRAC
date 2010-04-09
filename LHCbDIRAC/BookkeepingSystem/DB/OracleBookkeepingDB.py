@@ -3409,6 +3409,8 @@ and files.qualityid= dataquality.qualityid'
         files = retVal['Value']
         ok = True
         print files
+        for file in files:
+          print '!!!!!',file
         '''
         for file in files:
           print '!!!!',file[0]
