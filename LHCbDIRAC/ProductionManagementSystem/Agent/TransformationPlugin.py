@@ -16,6 +16,105 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def __init__(self,plugin):
     DIRACTransformationPlugin.__init__(self,plugin)
 
+  def _AtomicRun(self):
+    possibleTargets = ['CERN-RAW','CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
+    bk = BookkeepingClient()
+    transClient = TransformationDBClient()
+    # Get the requested shares from the CS
+    res = self._getShares('CPU',True)
+    if not res['OK']:
+      return res
+    cpuShares = res['Value']
+    gLogger.info("Obtained the following target shares (%):")
+    for site in sortList(cpuShares.keys()):
+      gLogger.info("%s: %.1f" % (site.ljust(15),cpuShares[site]))
+
+    # Get the existing destinations from the transformationDB
+    res = self._getExistingCounters(requestedSites=cpuShares.keys())
+    if not res['OK']:
+      gLogger.error("Failed to get executed share",res['Message'])
+      return res
+    existingCount = res['Value']
+    if existingCount:
+      gLogger.info("Existing site utilization (%):")
+      normalisedExistingCount = self._normaliseShares(existingCount)
+      for se in sortList(normalisedExistingCount.keys()):
+        gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
+
+    # Group the remaining data by run
+    res = self.__groupByRunAndParam(self.data,param='Standard')
+    if not res['OK']:
+      return res
+    runFileDict = res['Value']
+
+    # For each of the runs determine the destination of any previous files
+    tasks = []
+    for runID in sortList(runFileDict.keys()):
+      unusedLfns = runFileDict[runID][None]
+      start = time.time()
+      res = bk.getRunFiles(runID)
+      gLogger.verbose("Obtained BK run files in %.2f seconds" % (time.time()-start))
+      if not res['OK']:
+        gLogger.error("Failed to get run files","%s %s" % (runID,res['Message']))
+        continue
+      runFiles = res['Value']
+      start = time.time()
+      res = transClient.getTransformationFiles(condDict = {'TransformationID':self.params['TransformationID'],'LFN':runFiles.keys(),'Status':['Assigned','Processed']})
+      gLogger.verbose("Obtained transformation run files in %.2f seconds" % (time.time()-start))
+      if not res['OK']:
+        gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
+        continue
+      if res['Value']:
+        assignedSE = res['Value'][0]['UsedSE']
+        res = getSitesForSE(assignedSE,gridName='LCG')
+        if not res['OK']:
+          continue
+        targetSite = ''
+        for site in res['Value']:
+          if site in cpuShares.keys():
+            targetSite = site
+        if not targetSite:
+          continue
+      else:
+        # Must get the replicas of the files and determine the corresponding sites
+        distinctSEs = []
+        candidates = []
+        for lfn in unusedLfns:
+          ses = self.data[lfn].keys()
+          for se in ses:
+            if se not in distinctSEs:
+              res = getSitesForSE(se,gridName='LCG')
+              if not res['OK']:
+                continue
+              for site in res['Value']:
+                if site in cpuShares.keys():
+                  if not site in candidates:
+                    candidates.append(site)
+                    distinctSEs.append(se)
+        if len(candidates) < 2:
+          continue
+        res = self._getNextSite(existingCount,cpuShares,randomize(candidates))
+        if not res['OK']:
+          gLogger.error("Failed to get next destination SE",res['Message'])
+          continue
+        targetSite = res['Value']
+        res = getSEsForSite(targetSite)
+        if not res['OK']:
+          continue
+        ses = res['Value']
+        for se in res['Value']:
+          if se in possibleTargets:
+            assignedSE = se
+        if not assignedSE:
+          continue
+      for lfn in unusedLfns:
+        if assignedSE in self.data[lfn].keys():
+          tasks.append((assignedSE,lfn))
+        if not existingCount.has_key(targetSite):
+          existingCount[targetSite] = 0
+        existingCount[targetSite] += 1
+    return S_OK(tasks)
+
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
     bk = BookkeepingClient()

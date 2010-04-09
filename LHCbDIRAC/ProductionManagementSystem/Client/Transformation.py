@@ -19,7 +19,7 @@ class Transformation(DIRACTransformation):
   def __init__(self,transID=0):
     DIRACTransformation.__init__(self,transID=transID,transClient=TransformationDBClient())
 
-    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast','RAWShares'] 
+    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast','RAWShares','AtomicRun'] 
     if not  self.paramValues.has_key('BkQuery'):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key('BkQueryID'):
@@ -161,6 +161,9 @@ class Transformation(DIRACTransformation):
     return self._checkStandardPlugin()
 
   def _checkRAWSharesPlugin(self):
+    return S_OK()
+
+  def _checkAtomicRunPlugin(self):
     return S_OK()
 
   def _checkLHCbMCDSTBroadcastPlugin(self):
