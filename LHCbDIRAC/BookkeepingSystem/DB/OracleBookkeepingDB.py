@@ -3414,7 +3414,8 @@ and files.qualityid= dataquality.qualityid'
           files = retVal['Value']
           successful = files['Successful']
           failed = files['Failed']
-          if len(successful[successful.keys()[0]]) == 0 and len(failed) >= 0 : 
+          if len(successful[successful.keys()[0]]) == 0: 
+            print '!!!!',successful.keys()[0]
             ok = False
             break
         if ok:
