@@ -3415,8 +3415,6 @@ and files.qualityid= dataquality.qualityid'
           files = retVal['Value']
           successful = files['Successful']
           failed = files['Failed']
-          print '!!!!!!!!!!!!!!!!!',successful
-          print '!!!',successful.keys()[0]
           if len(successful[successful.keys()[0]]) == 0: 
             ok = False
             notProcessedFiles[i] = successful.keys()[0]
