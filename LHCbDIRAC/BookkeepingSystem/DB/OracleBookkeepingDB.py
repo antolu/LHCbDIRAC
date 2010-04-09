@@ -3421,4 +3421,4 @@ and files.qualityid= dataquality.qualityid'
         else:
           notProcessedRuns += [i]  
     
-    return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
+    return S_OK({'Runs':runIds.sort(),'ProcessedRuns':processedRuns.sort(),'NotProcessedRuns':notProcessedRuns.sort()})
