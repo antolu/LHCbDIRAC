@@ -246,6 +246,7 @@ class AnalyseLogFile(ModuleBase):
     'GaussTape failed'                                                :     'GaussTape failed',
     'Writer failed'                                                   :     'Writer failed',
     'Bus error'                                                       :     'Bus error',
+    'Standard std::exception is caught'                               :     'Exception caugth',
     'User defined signal 1'                                           :     'User defined signal 1',
     'Not found DLL'                                                   :     'Not found DLL'}
     #'G4Exception'                                                     :     'G4Exception',
