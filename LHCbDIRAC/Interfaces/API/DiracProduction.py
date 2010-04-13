@@ -651,11 +651,11 @@ class DiracProduction:
     """ Allows to investigate the input files for a given production transformation
         and provides summaries / selections based on the file status if desired.
     """
-    adj = 12
+    adj = 18
     ordering = 'TaskID'
     if not orderOutput:
       ordering = 'LFN'
-    fileSummary = self.prodClient.getTransformationFiles(condDict={'Transformation':int(productionID)},orderAttribute=ordering)
+    fileSummary = self.prodClient.getTransformationFiles(condDict={'TransformationID':int(productionID)},orderAttribute=ordering)
     if not fileSummary['OK']:
       return fileSummary
 
