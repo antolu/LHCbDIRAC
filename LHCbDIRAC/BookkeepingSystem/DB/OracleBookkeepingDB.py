@@ -3046,7 +3046,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           jobs, configurations,data_taking_conditions,productions, pass_group, pass_index \
          where jobs.configurationid=configurations.configurationid and data_taking_conditions.daqperiodid=productions.simcondid and \
          productions.passid=pass_index.passid and pass_index.groupid=pass_group.groupid and \
-         jobs.production=productions.production and jobs.runnumber='+str(runnb)
+         jobs.production=productions.production and jobs.production<0 and jobs.runnumber='+str(runnb)
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
