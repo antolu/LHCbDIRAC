@@ -30,16 +30,16 @@ res = bk.getRunInformations(int(run))
 if res['OK']:
     val = res['Value']
     print "Run  Informations: "
-    print "  Configuration Name:",val['Configuration Name']
-    print "  Configuration Version:",val['Configuration Version']
-    print "  Stream:",val['Stream']
-    print "  FillNumber:",val['FillNumber']
-    print "  FullStat:",val['FullStat']
-    print "  Data taking description:",val['DataTakingDescription']
-    print "  Processing pass:",val['ProcessingPass']
-    print "  Number of events",val['Number of events']
-    print "  Number of file:",val['Number of file']
-    print "  File size:",val['File size']
+    print "  Configuration Name:".ljust(50),val['Configuration Name']
+    print "  Configuration Version:".ljust(50),val['Configuration Version']
+    print "  FillNumber:".ljust(50),val['FillNumber']
+    print "  Data taking description: ".ljust(50),val['DataTakingDescription']
+    print "  Processing pass: ".ljust(50),val['ProcessingPass']
+    print "  Stream: ".ljust(50),val['Stream']
+    print "  FullStat: ".ljust(50)+str(val['FullStat']).ljust(50)+" Total: ".ljust(20)+str(sum(val['FullStat']))
+    print "  Number of events: ".ljust(50) +str(val['Number of events']).ljust(50)+" Total:".ljust(20)+str(sum(val['Number of events']))
+    print "  Number of file: ".ljust(50)+str(val['Number of file']).ljust(50) + " Total: ".ljust(20)+str(sum(val['Number of file']))
+    print "  File size: ".ljust(50) + str(val['File size']).ljust(50)+ " Total: ".ljust(20) +str(sum(val['File size']))
     
 else:
     print "ERROR %s: %s" % (str(run),res['Message'] )
