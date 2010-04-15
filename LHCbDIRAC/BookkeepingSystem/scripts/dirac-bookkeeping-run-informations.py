@@ -36,10 +36,10 @@ if res['OK']:
     print "  Data taking description: ".ljust(50),val['DataTakingDescription']
     print "  Processing pass: ".ljust(50),val['ProcessingPass']
     print "  Stream: ".ljust(50),val['Stream']
-    print "  FullStat: ".ljust(50)+str(val['FullStat']).ljust(50)+" Total: ".ljust(20)+str(sum(val['FullStat']))
-    print "  Number of events: ".ljust(50) +str(val['Number of events']).ljust(50)+" Total:".ljust(20)+str(sum(val['Number of events']))
-    print "  Number of file: ".ljust(50)+str(val['Number of file']).ljust(50) + " Total: ".ljust(20)+str(sum(val['Number of file']))
-    print "  File size: ".ljust(50) + str(val['File size']).ljust(50)+ " Total: ".ljust(20) +str(sum(val['File size']))
+    print "  FullStat: ".ljust(50)+str(val['FullStat']).ljust(50)+" Total: ".ljust(10)+str(sum(val['FullStat']))
+    print "  Number of events: ".ljust(50) +str(val['Number of events']).ljust(50)+" Total:".ljust(10)+str(sum(val['Number of events']))
+    print "  Number of file: ".ljust(50)+str(val['Number of file']).ljust(50) + " Total: ".ljust(10)+str(sum(val['Number of file']))
+    print "  File size: ".ljust(50) + str(val['File size']).ljust(50)+ " Total: ".ljust(10) +str(sum(val['File size']))
     
 else:
     print "ERROR %s: %s" % (str(run),res['Message'] )
