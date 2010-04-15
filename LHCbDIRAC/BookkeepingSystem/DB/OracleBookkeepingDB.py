@@ -3079,8 +3079,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       fsize += [i[2]]
       fstat += [i[3]]
       stream += [i[4]]
-      print nbfile,nbevent,fsize,fstat,stream 
-    
+          
     result['Number of file'] = nbfile
     result['Number of events'] = nbevent
     result['File size'] = fsize
