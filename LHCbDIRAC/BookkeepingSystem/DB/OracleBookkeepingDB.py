@@ -3070,11 +3070,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_ERROR('Replica flag is not set!')
     for i in value:
       print i[0]
-      result['Number of file']+=[i[0]]
-      result['Number of events']+=[i[1]]
-      result['File size']+=[i[2]]
-      result['FullStat']+=[i[3]]
-      result['Stream']+=[i[4]]
+      result['Number of file'] = [i[0]]
+      result['Number of events'] =[i[1]]
+      result['File size'] =[i[2]]
+      result['FullStat'] =[i[3]]
+      result['Stream'] =[i[4]]
 
     return S_OK(result)
   
