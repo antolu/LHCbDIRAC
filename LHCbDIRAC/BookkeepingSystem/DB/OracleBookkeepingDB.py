@@ -3068,11 +3068,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     value = retVal['Value']
     if len(value) == 0:
       return S_ERROR('Replica flag is not set!')
-    result['Number of file']=value[0][0]
-    result['Number of events']=value[0][1]
-    result['File size']=value[0][2]
-    result['FullStat']=value[0][3]
-    result['Stream']=value[0][4]
+    for i in value:
+      result['Number of file'] += [value[0]]
+      result['Number of events'] += [value[1]]
+      result['File size'] += [value[2]]
+      result['FullStat'] += [value[3]]
+      result['Stream'] += [value[4]]
 
     return S_OK(result)
   
