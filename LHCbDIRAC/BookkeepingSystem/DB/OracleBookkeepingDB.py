@@ -3060,6 +3060,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.fullstat), files.eventtypeid from files,jobs \
          where files.JobId=jobs.JobId and  \
          files.gotReplica=\'Yes\' and \
+         jobs.production<0 and \
          jobs.runnumber='+str(runnb)+' Group by files.eventtypeid'
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
