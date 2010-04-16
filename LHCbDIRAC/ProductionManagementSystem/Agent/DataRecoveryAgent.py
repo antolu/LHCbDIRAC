@@ -284,7 +284,7 @@ class DataRecoveryAgent(AgentModule):
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace('LFN:','') for lfn in jobInputData.split(';')]
       
-      if not wmsID:
+      if not int(wmsID):
         self.log.info('Prod job %s status is %s (ID = %s) so will not recheck with WMS' %(job,wmsStatus,wmsID))
         continue
       
