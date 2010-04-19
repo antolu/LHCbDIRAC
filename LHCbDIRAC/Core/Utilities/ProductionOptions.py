@@ -58,6 +58,8 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
       options.append("Brunel().OutputType = 'DST'")
     elif appType.lower()=='rdst':
       options.append("Brunel().OutputType = 'RDST'")
+    options.append("from Configurables import RecInit")
+    options.append('RecInit("Brunel").PrintFreq = 100')
 
   elif appName.lower()=='davinci':
     options.append('from DaVinci.Configuration import *')
