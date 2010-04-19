@@ -191,17 +191,22 @@ class SoftwareInstallation(ModuleBaseSAM):
 
           if installPackage in packageList:
             self.log.info('Attempting to install %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+            sys.stdout.flush()
             orig = sys.stdout
             catch = open(self.logFile,'a')
             sys.stdout=catch
-            result = InstallApplication(appNameVersion, systemConfig, sharedArea )
+            result = False
+            try:
+              result = InstallApplication(appNameVersion, systemConfig, sharedArea )
+            except Exception,x:
+              self.log.error('InstallApplication("%s","%s","%s") failed with exception:\n%s' %(appNameVersion,systemConfig,sharedArea,x))
             sys.stdout=orig
             catch.close()
-            #result = True
+            sys.stdout.flush()            
             if not result: #or not result['OK']:
               if isPoolAccount:
                 self.__changePermissions(sharedArea)
-              return self.finalize('Problem during execution, result is stopping.',result,'error')
+              return self.finalize('Problem during software installation, stopping.',result,'error')
             else:
               self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
           else:
@@ -216,13 +221,19 @@ class SoftwareInstallation(ModuleBaseSAM):
 
 #          if removePackage in packageList:
           self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
+          sys.stdout.flush()
           orig = sys.stdout
           catch = open(self.logFile,'a')
           sys.stdout=catch
-          result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
+          result = False
+          try:
+            result = RemoveApplication(appNameVersion, systemConfig, sharedArea )              
+          except Exception,x:
+            self.log.error('RemoveApplication("%s","%s","%s") failed with exception:\n%s' %(appNameVersion,systemConfig,sharedArea,x))
           sys.stdout=orig
           catch.close()
-          result = True
+          sys.stdout.flush()          
+          result = True #Not sure why it is ignored if this fails - to be reviewed...
           if not result: # or not result['OK']:
             if isPoolAccount:
               self.__changePermissions(sharedArea)
