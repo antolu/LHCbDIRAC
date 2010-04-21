@@ -218,7 +218,7 @@ class DiracLHCb(Dirac):
     return getAncestorFiles(lfns,depth)
 
   #############################################################################
-  def bkQueryPath(self,bkPath):
+  def bkQueryPath(self,bkPath,dqFlag='All'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
        
@@ -232,6 +232,9 @@ class DiracLHCb(Dirac):
        
        /MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/2010-Sim01Reco01-withTruth/27163001/DST
        
+       a data quality flag can also optionally be provided, the full list of these is available 
+       via the getAllDQFlags() method.
+       
        Example Usage:
        
        >>> dirac.bkQueryPath('/MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/2010-Sim01Reco01-withTruth/27163001/DST')
@@ -239,6 +242,9 @@ class DiracLHCb(Dirac):
        
        @param bkPath: BK path as described above
        @type bkPath: string        
+       @param dqFlag: Optional Data Quality flag 
+       @type dqFlag: string 
+       @return: S_OK,S_ERROR                   
     """
     if not type(bkPath)==type(' '):
       return S_ERROR('Expected string for bkPath')
@@ -262,6 +268,19 @@ class DiracLHCb(Dirac):
     query['EventType']=bkPath[4]
     query['FileType']=bkPath[5]
 
+    if dqFlag:
+      if dqFlag.lower()=='all':
+        query['DataQualityFlag']=dqFlag
+      else:
+        dqFlag = dqFlag.upper()
+        flags = self.getAllDQFlags()
+        if not flags['OK']:
+          return flags
+        if not dqFlag in flags['Value']:
+          msg = 'Specified DQ flag "%s" is not in allowed list: %s' %(dqFlag,string.join(flags['Value'],', '))
+          self.log.error(msg)
+          return S_ERROR(msg) 
+          
     #The problem here is that we don't know if it's a sim or data taking condition, assume that if configName=MC this is simulation
     if bkPath[0].lower()=='mc':
       query['SimulationConditions']=bkPath[2]
@@ -299,7 +318,8 @@ class DiracLHCb(Dirac):
        @param  DataTakingConditions: BK DataTakingConditions
        @type DataTakingConditions: string
        @param  SimulationConditions: BK SimulationConditions
-       @type SimulationConditions: string        
+       @type SimulationConditions: string 
+       @return: S_OK,S_ERROR                          
     """
     query = self.bkQueryTemplate.copy()
     query['SimulationConditions']=SimulationConditions
@@ -373,6 +393,32 @@ class DiracLHCb(Dirac):
     
     returnedFiles = len(result['Value'])
     self.log.info('%s files selected from the BK' %(returnedFiles))
+    return result
+
+  #############################################################################
+  def getAllDQFlags(self,printOutput=False):
+    """ Helper function.  Returns the list of possible DQ flag statuses
+        from the Bookkeeping.
+        
+        Example Usage:
+        
+        >>> print dirac.getAllDQFlags()
+        {'OK':True,'Value':<flags>}
+
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR   
+    """
+    bk = BookkeepingClient()                          
+    result = bk.getAvailableDataQuality()
+    if not result['OK']:
+      self.log.error('Could not obtain possible DQ flags from BK with result:\n%s' %(result))
+      return result
+    
+    if printOutput:
+      flags = result['Value']
+      self.log.info('Possible DQ flags from BK are: %s' %(string.join(flags,', ')))
+    
     return result
 
   #############################################################################
