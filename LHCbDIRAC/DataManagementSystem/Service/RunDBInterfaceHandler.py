@@ -1,11 +1,11 @@
-""" DISET request handler base class for monitoring the online RunDB."""
-
+""" DISET request handler base class for the DatasetDB."""
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 import xmlrpclib,time,sys
 
 allRunFields = ['runID','fillID','state','runType','partitionName','partitionID','startTime','endTime','destination','startLumi','endLumi','beamEnergy']
+#selectRunFields = ['runID','fillID','state','runType','partitionName','partitionID','startLumi','endLumi','beamEnergy','startTime','endTime','destination']
 allFileFields = ['fileID','runID','name','state','bytes','events','stream','creationTime','timeStamp','refCount']
 
 server = False
@@ -25,8 +25,8 @@ def initializeRunDBInterfaceHandler(serviceInfo):
   sys.path.append("%s/python" % str(ORACLE_HOME))
 
   import RunDatabase_Defines
-  print dir(RunDatabase_Defines)
-  print RunDatabase_Defines.FileFields
+  #print dir(RunDatabase_Defines)
+  #print RunDatabase_Defines.FileFields
 
   from RunDatabase_Defines import RUN_STATE_TRANSLATION,FILE_STATE_TRANSLATION
 
@@ -208,7 +208,28 @@ class RunDBInterfaceHandler(RequestHandler):
     runList = result[iniRun:lastRun]
 
     # prepare the standard structure now
-    resultDict['ParameterNames'] = allRunFields
+    runCounters = {}
+    for tuple in runList:
+      runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy = tuple
+      runCounters[runID] = {'Size':0,'Events':0,'Files':0}
+
+    # Now sum the number of events and files in the run
+    if runCounters:
+      success,result = server.getFilesDirac(fields=allFileFields,runID=runCounters.keys(),orderBy='runID',no=sys.maxint)
+      if not success:
+        return S_ERROR(result)
+      for tuple in result:
+        runID = tuple[1]
+        size = tuple[4]
+        events = tuple[5]
+        if size and events:
+          runCounters[runID]['Size'] += size
+          runCounters[runID]['Events'] += events
+          runCounters[runID]['Files'] += 1
+    for runID in runCounters.keys():
+      size = "%.2f" % (runCounters[runID]['Size']/(1000*1000*1000.0))
+      runCounters[runID]['Size'] = size
+
     records = []
     for tuple in runList:
       runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy = tuple
@@ -218,8 +239,9 @@ class RunDBInterfaceHandler(RequestHandler):
         state = runStates[state]
       else:
         state = 'UNKNOWN'
-      records.append((runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy))
+      records.append((runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy,runCounters[runID]['Files'],runCounters[runID]['Events'],runCounters[runID]['Size']))
     resultDict['Records'] = records
+    resultDict['ParameterNames'] = allRunFields + ['files','events','size']
     return S_OK(resultDict)
 
   types_getRunSelections = []
@@ -238,6 +260,7 @@ class RunDBInterfaceHandler(RequestHandler):
       for key,query in queries:
         startTime = time.time()
         execString = "success,result = server.%s()" % query
+        print execString
         exec(execString)
         gLogger.debug("RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." % (query,time.time()-startTime))
         if not success:
