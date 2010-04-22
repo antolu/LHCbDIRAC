@@ -226,9 +226,17 @@ class RunDBInterfaceHandler(RequestHandler):
           runCounters[runID]['Size'] += size
           runCounters[runID]['Events'] += events
           runCounters[runID]['Files'] += 1
+
+    totalFiles = 0
+    totalEvents = 0
+    totalSize = 0
     for runID in runCounters.keys():
+      totalFiles += runCounters[runID]['Files']
+      totalEvents += runCounters[runID]['Events']
+      totalSize += runCounters[runID]['Size']
       size = "%.2f" % (runCounters[runID]['Size']/(1000*1000*1000.0))
       runCounters[runID]['Size'] = size
+    resultDict['Counters'] = {'Files':totalFiles,'Events':totalEvents,'Size':"%.2f" % (totalSize/(1000*1000*1000.0))}
 
     records = []
     for tuple in runList:
