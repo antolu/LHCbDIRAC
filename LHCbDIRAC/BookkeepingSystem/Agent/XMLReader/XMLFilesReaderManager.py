@@ -323,10 +323,9 @@ class XMLFilesReaderManager:
 
     condParams = job.getDataTakingCond()
     if condParams != None:
-      datataking = condParams.getParams()
-      config.getConfigVersion().capitalize()  
+      datataking = condParams.getParams()  
       ver = config.getConfigVersion()
-      ver.capitalize()
+      ver = ver.capitalize()
       print '!!!!!!!!!!!!!!!!!!!!',ver
       config = job.getJobConfiguration()
       context = Context(datataking, config.getConfigName())
