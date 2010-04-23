@@ -349,7 +349,7 @@ def getScriptsLocation():
         gLogger.error('%s not found in local area %s or shared area %s' %(groupLogin,localArea))
         return S_ERROR('%s not found in local or shared areas')
   else:
-    if os.path.exists(os.path.join((softwareArea,groupLogin))):
+    if os.path.exists(os.path.join(softwareArea,groupLogin)):
       localArea = softwareArea
       gLogger.info('Using %s from MYSITEROOT = %s' %(groupLogin,localArea))
     else:
