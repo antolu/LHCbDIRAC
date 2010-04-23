@@ -324,7 +324,7 @@ class XMLFilesReaderManager:
     condParams = job.getDataTakingCond()
     if condParams != None:
       datataking = condParams.getParams()
-      
+      config.getConfigVersion().capitalize()  
       config = job.getJobConfiguration()
       context = Context(datataking, config.getConfigName())
       conditions = [BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
