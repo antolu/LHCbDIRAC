@@ -324,10 +324,12 @@ class XMLFilesReaderManager:
     condParams = job.getDataTakingCond()
     if condParams != None:
       datataking = condParams.getParams()  
+      config = job.getJobConfiguration()
       ver = config.getConfigVersion()
       ver = ver.capitalize()
-      print '!!!!!!!!!!!!!!!!!!!!',ver
-      config = job.getJobConfiguration()
+      config.setConfigVersion(ver)
+      print '!!!!!!!!!!!!!!!!!!!!',config.getConfigVersion()
+      
       context = Context(datataking, config.getConfigName())
       conditions = [BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
               MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
