@@ -34,6 +34,7 @@ class GridSiteWMSMonitoringAgent(AgentModule):
     self.am_setOption('PollingTime',120)
     self.jobDB = JobDB()
     self.siteGOCNameDict = {}
+    self.hrefPrefix = self.am_setOption('SiteHrefPrefix','http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory')
     return S_OK()
 
   def execute( self ):
@@ -53,8 +54,7 @@ class GridSiteWMSMonitoringAgent(AgentModule):
       return result
 
     fileContents = ''
-    href = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
-    hrefTemp = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
+    hrefTemp = self.hrefPrefix+'#ds9:_plotNames12:NumberOfJobss13:_timeSelectors5:86400s7:_Statuss7:Runnings5:_Sites%d:%ss9:_typeNames10:WMSHistorys9:_groupings4:Sitee'
     for site,sDict in result['Value'].items():
       parallel_jobs = 0
       completed_jobs = 0
