@@ -390,6 +390,8 @@ class DataRecoveryAgent(AgentModule):
       for lfnList in toCheck:
         for fname in lfnList:
           if not fname in jobFileDict.values():
+            if not type(fname)==type([]):
+              fname = [fname]
             strandedAncestors+=fname
           
     if strandedAncestors:
