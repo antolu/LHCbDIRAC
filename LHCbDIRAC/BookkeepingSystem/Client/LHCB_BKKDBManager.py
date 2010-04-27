@@ -1675,7 +1675,7 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program version":'ALL',\
                  "RunNumber":str(runnumber)}
           
-    print selection
+    
     return self.__getRunFiles(evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection)  
   
   
