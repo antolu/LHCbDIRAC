@@ -1473,9 +1473,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
         jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent\
-        from'+tables+',filetypes, dataquality, configurations \
+        from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
-         jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
          files.qualityid=dataquality.qualityid \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
@@ -1486,11 +1485,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputsatat jevent \
-        from'+ tables+', dataquality, configurations\
+        from'+ tables+', dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
-         files.qualityid=dataquality.qualityid and \
-         jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
+         files.qualityid=dataquality.qualityid and ' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
     res = self.dbR_._query(command)
     return res
