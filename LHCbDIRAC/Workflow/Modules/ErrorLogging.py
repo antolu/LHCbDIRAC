@@ -54,8 +54,8 @@ class ErrorLogging(ModuleBase):
   def resolveInputVariables(self):
     """ By convention the module input parameters are resolved here.
     """
-    self.log.verbose(self.workflow_commons)
-    self.log.verbose(self.step_commons)
+    self.log.debug(self.workflow_commons)
+    self.log.debug(self.step_commons)
 
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
@@ -121,12 +121,12 @@ class ErrorLogging(ModuleBase):
     self.log.info('Initializing %s' %self.version)
     result = self.resolveInputVariables()
     if not result['OK']:
-      self.log.error(result['Message'])
+      self.log.info(result['Message'])
       return S_OK()
 
     self.log.info('Executing ErrorLogging module for: %s %s %s' %(self.applicationName,self.applicationVersion,self.applicationLog))
     if not os.path.exists(self.applicationLog):
-      self.log.error('Application log file from previous module not found locally: %s' %self.applicationLog)
+      self.log.info('Application log file from previous module not found locally: %s' %self.applicationLog)
       return S_OK()
 
     #Now obtain the project environment for execution
@@ -162,9 +162,9 @@ class ErrorLogging(ModuleBase):
     self.log.info("Status after the ErrorLogging execution is %s (if non-zero this is ignored)" %(status))
 
     if status:
-      self.log.error( "Error logging for %s %s step %s completed with errors:" %(self.applicationName,self.applicationVersion,self.stepNumber))
-      self.log.error( "==================================\n StdError:\n" )
-      self.log.error( self.stdError )
+      self.log.info( "Error logging for %s %s step %s completed with errors:" %(self.applicationName,self.applicationVersion,self.stepNumber))
+      self.log.info( "==================================\n StdError:\n" )
+      self.log.info( self.stdError )
       self.log.info('Exiting without affecting workflow status')
       return S_OK()
     
