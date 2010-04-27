@@ -892,9 +892,9 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getLimitedNbOfRunFiles(procPass, evtId, runnumber, ftype)
   
   #############################################################################
-  types_getLimitedFilesWithAgivenRun = [StringType, StringType, StringType, StringType]
+  types_getLimitedFilesWithAgivenRun = [StringType, StringType, StringType, StringType, IntType, IntType]
   def export_getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
-    return dataMGMT_.getLimitedFilesWithAgivenRun(procPass, evtId, runnumber, ftype)
+    return dataMGMT_.getLimitedFilesWithAgivenRun(procPass, evtId, runnumber, ftype, startitem, maxitems)
   
   #############################################################################
   types_getRunFilesWithAgivenRun = [StringType, StringType, StringType, StringType]

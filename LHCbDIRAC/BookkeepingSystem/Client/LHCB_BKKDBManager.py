@@ -1675,6 +1675,7 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program version":'ALL',\
                  "RunNumber":str(runnumber)}
           
+    print selection
     return self.__getRunFiles(evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection)  
   
   
@@ -1695,7 +1696,7 @@ class LHCB_BKKDBManager(BaseESManager):
     records = []
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
-      result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype)
+      result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype, StartItem, Maxitems)
     
       parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       

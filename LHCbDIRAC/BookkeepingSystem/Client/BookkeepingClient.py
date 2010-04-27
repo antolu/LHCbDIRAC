@@ -639,7 +639,7 @@ class BookkeepingClient:
   #############################################################################
   def getLimitedFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype, startitem, maxitems):
     server = self.__getServer()
-    return server.getLimitedFilesWithAgivenRun(str(procPass), str(evtId), str(runnumber), str(ftype))
+    return server.getLimitedFilesWithAgivenRun(str(procPass), str(evtId), str(runnumber), str(ftype), startitem, maxitems)
   
   #############################################################################
   def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
