@@ -57,10 +57,11 @@ def constructProductionLFNs(paramDict):
   if inputData:
     gLogger.verbose('Making LFN_ROOT for job with inputdata: %s' %(inputData))
     lfnRoot = _getLFNRoot(inputData,wfConfigName)
+    debugRoot= _getLFNRoot('','debug',wfConfigVersion)   
   else:
     lfnRoot = _getLFNRoot('',wfConfigName,wfConfigVersion)
     gLogger.verbose('LFN_ROOT is: %s' %(lfnRoot))
-    debugRoot= _getLFNRoot('','debug',wfConfigVersion) #only generate for non-processing jobs
+    debugRoot= _getLFNRoot('','debug',wfConfigVersion)
 
   gLogger.verbose('LFN_ROOT is: %s' %(lfnRoot))
   if not lfnRoot:
@@ -94,7 +95,9 @@ def constructProductionLFNs(paramDict):
     for od in outputData:
       for i in wfMask:
         if re.search('.%s$' %i,od):
-          newOutputData.append(od)
+          if not od in newOutputData:
+            newOutputData.append(od)
+            
     for bk in bkLFNs:
       newBKLFNs.append(bk)
     outputData = newOutputData
@@ -112,24 +115,6 @@ def constructProductionLFNs(paramDict):
     gLogger.verbose('DebugLFN(s) are:\n%s' %(string.join(debugLFNs,'\n')))
   jobOutputs = {'ProductionOutputData':outputData,'LogFilePath':logFilePath,'LogTargetPath':logTargetPath,'BookkeepingLFNs':bkLFNs,'DebugLFNs':debugLFNs}
   return S_OK(jobOutputs)
-
-#############################################################################
-def constructDebugLFNs(paramDict,fileList):
-  """ Construct LFNs for upload to the DEBUG SE.
-  """
-  paramDict['JobType']='debug' #apparently
-  paramDict['outputDataFileMask']=''
-  result = constructProductionLFNs(paramDict)
-  if not result['OK']:
-    return result
-
-  fileDict = {}
-  for lfn in result['ProductionOutputData']:
-    for f in fileList:
-      if os.path.basename(lfn)==f:
-        fileDict[f]=lfn
-
-  return S_OK(fileDict)
 
 #############################################################################
 def getLogPath(paramDict):
