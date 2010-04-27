@@ -1473,7 +1473,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
         jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent\
-        from'+tables+',filetypes, dataquality \
+        from'+tables+',filetypes, dataquality, configurations \
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
@@ -1486,7 +1486,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
             jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputsatat jevent \
-        from'+ tables+', dataquality\
+        from'+ tables+', dataquality, configurations\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
          files.qualityid=dataquality.qualityid and \
