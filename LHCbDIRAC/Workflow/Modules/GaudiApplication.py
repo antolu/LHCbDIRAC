@@ -179,7 +179,7 @@ class GaudiApplication(ModuleBase):
       runNumberGauss =  int(self.PRODUCTION_ID)*100+int(self.JOB_ID)
       firstEventNumberGauss = int(self.numberOfEvents) * (int(self.JOB_ID) - 1) + 1
 
-    projectOpts = getModuleOptions(self.applicationName,self.numberOfEvents,inputDataOpts,self.optionsLine,runNumberGauss,firstEventNumberGauss)['Value'] #always OK
+    projectOpts = getModuleOptions(self.applicationName,self.numberOfEvents,inputDataOpts,self.optionsLine,runNumberGauss,firstEventNumberGauss,self.jobType)['Value'] #always OK
     self.log.info('Extra options generated for %s %s step:' %(self.applicationName,self.applicationVersion))
     print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
     options = open(generatedOpts,'w')
