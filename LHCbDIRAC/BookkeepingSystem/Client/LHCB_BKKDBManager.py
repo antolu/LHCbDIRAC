@@ -1703,7 +1703,7 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),record[7],record[8],str(record[9]),str(record[10]),record[11],record[12], record[13], record[14]]
+          value = [record[1],record[2],record[3],str(record[4]),record[7],record[8],str(record[9]),str(record[10]),record[11],record[12], record[13], record[14], record[15], record[16]]
           records += [value]
       else:
         gLogger.error(result['Message'])
