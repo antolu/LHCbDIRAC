@@ -107,10 +107,11 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
   return options
 
 #############################################################################
-def getModuleOptions(applicationName,numberOfEvents,inputDataOptions,extraOptions='',runNumber=0,firstEventNumber=1):
+def getModuleOptions(applicationName,numberOfEvents,inputDataOptions,extraOptions='',runNumber=0,firstEventNumber=1,jobType=''):
   """ Return the standard options for a Gaudi application project to be used at run time
       by the workflow modules.  The input data options field is a python list (output of 
-      getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case.
+      getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case 
+      and when the job type is not 'user'.
   """
   optionsLines=[]
   optionsLines.append('\n\n#//////////////////////////////////////////////////////')
@@ -128,7 +129,7 @@ def getModuleOptions(applicationName,numberOfEvents,inputDataOptions,extraOption
   if inputDataOptions:
     optionsLines+=inputDataOptions
     
-  if applicationName == 'Gauss':
+  if applicationName == 'Gauss' and not jobType.lower()=='user':
     optionsLines.append("GaussGen = GenInit(\"GaussGen\")")
     optionsLines.append("GaussGen.RunNumber = %s" %(runNumber))
     optionsLines.append("GaussGen.FirstEventNumber = %s" %(firstEventNumber))
