@@ -1476,7 +1476,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
-         files.qualityid=dataquality.qualityid \
+         files.qualityid=dataquality.qualityid  and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
     else:
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality,jevent from \
@@ -1488,7 +1488,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+ tables+', dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
-         files.qualityid=dataquality.qualityid and ' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
+         files.qualityid=dataquality.qualityid ' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
     res = self.dbR_._query(command)
     return res
