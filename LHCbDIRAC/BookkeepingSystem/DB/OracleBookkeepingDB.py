@@ -1465,13 +1465,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
          
     if ftype == 'ALL':
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jevent \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, fevt, runnb,fillnb,fullst,quality, jevent \
       FROM \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,fullst,quality, jevent \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,fevt, runnb,fillnb,fullst,quality, jevent \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, files.eventtypeid fevt,\
         jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent\
         from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
@@ -1479,12 +1479,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
          files.qualityid=dataquality.qualityid  and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
     else:
-      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality,jevent from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality,jevent \
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , fevt, runnb,fillnb,fullst,quality,jevent from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' ,fevt, runnb,fillnb,fullst,quality,jevent \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \
-            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, \''+str(ftype)+'\', files.eventtypeid fevt, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jevent \
         from'+ tables+', dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
