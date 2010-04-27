@@ -38,8 +38,8 @@ class FailoverRequest(ModuleBase):
   def resolveInputVariables(self):
     """ By convention the module input parameters are resolved here.
     """
-    self.log.verbose(self.workflow_commons)
-    self.log.verbose(self.step_commons)
+    self.log.debug(self.workflow_commons)
+    self.log.debug(self.step_commons)
 
     if os.environ.has_key('JOBID'):
       self.jobID = os.environ['JOBID']
