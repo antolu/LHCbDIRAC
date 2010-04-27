@@ -1697,13 +1697,13 @@ class LHCB_BKKDBManager(BaseESManager):
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype, StartItem, Maxitems)
-    
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+          
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15], record[16]]
+          value = [record[1],record[2],record[3],str(record[4]),record[7],record[8],str(record[9]),str(record[10]),record[11],record[12], record[13], record[14]]
           records += [value]
       else:
         gLogger.error(result['Message'])
