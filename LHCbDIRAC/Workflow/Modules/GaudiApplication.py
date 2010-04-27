@@ -54,6 +54,9 @@ class GaudiApplication(ModuleBase):
   def resolveInputVariables(self):
     """ Resolve all input variables for the module here.
     """
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
+        
     if self.workflow_commons.has_key('SystemConfig'):
       self.systemConfig = self.workflow_commons['SystemConfig']
 
@@ -106,7 +109,7 @@ class GaudiApplication(ModuleBase):
         self.inputData = self.inputData.split(';')
     elif self.InputData:
       self.log.info('Input data defined taken from JDL parameter')
-      if type(self.inputData) != type([]):
+      if type(self.InputData) != type([]):
         self.inputData = self.InputData.split(';')
     else:
       self.log.verbose('Job has no input data requirement')
@@ -211,7 +214,7 @@ class GaudiApplication(ModuleBase):
 
     self.log.info('Running %s %s step %s'  %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))    
     self.setApplicationStatus('%s %s step %s' %(self.applicationName,self.applicationVersion,self.STEP_NUMBER))
-    #result = {'OK':True,'Value':(0,'Disabled Execution','')}
+#    result = {'OK':True,'Value':(0,'Disabled Execution','')}
     result = shellCall(0,finalCommand,env=projectEnvironment,callbackFunction=self.redirectLogOutput,bufferLimit=20971520)
     if not result['OK']:
       return S_ERROR('Problem Executing Application')
