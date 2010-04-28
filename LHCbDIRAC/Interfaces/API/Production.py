@@ -55,6 +55,7 @@ class Production(LHCbJob):
     self.ioDict = {}
     self.gaussList = []
     self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping','Merge','Test']
+    self.pluginsTriggeringStreamTypes = ['ByFileTypeSize','ByRunFileTypeSize','ByRun','AtomicRun']
     self.name='unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
@@ -1063,9 +1064,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """ Create a transformation to distribute the output data for a given production.
     """
     streams=False
-    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun':
+#    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun' or prodPlugin.lower()=='atomicrun':
+    if prodPlugin.lower() in [string.lower(i) for i in self.pluginsTriggeringStreamTypes]:
       streams=True
-      self.log.info('Found ByFileType plugin, adding all possible BK file types for query')
+      self.log.info('Found streaming plugin, adding all possible BK file types for query')
       fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
       self.log.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
       tmpTypes = []
