@@ -109,7 +109,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
           continue
       for lfn in unusedLfns:
         if assignedSE in self.data[lfn].keys():
-          tasks.append((assignedSE,lfn))
+          tasks.append((assignedSE,[lfn]))
         if not existingCount.has_key(targetSite):
           existingCount[targetSite] = 0
         existingCount[targetSite] += 1
