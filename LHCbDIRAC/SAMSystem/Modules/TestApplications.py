@@ -122,13 +122,9 @@ class TestApplications(ModuleBaseSAM):
     if not options['OK']:
       return self.finalize('Inputs for %s %s could not be found' %(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1]),options['Message'],'critical')
 
-    if os.path.exists('std.out'):
-      shutil.copy('std.out','std.out.save')
-
+    sys.stdout.flush()
     result = self.__runApplication(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1],options['Value'])
-    if os.path.exists('std.out.save'):
-      shutil.copy('std.out.save','std.out')
-    
+    sys.stdout.flush()
     if not result['OK']:
       return self.finalize('Failure during %s %s execution' %(self.appNameVersion.split('.')[0],self.appNameVersion.split('.')[1]),result['Message'],'error')
 
@@ -205,11 +201,12 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
       dirac = Dirac()
       if self.enable:
         result = dirac.submit(j,mode='local')
+        self.log.info('%s %s execution result: %s' %(appName,appVersion,result))
       if os.path.exists('Step1_%s' %self.logFile):
         shutil.move('Step1_%s' %self.logFile,self.logFile)
       else:
         if os.path.exists('std.out'):
-          shutil.move('std.out',self.logFile)
+          shutil.copy('std.out',self.logFile)
         if os.path.exists('std.err'):
           fopen = open('std.err','r')
           lines = fopen.readlines()
@@ -218,8 +215,17 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
           fopen.writelines(lines)
           fopen.close()
     except Exception,x:
-      self.log.warn('Problem during %s %s execution: %s' %(appName,appVersion,x))
-      return S_ERROR(str(x))
+      self.log.warn('Problem during %s %s execution: "%s"' %(appName,appVersion,x))
+      if os.path.exists('std.out'):
+        shutil.copy('std.out',self.logFile)
+      if os.path.exists('std.err'):
+        fopen = open('std.err','r')
+        lines = fopen.readlines()
+        fopen.close()
+        fopen = open(self.logFile,'a')
+        fopen.writelines(lines)
+        fopen.close()      
+      return S_ERROR(str(x))    
     #Correct the log file names since they will have Step1_ prepended.
     return result
 
