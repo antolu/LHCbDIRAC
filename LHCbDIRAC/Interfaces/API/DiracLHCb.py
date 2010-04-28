@@ -16,7 +16,7 @@ Script.parseCommandLine()
 __RCSID__ = "$Id$"
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList
+from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList, removeEmptyElements
 from DIRAC.Interfaces.API.Dirac                     import Dirac
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles,getRootFileGUID
@@ -250,14 +250,8 @@ class DiracLHCb(Dirac):
       return S_ERROR('Expected string for bkPath')
     
     #remove any double slashes, spaces must be preserved 
-    bkPath = string.split(string.replace(bkPath,'//','/'),'/')
     #remove any empty components from leading and trailing slashes
-    tmp = []
-    for i in bkPath:
-      if i:
-        tmp.append(i)
-    bkPath = tmp
-    
+    bkPath = removeEmptyElements(string.split(string.replace(bkPath,'//','/'),'/'))
     if not len(bkPath)==6:
       return S_ERROR('Expected 6 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>')
     
