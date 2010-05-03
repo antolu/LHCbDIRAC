@@ -16,7 +16,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
-import string,os,random
+import string,os,random,time
 
 class UploadOutputData(ModuleBase):
 
@@ -162,6 +162,12 @@ class UploadOutputData(ModuleBase):
       self.log.info('Module is disabled by control flag, would have attempted to upload the following files %s' %string.join(final.keys(),', '))
       return S_OK('Module is disabled by control flag')
 
+    #Disable the watchdog check in case the file uploading takes a long time
+    self.log.info('Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload')
+    fopen = open('DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK','w')
+    fopen.write('%s' %time.asctime())
+    fopen.close()
+    
     #Instantiate the failover transfer client with the global request object
     failoverTransfer = FailoverTransfer(self.request)
 
