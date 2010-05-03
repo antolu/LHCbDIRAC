@@ -32,10 +32,10 @@ def analyseLogFile(fileName,applicationName=''):
   # Check the log file exists and get the contents
   gLogger.info("Attempting to open log file: %s" % (fileName))
   if not os.path.exists(fileName):
-    self.log.error('Requested log file %s is not available' %(fileName))
+    gLogger.error('Requested log file "%s" is not available' %(fileName))
     return S_ERROR('Log File Not Available')
   if os.stat(fileName)[6] == 0:
-    self.log.error('Requested log file %s is empty' %(fileName))
+    gLogger.error('Requested log file "%s" is empty' %(fileName))
     return S_ERROR('Log File Is Empty')
 
   fopen = open(fileName,'r')
