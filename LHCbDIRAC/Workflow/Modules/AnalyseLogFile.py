@@ -312,10 +312,10 @@ class AnalyseLogFile(ModuleBase):
         result = rm.putAndRegister(lfn,fname,'CERN-DEBUG',guidInput,catalog='LcgFileCatalogCombined')
         self.log.info(result)
         if not result['OK']:
-          self.log.error('Could not save INPUT data file with result',result)
+          self.log.error('Could not save INPUT data file with result',str(result))
           msg += 'Could not save intermediate data file %s with result\n%s\n' %(fname,result)
         else:
-          msg = msg+lfn+'\n'+result+'\n'
+          msg = msg+lfn+'\n'+str(result)+'\n'
       else:
         self.log.info('JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to CERN-DEBUG' %(lfn,fname,guidInput))    
 
