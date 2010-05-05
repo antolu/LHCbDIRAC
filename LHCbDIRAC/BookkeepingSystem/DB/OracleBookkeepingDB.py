@@ -2525,8 +2525,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  'WNMEMORY':None, \
                  'WNMODEL':None, \
                  'WorkerNode':None, \
-                 'RunNumber':None,
-                 'FillNumber':None}
+                 'RunNumber':None, \
+                 'FillNumber':None, \
+                 'WNCPUHS06': 0}
     
     for param in job:
       if not attrList.__contains__(param):
@@ -2566,7 +2567,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   attrList['WNMODEL'], \
                   attrList['WorkerNode'], \
                   attrList['RunNumber'], \
-                  attrList['FillNumber'] ])           
+                  attrList['FillNumber'], \
+                  attrList['WNCPUHS06'] ])           
     return result
   
   #############################################################################
