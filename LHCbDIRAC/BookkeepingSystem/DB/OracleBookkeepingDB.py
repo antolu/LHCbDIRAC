@@ -1706,7 +1706,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         jobid = str(record[19])
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
                   'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
-                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14],'WNCPUHS06':record[15]}  
+                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14]}  
       list[jobid]=value
     return S_OK(list)
   

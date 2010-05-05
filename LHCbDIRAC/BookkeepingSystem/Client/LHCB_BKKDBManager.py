@@ -1472,7 +1472,7 @@ class LHCB_BKKDBManager(BaseESManager):
         prod = str(record[0])
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
                  'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
-                  'StatisticsRequested':record[12], 'WNCPUPOWER':record[13], 'CPUTime':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18]}  
+                  'StatisticsRequested':record[12], 'WNCPUPOWER':record[13], 'CPUTime':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18],'WNCPUHS06':record[19]}  
     else:
       gLogger.error(result['Message'])
     return value
