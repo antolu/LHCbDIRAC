@@ -15,7 +15,7 @@ class ControlerAdvancedSave(ControlerAbstract):
   #############################################################################  
   def __init__(self, widget, parent):
     super(ControlerAdvancedSave, self).__init__(widget, parent)
-    self.__sites = {"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es", 'ALL':None}
+    self.__sites = {"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es", '':None}
   
   #############################################################################  
   def messageFromParent(self, message):
@@ -47,6 +47,10 @@ class ControlerAdvancedSave(ControlerAbstract):
     if filename == '':
       QMessageBox.information(self.getWidget(), "Error...", "File name is missing!",QMessageBox.Ok)
     else:
+      site = self.__sites[str(widget.getSite())]
+      if site == None:
+        QMessageBox.information(widget, "Error",'Please select a site!', QMessageBox.Ok)
+        return 
       site = self.__sites[str(widget.getSite())]
       infos = {'Site':site,'pfn':widget.isPFNbuttonChecked(),'lfn':widget.isLFNbuttonChecked(),'FileName':filename}
       message = Message({'action':'advancedSave','selection':infos})

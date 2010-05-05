@@ -206,10 +206,12 @@ class FileDialog(QDialog, Ui_FileDialog):
     #tv.setSortingEnabled(True)
     
   #############################################################################  
-  def saveAs(self):
+  def saveAs(self, filename = ''):
     
     saveDialog = QFileDialog (self,'Feicim Save file(s) dialog',QDir.currentPath(),'Python option(*.py);;Option file (*.opts);;Text file (*.txt)')
-    filename = ''
+    saveDialog.setAcceptMode(QFileDialog.AcceptSave)
+    
+    saveDialog.selectFile(filename)
     #self.connect(saveDialog, SIGNAL("filterSelected(const QString &)"),self.filter ) 
     ##saveDialog.setDirectory (QDir.currentPath())
     #filters = ['Option file (*.opts)' ,'Pool xml file (*.xml)','*.txt']    

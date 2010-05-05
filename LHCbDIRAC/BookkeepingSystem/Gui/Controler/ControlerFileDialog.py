@@ -98,97 +98,63 @@ class ControlerFileDialog(ControlerAbstract):
     
   #############################################################################  
   def save(self):
+    model = self.getWidget().getModel()
+    lfns = {}
     if len(self.__selectedFiles) > 1:
-      message = Message({'action':'GetFileName'})
-      feedback = self.getParent().messageFromChild(self, message)
-      fileName = ''
-      ext = ''
-      if feedback != '':
-        fileName = feedback
-        ext = '.txt'
-      else:        
-        fileName,ext = self.getWidget().saveAs()
-    
-      if fileName <>'':
-        model = self.getWidget().getModel()
-        lfns = {}
-        for i in self.__selectedFiles:
-          lfns[i] = model[i]
-        if '.opts' in ext:   
-          message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-        elif '.txt' in ext:
-          message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':self.__selectedFiles})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-        elif '.py' in ext:
-          message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-          
+      for i in self.__selectedFiles:
+        lfns[i] = model[i]
     else:
-      message = Message({'action':'GetFileName'})
+      for file in model:
+        lfns[file] = model[file]
+ 
+    message = Message({'action':'GetFileName'})
+    fileName = self.getParent().messageFromChild(self, message)
+    
+    message = Message({'action':'GetPathFileName'})  
+    fpath = self.getParent().messageFromChild(self, message)
+    
+    if fpath !='':
+      path = self.getWidget().getPath()
+      f=open(fpath,'a')
+      f.write(path+'\n')
+      f.close()
+      sys.exit(0)
+    elif fileName != '':
+      message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':lfns})
       feedback = self.getParent().messageFromChild(self, message)
-      fileName = ''
-      ext = ''
-      if feedback != '':
-        fileName = feedback
-        ext = '.txt'        
-      message = Message({'action':'GetPathFileName'})
-      
-      fname = self.getParent().messageFromChild(self, message)
+      if feedback:
+          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
+          self.__selectedFiles = []
+    else:
+      fileName = self.getWidget().getPath()
+      fileName = fileName.replace('/CFGN_','').replace('/CFGV','').replace('/SCON','').replace('/PAS','').replace('/EVT','').replace('/PROD','').replace('FTY','').replace('ALL','').replace('/','').replace(' ','').replace('.','')
+      fileName += '.py'
+              
+      fileName,ext = self.getWidget().saveAs(fileName)
+ 
+      if '.opts' in ext:   
+        if fileName.find('.opts') < 0:
+          fileName += '.opts'
+        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
+        feedback = self.getParent().messageFromChild(self, message)
+        if feedback:
+          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
+      elif '.txt' in ext:
+        if fileName.find('.txt') < 0:
+          fileName += '.txt'
+        message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':lfns})
+        feedback = self.getParent().messageFromChild(self, message)
+        if feedback:
+          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
+      elif '.py' in ext:
+        if fileName.find('.py') < 0:
+          fileName += '.py'
+        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
+        feedback = self.getParent().messageFromChild(self, message)
+        if feedback:
+          QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)            
     
-      if fname == '' and fileName == '':
-        fileName,ext = self.getWidget().saveAs()
-      elif fname != '' and fileName =='':
-        path = self.getWidget().getPath()
-        f=open(fname,'a')
-        f.write(path+'\n')
-        f.close()
-        sys.exit(0)
-      elif fname != '':
-        path = self.getWidget().getPath()
-        f=open(fname,'a')
-        f.write(path+'\n')
-        f.close()
-      
-      
-      if fileName <> '':
-        model = self.getWidget().getModel()
-        lfns = {}
-        for file in model:
-          lfns[file] = model[file]  
-        if '.xml' in ext:
-          print 'xml'
-        elif '.opts' in ext:
-          message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-        elif '.py' in ext:
-          message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-        
-        elif '.txt' in ext:
-          message = Message({'action':'SaveToTxt','fileName':fileName,'lfns':model})
-          feedback = self.getParent().messageFromChild(self, message)
-          if feedback:
-            QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
-            self.__selectedFiles = []
-        
-    
-  #############################################################################  
+  ############################################################################  
   def selection(self, selected, deselected):
     if selected:
       for i in selected.indexes():
