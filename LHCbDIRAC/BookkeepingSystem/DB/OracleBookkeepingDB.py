@@ -1197,7 +1197,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getJobInfo(self, lfn):
     command = 'select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER, \'not used\', \
                  \'not used\', \'not used\', \'not used\', jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS, \
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.jobid from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
     res = self.dbR_._query(command)
     return res
     
@@ -1706,7 +1706,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         jobid = str(record[19])
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
                   'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
-                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14]}  
+                  'StatistivsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTIME':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14],'WNCPUHS06':record[15]}  
       list[jobid]=value
     return S_OK(list)
   
