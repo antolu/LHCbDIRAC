@@ -274,7 +274,8 @@ class DiracLHCb(Dirac):
           msg = 'Specified DQ flag "%s" is not in allowed list: %s' %(dqFlag,string.join(flags['Value'],', '))
           self.log.error(msg)
           return S_ERROR(msg) 
-          
+        query['DataQualityFlag']=dqFlag
+  
     #The problem here is that we don't know if it's a sim or data taking condition, assume that if configName=MC this is simulation
     if bkPath[0].lower()=='mc':
       query['SimulationConditions']=bkPath[2]
