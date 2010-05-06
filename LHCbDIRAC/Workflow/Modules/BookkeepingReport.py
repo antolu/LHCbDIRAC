@@ -215,7 +215,7 @@ class BookkeepingReport(ModuleBase):
       s = s+self.__parameter_string("WNCPUPOWER",nodeInfo['CPU(MHz)'],'Info')
       s = s+self.__parameter_string("WNCACHE",nodeInfo['CacheSize(kB)'],'Info')
 
-    s = s+self.__parameter_string("WNCPUHS06",gConfig.getValue('/LocalSite/CPUNormalizationFactor', False),'Info')
+    s = s+self.__parameter_string("WNCPUHS06",gConfig.getValue('/LocalSite/CPUNormalizationFactor', '1'),'Info')
     s = s+self.__parameter_string("Production",self.PRODUCTION_ID,'Info')
     s = s+self.__parameter_string("DiracJobId",self.JOB_ID,'Info')
     s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
