@@ -55,20 +55,14 @@ class DataRecoveryAgent(AgentModule):
     """Sets defaults
     """
     self.enableFlag = '' #defined below
-#    service = self.am_getOption('TransformationService','')
-#    self.transDB = TransformationDB('ProductionDB', 'ProductionManagement/ProductionDB')
     self.replicaManager = ReplicaManager()
     self.prodDB = ProductionDB()
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
-    #Several names are different between dev and production...
-    self.taskIDName = 'TaskID'
-#    self.externalStatus = 'WmsStatus'
-#    self.externalID = 'JobWmsID'
-#    self.taskIDName = 'JobID' 
+    self.taskIDName = 'TaskID' 
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
-    self.am_setOption('PollingTime',4*60*60)    
+    self.am_setOption('PollingTime',1*60*60) #no stalled jobs are considered so can be frequent
     self.am_setModuleParam("shifterProxy", "ProductionManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     return S_OK()
@@ -85,11 +79,11 @@ class DataRecoveryAgent(AgentModule):
     transformationStatus = self.am_getOption('TransformationStatus','Active')
     fileSelectionStatus = self.am_getOption('FileSelectionStatus',['Assigned','MaxReset'])
     updateStatus = self.am_getOption('FileUpdateStatus','Unused')
-    wmsStatusList = self.am_getOption('WMSStatus',['Failed','Stalled'])
-    
+    wmsStatusList = self.am_getOption('WMSStatus',['Failed'])
+        
     #only worry about files > 12hrs since last update    
-    selectDelay = self.am_getOption('SelectionDelay',12) #hours 
-    bkDepth = self.am_getOption('BKDepth',2)
+    selectDelay = self.am_getOption('SelectionDelay',1) #hours 
+    bkDepth = self.am_getOption('BKDepth',99) #only looking at descendent files
 
     result = self.getEligibleTransformations(transformationStatus,transformationTypes)
     if not result['OK']:
@@ -101,13 +95,26 @@ class DataRecoveryAgent(AgentModule):
       return S_OK('Nothing to do')
 
     transformationDict = result['Value']
+    trans = []
+    removalOKFlag = False    
     
+    ########## Uncomment for debugging
+#    self.enableFlag = False 
+#    trans.append('6312')
+#    trans.append('6335')
+#    trans.append('6338')
+#    trans.append('6314')
+#    removalOKFlag = False
+    ########## Uncomment for debugging      
+
+    if trans:
+      self.log.info('Skipping all transformations except %s' %(string.join(trans,', ')))
+          
     self.log.info('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
     for transformation,typeName in transformationDict.items():
-#      if not transformation in ('5952'):
-##      if not transformation=='5616':
-#        print 'Skipping %s' %transformation
-#        continue
+      if trans:
+        if not transformation in trans:
+          continue
       
       self.log.info('='*len('Looking at transformation %s type %s:' %(transformation,typeName)))
       self.log.info('Looking at transformation %s:' %(transformation))
@@ -164,41 +171,52 @@ class DataRecoveryAgent(AgentModule):
         continue
             
       problematicFiles = result['Value']['toremove']
-      strandedAncestors = result['Value']['strandedancestors']
-      filesToUpdate = []
-      for job,fileList in jobFileNoRequestsDict.items():
-        filesToUpdate+=fileList
-      
-      if strandedAncestors:
-        filesToUpdate+=strandedAncestors
-        self.log.info('The following ancestor files will also be marked as "%s" after successful removal as they were stranded:\n%s' %(updateStatus,string.join(strandedAncestors,'\n')))
-            
-      if problematicFiles:
-        self.log.info('The following problematic files are to be removed for %s\n%s' %(transformation,string.join(problematicFiles,'\n')))
-        ######### N.B. ##########
-        self.log.info('*N.B. removal of files is not possible since all subsequent transformations using any descendents as input also need to be checked!*')
-        self.log.info('!!!!!!!!Production %s is problematic and must be investigated by hand!!!!!!!!' %transformation)
-        continue
-        ######### N.B. ##########
-      else:
-        self.log.info('No problematic files were found to be removed for transformation %s, %s files will be updated to "%s"' %(transformation,len(filesToUpdate),updateStatus))
+      jobsWithFilesOKToUpdate = result['Value']['jobfiledictok']
+      jobsWithProblematicFiles = result['Value']['jobfiledictproblematic']
 
-#      if problematicFiles:
-#        result = self.removeOutputs(problematicFiles)
-#        if not result['OK']:
-#          self.log.error('Could not remove all problematic files with result\n%s' %(result))
-#          continue
-#      else:
-#        self.log.info('No problematic files to be removed...')
+      self.log.info('====> Transformation %s total jobs that can be updated now: %s' %(transformation,len(jobsWithFilesOKToUpdate.keys())))
+      self.log.info('====> Transformation %s total jobs with problematic descendent files: %s' %(transformation,len(jobsWithProblematicFiles.keys())))
+            
+      filesToUpdate = []
+      for job,fileList in jobsWithFilesOKToUpdate.items():
+        filesToUpdate+=fileList
       
       if filesToUpdate:
         result = self.updateFileStatus(transformation,filesToUpdate,updateStatus)
         if not result['OK']:
-          self.log.error('Files were not updated with result:\n%s' %(result))
+          self.log.error('Recoverable files were not updated with result:\n%s' %(result))
           continue        
-        self.log.info('%s files were recovered for transformation %s' %(len(filesToUpdate),transformation))
+        self.log.info('%s files without problematic descendents were recovered for transformation %s' %(len(filesToUpdate),transformation))
       else:
-        self.log.info('There are no files to update for production %s in this cycle' %transformation)  
+        self.log.info('There are no files without problematic descendents to update for production %s in this cycle' %transformation)              
+      
+      if problematicFiles:
+        if removalOKFlag:
+          result = self.removeOutputs(problematicFiles)
+          if not result['OK']:
+            self.log.error('Could not remove all problematic files with result\n%s' %(result))
+            continue
+        else:
+          for job,fileList in jobsWithProblematicFiles.items():
+            self.log.info('Job: %s, Input data: %s' %(job,string.join(fileList,'\n')))
+          self.log.info('!!!!!!!!Production %s has %s problematic descendent files (found from %s jobs above).' %(transformation,len(problematicFiles),len(jobsWithProblematicFiles.keys())))
+          self.log.info('This must be investigated by hand or removalOKFlag should be set to True!!!!!!!!')
+          continue  
+      else:
+        self.log.info('No problematic files were found to be removed for transformation %s' %(transformation))
+      
+      problematicFilesToUpdate = []
+      for job,fileList in jobsWithProblematicFiles.items():
+        problematicFilesToUpdate+=fileList
+      
+      if problematicFilesToUpdate:
+        result = self.updateFileStatus(transformation,problematicFilesToUpdate,updateStatus)
+        if not result['OK']:
+          self.log.error('Problematic files were not updated with result:\n%s' %(result))
+          continue        
+        self.log.info('%s problematic files were recovered for transformation %s' %(len(problematicFilesToUpdate),transformation))
+      else:
+        self.log.info('There are no problematic files to update for production %s in this cycle' %transformation)  
 
     if not self.enableFlag:
       self.log.info('%s is disabled by configuration option EnableFlag\ntherefore no "one-way" operations such as ProductionDB updates are performed.' %(AGENT_NAME))
@@ -291,7 +309,7 @@ class DataRecoveryAgent(AgentModule):
       self.log.info('Job %s, prod job %s last update %s, production management system status %s' %(wmsID,job,lastUpdate,wmsStatus))
       #Exclude jobs not having appropriate WMS status (recheck if not as expected in case of surprises)         
       if not wmsStatus in wmsStatusList:
-        self.log.info('Job %s is in status %s, not one of %s, status will be rechecked with WMS (in case last production update is incorrect)' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
+        self.log.info('Job %s is in status %s, not %s so status will be rechecked with WMS (in case last production update is incorrect)' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
         monitoring = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
         statusDict = monitoring.getJobsStatus([wmsID])
         if not statusDict['OK']:
@@ -338,11 +356,10 @@ class DataRecoveryAgent(AgentModule):
   #############################################################################
   def checkDescendents(self,transformation,jobFileDict,bkDepth):
     """ Check BK descendents for input files, prepare list of actions to be
-        taken for recovery.  Also must be careful to check any descendents do
-        not have other ancestor files that could become stranded.
+        taken for recovery.
     """
     toRemove=[]
-    strandedAncestors=[]
+    problematicJobs = []
     for job,fileList in jobFileDict.items():
       if not fileList:
         continue
@@ -363,69 +380,43 @@ class DataRecoveryAgent(AgentModule):
         for d in desc:
           if re.search('\/%s\/' %(str(transformation.zfill(8))),d):
             toRemove.append(d)
+            if not job in problematicJobs:
+              problematicJobs.append(job)
     
     if toRemove:
-      self.log.info('Found descendent files of transformation %s to be removed:\n%s' %(transformation,string.join(toRemove,'\n')))
-      result = self.prodDB.getTransformationFiles(condDict={'TransformationID':int(transformation),'LFN':toRemove})
-      self.log.verbose(result)
-      if not result['OK']:
-        self.log.error(result)
-      else:
-        for lfnDict in result['Value']:
-          self.log.info('%s = %s' %(lfnDict['LFN'],lfnDict['Status']))
+      self.log.info('Found %s descendent files of transformation %s to be removed:\n%s' %(len(toRemove),transformation,string.join(toRemove,'\n')))
             
-    #Now to double-check that all ancestors are included in the job file dictionary
-    finalToRemove = []
-    for i in toRemove:
-      self.log.info('Checking ancestors of file to potentially be removed: %s' %(i))
-      result = self.bkClient.getAncestors(i,depth=bkDepth)
-      if not result['OK']:
-        self.log.error('Problem during getAncestors call:\n%s' %(result['Message']))
-        continue
-      if result['Value']['Failed']:
-        self.log.error('No ancestors found for the following file with message:\n%s' %(string.join(result['Value']['Failed'],'\n')))
-        continue
-      toCheck = result['Value']['Successful'].values()      
-      finalToRemove.append(i)
-      for lfnList in toCheck:
-        for fname in lfnList:
-          if not fname in jobFileDict.values():
-            if not type(fname)==type([]):
-              fname = [fname]
-            strandedAncestors+=fname
-          
-    if strandedAncestors:
-      self.log.info('Ancestor of file to be removed was not in selected input file sample:\n%s' %(string.join(strandedAncestors,'\n')))
-      result = self.prodDB.getTransformationFiles(condDict={'TransformationID':int(transformation),'LFN':strandedAncestors})
-      self.log.debug(result)
-      if not result['OK']:
-        self.log.error(result)
-      else:
-        for lfnDict in result['Value']:
-          self.log.info('%s = %s' %(lfnDict['LFN'],lfnDict['Status']))
-        
-    result={'toremove':finalToRemove,'strandedancestors':strandedAncestors}
+    #Now resolve files that can be updated safely (e.g. if the removalFlag is False)
+    problematic = {}
+    for probJob in problematicJobs:
+      if jobFileDict.has_key(probJob):
+        pfiles = jobFileDict[probJob]
+        problematic[probJob]=pfiles
+        del jobFileDict[probJob]
+    
+    result={'toremove':toRemove,'jobfiledictok':jobFileDict,'jobfiledictproblematic':problematic}
     return S_OK(result)
 
-  #############################################################################
-#  def removeOutputs(self,problematicFiles):
-#    """ Remove outputs from any catalog / storages.
-#    """
-#    if not self.enableFlag:
-#      self.log.info('Enable flag False, would attempt to remove %s' %problematicFiles)
-#      return S_OK()
-#        
-#    result = self.replicaManager.removeFile(problematicFiles)
-#    if not result['OK']:
-#      self.log.error(result)
-#      return result
-#    
-#    if result['Value']['Failed']:
-#      self.log.error(result)
-#      return S_ERROR(result['Value']['Failed'])
-#        
-#    self.log.info('The following problematic files were successfully removed:\n%s' %(string.join(problematicFiles,'\n')))
-#    return S_OK()
+  ############################################################################
+  def removeOutputs(self,problematicFiles):
+    """ Remove outputs from any catalog / storages.
+    """
+    if not self.enableFlag:
+      self.log.info('Enable flag False, would attempt to remove %s file(s)' %(len(problematicFiles)))
+      return S_OK()
+    
+    self.log.info('Attempting to remove %s problematic files' %(len(problematicFiles)))
+    result = self.replicaManager.removeFile(problematicFiles) #this does take a list ;)
+    if not result['OK']:
+      self.log.error(result)
+      return result
+  
+    if result['Value']['Failed']:
+      self.log.error(result)
+      return S_ERROR(result['Value']['Failed'])
+        
+    self.log.info('The following problematic files were successfully removed:\n%s' %(string.join(problematicFiles,'\n')))
+    return S_OK()
 
   #############################################################################
   def updateFileStatus(self,transformation,fileList,fileStatus):
@@ -437,7 +428,7 @@ class DataRecoveryAgent(AgentModule):
 
     self.log.info('Updating %s files to "%s" status for %s' %(len(fileList),fileStatus,transformation))
     result = self.prodDB.setFileStatusForTransformation(int(transformation),fileStatus,fileList,force=True)
-    self.log.verbose(result)
+    self.log.debug(result)
     if not result['OK']:
       self.log.error(result)
       return result
