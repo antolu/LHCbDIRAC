@@ -47,8 +47,8 @@ class UploadOutputData(ModuleBase):
   def resolveInputVariables(self):
     """ By convention the module parameters are resolved here.
     """
-    self.log.debug(self.workflow_commons)
-    self.log.debug(self.step_commons)
+    self.log.verbose(self.workflow_commons)
+    self.log.verbose(self.step_commons)
 
     if self.step_commons.has_key('Enable'):
       self.enable=self.step_commons['Enable']
