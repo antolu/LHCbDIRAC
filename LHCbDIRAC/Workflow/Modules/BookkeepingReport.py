@@ -222,7 +222,7 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
     s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
     s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')
-    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
+#    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
 
     host = None
     if os.environ.has_key("HOSTNAME"):
