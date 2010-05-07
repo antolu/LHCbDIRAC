@@ -211,7 +211,7 @@ class XMLFilesReaderManager:
       
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
-    sumEventStat = 0
+    sumEvtStat = 0
     for i in inputfiles:
       fname = i.getFileName()
       res = dataManager_.getJobInfo(fname)
