@@ -132,6 +132,8 @@ class FileDialog(QDialog, Ui_FileDialog):
   def showData(self, data):
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId', 'Generator']
     tabledata =[]
+    #print data
+             #['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']  
     header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','FullStat','EventInputStat']
     data.update(self.__model)
     keys = data.keys()

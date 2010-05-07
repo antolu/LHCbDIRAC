@@ -646,10 +646,10 @@ class LHCB_BKKDBManager(BaseESManager):
                  "File Type":str(ftype), \
                  "Program name":pname, \
                  "Program version":pversion}
-    
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+      
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
     for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5], 'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'DataQuality':record[14], 'EventInputStat':record[15],'Selection':selection}
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'Selection':selection}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
     self._cacheIt(entityList)    
@@ -1727,13 +1727,13 @@ class LHCB_BKKDBManager(BaseESManager):
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
-    
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate','Generator','GeometryVersion','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+            
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),record[5],record[6],str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15]]
+          value = [record[1],record[2],record[3],str(record[4]),str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15]]
           records += [value]
       else:
         gLogger.error(result['Message'])
@@ -1781,7 +1781,7 @@ class LHCB_BKKDBManager(BaseESManager):
     files = {}
     # The list has to be convert to dictionary
     for i in values:
-      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[9],'EvtTypeId':i[10]}
+      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[7],'EvtTypeId':i[8]}
       
     return self.writeJobOptions(files,optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
   
