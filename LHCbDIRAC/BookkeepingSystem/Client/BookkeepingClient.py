@@ -416,7 +416,7 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+  def getAllDescendents(self, lfns, depth = 0, production=0, checkreplica=False):
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:

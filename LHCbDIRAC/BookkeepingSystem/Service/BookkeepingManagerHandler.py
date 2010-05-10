@@ -388,7 +388,7 @@ class BookkeepingManagerHandler(RequestHandler):
   
   #############################################################################
   types_getAllDescendents = [ListType, IntType, IntType, BooleanType]
-  def export_getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+  def export_getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
     return dataMGMT_.getAllDescendents(lfn, depth, production, checkreplica)
   
   #############################################################################

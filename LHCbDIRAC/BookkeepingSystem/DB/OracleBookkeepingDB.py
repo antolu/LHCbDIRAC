@@ -2387,7 +2387,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(logicalFileNames)
   
   #############################################################################  
-  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+  def getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
     logicalFileNames = {}
     ancestorList = {}
     logicalFileNames['Failed'] = []
@@ -2402,7 +2402,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       odepth = depth + 1
     
     condition = ''
-    if production!=None:
+    if production!=0:
       condition = ' and jobs.production='+str(production)
     
     gLogger.debug('original',lfn)

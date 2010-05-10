@@ -602,7 +602,7 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProcessedEvents(prodid)
   
   #############################################################################
-  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+  def getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
     return self.getManager().getAllDescendents(self, lfn, depth, production, checkreplica)
   
   '''
