@@ -1113,9 +1113,12 @@ class DiracProduction:
           else:
             self.log.verbose('Setting destination to chosen site %s' %site)
             prodJob.setDestination(site)
-
         if paramName=='TargetSE':
           self.log.verbose('Job is targeted to SE: %s' %(paramValue))
+        if paramName=='RunID':
+          self.log.verbose('Setting Run Number for job to %s' %(paramValue))
+          prodJob._addJDLParameter('RunNumber',paramValue)
+          
       self.log.verbose('Setting job owner to %s' %(userID))
       prodJob.setOwner(userID)
       prodJob.setOwnerGroup(self.defaultOwnerGroup)
