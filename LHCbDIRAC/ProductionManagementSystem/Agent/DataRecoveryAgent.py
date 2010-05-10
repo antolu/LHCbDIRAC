@@ -10,23 +10,17 @@
     - Starting from the data in the Production DB for each transformation
       look for files in the following status:
          Assigned   
-         MaxReset     
+         MaxReset
+      some of these will correspond to the final WMS status 'Failed'.
     
     For files in MaxReset and Assigned:
     - Discover corresponding job WMS ID
-    - Don't do anything for 12 or 24hrs after the last update of the job
     - Check that there are no outstanding requests for the job 
       o wait until all are treated before proceeding
-    - Check that none of the job input data has BK descendants
-      o remove if present (also set ancestors to unused)
-    - Check that no outputs exist in the LFC
-      o remove if any present
-    - Mark the input file status as 'Unused' in the ProductionDB
-
-    N.B. This agent will stop if it finds any duplicate descendent files for input
-    data of a given production. The problem here is that the there is no way 
-    except via manual intervention to identify all subsequent transformations 
-    using any problematic descendents as input. 
+    - Check that none of the job input data has BK descendants for the current production
+      o if the data has a replica flag it means all was uploaded successfully - should be investigated by hand
+      o if there is no replica flag can proceed with file removal from LFC / storage (can be disabled by flag)
+    - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
 __RCSID__   = "$Id: DataRecovery.py 18182 2009-11-11 14:45:10Z paterson $"
@@ -76,7 +70,7 @@ class DataRecoveryAgent(AgentModule):
 #    self.enableFlag = self.am_getOption('EnableFlag',False)
     self.log.info('Enable flag is %s' %self.enableFlag)  
     transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
-    transformationStatus = self.am_getOption('TransformationStatus','Active')
+    transformationStatus = self.am_getOption('TransformationStatus',['Active','Completing'])
     fileSelectionStatus = self.am_getOption('FileSelectionStatus',['Assigned','MaxReset'])
     updateStatus = self.am_getOption('FileUpdateStatus','Unused')
     wmsStatusList = self.am_getOption('WMSStatus',['Failed'])
@@ -85,32 +79,37 @@ class DataRecoveryAgent(AgentModule):
     selectDelay = self.am_getOption('SelectionDelay',1) #hours 
     bkDepth = self.am_getOption('BKDepth',99) #only looking at descendent files
 
-    result = self.getEligibleTransformations(transformationStatus,transformationTypes)
-    if not result['OK']:
-      self.log.error(result)
-      return S_ERROR('Could not obtain eligible transformations')
-    
-    if not result['Value']:
-      self.log.info('No %s transformations of types %s to process.' %(transformationStatus,string.join(transformationTypes,', ')))
-      return S_OK('Nothing to do')
+    transformationDict = {}
+    for transStatus in transformationStatus:
+      result = self.getEligibleTransformations(transStatus,transformationTypes)
+      if not result['OK']:
+        self.log.error(result)
+        return S_ERROR('Could not obtain eligible transformations for status "%s"' %(transStatus))
+      
+      if not result['Value']:
+        self.log.info('No "%s" transformations of types %s to process.' %(transStatus,string.join(transformationTypes,', ')))
+        continue
 
-    transformationDict = result['Value']
+      transformationDict.update(result['Value'])
+
+    self.log.info('Selected %s transformations of types %s' %(len(transformationDict.keys()),string.join(transformationTypes,', ')))
+    self.log.verbose('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
+
     trans = []
     removalOKFlag = False    
     
     ########## Uncomment for debugging
 #    self.enableFlag = False 
-#    trans.append('6312')
-#    trans.append('6335')
+    removalOKFlag = False
+    trans.append('6357')
+#    trans.append('6359')
 #    trans.append('6338')
 #    trans.append('6314')
-#    removalOKFlag = False
     ########## Uncomment for debugging      
-
+    
     if trans:
       self.log.info('Skipping all transformations except %s' %(string.join(trans,', ')))
           
-    self.log.info('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
     for transformation,typeName in transformationDict.items():
       if trans:
         if not transformation in trans:
@@ -173,9 +172,11 @@ class DataRecoveryAgent(AgentModule):
       problematicFiles = result['Value']['toremove']
       jobsWithFilesOKToUpdate = result['Value']['jobfiledictok']
       jobsWithProblematicFiles = result['Value']['jobfiledictproblematic']
+      jobsWithDescendentsInBK = result['Value']['replicaflagproblematic']
 
       self.log.info('====> Transformation %s total jobs that can be updated now: %s' %(transformation,len(jobsWithFilesOKToUpdate.keys())))
-      self.log.info('====> Transformation %s total jobs with problematic descendent files: %s' %(transformation,len(jobsWithProblematicFiles.keys())))
+      self.log.info('====> Transformation %s total jobs with problematic descendent files but no replica flags: %s' %(transformation,len(jobsWithProblematicFiles.keys())))
+      self.log.info('====> Transformation %s total jobs with problematic descendent files having BK replica flags: %s' %(transformation,len(jobsWithDescendentsInBK.keys())))
             
       filesToUpdate = []
       for job,fileList in jobsWithFilesOKToUpdate.items():
@@ -199,11 +200,11 @@ class DataRecoveryAgent(AgentModule):
         else:
           for job,fileList in jobsWithProblematicFiles.items():
             self.log.info('Job: %s, Input data: %s' %(job,string.join(fileList,'\n')))
-          self.log.info('!!!!!!!!Production %s has %s problematic descendent files (found from %s jobs above).' %(transformation,len(problematicFiles),len(jobsWithProblematicFiles.keys())))
+          self.log.info('!!!!!!!!Production %s has %s problematic descendent files without replica flags (found from %s jobs above).' %(transformation,len(problematicFiles),len(jobsWithProblematicFiles.keys())))
           self.log.info('This must be investigated by hand or removalOKFlag should be set to True!!!!!!!!')
           continue  
       else:
-        self.log.info('No problematic files were found to be removed for transformation %s' %(transformation))
+        self.log.info('No problematic files without replica flags were found to be removed for transformation %s' %(transformation))
       
       problematicFilesToUpdate = []
       for job,fileList in jobsWithProblematicFiles.items():
@@ -212,11 +213,16 @@ class DataRecoveryAgent(AgentModule):
       if problematicFilesToUpdate:
         result = self.updateFileStatus(transformation,problematicFilesToUpdate,updateStatus)
         if not result['OK']:
-          self.log.error('Problematic files were not updated with result:\n%s' %(result))
+          self.log.error('Problematic files without replica flags were not updated with result:\n%s' %(result))
           continue        
-        self.log.info('%s problematic files were recovered for transformation %s' %(len(problematicFilesToUpdate),transformation))
+        self.log.info('%s problematic files without replica flags were recovered for transformation %s' %(len(problematicFilesToUpdate),transformation))
       else:
-        self.log.info('There are no problematic files to update for production %s in this cycle' %transformation)  
+        self.log.info('There are no problematic files without replica flags to update for production %s in this cycle' %transformation)  
+
+    if jobsWithDescendentsInBK:
+      self.log.info('!!!!!!!! Note that transformation %s has descendents with BK replica flags for files that are not marked as processed !!!!!!!!' %(transformation))
+      for n,v in jobsWithDescendentsInBK.items():
+        self.log.info('Job %s, Files %s' %(n,v))
 
     if not self.enableFlag:
       self.log.info('%s is disabled by configuration option EnableFlag\ntherefore no "one-way" operations such as ProductionDB updates are performed.' %(AGENT_NAME))
@@ -360,33 +366,47 @@ class DataRecoveryAgent(AgentModule):
     """
     toRemove=[]
     problematicJobs = []
+    hasReplicaFlag = []
     for job,fileList in jobFileDict.items():
       if not fileList:
         continue
       self.log.info('Checking BK descendents for job %s...' %job)
       #check any input data has descendant files...
-      result = self.bkClient.getDescendents(fileList,bkDepth)
+      result = self.bkClient.getAllDescendents(fileList,depth=bkDepth,production=int(transformation),checkreplica=False)
+#      result = self.bkClient.getDescendents(fileList,bkDepth)
       if not result['OK']:
         self.log.error('Could not obtain descendents for job %s with result:\n%s' %(job,result))
         continue
       if result['Value']['Failed']:
         self.log.error('Problem obtaining some descendents for job %s with result:\n%s' %(job,result['Value']))
         continue
-      descendents = result['Value']['Successful'].keys()
-      for fname in descendents:
-        desc = result['Value']['Successful'][fname]
-        # IMPORTANT: Descendents of input files can be found for parallel productions,
-        # must restrict only to current transformation ID
-        for d in desc:
-          if re.search('\/%s\/' %(str(transformation.zfill(8))),d):
+      jobFiles = result['Value']['Successful'].keys()
+      for fname in jobFiles:
+        descendents = result['Value']['Successful'][fname]
+        # IMPORTANT: Descendents of input files can be found with or without replica flags
+        metadata = self.bkClient.getFileMetadata(descendents)
+        if not metadata['OK']:
+          self.log.error('Could not get metadata from BK with result:\n%s' %(metadata))
+          continue
+        if result['Value']['Failed']:
+          self.log.error('Problem obtaining metadata from BK for some files with result:\n%s' %(metadata))
+          continue
+        
+        for d in descendents:
+          #    With replica flag <====> Job could be OK and files processed, should investigate by hand          
+          if metadata['Value'][d]['GotReplica'].lower()=='yes': 
+            if not job in hasReplicaFlag:
+              hasReplicaFlag.append(job)
+          else:
+          #    Without replica flag <====> All data can be removed and a job recreated
             toRemove.append(d)
             if not job in problematicJobs:
               problematicJobs.append(job)
-    
+                  
     if toRemove:
-      self.log.info('Found %s descendent files of transformation %s to be removed:\n%s' %(len(toRemove),transformation,string.join(toRemove,'\n')))
+      self.log.info('Found %s descendent files of transformation %s without BK replica flag to be removed:\n%s' %(len(toRemove),transformation,string.join(toRemove,'\n')))
             
-    #Now resolve files that can be updated safely (e.g. if the removalFlag is False)
+    #Now resolve files that can be updated safely (e.g. if the removalFlag is False these are updated anyway)
     problematic = {}
     for probJob in problematicJobs:
       if jobFileDict.has_key(probJob):
@@ -394,7 +414,15 @@ class DataRecoveryAgent(AgentModule):
         problematic[probJob]=pfiles
         del jobFileDict[probJob]
     
-    result={'toremove':toRemove,'jobfiledictok':jobFileDict,'jobfiledictproblematic':problematic}
+    #Finally resolve the jobs and files for which a descendent has a replica flag
+    replicaFlagProblematic = {}
+    for prodJob in hasReplicaFlag:
+      if jobFileDict.has_key(probJob):
+        pfiles = jobFileDict[probJob]
+        replicaFlagProblematic[probJob]=pfiles
+        del jobFileDict[probJob]
+    
+    result={'toremove':toRemove,'jobfiledictok':jobFileDict,'jobfiledictproblematic':problematic,'replicaflagproblematic':replicaFlagProblematic}
     return S_OK(result)
 
   ############################################################################
