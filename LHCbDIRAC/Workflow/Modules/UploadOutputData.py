@@ -8,6 +8,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
+from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from LHCbDIRAC.Core.Utilities.ProductionData               import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
@@ -171,15 +172,23 @@ class UploadOutputData(ModuleBase):
     #Instantiate the failover transfer client with the global request object
     failoverTransfer = FailoverTransfer(self.request)
 
+    #Track which files are successfully uploaded (not to failover) via
+    performBKRegistration=[]
+    #Failover replicas are always added to the BK when they become available
+
     #One by one upload the files with failover if necessary
     failover = {}
     if not self.failoverTest:
       for fileName,metadata in final.items():
         self.log.info("Attempting to store file %s to the following SE(s):\n%s" % (fileName, string.join(metadata['resolvedSE'],', ')))
-        result = failoverTransfer.transferAndRegisterFile(fileName,metadata['localpath'],metadata['lfn'],metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog=None)
+        result = failoverTransfer.transferAndRegisterFile(fileName,metadata['localpath'],metadata['lfn'],metadata['resolvedSE'],fileGUID=metadata['guid'],fileCatalog='LcgFileCatalogCombined')
         if not result['OK']:
           self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
-          failover[fileName]=metadata 
+          failover[fileName]=metadata
+        else:
+          lfn = metadata['lfn']
+          self.log.info('%s uploaded successfully, will be registered in BK if all files uploaded for job' %(fileName))
+          performBKRegistration.append(lfn)
     else:
       failover = final
 
@@ -212,6 +221,27 @@ class UploadOutputData(ModuleBase):
       result = self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
       return S_ERROR('Failed to upload output data')
+
+    #Can now register the successfully uploaded files in the BK
+    if not performBKRegistration:
+      self.log.info('There are no files to perform the BK registration for, all could be saved to failover')
+    else:
+      rm = ReplicaManager()
+      result = rm.addCatalogFile(performBKRegistration,catalogs=['BookkeepingDB'])
+      self.log.verbose(result)
+      if not result['OK']:
+        self.log.error(result)
+        return S_ERROR('Could Not Perform BK Registration')
+      if result['Value']['Failed']:
+        for lfn,error in result['Value']['Failed'].items():
+          self.log.info('BK registration for %s failed with message: "%s" setting failover request' %(lfn,error))
+          result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':0, 'Catalogue':'BookkeepingDB'}},'register')
+          if not result['OK']:
+            self.log.error('Could not set registerFile request:\n%s' %result)
+            return S_ERROR('Could Not Set BK Registration Request')
+          fileDict = {'LFN':lfn,'Status':'Waiting'}
+          index = result['Value']
+          self.request.setSubRequestFiles(index,'register',[fileDict])
 
     self.workflow_commons['Request']=self.request
     return S_OK('Output data uploaded')
