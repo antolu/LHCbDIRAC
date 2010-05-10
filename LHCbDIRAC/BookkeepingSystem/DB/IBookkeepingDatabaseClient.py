@@ -603,7 +603,7 @@ class IBookkeepingDatabaseClient(object):
   
   #############################################################################
   def getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
-    return self.getManager().getAllDescendents(self, lfn, depth, production, checkreplica)
+    return self.getManager().getAllDescendents(lfn, depth, production, checkreplica)
   
   '''
   END MONITORING
