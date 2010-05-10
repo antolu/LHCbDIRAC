@@ -601,6 +601,10 @@ class IBookkeepingDatabaseClient(object):
   def getProcessedEvents(self, prodid):
     return self.getManager().getProcessedEvents(prodid)
   
+  #############################################################################
+  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+    return self.getManager().getAllDescendents(self, lfn, depth, production, checkreplica)
+  
   '''
   END MONITORING
   '''

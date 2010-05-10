@@ -2387,6 +2387,76 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(logicalFileNames)
   
   #############################################################################  
+  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+    logicalFileNames = {}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
+    logicalFileNames['NotProcessed'] = []
+    file_id = -1
+    fileids = []
+    odepth = -1
+    if depth < 1:
+      depth = 1
+      odepth = depth
+    else:
+      odepth = depth + 1
+    
+    condition = ''
+    if production!=None:
+      condition = ' and jobs.production='+str(production)
+    
+    gLogger.debug('original',lfn)
+    for fileName in lfn:
+      depth = odepth
+      gLogger.debug('filename',fileName)
+      fileids = []
+      command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
+      res = self.dbR_._query(command)
+      if not res["OK"]:
+        gLogger.error('Ancestor',res['Message'])
+      elif len(res['Value']) == 0:
+        logicalFileNames['Failed']+=[fileName]
+      else:
+        file_id = int(res['Value'][0][0])
+      if file_id != 0:
+        fileids += [file_id]
+        files = []
+        while (depth-1) and fileids:
+          for file_id in fileids:
+            command = 'select jobid from inputfiles where fileid='+str(file_id)
+            res = self.dbR_._query(command)
+            if not res["OK"]:
+              gLogger.error('Ancestor',res['Message'])
+            elif len(res['Value']) != 0:
+              job_ids = res['Value']
+              
+              for i in job_ids:
+                job_id = i[0]
+                command = 'select files.fileName,files.fileid,files.gotreplica from files,jobs where files.jobid=jobs.jobid and files.jobid='+str(job_id)+condition
+                fileids = []
+                res = self.dbR_._query(command)
+                if not res["OK"]:
+                  gLogger.error('Ancestor',res['Message'])
+                elif len(res['Value']) == 0:
+                  logicalFileNames['NotProcessed']+=[fileName]
+                else:
+                  dbResult = res['Value']
+                  for record in dbResult:
+                    fileids +=[record[1]]
+                    if checkreplica:
+                      if record[2] != 'No':
+                        files += [record[0]]
+                    else:
+                      files += [record[0]]
+          depth-=1 
+        
+        ancestorList[fileName]=files    
+      else:
+        logicalFileNames['Failed']+=[fileName]
+      logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
+  
+  #############################################################################  
   def getDescendents(self, lfn, depth = 0):
     logicalFileNames = {}
     ancestorList = {}

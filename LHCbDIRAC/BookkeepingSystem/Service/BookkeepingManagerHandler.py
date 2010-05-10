@@ -387,6 +387,11 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getDescendents(lfn, depth)
   
   #############################################################################
+  types_getAllDescendents = [ListType, IntType, IntType, BooleanType]
+  def export_getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+    return dataMGMT_.getAllDescendents(lfn, depth, production, checkreplica)
+  
+  #############################################################################
   types_getEventTypes = [StringType, StringType]
   def export_getEventTypes(self, configName, configVersion):
     return dataMGMT_.getEventTypes(configName, configVersion)
@@ -1167,7 +1172,7 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getRunsWithAGivenDates = [DictType]
   def export_getRunsWithAGivenDates(self, dict):
     return dataMGMT_.getRunsWithAGivenDates(dict)
-  
+    
   '''
   End Monitoring
   '''

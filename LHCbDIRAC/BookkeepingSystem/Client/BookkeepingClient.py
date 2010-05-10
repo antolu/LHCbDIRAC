@@ -414,7 +414,17 @@ class BookkeepingClient:
     else:
       result = server.getDescendents(lfns, depth)
     return result
-      
+  
+  #############################################################################
+  def getAllDescendents(self, lfn, depth = 0, production=None, checkreplica=False):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAllDescendents([lfns], depth, production, checkreplica)
+    else:
+      result = server.getAllDescendents(lfns, depth, production, checkreplica)
+    return result
+  
   #############################################################################
   def getAvailableEventTypes(self):
     server = self.__getServer()
