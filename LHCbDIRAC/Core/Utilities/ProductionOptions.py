@@ -58,6 +58,8 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
       options.append("Brunel().OutputType = 'DST'")
     elif appType.lower()=='rdst':
       options.append("Brunel().OutputType = 'RDST'")
+    elif appType.lower()=='sdst':
+      options.append("Brunel().OutputType = 'SDST'")  
 #    options.append("from Configurables import RecInit")
 #    options.append('RecInit("Brunel").PrintFreq = 100')
 
@@ -70,9 +72,9 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     # If we want to generate an FETC for the first step of the stripping workflow
     if appType.lower()=='fetc':
       options.append("DaVinci().ETCFile = \"@{outputData}\"")
-    elif appType.lower() == 'dst' and inputType!='dst': #e.g. not stripping
+    elif appType.lower() == 'dst' and inputType not in ['sdst','dst']: #e.g. not stripping
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
-    elif appType.lower() == 'dst' and inputType=='dst': #e.g. stripping
+    elif appType.lower() == 'dst' and inputType in ['sdst','dst']: #e.g. stripping
       options.append('from Configurables import SelDSTWriter')
       options.append('SelDSTWriter.OutputFileSuffix = \'@{STEP_ID}\'')
 #      options.append('from StrippingConf.Configuration import StrippingConf')
