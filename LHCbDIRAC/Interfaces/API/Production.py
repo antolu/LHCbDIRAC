@@ -235,17 +235,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
-        appType is rdst / dst / xdst
+        appType is rdst / dst / xdst / sdst
         inputDataType is mdf / digi
         enough to set one of the above
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
 
-    if appType.lower()=='rdst':
+    if appType.lower() in ['rdst','sdst']:
       dataType='DATA'
       if not outputSE:
-        outputSE='Tier1-RDST'
+        #outputSE='Tier1-RDST'
+        outputSE='Tier1_M-DST'
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))        
     else:
       if not appType.lower() in ['dst','xdst']:
         raise TypeError,'Application type not recognised'
@@ -284,18 +286,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst /undefined at the moment ;)
-        inputDataType is rdst / fetc
+        inputDataType is rdst / fetc / sdst
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=0
     appTypes = ['dst','fetc','rdst','davincihist']
+    inputDataTypes = ['rdst','dst','sdst']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
-    if not inputDataType.lower() in ('rdst','dst'):
-      raise TypeError,'Only DST input data type currently supported'
+    if not inputDataType.lower() in inputDataTypes:
+      raise TypeError,'Only %s input data types currently supported' %(string.join(inputDataTypes,', '))
 
-    if inputDataType.lower()=='rdst':
+    if inputDataType.lower() in ['rdst','sdst']:
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1_M-DST'
