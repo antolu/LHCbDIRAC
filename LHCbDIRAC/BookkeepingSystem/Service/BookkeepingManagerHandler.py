@@ -493,9 +493,19 @@ class BookkeepingManagerHandler(RequestHandler):
       nbofevents = values['NbOfEvents']
     else:
       nbofevents = False
-      
+    
+    if values.has_key('StartRun'):
+      startRunID = values['StartRun']
+    else:
+      satrRunID = None
+    
+    if values.has_key('EndRun'):
+      endRunID = values['EndRun']
+    else:
+      endRunID = None
+    
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:
