@@ -497,7 +497,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if values.has_key('StartRun'):
       startRunID = values['StartRun']
     else:
-      satrRunID = None
+      startRunID = None
     
     if values.has_key('EndRun'):
       endRunID = values['EndRun']
