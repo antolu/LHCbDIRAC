@@ -978,7 +978,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None):
     
     configid = None
     condition = ''
@@ -1088,6 +1088,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
         quality = res['Value'][0][0]
       
       condition += ' and files.qualityid='+str(quality)
+    
+    if startRunID != None:
+      condition += ' and jobs.runnumber>='+str(startRunID)
+    if endRunID != None:
+      condition += ' and jobs.runnumber<='+str(endRunID)
+    if startRunID != None or endRunID != None:
+      condition += ' and jobs.production<0'
     
     simcondition = ''
     daqcondition = ''
