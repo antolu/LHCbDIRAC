@@ -10,6 +10,7 @@ __RCSID__ = "$Id$"
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionData               import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
@@ -39,10 +40,12 @@ class UploadOutputData(ModuleBase):
       self.existingCatalogs = result['Value']
 
     #List all parameters here
+    self.inputData = []
     self.outputDataFileMask = ''
     self.outputMode='Any' #or 'Local' for reco case
     self.outputList = []
     self.request = None
+    self.PRODUCTION_ID=None
 
   #############################################################################
   def resolveInputVariables(self):
@@ -101,6 +104,13 @@ class UploadOutputData(ModuleBase):
         self.log.error('Could not create production LFNs',result['Message'])
         return result
       self.prodOutputLFNs=result['Value']['ProductionOutputData']
+
+    if self.workflow_commons.has_key('InputData'):
+      self.inputData = self.workflow_commons['InputData']
+
+    if self.inputData:
+      if type(self.inputData) != type([]):
+        self.inputData = self.inputData.split(';')
 
     return S_OK('Parameters resolved')
 
@@ -162,6 +172,37 @@ class UploadOutputData(ModuleBase):
     if not self.enable:
       self.log.info('Module is disabled by control flag, would have attempted to upload the following files %s' %string.join(final.keys(),', '))
       return S_OK('Module is disabled by control flag')
+
+    #Prior to uploading any files must check (for productions with input data) that no descendent files
+    #already exist with replica flag in the BK.  The result structure is:
+    #{'OK': True, 
+    # 'Value': {
+    #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
+    #'Failed': [], 'NotProcessed': []}}
+    
+    if self.inputData:
+      prodID = str(self.PRODUCTION_ID)
+      prodID = prodID.lstrip('0')   
+      self.log.info('Will check BK descendents for input data of job prior to uploading outputs')
+      bkClient = BookkeepingClient()
+      start = time.time()
+      result = bkClient.getAllDescendents(self.inputData,depth=99,production=int(prodID),checkreplica=True)
+      timing = time.time() - start
+      self.log.info('BK Descendents Lookup Time: %.2f seconds ' %(timing))
+      if not result['OK']:
+        self.log.error('Would have uploaded output data for job but could not check for descendents of input data from BK with result:\n%s' %(result))
+        return S_ERROR('Could Not Contact BK To Check Descendents')
+      inputDataDescDict = result['Value']['Successful']
+      failed=False
+      for inputDataFile,descendents in inputDataDescDict.items():
+        if descendents:
+          failed=True
+          self.log.error('Input files: \n%s \nDescendents: %s' %(string.join(self.inputData,'\n'),string.join(descendents,'\n')))
+      if failed:
+        self.log.error('!!!!Found descendent files for production %s with BK replica flag for an input file of this job!!!!' %(prodID))
+        return S_ERROR('Input Data Already Processed')
+    else:
+      self.log.verbose('This job has no input data to check for descendents in the BK')
 
     #Disable the watchdog check in case the file uploading takes a long time
     self.log.info('Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload')
