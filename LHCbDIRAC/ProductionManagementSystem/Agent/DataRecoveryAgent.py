@@ -96,13 +96,15 @@ class DataRecoveryAgent(AgentModule):
     self.log.verbose('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
 
     trans = []
+    ignoreLessThan = '6357'
     removalOKFlag = False    
     
     ########## Uncomment for debugging
 #    self.enableFlag = False 
-    removalOKFlag = False
-    trans.append('6357')
-#    trans.append('6359')
+#    removalOKFlag = False
+#    trans.append('6357')
+#    trans.append('6361')
+#    trans.append('6362')
 #    trans.append('6338')
 #    trans.append('6314')
     ########## Uncomment for debugging      
@@ -114,7 +116,11 @@ class DataRecoveryAgent(AgentModule):
       if trans:
         if not transformation in trans:
           continue
-      
+      if ignoreLessThan:
+        if int(ignoreLessThan)>int(transformation):
+          self.log.verbose('Ignoring transformation %s ( is less than specified limit %s )' %(transformation,ignoreLessThan))
+          continue
+
       self.log.info('='*len('Looking at transformation %s type %s:' %(transformation,typeName)))
       self.log.info('Looking at transformation %s:' %(transformation))
 
@@ -384,29 +390,37 @@ class DataRecoveryAgent(AgentModule):
       for fname in jobFiles:
         descendents = result['Value']['Successful'][fname]
         # IMPORTANT: Descendents of input files can be found with or without replica flags
-        metadata = self.bkClient.getFileMetadata(descendents)
-        if not metadata['OK']:
-          self.log.error('Could not get metadata from BK with result:\n%s' %(metadata))
-          continue
-        if result['Value']['Failed']:
-          self.log.error('Problem obtaining metadata from BK for some files with result:\n%s' %(metadata))
-          continue
-        
-        for d in descendents:
-          #    With replica flag <====> Job could be OK and files processed, should investigate by hand          
-          if metadata['Value'][d]['GotReplica'].lower()=='yes': 
-            if not job in hasReplicaFlag:
-              hasReplicaFlag.append(job)
+        if descendents:
+          metadata = self.bkClient.getFileMetadata(descendents)
+          if not metadata['OK']:
+            self.log.error('Could not get metadata from BK with result:\n%s' %(metadata))
+            continue
+          if result['Value']['Failed']:
+            self.log.error('Problem obtaining metadata from BK for some files with result:\n%s' %(metadata))
+            continue
+          
+          #need to take a decision based on any one descendent having a replica flag
+          descendentsWithReplicas = False
+          for d in descendents:
+            if metadata['Value'][d]['GotReplica'].lower()=='yes':
+              descendentsWithReplicas=True
+              self.log.verbose('Descendent file for %s has replica flag:\n%s => %s' %(job,fname,d))
+      
+          if descendentsWithReplicas:
+            #    With replica flag <====> Job could be OK and files processed, should investigate by hand          
+            hasReplicaFlag.append(job)
           else:
-          #    Without replica flag <====> All data can be removed and a job recreated
-            toRemove.append(d)
-            if not job in problematicJobs:
-              problematicJobs.append(job)
+            #    Without replica flag <====> All data can be removed and a job recreated          
+            problematicJobs.append(job)
+            toRemove+=descendents
                   
     if toRemove:
       self.log.info('Found %s descendent files of transformation %s without BK replica flag to be removed:\n%s' %(len(toRemove),transformation,string.join(toRemove,'\n')))
+
+    if hasReplicaFlag:
+      self.log.info('Found %s jobs with descendent files that do have a BK replica flag' %(len(hasReplicaFlag)))
             
-    #Now resolve files that can be updated safely (e.g. if the removalFlag is False these are updated anyway)
+    #Now resolve files that can be updated safely (e.g. even if the removalFlag is False these are updated as nothing is to be removed ;)
     problematic = {}
     for probJob in problematicJobs:
       if jobFileDict.has_key(probJob):
@@ -416,7 +430,7 @@ class DataRecoveryAgent(AgentModule):
     
     #Finally resolve the jobs and files for which a descendent has a replica flag
     replicaFlagProblematic = {}
-    for prodJob in hasReplicaFlag:
+    for probJob in hasReplicaFlag:
       if jobFileDict.has_key(probJob):
         pfiles = jobFileDict[probJob]
         replicaFlagProblematic[probJob]=pfiles
