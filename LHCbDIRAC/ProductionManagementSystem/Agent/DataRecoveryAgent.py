@@ -56,7 +56,7 @@ class DataRecoveryAgent(AgentModule):
     self.taskIDName = 'TaskID' 
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
-    self.am_setOption('PollingTime',1*60*60) #no stalled jobs are considered so can be frequent
+    self.am_setOption('PollingTime',4*60*60) #no stalled jobs are considered so can be frequent
     self.am_setModuleParam("shifterProxy", "ProductionManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     return S_OK()
@@ -360,7 +360,7 @@ class DataRecoveryAgent(AgentModule):
       return S_OK(jobFileDict)
     
     for jobID,requestName in result['Value'].items():
-      del jobFileDict[jobID]  
+      del jobFileDict[str(jobID)]  
       self.log.info('Removing jobID %s from consideration until requests are completed' %(jobID))
     
     return S_OK(jobFileDict)
