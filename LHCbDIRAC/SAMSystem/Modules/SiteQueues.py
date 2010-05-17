@@ -151,7 +151,7 @@ if ( i == tot ){ \
       return self.finalize('LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI','Status INFO (= 20)','info')
 
     fopen=open(ldapLog,'a')
-    cmd='ldapsearch -h '+os.environ['LCG_GFAL_INFOSYS']+' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID='+samNode+') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCECapability | grep CPUScalingReferenceSI20'
+    cmd='ldapsearch -h '+os.environ['LCG_GFAL_INFOSYS']+' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID='+samNode+') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCECapability | grep CPUScalingReferenceSI00'
     result = self.runCommand('Checking current CE CPUScalingReferenceSI00',cmd,check=True)
     if not result['OK']:
       return self.finalize('Could not perform ldap query for CPUScalingReferenceSI00',result['Message'],'warning')
