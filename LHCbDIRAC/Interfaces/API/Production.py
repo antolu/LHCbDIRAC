@@ -44,7 +44,7 @@ class Production(LHCbJob):
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr'])
+    self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.SARA.nl'])
     self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),'@{applicationName}_@{STEP_ID}_Hist.root')
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
@@ -245,8 +245,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if appType.lower() in ['rdst','sdst']:
       dataType='DATA'
       if not outputSE:
-        #outputSE='Tier1-RDST'
-        outputSE='Tier1_M-DST'
+        outputSE='Tier1-RDST'
+        #outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))        
     else:
       if not appType.lower() in ['dst','xdst']:
@@ -336,23 +336,27 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='MC',condDBTag='global',ddDBTag='global',outputAppendName=''):
     """ Wraps around addGaudiStep and getOptions.
-        appType is  dst and inputDataType is raw only at the moment.
+        appType is digi (simulation) / dst and inputDataType is digi / raw only at the moment.
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
 
     firstEventNumber=0
-    appTypes = ['dst']
+    appTypes = ['dst','digi']
+    inputDataTypes = ['raw','digi']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
-    if not inputDataType in ('raw'):
-      raise TypeError,'Only RAW input data type currently supported'
+    if not inputDataType in inputDataTypes:
+      raise TypeError,'Only RAW and DIGI input data type currently supported'
 
     if not dataType.lower()=='mc':
       raise TypeError,'Only MC data type is supported'
 
     if not outputSE:
       outputSE='Tier1_MC_M-DST'
+      if inputDataType.lower()=='digi':
+        outputSE='Tier1-RDST' #convention for intermediate outputs that are not saved by default
+
     self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
@@ -734,6 +738,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False):
     """ This method will publish production parameters.
     """
+    #TODO - add TransformationFamily i.e. parent request ID
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
       if os.path.exists(prodXMLFile):
