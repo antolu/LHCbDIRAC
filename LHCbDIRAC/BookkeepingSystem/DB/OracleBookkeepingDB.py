@@ -1093,9 +1093,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.runnumber>='+str(startRunID)
     if endRunID != None:
       condition += ' and jobs.runnumber<='+str(endRunID)
-    if startRunID != None or endRunID != None:
-      condition += ' and jobs.production<0'
-    
+ 
     simcondition = ''
     daqcondition = ''
     if simdesc == 'ALL' and datataking =='ALL':
