@@ -42,12 +42,6 @@ def analyseLogFile(fileName,applicationName=''):
   logString = fopen.read()
   fopen.close()
   
-  # Check that no errors were seen in the log
-  result = checkGaudiErrors(logString,applicationName)
-  if not result['OK']:
-    result['Data']=dataSummary
-    return result
-
   #For the production case the application name will always be given, for the
   #standalone utility this may not always be true so try to guess
   if not applicationName:
@@ -62,6 +56,12 @@ def analyseLogFile(fileName,applicationName=''):
   if not applicationName in projectList:
     gLogger.error('Application name "%s" is not in allowed list: %s' %(applicationName,string.join(projectList,', ')))
     return S_ERROR('Log Analysis of %s Not Supported' %(applicationName))
+
+  # Check that no errors were seen in the log
+  result = checkGaudiErrors(logString,applicationName)
+  if not result['OK']:
+    result['Data']=dataSummary
+    return result
   
   # Check that the number of events handled is correct
   result = checkApplicationEvents(applicationName,logString)
@@ -127,13 +127,16 @@ def checkGaudiErrors(logString,applicationName):
   # Check if the application finish successfully
   toFind = 'Application Manager Finalized successfully'
   if applicationName.lower()=='moore':
-    toFind = 'Service finalized successfully'
-  gLogger.info('Check application ended successfully e.g. searching for "%s"' %(toFind))
+    #toFind = 'Service finalized successfully'
+    toFind = ''
+  else:
+    gLogger.info('Check application ended successfully e.g. searching for "%s"' %(toFind))
   
-  okay = re.findall(toFind,logString)
-  if not okay:
-    gLogger.info('"%s" was not found in log...' %(toFind))
-    return S_ERROR('Finalization Error')
+  if toFind:
+    okay = re.findall(toFind,logString)
+    if not okay:
+      gLogger.info('"%s" was not found in log...' %(toFind))
+      return S_ERROR('Finalization Error')
 
   # Check whether there were errors completing the event loop
   applicationErrors = {'Terminating event processing loop due to errors':'Event Loop Not Terminated'}
@@ -293,10 +296,6 @@ def checkMooreEvents(logString):
   lastEvent = getLastEventSummary(logString)['Value']
   firstStepInputEvents = lastEvent
 
-  res = getEventsOutput(logString,'InputCopyStream')
-  if not res['OK']:
-    return S_ERROR('No Events Processed')
-
   # Get the number of events processed by Moore
   res = getEventsProcessed(logString,'L0Muon')
   if not res['OK']:
@@ -307,14 +306,6 @@ def checkMooreEvents(logString):
     gLogger.error("Crash in event %s" % lastEvent)
     return S_ERROR('Crash During Execution')
   
-  processedEvents = res['Value']
-  # Get whether all events in the input file were processed
-  noMoreEvents = re.findall('No more events in event selection',logString)
-
-  # If were are to process all the files in the input then ensure that all were read
-  if not noMoreEvents:
-    return S_ERROR("Not All Input Events Processed")
-  # If we are to process a given number of events ensure the target was met
   return S_OK()
 
 #############################################################################
