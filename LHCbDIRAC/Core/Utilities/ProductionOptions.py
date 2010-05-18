@@ -89,9 +89,12 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     #options.append('EventSelector.PrintFreq = 200')
     options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
     return options
-  elif appName.lower()=='moore':
+  elif appName.lower()=='moore':   
     options.append('from Configurables import Moore')
     options.append('Moore().outputFile = \'@{outputData}\'')
+    #Note this is the only case where the DB Tags are overwritten
+    dddbOpt = "Moore().DDDBtag = \"%s\"" %(ddDB)
+    conddbOpt = "Moore().CondDBtag = \"%s\"" %(condDB) 
   else:
     gLogger.warn('No specific options found for project %s' %appName)
 
