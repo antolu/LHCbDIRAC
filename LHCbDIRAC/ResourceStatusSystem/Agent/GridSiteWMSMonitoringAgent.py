@@ -34,7 +34,7 @@ class GridSiteWMSMonitoringAgent(AgentModule):
     self.am_setOption('PollingTime',120)
     self.jobDB = JobDB()
     self.siteGOCNameDict = {}
-    self.hrefPrefix = self.am_setOption('SiteHrefPrefix','http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory')
+    self.hrefPrefix = self.am_getOption('SiteHrefPrefix','http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory')
     return S_OK()
 
   def execute( self ):
