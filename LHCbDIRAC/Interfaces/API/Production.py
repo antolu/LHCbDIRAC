@@ -283,15 +283,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global'):
+  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global',inputProduction=''):
     """ Wraps around addGaudiStep and getOptions.
-        appType is  dst / dst /undefined at the moment ;)
-        inputDataType is rdst / fetc / sdst
+        appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
+        inputDataType is rdst / fetc / sdst 
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=0
-    appTypes = ['dst','fetc','rdst','davincihist']
+    appTypes = ['dst','fetc','setc','rdst','davincihist','merge']
     inputDataTypes = ['rdst','dst','sdst']
     if not appType in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
@@ -313,6 +313,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         else:
           outputSE='Tier1_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
+    
+    if appType.lower()=='merge':
+      if inputProduction:
+        result = self._setInputProductionBKStepInfo(inputProduction,{})
+        if not result['OK']:
+          self.log.error(result)
+          raise TypeError,'inputProduction must exist and have BK parameters'      
 
     if not overrideOpts:
       optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
@@ -735,10 +742,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return self.getParameters(int(productionID),'DetailedInfo')
 
   #############################################################################
-  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False):
+  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},derivedProd=0,prodXMLFile='',reqID=0,printOutput=False,disable=False):
     """ This method will publish production parameters.
     """
-    #TODO - add TransformationFamily i.e. parent request ID
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' %prodID
       if os.path.exists(prodXMLFile):
@@ -779,6 +785,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       prodWorkflow.findParameter('InputData').setValue('')
       self.log.verbose('Resetting input data for production to null in workflow template, now comes from a BK query...')
       prodWorkflow.toXMLFile(prodXMLFile)
+
+    if prodWorkflow.findParameter('ParentRequestID'):
+      parameters['TransformationFamily']=prodWorkflow.findParameter('ParentRequestID').getValue()
 
     for i in prodWorkflow.step_instances:
       if i.findParameter('eventType'):
@@ -824,17 +833,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       result = bkserver.getFilesWithGivenDataSets(bkDict)
       if not result['OK']:
         self.log.error('Could not obtain data from input BK query')
+        return S_ERROR('Problem contacting BK for input data sets')
+
+      if result['Value']:
+       inputDataFile = result['Value'][0]
+       self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
       else:
-         if result['Value']:
-           inputDataFile = result['Value'][0]
-           self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
-         else:
-           self.log.verbose('No input datasets found from BK query')
+       self.log.verbose('No input datasets found from BK query')
 
     dummyProdJobID = '99999999'
     result = self.getOutputLFNs(prodID,dummyProdJobID,inputDataFile,prodXMLFile)
     if not result['OK']:
       self.log.error('Could not create production LFNs',result)
+
     outputLFNs = result['Value']
     parameters['OutputLFNs']=outputLFNs
 
@@ -894,10 +905,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         print '='*len(n),n,'='*len(n)
         print v
 
-    for n,v in parameters.items():
-      result = self.setProdParameter(prodID,n,v)
-      if not result['OK']:
-        self.log.error(result['Message'])
+    if not disable:
+      for n,v in parameters.items():
+        result = self.setProdParameter(prodID,n,v)
+        if not result['OK']:
+          self.log.error(result['Message'])
 
     return S_OK()
 
@@ -1341,6 +1353,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     self._setParameter('CondDBTag','string',conditions.replace(' ',''),'CondDBTag')
     self._setParameter('DDDBTag','string',detector.replace(' ',''),'DetDescTag')
+
+  #############################################################################
+  def setParentRequest(self,parentID):
+    """ Sets the parent request ID for a production.
+    """
+    self._setParameter('ParentRequestID','string',parentID.replace(' ',''),'ParentRequestID')
 
   #############################################################################
   def setProdPriority(self,priority):
