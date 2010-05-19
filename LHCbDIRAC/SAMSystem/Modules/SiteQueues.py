@@ -108,28 +108,28 @@ if ( $1 == "GlueCEPolicyMaxCPUTime:" ) CPUTIME = $2 ;\
 if ( $1 == "GlueHostBenchmarkSI00:" ) SI00 = $2 ;\
 \
 if ( i == 2 ) { \
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i2= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i2= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i2= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i2= 1} ;\
    } ;\
 if ( i == 3 ) {\
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i3= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i3= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i3= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i3= 1} ;\
    } ;\
 if ( i == 4 ) { \
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i4= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i4= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i4= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i4= 1} ;\
    } ;\
 if ( i == 5 ) { \
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i5= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i5= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i5= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i5= 1} ;\
    } ;\
 if ( i == 6 ) { \
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i6= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i6= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i6= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i6= 1} ;\
    } ;\
 if ( i == 7 ) { \
-    if ( CPUTIME*SI00*60/500 > 216000 ) {i7= 0} ;\
-    if ( CPUTIME*SI00*60/500 < 216000 ) {i7= 1} ;\
+    if ( CPUTIME*SI00*60/500 > 270000 ) {i7= 0} ;\
+    if ( CPUTIME*SI00*60/500 < 270000 ) {i7= 1} ;\
    } ;\
 \
 if ( i == tot ){ \
