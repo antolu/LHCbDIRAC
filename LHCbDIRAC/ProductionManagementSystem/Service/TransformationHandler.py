@@ -15,6 +15,11 @@ class TransformationHandler(DIRACTransformationHandler):
   def __init__(self,*args,**kargs):
     DIRACTransformationHandler.__init__(self, *args,**kargs)
 
+  #############################################################################
+  #
+  # Managing the BkQueries table
+  #
+  
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
   def export_createTransformationQuery(self,transName,queryDict):
     authorDN = self._clientTransport.peerCredentials['DN']
@@ -36,3 +41,17 @@ class TransformationHandler(DIRACTransformationHandler):
   def export_getBookkeepingQueryForTransformation(self, transName):
     res = self.database.getBookkeepingQueryForTransformation(transName)
     return self.__parseRes(res)
+
+  #############################################################################
+  #
+  # Managing the TransformationRuns table
+  #
+  
+  types_getTransformationRuns = []
+  def export_getTransformationRuns(self,condDict={}, orderAttribute=None, limit=None):
+    res = self.database.getTransformationRuns(condDict=condDict, orderAttribute=orderAttribute,limit=limit) 
+    return self.__parseRes(res)
+
+  types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
+  def export_getTransformationRunsSummaryWeb(self,selectDict,sortList,startItem,maxItems):
+    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],timeStamp='LastUpdate',statusColumn='Status')  

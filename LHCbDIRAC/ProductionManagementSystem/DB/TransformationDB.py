@@ -19,8 +19,6 @@ from types import *
 
 MAX_ERROR_COUNT = 3
 
-#############################################################################
-
 class TransformationDB(DIRACTransformationDB):
 
   def __init__(self, dbname, dbconfig, maxQueueSize=10 ):
@@ -30,8 +28,15 @@ class TransformationDB(DIRACTransformationDB):
     DIRACTransformationDB.__init__(self,dbname, dbconfig, maxQueueSize)
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
-    self.intFields = ['EventType','ProductionID']
+    self.queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag','StartRun','EndRun']
+    self.intFields = ['EventType','ProductionID','StartRun','EndRun']
+
+    self.transRunParams = ['TransformationID','RunNumber','Files','SelectedSite','Status','LastUpdate'] 
+
+  #############################################################################
+  #
+  # Managing the BkQueries table
+  #
 
   def deleteBookkeepingQuery(self,bkQueryID,connection=False):
     """ Delete the specified query from the database
@@ -167,3 +172,37 @@ class TransformationDB(DIRACTransformationDB):
       return S_OK(bkDict)
     else:
       return S_OK(resultDict)
+
+  #############################################################################
+  #
+  # Managing the TransformationRuns table
+  #
+  
+  def getTransformationRuns(self,condDict={},orderAttribute=None, limit=None,connection=False):
+    connection = self.__getConnection(connection)
+    selectDict = {}
+    for key in condDict.keys():
+      if key in self.transRunParams:
+        selectDict[key] = condDict[key]
+    req = "SELECT %s FROM TransformationRuns %s" % (intListToString(self.transRunParams),self.buildCondition(selectDict,orderAttribute=orderAttribute,limit=limit))
+    res = self._query(req,connection)
+    webList = []
+    resultList = []
+    for row in res['Value']:
+      # Prepare the structure for the web
+      rList = []
+      transDict = {}
+      count = 0
+      for item in row:
+        transDict[self.transRunParams[count]] = item
+        count += 1
+        if type(item) not in [IntType,LongType]:
+          rList.append(str(item))
+        else:
+          rList.append(item)
+      webList.append(rList)
+      resultList.append(transDict) 
+    result = S_OK(resultList)
+    result['Records'] = webList
+    result['ParameterNames'] = copy.copy(self.transRunParams)
+    return result

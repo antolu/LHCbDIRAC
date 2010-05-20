@@ -9,25 +9,44 @@ SOURCE DIRAC/TransformationSystem/DB/TransformationDB.sql
 -- -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS BkQueries;
 CREATE TABLE BkQueries (
-  BkQueryID int(11) NOT NULL auto_increment,
-  SimulationConditions varchar(256) NOT NULL default 'All',
+  BkQueryID INT(11) NOT NULL AUTO_INCREMENT,
+  SimulationConditions VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (SimulationConditions),
-  DataTakingConditions varchar(256) NOT NULL default 'All',
+  DataTakingConditions VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (DataTakingConditions),
-  ProcessingPass varchar(256) NOT NULL default 'All',
+  ProcessingPass VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (ProcessingPass),
-  FileType varchar(256) NOT NULL default 'All',
+  FileType VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (FileType),
-  EventType varchar(256) NOT NULL default 'All',
+  EventType VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (EventType),
-  ConfigName varchar(256) NOT NULL default 'All',
+  ConfigName VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (ConfigName),
-  ConfigVersion varchar(256) NOT NULL default 'All',
+  ConfigVersion VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (ConfigVersion),
-  ProductionID varchar(256) NOT NULL default 'All',
+  ProductionID VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (ProductionID),
-  DataQualityFlag varchar(256) NOT NULL default 'All',
+  DataQualityFlag VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (DataQualityFlag),
+  StartRun INT(11) NOT NULL DEFAULT 0,
+  INDEX (ProductionID),
+  EndRun INT(11) NOT NULL DEFAULT 0,
+  INDEX (ProductionID),
   PRIMARY KEY  (`BkQueryID`)
 ) ENGINE=MyISAM
 
+ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11);
+ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11);
+ 
+DROP TABLE IF EXISTS TransformationRuns;
+CREATE TABLE TransformationRuns(
+  TransformationID INTEGER NOT NULL,
+  INDEX (TransformationID),
+  RunNumber INT(11) NOT NULL,
+  INDEX (RunNumber),
+  Files INT(11) NOT NULL,
+  SelectedSite VARCHAR(256) DEFAULT '',
+  Status CHAR(32) DEFAULT 'New',
+  LastUpdate DATETIME,
+  PRIMARY KEY (TransformationID,RunNumber)
+) ENGINE=MyISAM
