@@ -181,7 +181,7 @@ class BookkeepingManagerHandler(RequestHandler):
       for tag in tags:
         retVal = dataMGMT_.existsTag(i, tag)
         print 'AAAAAAAA',retVal
-        if retVal['OK'] and retVal['Value']:
+        if retVal['OK'] and not retVal['Value']:
           retVal = dataMGMT_.insertTag(i, tag)
           if not retVal['OK']:
             faild[tag]=i
