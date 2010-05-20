@@ -1739,7 +1739,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
-    elif retVal['Value'][0] > 0:
+    elif retVal['Value'][0][0] > 0:
       return S_OK(True)
     return S_OK(False)
   
