@@ -1,4 +1,4 @@
-#######################################################################
+###################################################################
 # $HeadURL$
 ########################################################################
 __RCSID__ = "$Id$"
@@ -20,6 +20,7 @@ class UsersAndGroups( AgentModule ):
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
     self.proxyLocation = os.path.join( self.am_getOption( "WorkDirectory" ), ".volatileId" )
+    self.__adminMsgs = {}
     print self.getLFCRegisteredDNs()
     return S_OK()
 
@@ -106,8 +107,21 @@ class UsersAndGroups( AgentModule ):
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
     return S_OK()
 
-
   def execute( self ):
+    result = self.__syncCSWithVOMS()
+    mailMsg = ""
+    if self.__adminMsgs[ 'Errors' ]:
+      mailMsg += "\nErrors list:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Errors' ] )
+    if self.__adminMsgs[ 'Info' ]:
+      mailMsg += "\nRun result:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Info' ] )
+    NotificationClient().sendMail( self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' ),
+                                   "UsersAndGroupsAgent run log", mailMsg,
+                                   self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' ) )
+    return result
+
+
+  def __syncCSWithVOMS( self ):
+    self.__adminMsgs = { 'Errors' : [], 'Info' : [] }
 
     #Get DIRAC VOMS Mapping
     self.log.info( "Getting DIRAC VOMS mapping" )
@@ -170,7 +184,7 @@ class UsersAndGroups( AgentModule ):
       self.log.fatal( 'Could not retrieve registered user entries in VOMS' )
     usersInVOMS = result[ 'Value' ]
     self.log.info( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
-
+ 
     #Consolidate users by nickname
     usersData = {}
     newUserNames = []
@@ -178,16 +192,19 @@ class UsersAndGroups( AgentModule ):
     obsoleteUserNames = []
     self.log.info( "Retrieving usernames..." )
     usersInVOMS.sort()
-    for user in usersInVOMS:
+    for iUPos in range( len( usersInVOMS ) ):
+      user = usersInVOMS[ iUPos ]
       result = self.vomsSrv.attGetUserNickname( user[ 'DN' ], user[ 'CA' ] )
       if not result[ 'OK' ]:
+        self.__adminMsgs[ 'Errors' ].append( "Could not retrieve nickname for DN %s" % user[ 'DN' ] )
         self.log.error( "Could not get nickname for DN %s" % user[ 'DN' ] )
         return result
       userName = result[ 'Value' ]
       if not userName:
         self.log.error( "Empty nickname for DN %s" % user[ 'DN' ] )
+        self.__adminMsgs[ 'Errors' ].append( "Empty nickname for DN %s" % user[ 'DN' ] )
         continue
-      self.log.info( " Found username %s" % ( userName ) )
+      self.log.info( " (%02d%%) Found username %s" % ( ( iUPos * 100 / len( usersInVOMS ) ), userName ) )
       if userName not in usersData:
         usersData[ userName ] = { 'DN': [], 'CA': [], 'Email': [], 'Groups' : [] }
       for key in ( 'DN', 'CA', 'mail' ):
@@ -201,6 +218,7 @@ class UsersAndGroups( AgentModule ):
         List.appendUnique( newUserNames, userName )
       else:
         List.appendUnique( knownUserNames, userName )
+    self.log.info( "Finished retrieving usernames" )
 
     for user in currentUsers:
       if user not in usersData:
@@ -232,7 +250,9 @@ class UsersAndGroups( AgentModule ):
       vomsRole = "Role=%s" % vomsMap[-1]
       result = self.vomsSrv.admListUsersWithRole( vomsGroup, vomsRole )
       if not result[ 'OK' ]:
-        self.log.error( "Could not get list of users for VOMS %s" % ( vomsMapping[ group ] ), result[ 'Message' ] )
+        errorMsg = "Could not get list of users for VOMS %s" % ( vomsMapping[ group ] )
+        self.__adminMsgs[ 'Errors' ].append( errorMsg )
+        self.log.error( errorMsg, result[ 'Message' ] )
         return result
       numUsersInGroup = 0
       for vomsUser in result[ 'Value' ]:
@@ -240,7 +260,9 @@ class UsersAndGroups( AgentModule ):
           if vomsUser[ 'DN' ] in usersData[ userName ][ 'DN' ]:
             numUsersInGroup += 1
             usersData[ userName ][ 'Groups' ].extend( groupsForRole )
-      self.log.info( "  There are %s users in group(s) %s" % ( numUsersInGroup, ",".join( groupsForRole ) ) )
+      infoMsg = "There are %s users in group(s) %s for VOMS Role %s" % ( numUsersInGroup, ",".join( groupsForRole ), vomsRole )
+      self.__adminMsgs[ 'Info' ].append( infoMsg )
+      self.log.info( "  %s" % infoMsg )
 
     self.log.info( "Checking static groups" )
     for group in staticGroups:
@@ -254,7 +276,9 @@ class UsersAndGroups( AgentModule ):
         if userName in usersData:
           numUsersInGroup += 1
           usersData[ userName ][ 'Groups' ].append( group )
-      self.log.info( "  There are %s users in group %s" % ( numUsersInGroup, group ) )
+      infoMsg = "There are %s users in group %s" % ( numUsersInGroup, group )
+      self.__adminMsgs[ 'Info' ].append( infoMsg )
+      self.log.info( "  %s" % infoMsg )
 
     #Do the CS Sync
     self.log.info( "Updating CS..." )
@@ -263,17 +287,53 @@ class UsersAndGroups( AgentModule ):
       self.log.fatal( 'Can not update from CS', ret['Message'] )
       return ret
 
+    usersWithMoreThanOneDN = {}
     for user in usersData:
       csUserData = dict( usersData[ user ] )
+      if len( csUserData[ 'DN' ] ) > 1:
+        usersWithMoreThanOneDN[ user ] = csUserData[ 'DN' ]
+      result = csapi.describeUsers( [ user ] )
+      if result[ 'OK' ]:
+        prevUser = result[ 'Value' ][ user ]
+        prevDNs = List.fromChar( prevUser[ 'DN' ] )
+        newDNs = csUserData[ 'DN' ]
+        for DN in newDNs: 
+          if DN not in prevDNs:
+            self.__adminMsgs[ 'Info' ].append( "User %s has new DN %s" % ( user, DN ) )
+        for DN in prevDNs:
+          if DN not in newDNs:
+            self.__adminMsgs[ 'Info' ].append( "User %s has lost a DN %s" % ( user, DN ) )
       for k in ( 'DN', 'CA', 'Email' ):
         csUserData[ k ] = ", ".join( csUserData[ k ] )
       result = csapi.modifyUser( user, csUserData, createIfNonExistant = True )
       if not result[ 'OK' ]:
+        self.__adminMsgs[ 'Error' ].append( "Cannot modify user %s: %s" % ( user, result[ 'Message' ] ) )
         self.log.error( "Cannot modify user %s" % user )
+   
+    if usersWithMoreThanOneDN:
+      self.__adminMsgs[ 'Info' ].append( "\nUsers with more than one DN:" )
+      for uwmtod in sorted( usersWithMoreThanOneDN ):
+        self.__adminMsgs[ 'Info' ].append( "  %s" % uwmtod )
+        self.__adminMsgs[ 'Info' ].append( "    + DN list:" )
+        for DN in usersWithMoreThanOneDN[uwmtod]:
+          self.__adminMsgs[ 'Info' ].append( "      - %s" % DN )
 
     if obsoleteUserNames:
+      self.__adminMsgs[ 'Info' ].append( "\nObsolete users:" )
+      for obsoleteUser in obsoleteUserNames:
+        self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
       self.log.info( "Deleting %s users" % len( obsoleteUserNames ) )
       csapi.deleteUsers( obsoleteUserNames )
+
+    if newUserNames:
+      self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
+      for newUser in newUserNames:
+        self.__adminMsgs[ 'Info' ].append( "  %s" % newUser )
+        self.__adminMsgs[ 'Info' ].append( "    + DN list:" )
+        for DN in usersData[newUser][ 'DN' ]:
+          self.__adminMsgs[ 'Info' ].append( "      - %s" % DN )
+        self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
+
 
     result = csapi.commitChanges()
     if not result[ 'OK' ]:
@@ -288,3 +348,4 @@ class UsersAndGroups( AgentModule ):
         return result
 
     return S_OK()
+
