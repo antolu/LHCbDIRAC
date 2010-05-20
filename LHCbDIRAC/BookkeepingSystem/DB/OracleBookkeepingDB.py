@@ -3455,7 +3455,7 @@ and files.qualityid= dataquality.qualityid'
   
   #############################################################################
   def getAvailableTags(self):
-    command = 'select name, tag from tags'
+    command = 'select name, tag from tags order by inserttimestamp desc'
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       parameters = ['TagName','TagValue']
