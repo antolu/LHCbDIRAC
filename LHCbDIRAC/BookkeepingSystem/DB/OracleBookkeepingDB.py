@@ -1733,6 +1733,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def insertTag(self, name, tag):
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertTag', [name, tag], False)
   
+  #############################################################################
+  def existsTag(self, name, value):
+    command = 'select count(*) from tags where name=\''+str(name)+'\' and tag=\''+str(value)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    elif retVal['Value'][0] > 0:
+      return S_OK(True)
+    return S_OK(False)
+  
   #############################################################################  
   def checkAddProduction(self, steps, groupdesc, simcond, inputProdTotalProcessingPass, production):
     keys = steps.keys()

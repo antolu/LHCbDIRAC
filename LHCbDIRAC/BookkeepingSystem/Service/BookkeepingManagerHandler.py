@@ -179,10 +179,14 @@ class BookkeepingManagerHandler(RequestHandler):
     for i in values:
       tags = values[i]
       for tag in tags:
-        retVal = dataMGMT_.insertTag(i, tag)
-        print retVal.keys()
-        if not retVal['OK']:
-          faild[tag]=i
+        retVal = dataMGMT_.existsTag(i, tag)
+        print 'AAAAAAAA',retVal
+        if retVal['OK'] and retVal['Value']:
+          retVal = dataMGMT_.insertTag(i, tag)
+          if not retVal['OK']:
+            faild[tag]=i
+          else:
+            successfull[tag]=i
         else:
           successfull[tag]=i
     return S_OK({'Successfull':successfull, 'Faild':faild})

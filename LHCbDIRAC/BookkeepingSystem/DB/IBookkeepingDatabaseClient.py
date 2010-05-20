@@ -57,6 +57,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insertTag(name, tag)
   
   #############################################################################
+  def existsTag(self, name, value):
+    return self.getManager().existsTag(name, value)
+  
+  #############################################################################
   def getLogfile(self, lfn):
     return self.getManager().getLogfile(lfn)
   
