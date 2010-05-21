@@ -33,7 +33,7 @@ CREATE TABLE BkQueries (
   EndRun INT(11) NOT NULL DEFAULT 0,
   INDEX (ProductionID),
   PRIMARY KEY  (`BkQueryID`)
-) ENGINE=MyISAM
+) ENGINE=MyISAM;
 
 ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11);
 ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11);
@@ -44,9 +44,8 @@ CREATE TABLE TransformationRuns(
   INDEX (TransformationID),
   RunNumber INT(11) NOT NULL,
   INDEX (RunNumber),
-  Files INT(11) NOT NULL,
   SelectedSite VARCHAR(256) DEFAULT '',
-  Status CHAR(32) DEFAULT 'New',
+  Status CHAR(32) DEFAULT 'Active',
   LastUpdate DATETIME,
   PRIMARY KEY (TransformationID,RunNumber)
-) ENGINE=MyISAM
+) ENGINE=MyISAM;

@@ -13,7 +13,7 @@ import re,time,types,string
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                 import DB
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
-
+from DIRAC.Core.Utilities.List                          import intListToString
 import threading
 from types import *
 
@@ -32,6 +32,7 @@ class TransformationDB(DIRACTransformationDB):
     self.intFields = ['EventType','ProductionID','StartRun','EndRun']
 
     self.transRunParams = ['TransformationID','RunNumber','Files','SelectedSite','Status','LastUpdate'] 
+    self.TRANSFILEPARAMS.append("RunNumber")
 
   #############################################################################
   #
@@ -159,13 +160,15 @@ class TransformationDB(DIRACTransformationDB):
         if parameter == 'BkQueryID':
           rowQueryID = value
         elif value != 'All':
-          if re.search(';;;',value):
+          if re.search(';;;',str(value)):
             value = value.split(';;;')
           if parameter in self.intFields:
             if type(value) in StringTypes:
               value = long(value)
             if type(value) == ListType:
               value = [int(x) for x in value]
+            if not value:
+              continue
           bkDict[parameter] = value
       resultDict[rowQueryID] = bkDict
     if bkQueryID:
@@ -206,3 +209,41 @@ class TransformationDB(DIRACTransformationDB):
     result['Records'] = webList
     result['ParameterNames'] = copy.copy(self.transRunParams)
     return result
+
+  def addTransformationRunFiles(self,transName,runID,lfns,connection=False):
+    """ Add the RunID to the TransformationFiles table """
+    if not lfns:
+      return S_ERROR('Zero length LFN list')
+    res = self._getConnectionTransID(connection,transName)
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    res = self.__getFileIDsForLfns(lfns,connection=connection)
+    if not res['OK']:
+      return res
+    fileIDs,lfnFilesIDs = res['Value']
+    req = "UPDATE TransformationFiles SET RunNumber = %d WHERE TransformationID = %d AND FileID IN (%s)" % (runID,transID,intListToString(fileIDs.keys()))
+    res = self._update(req,connection)
+    if not res['OK']:
+      return res
+    successful = {}
+    failed = {}
+    for fileID in fileIDs.keys():
+      lfn = fileIDs[fileID]
+      successful[lfn] = "Added"
+    for lfn in lfns:
+      if not lfn in successful.keys():
+        failed[lfn] = "Missing"
+    # Now update the TransformationRuns to include the newly updated files
+    req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber = %d" % (transID,runID)
+    res = self._update(req,connection)
+    if not res['OK']:
+      gLogger.error("Failed to update TransformationRuns table",res['Message'])
+    elif not res['Value']:
+      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % (transID,runID)
+      res = self._update(req,connection)
+      if not res['OK']:
+        gLogger.error("Failed to insert to TransformationRuns table",res['Message']) 
+    resDict = {'Successful':successful,'Failed':failed}
+    return S_OK(resDict)
