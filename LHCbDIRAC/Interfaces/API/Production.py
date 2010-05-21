@@ -840,6 +840,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
        self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
       else:
        self.log.verbose('No input datasets found from BK query')
+       return S_ERROR('No input datasets found from BK query to set parameters.')
 
     dummyProdJobID = '99999999'
     result = self.getOutputLFNs(prodID,dummyProdJobID,inputDataFile,prodXMLFile)
@@ -911,7 +912,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         if not result['OK']:
           self.log.error(result['Message'])
 
-    return S_OK()
+    return S_OK(parameters)
 
   #############################################################################
   def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,bkScript=True,wfString='',requestID=0,reqUsed=0,transformation=True,transReplicas=0):
@@ -1074,6 +1075,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
           if not result['OK']:
             self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
+          self.log.verbose('Attempting to set the transformation group: %s' %(transGroup))
+          result = self.setProdParameter(transID,'TransformationGroup',self.prodGroup)
+          if not result['OK']:
+            self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(transID,prodID,result))
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
