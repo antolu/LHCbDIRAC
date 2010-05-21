@@ -117,8 +117,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
-    bk = BookkeepingClient()
     transClient = TransformationDBClient()
+    transID = self.params['TransformationID']
 
     # Get the requested shares from the CS 
     res = self._getShares('CPU')
@@ -148,6 +148,15 @@ class TransformationPlugin(DIRACTransformationPlugin):
         alreadyReplicated[targetSE].extend(lfns)
     for se,lfns in alreadyReplicated.items():
       gLogger.info("Attempting to update %s files to Processed at %s" % (len(lfns),se))
+      res = self.__groupByRunAndParam(dict.fromkeys(lfns),param='Standard')
+      if not res['OK']:
+        return res
+      runFileDict = res['Value']
+      for runID in sortList(runFileDict.keys()):
+        res = transClient.setTransformationRunsSite(transID,runID,se)
+        if not res['OK']:
+          gLogger.error("Failed to assign TransformationRun site",res['Message'])
+          return res
       transClient.setFileUsedSEForTransformation(self.params['TransformationID'],se,lfns)
 
     # Get the existing destinations from the transformationDB
@@ -169,24 +178,23 @@ class TransformationPlugin(DIRACTransformationPlugin):
     runFileDict = res['Value']
 
     # For each of the runs determine the destination of any previous files
+    runSiteDict = {}
+    if runFileDict:
+      res = transClient.getTransformationRuns({'TransformationID':transID,'RunNumber':runFileDict.keys()})
+      if not res['OK']:
+        gLogger.error("Failed to obtain TransformationRuns",res['Message']) 
+        return res
+      for runDict in res['Value']:
+        runSiteDict[runDict['RunNumber']] = runDict['SelectedSite']
+
+    # Choose the destination SE
     tasks = []
     for runID in sortList(runFileDict.keys()):
       unusedLfns = runFileDict[runID][None]
-      start = time.time()
-      res = bk.getRunFiles(runID)
-      gLogger.verbose("Obtained BK run files in %.2f seconds" % (time.time()-start))
-      if not res['OK']:
-        gLogger.error("Failed to get run files","%s %s" % (runID,res['Message']))
+      if not runSiteDict.has_key(runID):
         continue
-      runFiles = res['Value']
-      start = time.time()
-      res = transClient.getTransformationFiles(condDict = {'TransformationID':self.params['TransformationID'],'LFN':runFiles.keys(),'Status':['Assigned','Processed']})
-      gLogger.verbose("Obtained transformation run files in %.2f seconds" % (time.time()-start))
-      if not res['OK']:
-        gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
-        continue
-      if res['Value']:
-        assignedSE = res['Value'][0]['UsedSE']
+      if runSiteDict[runID]:
+        assignedSE = runSiteDict[runID]
         res = getSitesForSE(assignedSE,gridName='LCG')
         if not res['OK']:
           continue
@@ -211,6 +219,13 @@ class TransformationPlugin(DIRACTransformationPlugin):
             assignedSE = se
         if not assignedSE:
           continue
+
+      # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
+      res = transClient.setTransformationRunsSite(transID,runID,assignedSE)
+      if not res['OK']:
+        gLogger.error("Failed to assign TransformationRun site",res['Message'])      
+        continue
+      #Create the tasks
       tasks.append((assignedSE,unusedLfns))
       if not existingCount.has_key(targetSite):
         existingCount[targetSite] = 0

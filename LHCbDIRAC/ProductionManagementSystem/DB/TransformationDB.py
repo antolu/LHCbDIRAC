@@ -14,7 +14,7 @@ from DIRAC                                              import gLogger, S_OK, S_
 from DIRAC.Core.Base.DB                                 import DB
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
 from DIRAC.Core.Utilities.List                          import intListToString
-import threading
+import threading,copy
 from types import *
 
 MAX_ERROR_COUNT = 3
@@ -31,7 +31,7 @@ class TransformationDB(DIRACTransformationDB):
     self.queryFields = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag','StartRun','EndRun']
     self.intFields = ['EventType','ProductionID','StartRun','EndRun']
 
-    self.transRunParams = ['TransformationID','RunNumber','Files','SelectedSite','Status','LastUpdate'] 
+    self.transRunParams = ['TransformationID','RunNumber','SelectedSite','Status','LastUpdate'] 
     self.TRANSFILEPARAMS.append("RunNumber")
 
   #############################################################################
@@ -189,6 +189,8 @@ class TransformationDB(DIRACTransformationDB):
         selectDict[key] = condDict[key]
     req = "SELECT %s FROM TransformationRuns %s" % (intListToString(self.transRunParams),self.buildCondition(selectDict,orderAttribute=orderAttribute,limit=limit))
     res = self._query(req,connection)
+    if not res['OK']:
+      return res
     webList = []
     resultList = []
     for row in res['Value']:
@@ -239,11 +241,31 @@ class TransformationDB(DIRACTransformationDB):
     req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber = %d" % (transID,runID)
     res = self._update(req,connection)
     if not res['OK']:
-      gLogger.error("Failed to update TransformationRuns table",res['Message'])
+      gLogger.error("Failed to update TransformationRuns table with LastUpdate",res['Message'])
     elif not res['Value']:
-      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % (transID,runID)
-      res = self._update(req,connection)
-      if not res['OK']:
-        gLogger.error("Failed to insert to TransformationRuns table",res['Message']) 
+      self.__insertTransformationRun(transID,runID,connection=connection)
     resDict = {'Successful':successful,'Failed':failed}
     return S_OK(resDict)
+
+  def setTransformationRunsSite(self,transName,runID,selectedSite,connection=False):
+    res = self._getConnectionTransID(connection,transName)
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    req = "UPDATE TransformationRuns SET SelectedSite = '%s', LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber = %d" % (selectedSite,transID,runID)
+    res = self._update(req,connection)
+    if not res['OK']:
+      gLogger.error("Failed to update TransformationRuns table with SelectedSite",res['Message'])
+    elif not res['Value']:
+      res = self.__insertTransformationRun(transID,runID,selectedSite=selectedSite,connection=connection)
+    return res
+
+  def __insertTransformationRun(self,transID,runID,selectedSite='',connection=False):
+    req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % (transID,runID)
+    if selectedSite:
+      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,SelectedSite,Status,LastUpdate) VALUES (%d,%d,'%s','Active',UTC_TIMESTAMP())" % (transID,runID,selectedSite)
+    res = self._update(req,connection)
+    if not res['OK']:
+      gLogger.error("Failed to insert to TransformationRuns table",res['Message'])    
+    return res
