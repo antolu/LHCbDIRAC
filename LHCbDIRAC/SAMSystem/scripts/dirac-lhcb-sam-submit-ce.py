@@ -36,7 +36,7 @@ softwareEnable=True
 reportEnable=False
 logUpload=True
 publishResults=True
-mode=None
+mode='wms'
 install_project=None
 scriptName=''
 
