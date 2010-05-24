@@ -191,6 +191,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     tasks = []
     for runID in sortList(runFileDict.keys()):
       unusedLfns = runFileDict[runID][None]
+      assignedSE = None
       if not runSiteDict.has_key(runID):
         continue
       if runSiteDict[runID]:
