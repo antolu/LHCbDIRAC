@@ -181,13 +181,13 @@ class TransformationDB(DIRACTransformationDB):
   # Managing the TransformationRuns table
   #
   
-  def getTransformationRuns(self,condDict={},orderAttribute=None, limit=None,connection=False):
+  def getTransformationRuns(self,condDict={}, older=None, newer=None, timeStamp='LastUpdate', orderAttribute=None, limit=None,connection=False):
     connection = self.__getConnection(connection)
     selectDict = {}
     for key in condDict.keys():
       if key in self.transRunParams:
         selectDict[key] = condDict[key]
-    req = "SELECT %s FROM TransformationRuns %s" % (intListToString(self.transRunParams),self.buildCondition(selectDict,orderAttribute=orderAttribute,limit=limit))
+    req = "SELECT %s FROM TransformationRuns %s" % (intListToString(self.transRunParams),self.buildCondition(selectDict,older=older, newer=newer, timeStamp=timeStamp,orderAttribute=orderAttribute,limit=limit))
     res = self._query(req,connection)
     if not res['OK']:
       return res
@@ -212,6 +212,24 @@ class TransformationDB(DIRACTransformationDB):
     result['ParameterNames'] = copy.copy(self.transRunParams)
     return result
 
+  def getTransformationRunStats(self,transIDs,connection=False):
+    connection = self.__getConnection(connection)
+    res = self.getCounters('TransformationFiles',['TransformationID','RunNumber','Status'],{'TransformationID':transIDs})
+    if not res['OK']:
+      return res
+    transRunStatusDict = {}
+    for attrDict,count in res['Value']:
+      transID = attrDict['TransformationID']
+      runID = attrDict['RunNumber']
+      status = attrDict['Status']
+      if not transRunStatusDict.has_key(transID):
+        transRunStatusDict[transID] = {}
+      if not transRunStatusDict[transID].has_key(runID):
+        transRunStatusDict[transID][runID] = {}
+      transRunStatusDict[transID][runID][status] = count
+      transRunStatusDict[transID][runID]['Total'] += count
+    return S_OK(transRunStatusDict)
+    
   def addTransformationRunFiles(self,transName,runID,lfns,connection=False):
     """ Add the RunID to the TransformationFiles table """
     if not lfns:
