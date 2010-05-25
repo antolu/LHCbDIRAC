@@ -197,6 +197,70 @@ class TransformationDB(DIRACTransformationDB):
       return S_OK(bkDict)
     else:
       return S_OK(resultDict)
+    
+  #############################################################################
+  #
+  # Managing the TransformationTasks table
+  #
+    
+  def addTaskForTransformation(self,transID,lfns=[],se='Unknown',connection=False):
+    """ Create a new task with the supplied files for a transformation.
+    """
+    res = self._getConnectionTransID(connection,transID)
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    # Be sure the all the supplied LFNs are known to the database for the supplied transformation
+    fileIDs = []
+    runID = 0
+    if lfns:
+      res = self.getTransformationFiles(condDict={'TransformationID':transID,'LFN':lfns},connection=connection)
+      if not res['OK']:
+        return res   
+      foundLfns = []
+      allAvailable = True
+      for fileDict in res['Value']:
+        fileIDs.append(fileDict['FileID'])
+        runID = fileDict.get('RunNumber')
+        lfn = fileDict['LFN']
+        foundLfns.append(lfn)
+        if fileDict['Status'] != 'Unused':
+          allAvailable = False
+          gLogger.error("Supplied file not in Unused status but %s" % fileDict['Status'],lfn)
+      for lfn in lfns:
+        if not lfn in foundLfns:
+          allAvailable = False
+          gLogger.error("Supplied file not found for transformation" % lfn)
+      if not allAvailable:
+        return S_ERROR("Not all supplied files available in the transformation database")
+
+    # Insert the task into the jobs table and retrieve the taskID
+    self.lock.acquire()
+    req = "INSERT INTO TransformationTasks(TransformationID, ExternalStatus, ExternalID, TargetSE, CreationTime, LastUpdateTime, RunNumber) VALUES\
+     (%s,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),%d);" % (transID,'Created', 0, se,runID)
+    res = self._update(req,connection)
+    if not res['OK']:
+      self.lock.release()
+      gLogger.error("Failed to publish task for transformation", res['Message'])
+      return res
+    res = self._query("SELECT LAST_INSERT_ID();", connection)
+    self.lock.release()
+    if not res['OK']:
+      return res
+    taskID = int(res['Value'][0][0])
+    gLogger.verbose("Published task %d for transformation %d." % (taskID,transID))
+    # If we have input data then update their status, and taskID in the transformation table
+    if lfns:
+      res = self.__insertTaskInputs(transID,taskID,lfns,connection=connection)
+      if not res['OK']:
+        self.__removeTransformationTask(transID,taskID,connection=connection)
+        return res
+      res = self.__assignTransformationFile(transID, taskID, se, fileIDs, connection=connection)
+      if not res['OK']:
+        self.__removeTransformationTask(transID,taskID,connection=connection)
+        return res
+    return S_OK(taskID)
 
   #############################################################################
   #
