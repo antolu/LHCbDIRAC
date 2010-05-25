@@ -42,6 +42,11 @@ class TransformationHandler(DIRACTransformationHandler):
     res = self.database.getBookkeepingQueryForTransformation(transName)
     return self.__parseRes(res)
 
+  types_setBookkeepingQueryEndRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
+  def export_setBookkeepingQueryEndRunForTransformation(self, transName, runNumber):
+    res = self.database.setBookkeepingQueryEndRunForTransformation(transName, runNumber)
+    return self.__parseRes(res)
+
   #############################################################################
   #
   # Managing the TransformationRuns table

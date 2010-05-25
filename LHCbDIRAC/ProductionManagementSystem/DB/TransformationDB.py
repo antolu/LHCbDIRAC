@@ -89,6 +89,28 @@ class TransformationDB(DIRACTransformationDB):
       return res
     return self.__getBookkeepingQuery(res['Value'],connection=connection)
 
+  def setBookkeepingQueryEndRunForTransformation(self, transName, runNumber,connection=False):
+    """ Set the EndRun for the supplied transformation """
+    res = self._getConnectionTransID(connection,transName)
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    res = self.__getTransformationBkQueryID(transID,connection=connection)
+    if not res['OK']:
+      return res
+    bkQueryID = res['Value']
+    res = self.__getBookkeepingQuery(bkQueryID,connection=connection)
+    if not res['OK']:
+      return res
+     startRun = res['Value'].get('StartRun')
+     if not startRun:
+       return S_ERROR("No StartRun is defined for this query")
+     if startRun > runNumber:
+       return S_ERROR("EndRun is before StartRun")
+     req = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % (runNumber,bkQueryID)
+     return self._update(req,connection)
+
   def __getTransformationBkQueryID(self,transName,connection=False):
     res = self.getTransformationParameters(transName,['BkQueryID'],connection=connection)
     if not res['OK']:   
