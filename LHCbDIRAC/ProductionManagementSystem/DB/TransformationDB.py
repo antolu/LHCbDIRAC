@@ -226,6 +226,7 @@ class TransformationDB(DIRACTransformationDB):
         transRunStatusDict[transID] = {}
       if not transRunStatusDict[transID].has_key(runID):
         transRunStatusDict[transID][runID] = {}
+        transRunStatusDict[transID][runID]['Total'] = 0
       transRunStatusDict[transID][runID][status] = count
       transRunStatusDict[transID][runID]['Total'] += count
     return S_OK(transRunStatusDict)

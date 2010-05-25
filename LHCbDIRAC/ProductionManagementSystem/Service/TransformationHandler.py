@@ -124,12 +124,16 @@ class TransformationHandler(DIRACTransformationHandler):
     if last > nTrans:
       last = nTrans
     transList = trList[ini:last]
+    if not transList:
+      return S_OK(resultDict)
 
     # Obtain the run statistics for the requested transformations
     transIDs = []
     for transRun in transList:
       transRunDict = dict(zip(paramNames,transRun))
-      transIDs.append(transRunDict['TransformationID'])
+      transID = int(transRunDict['TransformationID'])
+      if not transID in transIDs:
+        transIDs.append(transID)
     res = self.database.getTransformationRunStats(transIDs)
     if not res['OK']:
       return res
@@ -158,9 +162,9 @@ class TransformationHandler(DIRACTransformationHandler):
         fileDict['PercentProcessed'] = "%.1f" % ((processed*100.0)/fileDict['Total'])
       for state in fileStateNames:
         if fileDict and fileDict.has_key(state):
-          trans.append(fileDict[state])
+          transRun.append(fileDict[state])
         else:
-          trans.append(0)
+          transRun.append(0)
 
       # Get the statistics on the number of jobs for the transformation
       # TODO Removed for the moment
