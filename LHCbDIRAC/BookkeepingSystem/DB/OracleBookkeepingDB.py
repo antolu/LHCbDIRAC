@@ -3479,14 +3479,24 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getRunsWithAGivenDates(self, dict):
     condition = ''
-    if dict.has_key('StartDate'):
-      condition += ' and jobs.jobstart >= TO_TIMESTAMP (\''+str(dict['StartDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
-    
-    if dict.has_key('EndDate'):
-      condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(dict['EndDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
-    elif dict.has_key('StartDate') and not dict.has_key('EndDate'):
-      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
-      condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    if dict.has_key('AllowOutsideRuns') and dict['AllowOutsideRuns']:
+      if not dict.has_key('StartDate') and not dict.has_key('EndDate'):
+        return S_ERROR('The Start and End date must be given!')
+      else:
+        if dict.has_key('StartDate'):
+          condition += ' and jobs.jobstart >= TO_TIMESTAMP (\''+str(dict['StartDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      
+        if dict.has_key('EndDate'):
+          condition += ' and jobs.jobstart <= TO_TIMESTAMP (\''+str(dict['EndDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    else:
+      if dict.has_key('StartDate'):
+        condition += ' and jobs.jobstart >= TO_TIMESTAMP (\''+str(dict['StartDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      
+      if dict.has_key('EndDate'):
+        condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(dict['EndDate'])+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      elif dict.has_key('StartDate') and not dict.has_key('EndDate'):
+        d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+        condition += ' and jobs.jobend <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
     
     command = ' select jobs.runnumber from jobs where jobs.production < 0'+ condition
     retVal = self.dbR_._query(command)
