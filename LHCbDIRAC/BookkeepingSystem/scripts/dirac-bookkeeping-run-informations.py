@@ -30,8 +30,8 @@ res = bk.getRunInformations(int(run))
 if res['OK']:
     val = res['Value']
     print "Run  Informations: "
-    print "Run Start:".ljust(50),val['RunStart']
-    print "Run End:".ljust(50),val['RunEnd']
+    print "Run Start:".ljust(50),str(val['RunStart'])
+    print "Run End:".ljust(50),str(val['RunEnd'])
     print "  Configuration Name:".ljust(50),val['Configuration Name']
     print "  Configuration Version:".ljust(50),val['Configuration Version']
     print "  FillNumber:".ljust(50),val['FillNumber']
