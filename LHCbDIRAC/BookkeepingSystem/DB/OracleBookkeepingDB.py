@@ -3127,7 +3127,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_ERROR()  
   #############################################################################
   def getRunInformations(self, runnb):
-    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion, data_taking_conditions.description, pass_group.groupdescription from \
+    command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion, data_taking_conditions.description, pass_group.groupdescription, jobs.jobstart, jobs.jobend from \
           jobs, configurations,data_taking_conditions,productions, pass_group, pass_index \
          where jobs.configurationid=configurations.configurationid and data_taking_conditions.daqperiodid=productions.simcondid and \
          productions.passid=pass_index.passid and pass_index.groupid=pass_group.groupid and \
@@ -3141,6 +3141,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result = {'Configuration Name':value[0][1],'Configuration Version':value[0][2],'FillNumber':value[0][0]}
     result['DataTakingDescription']=value[0][3]
     result['ProcessingPass']=value[0][4]
+    result['RunStart'] = value[0][5]
+    result['RunEnd'] = value[0][6]
     
     command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.fullstat), files.eventtypeid from files,jobs \
          where files.JobId=jobs.JobId and  \
