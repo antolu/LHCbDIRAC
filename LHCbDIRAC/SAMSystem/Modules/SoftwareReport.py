@@ -153,7 +153,7 @@ class SoftwareReport(ModuleBaseSAM):
 #      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
       ret_area = CheckSharedArea(self,sharedArea)
       if not ret_area['OK']:
-        return self.finalize('Problem SoftwareReport',ret_area['Message'],'error')
+        return self.finalize('Problem SoftwareReport',ret_area['Message'],'warning')
 
       soft_remove = ret_area['Value']
       for app in soft_remove.keys():
@@ -168,7 +168,7 @@ class SoftwareReport(ModuleBaseSAM):
         for installPackage in installList:
           appNameVersion = string.split(installPackage,'.')
           if not len(appNameVersion)==2:
-            return self.finalize('Could not determine name and version of package:',installPackage,'error')
+            return self.finalize('Could not determine name and version of package:',installPackage,'warning')
           #Must check that package to install is supported by LHCb for requested system configuration
 
           if installPackage in packageList:
