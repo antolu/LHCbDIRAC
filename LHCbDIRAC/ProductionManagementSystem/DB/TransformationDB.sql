@@ -29,9 +29,9 @@ CREATE TABLE BkQueries (
   DataQualityFlag VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (DataQualityFlag),
   StartRun INT(11) NOT NULL DEFAULT 0,
-  INDEX (ProductionID),
+  INDEX (StartRun),
   EndRun INT(11) NOT NULL DEFAULT 0,
-  INDEX (ProductionID),
+  INDEX (EndRun),
   PRIMARY KEY  (`BkQueryID`)
 ) ENGINE=MyISAM;
 
