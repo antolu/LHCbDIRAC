@@ -2623,7 +2623,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
         dateAndTime = job[param].split(' ')
         date = dateAndTime[0].split('-')
         time = dateAndTime[1].split(':')
-        timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
+        if len(time) > 2:
+          timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(time[3]), 0)
+        else:
+          timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
         attrList[param]=timestamp
       else:
         attrList[param] = job[param]
