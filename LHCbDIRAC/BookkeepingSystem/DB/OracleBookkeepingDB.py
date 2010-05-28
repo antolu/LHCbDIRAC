@@ -2624,7 +2624,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         date = dateAndTime[0].split('-')
         time = dateAndTime[1].split(':')
         if len(time) > 2:
-          timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(time[3]), 0)
+          timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(time[2]), 0)
         else:
           timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
         attrList[param]=timestamp
