@@ -1,3 +1,5 @@
+# $HeadURL$
+
 """ DIRAC Transformation DB
 
     Transformation database is used to collect and serve the necessary information
@@ -6,7 +8,7 @@
     databases
 """
 
-__RCSID__ = "$Id: TransformationDB.py 18429 2009-11-20 10:30:43Z acsmith $"
+__RCSID__ = "$Id$"
 
 import re,time,types,string
 
