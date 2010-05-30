@@ -35,8 +35,8 @@ CREATE TABLE BkQueries (
   PRIMARY KEY  (`BkQueryID`)
 ) ENGINE=MyISAM;
 
-ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11);
-ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11);
+ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11) DEFAULT 0;
+ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11) DEFAULT 0;
  
 DROP TABLE IF EXISTS TransformationRuns;
 CREATE TABLE TransformationRuns(
