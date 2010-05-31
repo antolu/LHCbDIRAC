@@ -390,7 +390,7 @@ class BookkeepingReport(ModuleBase):
 
       if typeName in dataTypes:
         s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
-        s = s+'    <Parameter  Name="EventStat"       Value="'+fileStats+'"/>\n'
+        s = s+'    <Parameter  Name="EventStat"       Value="'+str(fileStats)+'"/>\n'
         s = s+'    <Parameter  Name="FileSize"        Value="'+outputsize+'"/>\n'
 
 
