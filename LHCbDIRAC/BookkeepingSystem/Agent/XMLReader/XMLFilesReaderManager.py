@@ -224,7 +224,8 @@ class XMLFilesReaderManager:
       res = dataManager_.getFileMetadata([fname])
       if res['OK']:
         value = res['Value']
-        sumEvtStat += value[fname]['EventStat']
+        if value[fname]['EventStat'] != None:
+          sumEvtStat += value[fname]['EventStat']
     
       
     evtinput = 0
