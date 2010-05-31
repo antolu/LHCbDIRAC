@@ -293,9 +293,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     firstEventNumber=0
     appTypes = ['dst','fetc','setc','rdst','davincihist','merge']
     inputDataTypes = ['rdst','dst','sdst']
-    if not appType in appTypes:
+    if not appType.lower() in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
-    if not inputDataType.lower() in inputDataTypes:
+    if not inputDataType.lower() in inputDataTypes and not appType.lower() == 'merge' and not appType.lower() == 'setc':
       raise TypeError,'Only %s input data types currently supported' %(string.join(inputDataTypes,', '))
 
     if inputDataType.lower() in ['rdst','sdst']:
@@ -315,11 +315,22 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
     
     if appType.lower()=='merge':
+      if not outputSE:
+        outputSE='Tier1_M-DST'
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))      
       if inputProduction:
         result = self._setInputProductionBKStepInfo(inputProduction,{})
         if not result['OK']:
           self.log.error(result)
-          raise TypeError,'inputProduction must exist and have BK parameters'      
+          raise TypeError,'inputProduction must exist and have BK parameters'
+      else:
+        self.log.error('DaVinci merging application type selected, must have an input production ID')
+        raise TypeError,'inputProduction must be specified'
+
+    if appType.lower()=='setc':
+      if not outputSE:
+        outputSE='Tier1_M-DST'
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))   
 
     if not overrideOpts:
       optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
@@ -336,6 +347,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if appType.lower()=='davincihist':
       appType='dst'
+
+    if  appType.lower()=='merge':
+      appType=inputDataType.lower()
 
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,'')
