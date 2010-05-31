@@ -1090,7 +1090,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           else:
             quality = res['Value'][0][0]
           conds += ' files.qualityid='+str(quality)+' or'
-        conditions += 'and'+conds[:-3]
+        condition += 'and'+conds[:-3]
       else:
         quality = None
         command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
