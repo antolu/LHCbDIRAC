@@ -70,7 +70,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     #for the stripping some options override the above Gaudi level setting
     options.append("DaVinci().HistogramFile = \"%s\"" % (histogram))
     # If we want to generate an FETC for the first step of the stripping workflow
-    if appType.lower()=='fetc':
+    if appType.lower()=='fetc' or appType.lower()=='setc':
       options.append("DaVinci().ETCFile = \"@{outputData}\"")
     elif appType.lower() == 'dst' and inputType not in ['sdst','dst']: #e.g. not stripping
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
@@ -84,7 +84,9 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
       options.append('from Configurables import InputCopyStream')
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
       options.append('DaVinci().MoniSequence.append(InputCopyStream())')
-
+    elif appType.lower() == 'merge':
+      options.append('from Configurables import InputCopyStream')
+      options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')      
   elif appName.lower()=='merge':
     #options.append('EventSelector.PrintFreq = 200')
     options.append('OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"')
