@@ -1078,7 +1078,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
     if flag != 'ALL':
       if type(flag) in (types.ListType,types.TupleType):
-        conds = ''
+        conds = ' ('
         for i in flag:
           quality = None
           command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
@@ -1090,7 +1090,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           else:
             quality = res['Value'][0][0]
           conds += ' files.qualityid='+str(quality)+' or'
-        condition += 'and'+conds[:-3]
+        condition += 'and'+conds[:-3] + ')'
       else:
         quality = None
         command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
