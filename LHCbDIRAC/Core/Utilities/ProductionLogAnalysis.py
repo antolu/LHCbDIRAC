@@ -252,7 +252,7 @@ def getEventsOutput(logString,writer):
   exp = re.compile(r"%s\s+INFO Events output: (\d+)" % writer)
   findline = re.search(exp,logString)
   if not findline:
-    gLogger.error("Could not determine events output.")
+    gLogger.warn("Could not determine events output.")
     return S_ERROR("Could not determine events output")
   writtenEvents = int(findline.group(1))
   gLogger.info("Determined the number of events written to be %s." % writtenEvents)
@@ -527,6 +527,11 @@ def checkDaVinciEvents(logString):
   if requestedEvents:
     if requestedEvents != processedEvents:
       return S_ERROR("Too Few Events Processed")
+  
+  result = getEventsOutput(logString,'InputCopyStream')
+  if result['OK']:
+    gLogger.info('Found "%s" events output for DaVinci with InputCopyStream' %(result['Value']))
+    
   return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
