@@ -1077,18 +1077,33 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       
     if flag != 'ALL':
-      quality = None
-      command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
-      res = self.dbR_._query(command)
-      if not res['OK']:
-        gLogger.error('Data quality problem:',res['Message'])
-      elif len(res['Value']) == 0:
-          return S_ERROR('Dataquality is missing!')
+      if type(flag) in (types.ListType,types.TupleType):
+        conds = ''
+        for i in flag:
+          quality = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' files.qualityid='+str(quality)+' or'
+        conditions += 'and'+conds[:-3]
       else:
-        quality = res['Value'][0][0]
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        
+        condition += ' and files.qualityid='+str(quality)
       
-      condition += ' and files.qualityid='+str(quality)
-    
     if startRunID != None:
       condition += ' and jobs.runnumber>='+str(startRunID)
     if endRunID != None:
