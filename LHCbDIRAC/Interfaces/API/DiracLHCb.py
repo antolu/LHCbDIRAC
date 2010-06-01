@@ -247,6 +247,12 @@ class DiracLHCb(Dirac):
        @type bkPath: string        
        @param dqFlag: Optional Data Quality flag 
        @type dqFlag: string 
+       @param startDate: Start date  yyyy-mm-dd
+       @param startDate: string
+       @param endDate: End date  yyyy-mm-dd
+       @param endDate: string
+       @param selection: Either Runs, ProcessedRuns or NotProcessed 
+       @param selection: string     
        @return: S_OK,S_ERROR                  
     """
     runSelection = ['Runs','ProcessedRuns','NotProcessed']
