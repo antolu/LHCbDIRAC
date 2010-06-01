@@ -44,6 +44,8 @@ class DiracLHCb(Dirac):
                              'ConfigName'               : 'All',
                              'ConfigVersion'            : 'All',
                              'ProductionID'             :     0,
+                             'StartRun'                 :     0,
+                             'EndRun'                   :     0,
                              'DataQualityFlag'          : 'All'}
     
   #############################################################################
@@ -218,6 +220,230 @@ class DiracLHCb(Dirac):
     return getAncestorFiles(lfns,depth)
 
   #############################################################################
+  def bkQueryRunsByDate(self,bkPath,startDate,endDate,dqFlag='All',selection='Runs'):
+    """ This function allows to create and perform a BK query given a supplied
+        BK path. The following BK path convention is expected:
+        
+        /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>
+
+        so an example for 2010 collisions data would be:
+        
+        /LHCb/Collision09/Real Data + RecoToDST-07/90000000/DST
+
+        The startDate and endDate must be specified as yyyy-mm-dd.
+        
+        Runs can be selected based on their status e.g. the selection parameter
+        has the following possible attributes:
+         - Runs - data for all runs in the range are queried (default)
+         - ProcessedRuns - data is retrieved for runs that are processed
+         - NotProcessed - data is retrieved for runs that are not yet processed. 
+
+       Example Usage:
+       
+       >>> dirac.bkQueryRunsByDate('/LHCb/Collision10/Real Data/90000000/RAW','2010-05-18','2010-05-20',dqFlag='EXPRESS_OK',selection='ProcessedRuns')
+       {'OK': True, 'Value': [<LFN1>,<LFN2>]}
+       
+       @param bkPath: BK path as described above
+       @type bkPath: string        
+       @param dqFlag: Optional Data Quality flag 
+       @type dqFlag: string 
+       @return: S_OK,S_ERROR                  
+    """
+    runSelection = ['Runs','ProcessedRuns','NotProcessed']
+    if not selection in runSelection:
+      return S_ERROR('Expected one of %s not "%s" for selection' %(string.join(runSelection,', '),selection))
+    
+    if not type(bkPath)==type(' '):
+      return S_ERROR('Expected string for bkPath')
+    
+    #remove any double slashes, spaces must be preserved 
+    #remove any empty components from leading and trailing slashes
+    bkPath = removeEmptyElements(string.split(string.replace(bkPath,'//','/'),'/'))
+    if not len(bkPath)==5:
+      return S_ERROR('Expected 5 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>')
+    
+    if not startDate or not endDate:
+      return S_ERROR('Expected both start and end dates to be defined in format: yyyy-mm-dd')
+    
+    if not type(startDate)==type(' ') or not type(endDate)==type(' '):
+      return S_ERROR('Expected yyyy-mm-dd string for start and end dates')
+    
+    if not len(startDate.split('-'))==3 or not len(endDate.split('-'))==3:
+      return S_ERROR('Expected yyyy-mm-dd string for start and end dates')
+
+    start = time.time()
+    bk = BookkeepingClient()                      
+    result = bk.getRunsWithAGivenDates({'StartDate':startDate,'EndDate':endDate})
+    rtime = time.time()-start    
+    self.log.info('BK query time: %.2f sec' %rtime)
+    if not result['OK']:
+      self.log.info('Could not get runs with given dates from BK with result: "%s"' %result)
+      return result
+    
+    if not result['Value']:
+      self.log.info('No runs selected from BK for specified dates')
+      return result
+    
+    if not result['Value'].has_key(selection):
+      return S_ERROR('No %s runs for specified dates' %(selection))
+    
+    runs = result['Value'][selection]    
+    self.log.info('Found the following %s runs:\n%s' %(len(runs),string.join([str(i) for i in runs],', ')))
+    #temporary until we can query for a discrete list of runs
+    
+    selectedData = []
+    for run in runs:    
+      query = self.bkQueryTemplate.copy()
+      query['StartRun']=run
+      query['EndRun']=run
+      query['ConfigName']=bkPath[0]
+      query['ConfigVersion']=bkPath[1]    
+      query['ProcessingPass']=bkPath[2]
+      query['EventType']=bkPath[3]
+      query['FileType']=bkPath[4]
+      if dqFlag:
+        check = self.__checkDQFlags(dqFlag)
+        if not check['OK']:
+          return check
+        dqFlag = check['Value']
+        query['DataQualityFlag']=dqFlag      
+      result = self.bkQuery(query)
+      self.log.verbose(result)
+      if not result['OK']:
+        return result
+      self.log.info('Selected %s files for run %s' %(len(result['Value']),run))
+      selectedData+=result['Value']
+    
+    self.log.info('Total files selected = %s' %(len(selectedData)))
+    return S_OK(selectedData)
+
+  #############################################################################
+  def bkQueryRun(self,bkPath,dqFlag='All'):
+    """ This function allows to create and perform a BK query given a supplied
+        BK path. The following BK path convention is expected:
+        
+        /<Run Number>/<Processing Pass>/<Event Type>/<File Type>
+        
+        so an example for 2009 collisions data would be:
+
+       /63566/Real Data + RecoToDST-07/90000000/DST
+       
+       In addition users can specify a range of runs using the following convention:
+       
+       /<Run Number 1> - <Run Number 2>/<Processing Pass>/<Event Type>/<File Type>
+
+       so extending the above example this would look like:
+
+       /63566-63600/Real Data + RecoToDST-07/90000000/DST
+
+       Example Usage:
+       
+       >>> dirac.bkQueryRun('/63566/Real Data + RecoToDST-07/90000000/DST')
+       {'OK':True,'Value': ['/lhcb/data/2009/DST/00005842/0000/00005842_00000008_1.dst']}
+       
+       @param bkPath: BK path as described above
+       @type bkPath: string        
+       @param dqFlag: Optional Data Quality flag 
+       @type dqFlag: string 
+       @return: S_OK,S_ERROR        
+    """
+    if not type(bkPath)==type(' '):
+      return S_ERROR('Expected string for bkPath')
+    
+    #remove any double slashes, spaces must be preserved 
+    #remove any empty components from leading and trailing slashes
+    bkPath = removeEmptyElements(string.split(string.replace(bkPath,'//','/'),'/'))
+    if not len(bkPath)==4:
+      return S_ERROR('Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>')
+    
+    runNumberString = bkPath[0].replace('--','-').replace(' ','')
+    startRun = 0
+    endRun = 0
+    if re.search('-',runNumberString):
+      if not len(runNumberString.split('-'))==2:
+        return S_ERROR('Could not determine run range from "%s", try "<Run 1> - <Run2>"' %(runNumberString))      
+      start = int(runNumberString.split('-')[0])
+      end = int(runNumberString.split('-')[1])
+      if int(start)<int(end):
+        startRun=start
+        endRun = end
+      else:
+        startRun=end
+        endRun = start
+    else:
+      startRun = int(runNumberString)
+      endRun = int(runNumberString)
+    
+    query = self.bkQueryTemplate.copy()
+    query['StartRun']=startRun
+    query['EndRun']=endRun
+    query['ProcessingPass']=bkPath[1]
+    query['EventType']=bkPath[2]
+    query['FileType']=bkPath[3]
+
+    if dqFlag:
+      check = self.__checkDQFlags(dqFlag)
+      if not check['OK']:
+        return check
+      dqFlag = check['Value']
+      query['DataQualityFlag']=dqFlag
+
+    result = self.bkQuery(query)
+    self.log.verbose(result)
+    return result
+  
+  #############################################################################
+  def bkQueryProduction(self,bkPath,dqFlag='All'):
+    """ This function allows to create and perform a BK query given a supplied
+        BK path. The following BK path convention is expected:
+        
+        /<ProductionID>/<Processing Pass>/<Event Type>/<File Type>        
+        
+        so an example for 2009 collisions data would be:
+        
+       /5842/Real Data + RecoToDST-07/90000000/DST
+       
+       a data quality flag can also optionally be provided, the full list of these is available 
+       via the getAllDQFlags() method.
+       
+       Example Usage:
+       
+       >>> dirac.bkQueryProduction('/5842/Real Data + RecoToDST-07/90000000/DST')
+       {'OK': True, 'Value': [<LFN1>,<LFN2>]}
+       
+       @param bkPath: BK path as described above
+       @type bkPath: string        
+       @param dqFlag: Optional Data Quality flag 
+       @type dqFlag: string 
+       @return: S_OK,S_ERROR        
+    """
+    if not type(bkPath)==type(' '):
+      return S_ERROR('Expected string for bkPath')
+    
+    #remove any double slashes, spaces must be preserved 
+    #remove any empty components from leading and trailing slashes
+    bkPath = removeEmptyElements(string.split(string.replace(bkPath,'//','/'),'/'))
+    if not len(bkPath)==4:
+      return S_ERROR('Expected 4 components to the BK path: /<ProductionID>/<Processing Pass>/<Event Type>/<File Type>')
+    
+    query = self.bkQueryTemplate.copy()
+    query['ProductionID']=int(bkPath[0])
+    query['ProcessingPass']=bkPath[1]
+    query['EventType']=bkPath[2]
+    query['FileType']=bkPath[3]
+
+    if dqFlag:
+      check = self.__checkDQFlags(dqFlag)
+      if not check['OK']:
+        return check
+      dqFlag = check['Value']
+      query['DataQualityFlag']=dqFlag
+
+    result = self.bkQuery(query)
+    self.log.verbose(result)
+    return result    
+
+  #############################################################################
   def bkQueryPath(self,bkPath,dqFlag='All'):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
@@ -263,19 +489,12 @@ class DiracLHCb(Dirac):
     query['FileType']=bkPath[5]
 
     if dqFlag:
-      if dqFlag.lower()=='all':
-        query['DataQualityFlag']=dqFlag
-      else:
-        dqFlag = dqFlag.upper()
-        flags = self.getAllDQFlags()
-        if not flags['OK']:
-          return flags
-        if not dqFlag in flags['Value']:
-          msg = 'Specified DQ flag "%s" is not in allowed list: %s' %(dqFlag,string.join(flags['Value'],', '))
-          self.log.error(msg)
-          return S_ERROR(msg) 
-        query['DataQualityFlag']=dqFlag
-  
+      check = self.__checkDQFlags(dqFlag)
+      if not check['OK']:
+        return check
+      dqFlag = check['Value']
+      query['DataQualityFlag']=dqFlag
+
     #The problem here is that we don't know if it's a sim or data taking condition, assume that if configName=MC this is simulation
     if bkPath[0].lower()=='mc':
       query['SimulationConditions']=bkPath[2]
@@ -331,7 +550,7 @@ class DiracLHCb(Dirac):
   #############################################################################
   def bkQuery(self,bkQueryDict):
     """ Developer function. Perform a query to the LHCb Bookkeeping to return 
-        a list of LFN(s).
+        a list of LFN(s). This method takes a BK query dictionary.
         
         Example Usage:
         
@@ -352,24 +571,26 @@ class DiracLHCb(Dirac):
       return S_ERROR(msg)
 
     for name,value in bkQueryDict.items():
-      if name == "ProductionID" or name == "EventType":
+      if name == "ProductionID" or name == "EventType" or name=="StartRun" or name=="EndRun":
         if value == 0:
           del bkQueryDict[name]
         else:
-          bkQueryDict[name] = str(value)
+          bkQueryDict[name] = str(value)            
       elif name=="FileType":
         if value.lower()=="all":
           bkQueryDict[name]='ALL'
       else:
-        if value.lower() == "all":
+        if str(value).lower() == "all":
           del bkQueryDict[name]
     
-    if not bkQueryDict.has_key('SimulationConditions') and not bkQueryDict.has_key('DataTakingConditions'):
-      return S_ERROR('A Simulation or DataTaking Condition must be specified for a BK query.')
-    
-    if not bkQueryDict.has_key('EventType') or not bkQueryDict.has_key('ConfigName') or not bkQueryDict.has_key('ConfigVersion'):
-      return S_ERROR('The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition')
-    
+    if bkQueryDict.has_key('ProductionID') or bkQueryDict.has_key('StartRun') or bkQueryDict.has_key('EndRun'):
+      self.log.verbose('Found a specific query so loosening some restrictions to prevent BK overloading')
+    else:
+      if not bkQueryDict.has_key('SimulationConditions') and not bkQueryDict.has_key('DataTakingConditions'):
+        return S_ERROR('A Simulation or DataTaking Condition must be specified for a BK query.')      
+      if not bkQueryDict.has_key('EventType') or not bkQueryDict.has_key('ConfigName') or not bkQueryDict.has_key('ConfigVersion'):
+        return S_ERROR('The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition')
+      
     self.log.verbose('Final BK query dictionary is:')
     for n,v in bkQueryDict.items():
       self.log.verbose('%s : %s' %(n,v))
@@ -387,8 +608,42 @@ class DiracLHCb(Dirac):
       return self.__errorReport('No BK files selected')
     
     returnedFiles = len(result['Value'])
-    self.log.info('%s files selected from the BK' %(returnedFiles))
+    self.log.verbose('%s files selected from the BK' %(returnedFiles))
     return result
+
+  #############################################################################
+  def __checkDQFlags(self,flags):
+    """ Internal function.  Checks the provided flags against the list of 
+        possible DQ flag statuses from the Bookkeeping.        
+    """
+    dqFlags = []
+    if type(flags)==type([]):
+      dqFlags = flags
+    else:
+      dqFlags = [flags]
+
+    bkFlags = self.getAllDQFlags()
+    if not bkFlags['OK']:
+      return bkFlags
+
+    final = []
+    for flag in dqFlags:     
+      if flag.lower()=='all':
+        final.append(flag.upper())
+      else:
+        flag = flag.upper()
+        if not flag in bkFlags['Value']:
+          msg = 'Specified DQ flag "%s" is not in allowed list: %s' %(flag,string.join(bkFlags['Value'],', '))
+          self.log.error(msg)
+          return S_ERROR(msg)
+        else:
+          final.append(flag) 
+
+    #when first coding this it was not possible to use a list ;)    
+    if len(final)==1:
+      final=final[0]
+    
+    return S_OK(final)
 
   #############################################################################
   def getAllDQFlags(self,printOutput=False):
