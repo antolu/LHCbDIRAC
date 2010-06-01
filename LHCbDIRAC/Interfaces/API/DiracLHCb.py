@@ -23,7 +23,7 @@ from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles,
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles     import getAncestorFiles
 
-import os,glob,fnmatch,string,time
+import os,glob,fnmatch,string,time,re
 
 COMPONENT_NAME='DiracLHCb'
 
