@@ -1059,6 +1059,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('Attempt to add production %s to request %s failed, dictionary below:\n%s' %(prodID,requestID,reqDict))
       else:
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
+      #Note after testing that the parent ID always seems to be propagated, setting the below removes the need to add something in the templates.
+      self.setParentRequest(requestID)
 
     if publish:
       try:
@@ -1092,7 +1094,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           self.log.verbose('Attempting to set the transformation group: %s' %(transGroup))
           result = self.setProdParameter(transID,'TransformationGroup',self.prodGroup)
           if not result['OK']:
-            self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(transID,prodID,result))
+            self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(self.prodGroup,transID,result))
+          if requestID:
+            result = self.setProdParameter(transID,'TransformationFamily',requestID)
+            if not result['OK']:
+              self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))            
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
