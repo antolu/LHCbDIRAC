@@ -35,6 +35,7 @@ class TransformationDB(DIRACTransformationDB):
 
     self.transRunParams = ['TransformationID','RunNumber','SelectedSite','Status','LastUpdate'] 
     self.TRANSFILEPARAMS.append("RunNumber")
+    self.TASKSPARAMS.append("RunNumber")
 
   #############################################################################
   #
