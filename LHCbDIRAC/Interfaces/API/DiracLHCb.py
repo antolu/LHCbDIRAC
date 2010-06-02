@@ -678,6 +678,58 @@ class DiracLHCb(Dirac):
     return result
 
   #############################################################################
+  def getDataByRun( self, lfns, printOutput = False ):
+    """Sort the supplied lfn list by run. An S_OK object will be returned 
+       containing a dictionary of runs and the corresponding list of LFN(s)
+       associated with them.  
+
+       Example usage:
+
+       >>> print dirac.getDataByRun(lfns)
+       {'OK': True, 'Value': {<RUN>:['<LFN>','<LFN>',...], <RUN>:['<LFN>',..]}}
+
+
+       @param lfns: Logical File Name(s) 
+       @type lfns: list
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR
+    """
+    if type( lfns ) == type( " " ):
+      lfns = [lfns.replace( 'LFN:', '' )]
+    elif type( lfns ) == type( [] ):
+      try:
+        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+      except Exception, x:
+        return self.__errorReport( str( x ), 'Expected strings for LFNs' )
+    else:
+      return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
+
+    runDict = {}
+    bk = BookkeepingClient()
+    start = time.time()
+    result = bk.getFileMetadata(lfns)
+    self.log.verbose("Obtained BK file metadata in %.2f seconds" % (time.time()-start))
+    if not result['OK']: 
+      self.log.error('Failed to get bookkeeping metadata with result "%s"' %(result['Message']))
+      return result
+    
+    for lfn,metadata in result['Value'].items():
+      if metadata.has_key('RunNumber'):
+        runNumber = metadata['RunNumber']        
+        if not runDict.has_key(runNumber):
+          runDict[runNumber] = [lfn]
+        else:
+          runDict[runNumber].append(lfn)
+      else:
+        self.log.warn('Could not find run number from BK for %s' %(lfn))
+
+    if printOutput:
+      print self.pPrint.pformat( runDict )
+      
+    return S_OK( runDict )
+
+  #############################################################################
   def __errorReport(self,error,message=None):
     """Internal function to return errors and exit with an S_ERROR()
     """
