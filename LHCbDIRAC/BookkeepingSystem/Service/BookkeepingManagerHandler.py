@@ -507,7 +507,7 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       endRunID = None
     
-    if values.has_key('RunNumbres'):
+    if values.has_key('RunNumbers'):
       runNbs = values['RunNumbers']
     else:
       runNbs = []
