@@ -205,9 +205,16 @@ class ProductionCleaningAgent(AgentModule):
     if not res['OK']:
       return res
     if not res['Value']:
-      self.__createProductionDirectories(prodID)
-      res = self.__getProductionDirectories(prodID)
+      return S_ERROR("No output directories found")
+    for dir in res['Value']:
+      prodStr = str(prodID).zfill(8)
+      if not re.search(prodStr,dir):
+        return S_ERROR("Output directory not for production")
     return res
+    #if not res['Value']:
+    #  self.__createProductionDirectories(prodID)
+    #  res = self.__getProductionDirectories(prodID)
+    #return res
 
   def __getProductionDirectories(self,prodID):
     directories = []
