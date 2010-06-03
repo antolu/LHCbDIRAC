@@ -483,8 +483,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().checkProcessingPassAndSimCond(production)
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID):
-    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID)
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers)
   
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):

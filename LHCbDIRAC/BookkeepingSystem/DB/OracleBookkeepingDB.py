@@ -978,7 +978,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = []):
     
     configid = None
     condition = ''
@@ -1009,6 +1009,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
        condition += ' and jobs.production='+str(production)
     
+    if len(runnumbers) > 0:
+      if type(runnumbers) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in runnumbers:
+          cond += 'jobs.runnumber='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+            
     tables = ' files,jobs '
     pcondition = ''
     jcondition = ''
