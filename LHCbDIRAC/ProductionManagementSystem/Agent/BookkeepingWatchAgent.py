@@ -120,8 +120,9 @@ class BookkeepingWatchAgent(AgentModule):
         else:
           runDict = {}
           for lfn,metadata in res['Value'].items():
-            runID = int(metadata['RunNumber'])
+            runID = metadata.get('RunNumber',0)
             if runID:
+              runID = int(runID)
               if not runDict.has_key(runID):
                 runDict[runID] = []
               runDict[runID].append(lfn)
