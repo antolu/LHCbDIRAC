@@ -835,6 +835,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       bkserver = RPCClient('Bookkeeping/BookkeepingManager')
       self.log.verbose('Production has input data query, will attempt to retrieve an input data file for LFN construction')
       bkDict = parameters['BKInputQuery']
+      #To prevent not finding a file remove DQ flag distinction here
+      if bkDict.has_key('DataQualityFlag'):
+        self.log.info('Removing DQ flag "%s" just to get a dataset' %(bkDict['DataQualityFlag']))
+        del bkDict['DataQualityFlag'] 
+      
       for name,value in bkDict.items():
         if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
           if value == 0:
