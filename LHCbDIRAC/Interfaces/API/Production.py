@@ -841,9 +841,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
             del bkDict[name]
           else:
             bkDict[name] = str(value)
+        elif not type(value) == type(' '):
+          continue
         else:
           if value.lower() == "all":
             del bkDict[name]
+
       result = bkserver.getFilesWithGivenDataSets(bkDict)
       if not result['OK']:
         self.log.error('Could not obtain data from input BK query')
@@ -853,7 +856,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
        inputDataFile = result['Value'][0]
        self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
       else:
-       self.log.verbose('No input datasets found from BK query')
+       self.log.verbose('No input datasets found from BK query: %s' %(bkDict))
        return S_ERROR('No input datasets found from BK query to set parameters.')
 
     dummyProdJobID = '99999999'
@@ -947,6 +950,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         The workflow XML is created regardless of the flags.
     """
     prodID = self.defaultProdID
+    #Note after testing that the parent ID always seems to be propagated, setting the below removes the need to add something in the templates.
+    self.setParentRequest(requestID)
 
     if wfString:
       self.workflow = fromXMLString(wfString)
@@ -1059,8 +1064,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('Attempt to add production %s to request %s failed, dictionary below:\n%s' %(prodID,requestID,reqDict))
       else:
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
-      #Note after testing that the parent ID always seems to be propagated, setting the below removes the need to add something in the templates.
-      self.setParentRequest(requestID)
 
     if publish:
       try:
@@ -1383,7 +1386,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setParentRequest(self,parentID):
     """ Sets the parent request ID for a production.
     """
-    self._setParameter('ParentRequestID','string',parentID.replace(' ',''),'ParentRequestID')
+    self._setParameter('ParentRequestID','string',str(parentID).replace(' ',''),'ParentRequestID')
 
   #############################################################################
   def setProdPriority(self,priority):
