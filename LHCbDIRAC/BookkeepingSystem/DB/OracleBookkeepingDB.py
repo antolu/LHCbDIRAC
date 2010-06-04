@@ -2468,11 +2468,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
               gLogger.error('Ancestor',res['Message'])
             elif len(res['Value']) != 0:
               job_ids = res['Value']
+              fileids.remove(file_id)
               
               for i in job_ids:
                 job_id = i[0]
                 command = 'select files.fileName,files.fileid,files.gotreplica from files,jobs where files.jobid=jobs.jobid and files.jobid='+str(job_id)+condition
-                fileids = []
                 res = self.dbR_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
@@ -2534,11 +2534,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
               gLogger.error('Ancestor',res['Message'])
             elif len(res['Value']) != 0:
               job_ids = res['Value']
+              fileids.remove(file_id)
               
               for i in job_ids:
                 job_id = i[0]
                 command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
-                fileids = []
                 res = self.dbR_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
@@ -2547,9 +2547,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
                 else:
                   dbResult = res['Value']
                   for record in dbResult:
-                    fileids +=[record[1]]
                     if record[2] != 'No':
                       files += [record[0]]
+                      fileids +=[record[1]]
           depth-=1 
         
         ancestorList[fileName]=files    
