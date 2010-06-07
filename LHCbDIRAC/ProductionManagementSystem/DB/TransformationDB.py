@@ -355,6 +355,22 @@ class TransformationDB(DIRACTransformationDB):
     resDict = {'Successful':successful,'Failed':failed}
     return S_OK(resDict)
 
+  def setTransformationRunStatus(self,transName,runIDs,status,connection=False):
+    if not runIDs:
+      return S_OK()
+    if type(runIDs) != ListType:
+      runIDs = [runIDs]
+    res = self._getConnectionTransID(connection,transName)
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    req = "UPDATE TransformationRuns SET Status = '%s', LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber in (%s)" % (status,transID,intListToString(runIDs))
+    res = self._update(req,connection)
+    if not res['OK']:
+      gLogger.error("Failed to update TransformationRuns table with Status",res['Message'])
+    return res
+
   def setTransformationRunsSite(self,transName,runID,selectedSite,connection=False):
     res = self._getConnectionTransID(connection,transName)
     if not res['OK']:
