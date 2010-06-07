@@ -70,6 +70,10 @@ class TransformationHandler(DIRACTransformationHandler):
   def export_addTransformationRunFiles(self,transName,runID,lfns):
     return self.database.addTransformationRunFiles(transName,runID,lfns)
 
+  types_setTransformationRunStatus = [[LongType, IntType, StringType], [LongType, IntType, ListType],StringTypes]
+  def export_setTransformationRunStatus(self,transID,runID,status):
+    return self.database.setTransformationRunStatus(transID,runID,status)
+
   types_setTransformationRunsSite = [[LongType, IntType, StringType], [LongType, IntType],StringTypes]
   def export_setTransformationRunsSite(self,transID,runID,assignedSE):
     return self.database.setTransformationRunsSite(transID,runID,assignedSE)
