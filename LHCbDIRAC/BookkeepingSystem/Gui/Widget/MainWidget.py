@@ -12,6 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                           import
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.DataQualityDialog             import DataQualityDialog
 
 __RCSID__ = "$Id$"
 
@@ -39,6 +40,11 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.connect(self.actionExit, SIGNAL("triggered()"),
                      self, SLOT("close()"))
       
+    self.connect(self.actionDataQuality, SIGNAL("triggered()"), self.__controler.dataQuality)
+    
+    self.__dataQuality = DataQualityDialog(self)
+    self.__controler.addChild('DataQuality', self.__dataQuality.getControler())
+    
     self.__productionLookup = ProductionLookup(data = None, parent = self)
     self.__controler.addChild('ProductionLookup', self.__productionLookup.getControler())
     

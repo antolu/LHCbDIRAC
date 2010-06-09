@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Thu Mar 25 12:02:51 2010
+# Created: Wed Jun  9 11:14:30 2010
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -36,6 +36,9 @@ class Ui_MainWidget(object):
 
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
+
+        self.menuSetings = QtGui.QMenu(self.menubar)
+        self.menuSetings.setObjectName("menuSetings")
         MainWidget.setMenuBar(self.menubar)
 
         self.statusbar = QtGui.QStatusBar(MainWidget)
@@ -47,8 +50,13 @@ class Ui_MainWidget(object):
 
         self.actionFile_dialog_paging_size = QtGui.QAction(MainWidget)
         self.actionFile_dialog_paging_size.setObjectName("actionFile_dialog_paging_size")
+
+        self.actionDataQuality = QtGui.QAction(MainWidget)
+        self.actionDataQuality.setObjectName("actionDataQuality")
         self.menuFile.addAction(self.actionExit)
+        self.menuSetings.addAction(self.actionDataQuality)
         self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuSetings.menuAction())
 
         self.retranslateUi(MainWidget)
         QtCore.QMetaObject.connectSlotsByName(MainWidget)
@@ -58,6 +66,8 @@ class Ui_MainWidget(object):
         #self.tree.headerItem().setText(0,QtGui.QApplication.translate("MainWidget", "Jaj", None, QtGui.QApplication.UnicodeUTF8))
         #self.tree.headerItem().setText(1,QtGui.QApplication.translate("MainWidget", "New Column", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWidget", "File", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuSetings.setTitle(QtGui.QApplication.translate("MainWidget", "Setings", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setText(QtGui.QApplication.translate("MainWidget", "Exit", None, QtGui.QApplication.UnicodeUTF8))
         self.actionFile_dialog_paging_size.setText(QtGui.QApplication.translate("MainWidget", "File dialog page size", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionDataQuality.setText(QtGui.QApplication.translate("MainWidget", "DataQuality", None, QtGui.QApplication.UnicodeUTF8))
 

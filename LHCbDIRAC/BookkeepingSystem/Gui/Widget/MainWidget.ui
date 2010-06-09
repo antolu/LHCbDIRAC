@@ -57,7 +57,14 @@
     </property>
     <addaction name="actionExit" />
    </widget>
+   <widget class="QMenu" name="menuSetings" >
+    <property name="title" >
+     <string>Setings</string>
+    </property>
+    <addaction name="actionDataQuality" />
+   </widget>
    <addaction name="menuFile" />
+   <addaction name="menuSetings" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
   <action name="actionExit" >
@@ -68,6 +75,11 @@
   <action name="actionFile_dialog_paging_size" >
    <property name="text" >
     <string>File dialog page size</string>
+   </property>
+  </action>
+  <action name="actionDataQuality" >
+   <property name="text" >
+    <string>DataQuality</string>
    </property>
   </action>
  </widget>

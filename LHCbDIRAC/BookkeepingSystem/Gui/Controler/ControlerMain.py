@@ -7,8 +7,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
-from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
-
+from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread 
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
@@ -33,8 +32,18 @@ class ControlerMain(ControlerAbstract):
     self.__SortDict = {} 
     self.__StartItem = 0
     self.__Maxitems = 0
+    self.__qualityFlags = {}
+    retVal = self.__bkClient.getAvailableDataQuality()
+    if not retVal['OK']:
+      gLogger.error(retVal['Message'])
+    else: 
+      for i in retVal['Value']:
+        if i == "BAD":
+          self.__qualityFlags[i] = False
+        else:
+          self.__qualityFlags[i] = True   
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
-
+    self.__bkClient.setDataQualities(self.__qualityFlags)
   #############################################################################  
   def messageFromParent(self, message):
     controlers = self.getChildren()
@@ -295,7 +304,18 @@ class ControlerMain(ControlerAbstract):
       else:
         gLogger.error('Unkown message!', message)
         return S_ERROR()
-      
+    
+    elif sender.__class__.__name__=='ControlerDataQualityDialog':
+      if message.action() == 'changeQualities':
+        self.__qualityFlags = message['Values']
+        self.__bkClient.setDataQualities(self.__qualityFlags)
+      else:
+        gLogger.error('Unkown message!', message)
+        return S_ERROR()
+    else:
+      gLogger.error('Unkown message!', message)
+      return S_ERROR()
+  
   #############################################################################  
   def root(self):
     item = self.__bkClient.get()
@@ -332,3 +352,13 @@ class ControlerMain(ControlerAbstract):
   def setPathFileName(self, filename):
     self.__pathfilename = filename
   
+  #############################################################################
+  def dataQuality(self):
+    controlers = self.getChildren()
+    ct = controlers['DataQuality']
+    message = Message({'action':'list','Values':self.__qualityFlags})
+    ct.messageFromParent(message)    
+      
+  #############################################################################
+  def dataQualityFlagChecked(self,flag, value):
+    self.__qualityFlags[flag] = value 

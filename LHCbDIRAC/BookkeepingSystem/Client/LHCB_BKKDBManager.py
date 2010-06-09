@@ -99,6 +99,8 @@ class LHCB_BKKDBManager(BaseESManager):
     print "For Example:"
     print "client.setParameter('Processing Pass')"
     print "If you need help, you will use client.help() command."
+    
+    self.dataQualities_ = {}
 
   ############################################################################# 
   def _updateTreeLevels(self, level):
@@ -605,7 +607,9 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
     entityList = list()
-    result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+  
+    result = self.db_.getFilesWithSimcondAndDataQuality(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, self.dataQualities_)
+    #result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
     selection = {"Configuration Name":configName, \
                  "Configuration Version":configVersion, \
                  "Simulation Condition":str(simid), \
@@ -1085,7 +1089,8 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def plevelBody_4(self, path, levels, production, evt, ftype):
     entityList = list()
-    result = self.db_.getFilesWithSimcond('ALL', 'ALL', 'ALL', 'ALL', evt, production, ftype, 'ALL', 'ALL')
+    result = self.db_.getFilesWithSimcondAndDataQuality('ALL', 'ALL', 'ALL', 'ALL', evt, production, ftype, 'ALL', 'ALL', self.dataQualities_)
+    #result = self.db_.getFilesWithSimcond('ALL', 'ALL', 'ALL', 'ALL', evt, production, ftype, 'ALL', 'ALL')
     selection = {"Configuration Name":'ALL', \
                  "Configuration Version":'ALL', \
                  "Simulation Condition":'ALL', \
@@ -1962,3 +1967,11 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getProcessingPassDescfromProduction(self, prod):
     return self.db_.getProcessingPassDescfromProduction(prod)
+  
+  #############################################################################
+  def getAvailableDataQuality(self):
+    return self.db_.getAvailableDataQuality()
+  
+  #############################################################################
+  def setDataQualities(self, values):
+    self.dataQualities_ = values

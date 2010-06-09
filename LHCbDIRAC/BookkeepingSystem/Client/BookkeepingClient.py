@@ -268,6 +268,25 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def getFilesWithSimcondAndDataQuality(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, quality = []):
+    qualities = ''
+    for i in quality:
+      qualities +=';'+i
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
+    s = ''+configName+'>'+configVersion+'>'+str(simcondid)+'>'+str(procPass)+'>'+str(evtId)+'>'+str(prod)+'>'+str(ftype)+'>'+str(progName)+'>'+str(progVersion)+'>'+qualities
+    print s
+    file = tempfile.NamedTemporaryFile()
+    result = bkk.receiveFile(file.name, s)
+    if not result['OK']:
+      return result
+    else:
+      value = cPickle.load(open(file.name))
+      file.close()
+      return S_OK(value)
+    return S_ERROR()
+
+    
+  #############################################################################
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     '''
     server = self.__getServer()

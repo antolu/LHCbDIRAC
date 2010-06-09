@@ -1,0 +1,67 @@
+<ui version="4.0" >
+ <class>DataQualityDialog</class>
+ <widget class="QDialog" name="DataQualityDialog" >
+  <property name="windowModality" >
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>204</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Data quality settings dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" >
+   <item row="1" column="0" >
+    <widget class="QPushButton" name="OkButton" >
+     <property name="text" >
+      <string>OK</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" >
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Flags</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2" >
+      <item row="1" column="0" >
+       <widget class="QCheckBox" name="checkBox" >
+        <property name="text" >
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QCheckBox" name="checkBox_2" >
+        <property name="text" >
+         <string>MAYBE</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" >
+       <widget class="QCheckBox" name="checkBox_3" >
+        <property name="text" >
+         <string>BAD</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" >
+       <widget class="QCheckBox" name="checkBox_4" >
+        <property name="text" >
+         <string>EXPRESS_OK</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

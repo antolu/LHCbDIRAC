@@ -114,3 +114,11 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def getProcessingPassDescfromProduction(self, prod):
     return self.getManager().getProcessingPassDescfromProduction(prod)
+  
+  #############################################################################
+  def getAvailableDataQuality(self):
+    return self.getManager().getAvailableDataQuality()
+  
+  #############################################################################
+  def setDataQualities(self, values):
+    self.getManager().setDataQualities(values)
