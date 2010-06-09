@@ -779,6 +779,91 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
+  def getFilesWithSimcondAndDataQuality(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, quality):
+    print '!!!!!!!!!!!!!!!!!!!!!!!!!!',quality
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and configurations.ConfigName=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
+    
+    all = 0;
+    tables = ' jobs, files,configurations'
+    if simcondid != 'ALL':
+      condition += ' and jobs.production=productions.production'
+      condition += ' and productions.simcondid='+str(simcondid)
+      tables += ' ,productions'
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      if 'productions' not in tables:
+         tables += ', productions'
+    else:
+      all += 1
+      
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
+    
+    if prod != 'ALL':
+      condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
+    
+    if progName != 'ALL' and progVersion != 'ALL':
+      condition += ' and jobs.ProgramName=\''+progName+'\''
+      condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+    else:
+      all +=1
+         
+    if ftype == 'ALL':
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
+         files.filetypeid=filetypes.filetypeid and \
+         files.qualityid= dataquality.qualityid' + condition 
+      all +=1
+    else:
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         jobs.configurationid=configurations.configurationid and \
+         files.qualityid= dataquality.qualityid' + condition 
+    if all > ALLOWED_ALL:
+      return S_ERROR(" TO many ALL selected")
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
   def getLimitedFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems):
     
     condition = ''    

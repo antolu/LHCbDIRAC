@@ -226,6 +226,10 @@ class IBookkeepingDatabaseClient(object):
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     return self.getManager().getFilesWithSimcond(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion)
   
+  #############################################################################
+  def getFilesWithSimcondAndDataQuality(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, quality):
+    return self.getManager().getFilesWithSimcondAndDataQuality(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, quality)
+  
   #############################################################################  
   def getSimConditions(self):
     return self.getManager().getSimConditions()
