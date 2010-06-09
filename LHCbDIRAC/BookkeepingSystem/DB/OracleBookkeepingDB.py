@@ -1036,13 +1036,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       all += 1
          
-    print quality
     if len(quality) > 0:
       conds = ' ('
       for i in quality:
-        print 'QQQ',quality[i]
         if quality[i] != False:
-          quality = None
+          qualityFlag = None
           command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
           res = self.dbR_._query(command)
           if not res['OK']:
@@ -1050,8 +1048,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif len(res['Value']) == 0:
               return S_ERROR('Dataquality is missing!')
           else:
-            quality = res['Value'][0][0]
-          conds += ' files.qualityid='+str(quality)+' or'
+            qualityFlag = res['Value'][0][0]
+          conds += ' files.qualityid='+str(qualityFlag)+' or'
         condition += 'and'+conds[:-3] + ')'
         
     if ftype == 'ALL':
