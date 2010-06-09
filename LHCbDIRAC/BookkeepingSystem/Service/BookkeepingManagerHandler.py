@@ -1198,15 +1198,28 @@ class BookkeepingManagerHandler(RequestHandler):
   def transfer_toClient( self, parametes, token, fileHelper ):
     select = parametes.split('>')
     print select
-    result = dataMGMT_.getFilesWithSimcond(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8])
-    if not result['OK']:
-      return S_ERROR(result['Message'])
-    fileString = cPickle.dumps(result['Value'], protocol=2)
-    #fileString = DEncode.encode(result['Value'])
-    result = fileHelper.stringToNetwork(fileString)  
-    if result['OK']:
-      gLogger.info('Sent file %s of size %d' % (parametes,len(fileString)))
+    if len(select)>9:
+      result = dataMGMT_.getFilesWithSimcondAndDataQuality(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8], s[9].split(';')[1:])
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      fileString = cPickle.dumps(result['Value'], protocol=2)
+      #fileString = DEncode.encode(result['Value'])
+      result = fileHelper.stringToNetwork(fileString)  
+      if result['OK']:
+        gLogger.info('Sent file %s of size %d' % (parametes,len(fileString)))
+      else:
+        return result
+      return S_OK()
     else:
-      return result
-    return S_OK()
+      result = dataMGMT_.getFilesWithSimcond(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8])
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      fileString = cPickle.dumps(result['Value'], protocol=2)
+      #fileString = DEncode.encode(result['Value'])
+      result = fileHelper.stringToNetwork(fileString)  
+      if result['OK']:
+        gLogger.info('Sent file %s of size %d' % (parametes,len(fileString)))
+      else:
+        return result
+      return S_OK()
 #-----------------------------------END Event Types------------------------------------------------------------------
