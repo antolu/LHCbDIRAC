@@ -844,7 +844,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if len(quality) > 0:
       conds = ' ('
-      for i in flag:
+      for i in quality:
         quality = None
         command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
         res = self.dbR_._query(command)
