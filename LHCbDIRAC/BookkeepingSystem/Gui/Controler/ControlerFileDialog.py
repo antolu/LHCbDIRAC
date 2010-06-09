@@ -41,24 +41,27 @@ class ControlerFileDialog(ControlerAbstract):
     
     
     keys = items.keys()
-    value = items[keys[0]]
-    self.getWidget().showSelection(value['Selection'])
-    if res:
-      
-      events = self.countNumberOfEvents(items)
-      self.getWidget().showNumberOfEvents(events)
-      
-      nbfiles = self.countNumberOfFiles(items)
-      self.getWidget().showNumberOfFiles(nbfiles)
-      
-      eventinputstat = self.countNumberOfEventInputStat(items)
-      self.getWidget().showEventInputStat(eventinputstat)
-      
-      filesize = self.getSizeOfFiles(items)
-      self.getWidget().showFilesSize(filesize)
-      
-  
-      self.getWidget().show()
+    if len(keys) > 0:
+      value = items[keys[0]]
+      self.getWidget().showSelection(value['Selection'])
+      if res:
+        
+        events = self.countNumberOfEvents(items)
+        self.getWidget().showNumberOfEvents(events)
+        
+        nbfiles = self.countNumberOfFiles(items)
+        self.getWidget().showNumberOfFiles(nbfiles)
+        
+        eventinputstat = self.countNumberOfEventInputStat(items)
+        self.getWidget().showEventInputStat(eventinputstat)
+        
+        filesize = self.getSizeOfFiles(items)
+        self.getWidget().showFilesSize(filesize)
+        self.getWidget().show()
+    else:
+      QMessageBox.information(self.getWidget(), "No data have selected", "Please check your data quality flags and select the correct one :)!",QMessageBox.Ok)  
+    
+    
   #############################################################################  
   def messageFromChild(self, sender, message):
     if message.action()=='advancedSave':
