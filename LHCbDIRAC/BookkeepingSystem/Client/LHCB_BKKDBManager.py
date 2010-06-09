@@ -1731,7 +1731,8 @@ class LHCB_BKKDBManager(BaseESManager):
     records = []
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
-      result = self.db_.getLimitedFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, StartItem, Maxitems)
+      dict = {'CName':configName,'CVersion':configVersion, 'Simid':simid,'Ppass':processing,'Etype':evtType,'Prod':prod,'Ftype':ftype,'Pname':pname,'Pversion':pversion,'Sitem':StartItem,'Mitem':Maxitems,'Quality':self.dataQualities_}
+      result = self.db_.getLimitedFilesWithSimcondAndDataQuality(dict)
             
       parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
       

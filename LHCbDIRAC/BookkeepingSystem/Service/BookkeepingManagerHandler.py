@@ -1078,7 +1078,39 @@ class BookkeepingManagerHandler(RequestHandler):
     retVal = dataMGMT_.getProductionSummary(cName, cVersion, simdesc, pgroup, production, ftype, evttype)
           
     return retVal
-    
+  
+  #############################################################################
+  types_getLimitedFilesWithSimcondAndDataQuality = [DictType]
+  def export_getLimitedFilesWithSimcondAndDataQuality(self, dict):
+        
+    if dict.has_key('CName'):
+      configName = dict['CName']
+    if dict.has_key('CVersion'):
+      configVersion = dict['CVersion']
+    if dict.has_key('Simid'):
+      simcondid = dict['Simid']
+    if dict.has_key('Ppass'):
+      procPass = dict['Ppass']
+    if dict.has_key('Etype'):
+      evtId = dict['Etype']
+    if dict.has_key('Prod'):
+      prod = dict['Prod']
+    if dict.has_key('Ftype'):
+      ftype = dict['Ftype']
+    if dict.has_key('Pname'):
+      progName = dict['Pname']
+    if dict.has_key('Pversion'):
+      progVersion = dict['Pversion']
+    if dict.has_key('Sitem'):
+      startitem = dict['Sitem']
+    if dict.has_key('Mitem'):
+      maxitems = dict['Mitem']
+    if dict.has_key('Quality'):
+      quality = dict['Quality']
+      
+    retVal = dataMGMT_.getLimitedFilesWithSimcondAndDataQuality(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems, quality)
+    return retVal
+  
   #############################################################################
   types_getProductionInformations = [LongType]
   def export_getProductionInformations(self, prodid):

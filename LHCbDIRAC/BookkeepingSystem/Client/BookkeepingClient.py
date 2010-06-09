@@ -285,7 +285,12 @@ class BookkeepingClient:
       return S_OK(value)
     return S_ERROR()
 
-    
+   #############################################################################
+  def getLimitedFilesWithSimcondAndDataQuality(self, dict):
+    server = self.__getServer()
+    result = server.getLimitedFilesWithSimcondAndDataQuality(dict)
+    return result
+  
   #############################################################################
   def getFilesWithSimcond(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     '''

@@ -780,7 +780,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getFilesWithSimcondAndDataQuality(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, quality):
-    print '!!!!!!!!!!!!!!!!!!!!!!!!!!',quality
     condition = ''    
     if configName != 'ALL':
       condition += ' and configurations.ConfigName=\''+configName+'\''
@@ -975,6 +974,117 @@ class OracleBookkeepingDB(IBookkeepingDB):
     res = self.dbR_._query(command)
     return res
  
+  #############################################################################
+  def getLimitedFilesWithSimcondAndDataQuality(self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems, quality):
+    
+    condition = ''    
+    if configName != 'ALL':
+      condition += ' and configurations.ConfigName=\''+configName+'\''
+    
+    if configVersion != 'ALL':
+     condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
+     
+    tables = ' jobs, files,configurations'
+    if simcondid != 'ALL':
+      condition += ' and jobs.production=productions.production'
+      condition += ' and productions.simcondid='+str(simcondid)
+      tables += ' ,productions'
+        
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        if desc != '':
+          result = self.getGroupId(desc.strip())
+          if not result['OK']:
+            return S_ERROR(result['Message'])
+          elif len(result['Value']) == 0:
+            return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+          val = result['Value'][0][0]
+          totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      if 'productions' not in tables:
+         tables += ', productions'
+      
+    all = 0
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    else:
+      all += 1
+    
+    if prod != 'ALL':
+      condition += ' and jobs.Production='+str(prod)
+    else:
+      all += 1
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    else:
+      all += 1
+    
+    if progName != 'ALL' and progVersion != 'ALL':
+      condition += ' and jobs.ProgramName=\''+progName+'\''
+      condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
+    else:
+      all += 1
+         
+    if len(quality) > 0:
+      conds = ' ('
+      for i in quality:
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        conds += ' files.qualityid='+str(quality)+' or'
+      condition += 'and'+conds[:-3] + ')'
+      
+    if ftype == 'ALL':
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jeventinput \
+      FROM \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode,ftype,runnb,fillnb,fullst,quality,jeventinput \
+          from( \
+           select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
+            \'not used\' gen, \'not used\' geom, \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, filetypes.name ftype, \
+        jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput\
+        from'+tables+',filetypes, dataquality \
+         where files.JobId=jobs.JobId and \
+         jobs.configurationid=configurations.configurationid and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid \
+         files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
+      all += 1
+    else:
+      command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality, jeventinput from \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality, jeventinput \
+          from( \
+           select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
+            \'not used\' gen, \'not used\' geom, \
+            jobs.JobStart jstart, jobs.JobEnd jend, jobs.WorkerNode wnode, jobs.runnumber runnb, jobs.fillnumber fillnb, files.fullstat fullst, dataquality.dataqualityflag quality, jobs.eventinputstat jeventinput  \
+        from'+ tables+', dataquality\
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid=dataquality.qualityid and \
+         jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
+      
+    if all > ALLOWED_ALL:
+      return S_ERROR("To many ALL selected")
+    
+    res = self.dbR_._query(command)
+    return res
     
   def getLimitedNbOfFiles(self,configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion):
     
