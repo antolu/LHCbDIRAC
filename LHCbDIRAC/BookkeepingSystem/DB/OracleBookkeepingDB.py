@@ -1040,6 +1040,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(quality) > 0:
       conds = ' ('
       for i in quality:
+        print 'QQQ',quality[i]
         if quality[i] != False:
           quality = None
           command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
