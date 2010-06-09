@@ -841,7 +841,22 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.ProgramVersion=\''+progVersion+'\''
     else:
       all +=1
-         
+    
+    if len(quality) > 0:
+      conds = ' ('
+      for i in flag:
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        conds += ' files.qualityid='+str(quality)+' or'
+      condition += 'and'+conds[:-3] + ')'
+            
     if ftype == 'ALL':
       command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
