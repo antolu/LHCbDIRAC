@@ -1039,18 +1039,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(quality) > 0:
       conds = ' ('
       for i in quality:
-        quality = None
-        command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
-        res = self.dbR_._query(command)
-        if not res['OK']:
-          gLogger.error('Data quality problem:',res['Message'])
-        elif len(res['Value']) == 0:
-            return S_ERROR('Dataquality is missing!')
-        else:
-          quality = res['Value'][0][0]
-        conds += ' files.qualityid='+str(quality)+' or'
-      condition += 'and'+conds[:-3] + ')'
-      
+        if quality[i] != False:
+          quality = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' files.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+        
     if ftype == 'ALL':
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jeventinput \
       FROM \
