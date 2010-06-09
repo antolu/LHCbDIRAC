@@ -1199,7 +1199,7 @@ class BookkeepingManagerHandler(RequestHandler):
     select = parametes.split('>')
     print select
     if len(select)>9:
-      result = dataMGMT_.getFilesWithSimcondAndDataQuality(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8], s[9].split(';')[1:])
+      result = dataMGMT_.getFilesWithSimcondAndDataQuality(select[0], select[1], select[2], select[3], select[4], select[5], select[6], select[7], select[8], select[9].split(';')[1:])
       if not result['OK']:
         return S_ERROR(result['Message'])
       fileString = cPickle.dumps(result['Value'], protocol=2)
