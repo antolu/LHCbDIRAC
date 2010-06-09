@@ -251,8 +251,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getLimitedFilesWithSimcondAndDataQuality(configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion, startitem, maxitems, quality)
   
   #############################################################################
-  def getRunFilesWithAgivenRunWithDataQuality(self,dict):
-    return self.getManager().getRunFilesWithAgivenRunWithDataQuality(dict)
+  def getRunFilesWithAgivenRunWithDataQuality(self,procPass, evtId, runnumber, ftype, quality):
+    return self.getManager().getRunFilesWithAgivenRunWithDataQuality(procPass, evtId, runnumber, ftype, quality)
                                    
   #############################################################################
   def getRunInformations(self, runnb):
