@@ -1050,7 +1050,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           else:
             qualityFlag = res['Value'][0][0]
           conds += ' files.qualityid='+str(qualityFlag)+' or'
-        condition += 'and'+conds[:-3] + ')'
+      condition += 'and'+conds[:-3] + ')'
         
     if ftype == 'ALL':
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, ftype, runnb,fillnb,fullst,quality, jeventinput \
