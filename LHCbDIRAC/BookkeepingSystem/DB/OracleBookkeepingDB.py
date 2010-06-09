@@ -1036,6 +1036,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       all += 1
          
+    print quality
     if len(quality) > 0:
       conds = ' ('
       for i in quality:
