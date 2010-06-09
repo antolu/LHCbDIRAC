@@ -1732,7 +1732,76 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
     res = self.dbR_._query(command)
     return res
- 
+  
+  #############################################################################
+  def getRunFilesWithAgivenRunWithDataQuality(self, procPass, evtId, runnumber, ftype, quality=[]):
+    condition = ' and jobs.runnumber='+str(runnumber)    
+    
+    tables = ' jobs, files,productions'
+    
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+      condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+      condition += ' and productions.PRODUCTION=jobs.production'
+      
+    
+    if evtId != 'ALL':
+      condition += ' and files.EventTypeId='+str(evtId)
+    
+    if ftype != 'ALL':
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error('File Type not found:',res['Message'])
+      else:
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.FileTypeId='+str(ftypeId)
+    
+    if len(quality) > 0:
+      conds = ' ('
+      for i in quality:
+        if quality[i] != False:
+          qualityFlag = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            qualityFlag = res['Value'][0][0]
+          conds += ' files.qualityid='+str(qualityFlag)+' or'
+      condition += 'and'+conds[:-3] + ')'
+             
+    if ftype == 'ALL':
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate, \'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables+' ,filetypes, dataquality \
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.filetypeid=filetypes.filetypeid and \
+         files.qualityid= dataquality.qualityid' + condition 
+      all +=1
+    else:
+      command =' select files.FileName, files.EventStat, files.FileSize, files.CreationDate,\'Unkown\',\'Unkown\',\
+         jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat from '+ tables +' ,dataquality\
+         where files.JobId=jobs.JobId and \
+         files.gotReplica=\'Yes\' and \
+         files.qualityid= dataquality.qualityid' + condition 
+    
+    
+    res = self.dbR_._query(command)
+    return res
+  
   #############################################################################
   def getRunFilesWithAgivenRun(self, procPass, evtId, runnumber, ftype):
     condition = ' and jobs.runnumber='+str(runnumber)    

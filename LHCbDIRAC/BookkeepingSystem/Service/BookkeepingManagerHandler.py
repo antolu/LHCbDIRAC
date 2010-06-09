@@ -1112,6 +1112,23 @@ class BookkeepingManagerHandler(RequestHandler):
     return retVal
   
   #############################################################################
+  types_getRunFilesWithAgivenRunWithDataQuality = [DictType]
+  def export_getRunFilesWithAgivenRunWithDataQuality(self, dict):
+     
+    if dict.has_key('Ppass'):
+      procPass = dict['Ppass']
+    if dict.has_key('Evid'):
+      evtId = dict['Evid']
+    if dict.has_key('Rnumber'): 
+      runnumber = dict['Rnumber']
+    if dict.has_key('Ftye'):
+      ftype = dict['Ftye']
+    if dict.has_key('Quality'):
+      quality = dict['Quality']
+    retVal = dataMGMT_.getRunFilesWithAgivenRunWithDataQuality(procPass, evtId, runnumber, ftype, quality)
+    return retVal
+  
+  #############################################################################
   types_getProductionInformations = [LongType]
   def export_getProductionInformations(self, prodid):
     

@@ -682,6 +682,11 @@ class BookkeepingClient:
    
   
   #############################################################################
+  def getRunFilesWithAgivenRunWithDataQuality(self, dict):
+    server = self.__getServer()
+    return server.getRunFilesWithAgivenRunWithDataQuality(dict)
+  
+  #############################################################################
   def addReplica(self, fileName):
     server = self.__getServer()
     return server.addReplica(fileName)

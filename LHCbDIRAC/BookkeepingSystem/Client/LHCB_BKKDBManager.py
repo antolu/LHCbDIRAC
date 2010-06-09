@@ -1254,8 +1254,9 @@ class LHCB_BKKDBManager(BaseESManager):
   
   ############################################################################# 
   def rlevelBody_5(self, path, levels, runnumber, processing, evt, ftype):
-    entityList = list()
-    result = self.db_.getRunFilesWithAgivenRun(processing, evt, runnumber, ftype)
+    entityList = list()   
+    dict = {'Ppass':processing, 'Evid':evt, 'Rnumber':runnumber, 'Ftye':ftype, 'Quality':self.dataQualities_}
+    result = self.db_.getRunFilesWithAgivenRunWithDataQuality(dict)
     selection = {"Configuration Name":'ALL', \
                  "Configuration Version":'ALL', \
                  "Simulation Condition":'ALL', \
