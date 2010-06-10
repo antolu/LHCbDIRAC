@@ -56,7 +56,7 @@ class StorageUsageDB(DB):
       res = self._update(req)
       if not res['OK']:
         continue
-      dirIDs[directoryPath] = res['Value']['lastRowId']
+      dirIDs[directoryPath] = res['lastRowId']
     return S_OK(dirIDs)
 
   def __insertDirectoriesUsage(self, directoryDict,directoryIDs):
