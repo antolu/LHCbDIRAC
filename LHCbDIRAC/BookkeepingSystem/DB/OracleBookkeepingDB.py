@@ -3839,3 +3839,12 @@ and files.qualityid= dataquality.qualityid'
           notProcessedRuns += [i]  
     
     return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
+  
+  #############################################################################
+  def setProductionVisible(self, prodid, Value):
+    if Value:
+      command = 'update productions set visible=\'1\' where production='+str(production) 
+    else:
+      command = 'update productions set visible=\'0\' where production='+str(production)
+    retVal = self.dbW_._query(command)
+    return retVal

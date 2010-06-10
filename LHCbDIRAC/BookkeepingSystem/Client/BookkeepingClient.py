@@ -860,6 +860,9 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getRunsWithAGivenDates(dict)
   
-  
+  #############################################################################
+  def setProductionVisible(self, prodid, Value):
+    server = self.__getServer()
+    return server.setProductionVisible(prodid, Value)
   
    #----------------------------------- END Event Types------------------------------------------------------------------

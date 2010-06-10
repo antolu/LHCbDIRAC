@@ -575,6 +575,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getRunsWithAGivenDates(dict)
   
   #############################################################################
+  def setProductionVisible(self, prodid, Value):
+    return self.getManager().setProductionVisible(prodid, Value)
+  
+  #############################################################################
   '''
     MONITORING
   '''

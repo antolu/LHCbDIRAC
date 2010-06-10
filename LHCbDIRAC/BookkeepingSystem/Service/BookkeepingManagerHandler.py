@@ -1239,7 +1239,15 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getRunsWithAGivenDates = [DictType]
   def export_getRunsWithAGivenDates(self, dict):
     return dataMGMT_.getRunsWithAGivenDates(dict)
-    
+  
+  #############################################################################
+  types_setProductionVisible = [DictType]
+  def export_setProductionVisible(self, dict):
+    if dict.has_key('Production') and dict.has_key('Visible'):
+      prod = dict['Production']
+      vis = dict['Visible']
+    return dataMGMT_.setProductionVisible(prod, vis)
+  
   '''
   End Monitoring
   '''
