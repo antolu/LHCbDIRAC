@@ -3843,8 +3843,8 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def setProductionVisible(self, prodid, Value):
     if Value:
-      command = 'update productions set visible=\'1\' where production='+str(production) 
+      command = 'update productions set visible=\'1\' where production='+str(prodid) 
     else:
-      command = 'update productions set visible=\'0\' where production='+str(production)
+      command = 'update productions set visible=\'0\' where production='+str(prodid)
     retVal = self.dbW_._query(command)
     return retVal
