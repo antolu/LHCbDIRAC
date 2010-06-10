@@ -20,6 +20,65 @@ class StorageUsageDB(DB):
 
   #############################################################################
   #
+  # Methods for bulk insertion
+  #
+
+  def publishDirectories(self,directoryDict):
+    """ Inserts a group of directoires with their usage """
+    res = self.__getDirectoryPathIDs(directoryDict.keys())
+    if not res['OK']:
+      return res
+    directoryIDs = res['Value']
+    toCreate = []
+    for directoryPath in directoryDict.keys():
+      if not directoryPath in directoryIDs.keys():
+        toCreate.append((directoryPath,directoryDict[directoryPath]['Files'],directoryDict[directoryPath]['TotalSize']))
+    res = self.__insertDirectories(toCreate)
+    directoryIDs.update(res['Value'])
+    return self.__insertDirectoriesUsage(directoryDict,directoryIDs)
+    
+  def __getDirectoryPathIDs(self,directories):
+    """ Get the directoryIDs associated to a list of paths from the Directory table """
+    req = "SELECT DirectoryPath,DirectoryID FROM Directory WHERE DirectoryPath IN (%s);" % stringListToString(directories)
+    print req
+    res = self._query(req)
+    if not res['OK']:
+      return res
+    dirs = {}
+    for dir,id in res['Value']:
+      dirs[dir] = id
+    return S_OK(dirs)
+
+  def __insertDirectories(self,toCreate):
+    dirIDs = {}
+    for directoryPath,directoryFiles,directorySize in toCreate:
+      req = "INSERT INTO Directory (DirectoryPath,DirectoryFiles,DirectorySize) VALUES ('%s',%s,%s);" % (directory,directoryFiles,directorySize)
+      res = self._update(req)
+      if not res['OK']:
+        continue
+      dirIDs[directoryPath] = res['Value']['lastRowId']
+    return S_OK(dirIDs)
+
+  def __insertDirectoriesUsage(self, directoryDict,directoryIDs):
+    """ Inserts the usage for the directoryID into the DirectoryUsage table """
+    req = "DELETE FROM DirectoryUsage WHERE DirectoryID IN (%s)" % intListToString(directoryIDs.values())
+    print req
+    res = self._update(req)
+    if not res['OK']:
+      return res
+    req = "INSERT INTO DirectoryUsage (DirectoryID,StorageElement,StorageElementSize,StorageElementFiles,Updated) VALUES"
+    valuesToJoin = []
+    for lfn,directoryID in directoryIDs.items():
+      for storageElement,usageDict in directoryDict[lfn]['SEUsage'].items():
+        storageElementSize = usageDict['Size']
+        storageElementFiles= usageDict['Files']
+        valuesToJoin.append("(%s,'%s',%s,%s,NOW())" % (directoryID,storageElement,storageElementSize,storageElementFiles))
+    req = "%s %s" % (req,intListToString(valuesToJoin))
+    print req
+    return self._update(req)
+
+  #############################################################################
+  #
   # Methods for manipulating the multiple tables
   #
 
