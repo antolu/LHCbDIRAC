@@ -52,7 +52,7 @@ class StorageUsageDB(DB):
   def __insertDirectories(self,toCreate):
     dirIDs = {}
     for directoryPath,directoryFiles,directorySize in toCreate:
-      req = "INSERT INTO Directory (DirectoryPath,DirectoryFiles,DirectorySize) VALUES ('%s',%s,%s);" % (directory,directoryFiles,directorySize)
+      req = "INSERT INTO Directory (DirectoryPath,DirectoryFiles,DirectorySize) VALUES ('%s',%s,%s);" % (directoryPath,directoryFiles,directorySize)
       res = self._update(req)
       if not res['OK']:
         continue
