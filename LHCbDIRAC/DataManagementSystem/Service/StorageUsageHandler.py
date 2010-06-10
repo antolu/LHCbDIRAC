@@ -18,6 +18,10 @@ def initializeStorageUsageHandler(serviceInfo):
 
 class StorageUsageHandler(RequestHandler):
 
+  types_publishDirectories = [DictType]
+  def export_publishDirectories(self,directoryDict):
+    return storageUsageDB.publishDirectories(directoryDict)
+
   types_insertDirectory = [StringType,IntType,LongType]
   def export_insertDirectory(self,directory,directoryFiles,directorySize):
     """ Insert the directory and parameters in the database
