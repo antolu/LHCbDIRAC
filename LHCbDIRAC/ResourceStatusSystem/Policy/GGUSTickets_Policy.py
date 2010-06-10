@@ -1,5 +1,5 @@
-""" The SAMself.results_Policy class is a policy class that checks 
-    the SAM job self.results
+""" The GGUSTickets_Policy class is a policy class that evaluates on 
+    how many tickets are open atm.  
 """
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
