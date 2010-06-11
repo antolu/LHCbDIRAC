@@ -162,16 +162,16 @@ def loopOverProds(prodID, fromDate, status):
     print ""
     for event in events:
       myType = event[0].ljust(4)
-      print "Number of Events of type %.4s: %.7d" %(myType, event[1])
+      print "Number of Events of type %.20s: %.7d" %(myType, event[1])
 
     files = val['Number of files']
     for file in files:
       myType = file[1].ljust(4)
-      print " Number of Files of type %.4s: %.7d" %(myType, file[0])
+      print " Number of Files of type %.20s: %.7d" %(myType, file[0])
 
     jobs = val['Number of jobs']
     if jobs[0]:
-      print "               Number of jobs: %.7d" %(jobs[0])
+      print "               Number of Steps: %.7d" %(jobs[0])
 
   print "-----------------------------------------------------------\n"
   return
