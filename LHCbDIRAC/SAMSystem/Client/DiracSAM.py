@@ -53,6 +53,27 @@ class DiracSAM(Dirac):
     return S_OK()
 
   #############################################################################
+  def submitAllSAMTestJobs(self,softwareEnableFlag=True,publishFlag=False,scriptName=''):
+    """Submit SAM tests to all possible CEs as defined in the CS.
+    """
+    result = getCESiteMapping(self.gridType)
+    if not result['OK']:
+      return result
+    ceSiteMapping = {}
+    self.log.verbose('Banned SAM sites are: %s' %(string.join(self.bannedSites,', ')))
+    for ce,site in result['Value'].items():
+      if not site in self.bannedSites:
+        ceSiteMapping[ce] = site
+
+    self.log.info('Preparing jobs for %s CEs' %(len(ceSiteMapping.keys())))
+    for ce in ceSiteMapping.keys():
+      result = self.submitSAMJob(ce,softwareEnable=softwareEnableFlag,publishFlag=False,script=scriptName)
+      if not result['OK']:
+        self.log.info('Submission of SAM job to CE %s failed with message:\n%s' %(ce,result['Message']))
+
+    return S_OK()
+
+  #############################################################################
   def submitSAMJob(self,ce,removeLock=False,deleteSharedArea=False,logFlag=True,publishFlag=True,mode='wms',enable=True,softwareEnable=True,reportEnable=True,install_project=None,script=''):
     """Submit a SAM test job to an individual CE.
     """
