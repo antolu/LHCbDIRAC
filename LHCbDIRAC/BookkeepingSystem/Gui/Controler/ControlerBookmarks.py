@@ -76,12 +76,12 @@ run
   #############################################################################
   def __getBookmarks(self):
     upc = UserProfileClient( "Bookkeeping", RPCClient )
-    return upc.retrieveVar( "Bookmarks" )
+    return upc.retrieveUserVar( "Bookmarks" )
 
   #############################################################################
   def __addBookmark(self,path,title):
     upc = UserProfileClient( "Bookkeeping", RPCClient )
-    result = upc.retrieveVar( "Bookmarks" )
+    result = upc.retrieveUserVar( "Bookmarks" )
     if result["OK"]:
       data = result["Value"]
     else:
@@ -100,7 +100,7 @@ run
   #############################################################################
   def __delBookmark(self,path,title):
     upc = UserProfileClient( "Bookkeeping", RPCClient )
-    result = upc.retrieveVar( "Bookmarks" )
+    result = upc.retrieveUserVar( "Bookmarks" )
     if result["OK"]:
       data = result["Value"]
     else:
