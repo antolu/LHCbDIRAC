@@ -47,8 +47,8 @@ class Production(LHCbJob):
     self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.SARA.nl'])
     self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),'@{applicationName}_@{STEP_ID}_Hist.root')
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
-    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
-    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
+    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
+    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),'/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw')
     self.defaultProdID = '12345'
     self.defaultProdJobID = '12345'
@@ -221,7 +221,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
       extraOpts = string.join(extraOpts,';')
       optionsLine = "%s\n%s" % (optionsLine,extraOpts)
-      
+
     if not outputSE:
       outputSE='Tier1-RDST'
       self.log.verbose('Setting default outputSE to %s' %(outputSE))
@@ -247,7 +247,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not outputSE:
         outputSE='Tier1-RDST'
         #outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))        
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))
     else:
       if not appType.lower() in ['dst','xdst']:
         raise TypeError,'Application type not recognised'
@@ -286,7 +286,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',condDBTag='global',ddDBTag='global',inputProduction=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
-        inputDataType is rdst / fetc / sdst 
+        inputDataType is rdst / fetc / sdst
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
@@ -313,11 +313,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         else:
           outputSE='Tier1_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
-    
+
     if appType.lower()=='merge':
       if not outputSE:
         outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))      
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))
       if inputProduction:
         result = self._setInputProductionBKStepInfo(inputProduction,{})
         if not result['OK']:
@@ -330,7 +330,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if appType.lower()=='setc':
       if not outputSE:
         outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))   
+        self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     if not overrideOpts:
       optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
@@ -838,8 +838,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       #To prevent not finding a file remove DQ flag distinction here
       if bkDict.has_key('DataQualityFlag'):
         self.log.info('Removing DQ flag "%s" just to get a dataset' %(bkDict['DataQualityFlag']))
-        del bkDict['DataQualityFlag'] 
-      
+        del bkDict['DataQualityFlag']
+
       for name,value in bkDict.items():
         if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
           if value == 0:
@@ -1075,7 +1075,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
       except Exception,x:
         self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
-      
+
     if transformation and not bkScript:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
@@ -1106,7 +1106,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           if requestID:
             result = self.setProdParameter(transID,'TransformationFamily',requestID)
             if not result['OK']:
-              self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))            
+              self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
@@ -1131,7 +1131,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fileType = tmpTypes
       fileType.append('DST')
       self.log.info('Data types for replication will be: %s' %(string.join(fileType,', ')))
-          
+
     inputProd = int(inputProd)
     replicas = int(replicas)
     plugin = 'LHCbMCDSTBroadcast'
@@ -1151,7 +1151,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       transLines.append('transformation.setTransformationName("%s")' %(tName))
       if type(fileType)==type([]):
         transLines.append("""transformation.setBkQuery({"ProductionID":%s,"FileType":%s})""" %(inputProd,fileType))
-      else:  
+      else:
         transLines.append('transformation.setBkQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
       transLines.append('transformation.setDescription("Replication of transformation %s output data")' %(inputProd))
       transLines.append('transformation.setLongDescription("This transformation is to replicate the output data from transformation %s according to the computing model")' %(inputProd))
@@ -1170,7 +1170,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen.close()
       return S_OK()
 
-    transformation = Transformation()      
+    transformation = Transformation()
     transformation.setTransformationName(tName)
     transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
     transformation.setDescription('Replication of transformation %s output data' % inputProd)
