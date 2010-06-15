@@ -8,9 +8,10 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
-from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
-from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
-from DIRAC.Core.Utilities.List import sortList
+from DIRAC.DataManagementSystem.Agent.NamespaceBrowser   import NamespaceBrowser
+from DIRAC.DataManagementSystem.Client.ReplicaManager    import CatalogDirectory
+from DIRAC.Core.Utilities.List                           import sortList
+from DIRAC.Core.Utilities.Time                           import timeInterval,dateTime,week
 
 import time,os
 from types import *
@@ -53,6 +54,7 @@ class StorageUsageAgent(AgentModule):
     gLogger.info("execute: Initiating with %s as base directory." % baseDir)
 
     # Loop over all the directories and sub-directories
+    directoriesToPublish = {}
     while (oNamespaceBrowser.isActive()):
       currentDir = oNamespaceBrowser.getActiveDir()
       gLogger.info("execute: Getting usage for %s." % currentDir)
@@ -72,12 +74,31 @@ class StorageUsageAgent(AgentModule):
           gLogger.info("execute: %s sub-directories are closed (ignored)." % len(closedDirs))
           for dir in closedDirs:
             gLogger.info("execute: %s" % dir)
-            subDirs.remove(dir)
+            subDirs.pop(dir)
         numberOfFiles = int(directoryMetadata['Files'])
         gLogger.info("execute: Found %s files in the directory." % numberOfFiles)
         totalSize = long(directoryMetadata['TotalSize'])
 
         siteUsage = directoryMetadata['SiteUsage']
+        if numberOfFiles > 0:
+          directoriesToPublish[currentDir] = {'Files':numberOfFiles,'TotalSize':totalSize,'SEUsage':siteUsage}
+          gLogger.verbose("%s %s %s" % ('Storage Element'.ljust(40),'Number of files'.rjust(20),'Total size'.rjust(20)))
+          for storageElement in sortList(siteUsage.keys()):
+            usageDict = siteUsage[storageElement]
+            gLogger.verbose("%s %s %s" % (storageElement.ljust(40),str(usageDict['Files']).rjust(20),str(usageDict['Size']).rjust(20)))
+        elif (len(subDirs) ==  0) and (len(closedDirs) == 0):
+          if not currentDir == baseDir:
+            self.removeEmptyDir(currentDir)
+        if len(directoriesToPublish) == 100:
+          self.publishDirectories(directoriesToPublish)
+          directoriesToPublish = {}
+
+        ####################################################################################################
+        #
+        # OLD LOGIC
+        #
+        """
+
         if numberOfFiles > 0:
           res = self.StorageUsageDB.insertDirectory(currentDir,numberOfFiles,totalSize)
           if not res['OK']:
@@ -88,22 +109,28 @@ class StorageUsageAgent(AgentModule):
             gLogger.info("execute: %s %s %s" % ('Storage Element'.ljust(40),'Number of files'.rjust(20),'Total size'.rjust(20)))
             for storageElement in sortList(siteUsage.keys()):
               usageDict = siteUsage[storageElement]
+              
               res = self.StorageUsageDB.publishDirectoryUsage(currentDir,storageElement,long(usageDict['Size']),usageDict['Files'])
               if not res['OK']:
                 gLogger.error("execute: Failed to update the Storage Usage database.", "%s %s" % (storageElement,res['Message']))
                 subDirs = [currentDir]
               else:
                 gLogger.info("execute: %s %s %s" % (storageElement.ljust(40),str(usageDict['Files']).rjust(20),str(usageDict['Size']).rjust(20)))
-
         # If there are no subdirs
         if (len(subDirs) ==  0) and (len(closedDirs) == 0) and (numberOfFiles == 0):
           if not currentDir == baseDir:
             self.removeEmptyDir(currentDir)
+        """
 
       chosenDirs = []
+      rightNow = dateTime()
       for subDir in subDirs:
-        if subDir not in ignoreDirectories:
+        if subDir in ignoreDirectories:
+          continue
+        timeDiff = timeInterval( subDirs[subDir], 552*week)
+        if timeDiff.includes(rightNow):
           chosenDirs.append(subDir)
+
       oNamespaceBrowser.updateDirs(chosenDirs)
       gLogger.info("execute: There are %s active directories to be searched." % oNamespaceBrowser.getNumberActiveDirs())
 
@@ -124,3 +151,10 @@ class StorageUsageAgent(AgentModule):
       else:
         gLogger.info("removeEmptyDir: Successfully removed empty directory from File Catalog.")
     return S_OK()
+
+  def publishDirectories(self,directoriesToPublish):
+    gLogger.info("publishDirectories: Publishing usage for %d directories" % len(directoriesToPublish))
+    res = self.StorageUsageDB.publishDirectories(directoriesToPublish)
+    if not res['OK']:
+      gLogger.error("publishDirectories: Failed to publish directories",res['Message'])
+    return res     
