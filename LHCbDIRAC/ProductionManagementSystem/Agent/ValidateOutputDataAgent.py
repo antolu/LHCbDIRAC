@@ -106,8 +106,9 @@ class ValidateOutputDataAgent(AgentModule):
     if not res['OK']:
       return res
     if not res['Value']:
-      self.__createProductionDirectories(prodID)
-      res = self.__getProductionDirectories(prodID)
+      return S_ERROR("No output directories available")
+      #self.__createProductionDirectories(prodID)
+      #res = self.__getProductionDirectories(prodID)
     return res
 
   def __getProductionDirectories(self,prodID):
