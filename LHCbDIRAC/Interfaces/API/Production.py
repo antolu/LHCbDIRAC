@@ -396,7 +396,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep('Moore',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{},condDBTag,ddDBTag,outputAppendName)
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',extraOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global'):
+  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',eventType='firstStep',extraPackages='',inputData='previousStep',inputDataType='dst',outputSE=None,overrideOpts='',extraOpts='',numberOfEvents='-1',passDict={},condDBTag='global',ddDBTag='global',dataType='MC'):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
@@ -430,7 +430,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       extraOpts = string.join(extraOpts,';')
       optionsLine = "%s\n%s" % (optionsLine,extraOpts)
 
-    self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed, doesn't look like this is used anywhere...
+    self._setParameter('dataType','string',dataType,'DataType')
     if inputDataType.lower()=='mdf':
       self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,extraPackages,outputSE,inputData,inputDataType,histograms,firstEventNumber,{})
     else:
@@ -794,6 +794,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['configVersion']=prodWorkflow.findParameter('configVersion').getValue()
     parameters['outputDataFileMask']=prodWorkflow.findParameter('outputDataFileMask').getValue()
     parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
+    parameters['DataType']=prodWorkflow.findParameter('DataType').getValue()
 
     if prodWorkflow.findParameter('InputData'): #now only comes from BK query
       prodWorkflow.findParameter('InputData').setValue('')
@@ -831,14 +832,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['DerivedProduction']=derivedProd
 
     inputDataFile = ''
-    if parameters['BKInputQuery']:
-      bkserver = RPCClient('Bookkeeping/BookkeepingManager')
-      self.log.verbose('Production has input data query, will attempt to retrieve an input data file for LFN construction')
+    if parameters['BKInputQuery'] and not parameters['DataType'].lower()=='mc':
       bkDict = parameters['BKInputQuery']
       #To prevent not finding a file remove DQ flag distinction here
       if bkDict.has_key('DataQualityFlag'):
-        self.log.info('Removing DQ flag "%s" just to get a dataset' %(bkDict['DataQualityFlag']))
-        del bkDict['DataQualityFlag']
+        if not bkDict['DataQualityFlag'].lower() == 'all':
+          self.log.info('Removing DQ flag "%s" just to get a dataset' %(bkDict['DataQualityFlag']))
+          del bkDict['DataQualityFlag']
 
       for name,value in bkDict.items():
         if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
@@ -852,6 +852,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           if value.lower() == "all":
             del bkDict[name]
 
+      bkserver = RPCClient('Bookkeeping/BookkeepingManager')
+      self.log.verbose('Production has input data query, will attempt to retrieve an input data file for LFN construction')
       result = bkserver.getFilesWithGivenDataSets(bkDict)
       if not result['OK']:
         self.log.error('Could not obtain data from input BK query')
@@ -1085,6 +1087,21 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
       else:
         self.log.info('Successfully created transformation %s for production %s' %(result['Value'],prodID))
+
+      transID = result['Value']
+      if transID and prodID:
+        result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
+        if not result['OK']:
+          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
+#        self.log.verbose('Attempting to set the transformation group: %s' %(self.prodGroup))
+#        result = self.setProdParameter(transID,'TransformationGroup',self.prodGroup)
+#        if not result['OK']:
+#          self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(self.prodGroup,transID,result))
+        if requestID:
+          result = self.setProdParameter(transID,'TransformationFamily',requestID)
+          if not result['OK']:
+            self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))        
+        
     elif transformation:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
@@ -1092,21 +1109,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
       transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True,prodPlugin=self.plugin)
       if not transID['OK']:
-        self.log.error('Problem discovering transformation ID, result was: %s' %transID)
+        self.log.error('Problem writing transformation script, result was: %s' %transID)
       else:
-        transID = transID['Value']
-        if transID and prodID:
-          result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
-          if not result['OK']:
-            self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
-          self.log.verbose('Attempting to set the transformation group: %s' %(transGroup))
-          result = self.setProdParameter(transID,'TransformationGroup',self.prodGroup)
-          if not result['OK']:
-            self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(self.prodGroup,transID,result))
-          if requestID:
-            result = self.setProdParameter(transID,'TransformationFamily',requestID)
-            if not result['OK']:
-              self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))
+        self.log.verbose('Successfully created transformation script for prod %s' %prodID)
     else:
       self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
 
