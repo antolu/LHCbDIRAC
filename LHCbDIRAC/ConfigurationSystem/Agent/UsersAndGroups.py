@@ -175,6 +175,7 @@ class UsersAndGroups( AgentModule ):
       self.log.fatal( 'Could not retrieve current User description' )
       return ret
     currentUsers = ret['Value']
+    self.__adminMsgs[ 'Info' ].append( "There are %s registered users in DIRAC" % len( currentUsers ) )
     self.log.info( "There are %s registered users in DIRAC" % len( currentUsers ) )
 
     #Get VOMS user entries
@@ -183,8 +184,9 @@ class UsersAndGroups( AgentModule ):
     if not ret['OK']:
       self.log.fatal( 'Could not retrieve registered user entries in VOMS' )
     usersInVOMS = result[ 'Value' ]
+    self.__adminMsgs[ 'Info' ].append( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
     self.log.info( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
- 
+
     #Consolidate users by nickname
     usersData = {}
     newUserNames = []
@@ -297,7 +299,7 @@ class UsersAndGroups( AgentModule ):
         prevUser = result[ 'Value' ][ user ]
         prevDNs = List.fromChar( prevUser[ 'DN' ] )
         newDNs = csUserData[ 'DN' ]
-        for DN in newDNs: 
+        for DN in newDNs:
           if DN not in prevDNs:
             self.__adminMsgs[ 'Info' ].append( "User %s has new DN %s" % ( user, DN ) )
         for DN in prevDNs:
@@ -309,7 +311,7 @@ class UsersAndGroups( AgentModule ):
       if not result[ 'OK' ]:
         self.__adminMsgs[ 'Error' ].append( "Cannot modify user %s: %s" % ( user, result[ 'Message' ] ) )
         self.log.error( "Cannot modify user %s" % user )
-   
+
     if usersWithMoreThanOneDN:
       self.__adminMsgs[ 'Info' ].append( "\nUsers with more than one DN:" )
       for uwmtod in sorted( usersWithMoreThanOneDN ):
@@ -320,10 +322,19 @@ class UsersAndGroups( AgentModule ):
 
     if obsoleteUserNames:
       self.__adminMsgs[ 'Info' ].append( "\nObsolete users:" )
+      address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
+      fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
+      subject = 'Obsolete LFC Users found'
+      body = 'Delete entries into LFC: \n'
       for obsoleteUser in obsoleteUserNames:
+        self.log.info( subject, ", ".join( obsoleteUserNames ) )
+        body += 'for '+obsoleteUser+'\n'
         self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
       self.log.info( "Deleting %s users" % len( obsoleteUserNames ) )
+      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
+
+
 
     if newUserNames:
       self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
