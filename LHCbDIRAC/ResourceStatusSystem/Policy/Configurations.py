@@ -236,7 +236,8 @@ Policies = {
       'ServiceType' : ValidServiceType,
       'ResourceType' : ValidResourceType,
       'module' : 'DT_Policy',
-      'commandIn' : ('GOCDBStatus_Command', 'GOCDBStatus_Command'),
+      'commandInNewRes' : ('GOCDBStatus_Command', 'GOCDBStatus_Command'),
+      'commandIn' : ('GOCDBStatus_Command', 'DTCached_Command'),
       'args' : (DTinHours, ),
       'Site_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'GOCDBInfo_Command'), 
                                     'args': None}}, 
@@ -664,5 +665,7 @@ views_panels = {
 
 Commands_to_use = [('Collective_Command', 'JobsEffSimpleEveryOne_Command'), 
                    ('Collective_Command', 'PilotsEffSimpleEverySites_Command'),
-                   ('Collective_Command', 'TransferQualityEverySEs_Command')
+                   ('Collective_Command', 'TransferQualityEverySEs_Command'),
+                   ('Collective_Command', 'DTEverySites_Command'),
+                   ('Collective_Command', 'DTEveryResources_Command')
                    ]
