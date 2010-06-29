@@ -233,6 +233,49 @@ class TransformationPlugin(DIRACTransformationPlugin):
       existingCount[targetSite] += len(unusedLfns)
     return S_OK(tasks)
 
+  def _MergeByRunWithFlush(self):
+    return self.__mergeByRun(requireFlush=True)
+
+  def _MergeByRun(self):
+    return self.__mergeByRun(requireFlush=False)
+
+  def __mergeByRun(self,requireFlush=False):
+    res = self.__groupByRunAndParam(self.data,param='FileType')
+    if not res['OK']:
+      return res
+    allReplicas = self.data.copy()
+    allTasks = []
+    runFiles = res['Value']
+    transClient = TransformationDBClient()
+    res = transClient.getTransformationRuns({'TransformationID':self.params['TransformationID'],'RunNumber':runFiles.keys()})
+    if not res['OK']:
+      return res
+    transStatus = self.params['Status']
+    for runDict in res['Value']:
+      runID = runDict['RunNumber']
+      status = runDict['Status']
+      if (requireFlush and (status != 'Flush')):
+        if transStatus != 'Flush':
+          gLogger.info("Run %d not in flush status" % runID)
+          continue
+      gLogger.info("Flushing run %d" % runID)
+      paramDict = runFiles[runID]
+      for paramValue in sortList(paramDict.keys()):
+        runParamLfns = paramDict[paramValue]
+        runParamReplicas = {}
+        for lfn in runParamLfns:
+          runParamReplicas[lfn] = allReplicas[lfn]
+        self.data = runParamReplicas
+        self.params['Status'] = 'Flush'
+        res = self._BySize()
+        self.params['Status'] = transStatus
+        if not res['OK']:
+          return res
+        allTasks.extend(res['Value'])
+      if requireFlush:
+        transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Active')
+    return S_OK(allTasks)
+
   def _ByRun(self,param='', plugin='Standard'):
     res = self.__groupByRunAndParam(self.data,param=param)
     if not res['OK']:
