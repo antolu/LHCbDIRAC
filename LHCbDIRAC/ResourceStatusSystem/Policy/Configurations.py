@@ -48,10 +48,10 @@ Sites_check_freq = {  'T0_ACTIVE_CHECK_FREQUENCY': 6, \
                       'T1_PROBING_CHECK_FREQUENCY' : 7, \
                       'T1_BAD_CHECK_FREQUENCY' : 7, \
                       'T1_BANNED_CHECK_FREQUENCY' : 8, \
-                      'T2_ACTIVE_CHECK_FREQUENCY' : 30, \
-                      'T2_PROBING_CHECK_FREQUENCY' : 25, \
-                      'T2_BAD_CHECK_FREQUENCY' : 20 , \
-                      'T2_BANNED_CHECK_FREQUENCY' : 30 }
+                      'T2_ACTIVE_CHECK_FREQUENCY' : 25, \
+                      'T2_PROBING_CHECK_FREQUENCY' : 20, \
+                      'T2_BAD_CHECK_FREQUENCY' : 15 , \
+                      'T2_BANNED_CHECK_FREQUENCY' : 25 }
 
 Services_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 10, \
                        'T0_PROBING_CHECK_FREQUENCY': 7, \
@@ -61,10 +61,10 @@ Services_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 10, \
                        'T1_PROBING_CHECK_FREQUENCY' : 10, \
                        'T1_BAD_CHECK_FREQUENCY' : 10, \
                        'T1_BANNED_CHECK_FREQUENCY' : 12, \
-                       'T2_ACTIVE_CHECK_FREQUENCY' : 30, \
-                       'T2_PROBING_CHECK_FREQUENCY' : 20, \
-                       'T2_BAD_CHECK_FREQUENCY' : 20, \
-                       'T2_BANNED_CHECK_FREQUENCY' : 30 }
+                       'T2_ACTIVE_CHECK_FREQUENCY' : 25, \
+                       'T2_PROBING_CHECK_FREQUENCY' : 15, \
+                       'T2_BAD_CHECK_FREQUENCY' : 15, \
+                       'T2_BANNED_CHECK_FREQUENCY' : 25 }
 
 Resources_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 10, \
                         'T0_PROBING_CHECK_FREQUENCY': 8, \
@@ -74,10 +74,10 @@ Resources_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 10, \
                         'T1_PROBING_CHECK_FREQUENCY' : 10, \
                         'T1_BAD_CHECK_FREQUENCY' : 10, \
                         'T1_BANNED_CHECK_FREQUENCY' : 12, \
-                        'T2_ACTIVE_CHECK_FREQUENCY' : 30, \
-                        'T2_PROBING_CHECK_FREQUENCY' : 20, \
-                        'T2_BAD_CHECK_FREQUENCY' : 20, \
-                        'T2_BANNED_CHECK_FREQUENCY' : 30 }
+                        'T2_ACTIVE_CHECK_FREQUENCY' : 25, \
+                        'T2_PROBING_CHECK_FREQUENCY' : 15, \
+                        'T2_BAD_CHECK_FREQUENCY' : 15, \
+                        'T2_BANNED_CHECK_FREQUENCY' : 25 }
 
 StorageElements_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 12, \
                               'T0_PROBING_CHECK_FREQUENCY': 10, \
@@ -87,10 +87,10 @@ StorageElements_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 12, \
                               'T1_PROBING_CHECK_FREQUENCY' : 12, \
                               'T1_BAD_CHECK_FREQUENCY' : 12, \
                               'T1_BANNED_CHECK_FREQUENCY' : 15, \
-                              'T2_ACTIVE_CHECK_FREQUENCY' : 40, \
-                              'T2_PROBING_CHECK_FREQUENCY' : 30, \
-                              'T2_BAD_CHECK_FREQUENCY' : 30, \
-                              'T2_BANNED_CHECK_FREQUENCY' : 40 }
+                              'T2_ACTIVE_CHECK_FREQUENCY' : 35, \
+                              'T2_PROBING_CHECK_FREQUENCY' : 25, \
+                              'T2_BAD_CHECK_FREQUENCY' : 25, \
+                              'T2_BANNED_CHECK_FREQUENCY' : 35 }
 
 #############################################################################
 # alarms and notifications
@@ -104,7 +104,7 @@ notified_users = ['fstagni', 'roma']
 
 AssigneeGroups = {
   'VladRobGreigJoel_PROD-Mail': 
-  {'Users': ['roma', 'santinel', 'gcowan', 'joel'],
+  {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
    'Granularity': ['Site', 'Service'],
    'SiteType': ValidSiteType, 
@@ -113,7 +113,7 @@ AssigneeGroups = {
    'Notifications': ['Mail']
    }, 
   'VladRobGreigJoel_PROD-Web': 
-  {'Users': ['roma', 'santinel', 'gcowan', 'joel'],
+  {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
    'Granularity': ['Site', 'Service'],
    'SiteType': ValidSiteType, 
@@ -122,7 +122,7 @@ AssigneeGroups = {
    'Notifications': ['Web']
    }, 
   'VladRobGreigJoel_PROD-Mail-2': 
-  {'Users': ['roma', 'santinel', 'gcowan', 'joel'],
+  {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
    'Granularity': ['Resource'],
    'SiteType': ValidSiteType, 
@@ -131,7 +131,7 @@ AssigneeGroups = {
    'Notifications': ['Mail']
    }, 
   'VladRobGreigJoel_PROD-Web-2': 
-  {'Users': ['roma', 'santinel', 'gcowan', 'joel'],
+  {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
    'Granularity': ['Resource'],
    'SiteType': ValidSiteType, 
