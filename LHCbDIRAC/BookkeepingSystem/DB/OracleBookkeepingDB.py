@@ -1545,9 +1545,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += 'and files.gotreplica=\''+str(gotreplica)+'\''
     
     command = ''
-    tables = ', dataquality'
+    tables = ''
     if dict.has_key('DataQuality'):
-      tables = ''
+      tables = ', dataquality'
       quality = dict['DataQuality']
       if type(quality) == types.ListType:
         condition += ' and '
