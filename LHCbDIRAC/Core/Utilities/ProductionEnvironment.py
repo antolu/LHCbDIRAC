@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionOptions.py 22518 2010-03-08 16:36:37Z paterson $
+# $Id: ProductionEnvironment.py 22518 2010-03-08 16:36:37Z paterson $
 ########################################################################
 """ Production environment is a utility to neatly wrap all LHCb production
     environment settings.  This includes all calls to set up the environment
@@ -210,6 +210,14 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
   
   gLogger.info('Setting MYSITEROOT to %s' %(mySiteRoot))
   env['MYSITEROOT']=mySiteRoot
+  
+  if systemConfig.lower()=='any':
+    systemConfig = gConfig.getValue( '/LocalSite/Architecture', '' )
+    gLogger.verbose('Setting system config to /LocalSite/Architecture = %s since it was set to "ANY" in the job description' %systemConfig)      
+    if not systemConfig:
+      gLogger.error('/LocalSite/Architecture is not defined')
+      return S_ERROR('SystemConfig Not Found')
+   
   gLogger.info('Setting CMTCONFIG to %s' %(systemConfig))
   env['CMTCONFIG']=systemConfig
 
