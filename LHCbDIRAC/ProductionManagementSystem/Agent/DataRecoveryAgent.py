@@ -469,7 +469,7 @@ class DataRecoveryAgent(AgentModule):
       return S_OK()
 
     self.log.info('Updating %s files to "%s" status for %s' %(len(fileList),fileStatus,transformation))
-    result = self.prodDB.setFileStatusForTransformation(int(transformation),fileStatus,fileList,force=True)
+    result = self.prodDB.setFileStatusForTransformation(int(transformation),fileStatus,fileList,force=False)
     self.log.debug(result)
     if not result['OK']:
       self.log.error(result)
