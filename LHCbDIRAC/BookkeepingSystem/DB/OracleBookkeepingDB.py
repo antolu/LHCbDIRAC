@@ -1557,7 +1557,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         cond = cond[:-3] + ')'
         condition += cond
       else:
-       condition += ' and dataquality.dataqualityflag=\''+str(i)+'\' and files.qualityId=dataquality.qualityid '
+       condition += ' and dataquality.dataqualityflag=\''+str(quality)+'\' and files.qualityId=dataquality.qualityid '
        
     value = {}
     command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes'+tables+' where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid ' +condition
