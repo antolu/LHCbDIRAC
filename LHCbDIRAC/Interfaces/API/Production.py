@@ -47,7 +47,8 @@ class Production(LHCbJob):
     self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.SARA.nl'])
     self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),'@{applicationName}_@{STEP_ID}_Hist.root')
     self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
-    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
+    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'ANY')
+    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),'/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw')
     self.defaultProdID = '12345'
