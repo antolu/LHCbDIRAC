@@ -244,6 +244,12 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def getFilesForAGivenProduction(self, dict):
+    server = self.__getServer()
+    result = server.getFilesForAGivenProduction(dict)
+    return result
+  
+  #############################################################################
   def getProductionFiles(self, prod, fileType, replica='ALL'):
     server = self.__getServer()
     result = server.getProductionFiles(int(prod), fileType, replica)

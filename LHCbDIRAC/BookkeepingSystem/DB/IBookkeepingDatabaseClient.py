@@ -625,6 +625,10 @@ class IBookkeepingDatabaseClient(object):
   def getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
     return self.getManager().getAllDescendents(lfn, depth, production, checkreplica)
   
+  #############################################################################
+  def getFilesForAGivenProduction(self, dict):
+    return self.getManager().getFilesForAGivenProduction(dict)
+  
   '''
   END MONITORING
   '''

@@ -1519,6 +1519,59 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return S_OK(value)
   
   #############################################################################
+  def getFilesForAGivenProduction(self, dict):
+    condition = ''
+    if dict.has_key('Production'):
+      prod = dict['Production']
+      condition = 'jobs.production='+str(prod)
+    else:
+      return S_ERROR('You need to give a production number!')
+    if dict.has_key('FileType'):
+      ftype = dict['FileType']
+      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+      res = self.dbR_._query(fileType)
+      if not res['OK']:
+        gLogger.error(res['Message'])
+        return S_ERROR('Oracle error'+res['Message'])
+      else:
+        if len(res['Value']) == 0:
+          return S_ERROR('File Type not found:'+str(ftype)) 
+        
+        ftypeId = res['Value'][0][0]
+        condition += ' and files.filetypeid='+str(ftypeId)
+   
+    if dict.has_key('Replica'):
+      gotreplica = dict['Replica']
+      condition += 'and files.gotreplica=\''+str(gotreplica)+'\''
+    
+    command = ''
+    tables = ', dataquality'
+    if dict.has_key('DataQuality'):
+      tables = ''
+      quality = dict['DataQuality']
+      if type(quality) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in quality:
+          cond += 'dataquality.dataqualityflag=\''+str(i)+'\' and files.qualityId=dataquality.qualityid or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      else:
+       condition += ' and dataquality.dataqualityflag=\''+str(i)+'\' and files.qualityId=dataquality.qualityid '
+       
+    value = {}
+    command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes'+tables+' where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid ' +condition
+   
+    res = self.dbR_._query(command)
+    if res['OK']:
+      dbResult = res['Value']
+      for record in dbResult:
+        value[record[0]] = {'GotReplica':record[1],'FileSize':record[2],'GUID':record[3], 'FileType':record[4]} 
+    else:
+      return S_ERROR(res['Message'])
+    return S_OK(value)
+  
+  #############################################################################
   def getAvailableRunNumbers(self):
     command = 'select distinct runnumber from bookkeepingview'
     res = self.dbR_._query(command)

@@ -353,23 +353,23 @@ if __name__ == "__main__":
                     'BeamCond':'UNKNOWN', \
                     'BeamEnergy':'0.0', \
                     'MagneticField':'OFF', \
-                    'VELO':'INCLUDED', \
-                    'IT':'INCLUDED',  \
-                    'TT':'INCLUDED', \
-                    'OT':'INCLUDED', \
-                    'RICH1':'INCLUDED',  \
-                    'RICH2':'INCLUDED', \
+                    'VELO':'NOT INCLUDED', \
+                    'IT':'NOT INCLUDED',  \
+                    'TT':'NOT INCLUDED', \
+                    'OT':'NOT INCLUDED', \
+                    'RICH1':'NOT INCLUDED',  \
+                    'RICH2':'NOT INCLUDED', \
                     'SPD_PRS':'INCLUDED',\
-                    'ECAL':'INCLUDED', \
-                    'HCAL':'INCLUDED', \
-                    'MUON':'INCLUDED', \
-                    'L0':'INCLUDED', \
+                    'ECAL':'NOT INCLUDED', \
+                    'HCAL':'NOT INCLUDED', \
+                    'MUON':'NOT INCLUDED', \
+                    'L0':'NOT INCLUDED', \
                     'HLT':'UNKOWN', \
                     'VeloPosition':'OPEN'}
-
+    
   print datataking
   
-  context = Context(datataking, 'FEST')
+  context = Context(datataking, 'PRS')
   conditions = [BeamEnergyCondition(),VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
               MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
       
