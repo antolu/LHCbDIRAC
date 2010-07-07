@@ -1523,7 +1523,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ''
     if dict.has_key('Production'):
       prod = dict['Production']
-      condition = 'jobs.production='+str(prod)
+      condition = ' and jobs.production='+str(prod)
     else:
       return S_ERROR('You need to give a production number!')
     if dict.has_key('FileType'):
