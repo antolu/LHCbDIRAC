@@ -193,8 +193,9 @@ class GaudiApplication(ModuleBase):
       return result # this will distinguish between LbLogin / SetupProject / actual application failures
     
     projectEnvironment = result['Value']
+    gaudiRunFlags = gConfig.getValue('/Operations/GaudiExecution/gaudirunFlags','')
 
-    command = 'gaudirun.py  %s %s' %(self.optfile,generatedOpts)
+    command = 'gaudirun.py  %s %s %s' %(gaudiRunFlags,self.optfile,generatedOpts)
     print 'Command = %s' %(command)  #Really print here as this is useful to see
 
     #Set some parameter names
