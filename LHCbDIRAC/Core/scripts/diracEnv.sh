@@ -51,7 +51,7 @@ case $role in
      ;;
 esac
 
-hostname | grep -q ".cern.ch" && source /afs/cern.ch/lhcb/scripts/GridEnv.sh
+hostname | grep -q ".cern.ch" && source `which GridEnv.sh`
 
 if [ ! -e ~/.lcgpasswd ] ; then
   echo -n "Certificate password: "
