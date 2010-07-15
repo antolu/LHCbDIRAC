@@ -55,7 +55,7 @@ echo
 
 hostname | grep -q ".cern.ch"
 if $status == 0 then
-   source /afs/cern.ch/lhcb/scripts/GridEnv.csh
+   source `which GridEnv.csh`
 endif
 
 if ! ( -e ~/.lcgpasswd ) then
