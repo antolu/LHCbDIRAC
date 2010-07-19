@@ -367,6 +367,23 @@ Policies = {
 #                                        'args': None}}
                           ]
      },     
+  'SAM_FTS' : 
+    { 'Description' : "Evaluates latest SAM results on the FTS nodes", 
+      'Granularity' : ['Resource'], 
+      'Status' : ValidStatus, 
+      'FormerStatus' : ValidStatus,
+      'SiteType' : ValidSiteType,
+      'ServiceType' : ValidServiceType,
+      'ResourceType' : ['FTS'],
+      'module': 'SAMResults_Policy', 
+      'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
+      'args' : ( None, ['ftschn', 'ftsinfo'] ),
+      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+                                    'args': ( None, ['ftschn', 'ftsinfo'] ) }},
+#                           {'WebLink': {'Command':'SAM_Link',
+#                                        'args': None}}
+                          ]
+     },     
   'JobsEfficiencySimple' :  
     { 'Description' : "Evaluates a simple jobs efficiency", 
       'Granularity' : ['Service'], 
