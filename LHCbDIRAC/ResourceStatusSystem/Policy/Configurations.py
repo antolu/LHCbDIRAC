@@ -239,10 +239,10 @@ Policies = {
       'commandInNewRes' : ('GOCDBStatus_Command', 'GOCDBStatus_Command'),
       'commandIn' : ('GOCDBStatus_Command', 'DTCached_Command'),
       'args' : (DTinHours, ),
-      'Site_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'GOCDBInfo_Command'), 
+      'Site_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
                                     'args': None}}, 
                       ], 
-      'Resource_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'GOCDBInfo_Command'), 
+      'Resource_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
                                         'args': None}}, 
                       ]
      },
@@ -496,6 +496,21 @@ Policies = {
       'commandIn' : ('RS_Command', 'StorageElementsStats_Command'),
       'args' : ('StorageElement', ),
       'Service_Storage_Panel' : {'RSS':'StorageElementsOfSite'}
+     },
+  'VOBOX' :
+    { 'Description' : "Evaluates how the VO-Boxes are behaving in the RSS", 
+      'Granularity' : ['Service'], 
+      'Status' : ValidStatus, 
+      'FormerStatus' : ValidStatus,
+      'SiteType' : ValidSiteType,
+      'ServiceType' : ['VO-BOX'],
+      'ResourceType' : ValidResourceType,
+      'module' : 'VOBOX_Policy',
+      'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
+      'args' : None,  
+      'Service_VO-BOX_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+                                  'args': None}}, 
+                      ]
      },
 #  'OnServicePropagation' :
 #    { 'Granularity' : [], 
