@@ -1,13 +1,13 @@
-""" The VOBOX_Policy class is a policy class satisfied when a VO-BOX sensors report problems
+""" The SLS_Policy class is a policy class satisfied when a SLS sensors report problems
 """
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class VOBOX_Policy(PolicyBase):
+class SLS_Policy(PolicyBase):
   
   def evaluate(self):
     """ 
-    Evaluate policy on VO-BOX availability. 
+    Evaluate policy on SLS availability. 
 
    :returns:
       { 
@@ -17,7 +17,7 @@ class VOBOX_Policy(PolicyBase):
       }
     """ 
 
-    status = super(VOBOX_Policy, self).evaluate()
+    status = super(SLS_Policy, self).evaluate()
     
     if status == 'Unknown':
       return {'SAT':'Unknown'}
@@ -71,7 +71,7 @@ class VOBOX_Policy(PolicyBase):
     
     
     if status is not None and status != -1:
-      self.result['Reason'] = "VO-BOX availability: %d %% -> " %(status) 
+      self.result['Reason'] = "SLS availability: %d %% -> " %(status) 
     
       if status > 90:
         str = 'High'

@@ -497,19 +497,34 @@ Policies = {
       'args' : ('StorageElement', ),
       'Service_Storage_Panel' : {'RSS':'StorageElementsOfSite'}
      },
-  'VOBOX' :
-    { 'Description' : "Evaluates how the VO-Boxes are behaving in the RSS", 
+  'VOBOX-SLS' :
+    { 'Description' : "Evaluates how the VO-Boxes are behaving in the SLS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
       'SiteType' : ValidSiteType,
       'ServiceType' : ['VO-BOX'],
       'ResourceType' : ValidResourceType,
-      'module' : 'VOBOX_Policy',
+      'module' : 'SLS_Policy',
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
-      'args' : None,  
+      'args' : ('VO-BOX', ),  
       'Service_VO-BOX_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
-                                  'args': None}}, 
+                                  'args': ('VO-BOX', )}}, 
+                      ]
+     },
+  'VOMS-SLS' :
+    { 'Description' : "Evaluates how the VOMS are behaving in the SLS", 
+      'Granularity' : ['Service'], 
+      'Status' : ValidStatus, 
+      'FormerStatus' : ValidStatus,
+      'SiteType' : ValidSiteType,
+      'ServiceType' : ['VOMS'],
+      'ResourceType' : ValidResourceType,
+      'module' : 'SLS_Policy',
+      'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
+      'args' : ('VOMS', ),  
+      'Service_VOMS_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+                                  'args': ('VOMS', )}}, 
                       ]
      },
 #  'OnServicePropagation' :
