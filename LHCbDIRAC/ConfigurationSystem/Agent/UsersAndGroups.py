@@ -86,7 +86,7 @@ class UsersAndGroups( AgentModule ):
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
         if userDN not in lfcDNs:
-          self.log.info( 'DN %s need to be registered in LFC for user %s' % ( userDN, user ) )
+          self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
           if user not in usersToBeRegistered:
             usersToBeRegistered[ user ] = []
           usersToBeRegistered[ user ].append( userDN )
@@ -296,15 +296,20 @@ class UsersAndGroups( AgentModule ):
         usersWithMoreThanOneDN[ user ] = csUserData[ 'DN' ]
       result = csapi.describeUsers( [ user ] )
       if result[ 'OK' ]:
-        prevUser = result[ 'Value' ][ user ]
-        prevDNs = List.fromChar( prevUser[ 'DN' ] )
-        newDNs = csUserData[ 'DN' ]
-        for DN in newDNs:
-          if DN not in prevDNs:
-            self.__adminMsgs[ 'Info' ].append( "User %s has new DN %s" % ( user, DN ) )
-        for DN in prevDNs:
-          if DN not in newDNs:
-            self.__adminMsgs[ 'Info' ].append( "User %s has lost a DN %s" % ( user, DN ) )
+        if result[ 'Value' ]:
+          prevUser = result[ 'Value' ][ user ]
+          prevDNs = List.fromChar( prevUser[ 'DN' ] )
+          newDNs = csUserData[ 'DN' ]
+          for DN in newDNs:
+            if DN not in prevDNs:
+              self.__adminMsgs[ 'Info' ].append( "User %s has new DN %s" % ( user, DN ) )
+          for DN in prevDNs:
+            if DN not in newDNs:
+              self.__adminMsgs[ 'Info' ].append( "User %s has lost a DN %s" % ( user, DN ) )
+        else:
+          newDNs = csUserData[ 'DN' ]
+          for DN in newDNs:
+            self.__adminMsgs[ 'Info' ].append( "New user %s has new DN %s" % ( user, DN ) )
       for k in ( 'DN', 'CA', 'Email' ):
         csUserData[ k ] = ", ".join( csUserData[ k ] )
       result = csapi.modifyUser( user, csUserData, createIfNonExistant = True )
@@ -328,7 +333,7 @@ class UsersAndGroups( AgentModule ):
       body = 'Delete entries into LFC: \n'
       for obsoleteUser in obsoleteUserNames:
         self.log.info( subject, ", ".join( obsoleteUserNames ) )
-        body += 'for '+obsoleteUser+'\n'
+        body += 'for ' + obsoleteUser + '\n'
         self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
       self.log.info( "Deleting %s users" % len( obsoleteUserNames ) )
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
