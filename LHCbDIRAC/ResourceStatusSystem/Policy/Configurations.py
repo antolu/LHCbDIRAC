@@ -328,7 +328,7 @@ Policies = {
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['DiracTestUSER', 'FileAccessV2'] ), 
       'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
-                                    'args': ( None, ['DiracTestUSER', 'FileAccessV2'] ) }},
+                                    'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
                          ]
