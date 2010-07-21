@@ -730,6 +730,36 @@ class DiracLHCb(Dirac):
     return S_OK( runDict )
 
   #############################################################################
+  def bkMetadata( self, lfns, printOutput = False ):
+    """Return metadata for the supplied lfn list. An S_OK object will be returned 
+       containing a dictionary of LFN(s) and the corresponding metadata associated 
+       with them.  
+
+       Example usage:
+
+       >>> print dirac.getDataByRun(lfns)
+       {'OK': True, 'Value': {<LFN>:{'<Name>':'<Value>',...},...}}
+
+       @param lfns: Logical File Name(s) 
+       @type lfns: list
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR
+    """
+    bk = BookkeepingClient()
+    start = time.time()
+    result = bk.getFileMetadata(lfns)
+    self.log.verbose("Obtained BK file metadata in %.2f seconds" % (time.time()-start))
+    if not result['OK']: 
+      self.log.error('Failed to get bookkeeping metadata with result "%s"' %(result['Message']))
+      return result
+
+    if printOutput:
+      print self.pPrint.pformat( result['Value'] )
+
+    return result
+
+  #############################################################################
   def __errorReport(self,error,message=None):
     """Internal function to return errors and exit with an S_ERROR()
     """
