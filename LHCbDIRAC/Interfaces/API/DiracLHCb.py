@@ -737,7 +737,7 @@ class DiracLHCb(Dirac):
 
        Example usage:
 
-       >>> print dirac.getDataByRun(lfns)
+       >>> print dirac.bkMetadata(lfns)
        {'OK': True, 'Value': {<LFN>:{'<Name>':'<Value>',...},...}}
 
        @param lfns: Logical File Name(s) 
@@ -746,6 +746,16 @@ class DiracLHCb(Dirac):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
+    if type( lfns ) == type( " " ):
+      lfns = [lfns.replace( 'LFN:', '' )]
+    elif type( lfns ) == type( [] ):
+      try:
+        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+      except Exception, x:
+        return self.__errorReport( str( x ), 'Expected strings for LFNs' )
+    else:
+      return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
+        
     bk = BookkeepingClient()
     start = time.time()
     result = bk.getFileMetadata(lfns)
