@@ -129,7 +129,8 @@ class UserJobFinalization(ModuleBase):
     self.log.info('Initializing %s' %self.version)
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.verbose('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
-      return S_OK('No output data upload attempted')
+      self.log.error('Workflow status is not ok, will not overwrite application status.')
+      return S_ERROR('Workflow failed, UserJobFinalization module completed')
     
     if not self.userOutputData:
       self.log.info('No user output data is specified for this job, nothing to do')
