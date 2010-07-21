@@ -87,7 +87,7 @@ def _inform_people(rec,oldstate,state,author,inform):
   footer+= " Don't reply please.\n"
   footer+= "DIRAC Web portal: https://lhcbweb.pic.es/DIRAC/%s/" % \
            PathFinder.getDIRACSetup()
-  ppath = '/production/ProductionRequest/display\n\n'
+  ppath = '/Production/ProductionRequest/display\n\n'
 
   ppath+= 'The request details:\n'
   ppath+= '  Type: %s' % str(rec['RequestType'])
