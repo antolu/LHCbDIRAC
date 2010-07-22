@@ -326,7 +326,7 @@ Policies = {
       'ResourceType' : ['SE'],
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
-      'args' : ( None, ['DiracTestUSER', 'FileAccessV2'] ), 
+      'args' : ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ), 
       'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
@@ -396,14 +396,18 @@ Policies = {
       'commandInNewRes' : ('Jobs_Command', 'JobsEffSimple_Command'),
       'commandIn' : ('Jobs_Command', 'JobsEffSimpleCached_Command'),
       'args' : None,  
-      'Service_Computing_Panel' : [ {'FillChart': {'Command': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                                   'args': ('Job', 'CumulativeNumberOfJobs', 
+      'Service_Computing_Panel' : [ {'FillChart': {'Command': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                                   'args':('Job', 'SuccessfullJobsBySiteSplitted'),
+                                                   'CommandNew': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                                   'argsNew': ('Job', 'CumulativeNumberOfJobs', 
                                                             {'Format': 'LastHours', 'hours': 24}, 
                                                             'FinalMajorStatus', None)}},
-                                    {'PieChart': {'Command': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                                  'args': ('Job', 'TotalNumberOfJobs', 
-                                                           {'Format': 'LastHours', 'hours': 24}, 
-                                                           'JobType', {'FinalMajorStatus':'Failed'})}}
+                                    {'FillChart': {'Command': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                                   'args':('Job', 'FailedJobsBySiteSplitted'),
+                                                   'CommandNew': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                                   'argsNew': ('Job', 'TotalNumberOfJobs', 
+                                                               {'Format': 'LastHours', 'hours': 24}, 
+                                                               'JobType', {'FinalMajorStatus':'Failed'})}}
                                     ]                                  
    },
   'PilotsEfficiencySimple_Service' : 
@@ -572,13 +576,16 @@ Policies = {
       'ResourceType' : ValidResourceType,
       'module': 'TransferQuality_Policy', 
       'commandInNewRes' : ('DIRACAccounting_Command', 'TransferQuality_Command'),
-      'commandIn' : ('DIRACAccounting_Command', 'TransferQualityCached_Command'),
-      'args' : None,  
-      'SE_Panel' : [ {'FillChart': {'Command':('DIRACAccounting_Command', 'DIRACAccounting_Command'),
-#                                    'CommandNew':'DiracAccountingGraph-NEW', 
-                                    'args': ('DataOperation', 'Quality', 
-                                             {'Format': 'LastHours', 'hours': 24}, 
-                                             'Channel', {'OperationType':'putAndRegister'})}}, 
+      'argsNew':None,
+#      'commandIn' : ('DIRACAccounting_Command', 'TransferQualityCached_Command'),
+      'commandIn' : ('DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command'),
+      'args' : ('DataOperation', 'TransferQualityByDestSplitted'),  
+      'SE_Panel' : [ {'FillChart': {'Command':('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                    'args':('DataOperation', 'TransferQualityByDestSplitted'), 
+                                    'CommandNew':('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                    'argsNew':('DataOperation', 'Quality', 
+                                               {'Format': 'LastHours', 'hours': 24}, 
+                                               'Destination', {'OperationType':'putAndRegister'})}}, 
                       ]
      },
   'SEOccupancy' :
@@ -710,9 +717,15 @@ views_panels = {
 # Clients cache 
 #############################################################################
 
-Commands_to_use = [('Collective_Command', 'JobsEffSimpleEveryOne_Command'), 
-                   ('Collective_Command', 'PilotsEffSimpleEverySites_Command'),
-                   ('Collective_Command', 'TransferQualityEverySEs_Command'),
-                   ('Collective_Command', 'DTEverySites_Command'),
-                   ('Collective_Command', 'DTEveryResources_Command')
-                   ]
+Commands_ClientsCache = [('ClientsCache_Command', 'JobsEffSimpleEveryOne_Command'), 
+                         ('ClientsCache_Command', 'PilotsEffSimpleEverySites_Command'),
+#                         ('ClientsCache_Command', 'TransferQualityEverySEs_Command'),
+                         ('ClientsCache_Command', 'DTEverySites_Command'),
+                         ('ClientsCache_Command', 'DTEveryResources_Command')
+                         ]
+
+Commands_AccountingCache = [('AccountingCache_Command', 'TransferQualityByDestSplitted_Command'), 
+                            ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command'),
+                            ('AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command'),
+                            ('AccountingCache_Command', 'FailedJobsBySiteSplitted_Command'),
+                            ]
