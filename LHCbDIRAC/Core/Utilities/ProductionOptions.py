@@ -161,12 +161,6 @@ def getDataOptions(applicationName,inputDataList,inputDataType,poolXMLCatalogNam
     evtSelOpt = """EventSelector().Input=[%s];\n""" %(inputDataOpt)
     options.append(evtSelOpt)
 
-    if applicationName.lower()=='moore':
-      options = []
-      options.append('from Configurables import Moore')
-      mooreInput = ['LFN:%s' %i.replace('lfn:','').replace('LFN:','') for i in inputDataList]        
-      options.append("Moore().inputFiles = %s" %(mooreInput))
-
   poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" %(poolXMLCatalogName)
   options.append(poolOpt)
   return S_OK(options)
