@@ -3,7 +3,7 @@
 # $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/DataManagementSystem/Agent/StorageUsageAgent.py $
 __RCSID__ = "$Id: StorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
 
-from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath
+from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
