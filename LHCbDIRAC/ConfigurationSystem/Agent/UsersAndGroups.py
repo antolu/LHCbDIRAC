@@ -19,7 +19,7 @@ class UsersAndGroups( AgentModule ):
   def initialize( self ):
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
-    self.proxyLocation = os.path.join( self.am_getOption( "WorkDirectory" ), ".volatileId" )
+    self.proxyLocation = os.path.join( self.am_getWorkDirectory(), ".volatileId" )
     self.__adminMsgs = {}
     print self.getLFCRegisteredDNs()
     return S_OK()
