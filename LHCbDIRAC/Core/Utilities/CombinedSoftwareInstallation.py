@@ -100,6 +100,18 @@ class CombinedSoftwareInstallation:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
         DIRAC.gLogger.info( 'Assume locally running job' )
         return DIRAC.S_OK()
+      elif self.jobConfig.lower()=='any':
+        DIRAC.gLogger.info('Job SystemConfiguration is set to "ANY", checking compatible platforms')
+        systemConfig = DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' )
+        if not systemConfig:
+          DIRAC.gLogger.error('/LocalSite/Architecture is not defined')
+          return S_ERROR('SystemConfig Not Found')
+        compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(systemConfig),[])
+        if not compatibleArchs:
+          DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(systemConfig))
+          return S_ERROR('SystemConfig Not Found')
+        systemConfig = compatibleArchs[0]
+        DIRAC.gLogger.info('Setting system config to compatible platform %s since it was set to "ANY" in the job description' %(systemConfig))
       else:
         DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
         return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
