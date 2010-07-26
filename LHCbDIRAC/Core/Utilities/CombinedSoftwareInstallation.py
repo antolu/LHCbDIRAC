@@ -107,7 +107,7 @@ class CombinedSoftwareInstallation:
           DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(self.jobConfig))
           return S_ERROR('SystemConfig Not Found')
         self.jobConfig = compatibleArchs[0]
-        DIRAC.gLogger.info('Setting system config to compatible platform %s since it was set to "ANY" in the job description' %(self.jobConfig))
+        DIRAC.gLogger.info('Setting system config to compatible platform %s' %(self.jobConfig))
       else:
         DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
         return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
