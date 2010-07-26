@@ -102,16 +102,16 @@ class CombinedSoftwareInstallation:
         return DIRAC.S_OK()
       elif self.jobConfig.lower()=='any':
         DIRAC.gLogger.info('Job SystemConfiguration is set to "ANY", checking compatible platforms')
-        systemConfig = DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' )
-        if not systemConfig:
+        self.jobConfig = DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' )
+        if not self.jobConfig:
           DIRAC.gLogger.error('/LocalSite/Architecture is not defined')
           return S_ERROR('SystemConfig Not Found')
-        compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(systemConfig),[])
+        compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(self.jobConfig),[])
         if not compatibleArchs:
-          DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(systemConfig))
+          DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(self.jobConfig))
           return S_ERROR('SystemConfig Not Found')
-        systemConfig = compatibleArchs[0]
-        DIRAC.gLogger.info('Setting system config to compatible platform %s since it was set to "ANY" in the job description' %(systemConfig))
+        self.jobConfig = compatibleArchs[0]
+        DIRAC.gLogger.info('Setting system config to compatible platform %s since it was set to "ANY" in the job description' %(self.jobConfig))
       else:
         DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
         return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
