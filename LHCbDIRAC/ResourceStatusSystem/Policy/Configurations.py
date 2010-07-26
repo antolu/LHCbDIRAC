@@ -239,10 +239,10 @@ Policies = {
       'commandInNewRes' : ('GOCDBStatus_Command', 'GOCDBStatus_Command'),
       'commandIn' : ('GOCDBStatus_Command', 'DTCached_Command'),
       'args' : (DTinHours, ),
-      'Site_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
+      'Site_Panel' : [ {'WebLink': {'CommandIn': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
                                     'args': None}}, 
                       ], 
-      'Resource_Panel' : [ {'WebLink': {'Command': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
+      'Resource_Panel' : [ {'WebLink': {'CommandIn': ('GOCDBStatus_Command', 'DTInfo_Cached_Command'), 
                                         'args': None}}, 
                       ]
      },
@@ -257,9 +257,9 @@ Policies = {
       'module' : 'GGUSTickets_Policy',
       'commandIn' : ('GGUSTickets_Command', 'GGUSTickets_Open'),
       'args' : None,  
-      'Site_Panel' : [ {'WebLink': {'Command': ('GGUSTickets_Command','GGUSTickets_Link'), 
+      'Site_Panel' : [ {'WebLink': {'CommandIn': ('GGUSTickets_Command','GGUSTickets_Link'), 
                                     'args': None}}, 
-                       {'TextInfo': {'Command': ('GGUSTickets_Command', 'GGUSTickets_Info'), 
+                       {'TextInfo': {'CommandIn': ('GGUSTickets_Command', 'GGUSTickets_Info'), 
                                     'args': None}},
                      ]
      },
@@ -288,7 +288,7 @@ Policies = {
       'args' : ( None, ['LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install', 'LHCb CE-lhcb-job-Boole', 
               'LHCb CE-lhcb-job-Brunel', 'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss', 'LHCb CE-lhcb-os', 
               'LHCb CE-lhcb-queues', 'bi', 'csh', 'js', 'gfal', 'swdir', 'voms'] ), 
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'), 
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'), 
                                     'args': ( None, ['LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install', 
                                                      'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel', 
                                                      'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss', 
@@ -310,7 +310,7 @@ Policies = {
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['bi', 'csh', 'gfal', 'swdir', 'creamvoms'] ), 
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['bi', 'csh', 'gfal', 'swdir', 'creamvoms'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
@@ -327,7 +327,7 @@ Policies = {
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ), 
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
@@ -344,7 +344,7 @@ Policies = {
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['lfcwf', 'lfclr', 'lfcls', 'lfcping'] ),
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['lfcwf', 'lfclr', 'lfcls', 'lfcping'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
@@ -361,7 +361,7 @@ Policies = {
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['lfcstreams', 'lfclr', 'lfcls', 'lfcping'] ),
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['lfcstreams', 'lfclr', 'lfcls', 'lfcping'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
@@ -378,7 +378,7 @@ Policies = {
       'module': 'SAMResults_Policy', 
       'commandIn' : ('SAMResults_Command', 'SAMResults_Command'),
       'args' : ( None, ['ftschn', 'ftsinfo'] ),
-      'Resource_Panel' : [ {'SAM': {'Command':('SAMResults_Command', 'SAMResults_Command'),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':('SAMResults_Command', 'SAMResults_Command'),
                                     'args': ( None, ['ftschn', 'ftsinfo'] ) }},
 #                           {'WebLink': {'Command':'SAM_Link',
 #                                        'args': None}}
@@ -396,16 +396,16 @@ Policies = {
       'commandInNewRes' : ('Jobs_Command', 'JobsEffSimple_Command'),
       'commandIn' : ('Jobs_Command', 'JobsEffSimpleCached_Command'),
       'args' : None,  
-      'Service_Computing_Panel' : [ {'FillChart': {'Command': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+      'Service_Computing_Panel' : [ {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
                                                    'args':('Job', 'SuccessfullJobsBySiteSplitted'),
-                                                   'CommandNew': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                                   'argsNew': ('Job', 'CumulativeNumberOfJobs', 
+                                                   'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                                   'argsNewRes': ('Job', 'NumberOfJobs', 
                                                             {'Format': 'LastHours', 'hours': 24}, 
-                                                            'FinalMajorStatus', None)}},
-                                    {'FillChart': {'Command': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                                             'JobType', {'FinalMajorStatus':'Done'})}},
+                                    {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
                                                    'args':('Job', 'FailedJobsBySiteSplitted'),
-                                                   'CommandNew': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                                   'argsNew': ('Job', 'TotalNumberOfJobs', 
+                                                   'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                                   'argsNewRes': ('Job', 'NumberOfJobs', 
                                                                {'Format': 'LastHours', 'hours': 24}, 
                                                                'JobType', {'FinalMajorStatus':'Failed'})}}
                                     ]                                  
@@ -422,14 +422,18 @@ Policies = {
       'commandInNewRes' : ('Pilots_Command', 'PilotsEffSimple_Command'),
       'commandIn' : ('Pilots_Command', 'PilotsEffSimpleCached_Command'),
       'args' : None,  
-      'Service_Computing_Panel' : [ {'FillChart': {'Command' : ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                                   'args': ('Pilot', 'CumulativeNumberOfPilots', 
-                                                            {'Format': 'LastHours', 'hours': 24}, 
-                                                            'GridStatus', None)}},
-                                    {'PieChart': {'Command':  ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
-                                                  'args': ('Pilot', 'TotalNumberOfPilots', 
-                                                           {'Format': 'LastHours', 'hours': 24}, 
-                                                           'GridCE', None)}}
+      'Service_Computing_Panel' : [ {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                                   'args': ('Pilot', 'SuccessfullPilotsBySiteSplitted'),
+                                                   'CommandInNewRes' : ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                                   'argsNewRes': ('Pilot', 'NumberOfPilots', 
+                                                               {'Format': 'LastHours', 'hours': 24}, 
+                                                               'User', {'GridStatus':'Done'})}},
+                                    {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                                   'args': ('Pilot', 'FailedPilotsBySiteSplitted'),
+                                                   'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
+                                                   'argsNewRes': ('Pilot', 'NumberOfPilots', 
+                                                               {'Format': 'LastHours', 'hours': 24}, 
+                                                               'User', {'GridStatus':'Aborted'})}},
                                     ]
      },
   'PilotsEfficiencySimple_Resource' : 
@@ -443,10 +447,18 @@ Policies = {
       'module': 'PilotsEfficiency_Simple_Policy', 
       'commandIn' : ('Pilots_Command', 'PilotsEffSimple_Command'),
       'args' : None,  
-      'Resource_Panel' : [ {'FillChart': {'Command': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
-                                          'args': ('Pilot', 'CumulativeNumberOfPilots', 
-                                                   {'Format': 'LastHours', 'hours': 24}, 
-                                                   'GridStatus', None)}}, 
+      'Resource_Panel' : [ {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                          'args':('Pilot', 'SuccessfullPilotsByCESplitted'),
+                                          'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
+                                          'argsNewRes': ('Pilot', 'NumberOfPilots', 
+                                                      {'Format': 'LastHours', 'hours': 24}, 
+                                                      'User', {'GridStatus':'Done'})}},
+                            {'FillChart': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
+                                           'args': ('Pilot', 'FailedPilotsByCESplitted'),
+                                           'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
+                                           'argsNewRes': ('Pilot', 'NumberOfPilots', 
+                                                       {'Format': 'LastHours', 'hours': 24}, 
+                                                       'User', {'GridStatus':'Aborted'})}},
                           ]
      },
   'OnSitePropagation' :
@@ -460,7 +472,8 @@ Policies = {
       'module' : 'Propagation_Policy',
       'commandIn' : ('RS_Command', 'ServiceStats_Command'),
       'args' : ('Service', ),
-      'Site_Panel' : {'RSS':'ServiceOfSite'}
+      'Site_Panel' : [ {'RSS':'ServiceOfSite'}
+                      ]
      },
   'OnComputingServicePropagation' :
     { 'Description' : "Evaluates how the service's computing resources are behaving in the RSS", 
@@ -473,7 +486,8 @@ Policies = {
       'module' : 'Propagation_Policy',
       'commandIn' : ('RS_Command', 'ResourceStats_Command'),
       'args' : ('Resource', ),
-      'Service_Computing_Panel' : {'RSS':'ResOfCompService'}
+      'Service_Computing_Panel' : [ {'RSS':'ResOfCompService'}
+                                   ]
      },
   'OnStorageServicePropagation_Res' :
     { 'Description' : "Evaluates how the service's storage nodes are behaving in the RSS", 
@@ -486,7 +500,8 @@ Policies = {
       'module' : 'Propagation_Policy',
       'commandIn' : ('RS_Command', 'ResourceStats_Command'),
       'args' : ('Resource', ),
-      'Service_Storage_Panel' : {'RSS':'ResOfStorService'}
+      'Service_Storage_Panel' : [ {'RSS':'ResOfStorService'}
+                                 ]
      },
   'OnStorageServicePropagation_SE' :
     { 'Description' : "Evaluates how the service's storage elements are behaving in the RSS", 
@@ -499,7 +514,8 @@ Policies = {
       'module' : 'Propagation_Policy',
       'commandIn' : ('RS_Command', 'StorageElementsStats_Command'),
       'args' : ('StorageElement', ),
-      'Service_Storage_Panel' : {'RSS':'StorageElementsOfSite'}
+      'Service_Storage_Panel' : [ {'RSS':'StorageElementsOfSite'}
+                                 ]
      },
   'VOBOX-SLS' :
     { 'Description' : "Evaluates how the VO-Boxes are behaving in the SLS", 
@@ -512,9 +528,9 @@ Policies = {
       'module' : 'SLS_Policy',
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
       'args' : ('VO-BOX', ),  
-      'Service_VO-BOX_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+      'OtherServices_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': ('VO-BOX', )}}, 
-                      ]
+                                ]
      },
   'VOMS-SLS' :
     { 'Description' : "Evaluates how the VOMS are behaving in the SLS", 
@@ -527,9 +543,9 @@ Policies = {
       'module' : 'SLS_Policy',
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
       'args' : ('VOMS', ),  
-      'Service_VOMS_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+      'OtherServices_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': ('VOMS', )}}, 
-                      ]
+                              ]
      },
 #  'OnServicePropagation' :
 #    { 'Granularity' : [], 
@@ -553,7 +569,8 @@ Policies = {
       'module': 'OnStorageElementPropagation_Policy',
       'commandIn' : ('RS_Command', 'MonitoredStatus_Command'),
       'args' : ('Resource', ),
-      'SE_Panel' : {'RSS':'ResOfStorEl'}
+      'SE_Panel' : [ {'RSS':'ResOfStorEl'}
+                    ]
      },
 #  'OnSENodePropagation' :
 #    { 'Granularity' : [], 
@@ -576,14 +593,14 @@ Policies = {
       'ResourceType' : ValidResourceType,
       'module': 'TransferQuality_Policy', 
       'commandInNewRes' : ('DIRACAccounting_Command', 'TransferQuality_Command'),
-      'argsNew':None,
+      'argsNewRes':None,
 #      'commandIn' : ('DIRACAccounting_Command', 'TransferQualityCached_Command'),
       'commandIn' : ('DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command'),
       'args' : ('DataOperation', 'TransferQualityByDestSplitted'),  
-      'SE_Panel' : [ {'FillChart': {'Command':('DIRACAccounting_Command', 'CachedPlot_Command'),
+      'SE_Panel' : [ {'FillChart': {'CommandIn':('DIRACAccounting_Command', 'CachedPlot_Command'),
                                     'args':('DataOperation', 'TransferQualityByDestSplitted'), 
-                                    'CommandNew':('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
-                                    'argsNew':('DataOperation', 'Quality', 
+                                    'CommandInNewRes':('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
+                                    'argsNewRes':('DataOperation', 'Quality', 
                                                {'Format': 'LastHours', 'hours': 24}, 
                                                'Destination', {'OperationType':'putAndRegister'})}}, 
                       ]
@@ -599,7 +616,7 @@ Policies = {
       'module': 'SEOccupancy_Policy', 
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
       'args' : None,  
-      'SE_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+      'SE_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': None}}, 
                       ]
      },
@@ -614,7 +631,7 @@ Policies = {
       'module': 'SEQueuedTransfers_Policy',
       'commandIn' : ('SLS_Command', 'SLSServiceInfo_Command'),
       'args' : (["Queued transfers"], ),
-      'SE_Panel' : [ {'WebLink': {'Command':('SLS_Command', 'SLSLink_Command'),
+      'SE_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': None}}, 
                       ]
      },
@@ -728,4 +745,8 @@ Commands_AccountingCache = [('AccountingCache_Command', 'TransferQualityByDestSp
                             ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command'),
                             ('AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command'),
                             ('AccountingCache_Command', 'FailedJobsBySiteSplitted_Command'),
+                            ('AccountingCache_Command', 'SuccessfullPilotsBySiteSplitted_Command'),
+                            ('AccountingCache_Command', 'FailedPilotsBySiteSplitted_Command'),
+                            ('AccountingCache_Command', 'SuccessfullPilotsByCESplitted_Command'),
+                            ('AccountingCache_Command', 'FailedPilotsByCESplitted_Command'),
                             ]
