@@ -213,11 +213,16 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
   
   if systemConfig.lower()=='any':
     systemConfig = gConfig.getValue( '/LocalSite/Architecture', '' )
-    gLogger.verbose('Setting system config to /LocalSite/Architecture = %s since it was set to "ANY" in the job description' %systemConfig)      
     if not systemConfig:
       gLogger.error('/LocalSite/Architecture is not defined')
       return S_ERROR('SystemConfig Not Found')
-   
+    compatibleArchs = gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(systemConfig),[])
+    if not compatibleArchs:
+      gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(systemConfig))
+      return S_ERROR('SystemConfig Not Found')
+    systemConfig = compatibleArchs[0]
+    gLogger.verbose('Setting system config to compatible platform %s since it was set to "ANY" in the job description' %(systemConfig))
+    
   gLogger.info('Setting CMTCONFIG to %s' %(systemConfig))
   env['CMTCONFIG']=systemConfig
 
