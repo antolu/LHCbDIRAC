@@ -17,7 +17,9 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List                      import breakListIntoChunks, sortList, removeEmptyElements
+from DIRAC.Core.Utilities.SiteSEMapping             import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                     import Dirac
+from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles,getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -34,6 +36,7 @@ class DiracLHCb(Dirac):
     """Internal initialization of the DIRAC API.
     """
     Dirac.__init__(self,WithRepo=WithRepo, RepoLocation=RepoLocation)
+    self.tier1s=gConfig.getValue('/Operations/Defaults/Tier1s',['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.SARA.nl'])    
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
@@ -768,6 +771,144 @@ class DiracLHCb(Dirac):
       print self.pPrint.pformat( result['Value'] )
 
     return result
+
+  #############################################################################
+  def gridWeather( self, printOutput = False ):
+    """This method gives a snapshot of the current Grid weather from the perspective
+       of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
+       information.
+       
+       Example usage:
+
+       >>> print dirac.gridWeather()
+       {'OK': True, 'Value': {{'Sites':<siteInfo>,'SEs':<seInfo>,'Tier-1s':<tierInfo>}}
+
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR       
+    """    
+    siteInfo = self.checkSites()
+    if not siteInfo['OK']:
+      return siteInfo
+    siteInfo = siteInfo['Value']
+
+    seInfo = self.checkSEs()
+    if not seInfo['OK']:
+      return seInfo
+    seInfo = seInfo['Value']
+    
+    tierSEs = {}
+    for site in self.tier1s:      
+      tierSEs[site]=getSEsForSite(site)['Value']
+
+    tierInfo = {}
+    for site,seList in tierSEs.items():
+      tierInfo[site]={}
+      for se in seList:
+        if seInfo.has_key(se):
+          tierSEInfo = seInfo[se]
+          tierInfo[site][se]=tierSEInfo
+      if site in siteInfo['AllowedSites']:
+        tierInfo[site]['MaskStatus']='Allowed'
+      else:
+        tierInfo[site]['MaskStatus']='Banned'
+        
+    if printOutput:
+      print '========> Tier-1 status in DIRAC site and SE masks'
+      for site in sortList(self.tier1s):
+        print '\n====> %s\n' %site
+        print '%s %s %s' %('Storage Element'.ljust(25),'Read Status'.rjust(15),'Write Status'.rjust(15))
+        for se in sortList(tierSEs[site]):
+          if tierInfo[site].has_key(se):
+            print '%s %s %s' %(se.ljust(25),tierInfo[site][se]['ReadStatus'].rjust(15),tierInfo[site][se]['WriteStatus'].rjust(15))
+      
+      print '\n========> Tier-2 status in DIRAC site mask\n'
+      allowedSites = siteInfo['AllowedSites']
+      bannedSites = siteInfo['BannedSites']
+      for site in self.tier1s:
+        if site in allowedSites:
+          allowedSites.remove(site)
+        if site in bannedSites:
+          bannedSites.remove(site)
+      print ' %s sites are in the site mask, %s are banned.\n' %(len(allowedSites),len(bannedSites))
+          
+    summary = {'Sites':siteInfo,'SEs':seInfo,'Tier-1s':tierInfo}        
+    return S_OK(summary)
+  
+  #############################################################################
+  def checkSites( self, gridType='LCG', printOutput = False ):
+    """Return the list of sites in the DIRAC site mask and those which are banned.
+
+       Example usage:
+
+       >>> print dirac.checkSites()
+       {'OK': True, 'Value': {'AllowedSites':['<Site>',...],'BannedSites':[]}
+
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR
+    """
+    siteMask = DiracAdmin().getSiteMask()
+    if not siteMask['OK']:
+      return siteMask
+    
+    totalList = gConfig.getSections('/Resources/Sites/%s' %gridType)
+    if not totalList['OK']:
+      return S_ERROR('Could not get list of sites from CS')
+    totalList = totalList['Value']
+    sites = siteMask['Value']
+    bannedSites=[]
+    for site in totalList:
+      if not site in sites:
+        bannedSites.append(site)
+
+    if printOutput:
+      print '\n========> Allowed Sites\n'
+      print string.join(sites,'\n')
+      print '\n========> Banned Sites\n'
+      print string.join(bannedSites,'\n')
+      print '\nThere is a total of %s allowed sites and %s banned sites in the system.' %(len(sites),len(bannedSites))
+        
+    return S_OK({'AllowedSites':sites,'BannedSites':bannedSites})  
+
+  #############################################################################
+  def checkSEs( self, printOutput = False ):
+    """Check the status of read and write operations in the DIRAC SE mask. 
+
+       Example usage:
+
+       >>> print dirac.checkSEs()
+       {'OK': True, 'Value': {<LFN>:{'<Name>':'<Value>',...},...}}
+
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR
+    """
+    storageCFGBase = '/Resources/StorageElements'
+    res = gConfig.getSections(storageCFGBase,True)
+    if not res['OK']:
+      return S_ERROR('Failed to get storage element information')
+
+    if printOutput:
+      print '%s %s %s' % ('Storage Element'.ljust(25),'Read Status'.rjust(15),'Write Status'.rjust(15))
+
+    result = {}
+    for se in sortList(res['Value']):
+      res = gConfig.getOptionsDict('%s/%s' % (storageCFGBase,se))
+      if not res['OK']:
+        gLogger.warn('Failed to get options dict for SE %s' % se)
+      else:
+        readState = 'Active'
+        if res['Value'].has_key('ReadAccess'):
+          readState = res['Value']['ReadAccess']
+        writeState = 'Active'
+        if res['Value'].has_key('WriteAccess'):
+          writeState = res['Value']['WriteAccess']
+        result[se] = {'ReadStatus':readState,'WriteStatus':writeState}
+        if printOutput: 
+          print '%s %s %s' %(se.ljust(25),readState.rjust(15),writeState.rjust(15))
+           
+    return S_OK(result)
 
   #############################################################################
   def __errorReport(self,error,message=None):
