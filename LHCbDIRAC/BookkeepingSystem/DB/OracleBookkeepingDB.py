@@ -1505,9 +1505,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return S_ERROR('File Type not found:'+str(ftype)) 
         
         ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\' from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)+condition
+        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \''+ftype+'\', files.inserttimestamp from jobs,files where jobs.jobid=files.jobid and files.filetypeid='+str(ftypeId)+' and jobs.production='+str(prod)+condition
     else:
-      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)+condition
+      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name, files.inserttimestamp from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production='+str(prod)+condition
    
     res = self.dbR_._query(command)
     if res['OK']:
@@ -3232,7 +3232,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         records = res['Value']  
         for record in records:
-          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'FullStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12],'RunNumber':record[13]}
+          row = {'ADLER32':record[1],'CreationDate':record[2],'EventStat':record[3],'FullStat':record[10],'EventTypeId':record[4],'FileType':record[5],'GotReplica':record[6],'GUID':record[7],'MD5SUM':record[8],'FileSize':record[9],'DQFlag':record[11],'JobId':record[12],'RunNumber':record[13],'InsertTimeStamp':record[14]}
           result[file]= row
     return S_OK(result)
   
@@ -3308,7 +3308,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getProductionFilesForUsers(self, prod, ftypeDict, SortDict, StartItem, Maxitems):
     command = ''
-    parametersNames = ['Name', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica']
+    parametersNames = ['Name', 'FileSize','FileType','CreationDate','EventTypeId','EventStat','GotReplica', 'InsertTimeStamp']
     records = []
     
     totalrecords = 0
@@ -3336,18 +3336,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         
         ftypeId = res['Value'][0][0]
         
-        command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica from \
-                ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica \
-                from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica \
+        command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp from \
+                ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp \
+                from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp \
                            from jobs,files where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid='+str(ftypeId)+' and \
                            jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
     else:
       
-      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica from \
-                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica \
-                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica \
+      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp from \
+                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp \
+                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp \
                            from jobs,files,filetypes where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid=filetypes.filetypeid and \
@@ -3357,7 +3357,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        row = [record[1],record[2],record[3],record[4],record[5],record[6],record[7]]
+        row = [record[1],record[2],record[3],record[4],record[5],record[6],record[7], record[8]]
         records += [row]
     else:
       return S_ERROR(res['Message'])
