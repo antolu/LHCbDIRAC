@@ -210,7 +210,7 @@ AssigneeGroups = {
 
 Policies = { 
   'DT_OnGoing_Only' : 
-    { 'Description' : "Evaluates on possible ongoing down-times", 
+    { 'Description' : "Ongoing down-times", 
       'Granularity' : [], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -228,7 +228,7 @@ Policies = {
 #                      ]
      },
   'DT_Scheduled' : 
-    { 'Description' : "Evaluates on possible ongoing and scheduled down-times", 
+    { 'Description' : "Ongoing and scheduled down-times", 
       'Granularity' : ['Site', 'Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -247,7 +247,7 @@ Policies = {
                       ]
      },
   'GGUSTickets' : 
-    { 'Description' : "Evaluates the number of open GGUS tickets", 
+    { 'Description' : "Open GGUS tickets", 
       'Granularity' : ['Site'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -276,7 +276,7 @@ Policies = {
 #      'args' : None,  
 #     },
   'SAM_CE' : 
-    { 'Description' : "Evaluates latest SAM results on the LCG Computing Element", 
+    { 'Description' : "Latest SAM results on the LCG Computing Element", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -300,7 +300,7 @@ Policies = {
                          ]
      },     
   'SAM_CREAMCE' : 
-    { 'Description' : "Evaluates latest SAM results on the CREAM Computing Element", 
+    { 'Description' : "Latest SAM results on the CREAM Computing Element", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -317,7 +317,7 @@ Policies = {
                          ]
      },     
   'SAM_SE' : 
-    { 'Description' : "Evaluates latest SAM results on the SRM nodes", 
+    { 'Description' : "Latest SAM results on the SRM nodes", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -334,7 +334,7 @@ Policies = {
                          ]
      },     
   'SAM_LFC_C' : 
-    { 'Description' : "Evaluates latest SAM results on the central LFC nodes", 
+    { 'Description' : "Latest SAM results on the central LFC nodes", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -351,7 +351,7 @@ Policies = {
                           ]
      },     
   'SAM_LFC_L' : 
-    { 'Description' : "Evaluates latest SAM results on the slave LFC nodes", 
+    { 'Description' : "Latest SAM results on the slave LFC nodes", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -368,7 +368,7 @@ Policies = {
                           ]
      },     
   'SAM_FTS' : 
-    { 'Description' : "Evaluates latest SAM results on the FTS nodes", 
+    { 'Description' : "Latest SAM results on the FTS nodes", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -385,7 +385,7 @@ Policies = {
                           ]
      },     
   'JobsEfficiencySimple' :  
-    { 'Description' : "Evaluates a simple jobs efficiency", 
+    { 'Description' : "Simple jobs efficiency", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -411,7 +411,7 @@ Policies = {
                                     ]                                  
    },
   'PilotsEfficiencySimple_Service' : 
-    { 'Description' : "Evaluates a simple pilots efficiency", 
+    { 'Description' : "Simple pilots efficiency", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -437,7 +437,7 @@ Policies = {
                                     ]
      },
   'PilotsEfficiencySimple_Resource' : 
-    { 'Description' : "Evaluates a simple pilots efficiency", 
+    { 'Description' : "Simple pilots efficiency", 
       'Granularity' : ['Resource'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -462,7 +462,7 @@ Policies = {
                           ]
      },
   'OnSitePropagation' :
-    { 'Description' : "Evaluates how the site's services are behaving in the RSS", 
+    { 'Description' : "How the site's services are behaving in the RSS", 
       'Granularity' : ['Site'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -476,7 +476,7 @@ Policies = {
                       ]
      },
   'OnComputingServicePropagation' :
-    { 'Description' : "Evaluates how the service's computing resources are behaving in the RSS", 
+    { 'Description' : "How the service's computing resources are behaving in the RSS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -490,7 +490,7 @@ Policies = {
                                    ]
      },
   'OnStorageServicePropagation_Res' :
-    { 'Description' : "Evaluates how the service's storage nodes are behaving in the RSS", 
+    { 'Description' : "How the service's storage nodes are behaving in the RSS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -504,7 +504,7 @@ Policies = {
                                  ]
      },
   'OnStorageServicePropagation_SE' :
-    { 'Description' : "Evaluates how the service's storage elements are behaving in the RSS", 
+    { 'Description' : "How the service's storage elements are behaving in the RSS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -518,7 +518,7 @@ Policies = {
                                  ]
      },
   'VOBOX-SLS' :
-    { 'Description' : "Evaluates how the VO-Boxes are behaving in the SLS", 
+    { 'Description' : "How the VO-Box is behaving in the SLS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -528,12 +528,12 @@ Policies = {
       'module' : 'SLS_Policy',
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
       'args' : ('VO-BOX', ),  
-      'OtherServices_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
+      'Service_VO-BOX_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': ('VO-BOX', )}}, 
                                 ]
      },
   'VOMS-SLS' :
-    { 'Description' : "Evaluates how the VOMS are behaving in the SLS", 
+    { 'Description' : "How the VOMS service is behaving in the SLS", 
       'Granularity' : ['Service'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -543,7 +543,7 @@ Policies = {
       'module' : 'SLS_Policy',
       'commandIn' : ('SLS_Command', 'SLSStatus_Command'),
       'args' : ('VOMS', ),  
-      'OtherServices_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
+      'Service_VOMS_Panel' : [ {'WebLink': {'CommandIn':('SLS_Command', 'SLSLink_Command'),
                                   'args': ('VOMS', )}}, 
                               ]
      },
@@ -559,7 +559,7 @@ Policies = {
 #      'args' : None,  
 #     },
   'OnStorageElementPropagation' :
-    { 'Description' : "Evaluates how the storage elements' nodes are behaving in the RSS", 
+    { 'Description' : "How the storage element's nodes are behaving in the RSS", 
       'Granularity' : ['StorageElement'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -584,7 +584,7 @@ Policies = {
 #      'ResourceType' : ['SE'],
 #     },
   'TransferQuality' :
-    { 'Description' : "Evaluates the SE transfer quality", 
+    { 'Description' : "SE transfer quality", 
       'Granularity' : ['StorageElement'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -606,7 +606,7 @@ Policies = {
                       ]
      },
   'SEOccupancy' :
-    { 'Description' : "Evaluates the SE occupancy", 
+    { 'Description' : "SE occupancy", 
       'Granularity' : ['StorageElement'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -621,7 +621,7 @@ Policies = {
                       ]
      },
   'SEQueuedTransfers' :
-    { 'Description' : "Evaluates the queued transfers on the SE", 
+    { 'Description' : "Queued transfers on the SE", 
       'Granularity' : ['StorageElement'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
@@ -724,7 +724,8 @@ Policy_Types = {
 #############################################################################
 
 views_panels = {
-  'Site' : ['Site_Panel', 'Service_Computing_Panel', 'Service_Storage_Panel', 'OtherServices_Panel'],
+  'Site' : ['Site_Panel', 'Service_Computing_Panel', 'Service_Storage_Panel', 
+            'Service_VOMS_Panel', 'Service_VO-BOX_Panel'],
   'Resource' : ['Resource_Panel'],
   'StorageElement' : ['SE_Panel']
 }
