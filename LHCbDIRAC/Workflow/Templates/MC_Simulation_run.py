@@ -238,6 +238,13 @@ if threeSteps and not decided:
     production.addBrunelStep('{{p3Ver}}',finalAppType.lower(),brunelOpts,extraPackages='{{p3EP}}',inputDataType=booleType,
                              outputSE=brunelDataSE,condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')    
     decided=True
+  elif not mergingFlag and threeSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['digi','xdigi']:
+    prodDescription = 'A two step workflow of Gauss->Boole without merging' 
+    production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+    production.addBooleStep('{{p2Ver}}',finalAppType.lower(),booleOpts,extraPackages='{{p2EP}}',
+                            condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
+    decided=True    
   elif mergingFlag and threeSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['digi','xdigi']:
     prodDescription = 'A three step workflow of Gauss->Boole + Merging' 
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
