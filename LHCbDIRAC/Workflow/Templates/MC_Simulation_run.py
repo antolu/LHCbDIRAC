@@ -99,7 +99,7 @@ banTier1s = eval(banTier1s)
 #Use computing model default unless CERN is requested
 defaultOutputSE='' # for all intermediate outputs
 brunelDataSE=''
-if outputsCERN.lower()=='True':
+if outputsCERN:
   defaultOutputSE='CERN-RDST'
   brunelDataSE='CERN_MC_M-DST'
 
