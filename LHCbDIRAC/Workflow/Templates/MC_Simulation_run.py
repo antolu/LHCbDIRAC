@@ -30,10 +30,6 @@
      The template explicitly forces the tags of the CondDB / DDDB to be set
      at each step.  
      
-     
-     TODO:
-     - insert line breaks to make copying easy...
-     - workflowXML generation as a test
 """
 
 __RCSID__   = "$Id: MC_Simulation_run.py 23248 2010-03-18 07:57:40Z paterson $"
@@ -108,8 +104,10 @@ if outputsCERN.lower()=='True':
   brunelDataSE='CERN_MC_M-DST'
 
 mcRequestTracking=1
+mcTransformationFlag=transformationFlag
 if mergingFlag:
   mcRequestTracking = 0
+  mcTransformationFlag=False
 
 if testFlag:
   events = '5'
@@ -136,7 +134,7 @@ if outputFileMask:
   maskList = [m.lower() for m in outputFileMask.replace(' ','').split(',')]
   if not finalAppType.lower() in maskList:
     maskList.append(finalAppType.lower())
-  outputFileMask = string.join(outputFileMask,';')
+  outputFileMask = string.join(maskList,';')
 
 ###########################################
 # Parameter passing, the bulk of the script
@@ -158,7 +156,7 @@ decided=False
 #To make editing the resulting script easier in all cases separate options from long function calls
 gaussOpts = '{{p1Opt}}'
 booleOpts = '{{p2Opt}}'
-#Moore and Brunel mean others are defined later.
+#Having Moore and Brunel at the third step means other Opts are defined later.
 
 #Now try to guess what the request is actually asking for.
 if fiveSteps:
@@ -199,7 +197,17 @@ if fourSteps and not decided:
     production.addBrunelStep('{{p4Ver}}',finalAppType.lower(),brunelOpts,extraPackages='{{p4EP}}',inputDataType=booleType,
                              outputSE=brunelDataSE,condDBTag='{{p4CDb}}',ddDBTag='{{p4DDDb}}')  
     decided=True
-  elif mergingFlag and fourSteps.lower()=='lhcb':
+  elif not mergingFlag and threeSteps.lower()=='brunel':
+    prodDescription = 'A three step workflow Gauss->Boole->Brunel without merging'
+    production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+    production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
+                            condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
+    brunelOpts = '{{p3Opt}}'
+    production.addBrunelStep('{{p3Ver}}',finalAppType.lower(),brunelOpts,extraPackages='{{p3EP}}',inputDataType=booleType,
+                             outputSE=brunelDataSE,condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')
+    decided=True
+  elif mergingFlag and fourSteps.lower()==mergingApp.lower():
     #Will likely disappear eventually as Moore will start to be used everywhere
     prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
@@ -215,7 +223,8 @@ if fourSteps and not decided:
     decided=True 
   else:
     #So far ignoring possible Gauss->Boole->Moore + Merging combination (never requested).
-    gLogger.error('Four steps requested but workflow is neither Gauss->Boole->Brunel +Merging or Gauss->Boole->Moore->Brunel, not sure what to do! Exiting...')
+    gLogger.error('Four steps requested but workflow is neither Gauss->Boole->Brunel +Merging, \
+                   Gauss->Boole->Brunel without Merging, or Gauss->Boole->Moore->Brunel, not sure what to do! Exiting...')
     DIRAC.exit(2)
 
 if threeSteps and not decided:
@@ -229,7 +238,7 @@ if threeSteps and not decided:
     production.addBrunelStep('{{p3Ver}}',finalAppType.lower(),brunelOpts,extraPackages='{{p3EP}}',inputDataType=booleType,
                              outputSE=brunelDataSE,condDBTag='{{p3CDb}}',ddDBTag='{{p3DDDb}}')    
     decided=True
-  elif mergingFlag and threeSteps.lower()=='lhcb' and finalAppType.lower() in ['digi','xdigi']:
+  elif mergingFlag and threeSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['digi','xdigi']:
     prodDescription = 'A three step workflow of Gauss->Boole + Merging' 
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
                             extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
@@ -240,7 +249,8 @@ if threeSteps and not decided:
     mergingDDDB = '{{p3DDDb}}'
     decided=True
   else:
-    gLogger.error('Three steps requested but workflow is neither Gauss->Boole->Brunel with no merging nor Gauss->Boole + Merging for digi / xdigi. Exiting...')
+    gLogger.error('Three steps requested but workflow is neither Gauss->Boole->Brunel with no merging nor \
+                   Gauss->Boole + Merging for digi / xdigi. Exiting...')
     DIRAC.exit(2)
     
 if twoSteps and not decided:
@@ -251,7 +261,7 @@ if twoSteps and not decided:
     production.addBooleStep('{{p2Ver}}',finalAppType.lower(),booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     decided=True
-  elif mergingFlag and twoSteps.lower()=='lhcb' and finalAppType.lower()=='sim':
+  elif mergingFlag and twoSteps.lower()==mergingApp.lower() and finalAppType.lower()=='sim':
     prodDescription = 'A two step workflow of Gauss + Merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
                             extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
@@ -260,30 +270,33 @@ if twoSteps and not decided:
     mergingDDDB = '{{p2DDDb}}'
     decided=True
   else:
-    gLogger.error('Two steps requested but workflow is neither Gauss->Boole without merging for digi / xdigi nor Gauss + Merging for sim. Exiting...')  
+    gLogger.error('Two steps requested but workflow is neither Gauss->Boole without merging for digi / xdigi \
+                  nor Gauss + Merging for sim. Exiting...')  
     DIRAC.exit(2)
 
 if oneStep and not decided:
   prodDescription = 'A one step workflow of Gauss only without merging'
   production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
                           extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+  decided=True
 
-#Boole MDF - ignore for now
-#booleOpts = 'Boole().Outputs  = ["DIGI","MDF"];'
-#booleOpts += """OutputStream("DigiWriter").Output = "DATAFILE='PFN:@{outputData}' TYP='POOL_ROOTTREE' OPT='RECREATE'";"""
-#booleOpts += """OutputStream("RawWriter").Output = "DATAFILE='PFN:@{STEP_ID}.mdf' SVC='LHCb::RawDataCnvSvc' OPT='REC'";"""
-#booleOpts += "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC';"
-#booleOpts += 'HistogramPersistencySvc().OutputFile = "@{applicationName}_@{STEP_ID}_Hist.root"'
+#Boole MDF - ignore as a use-case for now - was only used during FEST exerciseds
+#extraOpts = 'Boole().Outputs  = ["DIGI","MDF"];'
+#extraOpts += """OutputStream("DigiWriter").Output = "DATAFILE='PFN:@{outputData}' TYP='POOL_ROOTTREE' OPT='RECREATE'";"""
+#extraOpts += """OutputStream("RawWriter").Output = "DATAFILE='PFN:@{STEP_ID}.mdf' SVC='LHCb::RawDataCnvSvc' OPT='REC'";"""
+#extraOpts += "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC';"
+#extraOpts += 'HistogramPersistencySvc().OutputFile = "@{applicationName}_@{STEP_ID}_Hist.root"'
 #outputSE = 'CERN-RDST'
 #extra = {"outputDataName":"@{STEP_ID}.mdf","outputDataType":"mdf","outputDataSE":outputSE}
-#production.addBooleStep('{{p2Ver}}','digi',booleOpt,extraPackages='{{p2EP}}',overrideOpts=booleOpts,extraOutputFile=extra)
+#production.addBooleStep('{{p2Ver}}','digi',booleOpts,extraPackages='{{p2EP}}',overrideOpts=extraOpts,extraOutputFile=extra)
 
 # Finally, in case none of the above were eligible.
 if not decided:
   gLogger.error('None of the understood application configurations were understood by this template. Exiting...')
   DIRAC.exit(2)
   
-prodDescription = '%s for BK %s %s event type %s with %s events per job and final application file type %s.' %(prodDescription,configName,configVersion,evtType,events,finalAppType)
+prodDescription = '%s for BK %s %s event type %s with %s events per job and final\
+                   application file type %s.' %(prodDescription,configName,configVersion,evtType,events,finalAppType)
 gLogger.info(prodDescription)
 production.setWorkflowDescription(prodDescription)  
 production.addFinalizationStep()
@@ -312,7 +325,7 @@ if testFlag:
     gLogger.error('Production test failed with exception:\n%s' %(x))
     DIRAC.exit(2)
 
-result = production.create(requestID=int('{{ID}}'),reqUsed=mcRequestTracking,transformation=transformationFlag,bkScript=False)
+result = production.create(requestID=int('{{ID}}'),reqUsed=mcRequestTracking,transformation=mcTransformationFlag,bkScript=False)
 if not result['OK']:
   gLogger.error('Error during production creation:\n%s\ncheck that the wkf name is unique.' %(result['Message']))
   DIRAC.exit(2)
@@ -329,7 +342,7 @@ msg += ' and started in automatic submission mode.'
 gLogger.info(msg)
 
 if not mergingFlag:
-  gLogger('No merging requested for production ID %s.' %(mcProdID))
+  gLogger.info('No merging requested for production ID %s.' %(mcProdID))
   DIRAC.exit(0)
 
 #################################################################################
@@ -350,7 +363,8 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 mergeProd = Production()
 mergeProd.setProdType('Merge')
-mergeProd.setWorkflowName('%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(finalAppType,evtType,mcProdID,mergingGroupSize))
+mergingName = '%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(finalAppType,evtType,mcProdID,mergingGroupSize)
+mergeProd.setWorkflowName(mergingName)
 mergeProd.setWorkflowDescription('MC workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters(configName,configVersion,'{{pDsc}}','{{simDesc}}')
 mergeProd.setDBTags(mergingCondDB,mergingDDDB)
@@ -366,7 +380,7 @@ mergeProd.setProdPriority(mergingPriority)
 mergeProd.setFileMask(finalAppType.lower())
 mergeProd.setProdPlugin(mergingPlugin)
 
-result = mergeProd.create(bkScript=False,requestID=int('{{ID}}'),reqUsed=1)
+result = mergeProd.create(bkScript=False,requestID=int('{{ID}}'),reqUsed=1,transformation=transformationFlag)
 if not result['OK']:
   gLogger.error('Error during merging production creation:\n%s\n' %(result['Message']))
   DIRAC.exit(2)
