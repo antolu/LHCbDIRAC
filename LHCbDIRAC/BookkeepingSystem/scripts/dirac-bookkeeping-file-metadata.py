@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+import  DIRAC.Core.Base.Script as Script
+Script.parseCommandLine()
 ########################################################################
 # $HeadURL$
 ########################################################################
@@ -12,11 +12,13 @@ from DIRAC.Core.Utilities.List import sortList
 client = RPCClient('Bookkeeping/BookkeepingManager')
 import os,sys
 
-if not len(sys.argv) == 2:
+args = Script.getPositionalArgs()
+
+if not len(args) == 1:
   print 'Usage: ./dirac-bookkeeping-file-metadata.py <lfn | fileContainingLfns>'
   sys.exit()
 else:
-  inputFileName = sys.argv[1]
+  inputFileName = args[0]
 
 if os.path.exists(inputFileName):
   inputFile = open(inputFileName,'r')
