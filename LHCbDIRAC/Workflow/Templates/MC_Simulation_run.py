@@ -57,7 +57,6 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 # Configurable parameters
 ###########################################
 testFlag = '{{TemplateTest#A flag to set whether a test script should be generated#False}}'
-#workflowFlag = '{{TemplateWorkflow#A flag to enable workflow XML creation from the template only#False}}'
 
 events = '{{MCNumberOfEvents#MC Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#MC Max CPU time in secs#1000000}}'
