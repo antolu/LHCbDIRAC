@@ -168,7 +168,9 @@ class ModuleBase(object):
     """
     fileInfo = {}
     for outputFile in outputList:
-      if outputFile.has_key('outputDataType') and outputFile.has_key('outputDataSE') and outputFile.has_key('outputDataName'):
+      if outputFile.has_key('abandonOutput'):
+        self.log.info('Abandoning output file %s as specified by the workflow' %(outputFile))
+      elif outputFile.has_key('outputDataType') and outputFile.has_key('outputDataSE') and outputFile.has_key('outputDataName'):
         fname = outputFile['outputDataName']
         fileSE = outputFile['outputDataSE']
         fileType= outputFile['outputDataType']
