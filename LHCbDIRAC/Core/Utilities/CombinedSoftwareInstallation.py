@@ -96,9 +96,17 @@ class CombinedSoftwareInstallation:
       print self.job
       return onlineExecute( self.job['SoftwarePackages'] )
 
+    # The below only applies to local running since job agent will set to /LocalSite/Architecture
+    # in case of 'ANY' in the job description.
+    if self.jobConfig.lower()=='any': 
+      DIRAC.gLogger.info('Assume this is a locally running job with sys config set to "ANY"')
+      self.jobConfig=DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' )
+      if not self.jobConfig:
+        return DIRAC.S_ERROR('/LocalSite/Architecture is missing and must be specified')
+
     if not self.jobConfig in self.ceConfigs:
       if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
-        DIRAC.gLogger.info( 'Assume locally running job' )
+        DIRAC.gLogger.info( 'Assume locally running job without CE configuration settings' )
         return DIRAC.S_OK()
       elif self.jobConfig==DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' ): # as set by the job agent in case of 'ANY'
         DIRAC.gLogger.info('Job SystemConfiguration is set to /LocalSite/Architecture, checking compatible platforms')
