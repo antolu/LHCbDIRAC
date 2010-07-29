@@ -76,10 +76,7 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
       options.append("OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
     elif appType.lower() == 'dst' and inputType in ['sdst','dst']: #e.g. stripping
       options.append('from Configurables import SelDSTWriter')
-      options.append('SelDSTWriter.OutputFileSuffix = \'@{STEP_ID}\'')
-#      options.append('from StrippingConf.Configuration import StrippingConf')
-#      options.append('StrippingConf().StreamFile["BExclusive"] = \'@{outputData}\'')
-#      options.append('StrippingConf().StreamFile["Topological"] = \'@{outputData}\'')
+      options.append('SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'')
     elif appType.lower() == 'davincihist':
       options.append('from Configurables import InputCopyStream')
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
