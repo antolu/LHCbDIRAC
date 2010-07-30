@@ -2686,7 +2686,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       jobsId = []
       gLogger.debug('filename',fileName)
       jobsId = []
-      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId',LongType,[fileName])
+      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobIdWithoutReplicaCheck',LongType,[fileName])
       if not result["OK"]:
         gLogger.error('Ancestor',result['Message'])
       else:
