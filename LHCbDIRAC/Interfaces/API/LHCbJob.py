@@ -847,7 +847,7 @@ class LHCbJob(Job):
     return S_OK()
 
   #############################################################################
-  def setInputDataPolicy(self,policy):
+  def setInputDataPolicy(self,policy,dataScheduling=True):
     """Helper function.
 
        Specify a job input data policy, this takes precedence over any site specific or
@@ -861,7 +861,7 @@ class LHCbJob(Job):
        >>> job.setInputDataPolicy('download')
 
     """
-    kwargs = {'policy':policy}
+    kwargs = {'policy':policy,'dataScheduling':dataScheduling}
     csSection = '/Operations/InputDataPolicy'
     possible = ['Download','Protocol']
     finalPolicy = ''
@@ -878,9 +878,16 @@ class LHCbJob(Job):
 
     description = 'User specified input data policy'
     self._addParameter(self.workflow,'InputDataPolicy','JDL',jobPolicy,description)
+    
+    if not dataScheduling and policy.lower()=='download':
+      self.log.verbose('Scheduling by input data is disabled, jobs will run anywhere and download input data')
+      self._addParameter(self.workflow,'DisableDataScheduling','JDL','True','Disable scheduling by input data')
+    
+    if not dataScheduling and policy.lower()!='download':
+      self.log.error('Expected policy to be "download" for bypassing data scheduling')
+      return self._reportError('Expected policy to be "download" for bypassing data scheduling',__name__,**kwargs)                
+    
     return S_OK()
-
-#Below to be thought about further when adding user finalization
 
   #############################################################################
   def setOutputData(self,lfns,OutputSE=[],OutputPath=''):
