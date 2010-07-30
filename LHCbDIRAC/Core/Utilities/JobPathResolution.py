@@ -17,6 +17,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
+from DIRAC.WorkloadManagementSystem.DB.JobDB               import JobDB
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger
 
 import string,re
@@ -56,11 +57,18 @@ class JobPathResolution:
       lhcbPath += ancestors+','
 
     inputData = classadJob.get_expression('InputData').replace('"','').replace('Unknown','')
-    if inputData:
+    if inputData and not classadJob.lookupAttribute('DisableDataScheduling'):
       self.log.info('Job %s has input data requirement' % (job))
       bkInputData = gConfig.getValue(section+'/BKInputData','BKInputData')
       lhcbPath += 'InputData,'
       lhcbPath += bkInputData+','
+
+    if inputData and classadJob.lookupAttribute('DisableDataScheduling'):
+      self.log.info('Job %s has input data requirement but scheduling via input data is disabled' %(job))
+      result = JobDB().setInputData(job,[])
+      if not result['OK']:
+        self.log.error(result)
+        return S_ERROR('Could not reset input data to null')
 
 #    inputDataType = classadJob.get_expression('InputDataType').replace('"','').replace('Unknown','')
 #    if inputDataType=='ETC':
