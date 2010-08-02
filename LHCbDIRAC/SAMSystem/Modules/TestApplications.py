@@ -53,6 +53,10 @@ class TestApplications(ModuleBaseSAM):
     self.samTestName = ''
     self.appNameVersion = ''
     self.appNameOptions = ''
+    
+    #Default local configuration settings
+    gConfig.setOptionValue('/LocalSite/DisableLocalJobDirectory','1')
+    gConfig.setOptionValue('/LocalSite/DisableLocalModeCallback','1')    
 
   #############################################################################
   def resolveInputVariables(self):
@@ -191,7 +195,7 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
     """
     result = S_OK()
     try:
-      j = LHCbJob()
+      j = LHCbJob(stdout=self.logFile.replace('log','stdout'),stderr=self.logFile.replace('log','stderr'))
       j.setSystemConfig(self.appSystemConfig)
       j.setApplication(appName,appVersion,options,logFile=self.logFile)
       j.setName('%s%sSAMTest' %(appName,appVersion))
@@ -202,31 +206,12 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
       if self.enable:
         result = dirac.submit(j,mode='local')
         self.log.info('%s %s execution result: %s' %(appName,appVersion,result))
+      #Correct the log file name since it will have Step1_ prepended.
       if os.path.exists('Step1_%s' %self.logFile):
         shutil.move('Step1_%s' %self.logFile,self.logFile)
-      else:
-        if os.path.exists('std.out'):
-          shutil.copy('std.out',self.logFile)
-        if os.path.exists('std.err'):
-          fopen = open('std.err','r')
-          lines = fopen.readlines()
-          fopen.close()
-          fopen = open(self.logFile,'a')
-          fopen.writelines(lines)
-          fopen.close()
     except Exception,x:
       self.log.warn('Problem during %s %s execution: "%s"' %(appName,appVersion,x))
-      if os.path.exists('std.out'):
-        shutil.copy('std.out',self.logFile)
-      if os.path.exists('std.err'):
-        fopen = open('std.err','r')
-        lines = fopen.readlines()
-        fopen.close()
-        fopen = open(self.logFile,'a')
-        fopen.writelines(lines)
-        fopen.close()      
       return S_ERROR(str(x))    
-    #Correct the log file names since they will have Step1_ prepended.
     return result
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
