@@ -116,10 +116,10 @@ class LHCbJob(Job):
 
   #############################################################################
 
-  def __init__(self,script=None):
+  def __init__(self,script=None,stdout='std.out',stderr='std.err'):
     """Instantiates the Workflow object and some default parameters.
     """
-    Job.__init__(self,script)
+    Job.__init__(self,script,stdout,stderr)
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
