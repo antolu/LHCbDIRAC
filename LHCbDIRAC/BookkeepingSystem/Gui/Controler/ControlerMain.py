@@ -38,10 +38,10 @@ class ControlerMain(ControlerAbstract):
       gLogger.error(retVal['Message'])
     else: 
       for i in retVal['Value']:
-        if i == "BAD":
-          self.__qualityFlags[i] = False
+        if i == "OK":
+          self.__qualityFlags[i] = True
         else:
-          self.__qualityFlags[i] = True   
+          self.__qualityFlags[i] = False   
     #self.__progressBar = ProgressThread(False, 'Query on database...',self.getWidget())
     self.__bkClient.setDataQualities(self.__qualityFlags)
   #############################################################################  
