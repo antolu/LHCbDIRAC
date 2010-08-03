@@ -585,7 +585,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiStepOutput = {}
     gaudiStepOutput['outputDataName']='@{STEP_ID}.@{applicationType}'
     gaudiStepOutput['outputDataType']='@{applicationType}'
-    gaudiStepOutput['outputDataSE']=outputDataSE
+    gaudiStepOutput['outputDataSE']=outputSE
 
     if abandonOutput:
       gaudiStepOutput['abandonOutput']='True' # this is conditional only on the key
