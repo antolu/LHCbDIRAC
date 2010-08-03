@@ -11,6 +11,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.Core.Security.Misc                              import getProxyInfo
+from DIRAC.Core.Utilities.File                             import getGlobbedFiles
 from DIRAC.Core.Utilities                                  import List
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
@@ -135,7 +136,14 @@ class UserJobFinalization(ModuleBase):
     if not self.userOutputData:
       self.log.info('No user output data is specified for this job, nothing to do')
       return S_OK('No output data to upload')
-        
+    
+    self.log.info('User specified output file list is: %s' %(string.join(self.userOutputData,', ')))    
+    #Check whether list of userOutputData is a globbable pattern
+    globbedOutputList = List.uniqueElements(getGlobbedFiles(self.userOutputData))
+    if not globbedOutputList==self.userOutputData:
+      self.log.info('Found a pattern in the output data file list, files to upload are: %s' %(string.join(globbedOutputList,', ')))
+      self.userOutputData = globbedOutputList
+    
     #Determine the final list of possible output files for the
     #workflow and all the parameters needed to upload them.
     outputList = []
