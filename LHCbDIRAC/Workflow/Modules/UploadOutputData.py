@@ -301,7 +301,7 @@ class UploadOutputData(ModuleBase):
     return S_OK('Output data uploaded')
 
   #############################################################################
-  def reregisterFiles(lfns,oldSE,newSE):
+  def reregisterFiles(self,lfns,oldSE,newSE):
     """ In case a data reconstruction job is running at CERN this method allows
         to reregister the data to ensure it is on disk according to the computing
         model.
