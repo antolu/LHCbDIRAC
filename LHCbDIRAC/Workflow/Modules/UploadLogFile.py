@@ -184,11 +184,11 @@ class UploadLogFile(ModuleBase):
 
     #########################################
     # Recover the logs to a failover storage element
-    self.log.error('Completely failed to upload log files to %s, will attempt upload to failover SE' % self.logSE,res['Message'])
+    self.log.error('Completely failed to upload log files to %s with message "%s", will attempt upload to failover SE' %(self.logSE,res['Message']))
 
     ######### REALLY NASTY TEMPORARY CODE #######################
     # TODO: Use tar module if available
-    tarFileDir = os.path.dirname(self.logdir)
+    tarFileDir = self.logdir
     self.logLFNPath = '%s.gz' %self.logLFNPath
     tarFileName = os.path.basename(self.logLFNPath)
     start = os.getcwd()
