@@ -36,6 +36,7 @@ class BookkeepingReport(ModuleBase):
     self.applicationName = ''
     self.applicationLog = ''
     self.firstStepInput=''
+    self.jobType = ''
     self.log = gLogger.getSubLogger("BookkeepingReport")
     pass
 
@@ -103,6 +104,9 @@ class BookkeepingReport(ModuleBase):
       self.bkLFNs=result['Value']['BookkeepingLFNs']
       self.logFilePath=result['Value']['LogFilePath'][0]
       self.prodOutputLFNs=result['Value']['ProductionOutputData']
+
+    if self.workflow_commons.has_key('JobType'):
+      self.jobType = self.workflow_commons['JobType']
 
     return S_OK()
 
@@ -221,7 +225,9 @@ class BookkeepingReport(ModuleBase):
     s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
     s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
     s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
-    s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')
+    s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')    
+    s = s+self.__parameter_string("JobType",self.jobType,"Info")
+    
 #    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
 
     host = None
