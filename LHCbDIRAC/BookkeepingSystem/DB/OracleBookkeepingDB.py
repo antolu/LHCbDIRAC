@@ -3034,7 +3034,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'JobId':None, \
                     'MD5Sum':None, \
                     'FileSize':0, \
-                    'FullStat':None }
+                    'FullStat':None, \
+                    'QualityId': 'UNCHECKED'}
       
       for param in file:
         if not attrList.__contains__(param):
@@ -3061,7 +3062,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['JobId'], \
                     attrList['MD5Sum'], \
                     attrList['FileSize'], \
-                    attrList['FullStat'], utctime ] ) 
+                    attrList['FullStat'], utctime,\
+                    attrList['QualityId'] ] ) 
       return result
       
   #############################################################################

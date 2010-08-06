@@ -233,12 +233,7 @@ class XMLFilesReaderManager:
       evtinput = sumEvtStat
     else:
       evtinput = sumEventInputStat
-    
-    jobtype = job.getParam('JobType')
-    if jobtype:
-      print 'cccc'
-      job.removeParam('JobType')
-    
+        
     currentEventInputStat = job.getParam('EventInputStat')
     if currentEventInputStat != None:
         currentEventInputStat.setValue(evtinput)
@@ -260,6 +255,23 @@ class XMLFilesReaderManager:
           self.errorMgmt_.reportError (13, "The run number not greater 0!" , deleteFileName, errorReport)
           return S_ERROR('The run number not greater 0!')
 
+    dqvalue = None
+    if job.exists('JobType'):  
+      job.removeParam('JobType')
+      jobtype = job.getParam('JobType')
+      jvalue = jobtype.getValue() 
+      if jvalue != '' and jvalue.upper() == 'MERGE':
+        inputfiles = job.getJobInputFiles()
+        if len(inputfiles) > 0:
+          fileName = inputfiles[0].getFileName()
+          res = dataManager_.getFileMetadata([fileName])
+          if res['OK']:
+            value = res['Value']
+            if value[fileName].has_key('DQFlag'):
+              dqvalue = value[fileName]['DQFlag']
+          else:
+            gLogger.warn(res['Message'])
+              
 
     result = self.__insertJob(job)
 
@@ -280,6 +292,12 @@ class XMLFilesReaderManager:
 
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
+      if dqvalue != None:
+        newFileParams = FileParam()
+        newFileParams.setParamName('QualityId')
+        newFileParams.setParamValue(dqvalue)
+        file.addFileParam(newFileParams)
+      
       result = self.__insertOutputFiles(job, file)
       if not result['OK']:
         dataManager_.deleteInputFiles(job.getJobId())
