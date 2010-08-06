@@ -15,28 +15,14 @@ from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
-templateName = 'p'
+templateName = 'FirstBeam_BrunelOnly'
 
-####################### BLACK MAGIC TO SET UP PROXY CONTAINED WITHIN #########################
-from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
-localCfg = LocalConfiguration()
-localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate","yes" )
-resultDict = localCfg.loadUserData()
-if not resultDict[ 'OK' ]:
-  print "There were errors when loading configuration",resultDict[ 'Message' ]
-  sys.exit(1)
-###############################################################################
-
-try:
-  from LHCbDIRAC.Interfaces.API.Production import Production
-  from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-except:
-  from DIRAC.LHCbSystem.Client.Production import Production
-  from DIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.Interfaces.API.Production import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 #Configurable parameters
 priority = '{{Priority#Production priority#7}}'
-plugin = '{{PluginType#Production plugin name#ByRunCCRC_RAW}}'
+plugin = '{{PluginType#Production plugin name#ByRun}}'
 ancestorProd = '{{AncestorProd#Ancestor production if any#0}}'
 dataSE = '{{DataSE#Output Data Storage Element#Tier1-DST}}'
 
