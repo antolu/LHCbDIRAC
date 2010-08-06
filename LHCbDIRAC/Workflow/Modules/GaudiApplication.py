@@ -154,6 +154,13 @@ class GaudiApplication(ModuleBase):
     if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return self.onlineExecute()
 
+    if self.jobType.lower()=='merge':
+      #Disable the watchdog check in case the file uploading takes a long time
+      self.log.info('Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog for Merge production')
+      fopen = open('DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK','w')
+      fopen.write('%s' %time.asctime())
+      fopen.close()
+
     #Resolve options files
     if self.optionsFile and not self.optionsFile == "None":
       for fileopt in self.optionsFile.split(';'):
