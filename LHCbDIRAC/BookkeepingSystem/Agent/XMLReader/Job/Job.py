@@ -69,6 +69,12 @@ class Job:
         param = i
     return param
   
+  #############################################################################
+  def removeParam(self, jobParam):
+    for i in self.jobParameters_:
+      if i.getName() == jobParam:
+        self.jobParameters_.remove(i)
+  
   #############################################################################  
   def addJobInputFiles(self, files):
     self.jobInputFiles_ += [files]

@@ -234,6 +234,11 @@ class XMLFilesReaderManager:
     else:
       evtinput = sumEventInputStat
     
+    jobtype = job.getParam('JobType')
+    if jobtype:
+      print 'cccc'
+      job.removeParam('JobType')
+    
     currentEventInputStat = job.getParam('EventInputStat')
     if currentEventInputStat != None:
         currentEventInputStat.setValue(evtinput)
