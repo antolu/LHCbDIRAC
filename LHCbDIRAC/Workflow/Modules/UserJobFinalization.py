@@ -21,7 +21,7 @@ from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestination
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import DIRAC
-import string,os,random,time
+import string,os,random,time,re
 
 class UserJobFinalization(ModuleBase):
 
@@ -138,11 +138,25 @@ class UserJobFinalization(ModuleBase):
       return S_OK('No output data to upload')
     
     self.log.info('User specified output file list is: %s' %(string.join(self.userOutputData,', ')))    
+    
+    globList = []
+    for i in self.userOutputData:
+      if re.search( '\*', i ):
+        globList.append(i)
+           
     #Check whether list of userOutputData is a globbable pattern
-    globbedOutputList = List.uniqueElements(getGlobbedFiles(self.userOutputData))
-    if not globbedOutputList==self.userOutputData:
-      self.log.info('Found a pattern in the output data file list, files to upload are: %s' %(string.join(globbedOutputList,', ')))
-      self.userOutputData = globbedOutputList
+    if globList:
+      for i in globList:
+        self.userOutputData.remove(i)
+      
+      globbedOutputList = List.uniqueElements(getGlobbedFiles(globList))
+      if globbedOutputList:
+        self.log.info('Found a pattern in the output data file list, extra files to upload are: %s' %(string.join(globbedOutputList,', ')))
+        self.userOutputData += globbedOutputList
+      else:
+        self.log.info('No files were found on the local disk for the following patterns: %s' %(string.join(globList,', ')))
+    
+    self.log.info('Final list of files to upload are: %s' %(string.join(self.userOutputData,', ')))
     
     #Determine the final list of possible output files for the
     #workflow and all the parameters needed to upload them.
