@@ -257,7 +257,6 @@ class XMLFilesReaderManager:
 
     dqvalue = None
     if job.exists('JobType'):  
-      job.removeParam('JobType')
       jobtype = job.getParam('JobType')
       jvalue = jobtype.getValue() 
       if jvalue != '' and jvalue.upper() == 'MERGE':
@@ -271,7 +270,7 @@ class XMLFilesReaderManager:
               dqvalue = value[fileName]['DQFlag']
           else:
             gLogger.warn(res['Message'])
-              
+      job.removeParam('JobType')        
 
     result = self.__insertJob(job)
 
