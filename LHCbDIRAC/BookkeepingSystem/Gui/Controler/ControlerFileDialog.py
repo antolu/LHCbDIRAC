@@ -59,7 +59,7 @@ class ControlerFileDialog(ControlerAbstract):
         self.getWidget().showFilesSize(filesize)
         self.getWidget().show()
     else:
-      QMessageBox.information(self.getWidget(), "No data have selected", "Please check your data quality flags and select the correct one :)!",QMessageBox.Ok)  
+      QMessageBox.information(self.getWidget(), "No data selected!!!", "You have to open Setting/DataQuality menu item and you have to select data quality flag(s)!",QMessageBox.Ok)  
     
     
   #############################################################################  
