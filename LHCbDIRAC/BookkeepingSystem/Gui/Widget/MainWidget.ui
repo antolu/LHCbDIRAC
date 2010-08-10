@@ -59,7 +59,7 @@
    </widget>
    <widget class="QMenu" name="menuSetings" >
     <property name="title" >
-     <string>Setings</string>
+     <string>Settings</string>
     </property>
     <addaction name="actionDataQuality" />
    </widget>
