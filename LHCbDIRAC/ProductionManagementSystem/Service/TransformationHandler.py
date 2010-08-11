@@ -116,9 +116,8 @@ class TransformationHandler(DIRACTransformationHandler):
     resultDict['ParameterNames'] = paramNames
 
     # Add the job states to the ParameterNames entry
-    # TODO Removed for the moment
-    #taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
-    #resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
+    taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
+    resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
     # Add the file states to the ParameterNames entry
     fileStateNames  = ['PercentProcessed','Processed','Unused','Assigned','Total','Problematic']
     resultDict['ParameterNames'] += ['Files_'+x for x in fileStateNames]
@@ -176,16 +175,15 @@ class TransformationHandler(DIRACTransformationHandler):
           transRun.append(0)
 
       # Get the statistics on the number of jobs for the transformation
-      # TODO Removed for the moment
-      #res = self.database.getTransformationTaskRunStats(transID)
-      #taskDict = {}
-      #if res['OK'] and res['Value']:
-      #  taskDict = res['Value']
-      #for state in taskStateNames:
-      #  if taskDict and taskDict.has_key(state):
-      #    trans.append(taskDict[state])
-      #  else:
-      #    trans.append(0)
+      res = self.database.getTransformationTaskRunStats(transID)
+      taskDict = {}
+      if res['OK'] and res['Value']:
+        taskDict = res['Value']
+      for state in taskStateNames:
+        if taskDict and taskDict.has_key(state):
+          trans.append(taskDict[state])
+        else:
+          trans.append(0)
 
     resultDict['Records'] = transList
     resultDict['Extras'] = statusDict
