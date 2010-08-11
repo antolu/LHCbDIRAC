@@ -296,7 +296,12 @@ class XMLFilesReaderManager:
         newFileParams.setParamName('QualityId')
         newFileParams.setParamValue(dqvalue)
         file.addFileParam(newFileParams)
-      
+      if not job.exists('RunNumber'): #if it is MC
+        newFileParams = FileParam()
+        newFileParams.setParamName('QualityId')
+        newFileParams.setParamValue(2)
+        file.addFileParam(newFileParams)
+        
       result = self.__insertOutputFiles(job, file)
       if not result['OK']:
         dataManager_.deleteInputFiles(job.getJobId())
