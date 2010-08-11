@@ -94,6 +94,7 @@ testFlag = eval(testFlag)
 transformationFlag = eval(transformationFlag)
 mergingFlag = eval(mergingFlag)
 banTier1s = eval(banTier1s)
+outputsCERN=eval(outputsCERN)
 
 #Use computing model default unless CERN is requested
 defaultOutputSE='' # for all intermediate outputs
