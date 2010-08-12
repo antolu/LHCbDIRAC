@@ -20,7 +20,7 @@ import string, re, os, time, shutil, types, copy
 
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
-from DIRAC.Core.Utilities.List                        import removeEmptyElements
+from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
 
 from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
@@ -649,7 +649,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       apps = self.workflow.findParameter(swPackages).getValue()
       apps = apps.split(';')
       apps.append(nameVersion)
-      apps = removeEmptyElements(apps)
+      apps = uniqueElements(removeEmptyElements(apps))
       apps = string.join(apps,';')
       self._addParameter(self.workflow,swPackages,'JDL',apps,description)
 
