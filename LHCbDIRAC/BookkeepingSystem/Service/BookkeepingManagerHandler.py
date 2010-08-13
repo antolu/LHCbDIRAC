@@ -1253,6 +1253,11 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getFilesForAGivenProduction(self, dict):
     return dataMGMT_.getFilesForAGivenProduction(dict)
   
+  #############################################################################
+  types_getProductiosWithAGivenRunAndProcessing = [DictType]
+  def export_getProductiosWithAGivenRunAndProcessing(self, dict):
+    return dataMGMT_.getProductiosWithAGivenRunAndProcessing(dict)
+  
   '''
   End Monitoring
   '''

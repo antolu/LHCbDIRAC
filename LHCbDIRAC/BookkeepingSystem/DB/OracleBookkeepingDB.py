@@ -3896,6 +3896,36 @@ and files.qualityid= dataquality.qualityid'
     return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
   
   #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    
+    if dict.has_key('Runnumber'):
+      run = dictp['Runnumber']
+    else:
+      return S_ERROR('The run number is missing!')
+    if dict.has_key('ProcPass'):
+      proc = dictp['ProcPass']
+    else:
+      return S_ERROR('The processing pass is missing!')
+    
+    condition = 'select distinct production  from bookkeepingview, productions where runnumber='+str(run)+' and production>0 ' 
+    
+    descriptions = proc.split('+')
+    totalproc = ''
+    for desc in descriptions:
+      result = self.getGroupId(desc.strip())
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      elif len(result['Value']) == 0:
+        return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+      
+      val = result['Value'][0][0]
+      totalproc += str(val)+"<"
+    totalproc = totalproc[:-1]
+    condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+    retVal = self.dbR_._query(command)
+    return retVal
+  
+  #############################################################################
   def setProductionVisible(self, prodid, Value):
     if Value:
       command = 'update productions set visible=\'1\' where production='+str(prodid) 

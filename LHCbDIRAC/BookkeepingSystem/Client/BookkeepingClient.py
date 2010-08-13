@@ -871,4 +871,9 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.setProductionVisible(dict)
   
+  #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    server = self.__getServer()
+    return server.getProductiosWithAGivenRunAndProcessing(dict)
+  
    #----------------------------------- END Event Types------------------------------------------------------------------

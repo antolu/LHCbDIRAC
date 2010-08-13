@@ -579,6 +579,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().setProductionVisible(prodid, Value)
   
   #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    return self.getManager().getProductiosWithAGivenRunAndProcessing(dict)
+  
+  #############################################################################
   '''
     MONITORING
   '''
