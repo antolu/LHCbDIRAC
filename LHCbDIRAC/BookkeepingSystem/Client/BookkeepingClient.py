@@ -876,4 +876,8 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductiosWithAGivenRunAndProcessing(dict)
   
+  #############################################################################
+  def getDataQualityForRuns(self, runs):
+    server = self.__getServer()
+    return server.getDataQualityForRuns(runs)
    #----------------------------------- END Event Types------------------------------------------------------------------

@@ -583,6 +583,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProductiosWithAGivenRunAndProcessing(dict)
   
   #############################################################################
+  def getDataQualityForRuns(self, runs):
+    return self.getManager().getDataQualityForRuns(runs)
+  
+  #############################################################################
   '''
     MONITORING
   '''

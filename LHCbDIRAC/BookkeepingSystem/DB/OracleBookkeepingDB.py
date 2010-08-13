@@ -3926,6 +3926,17 @@ and files.qualityid= dataquality.qualityid'
     return retVal
   
   #############################################################################
+  def getDataQualityForRuns(self, runs):
+    command = ' select distinct jobs.runnumber,dataquality.dataqualityflag from files, jobs,dataquality where files.jobid=jobs.jobid and files.qualityid=dataquality.qualityid  and jobs.production<0 and ('
+    conditions = ''
+    for i in runs:
+      conditions += ' jobs.runnumber='+str(i)+'or'
+    conditions += conditions[:-2]+')'
+    command += conditions
+    retVal = self.dbR_._query(command)
+    return retVal
+  
+  #############################################################################
   def setProductionVisible(self, prodid, Value):
     if Value:
       command = 'update productions set visible=\'1\' where production='+str(prodid) 

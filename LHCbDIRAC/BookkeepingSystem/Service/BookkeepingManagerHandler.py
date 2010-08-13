@@ -1258,6 +1258,11 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProductiosWithAGivenRunAndProcessing(self, dict):
     return dataMGMT_.getProductiosWithAGivenRunAndProcessing(dict)
   
+  #############################################################################
+  types_getDataQualityForRuns = [ListType]
+  def export_getDataQualityForRuns(self, runs):
+    return dataMGMT_.getDataQualityForRuns(runs)
+  
   '''
   End Monitoring
   '''
