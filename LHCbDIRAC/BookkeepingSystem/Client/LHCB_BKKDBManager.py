@@ -335,7 +335,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_2(self, path, levels, configName, configVersion):
     entityList = list()
-    if configName=='MC':
+    if configName=='MC' or configName=='certification' or configName=='development':
       result = self.db_.getSimulationConditions(configName, configVersion) 
       if result['OK']:
         dbResult = result['Value']
