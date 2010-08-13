@@ -3899,11 +3899,11 @@ and files.qualityid= dataquality.qualityid'
   def getProductiosWithAGivenRunAndProcessing(self, dict):
     
     if dict.has_key('Runnumber'):
-      run = dictp['Runnumber']
+      run = dict['Runnumber']
     else:
       return S_ERROR('The run number is missing!')
     if dict.has_key('ProcPass'):
-      proc = dictp['ProcPass']
+      proc = dict['ProcPass']
     else:
       return S_ERROR('The processing pass is missing!')
     
