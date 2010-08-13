@@ -25,7 +25,12 @@ else:
 cl = BookkeepingClient()
 retVal = cl.getDataQualityForRuns(ids)
 if retVal['OK']:
-  print retVal
+  print "-----------------------------------"
+  print "Run Number".ljust(20)+"Flag".ljust(10)
+  print "-----------------------------------"
+  for i in  retVal["Value"]:
+    print str(i[0]).ljust(20)+str(i[1]).ljust(10)
+  print "-----------------------------------" 
 else:
   print retVal["Message"]
 
