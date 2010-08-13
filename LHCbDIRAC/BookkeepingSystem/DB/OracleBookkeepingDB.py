@@ -3907,7 +3907,7 @@ and files.qualityid= dataquality.qualityid'
     else:
       return S_ERROR('The processing pass is missing!')
     
-    condition = 'select distinct production  from bookkeepingview, productions where runnumber='+str(run)+' and production>0 ' 
+    command = 'select distinct production  from bookkeepingview, productions where runnumber='+str(run)+' and production>0 ' 
     
     descriptions = proc.split('+')
     totalproc = ''
@@ -3921,7 +3921,7 @@ and files.qualityid= dataquality.qualityid'
       val = result['Value'][0][0]
       totalproc += str(val)+"<"
     totalproc = totalproc[:-1]
-    condition += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
+    command += ' and productions.TOTALPROCPASS=\''+totalproc+'\''
     retVal = self.dbR_._query(command)
     return retVal
   
