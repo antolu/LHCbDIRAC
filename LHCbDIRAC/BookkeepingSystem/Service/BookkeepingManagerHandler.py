@@ -621,7 +621,7 @@ class BookkeepingManagerHandler(RequestHandler):
          fsize+=i[5]
        result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5]}  
     summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000.}
-    result["Summary"]=summary
+    result['Summary']=summary
     return S_OK(result)
   
   types_getProcessedEvents = [IntType]
