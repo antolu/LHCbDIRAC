@@ -602,7 +602,7 @@ class BookkeepingManagerHandler(RequestHandler):
       runNbs = []
       
     result = {}
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs)
+    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:
