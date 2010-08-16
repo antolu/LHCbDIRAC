@@ -522,6 +522,100 @@ class BookkeepingManagerHandler(RequestHandler):
         result += [i[0]]
 
     return S_OK(result)
+
+#############################################################################  
+  types_getFilesWithGivenDataSetsForUsers = [DictType]
+  def export_getFilesWithGivenDataSetsForUsers(self, values):
+    
+    simdesc = 'ALL'
+    if values.has_key('SimulationConditions'):
+      simdesc = str(values['SimulationConditions'])   
+    
+    datataking = 'ALL'
+    if values.has_key('DataTakingConditions'):
+      datataking = str(values['DataTakingConditions'])
+    
+    if values.has_key('ProcessingPass'):
+      procPass = values['ProcessingPass']
+    else:
+      procPass = 'ALL'
+    
+    if values.has_key('FileType'):
+      ftype = values['FileType']
+    else:
+      return S_ERROR('FileType is missing!')
+    
+    if values.has_key('EventType'):
+      evt = values['EventType']
+    else:
+      evt = 0
+      
+    if values.has_key('ConfigName'):
+      configname = values['ConfigName']
+    else:
+      configname = 'ALL'
+     
+    if values.has_key('ConfigVersion'):
+      configversion = values['ConfigVersion']
+    else:
+      configversion = 'ALL'
+    
+    if values.has_key('ProductionID'):
+      prod = values['ProductionID']
+      if prod == 0:
+        prod = 'ALL'
+    else:
+      prod = 'ALL'
+    
+    if values.has_key('DataQualityFlag'):
+      flag = values['DataQualityFlag']
+    else:
+      flag = 'ALL'
+    
+    if values.has_key('StartDate'):
+      startd = values['StartDate']
+    else:
+      startd = None
+    
+    if values.has_key('EndDate'):
+      endd = values['EndDate']
+    else:
+      endd = None
+    if values.has_key('NbOfEvents'):
+      nbofevents = values['NbOfEvents']
+    else:
+      nbofevents = False
+    
+    if values.has_key('StartRun'):
+      startRunID = values['StartRun']
+    else:
+      startRunID = None
+    
+    if values.has_key('EndRun'):
+      endRunID = values['EndRun']
+    else:
+      endRunID = None
+    
+    if values.has_key('RunNumbers'):
+      runNbs = values['RunNumbers']
+    else:
+      runNbs = []
+      
+    result = {}
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      values = retVal['Value']
+      summary = {'Number Of Files':0,'Number of Events':0,'EventInputStat':0,'FileSize':0}
+      for i in values:
+       summary['Number Of Files']=+1
+       summary['Number of Events']+= i[1]
+       summary['EventInputStat']+= i[2]
+       summary['FileSize']+=i[5]
+       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5]}
+    result["Summary"]=summary
+    return S_OK(result)
   
   types_getProcessedEvents = [IntType]
   def export_getProcessedEvents(self, prodid):

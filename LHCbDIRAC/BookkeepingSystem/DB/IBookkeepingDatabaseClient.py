@@ -499,6 +499,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers)
   
   #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers):
+    return self.getManager().getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers)
+  
+  #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):
     return self.getManager().insert_aplications(appName, appVersion, option, dddb, condb, extrapack)
   

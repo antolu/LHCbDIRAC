@@ -1356,6 +1356,172 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = []):
+    configid = None
+    condition = ''
+    
+    if configName != 'ALL' and configVersion != 'ALL':
+      command = ' select configurationid from configurations where configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      elif len(res['Value']) == 0:
+        return S_ERROR('Config name and version dosnt exist!')
+      else:
+        configid = res['Value'][0][0]
+        if configid != 0:
+          condition = ' and jobs.configurationid='+str(configid)
+        else:
+          return S_ERROR('Wrong configuration name and version!')
+                    
+    if production != 'ALL':
+      if type(production) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in production:
+          cond += 'jobs.production='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      else:
+       condition += ' and jobs.production='+str(production)
+    
+    if len(runnumbers) > 0:
+      if type(runnumbers) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in runnumbers:
+          cond += 'jobs.runnumber='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+            
+    tables = ' files,jobs '
+    pcondition = ''
+    jcondition = ''
+    if procPass != 'ALL':
+      descriptions = procPass.split('+')
+      totalproc = ''
+      for desc in descriptions:
+        result = self.getGroupId(desc.strip())
+        if not result['OK']:
+          return S_ERROR(result['Message'])
+        elif len(result['Value']) == 0:
+          return S_ERROR('Processing pass is missing'+str(procPass))
+        val = result['Value'][0][0]
+        totalproc += str(val)+"<"
+      totalproc = totalproc[:-1]
+    
+      pcondition +=' and productions.totalprocpass=\''+totalproc+'\''
+      jcondition = ' and jobs.production=productions.production '
+      tables += ',productions'
+    
+    if ftype != 'ALL':
+      if type(ftype) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in ftype:
+          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(i)+'\''
+          res = self.dbR_._query(fileType)
+          if not res['OK']:
+            gLogger.error('File Type not found:',res['Message'])
+          elif len(res['Value'])==0:
+            return S_ERROR('File type not found!'+str(i))
+          else:
+            ftypeId = res['Value'][0][0]
+            cond  += ' files.FileTypeId='+str(ftypeId) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond  
+      elif type(ftype) == types.StringType:
+        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+        res = self.dbR_._query(fileType)
+        if not res['OK']:
+          gLogger.error('File Type not found:',res['Message'])
+        elif len(res['Value'])==0:
+          return S_ERROR('File type not found!'+str(ftype))
+        else:
+          ftypeId = res['Value'][0][0]
+          condition += ' and files.FileTypeId='+str(ftypeId)
+
+    if evt != 0:
+      if type(evt) in (types.ListType,types.TupleType):
+        condition += ' and '
+        cond = ' ( '
+        for i in evt:
+          cond +=  ' files.eventtypeid='+str(i) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      elif type(evt) in (types.StringTypes + (types.IntType,types.LongType)):
+        condition +=  ' and files.eventtypeid='+str(evt)
+              
+    if startDate != None:
+      condition += ' and files.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    
+    if endDate != None:
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    elif startDate != None and endDate == None:
+      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+      condition += ' and files.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      
+    if flag != 'ALL':
+      if type(flag) in (types.ListType,types.TupleType):
+        conds = ' ('
+        for i in flag:
+          quality = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' files.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      else:
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        
+        condition += ' and files.qualityid='+str(quality)
+      
+    if startRunID != None:
+      condition += ' and jobs.runnumber>='+str(startRunID)
+    if endRunID != None:
+      condition += ' and jobs.runnumber<='+str(endRunID)
+ 
+    simcondition = ''
+    daqcondition = ''
+    if simdesc == 'ALL' and datataking =='ALL':
+      command = ' select filename from '+tables+' where files.jobid= jobs.jobid and files.gotreplica=\'Yes\'' +condition + jcondition + pcondition
+      res = self.dbR_._query(command)
+      return res
+    elif simdesc != 'ALL':
+      simcondition = ' select production from  productions, simulationconditions where  \
+                   simulationconditions.simdescription=\''+simdesc+'\' and \
+                   productions.simcondid= simulationconditions.simid '+ pcondition
+    elif datataking != 'ALL':
+      daqcondition = ' select production from  productions, data_Taking_conditions where  \
+                   data_Taking_conditions.description=\''+datataking+'\' and \
+                   productions.simcondid= data_Taking_conditions.Daqperiodid '+ pcondition
+    
+    if nbofEvents:
+      command = ' select sum(files.eventstat) from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production in (' + simcondition + daqcondition+')'
+    else:
+      command = ' select files.filename, files.eventstat, jobs.eventinputstat, jobs.runnumber, jobs.fillnumber, files.filesize from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+                   and jobs.production in (' + simcondition + daqcondition+')'
+                   
+    res = self.dbR_._query(command)
+    
+    return res
+  
+  #############################################################################
   def getProPassWithEventType(self, configName, configVersion, eventType, simcond):
     condition = ' and bookkeepingview.configname=\''+configName+'\' and \
                     bookkeepingview.configversion=\''+configVersion+'\''

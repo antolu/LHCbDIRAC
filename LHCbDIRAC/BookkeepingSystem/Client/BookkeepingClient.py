@@ -788,6 +788,11 @@ class BookkeepingClient:
     return server.getFilesWithGivenDataSets(values)
   
   #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, values):
+    server = RPCClient('Bookkeeping/BookkeepingManager')
+    return server.getFilesWithGivenDataSetsForUsers(values)
+  
+  #############################################################################
   def getFileHistory(self, lfn):
     server = RPCClient('Bookkeeping/BookkeepingManager')
     return server.getFileHistory(lfn)
