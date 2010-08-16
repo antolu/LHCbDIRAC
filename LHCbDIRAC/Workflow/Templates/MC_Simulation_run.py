@@ -332,7 +332,7 @@ if testFlag:
     gLogger.error('Production test failed with exception:\n%s' %(x))
     DIRAC.exit(2)
 
-result = production.create(requestID=int('{{ID}}'),reqUsed=mcRequestTracking,transformation=mcTransformationFlag,bkScript=False)
+result = production.create(requestID=int('{{ID}}'),reqUsed=mcRequestTracking,transformation=mcTransformationFlag,bkScript=mergingFlag)
 if not result['OK']:
   gLogger.error('Error during production creation:\n%s\ncheck that the wkf name is unique.' %(result['Message']))
   DIRAC.exit(2)
@@ -375,8 +375,9 @@ mergeProd.setWorkflowName(mergingName)
 mergeProd.setWorkflowDescription('MC workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters(configName,configVersion,'{{pDsc}}','{{simDesc}}')
 mergeProd.setDBTags(mergingCondDB,mergingDDDB)
-mergeProd.addMergeStep(mergingVersion,eventType='{{eventType}}',inputDataType=finalAppType.lower(),inputProduction=mcProdID,
-                       inputData=[],passDict=bkPassDict,condDBTag=mergingCondDB,ddDBTag=mergingDDDB)
+mergeProd.addMergeStep(mergingVersion,eventType='{{eventType}}',inputDataType=finalAppType.lower(),
+                       inputProduction=mcProdID,inputData=[],passDict=bkPassDict,
+                       condDBTag=mergingCondDB,ddDBTag=mergingDDDB)
 mergeProd.addFinalizationStep(removeInputData=True)
 mergeProd.setInputBKSelection(inputBKQuery)
 mergeProd.setInputDataPolicy('download')
