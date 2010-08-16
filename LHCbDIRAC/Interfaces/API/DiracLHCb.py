@@ -606,7 +606,7 @@ class DiracLHCb(Dirac):
 
     start = time.time()
     bk = BookkeepingClient()                      
-    result = bk.getFilesWithGivenDataSets(bkQueryDict)
+    result = bk.getFilesWithGivenDataSetsForUsers(bkQueryDict)
     rtime = time.time()-start    
     self.log.info('BK query time: %.2f sec' %rtime)
     
