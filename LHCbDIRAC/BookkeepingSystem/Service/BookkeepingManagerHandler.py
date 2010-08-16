@@ -607,13 +607,20 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_ERROR(retVal['Message'])
     else:
       values = retVal['Value']
-      summary = {'Number Of Files':0,'Number of Events':0,'EventInputStat':0,'FileSize':0}
+      nbfiles = 0
+      nbevents = 0
+      evinput = 0
+      fsize = 0
       for i in values:
-       summary['Number Of Files']=+1
-       summary['Number of Events']+= i[1]
-       summary['EventInputStat']+= i[2]
-       summary['FileSize']+=i[5]
-       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5]}
+       nbfiles=+1
+       if i[1] != None:
+        nbevents+= i[1]
+       if i[2] != None:
+         evinput+= i[2]
+       if i[5] != None:
+         fsize+=i[5]
+       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5]}  
+    summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000.}
     result["Summary"]=summary
     return S_OK(result)
   
