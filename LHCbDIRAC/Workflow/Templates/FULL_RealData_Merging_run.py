@@ -80,10 +80,6 @@ prodGroup = '{{pDsc}}'
 bkConfigName = '{{configName}}'
 bkConfigVersion = '{{configVersion}}'
 
-if testProduction:
-  bkConfigName = 'certification'
-  bkConfigVersion = 'test'
-
 #Other parameters from the request page
 recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
 recoTransFlag = eval(recoTransFlag)
@@ -91,6 +87,10 @@ recoBKPublishing = eval(recoBKPublishing)
 mergeRemoveInputsFlag = eval(mergeRemoveInputsFlag)
 transformationFlag = eval(transformationFlag)
 testProduction = eval(testProduction)
+
+if testProduction:
+  bkConfigName = 'certification'
+  bkConfigVersion = 'test'
 
 #The below are fixed for the FULL stream
 recoType="FULL"
@@ -236,6 +236,9 @@ for fType in bkFileTypes:
 if not dstList or not setcList:
   gLogger.error('Could not find any file types to merge! Exiting...')
   DIRAC.exit(2)
+
+#Until issue of naming streamed SETC files is resolved
+setcList.append('SETC')
 
 gLogger.info('List of DST file types from BK is: %s' %(string.join(dstList,', ')))
 gLogger.info('List of SETC file types from BK is: %s' %(string.join(setcList,', ')))
