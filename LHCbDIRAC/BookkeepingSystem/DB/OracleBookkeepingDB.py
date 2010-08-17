@@ -4038,29 +4038,34 @@ and files.qualityid= dataquality.qualityid'
           runIds += [record[0]]
     else:
       return S_ERROR(retVal['Message'])
-    processedRuns = []
-    notProcessedRuns = []
-    for i in runIds:
-      command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and files.gotreplica=\'Yes\' and jobs.production<0 and jobs.runnumber='+str(i)
-      retVal = self.dbR_._query(command)
-      if retVal['OK']:
-        files = retVal['Value']
-        ok = True
-        for file in files:
-          name = file[0]
-          retVal = self.getDescendents([name],1)
-          files = retVal['Value']
-          successful = files['Successful']
-          failed = files['Failed']
-          if len(successful[successful.keys()[0]]) == 0: 
-            ok = False
-        if ok:
-          processedRuns += [i]
-        else:
-          notProcessedRuns += [i]  
     
-    return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
-  
+    if dict.has_key('CheckRunStatus') and dict['CheckRunStatus']:
+      processedRuns = []
+      notProcessedRuns = []
+      for i in runIds:
+        command = 'select files.filename from files,jobs where jobs.jobid=files.jobid and files.gotreplica=\'Yes\' and jobs.production<0 and jobs.runnumber='+str(i)
+        retVal = self.dbR_._query(command)
+        if retVal['OK']:
+          files = retVal['Value']
+          ok = True
+          for file in files:
+            name = file[0]
+            retVal = self.getDescendents([name],1)
+            files = retVal['Value']
+            successful = files['Successful']
+            failed = files['Failed']
+            if len(successful[successful.keys()[0]]) == 0: 
+              ok = False
+          if ok:
+            processedRuns += [i]
+          else:
+            notProcessedRuns += [i]  
+      
+      return S_OK({'Runs':runIds,'ProcessedRuns':processedRuns,'NotProcessedRuns':notProcessedRuns})
+    else:
+      return S_OK({'Runs':runIds})
+    return S_ERROR()
+    
   #############################################################################
   def getProductiosWithAGivenRunAndProcessing(self, dict):
     
