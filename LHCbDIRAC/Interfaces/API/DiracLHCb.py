@@ -50,6 +50,7 @@ class DiracLHCb(Dirac):
                              'StartRun'                 :     0,
                              'EndRun'                   :     0,
                              'DataQualityFlag'          : 'All'}
+    self.bk = BookkeepingClient() #to expose all BK client methods indirectly
     
   #############################################################################
   def addRootFile(self,lfn,fullPath,diracSE,printOutput=False):
