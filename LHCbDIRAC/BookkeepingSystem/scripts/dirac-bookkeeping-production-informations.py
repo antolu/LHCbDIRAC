@@ -101,7 +101,10 @@ if res['OK']:
       print "         " + str(file[1])+":"+str(file[0])
     nbevent = val["Number of events"]
     if len(nbevent) != 0:
-      print "Number of events",nbevent
+      print "Number of events"
+      print "File Type".ljust(20)+"Number of events".ljust(20)+"Event Type".ljust(20)+"EventInputStat"
+      for i in nbevent:
+        print str(i[0]).ljust(20)+str(i[1]).ljust(20)+str(i[2]).ljust(20)+str(i[3])
     else:
       print "Number of events",0
     print 'Path: ',  val['Path']
