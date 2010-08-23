@@ -17,7 +17,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     DIRACTransformationPlugin.__init__(self,plugin)
 
   def _AtomicRun(self):
-    possibleTargets = ['CERN-RAW','CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
+    possibleTargets = ['CERN-RDST','CERN-RAW','CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
     bk = BookkeepingClient()
     transClient = TransformationDBClient()
     # Get the requested shares from the CS
