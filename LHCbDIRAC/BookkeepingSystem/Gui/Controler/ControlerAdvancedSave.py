@@ -15,7 +15,7 @@ class ControlerAdvancedSave(ControlerAbstract):
   #############################################################################  
   def __init__(self, widget, parent):
     super(ControlerAdvancedSave, self).__init__(widget, parent)
-    self.__sites = {"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es", '':None}
+    self.__sites = {'Select a site':None,"CERN":"LCG.CERN.ch", "RAL":"LCG.RAL.uk", "IN2P3":"LCG.IN2P3.fr", "GRIDKA":"LCG.GRIDKA.de", "NIKHEF":"LCG.NIKHEF.nl", "CNAF":"LCG.CNAF.it", "PIC":"LCG.PIC.es"}
   
   #############################################################################  
   def messageFromParent(self, message):

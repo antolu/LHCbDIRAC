@@ -227,35 +227,44 @@ class ControlerMain(ControlerAbstract):
           return retVal['Value']
       
       elif message.action() == 'createCatalog': 
-        site = message['selection']['Site']
-        filename = message['fileName']
-        lfnList = message['lfns'].keys()
-        totalFiles = len(lfnList)
-        ff = filename.split('.')
-        catalog = ff[0]+'.xml'
-        retVal = self.__diracAPI.getInputDataCatalog(lfnList,site,catalog, True)
-        nbofsuccsessful = 0
-        if retVal['OK']:
-          slist = retVal['Successful']
-          faild = retVal['Failed']
-          nbofsuccsessful = len(slist)
-          nboffaild = len(faild)
-          exist = {}
-          lfns = message['lfns']
-          for i in slist.keys():
-            exist[i] = lfns[i]
-          if message['selection']['pfn']:
-            self.__bkClient.writeJobOptions(exist, filename, savedType = None, catalog= catalog, savePfn=slist)
-          else:
-            self.__bkClient.writeJobOptions(exist, filename, catalog= catalog)
-          m = 'Total files:'+str(totalFiles)+'\n'
-          if site != None:
-            m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'
-            m += str(nboffaild)+ ' not found '+str(site.split('.')[1])
-          QMessageBox.information(self.getWidget(), "Information", m ,QMessageBox.Ok)
+        if self.__fileName != '':
+          lfnList = message['lfns'].keys()
+          f = open(self.__fileName,'w')
+          for i in lfnList:
+            f.write(i)
+            f.write('\n')
+          f.close()
+          sys.exit(0)
         else:
-          QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
-      
+          site = message['selection']['Site']
+          filename = message['fileName']
+          lfnList = message['lfns'].keys()
+          totalFiles = len(lfnList)
+          ff = filename.split('.')
+          catalog = ff[0]+'.xml'
+          retVal = self.__diracAPI.getInputDataCatalog(lfnList,site,catalog, True)
+          nbofsuccsessful = 0
+          if retVal['OK']:
+            slist = retVal['Successful']
+            faild = retVal['Failed']
+            nbofsuccsessful = len(slist)
+            nboffaild = len(faild)
+            exist = {}
+            lfns = message['lfns']
+            for i in slist.keys():
+              exist[i] = lfns[i]
+            if message['selection']['pfn']:
+              self.__bkClient.writeJobOptions(exist, filename, savedType = None, catalog= catalog, savePfn=slist)
+            else:
+              self.__bkClient.writeJobOptions(exist, filename, catalog= catalog)
+            m = 'Total files:'+str(totalFiles)+'\n'
+            if site != None:
+              m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'
+              m += str(nboffaild)+ ' not found '+str(site.split('.')[1])
+            QMessageBox.information(self.getWidget(), "Information", m ,QMessageBox.Ok)
+          else:
+            QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
+
       elif message.action()=='ProductionInformations': 
         res = self.__bkClient.getProcessingPassDescfromProduction(int(message['production']))
         if res['OK']:

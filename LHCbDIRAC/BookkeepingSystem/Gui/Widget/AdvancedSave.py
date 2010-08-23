@@ -34,9 +34,13 @@ class AdvancedSave(QDialog, Ui_Dialog):
   #############################################################################  
   def fillWindows(self, sites):
     self.comboBox.clear()
+    j = 0
     for i in sites:
       self.comboBox.addItem (i, QVariant(str(sites[i])))
-    
+      if i == 'Select a site':
+        self.comboBox.setCurrentIndex(j)
+      j += 1
+                   
   #############################################################################  
   def setLFNbutton(self):
     if self.lfnButton.isChecked():
