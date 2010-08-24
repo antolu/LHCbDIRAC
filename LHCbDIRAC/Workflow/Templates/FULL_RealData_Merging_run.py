@@ -294,6 +294,7 @@ for mergeStream in dstList:
   
   mergeProd.addFinalizationStep(removeInputData=mergeRemoveInputsFlag)
   mergeProd.setInputBKSelection(mergeBKQuery)
+  mergeProd.setInputDataPolicy(recoIDPolicy)
   mergeProd.setProdGroup(prodGroup)
   mergeProd.setProdPriority(mergePriority)
   mergeProd.setJobFileGroupSize(mergeGroupSize)
