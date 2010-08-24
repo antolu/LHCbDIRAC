@@ -82,15 +82,13 @@ class InputDataResolution:
     #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
     #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
     #In the longer term this should be derived from file catalog metadata information.
+    #24/08/2010 - updated hack to use "mdf:" after udpates from Markus 
     tmpDict = {}
     for lfn,mdata in resolvedData.items():
       tmpDict[lfn]=mdata
       if re.search('.raw$',lfn):
-        tmpDict[lfn].update({'turl':'root:%s' %(resolvedData[lfn]['turl'])})
-        self.log.verbose('Prepending root: to TURL for %s' %lfn)
-        #self.log.verbose('Would have been prepending root: to TURL for %s (DISABLED)' %lfn)
-        #self.log.verbose('Manually appending ?filetype=raw: to TURL for %s' %lfn)
-        #tmpDict[lfn].update({'turl':'%s?filetype=raw' %(resolvedData[lfn]['turl'])})
+        tmpDict[lfn].update({'turl':'mdf:%s' %(resolvedData[lfn]['turl'])})
+        self.log.info('Prepending mdf: to TURL for %s' %lfn)
 
     resolvedData = tmpDict
     catalogName = 'pool_xml_catalog.xml'
