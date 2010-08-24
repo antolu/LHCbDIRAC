@@ -56,7 +56,7 @@ class DataRecoveryAgent(AgentModule):
     self.taskIDName = 'TaskID' 
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
-    self.am_setOption('PollingTime',4*60*60) #no stalled jobs are considered so can be frequent
+    self.am_setOption('PollingTime',2*60*60) #no stalled jobs are considered so can be frequent
     self.am_setModuleParam("shifterProxy", "ProductionManager")
     self.am_setModuleParam("shifterProxyLocation","%s/runit/%s/proxy" % (rootPath,AGENT_NAME))
     return S_OK()
@@ -69,6 +69,8 @@ class DataRecoveryAgent(AgentModule):
     self.enableFlag = self.am_getOption('EnableFlag',True)
 #    self.enableFlag = self.am_getOption('EnableFlag',False)
     self.log.info('Enable flag is %s' %self.enableFlag)  
+    self.removalOKFlag = self.am_getOption('RemovalOKFlag',True)
+    
     transformationTypes = self.am_getOption('TransformationTypes',['DataReconstruction','DataStripping','MCStripping','Merge'])
     transformationStatus = self.am_getOption('TransformationStatus',['Active','Completing'])
     fileSelectionStatus = self.am_getOption('FileSelectionStatus',['Assigned','MaxReset'])
@@ -77,7 +79,7 @@ class DataRecoveryAgent(AgentModule):
         
     #only worry about files > 12hrs since last update    
     selectDelay = self.am_getOption('SelectionDelay',1) #hours 
-    bkDepth = self.am_getOption('BKDepth',99) #only looking at descendent files
+    bkDepth = self.am_getOption('BKDepth',9) #only looking at descendent files
 
     transformationDict = {}
     for transStatus in transformationStatus:
@@ -97,11 +99,10 @@ class DataRecoveryAgent(AgentModule):
 
     trans = []
     ignoreLessThan = '6357'
-    removalOKFlag = False    
     
     ########## Uncomment for debugging
 #    self.enableFlag = False 
-#    removalOKFlag = False
+#    self.removalOKFlag = False
 #    trans.append('6357')
 #    trans.append('6361')
 #    trans.append('6362')
@@ -198,7 +199,7 @@ class DataRecoveryAgent(AgentModule):
         self.log.info('There are no files without problematic descendents to update for production %s in this cycle' %transformation)              
       
       if problematicFiles:
-        if removalOKFlag:
+        if self.removalOKFlag:
           result = self.removeOutputs(problematicFiles)
           if not result['OK']:
             self.log.error('Could not remove all problematic files with result\n%s' %(result))
@@ -319,20 +320,10 @@ class DataRecoveryAgent(AgentModule):
         continue
       
       self.log.info('Job %s, prod job %s last update %s, production management system status %s' %(wmsID,job,lastUpdate,wmsStatus))
-      #Exclude jobs not having appropriate WMS status (recheck if not as expected in case of surprises)         
+      #Exclude jobs not having appropriate WMS status - have to trust that production management status is correct        
       if not wmsStatus in wmsStatusList:
-        self.log.info('Job %s is in status %s, not %s so status will be rechecked with WMS (in case last production update is incorrect)' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
-        monitoring = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
-        statusDict = monitoring.getJobsStatus([wmsID])
-        if not statusDict['OK']:
-          self.log.warn('Could not obtain job status information for job %s with result:\n%s\nwill retry on next iteration...' %(wmsID,statusDict))
-          continue
-        jobMonStatus = statusDict['Value'][int(wmsID)]['Status']
-        if not jobMonStatus in wmsStatusList:
-          self.log.info('After rechecking with WMS: job %s status is %s, not one of %s, ignoring from further consideration' %(wmsID,jobMonStatus,string.join(wmsStatusList,', ')))
-          continue
-        else:
-          self.log.info('After rechecking with WMS: job %s status is in fact %s (not %s as in Production system) so will be considered' %(wmsID,jobMonStatus,wmsStatus))
+        self.log.info('Job %s is in status %s, not %s so will be ignored' %(wmsID,wmsStatus,string.join(wmsStatusList,', ')))
+        continue
         
       finalJobData = []
       #Must map unique files -> jobs in expected state
