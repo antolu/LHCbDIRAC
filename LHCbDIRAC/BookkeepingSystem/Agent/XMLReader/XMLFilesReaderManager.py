@@ -19,7 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Agent.ErrorReporterMgmt.ErrorReporterMgmt      
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                        import FileParam
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters                    import JobParameters
 from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import *
-import os,sys,datetime
+import os,sys,datetime,re
 
 __RCSID__ = "$Id$"
 
@@ -259,7 +259,7 @@ class XMLFilesReaderManager:
     if job.exists('JobType'):  
       jobtype = job.getParam('JobType')
       jvalue = jobtype.getValue() 
-      if jvalue != '' and jvalue.upper() == 'MERGE':
+      if jvalue != '' and re.search('MERGE',jvalue.upper()):
         inputfiles = job.getJobInputFiles()
         if len(inputfiles) > 0:
           fileName = inputfiles[0].getFileName()

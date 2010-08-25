@@ -2843,7 +2843,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     logicalFileNames['Failed'] = []
     jobsId = []
     job_id = -1
-    if depth < 1:
+    if depth > 10:
+      depth = 10
+    elif depth < 1:
       depth = 1
     odepth = depth 
     gLogger.debug('original',lfn)
@@ -2887,7 +2889,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     logicalFileNames['Failed'] = []
     jobsId = []
     job_id = -1
-    if depth < 1:
+    if depth > 10:
+      depth = 10
+    elif depth < 1:
       depth = 1
     odepth = depth 
     gLogger.debug('original',lfn)
@@ -2933,7 +2937,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     file_id = -1
     fileids = []
     odepth = -1
-    if depth < 1:
+    if depth > 10:
+      depth = 10
+    elif depth < 1:
       depth = 1
       odepth = depth
     else:
@@ -3003,7 +3009,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
     file_id = -1
     fileids = []
     odepth = -1
-    if depth < 1:
+    if depth > 10:
+      depth = 10
+    elif depth < 1:
       depth = 1
       odepth = depth
     else:
