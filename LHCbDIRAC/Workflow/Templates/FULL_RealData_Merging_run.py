@@ -65,6 +65,7 @@ mergePriority = '{{MergePriority#Merging production priority#8}}'
 mergePlugin = '{{MergePlugin#Merging production plugin#MergeByRun}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#Merging remove input data flag True/False#False}}'
 mergeProdGroup = '{{MergeProdGroup#Merging what is appended to the BK proc pass#-Merged}}'
+mergeCPU = '{{MergeMaxCPUTime#Merging Max CPU time in secs#100000}}'
 
 #transformation params
 transformationFlag = '{{TransformationEnable#Transformation flag to enable True/False#True}}'
@@ -276,6 +277,7 @@ for mergeStream in dstList:
                    'FileType'                 : mergeStream}
 
   mergeProd = Production()
+  mergeProd.setCPUTime(mergeCPU)
   mergeProd.setProdType('Merge')
   wkfName='Merging_Request%s_{{pDsc}}_{{eventType}}' %(currentReqID)
   mergeProd.setWorkflowName('%s_%s_%s' %(mergeStream.split('.')[0],wkfName,appendName))
