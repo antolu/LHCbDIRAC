@@ -511,9 +511,13 @@ class BookkeepingManagerHandler(RequestHandler):
       runNbs = values['RunNumbers']
     else:
       runNbs = []
-      
+    
+    replicaFlag = 'Yes'
+    if values.has_key('ReplicaFlag'):
+      replicaFlag = values['ReplicaFlag']
+ 
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:
@@ -600,9 +604,13 @@ class BookkeepingManagerHandler(RequestHandler):
       runNbs = values['RunNumbers']
     else:
       runNbs = []
-      
+    
+    replicaFlag = 'Yes'
+    if values.has_key('ReplicaFlag'):
+      replicaFlag = values['ReplicaFlag'] 
+    
     result = {}
-    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs)
+    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:

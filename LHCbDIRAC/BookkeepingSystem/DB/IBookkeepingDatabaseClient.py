@@ -495,12 +495,12 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().checkProcessingPassAndSimCond(production)
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers):
-    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers)
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag)
   
   #############################################################################
-  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers):
-    return self.getManager().getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers)
+  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag , startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
+    return self.getManager().getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass,ftype, evt, configname, configversion, prod, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag)
   
   #############################################################################
   def insert_aplications(self, appName, appVersion, option, dddb, condb, extrapack):

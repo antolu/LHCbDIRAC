@@ -1189,7 +1189,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = []):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag='Yes'):
     
     configid = None
     condition = ''
@@ -1328,7 +1328,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.runnumber>='+str(startRunID)
     if endRunID != None:
       condition += ' and jobs.runnumber<='+str(endRunID)
- 
+    
+    if replicaFlag in ['Yes','No']:
+      condition += ' and files.gotreplica=\''+replicaFlag+'\''
+
     simcondition = ''
     daqcondition = ''
     if simdesc == 'ALL' and datataking =='ALL':
@@ -1356,7 +1359,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return res
   
   #############################################################################
-  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = []):
+  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag ='Yes'):
     configid = None
     condition = ''
     
@@ -1494,7 +1497,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and jobs.runnumber>='+str(startRunID)
     if endRunID != None:
       condition += ' and jobs.runnumber<='+str(endRunID)
- 
+    
+    if replicaFlag in ['Yes','No']:
+      condition += ' and files.gotreplica=\''+replicaFlag+'\''
+    
     simcondition = ''
     daqcondition = ''
     if simdesc == 'ALL' and datataking =='ALL':
