@@ -527,6 +527,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().setQualityRun(runNb, flag)
   
   #############################################################################
+  def setRunQualityWithProcessing(self, runNB, procpass, flag):
+    return self.getManager().setRunQualityWithProcessing(runNB, procpass, flag)
+  
+  #############################################################################
   def setQualityProduction(self, prod, flag):
     return self.getManager().setQualityProduction(prod, flag)
   

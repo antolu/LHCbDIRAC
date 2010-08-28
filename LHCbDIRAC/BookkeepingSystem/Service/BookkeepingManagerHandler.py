@@ -1059,6 +1059,12 @@ class BookkeepingManagerHandler(RequestHandler):
     return S_OK(result)
   
   #############################################################################
+  types_setRunQualityWithProcessing = [LongType,StringType,StringType]
+  def export_setRunQualityWithProcessing(self, runNB, procpass, flag):
+    return dataMGMT_.setRunQualityWithProcessing(runNB, procpass, flag)
+    
+  
+  #############################################################################
   
   '''
   Monitoring

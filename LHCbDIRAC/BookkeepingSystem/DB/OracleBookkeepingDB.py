@@ -2624,6 +2624,29 @@ class OracleBookkeepingDB(IBookkeepingDB):
       result += [i[0]]
     return S_OK(result)
   
+  #############################################################################
+  def setRunQualityWithProcessing(self, runNB, procpass, flag):
+    totalproc = ''
+    descriptions = inputprod.split('+')
+    for desc in descriptions:
+      result = self.getGroupId(desc.strip())
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      elif len(result['Value']) == 0:
+        return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+      val = result['Value'][0][0]
+      totalproc += str(val)+"<"
+    totalproc = totalproc[:-1]
+    command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    elif len(retVal['Value']) == 0:
+      return S_ERROR('Data quality flag is missing in the DB')
+    qid = retVal['Value'][0][0]
+    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+','+totalproc+','+str(qid)+')'
+    return self.dbW_._query(command)
+  
   #############################################################################  
   def setQualityRun(self, runNb, flag):
     command = 'select distinct jobs.fillnumber, configurations.configname, configurations.configversion, data_taking_conditions.description, pass_group.groupdescription from \
