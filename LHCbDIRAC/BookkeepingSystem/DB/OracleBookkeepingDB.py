@@ -2627,7 +2627,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def setRunQualityWithProcessing(self, runNB, procpass, flag):
     totalproc = ''
-    descriptions = inputprod.split('+')
+    descriptions = procpass.split('+')
     for desc in descriptions:
       result = self.getGroupId(desc.strip())
       if not result['OK']:
