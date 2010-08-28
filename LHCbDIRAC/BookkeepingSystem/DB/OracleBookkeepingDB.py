@@ -2637,14 +2637,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       val = result['Value'][0][0]
       totalproc += str(val)+"<"
     totalproc = totalproc[:-1]
-    command = ' select qualityid from dataquality where dataqualityflag=\''+str(flag)+'\''
-    retVal = self.dbR_._query(command)
-    if not retVal['OK']:
-      return S_ERROR(retVal['Message'])
-    elif len(retVal['Value']) == 0:
-      return S_ERROR('Data quality flag is missing in the DB')
-    qid = retVal['Value'][0][0]
-    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+',\''+totalproc+'\','+str(qid)+')'
+    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+',\''+totalproc+'\','+flag+')'
     return self.dbW_._query(command)
   
   #############################################################################  
