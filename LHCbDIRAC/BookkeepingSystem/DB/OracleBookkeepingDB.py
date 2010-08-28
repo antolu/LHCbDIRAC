@@ -2637,7 +2637,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       val = result['Value'][0][0]
       totalproc += str(val)+"<"
     totalproc = totalproc[:-1]
-    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+',\''+totalproc+'\','+flag+')'
+    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+',\''+totalproc+'\',\''+flag+'\')'
     return self.dbW_._query(command)
   
   #############################################################################  
