@@ -57,6 +57,13 @@ class ControlerFileDialog(ControlerAbstract):
         
         filesize = self.getSizeOfFiles(items)
         self.getWidget().showFilesSize(filesize)
+        
+        totalLumy = self.countTotalLuminosity(items)
+        self.getWidget().showTotalLuminosity(totalLumy)
+        
+        lumiStat = self.countLumiStat(items)
+        self.getWidget().showTotalLumiStat(totalLumy)
+        
         self.getWidget().show()
     else:
       QMessageBox.information(self.getWidget(), "No data selected!!!", "You have to open Setting/DataQuality menu item and you have to select data quality flag(s)!",QMessageBox.Ok)  
@@ -96,6 +103,8 @@ class ControlerFileDialog(ControlerAbstract):
     self.getWidget().showSelectedFileSize(0)
     self.getWidget().showSelectedNumberOfEvents(0)
     self.getWidget().showSelectedNumberOfFiles(0)
+    self.getWidget().showSelectedTotalLuminosity(0)
+    self.getWidget().showSelectedLumiStat(0)
     self.getWidget().setModel({})
     self.getWidget().close()
     
@@ -170,6 +179,7 @@ class ControlerFileDialog(ControlerAbstract):
       self.updateSelectedNbFiles(self.__selectedFiles)
       self.updateSelectedFileSize(self.__selectedFiles)
       self.updateselectedNbEventInputStat(self.__selectedFiles)
+      self.updateselectedTotalLuminosity(self.__selectedFiles)
       #print 'Selection',selected.indexes()[0].model().arraydata[row][0]
     
     if deselected:
@@ -183,6 +193,7 @@ class ControlerFileDialog(ControlerAbstract):
           self.updateSelectedNbFiles(self.__selectedFiles)
           self.updateSelectedFileSize(self.__selectedFiles)
           self.updateselectedNbEventInputStat(self.__selectedFiles)
+          self.updateselectedTotalLuminosity(self.__selectedFiles)
       
   #############################################################################  
   def countNumberOfEvents(self, items):
@@ -209,6 +220,24 @@ class ControlerFileDialog(ControlerAbstract):
       nbfiles += 1
     return nbfiles
   
+  #############################################################################
+  def countTotalLuminosity(self, items):
+    luminosity = 0;
+    for item in items:
+      value = items[item]
+      if value['TotalLuminosity'] != None:
+        luminosity += int(value['TotalLuminosity'])
+    return luminosity
+  
+  #############################################################################
+  def countLumiStat(self, items):
+    luminosity = 0;
+    for item in items:
+      value = items[item]
+      if value['LumiStat'] != None:
+        luminosity += int(value['LumiStat'])
+    return luminosity
+  
   #############################################################################  
   def updateSelectedNbEventType(self, files):
     model = self.getWidget().getModel()
@@ -226,6 +255,24 @@ class ControlerFileDialog(ControlerAbstract):
       lfns[i] = model[i]
     eventinputstat = self.countNumberOfEventInputStat(lfns)
     self.getWidget().showSelectedEventInputStat(eventinputstat)
+    
+  #############################################################################
+  def updateselectedTotalLuminosity(self, files):
+    model = self.getWidget().getModel()
+    lfns = {}
+    for i in files:
+      lfns[i] = model[i]
+    totalLuminosity = self.countTotalLuminosity(lfns)
+    self.getWidget().showSelectedTotalLuminosity(totalLuminosity)
+  
+  #############################################################################
+  def updateSelectedLumiStat(self, files):
+    model = self.getWidget().getModel()
+    lfns = {}
+    for i in files:
+      lfns[i] = model[i]
+    totalLuminosity = self.countLumiStat(lfns)
+    self.getWidget().showSelectedLumiStat(totalLuminosity)
     
   #############################################################################  
   def updateSelectedNbFiles(self, files):

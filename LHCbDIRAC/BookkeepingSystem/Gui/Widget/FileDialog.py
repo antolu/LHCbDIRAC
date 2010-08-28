@@ -123,7 +123,23 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################  
   def showSelectedFileSize(self, number):
     self.lineEdit_6.setText(str(number)+'  GB')
+  
+  #############################################################################
+  def showTotalLuminosity(self, number):
+    self.alltotalluminosity.setText(str(number))
     
+  #############################################################################
+  def showSelectedTotalLuminosity(self, number):
+    self.totalluminosity.setText(str(number))
+  
+  #############################################################################
+  def showTotalLumiStat(self, number):
+    self.alllumistat.setText(str(number))
+  
+  #############################################################################
+  def showSelectedLumiStat(self, number):
+    self.lumistat.setText(str(number))
+  
   #############################################################################  
   def showError(self, message):
     QMessageBox.critical(self, "ERROR", message,QMessageBox.Ok)
