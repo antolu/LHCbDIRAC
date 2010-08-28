@@ -180,7 +180,8 @@ class ControlerFileDialog(ControlerAbstract):
       self.updateSelectedFileSize(self.__selectedFiles)
       self.updateselectedNbEventInputStat(self.__selectedFiles)
       self.updateselectedTotalLuminosity(self.__selectedFiles)
-      #print 'Selection',selected.indexes()[0].model().arraydata[row][0]
+      self.updateSelectedLumiStat(self.__selectedFiles)
+     
     
     if deselected:
       row = deselected.indexes()[0].row()
@@ -194,6 +195,7 @@ class ControlerFileDialog(ControlerAbstract):
           self.updateSelectedFileSize(self.__selectedFiles)
           self.updateselectedNbEventInputStat(self.__selectedFiles)
           self.updateselectedTotalLuminosity(self.__selectedFiles)
+          self.updateSelectedLumiStat(self.__selectedFiles)
       
   #############################################################################  
   def countNumberOfEvents(self, items):
