@@ -315,8 +315,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def _LHCbDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
-    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST','NIKHEF-DST','PIC-DST','RAL-DST'])
-    destinations = int(self.params.get('Destinations',6))
+    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST','NIKHEF-DST','RAL-DST'])
+    destinations = int(self.params.get('Destinations',3))
     return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_M-DST')
 
   def _LHCbMCDSTBroadcast(self):
