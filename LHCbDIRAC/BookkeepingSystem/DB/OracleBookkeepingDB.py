@@ -2644,7 +2644,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     elif len(retVal['Value']) == 0:
       return S_ERROR('Data quality flag is missing in the DB')
     qid = retVal['Value'][0][0]
-    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+','+totalproc+','+str(qid)+')'
+    command = 'insert into runquality(runnumber,procpass,qualityid) values('+str(runNB)+',\''+totalproc+'\','+str(qid)+')'
     return self.dbW_._query(command)
   
   #############################################################################  
