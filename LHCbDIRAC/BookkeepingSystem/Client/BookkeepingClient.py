@@ -196,6 +196,18 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def getTotalProcessingPass(self, prod):
+    server = self.__getServer()
+    result = server.getTotalProcessingPass(long(prod))
+    return result
+    
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    server = self.__getServer()
+    result = server.getRunFlag(long(runnb), processing)
+    return result
+  
+  #############################################################################
   def setQualityProduction(self, prod, flag):
     server = self.__getServer()
     result = server.setQualityProduction(prod, flag)

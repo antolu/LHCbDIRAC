@@ -595,6 +595,14 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getDataQualityForRuns(runs)
   
   #############################################################################
+  def getTotalProcessingPass(self, prod):
+    return self.getManager().getTotalProcessingPass(prod)
+  
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    return self.getManager().getRunFlag(runnb, processing)
+  
+  #############################################################################
   '''
     MONITORING
   '''

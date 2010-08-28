@@ -1063,6 +1063,16 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_setRunQualityWithProcessing(self, runNB, procpass, flag):
     return dataMGMT_.setRunQualityWithProcessing(runNB, procpass, flag)
     
+  #############################################################################
+  types_getTotalProcessingPass = [LongType]
+  def export_getTotalProcessingPass(self, prod):
+    return dataMGMT_.getTotalProcessingPass(long(prod))
+    
+  #############################################################################
+  types_getRunFlag = [LongType, StringType]
+  def export_getRunFlag(self, runnb, processing):
+    return dataMGMT_.getRunFlag(long(runnb), processing)
+    
   
   #############################################################################
   

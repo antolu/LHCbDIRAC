@@ -4158,3 +4158,30 @@ and files.qualityid= dataquality.qualityid'
       command = 'update productions set visible=\'0\' where production='+str(prodid)
     retVal = self.dbW_._query(command)
     return retVal
+  
+  #############################################################################
+  def getTotalProcessingPass(self, prod):
+    command = 'select totalprocpass from productions where production='+str(prod)
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      value = retVal['Value']
+      if len(value) == 0:
+        return S_ERROR('The production doesnt exist in the production table!')
+      else:
+        proc = value[0][0]
+        return S_OK(proc)
+    else:
+      return S_ERROR(retVal['Message'])
+  
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    command = 'select qualityid from runquality where runnumber='+str(runnb)+' and procpass=\''+processing+'\''
+    retVal = self.dbR_._query(command)
+    if retVal["OK"]:
+      value = retVal['Value']
+      if len(value) == 0:
+        return S_ERROR('The run is not flagged!')
+      else:
+        return S_OK(value[0][0])
+    else:
+      return S_ERROR(retVal['Message'])

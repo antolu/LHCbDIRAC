@@ -111,6 +111,7 @@ class XMLFilesReaderManager:
         return S_ERROR('The file '+name+' not exist in the BKK database!!')
 
     outputFiles = job.getJobOutputFiles()
+    dqvalue = None
     for file in outputFiles:
       name = file.getFileName()
       result = dataManager_.checkfile(name)
@@ -208,6 +209,20 @@ class XMLFilesReaderManager:
           newJobParams.setName('RunNumber')
           newJobParams.setValue(str(runnumber))
           job.addJobParams(newJobParams)
+          prod = job.getParam('Production').getValue()
+          retVal = dataManager_.getTotalProcessingPass(prod)
+          if retVal['OK']:
+            proc = retVal['Value']
+            retVal = dataManager_.getRunFlag(runnumber, proc)
+            if retVal['OK']:
+              dqvalue = retVal['Value']
+              print '!!!!!!!!!!!!!!!',dqvalue
+            else:
+              dqvalue = None
+              gLogger.error('The data quality working group did not checked the run!!')
+          else:
+            dqvalue = None
+            gLogger.error('Bkk can not set the quality flag because the processing pass is missing!')
       
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
@@ -255,8 +270,7 @@ class XMLFilesReaderManager:
           self.errorMgmt_.reportError (13, "The run number not greater 0!" , deleteFileName, errorReport)
           return S_ERROR('The run number not greater 0!')
 
-    dqvalue = None
-    if job.exists('JobType'):  
+    if  dqvalue == None and job.exists('JobType'):  
       jobtype = job.getParam('JobType')
       jvalue = jobtype.getValue() 
       if jvalue != '' and re.search('MERGE',jvalue.upper()):
