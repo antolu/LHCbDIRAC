@@ -216,7 +216,6 @@ class XMLFilesReaderManager:
             retVal = dataManager_.getRunFlag(runnumber, proc)
             if retVal['OK']:
               dqvalue = retVal['Value']
-              print '!!!!!!!!!!!!!!!',dqvalue
             else:
               dqvalue = None
               gLogger.error('The data quality working group did not checked the run!!')
@@ -313,7 +312,7 @@ class XMLFilesReaderManager:
       if not job.exists('RunNumber'): #if it is MC
         newFileParams = FileParam()
         newFileParams.setParamName('QualityId')
-        newFileParams.setParamValue(2)
+        newFileParams.setParamValue('OK')
         file.addFileParam(newFileParams)
         
       result = self.__insertOutputFiles(job, file)
