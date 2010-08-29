@@ -77,7 +77,7 @@ run
   def __getBookmarks(self):
     upc = UserProfileClient( "Bookkeeping", RPCClient )
     return upc.retrieveVar( "Bookmarks" )
-
+    
   #############################################################################
   def __addBookmark(self,path,title):
     upc = UserProfileClient( "Bookkeeping", RPCClient )
