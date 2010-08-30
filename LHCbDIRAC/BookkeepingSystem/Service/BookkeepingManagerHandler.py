@@ -633,8 +633,8 @@ class BookkeepingManagerHandler(RequestHandler):
          tLumi += i[6]
        if i[7] != None:
          lumu += i[7]
-       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'LumiStat':i[7]}  
-    summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'LumiStat':lumi}
+       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'Luminosity':i[7]}  
+    summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi}
     result['Summary']=summary
     return S_OK(result)
   
@@ -1047,7 +1047,7 @@ class BookkeepingManagerHandler(RequestHandler):
     records = []
     if retVal['OK']:
       values = retVal['Value']
-      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'FullStat', 'Dataquality', 'FileInsertDate', 'LumiStat']
+      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'FullStat', 'Dataquality', 'FileInsertDate', 'Luminosity']
       sum = 0
       for record in values:
         value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13], record[14]]

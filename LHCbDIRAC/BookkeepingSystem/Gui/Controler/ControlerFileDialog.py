@@ -61,8 +61,8 @@ class ControlerFileDialog(ControlerAbstract):
         totalLumy = self.countTotalLuminosity(items)
         self.getWidget().showTotalLuminosity(totalLumy)
         
-        lumiStat = self.countLumiStat(items)
-        self.getWidget().showTotalLumiStat(totalLumy)
+        Luminosity = self.countLuminosity(items)
+        self.getWidget().showLuminosity(Luminosity)
         
         self.getWidget().show()
     else:
@@ -104,7 +104,7 @@ class ControlerFileDialog(ControlerAbstract):
     self.getWidget().showSelectedNumberOfEvents(0)
     self.getWidget().showSelectedNumberOfFiles(0)
     self.getWidget().showSelectedTotalLuminosity(0)
-    self.getWidget().showSelectedLumiStat(0)
+    self.getWidget().showSelectedLuminosity(0)
     self.getWidget().setModel({})
     self.getWidget().close()
     
@@ -180,7 +180,7 @@ class ControlerFileDialog(ControlerAbstract):
       self.updateSelectedFileSize(self.__selectedFiles)
       self.updateselectedNbEventInputStat(self.__selectedFiles)
       self.updateselectedTotalLuminosity(self.__selectedFiles)
-      self.updateSelectedLumiStat(self.__selectedFiles)
+      self.updateSelectedLuminosity(self.__selectedFiles)
      
     
     if deselected:
@@ -195,7 +195,7 @@ class ControlerFileDialog(ControlerAbstract):
           self.updateSelectedFileSize(self.__selectedFiles)
           self.updateselectedNbEventInputStat(self.__selectedFiles)
           self.updateselectedTotalLuminosity(self.__selectedFiles)
-          self.updateSelectedLumiStat(self.__selectedFiles)
+          self.updateSelectedLuminosity(self.__selectedFiles)
       
   #############################################################################  
   def countNumberOfEvents(self, items):
@@ -232,12 +232,12 @@ class ControlerFileDialog(ControlerAbstract):
     return luminosity
   
   #############################################################################
-  def countLumiStat(self, items):
+  def countLuminosity(self, items):
     luminosity = 0;
     for item in items:
       value = items[item]
-      if value['LumiStat'] != None:
-        luminosity += int(value['LumiStat'])
+      if value['Luminosity'] != None:
+        luminosity += int(value['Luminosity'])
     return luminosity
   
   #############################################################################  
@@ -268,13 +268,13 @@ class ControlerFileDialog(ControlerAbstract):
     self.getWidget().showSelectedTotalLuminosity(totalLuminosity)
   
   #############################################################################
-  def updateSelectedLumiStat(self, files):
+  def updateSelectedLuminosity(self, files):
     model = self.getWidget().getModel()
     lfns = {}
     for i in files:
       lfns[i] = model[i]
-    totalLuminosity = self.countLumiStat(lfns)
-    self.getWidget().showSelectedLumiStat(totalLuminosity)
+    totalLuminosity = self.countLuminosity(lfns)
+    self.getWidget().showSelectedLuminosity(totalLuminosity)
     
   #############################################################################  
   def updateSelectedNbFiles(self, files):

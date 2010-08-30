@@ -623,7 +623,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14], 'TotalLuminosity':record[15], 'LumiStat':record[16], 'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14], 'TotalLuminosity':record[15], 'Luminosity':record[16], 'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -651,9 +651,9 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program name":pname, \
                  "Program version":pversion}
       
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity', 'LumiStat']
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity', 'Luminosity']
     for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'TotalLuminosity':record[14],'LumiStat':record[15],'Selection':selection}
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'TotalLuminosity':record[14],'Luminosity':record[15],'Selection':selection}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
     self._cacheIt(entityList)    
@@ -1104,7 +1104,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14], 'TotalLuminosity':record[15],'LumiStat':record[16],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14], 'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1271,7 +1271,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'TotalLuminosity':record[15],'LumiStat':record[16],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1704,7 +1704,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype, StartItem, Maxitems)
           
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity','LumiStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity','Luminosity']
       
       if result['OK']:
         dbResult = result['Value']
@@ -1736,7 +1736,7 @@ class LHCB_BKKDBManager(BaseESManager):
       dict = {'CName':configName,'CVersion':configVersion, 'Simid':simid,'Ppass':processing,'Etype':evtType,'Prod':prod,'Ftype':ftype,'Pname':pname,'Pversion':pversion,'Sitem':StartItem,'Mitem':Maxitems,'Quality':self.dataQualities_}
       result = self.db_.getLimitedFilesWithSimcondAndDataQuality(dict)
             
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat','TotalLuminosity', 'LumiStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat','TotalLuminosity', 'Luminosity']
       
       if result['OK']:
         dbResult = result['Value']
@@ -1746,7 +1746,7 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         gLogger.error(result['Message'])
     
-    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize,'LumiStat': lumi}} } 
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize,'Luminosity': lumi}} } 
   
   #############################################################################       
   def getAncestors(self, files, depth):

@@ -133,11 +133,11 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.totalluminosity.setText(str(number))
   
   #############################################################################
-  def showTotalLumiStat(self, number):
+  def showLuminosity(self, number):
     self.allluminosity.setText(str(number))
   
   #############################################################################
-  def showSelectedLumiStat(self, number):
+  def showSelectedLuminosity(self, number):
     self.luminosity.setText(str(number))
   
   #############################################################################  
@@ -150,7 +150,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     tabledata =[]
     #print data
              #['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']  
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','FullStat','EventInputStat','LumiStat']
+    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','FullStat','EventInputStat','Luminosity']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()
