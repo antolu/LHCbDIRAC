@@ -1721,6 +1721,7 @@ class LHCB_BKKDBManager(BaseESManager):
     totalrecords = 0
     nbOfEvents = 0
     filesSize = 0
+    lumi = 0
     if len(SortDict) > 0:
       res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
       if not res['OK']:
