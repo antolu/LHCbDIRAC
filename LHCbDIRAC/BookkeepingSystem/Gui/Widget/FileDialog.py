@@ -134,11 +134,11 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################
   def showTotalLumiStat(self, number):
-    self.alllumistat.setText(str(number))
+    self.allluminosity.setText(str(number))
   
   #############################################################################
   def showSelectedLumiStat(self, number):
-    self.lumistat.setText(str(number))
+    self.luminosity.setText(str(number))
   
   #############################################################################  
   def showError(self, message):

@@ -1520,7 +1520,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command = ' select sum(files.eventstat) from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
                    and jobs.production in (' + simcondition + daqcondition+')'
     else:
-      command = ' select files.filename, files.eventstat, jobs.eventinputstat, jobs.runnumber, jobs.fillnumber, files.filesize, jobs.totalluminosity, files.lumistat from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
+      command = ' select files.filename, files.eventstat, jobs.eventinputstat, jobs.runnumber, jobs.fillnumber, files.filesize, jobs.totalluminosity, files.luminosity from files,jobs where files.jobid= jobs.jobid and files.gotreplica=\'Yes\''+condition+' \
                    and jobs.production in (' + simcondition + daqcondition+')'
                    
     res = self.dbR_._query(command)
@@ -3538,18 +3538,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         
         ftypeId = res['Value'][0][0]
         
-        command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp , lumistat from \
-                ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, lumistat \
-                from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.lumistat \
+        command = 'select rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp , luminosity from \
+                ( select rownum rnum, filename, filesize, \''+str(ftype)+'\' , creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, luminosity \
+                from ( select files.filename, files.filesize, \''+str(ftype)+'\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.luminosity \
                            from jobs,files where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid='+str(ftypeId)+' and \
                            jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
     else:
       
-      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp, lumistat from \
-                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, lumistat \
-                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.lumistat \
+      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp, luminosity from \
+                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, luminosity \
+                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.luminosity \
                            from jobs,files,filetypes where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid=filetypes.filetypeid and \
@@ -3706,7 +3706,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     result['RunStart'] = value[0][5]
     result['RunEnd'] = value[0][6]
     
-    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.fullstat), files.eventtypeid , files.lumiStat from files,jobs \
+    command = ' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), sum(files.fullstat), files.eventtypeid , files.luminosity from files,jobs \
          where files.JobId=jobs.JobId and  \
          files.gotReplica=\'Yes\' and \
          jobs.production<0 and \
@@ -3722,21 +3722,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
     fsize = [] 
     fstat = []
     stream = []
-    lumistat = []
+    luminosity = []
     for i in value:
       nbfile += [i[0]]
       nbevent += [i[1]]
       fsize += [i[2]]
       fstat += [i[3]]
       stream += [i[4]]
-      lumistat += [i[5]]
+      luminosity += [i[5]]
           
     result['Number of file'] = nbfile
     result['Number of events'] = nbevent
     result['File size'] = fsize
     result['FullStat'] = fstat
     result['Stream'] = stream
-    result['LumiStat'] = lumistat
+    result['luminosity'] = luminosity
     return S_OK(result)
   
   #############################################################################
@@ -3971,7 +3971,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getFileHistory(self, lfn):
     command = 'select  files.fileid, files.filename,files.adler32,files.creationdate,files.eventstat,files.eventtypeid,files.gotreplica, \
-files.guid,files.jobid,files.md5sum, files.filesize,files.fullstat, dataquality.dataqualityflag, files.inserttimestamp, files.lumistat from files, dataquality \
+files.guid,files.jobid,files.md5sum, files.filesize,files.fullstat, dataquality.dataqualityflag, files.inserttimestamp, files.luminosity from files, dataquality \
 where files.fileid in ( select inputfiles.fileid from files,inputfiles where files.jobid= inputfiles.jobid and files.filename=\''+str(lfn)+'\')\
 and files.qualityid= dataquality.qualityid'
  

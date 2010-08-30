@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Sat Aug 28 14:05:16 2010
+# Created: Mon Aug 30 10:49:56 2010
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
         FileDialog.setWindowModality(QtCore.Qt.WindowModal)
-        FileDialog.resize(QtCore.QSize(QtCore.QRect(0,0,813,692).size()).expandedTo(FileDialog.minimumSizeHint()))
+        FileDialog.resize(813, 851)
         FileDialog.setModal(False)
         self.gridlayout = QtGui.QGridLayout(FileDialog)
         self.gridlayout.setObjectName("gridlayout")
@@ -123,9 +123,9 @@ class Ui_FileDialog(object):
         self.alltotalluminosity = QtGui.QLineEdit(self.groupBox)
         self.alltotalluminosity.setObjectName("alltotalluminosity")
         self.gridlayout4.addWidget(self.alltotalluminosity, 3, 1, 1, 1)
-        self.alllumistat = QtGui.QLineEdit(self.groupBox)
-        self.alllumistat.setObjectName("alllumistat")
-        self.gridlayout4.addWidget(self.alllumistat, 4, 1, 1, 1)
+        self.allluminosity = QtGui.QLineEdit(self.groupBox)
+        self.allluminosity.setObjectName("allluminosity")
+        self.gridlayout4.addWidget(self.allluminosity, 4, 1, 1, 1)
         self.label_17 = QtGui.QLabel(self.groupBox)
         self.label_17.setObjectName("label_17")
         self.gridlayout4.addWidget(self.label_17, 3, 0, 1, 1)
@@ -173,9 +173,9 @@ class Ui_FileDialog(object):
         self.totalluminosity = QtGui.QLineEdit(self.groupBox_2)
         self.totalluminosity.setObjectName("totalluminosity")
         self.gridlayout6.addWidget(self.totalluminosity, 3, 1, 1, 1)
-        self.lumistat = QtGui.QLineEdit(self.groupBox_2)
-        self.lumistat.setObjectName("lumistat")
-        self.gridlayout6.addWidget(self.lumistat, 4, 1, 1, 1)
+        self.luminosity = QtGui.QLineEdit(self.groupBox_2)
+        self.luminosity.setObjectName("luminosity")
+        self.gridlayout6.addWidget(self.luminosity, 4, 1, 1, 1)
         self.label_19 = QtGui.QLabel(self.groupBox_2)
         self.label_19.setObjectName("label_19")
         self.gridlayout6.addWidget(self.label_19, 3, 0, 1, 1)
@@ -216,14 +216,14 @@ class Ui_FileDialog(object):
         self.label_5.setText(QtGui.QApplication.translate("FileDialog", "Files size", None, QtGui.QApplication.UnicodeUTF8))
         self.label_15.setText(QtGui.QApplication.translate("FileDialog", "EventInputStat", None, QtGui.QApplication.UnicodeUTF8))
         self.label_17.setText(QtGui.QApplication.translate("FileDialog", "TotalLuminosity", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_18.setText(QtGui.QApplication.translate("FileDialog", "Lumistat", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_18.setText(QtGui.QApplication.translate("FileDialog", "Luminosity", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("FileDialog", "Selected", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("FileDialog", "Number Of Events", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("FileDialog", "Number Of Files:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("FileDialog", "Files size", None, QtGui.QApplication.UnicodeUTF8))
         self.label_16.setText(QtGui.QApplication.translate("FileDialog", "EventInputStat", None, QtGui.QApplication.UnicodeUTF8))
         self.label_19.setText(QtGui.QApplication.translate("FileDialog", "TotalLuminosity", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_20.setText(QtGui.QApplication.translate("FileDialog", "LumiStat", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_20.setText(QtGui.QApplication.translate("FileDialog", "Luminosity", None, QtGui.QApplication.UnicodeUTF8))
         self.advancedSave.setText(QtGui.QApplication.translate("FileDialog", "Advanced Save..", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
