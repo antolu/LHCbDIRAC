@@ -331,7 +331,7 @@ class UserJobFinalization(ModuleBase):
 
     rm = ReplicaManager()
     for lfn,repSE in replication.items():
-      result = rm.replicateAndRegister(lfn,repSE)
+      result = rm.replicateAndRegister(lfn,repSE,catalog=self.userFileCatalog)
       if not result['OK']:
         self.log.info('Replication failed with below error but file already exists in Grid storage with at least one replica:\n%s' %(result))
 
