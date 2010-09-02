@@ -190,7 +190,7 @@ class UploadOutputData(ModuleBase):
       self.log.info('Will check BK descendents for input data of job prior to uploading outputs')
       bkClient = BookkeepingClient()
       start = time.time()
-      result = bkClient.getAllDescendents(self.inputData,depth=99,production=int(prodID),checkreplica=True)
+      result = bkClient.getAllDescendents(self.inputData,depth=9,production=int(prodID),checkreplica=True)
       timing = time.time() - start
       self.log.info('BK Descendents Lookup Time: %.2f seconds ' %(timing))
       if not result['OK']:
@@ -222,6 +222,7 @@ class UploadOutputData(ModuleBase):
     #Failover replicas are always added to the BK when they become available
 
     #One by one upload the files with failover if necessary
+    registrationFailure = False
     failover = {}
     if not self.failoverTest:
       for fileName,metadata in final.items():
@@ -231,8 +232,13 @@ class UploadOutputData(ModuleBase):
           self.log.error('Could not transfer and register %s with metadata:\n %s' %(fileName,metadata))
           failover[fileName]=metadata
         else:
+          if result['Value'].has_key('registration'):
+            self.log.info('File %s was put to the SE but the catalog registration will be set as an asynchronous request' %(fileName))
+            registrationFailure = True
+          else:
+            self.log.info('%s uploaded successfully, will be registered in BK if all files uploaded for job' %(fileName))
+
           lfn = metadata['lfn']
-          self.log.info('%s uploaded successfully, will be registered in BK if all files uploaded for job' %(fileName))
           performBKRegistration.append(lfn)
     else:
       failover = final
@@ -270,23 +276,24 @@ class UploadOutputData(ModuleBase):
     #Can now register the successfully uploaded files in the BK
     if not performBKRegistration:
       self.log.info('There are no files to perform the BK registration for, all could be saved to failover')
+    elif registrationFailure:
+      self.log.info('There were catalog registration failures during the upload of files for this job, BK registration requests are being prepared')
+      for lfn in performBKRegistration:
+        result = self.setBKRegistrationRequest(lfn)
+        if not result['OK']:
+          return result
     else:
       rm = ReplicaManager()
       result = rm.addCatalogFile(performBKRegistration,catalogs=['BookkeepingDB'])
       self.log.verbose(result)
       if not result['OK']:
         self.log.error(result)
-        return S_ERROR('Could Not Perform BK Registration')
+        return S_ERROR('Could Not Perform BK Registration')      
       if result['Value']['Failed']:
         for lfn,error in result['Value']['Failed'].items():
-          self.log.info('BK registration for %s failed with message: "%s" setting failover request' %(lfn,error))
-          result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':0, 'Catalogue':'BookkeepingDB'}},'register')
+          result = self.setBKRegistrationRequest(lfn,error)
           if not result['OK']:
-            self.log.error('Could not set registerFile request:\n%s' %result)
-            return S_ERROR('Could Not Set BK Registration Request')
-          fileDict = {'LFN':lfn,'Status':'Waiting'}
-          index = result['Value']
-          self.request.setSubRequestFiles(index,'register',[fileDict])
+            return result
 
     #Nasty hack to reregister RAW data on disk according to the computing model in the case where
     #a data reconstruction job is running at CERN. In case of local testing the module would already
@@ -299,6 +306,25 @@ class UploadOutputData(ModuleBase):
 
     self.workflow_commons['Request']=self.request
     return S_OK('Output data uploaded')
+
+  #############################################################################
+  def setBKRegistrationRequest(self,lfn,error=''):
+    """ Set a BK registration request for changing the replica flag.  Uses the
+        global request object.  
+    """
+    if error:
+      self.log.info('BK registration for %s failed with message: "%s" setting failover request' %(lfn,error))
+    else:
+      self.log.info('Setting BK registration request for %s' %(lfn))
+      
+    result = self.request.addSubRequest({'Attributes':{'Operation':'registerFile','ExecutionOrder':2, 'Catalogue':'BookkeepingDB'}},'register')
+    if not result['OK']:
+      self.log.error('Could not set registerFile request:\n%s' %result)
+      return S_ERROR('Could Not Set BK Registration Request')
+    fileDict = {'LFN':lfn,'Status':'Waiting'}
+    index = result['Value']
+    self.request.setSubRequestFiles(index,'register',[fileDict])
+    return S_OK()
 
   #############################################################################
   def reregisterFiles(self,lfns,oldSE,newSE):
