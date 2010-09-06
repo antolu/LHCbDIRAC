@@ -62,7 +62,7 @@ def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion
   if environment.has_key('APPCONFIGROOT'):
     gLogger.verbose('APPCONFIGROOT found, will obtain XML files to disable CORAL LFC Access (even if this is unnecessary...)')
     try:
-      result = getCondDBFiles(environment['APPCONFIGROOT'],site,directory)
+      result = getCondDBFiles(directory=directory,forceSite=site)
       if result['OK']:
         gLogger.verbose('Successfully obtained Oracle CondDB XML access files (just in case)')                  
       else:
