@@ -3049,10 +3049,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getFileID',LongType,[fileName])
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
-      elif len(res['Value']) == 0:
+      elif res['Value'] == None:
         logicalFileNames['Failed']+=[fileName]
       else:
-        file_id = int(res['Value'][0][0])
+        file_id = res['Value']
       if file_id != 0:
         fileids += [file_id]
         files = []
@@ -3062,7 +3062,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
-            elif len(res['Value']) != 0:
+            elif res['Value'] != None:
               job_ids = res['Value']              
               for i in job_ids:
                 job_id = i[0]
