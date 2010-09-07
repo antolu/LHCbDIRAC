@@ -364,6 +364,7 @@ class DataRecoveryAgent(AgentModule):
     toRemove=[]
     problematicJobs = []
     hasReplicaFlag = []
+    bkNotReachable = []
     for job,fileList in jobFileDict.items():
       if not fileList:
         continue
@@ -373,9 +374,11 @@ class DataRecoveryAgent(AgentModule):
 #      result = self.bkClient.getDescendents(fileList,bkDepth)
       if not result['OK']:
         self.log.error('Could not obtain descendents for job %s with result:\n%s' %(job,result))
+        bkNotReachable.append(job)
         continue
       if result['Value']['Failed']:
         self.log.error('Problem obtaining some descendents for job %s with result:\n%s' %(job,result['Value']))
+        bkNotReachable.append(job)
         continue
       jobFiles = result['Value']['Successful'].keys()
       for fname in jobFiles:
@@ -426,6 +429,11 @@ class DataRecoveryAgent(AgentModule):
         pfiles = jobFileDict[probJob]
         replicaFlagProblematic[probJob]=pfiles
         del jobFileDict[probJob]
+    
+    #Remove files for which the BK could not be contacted from the jobFileDict
+    for removeMe in bkNotReachable:
+      if jobFileDict.has_key(removeMe):
+        del jobFileDict[removeMe]
     
     result={'toremove':toRemove,'jobfiledictok':jobFileDict,'jobfiledictproblematic':problematic,'replicaflagproblematic':replicaFlagProblematic}
     return S_OK(result)
