@@ -2979,6 +2979,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       gLogger.debug('filename',fileName)
       fileids = []       
       res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getFileID',LongType,[fileName])
+      print '!!!',res
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
       elif len(res['Value']) == 0:
