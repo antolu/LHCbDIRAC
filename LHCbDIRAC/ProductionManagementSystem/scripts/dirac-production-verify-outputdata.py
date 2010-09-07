@@ -26,9 +26,9 @@ if not res['OK']:
   gLogger.error(res['Message'])
   DIRAC.exit(-1)
 status = res['Value']
-if not status in ['ValidatingOutput','WaitingIntegrity']:
+if not status in ['ValidatingOutput','WaitingIntegrity','Active','Completed']:
   gLogger.error("The production is in %s status and can not be validated" % status)
   DIRAC.exit(-1)
-agent = ValidateOutputData('ProductionManagement/ValidateOutputData','dirac-production-verify-outputdata')
+agent = ValidateOutputDataAgent('ProductionManagement/ValidateOutputDataAgent','dirac-production-verify-outputdata')
 agent.initialize()
 agent.checkProductionIntegrity(prodID)

@@ -161,6 +161,7 @@ class ProductionCleaningAgent( AgentModule ):
     if not res['OK']:
       return res
     # Clean the log files for the jobs
+    allDone = True
     for directory in directories:
       if re.search( '/LOG/', directory ):
         res = self.cleanProductionLogFiles( directory )
@@ -221,6 +222,12 @@ class ProductionCleaningAgent( AgentModule ):
     res = self.productionClient.getParameters( prodID, pname = 'OutputDirectories' )
     if res['OK']:
       directories = res['Value'].splitlines()
+      if not directories:
+        from DIRAC.Core.DISET.RPCClient import RPCClient
+        client = RPCClient("DataManagement/StorageUsage")
+        res = client.getStorageDirectories('','',prodID,[])
+        if res['OK']:
+          directories = res['Value']
     elif res['Message'].endswith( 'not found' ):
       gLogger.warn( "The production was not found in the production management system." )
     elif res['Message'] == 'Parameter OutputDirectories not found for production':
@@ -228,7 +235,7 @@ class ProductionCleaningAgent( AgentModule ):
     else:
       gLogger.error( "Completely failed to obtain production parameters", res['Message'] )
       return res
-    return S_OK( directories )
+    return S_OK(directories)
 
   def __createProductionDirectories( self, prodID ):
     from LHCbDIRAC.Interfaces.API.Production import Production

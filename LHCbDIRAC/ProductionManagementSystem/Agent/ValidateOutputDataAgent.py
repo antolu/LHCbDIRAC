@@ -123,7 +123,13 @@ class ValidateOutputDataAgent( AgentModule ):
     else:
       gLogger.error( "Completely failed to obtain production parameters", res['Message'] )
       return res
-    return S_OK( directories )
+    if not directories:
+      from DIRAC.Core.DISET.RPCClient import RPCClient
+      client = RPCClient("DataManagement/StorageUsage")
+      res = client.getStorageDirectories('','',prodID,[])
+      if res['OK']:
+        directories = res['Value']
+    return S_OK(directories)
 
   def __createProductionDirectories( self, prodID ):
     from LHCbDIRAC.Interfaces.API.Production import Production

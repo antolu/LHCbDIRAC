@@ -26,7 +26,7 @@ if not res['OK']:
   gLogger.error(res['Message'])
   DIRAC.exit(-1)
 status = res['Value']
-if not status in ['RemovingFiles','RemovingOutput','ValidatingInput']:
+if not status in ['RemovingFiles','RemovingOutput','ValidatingInput','Active']:
   gLogger.error("The production is in %s status and the outputs can not be removed" % status)
   DIRAC.exit(-1)
 agent = ProductionCleaningAgent('ProductionManagement/ProductionCleaningAgent','dirac-production-remove-output')

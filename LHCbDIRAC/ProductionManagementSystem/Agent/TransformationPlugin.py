@@ -240,12 +240,16 @@ class TransformationPlugin(DIRACTransformationPlugin):
     return self.__mergeByRun(requireFlush=False)
 
   def __mergeByRun(self,requireFlush=False):
-    res = self.__groupByRunAndParam(self.data,param='FileType')
-    if not res['OK']:
-      return res
+    runFiles = {}
+    for fileDict in self.files:
+      runNumber = fileDict.get('RunNumber')
+      lfn = fileDict.get('LFN')
+      if (runNumber) and (runNumber not in runFiles.keys()):
+        runFiles[runNumber] = []
+      if runNumber and lfn:
+        runFiles[runNumber].append(lfn)
     allReplicas = self.data.copy()
     allTasks = []
-    runFiles = res['Value']
     transClient = TransformationDBClient()
     res = transClient.getTransformationRuns({'TransformationID':self.params['TransformationID'],'RunNumber':runFiles.keys()})
     if not res['OK']:
@@ -253,25 +257,29 @@ class TransformationPlugin(DIRACTransformationPlugin):
     transStatus = self.params['Status']
     for runDict in res['Value']:
       runID = runDict['RunNumber']
-      status = runDict['Status']
-      if (requireFlush and (status != 'Flush')):
-        if transStatus != 'Flush':
-          gLogger.info("Run %d not in flush status" % runID)
-          continue
-      gLogger.info("Flushing run %d" % runID)
-      paramDict = runFiles[runID]
-      for paramValue in sortList(paramDict.keys()):
-        runParamLfns = paramDict[paramValue]
-        runParamReplicas = {}
-        for lfn in runParamLfns:
-          runParamReplicas[lfn] = allReplicas[lfn]
-        self.data = runParamReplicas
-        self.params['Status'] = 'Flush'
-        res = self._BySize()
-        self.params['Status'] = transStatus
-        if not res['OK']:
-          return res
-        allTasks.extend(res['Value'])
+      runStatus = runDict['Status']
+      runLfns = runFiles.get(runID,[])
+      if not runLfns:
+        if requireFlush:
+          transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Active')
+        continue
+      runReplicas = {}
+      for lfn in runLfns:
+        runReplicas[lfn] = allReplicas[lfn]
+      self.data = runReplicas
+      # Make sure we handle the flush correctly
+      if transStatus == 'Flush':
+        status = 'Flush'
+      elif not requireFlush:
+        status = 'Flush'
+      else:
+        status = runStatus
+      self.params['Status'] = status
+      res = self._BySize()
+      self.params['Status'] = transStatus
+      if not res['OK']:
+        return res
+      allTasks.extend(res['Value'])
       if requireFlush:
         transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Active')
     return S_OK(allTasks)
