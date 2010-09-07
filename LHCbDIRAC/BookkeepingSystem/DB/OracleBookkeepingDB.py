@@ -2972,7 +2972,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if production!=0:
       condition = ' and files.jobid=jobs.jobid and jobs.production='+str(production)
       tables = ',jobs'
-    
     gLogger.debug('original',lfn)
     for fileName in lfn:
       depth = odepth
