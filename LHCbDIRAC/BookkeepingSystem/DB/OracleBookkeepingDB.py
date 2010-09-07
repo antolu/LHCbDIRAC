@@ -2977,9 +2977,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     for fileName in lfn:
       depth = odepth
       gLogger.debug('filename',fileName)
-      fileids = []
-      command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
-      res = self.dbW_._query(command)
+      fileids = []       
+      res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getFileID',LongType,[fileName])
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
       elif len(res['Value']) == 0:
@@ -2991,8 +2990,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and fileids:
           for file_id in fileids:
-            command = 'select jobid from inputfiles where fileid='+str(file_id)
-            res = self.dbW_._query(command)
+            res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getJobIdFromInputFiles',LongType,[file_id])
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
@@ -3049,8 +3047,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       depth = odepth
       gLogger.debug('filename',fileName)
       fileids = []
-      command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
-      res = self.dbR_._query(command)
+      res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getFileID',LongType,[fileName])
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
       elif len(res['Value']) == 0:
@@ -3062,8 +3059,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and fileids:
           for file_id in fileids:
-            command = 'select jobid from inputfiles where fileid='+str(file_id)
-            res = self.dbR_._query(command)
+            res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getJobIdFromInputFiles',LongType,[file_id])
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
@@ -3072,7 +3068,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               for i in job_ids:
                 job_id = i[0]
                 command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
-                res = self.dbR_._query(command)
+                res = self.dbW_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
                 elif len(res['Value']) == 0:
