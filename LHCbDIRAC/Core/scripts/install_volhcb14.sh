@@ -97,9 +97,7 @@ for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-# once the dirac-configure is fixed add --SkipCAChecks and remove the line afterwards
-$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCAChecks || exit 1
-# rm -rf $ROOT/etc/grid-security/certificates/
+$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCADownload || exit 1
 
 echo
 #

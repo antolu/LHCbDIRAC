@@ -124,7 +124,7 @@ for dir in etc $DIRACDIRS ; do
   ln -s ../../$dir $VERDIR   || exit 1
 done
 
-$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCAChecks || exit 1
+$VERDIR/scripts/dirac-configure -n $SiteName --UseServerCertificate -o /LocalSite/Root=$ROOT/pro -V lhcb --SkipCADownload || exit 1
 
 echo
 #
