@@ -3066,8 +3066,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
               job_ids = res['Value']              
               for i in job_ids:
                 job_id = i[0]
-                command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
-                res = self.dbW_._query(command)
+                res = self.dbW_.executeStoredProcedure('BKK_ORACLE.getFNameFiDRepWithJID',[job_id])
+                print '!!!',res
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
                 elif len(res['Value']) == 0:
