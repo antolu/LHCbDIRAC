@@ -2984,8 +2984,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       elif res['Value'] == None:
         logicalFileNames['Failed']+=[fileName]
       else:
-        print '!!!',type(res['Value'])
-        file_id = int(res['Value'])
+        file_id = res['Value']
       if file_id != 0:
         fileids += [file_id]
         files = []
@@ -2997,7 +2996,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               gLogger.error('Ancestor',res['Message'])
               if not fileName in logicalFileNames['Failed']:
                 logicalFileNames['Failed']+=[fileName]
-            elif  len(res['Value']) != 0:
+            elif  res['Value'] != None:
               job_ids = res['Value']
               for i in job_ids:
                 job_id = i[0]
