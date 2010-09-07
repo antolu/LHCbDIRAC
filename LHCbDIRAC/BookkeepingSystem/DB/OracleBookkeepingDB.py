@@ -2967,9 +2967,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       odepth = depth + 1
     
+    tables = ''
     condition = ''
     if production!=0:
-      condition = ' and jobs.production='+str(production)
+      condition = ' and files.jobid=jobs.jobid and jobs.production='+str(production)
+      tables = ',jobs'
     
     gLogger.debug('original',lfn)
     for fileName in lfn:
@@ -2977,7 +2979,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       gLogger.debug('filename',fileName)
       fileids = []
       command = 'select files.fileid from files where filename=\''+str(fileName)+'\''
-      res = self.dbR_._query(command)
+      res = self.dbW_._query(command)
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
       elif len(res['Value']) == 0:
@@ -2990,19 +2992,22 @@ class OracleBookkeepingDB(IBookkeepingDB):
         while (depth-1) and fileids:
           for file_id in fileids:
             command = 'select jobid from inputfiles where fileid='+str(file_id)
-            res = self.dbR_._query(command)
+            res = self.dbW_._query(command)
+            fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
-            elif len(res['Value']) != 0:
+              if not fileName in logicalFileNames['Failed']:
+                logicalFileNames['Failed']+=[fileName]
+            elif  len(res['Value']) != 0:
               job_ids = res['Value']
-              fileids.remove(file_id)
-              
               for i in job_ids:
                 job_id = i[0]
-                command = 'select files.fileName,files.fileid,files.gotreplica from files,jobs where files.jobid=jobs.jobid and files.jobid='+str(job_id)+condition
-                res = self.dbR_._query(command)
+                command = 'select files.fileName,files.fileid,files.gotreplica from files'+tables+' where files.jobid='+str(job_id)+condition
+                res = self.dbW_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
+                  if not fileName in logicalFileNames['Failed']:
+                    logicalFileNames['Failed']+=[fileName]
                 elif len(res['Value']) == 0:
                   logicalFileNames['NotProcessed']+=[fileName]
                 else:
@@ -3014,14 +3019,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
                         files += [record[0]]
                     else:
                       files += [record[0]]
-          depth-=1 
-        
-        ancestorList[fileName]=files    
+          depth-=1
+
+        ancestorList[fileName]=files
       else:
         logicalFileNames['Failed']+=[fileName]
       logicalFileNames['Successful'] = ancestorList
     return S_OK(logicalFileNames)
-  
+ 
   #############################################################################  
   def getDescendents(self, lfn, depth = 0):
     logicalFileNames = {}
@@ -3059,12 +3064,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
           for file_id in fileids:
             command = 'select jobid from inputfiles where fileid='+str(file_id)
             res = self.dbR_._query(command)
+            fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
             elif len(res['Value']) != 0:
-              job_ids = res['Value']
-              fileids.remove(file_id)
-              
+              job_ids = res['Value']              
               for i in job_ids:
                 job_id = i[0]
                 command = 'select files.fileName,files.fileid,files.gotreplica from files where files.jobid='+str(job_id)
