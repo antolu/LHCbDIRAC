@@ -2979,13 +2979,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       gLogger.debug('filename',fileName)
       fileids = []       
       res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getFileID',LongType,[fileName])
-      print '!!!',res
       if not res["OK"]:
         gLogger.error('Ancestor',res['Message'])
-      elif len(res['Value']) == 0:
+      elif res['Value'] == None:
         logicalFileNames['Failed']+=[fileName]
       else:
-        file_id = int(res['Value'][0][0])
+        print '!!!',type(res['Value'])
+        file_id = int(res['Value'])
       if file_id != 0:
         fileids += [file_id]
         files = []
