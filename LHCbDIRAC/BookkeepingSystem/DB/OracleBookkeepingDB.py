@@ -2989,13 +2989,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
         files = []
         while (depth-1) and fileids:
           for file_id in fileids:
-            res= self.dbW_.executeStoredFunctions('BKK_ORACLE.getJobIdFromInputFiles',LongType,[file_id])
+            res= self.dbW_.executeStoredProcedure('BKK_ORACLE.getJobIdFromInputFiles',[file_id])
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
               if not fileName in logicalFileNames['Failed']:
                 logicalFileNames['Failed']+=[fileName]
-            elif  res['Value'] != None:
+            elif  len(res['Value']) != 0:
               job_ids = res['Value']
               for i in job_ids:
                 job_id = i[0]
@@ -3059,7 +3059,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
         while (depth-1) and fileids:
           for file_id in fileids:
             res= self.dbW_.executeStoredProcedure('BKK_ORACLE.getJobIdFromInputFiles',[file_id])
-            print '!!!',res
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
@@ -3068,7 +3067,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
               for i in job_ids:
                 job_id = i[0]
                 res = self.dbW_.executeStoredProcedure('BKK_ORACLE.getFNameFiDRepWithJID',[job_id])
-                print '!!!',res
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
                 elif len(res['Value']) == 0:
