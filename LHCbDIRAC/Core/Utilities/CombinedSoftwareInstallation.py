@@ -113,7 +113,7 @@ class CombinedSoftwareInstallation:
         compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(self.jobConfig),[])
         if not compatibleArchs:
           DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(self.jobConfig))
-          return S_ERROR('SystemConfig Not Found')
+          return DIRAC.S_ERROR('SystemConfig Not Found')
         self.jobConfig = compatibleArchs[0]
         DIRAC.gLogger.info('Setting system config to compatible platform %s' %(self.jobConfig))
       else:
