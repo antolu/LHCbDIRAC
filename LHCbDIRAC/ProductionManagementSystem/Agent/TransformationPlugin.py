@@ -17,8 +17,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     DIRACTransformationPlugin.__init__(self,plugin)
 
   def _AtomicRun(self):
-    possibleTargets = ['CERN-RDST','CERN-RAW','CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
-    bk = BookkeepingClient()
+    possibleTargets = ['LCG.CERN.ch','LCG.CNAF.it','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.PIC.es','LCG.RAL.uk','LCG.SARA.nl']
+    transID = self.params['TransformationID']
     transClient = TransformationDBClient()
     # Get the requested shares from the CS
     res = self._getShares('CPU',True)
@@ -40,80 +40,109 @@ class TransformationPlugin(DIRACTransformationPlugin):
       normalisedExistingCount = self._normaliseShares(existingCount)
       for se in sortList(normalisedExistingCount.keys()):
         gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
-
+     
     # Group the remaining data by run
-    res = self.__groupByRunAndParam(self.data,param='Standard')
+    res = self.__groupByRun(self.files)
     if not res['OK']:
       return res
     runFileDict = res['Value']
 
+    runSitesToUpdate = {}
     # For each of the runs determine the destination of any previous files
-    tasks = []
+    runSiteDict = {}
+    if runFileDict:
+      res = transClient.getTransformationRuns({'TransformationID':transID,'RunNumber':runFileDict.keys()})
+      if not res['OK']:
+        gLogger.error("Failed to obtain TransformationRuns",res['Message'])
+        return res
+      for runDict in res['Value']:
+        selectedSite = runDict['SelectedSite']
+        runID = runDict['RunNumber']
+        if selectedSite:
+          runSiteDict[runID] = selectedSite
+          continue
+        res = transClient.getTransformationFiles(condDict={'TransformationID':transID,'RunNumber':runID,'Status':['Assigned','Processed']})
+        if not res['OK']:
+          gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
+          continue
+        if res['Value']:
+          assignedSE = res['Value'][0]['UsedSE']
+          res = getSitesForSE(assignedSE,gridName='LCG')
+          if not res['OK']:
+            continue
+          for site in res['Value']:
+            if site in cpuShares.keys():
+              runSiteDict[runID] = site
+              runSitesToUpdate[runID] = site
+
+    # Choose the destination site for new runs
     for runID in sortList(runFileDict.keys()):
-      unusedLfns = runFileDict[runID][None]
-      start = time.time()
-      res = bk.getRunFiles(runID)
-      gLogger.verbose("Obtained BK run files in %.2f seconds" % (time.time()-start))
-      if not res['OK']:
-        gLogger.error("Failed to get run files","%s %s" % (runID,res['Message']))
+      if runID in runSiteDict.keys():
         continue
-      runFiles = res['Value']
-      start = time.time()
-      res = transClient.getTransformationFiles(condDict = {'TransformationID':self.params['TransformationID'],'LFN':runFiles.keys(),'Status':['Assigned','Processed']})
-      gLogger.verbose("Obtained transformation run files in %.2f seconds" % (time.time()-start))
-      if not res['OK']:
-        gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
-        continue
-      if res['Value']:
-        assignedSE = res['Value'][0]['UsedSE']
-        res = getSitesForSE(assignedSE,gridName='LCG')
-        if not res['OK']:
-          continue
-        targetSite = ''
-        for site in res['Value']:
-          if site in cpuShares.keys():
-            targetSite = site
-        if not targetSite:
-          continue
-      else:
-        # Must get the replicas of the files and determine the corresponding sites
-        distinctSEs = []
-        candidates = []
-        for lfn in unusedLfns:
-          ses = self.data[lfn].keys()
-          for se in ses:
-            if se not in distinctSEs:
-              res = getSitesForSE(se,gridName='LCG')
-              if not res['OK']:
-                continue
-              for site in res['Value']:
-                if site in cpuShares.keys():
-                  if not site in candidates:
-                    candidates.append(site)
-                    distinctSEs.append(se)
-        if len(candidates) < 2:
-          continue
-        res = self._getNextSite(existingCount,cpuShares,randomize(candidates))
-        if not res['OK']:
-          gLogger.error("Failed to get next destination SE",res['Message'])
-          continue
-        targetSite = res['Value']
-        res = getSEsForSite(targetSite)
-        if not res['OK']:
-          continue
-        ses = res['Value']
-        for se in res['Value']:
-          if se in possibleTargets:
-            assignedSE = se
-        if not assignedSE:
-          continue
+      unusedLfns = runFileDict[runID]
+      distinctSEs = []
+      candidates = []
       for lfn in unusedLfns:
-        if assignedSE in self.data[lfn].keys():
-          tasks.append((assignedSE,[lfn]))
-        if not existingCount.has_key(targetSite):
-          existingCount[targetSite] = 0
-        existingCount[targetSite] += 1
-    return S_OK(tasks)
+        ses = self.data[lfn].keys()
+        for se in ses:
+          if se not in distinctSEs:
+            res = getSitesForSE(se,gridName='LCG')
+            if not res['OK']:
+              continue
+            for site in res['Value']:
+              if site in cpuShares.keys():
+                if not site in candidates:
+                  candidates.append(site)
+                  distinctSEs.append(se)
+      if len(candidates) < 2:
+        gLogger.info("Two candidate site not found for %d" % runID)
+        continue
+      res = self._getNextSite(existingCount,cpuShares,randomize(candidates))
+      if not res['OK']:
+        gLogger.error("Failed to get next destination SE",res['Message'])
+        continue
+      targetSite = res['Value']
+      if not existingCount.has_key(targetSite):
+        existingCount[targetSite] = 0
+      existingCount[targetSite] += len(unusedLfns)
+      runSiteDict[runID] = targetSite
+      runSitesToUpdate[runID] = targetSite
+
+    # Create the tasks
+    tasks = []
+    for runID in sortList(runSiteDict.keys()):
+      targetSite = runSiteDict[runID]
+      unusedLfns = runFileDict[runID]
+      res = getSEsForSite(targetSite)
+      if not res['OK']:
+        continue
+      possibleSEs = res['Value']
+      for lfn in sortList(unusedLfns):
+        replicaSEs = self.data[lfn].keys()
+        if len(replicaSEs) < 2:
+          continue
+        for se in replicaSEs:
+          if se in possibleSEs:
+            tasks.append((se,[lfn]))
+    
+    # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
+    for runID,targetSite in runSitesToUpdate.items():
+      res = transClient.setTransformationRunsSite(transID,runID,targetSite)
+      if not res['OK']:
+        gLogger.error("Failed to assign TransformationRun site",res['Message'])
+        continue
+    return S_OK(tasks) 
+
+  def __groupByRun(self,files):
+    runFiles = {}
+    for fileDict in files:
+      runNumber = fileDict.get('RunNumber',0)
+      lfn = fileDict.get('LFN','')
+      if runNumber not in runFiles.keys():
+        runFiles[runNumber] = []
+      if lfn:
+        runFiles[runNumber].append(lfn)
+    return S_OK(runFiles)
 
   def _RAWShares(self):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
@@ -323,7 +352,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def _LHCbDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
-    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST','NIKHEF-DST','RAL-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','NIKHEF-DST','RAL-DST'])
     destinations = int(self.params.get('Destinations',3))
     return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_M-DST')
 
