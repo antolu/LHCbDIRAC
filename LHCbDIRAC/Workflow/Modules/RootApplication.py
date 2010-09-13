@@ -10,6 +10,7 @@ from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -35,6 +36,7 @@ class RootApplication(object):
     self.rootType = ''
     self.arguments = ''
     self.systemConfig = ''
+    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
 
   #############################################################################
   def resolveInputVariables(self):
@@ -103,50 +105,32 @@ class RootApplication(object):
 
     self.__report( 'Initializing RootApplication module' )
 
-    self.cwd  = os.getcwd()
-    self.root = gConfig.getValue( '/LocalSite/Root', self.cwd )
-
     self.log.debug( self.version )
     self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
     self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
-    self.log.info( "Root directory for job is %s" % ( self.root ) )
 
-    mySiteRoot = MySiteRoot()
-    rootdir = ''
-    for path in string.split(mySiteRoot,':'):
-      testdir = os.path.join(path,"lcg/external/root", self.rootVersion, self.systemConfig, "root")
-      if os.path.exists(testdir):
-        rootdir = testdir
-      testdir = os.path.join(path,"lcg/external/ROOT", self.rootVersion, self.systemConfig, "root")
-      if os.path.exists(testdir):
-        rootdir = testdir
+    result = gConfig.getOption("/".join([self.rootSection,self.rootVersion]))
+    if not result['OK']:
+      return self._reportError('Could not contact DIRAC Configuration Service for application for root ',__name__,**kwargs)          
 
-    if not os.path.exists(rootdir):
-      self.log.warn( 'Root version %s not found' %(self.rootVersion))
-      self.__report( 'Application Not Found' )
-      return S_ERROR( 'Application Not Found' )
+    application,version = result['Value'].split('.')
 
-    self.log.info( 'Application Found:', rootdir )
+    self.log.info( 'Application Found:', result['Value'] )
 
-    rootEnv = dict(os.environ)
-    rootEnv['ROOTSYS']=rootdir
-    rootEnv['PATH'] += ":%s" %(os.path.join(rootdir, 'bin'))
-
-    if rootEnv.has_key('LD_LIBRARY_PATH'):
-      rootEnv['LD_LIBRARY_PATH'] += ":%s"%(os.path.join(rootdir, 'lib'))
-    else:
-      rootEnv['LD_LIBRARY_PATH'] = os.path.join(rootdir, 'lib')
-
-    if os.path.exists('lib'):
-      rootEnv['LD_LIBRARY_PATH'] += ":%s"%(os.path.abspath('lib'))
+    #Now obtain the project environment for execution
+    result = getProjectEnvironment(self.systemConfig,application,version)
+    if not result['OK']:
+      self.log.error('Could not obtain project environment with result: %s' %(result))
+      return result # this will distinguish between LbLogin / SetupProject / actual application failures
+    
+    projectEnvironment = result['Value']
 
     if not os.path.exists(self.rootScript):
       self.log.info( 'rootScript not Found' )
       return S_ERROR( 'rootScript not Found' )
 
     if self.rootType.lower() == 'c':
-      rootCmd = os.path.join(rootdir, 'bin/root')
-      rootCmd = [rootCmd]
+      rootCmd = ['root']
       rootCmd.append('-b')
       rootCmd.append('-f')
       if self.arguments:
@@ -164,22 +148,7 @@ class RootApplication(object):
 
     elif self.rootType.lower() == 'py':
 
-      if rootEnv.has_key('PYTHONPATH'):
-        rootEnv['PYTHONPATH'] += ":%s"%(os.path.join(rootdir, 'lib'))
-      else:
-        rootEnv['PYTHONPATH'] = os.path.join(rootdir, 'lib')
-
-      pythondir = self.getPythonFromRoot(rootdir)
-      if not pythondir['OK']:
-        self.log.warn('External python not found with message: %s' %(pythondir['Message']))
-        self.__report( 'Application Not Found' )
-        return S_ERROR( 'Application Not Found' )
-      pythondir = pythondir['Value']
-
-      rootEnv['LD_LIBRARY_PATH'] += ":%s"%(os.path.join(pythondir, 'lib'))
-      pythonbin = os.path.join(pythondir, 'bin', 'python')
-
-      rootCmd = [pythonbin]
+      rootCmd = ['python']
       rootCmd.append(self.rootScript)
       if self.arguments:
         rootCmd+=self.arguments
@@ -195,7 +164,7 @@ class RootApplication(object):
     self.log.info( 'Running:', ' '.join(rootCmd)  )
     self.__report('Running ROOT %s' %(self.rootVersion))
 
-    ret = shellCall(0,' '.join(rootCmd),env=rootEnv,callbackFunction=self.redirectLogOutput)
+    ret = shellCall(0,' '.join(rootCmd),env=projectEnvironment,callbackFunction=self.redirectLogOutput)
     if not ret['OK']:
       self.log.warn('Error during: %s ' %rootCmd)
       self.log.warn(ret)
