@@ -105,13 +105,14 @@ class RemoveInputData(ModuleBase):
     if not self.failoverTest:
       self.log.info('Attempting rm.removeFile("%s")' %(self.inputData))
       result = self.rm.removeFile(self.inputData)
+      self.log.verbose(result)       
       if not result['OK']:
-        self.log.error('Could not remove files with message:\n%s' %(result['Message']))
+        self.log.error('Could not remove files with message:\n"%s"\nWill set removal requests just in case.' %(result['Message']))
+        failover=self.inputData
+      if result['Value']['Failed']:  
         failureDict = result['Value']['Failed']
         if failureDict:
-          self.log.info('Not all files were successfully removed, see "LFN : reason" below')
-          for lfn,reason in failureDict.items():
-            self.log.info('%s : %s' %(lfn,reason))
+          self.log.info('Not all files were successfully removed, see "LFN : reason" below\n%s' %(failureDict))
         failover = failureDict.keys()
     else:
       self.log.info('Failover test flag is enabled, setting removal requests by default')
