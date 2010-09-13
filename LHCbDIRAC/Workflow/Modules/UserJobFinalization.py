@@ -98,7 +98,7 @@ class UserJobFinalization(ModuleBase):
         self.userOutputSE = [i.strip() for i in specifiedSE.split(';')]
     else:
       self.log.verbose('No UserOutputSE specified, using default value: %s' %(string.join(self.defaultOutputSE,', ')))
-      self.userOutputSE = self.defaultOutputSE
+      self.userOutputSE = []
 
     if self.workflow_commons.has_key('UserOutputPath'):
       self.userOutputPath = self.workflow_commons['UserOutputPath']
