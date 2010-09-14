@@ -1607,12 +1607,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getJobInfo(self, lfn):
-    command = 'select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER, \'not used\', \
-                 \'not used\', \'not used\', \'not used\', jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS, \
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
-    res = self.dbR_._query(command)
-    return res
-    
+    return self.dbW_.executeStoredProcedure('BKK_ORACLE.getJobInfo', [lfn], False)
     
   #############################################################################
   def getProductionFilesWithAGivenDate(self, prod, ftype, startDate = None, endDate = None):
@@ -3265,11 +3260,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return result
       
   #############################################################################
-  def updateReplicaRow(self, fileID, replica): #, name, location):
-    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    command = 'update files set inserttimestamp = TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), GOTREPLICA=\''+str(replica)+'\' where fileid='+str(fileID)
-    res = self.dbW_._query(command)
-    return res
+  def updateReplicaRow(self, fileID, replica): #, name, location):  
+    result = self.dbW_.executeStoredProcedure('BKK_ORACLE.updateReplicaRow',[fileID, replica], False)
+    return result
   
   #############################################################################
   def deleteJob(self, jobID):
