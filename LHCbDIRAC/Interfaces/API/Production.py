@@ -265,7 +265,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       dataType='DATA'
       if not outputSE:
         outputSE='Tier1-RDST'
-        #outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
     else:
       if not appType.lower() in ['dst','xdst']:
@@ -316,7 +315,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=0
-    appTypes = ['dst','fetc','setc','rdst','davincihist','merge']
+    appTypes = ['dst','fetc','setc','rdst','davincihist','merge','mdst']
     inputDataTypes = ['rdst','dst','sdst']
     if not appType.lower() in appTypes:
       raise TypeError,'Application type not currently supported (%s)' % appTypes
@@ -339,7 +338,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           outputSE='Tier1_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
-    if appType.lower()=='merge':
+    if appType.lower() in ['merge','mdst']:
       if not outputSE:
         outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
@@ -349,7 +348,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           self.log.error(result)
           raise TypeError,'inputProduction must exist and have BK parameters'
       else:
-        self.log.error('DaVinci merging must have an input production ID specified')
+        self.log.error('DaVinci merging / MDST must have an input production ID specified')
         raise TypeError,'inputProduction must be specified'
 
     if appType.lower()=='setc':
