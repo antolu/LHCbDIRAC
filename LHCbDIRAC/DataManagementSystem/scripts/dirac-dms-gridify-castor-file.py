@@ -29,6 +29,10 @@ if not castorFiles:
   gLogger.info("Try dirac-lhcb-gridify-castor-file  --help for options")
   DIRAC.exit(0)
 exp = re.compile(r'/castor/cern.ch/user/[a-z]/[a-z]*/(\S+)$')
+
+stageSVCCLASS = os.environ.get('STAGE_SVCCLASS','')
+os.environ['STAGE_SVCCLASS'] = 'default'
+
 for physicalFile in castorFiles:
   if not physicalFile.startswith("/castor/cern.ch/user"):
     gLogger.info("%s is not a Castor user file (e.g. /castor/cern.ch/user/%s/%s). Ignored." % (physicalFile,username[0],username))
@@ -38,11 +42,19 @@ for physicalFile in castorFiles:
     continue
   relativePath =  re.findall(exp,physicalFile)[0]
   gLogger.verbose("Found relative path of %s to be %s" % (physicalFile,relativePath))
-  res = replicaManager.getStorageFile(physicalFile,'CERN-ARCHIVE',singleFile=True)
   localFile = os.path.basename(relativePath)
-  if not res['OK']:
-    gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
-    if os.path.exists(localFile): os.remove(localFile)
+  #res = replicaManager.getStorageFile(physicalFile,'CERN-ARCHIVE',singleFile=True)
+  #if not res['OK']:
+  #  gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
+  #  if os.path.exists(localFile): os.remove(localFile)
+  #  continue
+  import commands
+  cmd = "rfcp %s %s" % (physicalFile,localFile)
+  print cmd
+  status,output=commands.getstatusoutput(cmd)
+  print status,output
+  if status:
+    gLogger.info("Failed to get local copy of %s" % physicalFile,output)
     continue
   gLogger.verbose("Obtained local copy of %s at %s" % (physicalFile,localFile))
   lfn = '/lhcb/user/%s/%s/Migrated/%s' % (username[0],username,relativePath)
@@ -52,4 +64,5 @@ for physicalFile in castorFiles:
     gLogger.error("Failed to upload %s to grid." % physicalFile,res['Message'])
     continue
   gLogger.info("Successfully uploaded %s to Grid. The corresponding LFN is %s" % (physicalFile,lfn))
+os.environ['STAGE_SVCCLASS'] = stageSVCCLASS
 DIRAC.exit(0)
