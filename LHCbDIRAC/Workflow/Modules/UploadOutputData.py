@@ -184,29 +184,9 @@ class UploadOutputData(ModuleBase):
     #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
     #'Failed': [], 'NotProcessed': []}}
     
-    if self.inputData:
-      prodID = str(self.PRODUCTION_ID)
-      prodID = prodID.lstrip('0')   
-      self.log.info('Will check BK descendents for input data of job prior to uploading outputs')
-      bkClient = BookkeepingClient()
-      start = time.time()
-      result = bkClient.getAllDescendents(self.inputData,depth=9,production=int(prodID),checkreplica=True)
-      timing = time.time() - start
-      self.log.info('BK Descendents Lookup Time: %.2f seconds ' %(timing))
-      if not result['OK']:
-        self.log.error('Would have uploaded output data for job but could not check for descendents of input data from BK with result:\n%s' %(result))
-        return S_ERROR('Could Not Contact BK To Check Descendents')
-      inputDataDescDict = result['Value']['Successful']
-      failed=False
-      for inputDataFile,descendents in inputDataDescDict.items():
-        if descendents:
-          failed=True
-          self.log.error('Input files: \n%s \nDescendents: %s' %(string.join(self.inputData,'\n'),string.join(descendents,'\n')))
-      if failed:
-        self.log.error('!!!!Found descendent files for production %s with BK replica flag for an input file of this job!!!!' %(prodID))
-        return S_ERROR('Input Data Already Processed')
-    else:
-      self.log.verbose('This job has no input data to check for descendents in the BK')
+    result = self.checkInputsNotAlreadyProcessed(self.inputData,self.PRODUCTION_ID)
+    if not result['OK']:
+      return result
 
     #Disable the watchdog check in case the file uploading takes a long time
     self.log.info('Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload')
@@ -269,9 +249,20 @@ class UploadOutputData(ModuleBase):
       for fileName,metadata in final.items():
          lfns.append(metadata['lfn'])
 
-      result = self.__cleanUp(lfns)
+      self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request
       return S_ERROR('Failed to upload output data')
+
+    #Now double-check prior to final BK replica flag setting that the input files are still not processed 
+    result = self.checkInputsNotAlreadyProcessed(self.inputData,self.PRODUCTION_ID)
+    if not result['OK']:
+      self.log.error('Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...')
+      for fileName,metadata in final.items():
+         lfns.append(metadata['lfn'])
+
+      self.__cleanUp(lfns)
+      self.workflow_commons['Request']=self.request      
+      return result
 
     #Can now register the successfully uploaded files in the BK
     if not performBKRegistration:
@@ -306,6 +297,43 @@ class UploadOutputData(ModuleBase):
 
     self.workflow_commons['Request']=self.request
     return S_OK('Output data uploaded')
+
+  #############################################################################
+  def checkInputsNotAlreadyProcessed(self,inputData,productionID):
+    """ Checks that the input files for the job were not already processed by
+        another job i.e. that there are no other descendent files for the 
+        current productionID having a BK replica flag.  
+    """
+    if not inputData:
+      self.log.verbose('This job has no input data to check for descendents in the BK')
+      return S_OK()
+        
+    prodID = str(productionID)
+    prodID = prodID.lstrip('0')   
+    self.log.info('Will check BK descendents for input data of job prior to uploading outputs')
+    bkClient = BookkeepingClient()
+    start = time.time()
+    result = bkClient.getAllDescendents(inputData,depth=9,production=int(prodID),checkreplica=True)
+    timing = time.time() - start
+    self.log.info('BK Descendents Lookup Time: %.2f seconds ' %(timing))
+    if not result['OK']:
+      self.log.error('Would have uploaded output data for job but could not check for descendents of input data from BK with result:\n%s' %(result))
+      return S_ERROR('Could Not Contact BK To Check Descendents')
+    if result['Value']['Failed']:
+      self.log.error('BK getAllDescendents returned an error for some files:\n%s\nwill exit to avoid uploading outputs that have already been processed' %(result['Value']['Failed']))
+      return S_ERROR('BK Descendents Check Was Not Complete')
+    
+    inputDataDescDict = result['Value']['Successful']
+    failed=False
+    for inputDataFile,descendents in inputDataDescDict.items():
+      if descendents:
+        failed=True
+        self.log.error('Input files: \n%s \nDescendents: %s' %(string.join(inputData,'\n'),string.join(descendents,'\n')))
+    if failed:
+      self.log.error('!!!!Found descendent files for production %s with BK replica flag for an input file of this job!!!!' %(prodID))
+      return S_ERROR('Input Data Already Processed')
+
+    return S_OK('Outputs can be uploaded')
 
   #############################################################################
   def setBKRegistrationRequest(self,lfn,error=''):
