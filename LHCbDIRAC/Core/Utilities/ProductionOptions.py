@@ -77,6 +77,9 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
     elif appType.lower() == 'dst' and inputType in ['sdst','dst']: #e.g. stripping
       options.append('from Configurables import SelDSTWriter')
       options.append('SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'')
+    elif appType.lower()=='mdst':
+      options.append('from Configurables import MicroDSTWriter')
+      options.append('MicroDSTWriter("BetaSMicroDST").OutputFileSuffix  = \'@{STEP_ID}\'')
     elif appType.lower() == 'davincihist':
       options.append('from Configurables import InputCopyStream')
       options.append('InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"')
