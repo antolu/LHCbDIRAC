@@ -122,10 +122,20 @@ class CombinedSoftwareInstallation:
 
     for app in self.apps:
       DIRAC.gLogger.info('Checking %s_%s for %s with site root %s' %(app[0],app[1],self.jobConfig,self.mySiteRoot))
-      result = CheckInstallSoftware(app,self.jobConfig,self.mySiteRoot)
+      result = CheckApplication(app,self.jobConfig,self.mySiteRoot)
       if not result:
-        DIRAC.gLogger.error('software not installed','%s_%s' %(app))
-        return DIRAC.S_ERROR('Software not installed')
+        DIRAC.gLogger.info('Software was not found to be pre-installed in the shared area','%s_%s' %(app))
+        if re.search(':',self.mySiteRoot):
+          localArea = string.split(self.mySiteRoot,':')[0]
+          result = InstallApplication(app,self.jobConfig,localArea)      
+          if not result:
+            self.log.error('Software failed to be installed!')
+            return DIRAC.S_ERROR('Software Not Installed')
+          else:
+            self.log.info('Software was successfully installed in the local area')
+        else:
+          self.log.error('No local area was found to install missing software!')
+          return DIRAC.S_ERROR('No Local Area Found')
       else:
         DIRAC.gLogger.info('%s is installed for %s' %(app,self.jobConfig))
 
@@ -149,7 +159,7 @@ def MySiteRoot():
   mySiteRoot = '%s:%s' %(localArea,sharedArea)
   return mySiteRoot
 
-def CheckInstallSoftware(app,config,area):
+def CheckApplication(app,config,area):
   """Will perform a local + shared area installation using install project
      to check where components should be installed.  In this case the 'area'
      is localArea:sharedArea.
@@ -275,127 +285,6 @@ def InstallApplication(app, config, area ):
     return False
 
   return True
-
-def CheckApplication(app, config, area):
-  """
-   check if given application is available in the given area
-  """
-  if not area:
-    return False
-
-  localArea = area
-  if re.search(':',area):
-    localArea = string.split(area,':')[0]
-    sharedArea = string.split(area,':')[1]
-
-  appName    = app[0]
-  appVersion = app[1]
-
-  curDir = os.getcwd()
-
-  installProject = os.path.join( localArea, InstallProject )
-  if not os.path.exists( installProject ):
-    installProject = os.path.join( sharedArea, InstallProject )
-    if not os.path.exists( installProject ):
-      DIRAC.gLogger.warn( 'Failed to find:', InstallProject )
-      return False
-    else:
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
-      DIRAC.gLogger.info(' change directory to %s ' % sharedArea)
-      os.chdir(sharedArea)
-      area = sharedArea
-      localArea = sharedArea
-  else:
-    os.chdir(localArea)
-
-  DIRAC.gLogger.info(' install_project is %s' % installProject )
-  # Now run the installation
-
-
-  cmtEnv = dict(os.environ)
-  cmtEnv['MYSITEROOT'] = area
-  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % area )
-  cmtEnv['CMTCONFIG']  = config
-  DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
-
-  cmdTuple =  [sys.executable]
-  cmdTuple += [InstallProject]
-  cmdTuple += ['-d']
-  cmdTuple += [ '-p', appName ]
-  cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '--check' ]
-
-  DIRAC.gLogger.info( 'Executing %s' % ' '.join(cmdTuple) )
-  timeout = 300
-  ret = DIRAC.systemCall( timeout, cmdTuple, env=cmtEnv, callbackFunction=log )
-#  DIRAC.gLogger.debug(ret)
-  os.chdir(curDir)
-  if not ret['OK']:
-    DIRAC.gLogger.error('Software check failed, missing software', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return False
-  if ret['Value'][0]: # != 0
-    DIRAC.gLogger.error('Software check failed with non-zero status', '%s %s:\n%s' %(appName,appVersion,ret['Value'][2]))
-    return False
-
-  if ret['Value'][2]:
-    DIRAC.gLogger.debug('Error reported with ok status for install_project check:\n%s' %ret['Value'][2])
-
-  # Run SetupProject
-  extCMT       = os.path.join( localArea, 'LbLogin' )
-  setupProject = '%s/%s' %(os.path.dirname(os.path.realpath('%s.sh' %extCMT)),'SetupProject')
-#  setupProject = os.path.join( localArea, 'scripts', 'SetupProject' )
-
-  # Run ExtCMT
-  ret = DIRAC.Os.sourceEnv( timeout, [extCMT], cmtEnv )
-#  DIRAC.gLogger.debug(ret)
-  if not ret['OK']:
-    DIRAC.gLogger.error('Problem during SetupProject call')
-    if ret['stdout']:
-      DIRAC.gLogger.info( ret['stdout'] )
-    if ret['stderr']:
-      DIRAC.gLogger.error( ret['stderr'] )
-    return False
-
-  if ret['stderr']:
-    DIRAC.gLogger.debug('Error reported with ok status for LbLogin call:\n\n%s' %ret['stderr'])
-
-  setupProjectEnv = ret['outputEnv']
-
-#  for n,v in setupProjectEnv.items():
-#    print '%s = %s' %(n,v)
-#  if not setupProjectEnv.has_key('LHCBPYTHON'):
-#    lhcbPython = os.path.join(localArea,'scripts','python')
-#    DIRAC.gLogger.error('LHCBPYTHON not defined after LbLogin execution, setting to %s' %lhcbPython)
-#    setupProjectEnv['LHCBPYTHON']=lhcbPython
-
-  setupProject = [setupProject]
-  setupProject.append( '--debug' )
-  setupProject.append( '--ignore-missing' )
-  setupProject.append( appName )
-  setupProject.append( appVersion )
-
-  ret = DIRAC.Os.sourceEnv( timeout, setupProject, setupProjectEnv )
-#  DIRAC.gLogger.debug(ret)
-  if not ret['OK']:
-    DIRAC.gLogger.info( ret['Message'])
-    if ret['stdout']:
-      DIRAC.gLogger.info( ret['stdout'] )
-    if ret['stderr']:
-      DIRAC.gLogger.warn( ret['stderr'] )
-    return False
-
-  if ret['stderr']:
-    DIRAC.gLogger.debug('Error reported with ok status for SetupProject call:\n\n%s' %ret['stderr'])
-
-  gaudiEnv = ret['outputEnv']
-
-  appRoot = appName.upper() + 'ROOT'
-  if not gaudiEnv.has_key( appRoot ):
-    DIRAC.gLogger.warn( 'Cannot determine application root directory:', appRoot )
-    return False
-
-  return gaudiEnv[ appRoot ]
-
 
 def SharedArea():
   """
