@@ -360,7 +360,7 @@ def getScriptsLocation():
         gLogger.info('Using %s from the site shared area directory at %s' %(groupLogin,localArea))
       else:
         gLogger.error('%s not found in local area or shared area %s' %(groupLogin,softwareArea))
-        return S_ERROR('%s not found in local or shared areas')
+        return S_ERROR('%s not found in local or shared areas' %(groupLogin))
   else:
     if os.path.exists(os.path.join(softwareArea,groupLogin)):
       localArea = softwareArea
