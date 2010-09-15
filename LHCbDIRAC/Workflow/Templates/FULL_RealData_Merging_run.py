@@ -317,7 +317,7 @@ for mergeStream in dstList:
   mergeProd.setFileMask('setc;%s' %(mergeStream.lower()))
   mergeProd.setProdPlugin(mergePlugin)
 
-  result = mergeProd.create(bkScript=False,requestID=currentReqID,reqUsed=1,transformation=mergeTransFlag)
+  result = mergeProd.create(bkScript=False,requestID=currentReqID,reqUsed=1,transformation=mergeTransFlag,bkProcPassPrepend='{{inProPass}}')
   if not result['OK']:
     gLogger.error('Production creation failed with result:\n%s\ntemplate is exiting...' %(result))
     DIRAC.exit(2)
