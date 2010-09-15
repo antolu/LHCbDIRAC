@@ -999,7 +999,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,
                   bkScript=True,wfString='',requestID=0,reqUsed=0,
-                  transformation=True,transReplicas=0):
+                  transformation=True,transReplicas=0,bkProcPassPrepend=''):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -1108,6 +1108,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           inputProcPass = bkQuery['ProcessingPass']
           self.log.verbose('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
           bkDict['InputProductionTotalProcessingPass']=inputProcPass
+
+    if bkProcPassPrepend:
+      self.log.info('The following path will be prepended to the BK processing pass for this production: %s' %(bkProcPassPrepend))
+      bkDict['InputProductionTotalProcessingPass']=bkProcPassPrepend
 
     if bkScript:
       self.log.verbose('Writing BK publish script...')
