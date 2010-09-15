@@ -721,19 +721,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return self.workflow.createStepInstance('Gaudi_App_Step',name)
 
   #############################################################################
-  def addFinalizationStep(self,sendBookkeeping=True,uploadData=True,uploadLogs=True,
+  def addFinalizationStep(self,uploadData=True,uploadLogs=True,
                           sendFailover=True,removeInputData=False):
     """ Adds the finalization step with enable flags for each module.
     """
-    for param in [sendBookkeeping,uploadData,uploadLogs,sendFailover]:
+    for param in [uploadData,uploadLogs,sendFailover]:
       if not type(param)==type(True):
         raise TypeError,'All arguments to addFinalizationStep must be boolean'
-
-    sendBK = ModuleDefinition('SendBookkeeping')
-    sendBK.setDescription('Sends the BK reports')
-    self._addParameter(sendBK,'Enable','bool','True','EnableFlag')
-    body = string.replace(self.importLine,'<MODULE>','SendBookkeeping')
-    sendBK.setBody(body)
 
     dataUpload = ModuleDefinition('UploadOutputData')
     dataUpload.setDescription('Uploads the output data')
@@ -762,11 +756,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     finalization = StepDefinition('Job_Finalization')
 
-    sendBK.setLink('Enable','self','BKEnable')
-    finalization.addModule(sendBK)
-    finalization.createModuleInstance('SendBookkeeping','sendBK')
-    self._addParameter(finalization,'BKEnable','bool',str(sendBookkeeping),'EnableFlag')
-
     dataUpload.setLink('Enable','self','UploadEnable')
     finalization.addModule(dataUpload)
     finalization.createModuleInstance('UploadOutputData','dataUpload')
@@ -790,7 +779,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     self.workflow.addStep(finalization)
     finalizeStep = self.workflow.createStepInstance('Job_Finalization', 'finalization')
-    finalizeStep.setValue('BKEnable',sendBookkeeping)
     finalizeStep.setValue('UploadEnable',uploadData)
     finalizeStep.setValue('LogEnable',uploadLogs)
     finalizeStep.setValue('FailoverEnable',sendFailover)
