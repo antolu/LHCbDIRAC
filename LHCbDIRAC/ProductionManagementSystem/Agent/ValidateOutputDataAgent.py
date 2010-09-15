@@ -101,14 +101,21 @@ class ValidateOutputDataAgent( AgentModule ):
 
   def getProductionDirectories( self, prodID ):
     """ Get the directories for the supplied productionID from the production management system """
-    from DIRAC.Core.DISET.RPCClient import RPCClient
-    client = RPCClient("DataManagement/StorageUsage")
-    res = client.getStorageDirectories('','',prodID,[])
     directories = []
+    res = self.productionClient.getParameters( prodID, pname = 'OutputDirectories' )
     if not res['OK']:
       gLogger.error("Failed to obtain production directories",res['Message'])
       return res
-    directories = res['Value']
+    directories = res['Value'].splitlines()
+    from DIRAC.Core.DISET.RPCClient import RPCClient
+    client = RPCClient("DataManagement/StorageUsage")
+    res = client.getStorageDirectories('','',prodID,[])
+    if not res['OK']:
+      gLogger.error("Failed to obtain storage usage directories",res['Message'])
+      return res
+    for dir in res['Value']:
+      if not dir in directories:
+        directories.append(dir)
     for dir in directories:
       prodStr = str( prodID ).zfill( 8 )
       if not re.search( prodStr, dir ):
