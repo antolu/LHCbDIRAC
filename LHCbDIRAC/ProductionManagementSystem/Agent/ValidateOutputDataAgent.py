@@ -100,41 +100,18 @@ class ValidateOutputDataAgent( AgentModule ):
   #
 
   def getProductionDirectories( self, prodID ):
-    """ Get the directories for the supplied productionID from the production management system
-    """
-    res = self.__getProductionDirectories( prodID )
-    if not res['OK']:
-      return res
-    if not res['Value']:
-      return S_ERROR( "No output directories available" )
-      #self.__createProductionDirectories(prodID)
-      #res = self.__getProductionDirectories(prodID)
-    return res
-
-  def __getProductionDirectories( self, prodID ):
+    """ Get the directories for the supplied productionID from the production management system """
+    from DIRAC.Core.DISET.RPCClient import RPCClient
+    client = RPCClient("DataManagement/StorageUsage")
+    res = client.getStorageDirectories('','',prodID,[])
     directories = []
-    res = self.productionClient.getParameters( prodID, pname = 'OutputDirectories' )
-    if res['OK']:
-      directories = res['Value'].splitlines()
-    elif res['Message'].endswith( 'not found' ):
-      gLogger.warn( "The production was not found in the production management system." )
-    elif res['Message'] == 'Parameter OutputDirectories not found for production':
-      gLogger.warn( "No output directories available for production." )
-    else:
-      gLogger.error( "Completely failed to obtain production parameters", res['Message'] )
+    if not res['OK']:
+      gLogger.error("Failed to obtain production directories",res['Message'])
       return res
+    directories = res['Value']
     if not directories:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      client = RPCClient("DataManagement/StorageUsage")
-      res = client.getStorageDirectories('','',prodID,[])
-      if res['OK']:
-        directories = res['Value']
+      gLogger.info("No output directories found")
     return S_OK(directories)
-
-  def __createProductionDirectories( self, prodID ):
-    from LHCbDIRAC.Interfaces.API.Production import Production
-    production = Production()
-    res = production._setProductionParameters( prodID )
 
   #############################################################################
   def checkProductionIntegrity( self, prodID ):
