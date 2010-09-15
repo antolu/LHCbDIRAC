@@ -109,6 +109,10 @@ class ValidateOutputDataAgent( AgentModule ):
       gLogger.error("Failed to obtain production directories",res['Message'])
       return res
     directories = res['Value']
+    for dir in directories:
+      prodStr = str( prodID ).zfill( 8 )
+      if not re.search( prodStr, dir ):
+        directories.remove(dir)
     if not directories:
       gLogger.info("No output directories found")
     return S_OK(directories)
