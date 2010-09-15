@@ -213,6 +213,20 @@ if not mergingFlag:
 bkFileTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
 bannedStreams = gConfig.getValue('/Operations/Bookkeeping/BannedStreams',[])
 
+##################################################################################
+### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
+##################################################################################
+
+bannedStreams.append('HADRON.DST') 
+bannedStreams.append('HADRONIC.DST')
+bannedStreams.append('DIMUONDIPHOTON.DST')
+bannedStreams.apend('VO.DST')
+for okStream in ['BHADRON.DST','CHARM.DST']:
+  if okStream in bannedStreams:
+    bannedStreams.remove(okStream)
+
+##################################################################################
+
 if not bkFileTypes:
   gLogger.error('Could not contact CS to get BK File Types list! Exiting...')
   DIRAC.exit(2)
