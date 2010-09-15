@@ -18,7 +18,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 
-import string,os,random,time
+import string,os,random,time,glob
 
 class UploadOutputData(ModuleBase):
 
@@ -263,8 +263,38 @@ class UploadOutputData(ModuleBase):
       self.__cleanUp(lfns)
       self.workflow_commons['Request']=self.request      
       return result
+    
+    #Finally can send the BK records for the steps of the job
+    bkFileExtensions = ['bookkeeping*.xml']
+    bkFiles=[]
+    for ext in bkFileExtensions:
+      self.log.debug('Looking at BK record wildcard: %s' %ext)
+      globList = glob.glob(ext)
+      for check in globList:
+        if os.path.isfile(check):
+          self.log.verbose('Found locally existing BK file record: %s' %check)
+          bkFiles.append(check)
 
-    #Can now register the successfully uploaded files in the BK
+    #Unfortunately we depend on the file names to order the BK records
+    bkFiles.sort()
+    self.log.info('The following BK records will be sent: %s' %(string.join(bkFiles,', ')))
+
+    for bkFile in bkFiles:
+      fopen = open(bkFile,'r')
+      bkXML = fopen.read()
+      fopen.close()
+      self.log.info('Sending BK record %s:\n%s' %(bkFile,bkXML))
+      bkClient = BookkeepingClient()
+      result = bkClient.sendBookkeeping(bkFile,bkXML)
+      self.log.verbose(result)
+      if result['OK']:
+        self.log.info('Bookkeeping report sent for %s' %bkFile)
+      else:
+        self.log.error('Could not send Bookkeeping XML file to server, preparing DISET request for',bkFile)
+        self.request.setDISETRequest(result['rpcStub'],executionOrder=0)
+        self.workflow_commons['Request']=self.request  # update each time, just in case
+
+    #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
     if not performBKRegistration:
       self.log.info('There are no files to perform the BK registration for, all could be saved to failover')
     elif registrationFailure:
