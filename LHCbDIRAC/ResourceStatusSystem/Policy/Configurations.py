@@ -682,7 +682,7 @@ Policy_Types = {
       'ResourceType' : ValidResourceType,
      },
   'RealBan_PolType' : 
-    { 'Granularity' : [], 
+    { 'Granularity' : ['Site'], 
       'Status' : ValidStatus, 
       'FormerStatus' : ValidStatus,
       'NewStatus' : ['Active', 'Banned'],
