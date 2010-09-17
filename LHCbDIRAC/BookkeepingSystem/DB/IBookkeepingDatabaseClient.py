@@ -603,6 +603,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getRunFlag(runnb, processing)
   
   #############################################################################
+  def setFilesInvisible(self, lfns):
+    return self.getManager().setFilesInvisible(lfns)
+  
+  #############################################################################
   '''
     MONITORING
   '''
@@ -653,6 +657,7 @@ class IBookkeepingDatabaseClient(object):
   def getFilesForAGivenProduction(self, dict):
     return self.getManager().getFilesForAGivenProduction(dict)
   
+    
   '''
   END MONITORING
   '''

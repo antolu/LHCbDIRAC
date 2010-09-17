@@ -871,4 +871,13 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.setProductionVisible(dict)
   
+  #############################################################################
+  def setFilesInvisible(self, lfns):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.setFilesInvisible([lfns])
+    else:
+      result = server.setFilesInvisible(lfns)
+    return result
    #----------------------------------- END Event Types------------------------------------------------------------------

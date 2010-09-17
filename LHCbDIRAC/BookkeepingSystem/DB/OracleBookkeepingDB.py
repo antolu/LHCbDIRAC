@@ -763,6 +763,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.filetypeid=filetypes.filetypeid and \
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
@@ -771,6 +772,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          jobs.configurationid=configurations.configurationid and \
          files.qualityid= dataquality.qualityid' + condition 
     if all > ALLOWED_ALL:
@@ -862,6 +864,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.filetypeid=filetypes.filetypeid and \
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
@@ -870,6 +873,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          jobs.configurationid=configurations.configurationid and \
          files.qualityid= dataquality.qualityid' + condition 
     if all > ALLOWED_ALL:
@@ -952,6 +956,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.qualityid=dataquality.qualityid \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
@@ -965,6 +970,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.qualityid=dataquality.qualityid and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
@@ -982,6 +988,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and configurations.ConfigName=\''+configName+'\''
     
     if configVersion != 'ALL':
+      
      condition += ' and configurations.ConfigVersion=\''+configVersion+'\''
      
     tables = ' jobs, files,configurations'
@@ -1065,6 +1072,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.qualityid=dataquality.qualityid \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
       all += 1
@@ -1078,6 +1086,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+ tables+', dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.qualityid=dataquality.qualityid and \
          jobs.configurationid=configurations.configurationid' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
@@ -1152,12 +1161,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
          where files.JobId=jobs.JobId and \
          jobs.configurationid=configurations.configurationid and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          files.filetypeid=filetypes.filetypeid' + condition 
       all += 1
     else:
       command =' select count(*), SUM(files.EventStat), SUM(files.FILESIZE), SUM(files.luminosity) from ' + tables +' \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityflag=\'Y\' and \
          jobs.configurationid=configurations.configurationid' + condition 
     
     if all > ALLOWED_ALL:
@@ -1936,6 +1947,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+tables+',filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.qualityid=dataquality.qualityid  and \
          files.filetypeid=filetypes.filetypeid' + condition + ' ) where rownum <= '+str(maxitems)+ ' ) where rnum > '+ str(startitem)
     else:
@@ -1948,6 +1960,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         from'+ tables+', dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.qualityid=dataquality.qualityid ' + condition + ' ) where rownum <= ' + str(maxitems)+ ' ) where rnum > '+str(startitem)
       
     res = self.dbR_._query(command)
@@ -2008,6 +2021,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.filetypeid=filetypes.filetypeid and \
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
@@ -2016,6 +2030,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.qualityid= dataquality.qualityid' + condition 
     
     
@@ -2062,6 +2077,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, filetypes.Name, jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables+' ,filetypes, dataquality \
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.filetypeid=filetypes.filetypeid and \
          files.qualityid= dataquality.qualityid' + condition 
       all +=1
@@ -2070,6 +2086,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
          jobs.JobStart, jobs.JobEnd, jobs.WorkerNode, \''+str(ftype)+'\' , jobs.runnumber, jobs.fillnumber, files.fullstat, dataquality.dataqualityflag, jobs.eventinputstat, jobs.totalluminosity, files.luminosity from '+ tables +' ,dataquality\
          where files.JobId=jobs.JobId and \
          files.gotReplica=\'Yes\' and \
+         files.visibilityFlag=\'Y\' and \
          files.qualityid= dataquality.qualityid' + condition 
     
     
@@ -4169,3 +4186,14 @@ and files.qualityid= dataquality.qualityid'
         return S_OK(value[0][0])
     else:
       return S_ERROR(retVal['Message'])
+  
+  #############################################################################
+  def setFilesInvisible(self, lfns):
+    for i in lfns:
+      res = self.dbW_.executeStoredProcedure('BKK_ORACLE.setFileInvisible', [i], False)
+      if res['OK']:
+        return S_ERROR(res['Message'])
+    return S_OK('The files are invisible!')
+    
+  
+      
