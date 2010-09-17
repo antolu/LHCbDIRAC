@@ -412,6 +412,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelHeader_4(self, path, levels, processedPath):
     entityList = list()
+    
     gLogger.debug("listing event types")
     configName = processedPath[0][1]
     configVersion = processedPath[1][1]
