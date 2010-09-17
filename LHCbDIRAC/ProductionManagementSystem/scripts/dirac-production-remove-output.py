@@ -12,23 +12,25 @@ if len(sys.argv) < 2:
   print 'Usage: dirac-production-remove-output prodID'
   sys.exit()
 else:
-  prodID = int(sys.argv[1])
+  prodIDs = [int(arg) for arg in sys.argv[1:]]
 
-from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent import ProductionCleaningAgent
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient       import ProductionClient
-from DIRAC import gLogger
+from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent  import ProductionCleaningAgent
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient        import ProductionClient
+from DIRAC                                                               import gLogger
 import DIRAC
 
-client = ProductionClient()
-res = client.getTransformationParameters(prodID,['Status'])
-if not res['OK']:
-  gLogger.error("Failed to determine production status")
-  gLogger.error(res['Message'])
-  DIRAC.exit(-1)
-status = res['Value']
-if not status in ['RemovingFiles','RemovingOutput','ValidatingInput','Active']:
-  gLogger.error("The production is in %s status and the outputs can not be removed" % status)
-  DIRAC.exit(-1)
 agent = ProductionCleaningAgent('ProductionManagement/ProductionCleaningAgent','dirac-production-remove-output')
 agent.initialize()
-agent.removeProductionOutput(prodID)
+
+client = ProductionClient()
+for prodID in prodIDs:
+  res = client.getTransformationParameters(prodID,['Status'])
+  if not res['OK']:
+    gLogger.error("Failed to determine production status")
+    gLogger.error(res['Message'])
+    continue
+  status = res['Value']
+  if not status in ['RemovingFiles','RemovingOutput','ValidatingInput','Active']:
+    gLogger.error("The production is in %s status and the outputs can not be removed" % status)
+    continue
+  agent.removeProductionOutput(prodID)
