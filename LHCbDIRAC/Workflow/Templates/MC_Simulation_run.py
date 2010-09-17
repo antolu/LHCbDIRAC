@@ -369,6 +369,9 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
                  'DataQualityFlag'          : 'All'}
 
 mergeProd = Production()
+if sysConfig:
+  mergeProd.setSystemConfig(sysConfig)
+     
 mergeProd.setProdType('Merge')
 mergingName = '%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB_Request{{ID}}' %(finalAppType,evtType,mcProdID,mergingGroupSize)
 mergeProd.setWorkflowName(mergingName)
