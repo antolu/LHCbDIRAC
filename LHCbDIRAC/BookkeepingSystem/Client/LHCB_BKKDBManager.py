@@ -335,7 +335,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_2(self, path, levels, configName, configVersion):
     entityList = list()
-    if configName=='MC':
+    if configName=='MC' or configName=='certification' or configName=='development':
       result = self.db_.getSimulationConditions(configName, configVersion) 
       if result['OK']:
         dbResult = result['Value']
@@ -623,7 +623,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14], 'TotalLuminosity':record[15], 'Luminosity':record[16], 'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -651,9 +651,9 @@ class LHCB_BKKDBManager(BaseESManager):
                  "Program name":pname, \
                  "Program version":pversion}
       
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity', 'Luminosity']
     for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'Selection':selection}
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'TotalLuminosity':record[14],'Luminosity':record[15],'Selection':selection}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
     self._cacheIt(entityList)    
@@ -1104,7 +1104,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14], 'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1271,7 +1271,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'Selection':selection}
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
       self._cacheIt(entityList)    
@@ -1478,7 +1478,7 @@ class LHCB_BKKDBManager(BaseESManager):
         prod = str(record[0])
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
                  'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
-                  'StatisticsRequested':record[12], 'WNCPUPOWER':record[13], 'CPUTime':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18],'WNCPUHS06':record[19]}  
+                  'StatisticsRequested':record[12], 'WNCPUPOWER':record[13], 'CPUTime':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18],'WNCPUHS06':record[19],'TotalLuminosity':record[21]}  
     else:
       gLogger.error(result['Message'])
     return value
@@ -1704,12 +1704,12 @@ class LHCB_BKKDBManager(BaseESManager):
     if StartItem > -1 and Maxitems != 0:
       result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype, StartItem, Maxitems)
           
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity','Luminosity']
       
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [str(record[1]), record[2],record[3],str(record[4]),str(record[7]),str(record[8]), record[9], record[10],record[11],record[12], record[13], record[14], record[15], record[16]]
+          value = [str(record[1]), record[2],record[3],str(record[4]),str(record[7]),str(record[8]), record[9], record[10],record[11],record[12], record[13], record[14], record[15], record[16],record[17], record[18]]
           records += [value]
       else:
         gLogger.error(result['Message'])
@@ -1721,6 +1721,7 @@ class LHCB_BKKDBManager(BaseESManager):
     totalrecords = 0
     nbOfEvents = 0
     filesSize = 0
+    lumi = 0
     if len(SortDict) > 0:
       res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
       if not res['OK']:
@@ -1729,23 +1730,24 @@ class LHCB_BKKDBManager(BaseESManager):
         totalrecords = res['Value'][0][0]
         nbOfEvents = res['Value'][0][1]
         filesSize = res['Value'][0][2]
+        lumi = res['Value'][0][3]
     records = []
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
       dict = {'CName':configName,'CVersion':configVersion, 'Simid':simid,'Ppass':processing,'Etype':evtType,'Prod':prod,'Ftype':ftype,'Pname':pname,'Pversion':pversion,'Sitem':StartItem,'Mitem':Maxitems,'Quality':self.dataQualities_}
       result = self.db_.getLimitedFilesWithSimcondAndDataQuality(dict)
             
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat','TotalLuminosity', 'Luminosity']
       
       if result['OK']:
         dbResult = result['Value']
         for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15]]
+          value = [record[1],record[2],record[3],str(record[4]),str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15],record[16], record[17]]
           records += [value]
       else:
         gLogger.error(result['Message'])
     
-    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize }} } 
+    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize,'Luminosity': lumi}} } 
   
   #############################################################################       
   def getAncestors(self, files, depth):
