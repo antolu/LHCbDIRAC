@@ -2981,9 +2981,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     tables = ''
     condition = ''
-    if production!=0:
-      condition = ' and files.jobid=jobs.jobid and jobs.production='+str(production)
-      tables = ',jobs'
     gLogger.debug('original',lfn)
     for fileName in lfn:
       depth = odepth
@@ -3011,7 +3008,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               job_ids = res['Value']
               for i in job_ids:
                 job_id = i[0]
-                command = 'select files.fileName,files.fileid,files.gotreplica from files'+tables+' where files.jobid='+str(job_id)+condition
+                command = 'select files.fileName,files.fileid,files.gotreplica, jobs.production from files, jobs where jobs,jobid=files.jobid and files.jobid='+str(job_id)
                 res = self.dbW_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
@@ -3023,11 +3020,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
                   dbResult = res['Value']
                   for record in dbResult:
                     fileids +=[record[1]]
-                    if checkreplica:
-                      if record[2] != 'No':
-                        files += [record[0]]
-                    else:
-                      files += [record[0]]
+                    if checkreplica and (record[2] == 'No'):
+                      continue
+                    if production and (int(record[3]) != int(production)):
+                      continue
+                    files += [record[0]]
           depth-=1
 
         ancestorList[fileName]=files
