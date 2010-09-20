@@ -4191,7 +4191,7 @@ and files.qualityid= dataquality.qualityid'
   def setFilesInvisible(self, lfns):
     for i in lfns:
       res = self.dbW_.executeStoredProcedure('BKK_ORACLE.setFileInvisible', [i], False)
-      if res['OK']:
+      if not res['OK']:
         return S_ERROR(res['Message'])
     return S_OK('The files are invisible!')
     
