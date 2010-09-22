@@ -129,12 +129,12 @@ class CombinedSoftwareInstallation:
           localArea = string.split(self.mySiteRoot,':')[0]
           result = InstallApplication(app,self.jobConfig,localArea)      
           if not result:
-            self.log.error('Software failed to be installed!')
+            DIRAC.gLogger.error('Software failed to be installed!')
             return DIRAC.S_ERROR('Software Not Installed')
           else:
-            self.log.info('Software was successfully installed in the local area')
+            DIRAC.gLogger.info('Software was successfully installed in the local area')
         else:
-          self.log.error('No local area was found to install missing software!')
+          DIRAC.gLogger.error('No local area was found to install missing software!')
           return DIRAC.S_ERROR('No Local Area Found')
       else:
         DIRAC.gLogger.info('%s is installed for %s' %(app,self.jobConfig))
