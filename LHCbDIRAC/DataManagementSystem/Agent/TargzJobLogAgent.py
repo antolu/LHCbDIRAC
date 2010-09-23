@@ -55,16 +55,21 @@ class TargzJobLogAgent(AgentModule):
 
     path = os.path.abspath(self.logPath)
 
-    jobage = gConfig.getValue(self.section+'/JobAgeDays', 7)
+#    jobage = gConfig.getValue(self.section+'/JobAgeDays', 100)
+    jobage = self.am_getOption('JobAgeDays', 100)
     gLogger.info("JobAgeDays", jobage)
-    prodage = gConfig.getValue(self.section+'/ProdAgeDays', 80)
-    gLogger.info("JobAgeDays", prodage)
+#    prodage = gConfig.getValue(self.section+'/ProdAgeDays', 365)
+    prodage = self.am_getOption('ProdAgeDays', 365)
+    gLogger.info("ProdAgeDays", prodage)
 
-    g1 = gConfig.getValue(self.section+'/ProductionGlob', '????????')
+#    g1 = gConfig.getValue(self.section+'/ProductionGlob', '????????')
+    g1 = self.am_getOption('ProductionGlob', '????????')
     gLogger.info("ProductionGlob", g1)
-    g2 = gConfig.getValue(self.section+'/SubdirGlob', '????')
+#    g2 = gConfig.getValue(self.section+'/SubdirGlob', '????')
+    g2 = self.am_getOption('SubdirGlob', '????')
     gLogger.info("SubdirGlob", g2)
-    g3 = gConfig.getValue(self.section+'/JobGlob', '????')
+#    g3 = gConfig.getValue(self.section+'/JobGlob', '????')
+    g3 = self.am_getOption('JobGlob', '????')
     gLogger.info("JobGlob", g3)
     
     numberOfTared = 0
