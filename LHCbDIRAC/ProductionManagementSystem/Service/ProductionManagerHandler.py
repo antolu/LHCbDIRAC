@@ -9,18 +9,16 @@ from LHCbDIRAC.ProductionManagementSystem.Service.TransformationHandler        i
 from DIRAC.Core.Workflow.Workflow                                              import *
 from types import *
 
-# This is a global instance of the ProductionDB class
-productionDB = False
-
-def initializeProductionManagerHandler( serviceInfo ):
-  global productionDB
-  productionDB = ProductionDB()
+database=False
+def initializeProductionManagerHandler(serviceInfo):
+  global database
+  database = ProductionDB()
   return S_OK()
 
 class ProductionManagerHandler(TransformationHandler):
 
   def __init__(self,*args,**kargs):
-    self.setDatabase(productionDB)
+    self.setDatabase(database)
     TransformationHandler.__init__(self, *args,**kargs)
 
   types_publishWorkflow = [ StringType ]
@@ -59,7 +57,7 @@ class ProductionManagerHandler(TransformationHandler):
   types_getWorkflow = [ StringType ]
   def export_getWorkflow(self, name):
     res = self.database.getWorkflow(name)
-    return self.__parseRes(res)
+    return self._parseRes(res)
 
   types_getWorkflowFullDescription = [ StringType ]
   def export_getWorkflowFullDescription(self,name):
@@ -72,14 +70,14 @@ class ProductionManagerHandler(TransformationHandler):
   types_deleteWorkflow = [ StringType ]
   def export_deleteWorkflow( self, name ):
     res = self.database.deleteWorkflow(name)
-    return self.__parseRes(res)
+    return self._parseRes(res)
 
   types_getListWorkflows = [ ]
   def export_getListWorkflows(self):
     res = self.database.getListWorkflows()
-    return self.__parseRes(res)
+    return self._parseRes(res)
 
   types_getWorkflowInfo = [ StringType ]
   def export_getWorkflowInfo( self, name ):
     res = self.database.getWorkflowInfo(name)
-    return self.__parseRes(res)
+    return self._parseRes(res)
