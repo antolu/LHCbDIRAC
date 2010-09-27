@@ -75,9 +75,9 @@ run
     
   #############################################################################
   def __getBookmarks(self):
-    #upc = UserProfileClient( "Bookkeeping", RPCClient )
-    #return upc.retrieveVar( "Bookmarks" )
-    return S_ERROR('FIGYELEM!!!')
+    upc = UserProfileClient( "Bookkeeping", RPCClient )
+    return upc.retrieveVar( "Bookmarks" )
+    #return S_ERROR('FIGYELEM!!!')
     
   #############################################################################
   def __addBookmark(self,path,title):
