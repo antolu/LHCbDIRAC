@@ -292,6 +292,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
         continue
       runReplicas = {}
       for lfn in runLfns:
+        if not allReplicas.has_key(lfn):
+          continue
         runReplicas[lfn] = allReplicas[lfn]
       self.data = runReplicas
       # Make sure we handle the flush correctly
