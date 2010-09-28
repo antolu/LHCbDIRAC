@@ -3240,8 +3240,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'MD5Sum':None, \
                     'FileSize':0, \
                     'FullStat':None, \
-                    'QualityId': 'UNCHECKED',\
-                    'Luminosity':0,
+                    'QualityId': 'UNCHECKED', \
+                    'Luminosity':0, \
                     'InstLuminosity':0}
       
       for param in file:
