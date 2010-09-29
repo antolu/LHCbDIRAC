@@ -3008,7 +3008,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               job_ids = res['Value']
               for i in job_ids:
                 job_id = i[0]
-                command = 'select files.fileName,files.fileid,files.gotreplica, jobs.production from files, jobs where jobs,jobid=files.jobid and files.jobid='+str(job_id)
+                command = 'select files.fileName,files.fileid,files.gotreplica, jobs.production from files, jobs where jobs.jobid=files.jobid and files.jobid='+str(job_id)
                 res = self.dbW_._query(command)
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
