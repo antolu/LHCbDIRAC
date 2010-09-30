@@ -98,7 +98,9 @@ class DataRecoveryAgent(AgentModule):
     self.log.verbose('The following transformations were selected out of %s:\n%s' %(string.join(transformationTypes,', '),string.join(transformationDict.keys(),', ')))
 
     trans = []
-    ignoreLessThan = '6357'
+    #initially this was useful for restricting the considered list
+    #now we use the DataRecoveryAgent in setups where IDs are low
+    ignoreLessThan = '0' 
     
     ########## Uncomment for debugging
 #    self.enableFlag = False 
@@ -193,8 +195,7 @@ class DataRecoveryAgent(AgentModule):
         result = self.updateFileStatus(transformation,filesToUpdate,updateStatus)
         if not result['OK']:
           self.log.error('Recoverable files were not updated with result:\n%s' %(result))
-          continue        
-        self.log.info('%s files without problematic descendents were recovered for transformation %s' %(len(filesToUpdate),transformation))
+          continue          
       else:
         self.log.info('There are no files without problematic descendents to update for production %s in this cycle' %transformation)              
       
@@ -221,15 +222,15 @@ class DataRecoveryAgent(AgentModule):
         result = self.updateFileStatus(transformation,problematicFilesToUpdate,updateStatus)
         if not result['OK']:
           self.log.error('Problematic files without replica flags were not updated with result:\n%s' %(result))
-          continue        
+          continue
         self.log.info('%s problematic files without replica flags were recovered for transformation %s' %(len(problematicFilesToUpdate),transformation))
       else:
         self.log.info('There are no problematic files without replica flags to update for production %s in this cycle' %transformation)  
 
-    if jobsWithDescendentsInBK:
-      self.log.info('!!!!!!!! Note that transformation %s has descendents with BK replica flags for files that are not marked as processed !!!!!!!!' %(transformation))
-      for n,v in jobsWithDescendentsInBK.items():
-        self.log.info('Job %s, Files %s' %(n,v))
+      if jobsWithDescendentsInBK:
+        self.log.info('!!!!!!!! Note that transformation %s has descendents with BK replica flags for files that are not marked as processed !!!!!!!!' %(transformation))
+        for n,v in jobsWithDescendentsInBK.items():
+          self.log.info('Job %s, Files %s' %(n,v))
 
     if not self.enableFlag:
       self.log.info('%s is disabled by configuration option EnableFlag\ntherefore no "one-way" operations such as ProductionDB updates are performed.' %(AGENT_NAME))
