@@ -208,6 +208,14 @@ def setDefaultEnvironment(applicationName,applicationVersion,mySiteRoot,systemCo
     gLogger.info('Found local python/ directory, prepending to PYTHONPATH')
     env['PYTHONPATH']='%s:%s' %(os.path.join(directory,'python'),env['PYTHONPATH'])
   
+  if os.path.exists(os.path.join(directory,'InstallArea','python.zip')):
+    gLogger.info('Found local InstallArea/python.zip, prepending to PYTHONPATH')
+    env['PYTHONPATH']='%s:%s' %(os.path.join(directory,'InstallArea','python.zip'),env['PYTHONPATH'])
+  
+  if os.path.exists(os.path.join(directory,'InstallArea','python')):
+    gLogger.info('Found local InstallArea/python directory, prepending to PYTHONPATH')
+    env['PYTHONPATH']='%s:%s' %(os.path.join(directory,'InstallArea','python'),env['PYTHONPATH'])
+  
   gLogger.info('Setting MYSITEROOT to %s' %(mySiteRoot))
   env['MYSITEROOT']=mySiteRoot
   
