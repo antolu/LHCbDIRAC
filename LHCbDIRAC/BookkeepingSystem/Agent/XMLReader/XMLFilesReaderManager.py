@@ -226,6 +226,7 @@ class XMLFilesReaderManager:
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
     sumEvtStat = 0
+    sumLuminosity = 0
     for i in inputfiles:
       fname = i.getFileName()
       res = dataManager_.getJobInfo(fname)
@@ -240,7 +241,8 @@ class XMLFilesReaderManager:
         value = res['Value']
         if value[fname]['EventStat'] != None:
           sumEvtStat += value[fname]['EventStat']
-    
+        if value[fname]['Luminosity'] != None:
+          sumLuminosity += value[fname]['Luminosity']
       
     evtinput = 0
     if long(sumEvtStat) > long(sumEventInputStat):
@@ -256,7 +258,16 @@ class XMLFilesReaderManager:
       newJobParams.setName('EventInputStat')
       newJobParams.setValue(str(evtinput))
       job.addJobParams(newJobParams)
-  
+    
+    
+    outputFiles = job.getJobOutputFiles()
+    for file in outputFiles:
+      if sumLuminosity > 0 and not file.exists('Luminosity'):
+        newFileParams = FileParam()
+        newFileParams.setParamName('Luminosity')
+        newFileParams.setParamValue(sumLuminosity)
+        file.addFileParam(newFileParams)
+              
       ################
 
     config = job.getJobConfiguration()
