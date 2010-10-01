@@ -262,7 +262,7 @@ class XMLFilesReaderManager:
     
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
-      if sumLuminosity > 0 and not file.exists('Luminosity'):
+      if file.getFileType() not in ['LOG'] and sumLuminosity > 0 and not file.exists('Luminosity'):
         newFileParams = FileParam()
         newFileParams.setParamName('Luminosity')
         newFileParams.setParamValue(sumLuminosity)
