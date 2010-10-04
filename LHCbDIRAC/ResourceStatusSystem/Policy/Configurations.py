@@ -366,6 +366,20 @@ Policies = {
 #                                        'args': None}}
                           ]
      },     
+  'OnNodePropagation' :
+    { 'Description' : "How the node's site is behaving in the RSS", 
+      'Granularity' : ['Resource'], 
+      'Status' : ValidStatus, 
+      'FormerStatus' : ValidStatus,
+      'SiteType' : ValidSiteType,
+      'ServiceType' : ValidServiceType,
+      'ResourceType' : ValidResourceType,
+      'module': 'DownHillPropagation_Policy',
+      'commandIn' : ('RS_Command', 'MonitoredStatus_Command'),
+      'args' : ('Site', ),
+      'SE_Panel' : [ {'RSS':'ResOfStorEl'}
+                    ]
+     },
   'JobsEfficiencySimple' :  
     { 'Description' : "Simple jobs efficiency", 
       'Granularity' : ['Service'], 
@@ -383,13 +397,13 @@ Policies = {
                                                    'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
                                                    'argsNewRes': ('Job', 'NumberOfJobs', 
                                                             {'Format': 'LastHours', 'hours': 24}, 
-                                                             'JobType', {'FinalMajorStatus':'Done'})}},
+                                                             'Site', {'FinalMajorStatus':'Done'})}},
                                     {'FillChart - 2': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
                                                    'args':('Job', 'FailedJobsBySiteSplitted'),
                                                    'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
                                                    'argsNewRes': ('Job', 'NumberOfJobs', 
                                                                {'Format': 'LastHours', 'hours': 24}, 
-                                                               'JobType', {'FinalMajorStatus':'Failed'})}}
+                                                               'Site', {'FinalMajorStatus':'Failed'})}}
                                     ]                                  
    },
   'PilotsEfficiencySimple_Service' : 
@@ -409,13 +423,13 @@ Policies = {
                                                    'CommandInNewRes' : ('DIRACAccounting_Command', 'DIRACAccounting_Command'), 
                                                    'argsNewRes': ('Pilot', 'NumberOfPilots', 
                                                                {'Format': 'LastHours', 'hours': 24}, 
-                                                               'User', {'GridStatus':'Done'})}},
+                                                               'Site', {'GridStatus':'Done'})}},
                                     {'FillChart - 2': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
                                                    'args': ('Pilot', 'FailedPilotsBySiteSplitted'),
                                                    'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
                                                    'argsNewRes': ('Pilot', 'NumberOfPilots', 
                                                                {'Format': 'LastHours', 'hours': 24}, 
-                                                               'User', {'GridStatus':'Aborted'})}},
+                                                               'Site', {'GridStatus':'Aborted'})}},
                                     ]
      },
   'PilotsEfficiencySimple_Resource' : 
@@ -434,13 +448,13 @@ Policies = {
                                           'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
                                           'argsNewRes': ('Pilot', 'NumberOfPilots', 
                                                       {'Format': 'LastHours', 'hours': 24}, 
-                                                      'User', {'GridStatus':'Done'})}},
+                                                      'GridCE', {'GridStatus':'Done'})}},
                             {'FillChart - 2': {'CommandIn': ('DIRACAccounting_Command', 'CachedPlot_Command'),
                                            'args': ('Pilot', 'FailedPilotsByCESplitted'),
                                            'CommandInNewRes': ('DIRACAccounting_Command', 'DIRACAccounting_Command'),
                                            'argsNewRes': ('Pilot', 'NumberOfPilots', 
                                                        {'Format': 'LastHours', 'hours': 24}, 
-                                                       'User', {'GridStatus':'Aborted'})}},
+                                                       'GridCE', {'GridStatus':'Aborted'})}},
                           ]
      },
   'OnSitePropagation' :
@@ -548,7 +562,7 @@ Policies = {
       'SiteType' : ValidSiteType,
       'ServiceType' : ValidServiceType,
       'ResourceType' : ValidResourceType,
-      'module': 'OnStorageElementPropagation_Policy',
+      'module': 'DownHillPropagation_Policy',
       'commandIn' : ('RS_Command', 'MonitoredStatus_Command'),
       'args' : ('Resource', ),
       'SE_Panel' : [ {'RSS':'ResOfStorEl'}
@@ -724,12 +738,12 @@ Commands_ClientsCache = [('ClientsCache_Command', 'JobsEffSimpleEveryOne_Command
                          ('ClientsCache_Command', 'DTEveryResources_Command')
                          ]
 
-Commands_AccountingCache = [('AccountingCache_Command', 'TransferQualityByDestSplitted_Command'), 
-                            ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command'),
-                            ('AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command'),
-                            ('AccountingCache_Command', 'FailedJobsBySiteSplitted_Command'),
-                            ('AccountingCache_Command', 'SuccessfullPilotsBySiteSplitted_Command'),
-                            ('AccountingCache_Command', 'FailedPilotsBySiteSplitted_Command'),
-                            ('AccountingCache_Command', 'SuccessfullPilotsByCESplitted_Command'),
-                            ('AccountingCache_Command', 'FailedPilotsByCESplitted_Command'),
+Commands_AccountingCache = [('AccountingCache_Command', 'TransferQualityByDestSplitted_Command', (2, )), 
+                            ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command', (2, )),
+                            ('AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command', (24, )),
+                            ('AccountingCache_Command', 'FailedJobsBySiteSplitted_Command'), (24, ),
+                            ('AccountingCache_Command', 'SuccessfullPilotsBySiteSplitted_Command', (24, )),
+                            ('AccountingCache_Command', 'FailedPilotsBySiteSplitted_Command', (24, )),
+                            ('AccountingCache_Command', 'SuccessfullPilotsByCESplitted_Command', (24, )),
+                            ('AccountingCache_Command', 'FailedPilotsByCESplitted_Command', (24, )),
                             ]
