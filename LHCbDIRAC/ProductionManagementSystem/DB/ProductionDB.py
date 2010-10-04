@@ -6,14 +6,13 @@ __RCSID__ = "$Revision: 1.65 $"
 
 from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                             import DB
-from LHCbDIRAC.ProductionManagementSystem.DB.TransformationDB       import TransformationDB
 
-class ProductionDB(TransformationDB):
+class ProductionDB(DB):
 
   def __init__( self, maxQueueSize=10 ):
     """ Constructor
     """
-    TransformationDB.__init__(self,'ProductionDB', 'ProductionManagement/ProductionDB', maxQueueSize)
+    DB.__init__(self,'ProductionDB', 'ProductionManagement/ProductionDB', maxQueueSize)
 
 ################ WORKFLOW SECTION ####################################
 
@@ -107,52 +106,3 @@ class ProductionDB(TransformationDB):
       return S_OK(newres)
     else:
       return S_ERROR('Failed to retrive Workflow with the name=%s' % (name, result['Message']) )
-
-######################## Web monitoring ############################
-
-  def getTransformationTaskStats(self,productionID):
-    """ Returns dictionary with number of jobs per status in the given production. 
-        The status is one of the following:
-        Created - this counter returns the total number of jobs already created;
-        Submitted - jobs submitted to the WMS;
-        Waiting - jobs being checked or waiting for execution in the WMS;
-        Running - jobs being executed in the WMS;
-        Stalled - jobs stalled in the WMS;
-        Done - jobs completed in the WMS;
-        Failed - jobs completed with errors in the WMS;
-    """
-    res  = self._getTransformationID(productionID)
-    if not res['OK']:
-      gLogger.error("Failed to get ID for transformation",res['Message'])
-      return res
-    productionID = res['Value']
-    if productionID:
-      resultStats = self.getCounters('TransformationTasks',['ExternalStatus'],{'TransformationID':productionID}) 
-    else:
-      resultStats = self.getCounters('TransformationTasks',['ExternalStatus','TransformationID'],{})   
-    if not resultStats['OK']:
-      return resultStats
-    if not resultStats['Value']:
-      return resultStats
-    statusList = {}
-    for s in ['Created','Submitted','Waiting','Running','Stalled','Done','Failed']:
-      statusList[s] = 0
-    for attrDict,count in resultStats['Value']:
-      status = attrDict['ExternalStatus']
-      stList = ['Created']
-      # Choose the status to report
-      if not status == "Created" and not status == "Reserved":
-        if not "Submitted" in stList:
-          stList.append("Submitted")
-      if status == "Waiting" or status == "Received" or status == "Checking" or \
-         status == "Matched" or status == "Submitted" or status == "Staging":
-        if not "Waiting" in stList:
-          stList.append("Waiting")
-      if status == "Done" or status == "Completed":
-        if not "Done" in stList:
-          stList.append("Done")
-      if status == "Failed" or status == "Stalled" or status == "Running":
-        stList.append(status)
-      for st in stList:
-        statusList[st] += count
-    return S_OK(statusList)

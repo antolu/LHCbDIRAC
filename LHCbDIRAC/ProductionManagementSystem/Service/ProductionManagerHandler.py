@@ -5,7 +5,6 @@ __RCSID__ = "$Revision: 1.56 $"
 from DIRAC                                                                     import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                                           import RequestHandler
 from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB                      import ProductionDB
-from LHCbDIRAC.ProductionManagementSystem.Service.TransformationHandler        import TransformationHandler
 from DIRAC.Core.Workflow.Workflow                                              import *
 from types import *
 
@@ -15,11 +14,7 @@ def initializeProductionManagerHandler(serviceInfo):
   database = ProductionDB()
   return S_OK()
 
-class ProductionManagerHandler(TransformationHandler):
-
-  def __init__(self,*args,**kargs):
-    self.setDatabase(database)
-    TransformationHandler.__init__(self, *args,**kargs)
+class ProductionManagerHandler(RequestHandler):
 
   types_publishWorkflow = [ StringType ]
   def export_publishWorkflow( self, body, update=False):
@@ -38,7 +33,7 @@ class ProductionManagerHandler(TransformationHandler):
       parent = wf.getType()
       description = wf.getDescrShort()
       descr_long = wf.getDescription()
-      result = self.database.publishWorkflow(name, parent, description, descr_long, body, authorDN, authorGroup, update)
+      result = database.publishWorkflow(name, parent, description, descr_long, body, authorDN, authorGroup, update)
       if not result['OK']:
         errExpl = " name=%s because %s" % (name, result['Message'])
         gLogger.error(errKey, errExpl)
@@ -56,12 +51,12 @@ class ProductionManagerHandler(TransformationHandler):
 
   types_getWorkflow = [ StringType ]
   def export_getWorkflow(self, name):
-    res = self.database.getWorkflow(name)
+    res = database.getWorkflow(name)
     return self._parseRes(res)
 
   types_getWorkflowFullDescription = [ StringType ]
   def export_getWorkflowFullDescription(self,name):
-    res = self.database.getWorkflow(name)
+    res = database.getWorkflow(name)
     if not res['OK']:
       return res
     wf = fromXMLString(res['Value'])
@@ -69,15 +64,15 @@ class ProductionManagerHandler(TransformationHandler):
 
   types_deleteWorkflow = [ StringType ]
   def export_deleteWorkflow( self, name ):
-    res = self.database.deleteWorkflow(name)
+    res = database.deleteWorkflow(name)
     return self._parseRes(res)
 
   types_getListWorkflows = [ ]
   def export_getListWorkflows(self):
-    res = self.database.getListWorkflows()
+    res = database.getListWorkflows()
     return self._parseRes(res)
 
   types_getWorkflowInfo = [ StringType ]
   def export_getWorkflowInfo( self, name ):
-    res = self.database.getWorkflowInfo(name)
+    res = database.getWorkflowInfo(name)
     return self._parseRes(res)

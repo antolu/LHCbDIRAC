@@ -5,10 +5,10 @@ __RCSID__ = "$Revision: 1.6 $"
 from DIRAC                                                                    import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                             import fromXMLString
 from DIRAC.Core.DISET.RPCClient                                               import RPCClient
-from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient       import TransformationDBClient  
+from DIRAC.Core.Base.Client                                                   import Client
 import os
 
-class ProductionClient(TransformationDBClient):
+class ProductionClient(Client):
 
   """ Exposes the functionality available in the LHCbDIRAC/ProductionManagerHandler
 
@@ -26,7 +26,6 @@ class ProductionClient(TransformationDBClient):
           
   """
   def __init__(self):
-    TransformationDBClient.__init__(self,'ProductionClient')
     self.setServer('ProductionManagement/ProductionManager')
 
   #############################################################################
@@ -68,7 +67,7 @@ class ProductionClient(TransformationDBClient):
   #############################################################################
   #TODO: Update where used.
   #############################################################################
-  
+
   def setProductionStatus(self,prodID,status,rpc=False,url='',timeout=120):
     return self.setTransformationParameter(prodID,'Status',status,rpc=rpc,url=url,timeout=timeout)
 
