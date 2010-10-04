@@ -10,6 +10,7 @@ __RCSID__ = "$Id$"
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.TransformationSystem.Client.FileReport          import FileReport
+from DIRAC.WorkloadManagementSystem.Client.JobReport       import JobReport
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import os
@@ -128,6 +129,15 @@ class FailoverRequest(ModuleBase):
     else:
       self.log.info('Status of files have been properly updated in the ProcessingDB')
 
+    # Must ensure that the local job report instance is used to report the final status
+    # in case of failure and a subsequent failover operation
+    if self.workflowStatus['OK'] and self.stepStatus['OK']: 
+      if not self.jobReport:
+         self.jobReport = JobReport(int(self.jobID))
+      jobStatus = self.jobReport.setApplicationStatus('Job Finished Successfully')
+      if not jobStatus['OK']:
+        self.log.warn(jobStatus['Message'])
+
     # Retrieve the accumulated reporting request
     reportRequest = None
     if self.jobReport:
@@ -190,10 +200,11 @@ class FailoverRequest(ModuleBase):
     """
     self.log.verbose('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.error('Workflow status is not ok, will not overwrite status')
+      self.log.warn('Workflow status is not ok, will not overwrite status')
+      self.log.info('Workflow failed, end of FailoverRequest module execution.')
       return S_ERROR('Workflow failed, FailoverRequest module completed')
 
-    self.setApplicationStatus('Job Finished Successfully')
+    self.log.info('Workflow successful, end of FailoverRequest module execution.')
     return S_OK('FailoverRequest module completed')
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
