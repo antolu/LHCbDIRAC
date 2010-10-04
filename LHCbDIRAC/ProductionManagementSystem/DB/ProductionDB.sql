@@ -41,5 +41,3 @@ CREATE TABLE Workflows (
     Body BLOB,
     PRIMARY KEY(WFName)
 );
-
-SOURCE LHCbDIRAC/ProductionManagementSystem/DB/TransformationDB.sql
