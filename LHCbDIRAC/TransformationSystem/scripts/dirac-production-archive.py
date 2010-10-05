@@ -9,28 +9,29 @@ __VERSION__ = "$Revision: 1.1 $"
 
 import sys
 if len(sys.argv) < 2:
-  print 'Usage: dirac-production-archive prodID'
+  print 'Usage: dirac-production-archive transID [transID] [transID]'
   sys.exit()
 else:
-  prodID = int(sys.argv[1])
+  transIDs = [int(arg) for arg in sys.argv[1:]]
 
-from DIRAC                                                              import gLogger
 
-from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent import ProductionCleaningAgent
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient       import ProductionClient
-
+from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient         import TransformationClient
+from DIRAC                                                                import gLogger
 import DIRAC
 
-client = ProductionClient()
-res = client.getTransformationParameters(prodID,['Status'])
-if not res['OK']:
-  gLogger.error("Failed to determine production status")
-  gLogger.error(res['Message'])
-  DIRAC.exit(-1)
-status = res['Value']
-if not status in ['Completed']:
-  gLogger.error("The production is in %s status and can not be archived" % status)
-  DIRAC.exit(-1)
-agent = ProductionCleaningAgent('ProductionManagement/ProductionCleaningAgent','dirac-production-archive')
+agent = TransformationCleaningAgent('Transformation/TransformationCleaningAgent','dirac-production-archive')
 agent.initialize()
-agent.archiveProduction(prodID)
+
+client = TransformationDBClient()
+for transID in transIDs:
+  res = client.getTransformationParameters(transID,['Status'])
+  if not res['OK']:
+    gLogger.error("Failed to determine transformation status")
+    gLogger.error(res['Message'])
+    continue
+  status = res['Value']
+  if not status in ['Completed']:
+    gLogger.error("The transformation is in %s status and can not be archived" % status)
+    continue
+  agent.archiveTransformation(transID)

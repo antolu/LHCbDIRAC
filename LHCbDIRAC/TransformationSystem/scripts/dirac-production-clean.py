@@ -9,28 +9,29 @@ __VERSION__ = "$Revision: 1.2 $"
 
 import sys
 if len(sys.argv) < 2:
-  print 'Usage: dirac-production-clean prodID'
+  print 'Usage: dirac-production-clean transID [transID] [transID]'
   sys.exit()
 else:
-  prodID = int(sys.argv[1])
+  transIDs = [int(arg) for arg in sys.argv[1:]]
 
-from DIRAC import gLogger
 
-from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionCleaningAgent import ProductionCleaningAgent
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient       import ProductionClient
-
+from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient         import TransformationClient
+from DIRAC                                                                import gLogger
 import DIRAC
 
-client = ProductionClient()
-res = client.getTransformationParameters(prodID,['Status'])
-if not res['OK']:
-  gLogger.error("Failed to determine production status")
-  gLogger.error(res['Message'])
-  DIRAC.exit(-1)
-status = res['Value']
-if not status in ['Deleted','Cleaning','Archived']:
-  gLogger.error("The production is in %s status and can not be cleaned" % status)
-  DIRAC.exit(-1)
-agent = ProductionCleaningAgent('ProductionManagement/ProductionCleaningAgent','dirac-production-clean-production')
+agent = TransformationCleaningAgent('Transformation/TransformationCleaningAgent','dirac-production-clean')
 agent.initialize()
-agent.cleanProduction(prodID)
+
+client = TransformationDBClient()
+for transID in transIDs:
+  res = client.getTransformationParameters(transID,['Status'])
+  if not res['OK']:
+    gLogger.error("Failed to determine transformation status")
+    gLogger.error(res['Message'])
+    continue
+  status = res['Value']
+  if not status in ['Deleted','Cleaning','Archived','Completed']:
+    gLogger.error("The transformation is in %s status and can not be cleaned" % status)
+    continue
+  agent.cleanTransformation(transID)
