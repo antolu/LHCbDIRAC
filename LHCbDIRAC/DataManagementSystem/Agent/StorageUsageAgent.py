@@ -30,6 +30,7 @@ class StorageUsageAgent( AgentModule ):
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+    self.activePeriod = self.am_getOption('ActivePeriod',0)
     return S_OK()
 
   def execute( self ):
@@ -93,47 +94,22 @@ class StorageUsageAgent( AgentModule ):
           self.publishDirectories( directoriesToPublish )
           directoriesToPublish = {}
 
-        ####################################################################################################
-        #
-        # OLD LOGIC
-        #
-        """
-
-        if numberOfFiles > 0:
-          res = self.StorageUsageDB.insertDirectory(currentDir,numberOfFiles,totalSize)
-          if not res['OK']:
-            gLogger.error("execute: Failed to insert the directory.", "%s %s" % (currentDir,res['Message']))
-            subDirs = [currentDir]
-          else:
-            gLogger.info("execute: Successfully inserted directory.\n")
-            gLogger.info("execute: %s %s %s" % ('Storage Element'.ljust(40),'Number of files'.rjust(20),'Total size'.rjust(20)))
-            for storageElement in sortList(siteUsage.keys()):
-              usageDict = siteUsage[storageElement]
-              
-              res = self.StorageUsageDB.publishDirectoryUsage(currentDir,storageElement,long(usageDict['Size']),usageDict['Files'])
-              if not res['OK']:
-                gLogger.error("execute: Failed to update the Storage Usage database.", "%s %s" % (storageElement,res['Message']))
-                subDirs = [currentDir]
-              else:
-                gLogger.info("execute: %s %s %s" % (storageElement.ljust(40),str(usageDict['Files']).rjust(20),str(usageDict['Size']).rjust(20)))
-        # If there are no subdirs
-        if (len(subDirs) ==  0) and (len(closedDirs) == 0) and (numberOfFiles == 0):
-          if not currentDir == baseDir:
-            self.removeEmptyDir(currentDir)
-        """
-
       chosenDirs = []
       rightNow = dateTime()
       for subDir in subDirs:
         if subDir in ignoreDirectories:
           continue
-        timeDiff = timeInterval( subDirs[subDir], 552 * week )
-        if timeDiff.includes( rightNow ):
-          chosenDirs.append( subDir )
+        if self.activePeriod:
+          timeDiff = timeInterval( subDirs[subDir], self.activePeriod * week )
+          if timeDiff.includes( rightNow ):
+            chosenDirs.append( subDir )
+        else:
+          chosenDirs.append(subDir)
 
       oNamespaceBrowser.updateDirs( chosenDirs )
       gLogger.info( "execute: There are %s active directories to be searched." % oNamespaceBrowser.getNumberActiveDirs() )
-
+    
+    self.publishDirectories(directoriesToPublish)
     gLogger.info( "execute: Finished recursive directory search." )
     return S_OK()
 
