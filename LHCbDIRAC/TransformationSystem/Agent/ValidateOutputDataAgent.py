@@ -8,8 +8,9 @@ from DIRAC                                                          import S_OK,
 from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
 from DIRAC.Core.Utilities.List                                      import sortList
 from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
+from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
+from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient 
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
-
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 
 import re, os
@@ -25,11 +26,14 @@ class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationDBClient()
+    self.storageUsageClient = StorageUsageClient()
+    self.fileCatalogClient = FileCatalogClient()
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
     self.transformationTypes = self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] )
     storageElements = gConfig.getValue('/Resources/StorageElementGroups/Tier1_MC_M-DST',[])
     storageElements.extend( ['CNAF_MC-DST', 'CNAF-RAW'] )
+    self.directoryLocations = self.am_getOption('DirectoryLocations',['TransformationDB','StorageUsage'])
     self.activeStorages = self.am_getOption('ActiveSEs',storageElements)
     return S_OK()
 
