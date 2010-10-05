@@ -10,8 +10,9 @@ from DIRAC.Core.Utilities.List                                      import sortL
 from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient 
-from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
+from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 
 import re, os
 
