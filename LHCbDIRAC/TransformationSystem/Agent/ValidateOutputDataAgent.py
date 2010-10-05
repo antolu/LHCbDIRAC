@@ -31,10 +31,13 @@ class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
     self.transformationTypes = self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] )
+    gLogger.info("Will treat the following transformation types: %s" % str(self.transformationTypes))
+    self.directoryLocations = self.am_getOption('DirectoryLocations',['TransformationDB','StorageUsage'])
+    gLogger.info("Will search for directories in the following locations: %s" % str(self.directoryLocations))
     storageElements = gConfig.getValue('/Resources/StorageElementGroups/Tier1_MC_M-DST',[])
     storageElements.extend( ['CNAF_MC-DST', 'CNAF-RAW'] )
-    self.directoryLocations = self.am_getOption('DirectoryLocations',['TransformationDB','StorageUsage'])
     self.activeStorages = self.am_getOption('ActiveSEs',storageElements)
+    gLogger.info("Will check the following storage elements: %s" % str(self.activeStorages))
     return S_OK()
 
   #############################################################################
