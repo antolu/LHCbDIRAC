@@ -190,6 +190,24 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def setRunQualityWithProcessing(self, runNB, procpass, flag):
+    server = self.__getServer()
+    result = server.setRunQualityWithProcessing(long(runNB), procpass, flag)
+    return result
+  
+  #############################################################################
+  def getTotalProcessingPass(self, prod):
+    server = self.__getServer()
+    result = server.getTotalProcessingPass(long(prod))
+    return result
+    
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    server = self.__getServer()
+    result = server.getRunFlag(long(runnb), processing)
+    return result
+  
+  #############################################################################
   def setQualityProduction(self, prod, flag):
     server = self.__getServer()
     result = server.setQualityProduction(prod, flag)
@@ -754,62 +772,67 @@ class BookkeepingClient:
 
   #############################################################################
   def getProcessingPassGroups(self):
-     server = RPCClient('Bookkeeping/BookkeepingManager')
+     server = self.__getServer()
      return server.getProcessingPassGroups()
 
   #############################################################################
   def insert_pass_group(self, gropupdesc):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.insert_pass_group(gropupdesc)
 
   #############################################################################
   def renameFile(self, oldLFN, newLFN):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.renameFile(oldLFN, newLFN)
 
   #############################################################################
   def getJobsIds(self, filelist):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getJobsIds(filelist)
 
   #############################################################################
   def getInputAndOutputJobFiles(self, jobids):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getInputAndOutputJobFiles(jobids)
 
   #############################################################################
   def updateFileMetaData(self, filename, filesAttr):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.updateFileMetaData( filename, filesAttr)
 
   #############################################################################
   def getFilesWithGivenDataSets(self, values):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFilesWithGivenDataSets(values)
   
   #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, values):
+    server = self.__getServer()
+    return server.getFilesWithGivenDataSetsForUsers(values)
+  
+  #############################################################################
   def getFileHistory(self, lfn):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getFileHistory(lfn)
   
   #############################################################################
   def getProductionInformationsFromView(self, prodid):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getProductionInformationsFromView(long(prodid))
     
   #############################################################################
   def getProcessingPassDescfromProduction(self, prod):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getProcessingPassDescfromProduction(int(prod))
   
   #############################################################################
   def getAvailableFileTypes(self):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.getAvailableFileTypes()
   
   #############################################################################
   def insertFileTypes(self, ftype, desc):
-    server = RPCClient('Bookkeeping/BookkeepingManager')
+    server = self.__getServer()
     return server.insertFileTypes(ftype, desc)
   
   '''
@@ -880,4 +903,14 @@ class BookkeepingClient:
     else:
       result = server.setFilesInvisible(lfns)
     return result
+  
+  #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    server = self.__getServer()
+    return server.getProductiosWithAGivenRunAndProcessing(dict)
+  
+  #############################################################################
+  def getDataQualityForRuns(self, runs):
+    server = self.__getServer()
+    return server.getDataQualityForRuns(runs)
    #----------------------------------- END Event Types------------------------------------------------------------------

@@ -1078,7 +1078,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       all += 1
     else:
       command = 'select rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, \''+str(ftype)+'\' , runnb,fillnb,fullst,quality, jeventinput, tlumy, lumi,ilumi from \
-       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality, jeventinput, tlumy, lumi \
+       ( select rownum rnum, fname,eventstat, fsize,creation,gen,geom,jstart,jend,wnode, runnb,fillnb,fullst,quality, jeventinput, tlumy, lumi,ilumi \
           from( \
            select fileName fname, files.EventStat eventstat, files.FileSize fsize, files.CreationDate creation, \
             \'not used\' gen, \'not used\' geom, \

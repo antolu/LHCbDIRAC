@@ -633,7 +633,7 @@ class BookkeepingManagerHandler(RequestHandler):
        if i[6] != None:
          tLumi += i[6]
        if i[7] != None:
-         lumu += i[7]
+         lumi += i[7]
        if i[8] != None:
          ilumi += i[8]
            

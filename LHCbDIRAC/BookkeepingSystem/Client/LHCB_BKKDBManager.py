@@ -759,7 +759,7 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def elevelBody_3(self,path, levels, configName, configVersion, eventType):
     entityList = list()
-    if configName=='MC':
+    if configName=='MC' or configName=='certification' or configName=='development':
       result = self.db_.getSimCondWithEventType(configName, configVersion, eventType)
       if result['OK']:
         dbResult = result['Value']
