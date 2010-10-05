@@ -4,20 +4,19 @@
 __RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 1.5 $"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
-from DIRAC.Core.Utilities.List                                 import sortList
-from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
+from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
+from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
+from DIRAC.Core.Utilities.List                                      import sortList
+from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
+from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
+from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 
 import re, os
 
 AGENT_NAME = 'ProductionManagement/ValidateOutputDataAgent'
 
-class ValidateOutputDataAgent( AgentModule ):
+class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
 
   #############################################################################
   def initialize( self ):
@@ -25,107 +24,17 @@ class ValidateOutputDataAgent( AgentModule ):
     """
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
-    self.productionClient = ProductionClient()
+    self.transClient = TransformationDBClient()
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
     self.transformationTypes = self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] )
+    storageElements = gConfig.getValue('/Resources/StorageElementGroups/Tier1_MC_M-DST',[])
+    storageElements.extend( ['CNAF_MC-DST', 'CNAF-RAW'] )
+    self.activeStorages = self.am_getOption('ActiveSEs',storageElements)
     return S_OK()
 
   #############################################################################
-  def execute( self ):
-    """ The VerifyOutputData execution method.
-    """
-    self.enableFlag = self.am_getOption( 'EnableFlag', 'True' )
-    if not self.enableFlag == 'True':
-      self.log.info( 'VerifyOutputData is disabled by configuration option %s/EnableFlag' % ( self.section ) )
-      return S_OK( 'Disabled via CS flag' )
-
-    gLogger.info( "-" * 40 )
-    self.updateWaitingIntegrity()
-    gLogger.info( "-" * 40 )
-
-    res = self.productionClient.getTransformationWithStatus( 'ValidatingOutput' )
-    if not res['OK']:
-      gLogger.error( "Failed to get ValidatingOutput productions", res['Message'] )
-      return res
-    prods = res['Value']
-    if not prods:
-      gLogger.info( "No productions found in ValidatingOutput status" )
-      return S_OK()
-    gLogger.info( "Found %s productions in ValidatingOutput status" % len( prods ) )
-    for prodID in sortList( prods ):
-      gLogger.info( "-" * 40 )
-      res = self.productionClient.getTransformationParameters( prodID, ['Type'] )
-      if not res['OK']:
-        gLogger.error( "Failed to get Type for production %d" % prodID )
-      else:
-        if res['Value'] in self.transformationTypes:
-          res = self.checkProductionIntegrity( int( prodID ) )
-          if not res['OK']:
-            gLogger.error( "Failed to perform full integrity check for production %d" % prodID )
-          else:
-            gLogger.info( "-" * 40 )
-
-    return S_OK()
-
-  def updateWaitingIntegrity( self ):
-    gLogger.info( "Looking for production in the WaitingIntegrity status to update" )
-    res = self.productionClient.getTransformationWithStatus( 'WaitingIntegrity' )
-    if not res['OK']:
-      gLogger.error( "Failed to get WaitingIntegrity productions", res['Message'] )
-      return res
-    prods = res['Value']
-    if not prods:
-      gLogger.info( "No productions found in WaitingIntegrity status" )
-      return S_OK()
-    gLogger.info( "Found %s productions in WaitingIntegrity status" % len( prods ) )
-    for prodID in sortList( prods ):
-      gLogger.info( "-" * 40 )
-      res = self.integrityClient.getProductionProblematics( int( prodID ) )
-      if not res['OK']:
-        gLogger.error( "Failed to determine waiting problematics for production", res['Message'] )
-      elif not res['Value']:
-        res = self.productionClient.setProductionStatus( prodID, 'ValidatedOutput' )
-        if not res['OK']:
-          gLogger.error( "Failed to update status of production %s to ValidatedOutput" % ( prodID ) )
-        else:
-          gLogger.info( "Updated status of production %s to ValidatedOutput" % ( prodID ) )
-      else:
-        gLogger.info( "%d problematic files for production %s were found" % ( len( res['Value'] ), prodID ) )
-    return
-
-  #############################################################################
-  #
-  # These are the hacks to try and recover the production directories
-  #
-
-  def getProductionDirectories( self, prodID ):
-    """ Get the directories for the supplied productionID from the production management system """
-    directories = []
-    res = self.productionClient.getParameters( prodID, pname = 'OutputDirectories' )
-    if not res['OK']:
-      gLogger.error("Failed to obtain production directories",res['Message'])
-      return res
-    directories = res['Value'].splitlines()
-    from DIRAC.Core.DISET.RPCClient import RPCClient
-    client = RPCClient("DataManagement/StorageUsage")
-    res = client.getStorageDirectories('','',prodID,[])
-    if not res['OK']:
-      gLogger.error("Failed to obtain storage usage directories",res['Message'])
-      return res
-    for dir in res['Value']:
-      if not dir in directories:
-        directories.append(dir)
-    for dir in directories:
-      prodStr = str( prodID ).zfill( 8 )
-      if not re.search( prodStr, dir ):
-        directories.remove(dir)
-    if not directories:
-      gLogger.info("No output directories found")
-    return S_OK(directories)
-
-  #############################################################################
-  def checkProductionIntegrity( self, prodID ):
+  def checkTransformationIntegrity(self,prodID):
     """ This method contains the real work
     """
     gLogger.info( "-" * 40 )
@@ -195,9 +104,7 @@ class ValidateOutputDataAgent( AgentModule ):
     #
     # This check performs SE->Catalog->BK for possible output directories
     #
-    storageElements = gConfig.getValue( 'Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
-    storageElements.extend( ['CNAF_MC-DST', 'CNAF-RAW'] )
-    for storageElementName in sortList( storageElements ):
+    for storageElementName in sortList(self.activeStorages):
       res = self.integrityClient.storageDirectoryToCatalog( directories, storageElementName )
       if not res['OK']:
         gLogger.error( res['Message'] )
@@ -214,23 +121,4 @@ class ValidateOutputDataAgent( AgentModule ):
           gLogger.error( res['Message'] )
           return res
 
-    gLogger.info( "-" * 40 )
-    gLogger.info( "Completed integrity check for production %s" % prodID )
-    res = self.integrityClient.getProductionProblematics( int( prodID ) )
-    if not res['OK']:
-      gLogger.error( "Failed to determine whether there were associated problematic files", res['Message'] )
-      newStatus = ''
-    elif res['Value']:
-      gLogger.info( "%d problematic files for production %s were found" % ( len( res['Value'] ), prodID ) )
-      newStatus = "WaitingIntegrity"
-    else:
-      gLogger.info( "No problematics were found for production %s" % prodID )
-      newStatus = "ValidatedOutput"
-    if newStatus:
-      res = self.productionClient.setProductionStatus( prodID, newStatus )
-      if not res['OK']:
-        gLogger.error( "Failed to update status of production %s to %s" % ( prodID, newStatus ) )
-      else:
-        gLogger.info( "Updated status of production %s to %s" % ( prodID, newStatus ) )
-    gLogger.info( "-" * 40 )
     return S_OK()
