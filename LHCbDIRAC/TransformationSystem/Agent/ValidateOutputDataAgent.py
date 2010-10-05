@@ -16,7 +16,7 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import Trans
 
 import re, os
 
-AGENT_NAME = 'ProductionManagement/ValidateOutputDataAgent'
+AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
 class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
 
