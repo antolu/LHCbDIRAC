@@ -33,4 +33,4 @@ for transID in transIDs:
   if not status in ['RemovingFiles','RemovingOutput','ValidatingInput','Active']:
     gLogger.error("The transformation is in %s status and the outputs can not be removed" % status)
     continue
-  agent.removeTransformationOutput(prodID)
+  agent.removeTransformationOutput(transID)
