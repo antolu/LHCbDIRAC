@@ -4,21 +4,21 @@
 __RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 1.5 $"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
-from DIRAC.WorkloadManagementSystem.Client.WMSClient           import WMSClient
-from DIRAC.Core.Utilities.List                                 import sortList, breakListIntoChunks
-from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
-from datetime                                                  import datetime, timedelta
+from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
+from DIRAC.Core.Base.AgentModule                                    import AgentModule
+from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
+from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
+from DIRAC.WorkloadManagementSystem.Client.WMSClient                import WMSClient
+from DIRAC.Core.Utilities.List                                      import sortList, breakListIntoChunks
+from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
+from datetime                                                       import datetime, timedelta
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient  import ProductionClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient          import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 
 import re, os
 
-AGENT_NAME = 'ProductionManagement/ProductionCleaningAgent'
+AGENT_NAME = 'Transformation/TransformationCleaningAgent'
 
 class ProductionCleaningAgent( AgentModule ):
 
@@ -26,7 +26,7 @@ class ProductionCleaningAgent( AgentModule ):
   def initialize( self ):
     """Sets defaults """
     self.replicaManager = ReplicaManager()
-    self.productionClient = ProductionClient()
+    self.transClient = ProductionClient()
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()
@@ -60,7 +60,7 @@ class ProductionCleaningAgent( AgentModule ):
     res = self.getTransformationWithStatus( 'Completed' )
     if res['OK']:
       for prodID in sortList( res['Value'] ):
-        res = self.productionClient.getTransformationParameters( prodID, ['LastUpdate'] )
+        res = self.transClient.getTransformationParameters( prodID, ['LastUpdate'] )
         if not res['OK']:
           gLogger.error( "Failed to get last update time for production %d" % prodID )
         else:
@@ -73,13 +73,13 @@ class ProductionCleaningAgent( AgentModule ):
     return S_OK()
 
   def getTransformationWithStatus( self, status ):
-    res = self.productionClient.getTransformationWithStatus( status )
+    res = self.transClient.getTransformationWithStatus( status )
     if not res['OK']:
       gLogger.error( "Failed to get %s productions" % status, res['Message'] )
       return res
     prods = []
     for prodID in res['Value']:
-      res = self.productionClient.getTransformationParameters( prodID, ['Type'] )
+      res = self.transClient.getTransformationParameters( prodID, ['Type'] )
       if not res['OK']:
         gLogger.error( "Failed to get Type for production %d" % prodID )
       else:
@@ -103,12 +103,12 @@ class ProductionCleaningAgent( AgentModule ):
     if not res['OK']:
       return res
     # Clean the production DB of the files and job information
-    res = self.productionClient.cleanTransformation( prodID )
+    res = self.transClient.cleanTransformation( prodID )
     if not res['OK']:
       return res
     gLogger.info( "Successfully archived production %d" % prodID )
     # Change the status of the production to archived
-    res = self.productionClient.setProductionStatus( prodID, 'Archived' )
+    res = self.transClient.setProductionStatus( prodID, 'Archived' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to Archived" % ( prodID ), res['Message'] )
       return res
@@ -141,7 +141,7 @@ class ProductionCleaningAgent( AgentModule ):
       return res
     gLogger.info( "Successfully removed output of production %d" % prodID )
     # Change the status of the production to RemovedFiles
-    res = self.productionClient.setProductionStatus( prodID, 'RemovedFiles' )
+    res = self.transClient.setProductionStatus( prodID, 'RemovedFiles' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to RemovedFiles" % ( prodID ), res['Message'] )
       return res
@@ -182,12 +182,12 @@ class ProductionCleaningAgent( AgentModule ):
     if not res['OK']:
       return res
     # Clean the production DB of the files and job information
-    res = self.productionClient.cleanTransformation( prodID )
+    res = self.transClient.cleanTransformation( prodID )
     if not res['OK']:
       return res
     gLogger.info( "Successfully cleaned production %d" % prodID )
     # Change the status of the production to deleted
-    res = self.productionClient.setProductionStatus( prodID, 'Deleted' )
+    res = self.transClient.setProductionStatus( prodID, 'Deleted' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to Deleted" % ( prodID ), res['Message'] )
       return res
@@ -202,7 +202,7 @@ class ProductionCleaningAgent( AgentModule ):
   def getProductionDirectories( self, prodID ):
     """ Get the directories for the supplied productionID from the production management system """
     directories = []
-    res = self.productionClient.getParameters( prodID, pname = 'OutputDirectories' )
+    res = self.transClient.getParameters( prodID, pname = 'OutputDirectories' )
     if not res['OK']:
       gLogger.error("Failed to obtain production directories",res['Message'])
       return res
@@ -367,7 +367,7 @@ class ProductionCleaningAgent( AgentModule ):
     return S_OK()
 
   def __getProductionWMSIDs( self, prodID ):
-    res = self.productionClient.getTransformationTasks( condDict = {'TransformationID':prodID} )
+    res = self.transClient.getTransformationTasks( condDict = {'TransformationID':prodID} )
     if not res['OK']:
       gLogger.error( "Failed to get WMS job IDs for production %d" % prodID, res['Message'] )
       return res

@@ -8,9 +8,20 @@ __RCSID__ = "$Id: TransformationHandler.py 18968 2009-12-03 10:33:19Z acsmith $"
 from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
 from DIRAC.TransformationSystem.Service.TransformationHandler   import TransformationHandlerBase
+from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import TransformationDB
 from types import *
 
+database = False
+def initializeTransformationHandler( serviceInfo ):
+  global database
+  database = TransformationDB('TransformationDB', 'Transformation/TransformationDB')
+  return S_OK()
+
 class TransformationHandler(TransformationHandlerBase):
+
+  def __init__(self,*args,**kargs):
+    self.setDatabase(database)
+    TransformationHandlerBase.__init__(self, *args,**kargs)
 
   #############################################################################
   #
@@ -20,28 +31,28 @@ class TransformationHandler(TransformationHandlerBase):
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
   def export_createTransformationQuery(self,transName,queryDict):
     authorDN = self._clientTransport.peerCredentials['DN']
-    res = self.database.createTransformationQuery(transName, queryDict,author=authorDN)
+    res = database.createTransformationQuery(transName, queryDict,author=authorDN)
     return self._parseRes(res)
 
   types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
   def export_deleteTransformationBookkeepingQuery(self, transName):
     authorDN = self._clientTransport.peerCredentials['DN']
-    res = self.database.deleteTransformationBookkeepingQuery(transName,author=authorDN)
+    res = database.deleteTransformationBookkeepingQuery(transName,author=authorDN)
     return self._parseRes(res)  
 
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
   def export_deleteBookkeepingQuery(self, queryID):
-    res = self.database.deleteBookkeepingQuery(queryID)
+    res = database.deleteBookkeepingQuery(queryID)
     return self._parseRes(res)
   
   types_getBookkeepingQueryForTransformation = [ [LongType, IntType, StringType] ]
   def export_getBookkeepingQueryForTransformation(self, transName):
-    res = self.database.getBookkeepingQueryForTransformation(transName)
+    res = database.getBookkeepingQueryForTransformation(transName)
     return self._parseRes(res)
 
   types_setBookkeepingQueryEndRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
   def export_setBookkeepingQueryEndRunForTransformation(self, transName, runNumber):
-    res = self.database.setBookkeepingQueryEndRunForTransformation(transName, runNumber)
+    res = database.setBookkeepingQueryEndRunForTransformation(transName, runNumber)
     return self._parseRes(res)
 
   #############################################################################
@@ -51,12 +62,12 @@ class TransformationHandler(TransformationHandlerBase):
   
   types_getTransformationRuns = []
   def export_getTransformationRuns(self,condDict={}, orderAttribute=None, limit=None):
-    res = self.database.getTransformationRuns(condDict=condDict, orderAttribute=orderAttribute,limit=limit) 
+    res = database.getTransformationRuns(condDict=condDict, orderAttribute=orderAttribute,limit=limit) 
     return self._parseRes(res)
 
   types_getTransformationRunStats = [ListType]
   def export_getTransformationRunStats(self,transIDs):
-    res = self.database.getTransformationRunStats(transIDs)
+    res = database.getTransformationRunStats(transIDs)
     return self._parseRes(res)
                           
   types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
@@ -65,15 +76,15 @@ class TransformationHandler(TransformationHandlerBase):
 
   types_addTransformationRunFiles = [[LongType, IntType, StringType], [LongType, IntType],ListType]
   def export_addTransformationRunFiles(self,transName,runID,lfns):
-    return self.database.addTransformationRunFiles(transName,runID,lfns)
+    return database.addTransformationRunFiles(transName,runID,lfns)
 
   types_setTransformationRunStatus = [[LongType, IntType, StringType], [LongType, IntType, ListType],StringTypes]
   def export_setTransformationRunStatus(self,transID,runID,status):
-    return self.database.setTransformationRunStatus(transID,runID,status)
+    return database.setTransformationRunStatus(transID,runID,status)
 
   types_setTransformationRunsSite = [[LongType, IntType, StringType], [LongType, IntType],StringTypes]
   def export_setTransformationRunsSite(self,transID,runID,assignedSE):
-    return self.database.setTransformationRunsSite(transID,runID,assignedSE)
+    return database.setTransformationRunsSite(transID,runID,assignedSE)
 
   types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
   def export_getTransformationRunsSummaryWeb(self, selectDict, sortList, startItem, maxItems):
@@ -98,7 +109,7 @@ class TransformationHandler(TransformationHandlerBase):
       orderAttribute = None
 
     # Get the transformations that match the selection
-    res = self.database.getTransformationRuns(condDict=selectDict,older=toDate, newer=fromDate, orderAttribute=orderAttribute)
+    res = database.getTransformationRuns(condDict=selectDict,older=toDate, newer=fromDate, orderAttribute=orderAttribute)
     if not res['OK']:
       return self._parseRes(res)
 
@@ -139,7 +150,7 @@ class TransformationHandler(TransformationHandlerBase):
       transID = int(transRunDict['TransformationID'])
       if not transID in transIDs:
         transIDs.append(transID)
-    res = self.database.getTransformationRunStats(transIDs)
+    res = database.getTransformationRunStats(transIDs)
     if not res['OK']:
       return res
     transRunStatusDict = res['Value']
@@ -172,7 +183,7 @@ class TransformationHandler(TransformationHandlerBase):
           transRun.append(0)
 
       # Get the statistics on the number of jobs for the transformation
-      res = self.database.getTransformationTaskRunStats(transID)
+      res = database.getTransformationTaskRunStats(transID)
       taskDict = {}
       if res['OK'] and res['Value']:
         taskDict = res['Value']
