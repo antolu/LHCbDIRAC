@@ -18,7 +18,7 @@ from LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTickets_Policy import GGUSTickets
 #from LHCbDIRAC.ResourceStatusSystem.Policy.OnSENodePropagation_Policy import OnSENodePropagation_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.Propagation_Policy import Propagation_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.VOBOX_Policy import VOBOX_Policy 
-from LHCbDIRAC.ResourceStatusSystem.Policy.OnStorageElementPropagation_Policy import OnStorageElementPropagation_Policy 
+from LHCbDIRAC.ResourceStatusSystem.Policy.DownHillPropagation_Policy import DownHillPropagation_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.TransferQuality_Policy import TransferQuality_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.SEOccupancy_Policy import SEOccupancy_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.SEQueuedTransfers_Policy import SEQueuedTransfers_Policy 
@@ -33,9 +33,6 @@ class PoliciesTestCase(unittest.TestCase):
   """
   def setUp(self):
 
-    from DIRAC.Core.Base import Script
-    Script.parseCommandLine() 
-    
     self.mock_DB = Mock()
     self.DT_P = DT_Policy()
     self.AF_P = AlwaysFalse_Policy()
@@ -51,7 +48,7 @@ class PoliciesTestCase(unittest.TestCase):
     self.TQ_P = TransferQuality_Policy()
     self.SEO_P = SEOccupancy_Policy()
     self.SEQT_P = SEQueuedTransfers_Policy()
-    self.OSEP_P = OnStorageElementPropagation_Policy()
+    self.DHP_P = DownHillPropagation_Policy()
     self.mock_command = Mock()
     self.mock_commandPeriods = Mock()
     self.mock_commandStats = Mock()
@@ -831,41 +828,41 @@ class TransferQuality_Policy_Failure(PoliciesTestCase):
       
 #############################################################################
 
-class OnStorageElementPropagation_PolicySuccess(PoliciesTestCase):
+class DownHillPropagation_PolicySuccess(PoliciesTestCase):
   
   def test_evaluate(self):
     for status in ValidStatus:
-      args = ('Resource', 'XX', status)
-      for resCl in ValidRes :
-        self.OSEP_P.setArgs(args)
-        self.OSEP_P.setKnownInfo({'Result':resCl})
-        res = self.OSEP_P.evaluate()
-        self.assert_(res.has_key('SAT'))
-        if resCl == 'Banned':
-          self.assert_(res.has_key('Status'))
-          self.assert_(res.has_key('Reason'))
-        
-        self.mock_command.doCommand.return_value = {'Result':  resCl}
-        OSEP_P = OnStorageElementPropagation_Policy()
-        OSEP_P.setArgs(args)
-        OSEP_P.setCommand(self.mock_command)
-        res = OSEP_P.evaluate()
-        self.assert_(res.has_key('SAT'))
-        if resCl == 'Banned':
-          self.assert_(res.has_key('Status'))
-          self.assert_(res.has_key('Reason'))
+      for args in [('Resource', 'XX', status), ('StorageElement', 'XX', status)]:
+        for resCl in ValidRes :
+          self.DHP_P.setArgs(args)
+          self.DHP_P.setKnownInfo({'Result':resCl})
+          res = self.DHP_P.evaluate()
+          self.assert_(res.has_key('SAT'))
+          if resCl == 'Banned':
+            self.assert_(res.has_key('Status'))
+            self.assert_(res.has_key('Reason'))
+          
+          self.mock_command.doCommand.return_value = {'Result':  resCl}
+          DHP_P = DownHillPropagation_Policy()
+          DHP_P.setArgs(args)
+          DHP_P.setCommand(self.mock_command)
+          res = DHP_P.evaluate()
+          self.assert_(res.has_key('SAT'))
+          if resCl == 'Banned':
+            self.assert_(res.has_key('Status'))
+            self.assert_(res.has_key('Reason'))
           
         
-class OnStorageElementPropagation_Policy_Failure(PoliciesTestCase):
+class DownHillPropagation_Policy_Failure(PoliciesTestCase):
   
   def test_commandFail(self):
     self.mock_command.doCommand.side_effect = RSSException()
-    OSEP_P = OnStorageElementPropagation_Policy()
-    OSEP_P.setCommand(self.mock_command)
-    self.failUnlessRaises(Exception, self.OSEP_P.evaluate)
+    DHP_P = DownHillPropagation_Policy()
+    DHP_P.setCommand(self.mock_command)
+    self.failUnlessRaises(Exception, self.DHP_P.evaluate)
 
   def test_badArgs(self):
-    self.failUnlessRaises(TypeError, self.OSEP_P.setArgs, None )
+    self.failUnlessRaises(TypeError, self.DHP_P.setArgs, None )
   
 #############################################################################
 
@@ -987,8 +984,8 @@ if __name__ == '__main__':
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(VOBOX_Policy_Failure))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TransferQuality_PolicySuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TransferQuality_Policy_Failure))
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(OnStorageElementPropagation_PolicySuccess))
-  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(OnStorageElementPropagation_Policy_Failure))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(DownHillPropagation_PolicySuccess))
+  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(DownHillPropagation_Policy_Failure))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(SEOccupancy_PolicySuccess))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(SEOccupancy_Policy_Failure))
   suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(SEQueuedTransfers_PolicySuccess))
