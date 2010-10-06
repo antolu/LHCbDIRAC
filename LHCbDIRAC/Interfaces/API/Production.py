@@ -177,14 +177,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',
                    extraPackages='',outputSE=None,histograms=False,overrideOpts='',extraOpts='',
-                   condDBTag='global',ddDBTag='global',abandonOutput=False):
+                   appType='sim',condDBTag='global',ddDBTag='global',abandonOutput=False):
     """ Wraps around addGaudiStep and getOptions.
+        appType can be sim / gen 
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
     firstEventNumber=1
     if not overrideOpts:
-      optionsLine = getOptions('Gauss','sim',extraOpts=None,histogram=self.histogramName,
+      optionsLine = getOptions('Gauss',appType,extraOpts=None,histogram=self.histogramName,
                                condDB=condDBTag,ddDB=ddDBTag)
       self.log.verbose('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
       optionsLine = string.join(optionsLine,';')
@@ -201,7 +202,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    gaussStep = self._addGaudiStep('Gauss',appVersion,'sim',numberOfEvents,optionsFile,
+    gaussStep = self._addGaudiStep('Gauss',appVersion,appType,numberOfEvents,optionsFile,
                                    optionsLine,eventType,extraPackages,outputSE,'','None',
                                    histograms,firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput)
     self.gaussList.append(gaussStep.getName())
