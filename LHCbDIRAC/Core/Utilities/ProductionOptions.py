@@ -36,6 +36,9 @@ def getOptions(appName,appType,extraOpts=None,inputType=None,histogram='@{applic
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append("HistogramPersistencySvc().OutputFile = \"%s\"" % (histogram))
   if appName.lower()=='gauss':
+    if appType.lower()=='gen':
+      options.append('from Configurables import Gauss')
+      options.append('Gauss().Phases = ["Generator"]')
     options.append("OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"")
   elif appName.lower()=='boole':
     if appType.lower()=='mdf':
