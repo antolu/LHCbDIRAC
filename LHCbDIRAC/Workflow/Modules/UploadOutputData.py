@@ -256,6 +256,7 @@ class UploadOutputData(ModuleBase):
     #Now double-check prior to final BK replica flag setting that the input files are still not processed 
     result = self.checkInputsNotAlreadyProcessed(self.inputData,self.PRODUCTION_ID)
     if not result['OK']:
+      lfns = []
       self.log.error('Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...')
       for fileName,metadata in final.items():
          lfns.append(metadata['lfn'])
