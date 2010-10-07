@@ -124,8 +124,8 @@ class TransformationHandler(TransformationHandlerBase):
     resultDict['ParameterNames'] = paramNames
 
     # Add the job states to the ParameterNames entry
-    taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
-    resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
+    #taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
+    #resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
     # Add the file states to the ParameterNames entry
     fileStateNames  = ['PercentProcessed','Processed','Unused','Assigned','Total','Problematic']
     resultDict['ParameterNames'] += ['Files_'+x for x in fileStateNames]
@@ -161,6 +161,10 @@ class TransformationHandler(TransformationHandlerBase):
       transRunDict = dict(zip(paramNames,transRun))
       transID = transRunDict['TransformationID']
       runID = transRunDict['RunNumber']
+      if not transRunStatusDict.has_key(transID):
+        continue
+      if not transRunStatusDict[transID].has_key(runID):
+        continue
       # Update the status counters
       status = transRunDict['Status']
       if not statusDict.has_key(status):
@@ -183,15 +187,15 @@ class TransformationHandler(TransformationHandlerBase):
           transRun.append(0)
 
       # Get the statistics on the number of jobs for the transformation
-      res = database.getTransformationTaskRunStats(transID)
-      taskDict = {}
-      if res['OK'] and res['Value']:
-        taskDict = res['Value']
-      for state in taskStateNames:
-        if taskDict and taskDict.has_key(state):
-          trans.append(taskDict[state])
-        else:
-          trans.append(0)
+      #res = database.getTransformationTaskRunStats(transID)
+      #taskDict = {}
+      #if res['OK'] and res['Value']:
+      #  taskDict = res['Value']
+      #for state in taskStateNames:
+      #  if taskDict and taskDict.has_key(state):
+      #    trans.append(taskDict[state])
+      #  else:
+      #    trans.append(0)
 
     resultDict['Records'] = transList
     resultDict['Extras'] = statusDict
