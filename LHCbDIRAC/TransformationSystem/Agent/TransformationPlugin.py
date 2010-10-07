@@ -7,7 +7,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager                    import 
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                    import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient  import TransformationDBClient
-import time,random,sys
+import time,random,sys,re
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
 
@@ -355,15 +355,15 @@ class TransformationPlugin(DIRACTransformationPlugin):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
     targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','NIKHEF-DST','RAL-DST'])
-    destinations = int(self.params.get('Destinations',3))
-    return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_M-DST')
+    numberOfCopies = int(self.params.get('NumberOfReplicas',4))
+    return self._lhcbBroadcast(sourceSEs, targetSEs, numberOfCopies, 'CERN_M-DST')
 
   def _LHCbMCDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','RAL_MC_M-DST'])
     targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
-    destinations = int(self.params.get('Destinations',2))
-    return self._lhcbBroadcast(sourceSEs, targetSEs, destinations, 'CERN_MC_M-DST')
+    numberOfCopies = int(self.params.get('NumberOfReplicas',3))
+    return self._lhcbBroadcast(sourceSEs, targetSEs, numberOfCopies, 'CERN_MC_M-DST')
 
   def __groupByRunAndParam(self,lfnDict,param=''):
     runDict = {}
@@ -391,50 +391,154 @@ class TransformationPlugin(DIRACTransformationPlugin):
       gLogger.error("Failed to get bookkeeping metadata",res['Message'])
     return res
 
-  def _lhcbBroadcast(self,sourceSEs,targetSEs,destinations,cernSE):
-    filesOfInterest = {}
-    fileGroups = self._getFileGroups(self.data)
-    for replicaSE,lfns in fileGroups.items():
-      sources = replicaSE.split(',')
-      atSource = False
-      for se in sources:
-        if se in sourceSEs:
-          atSource = True
-      if atSource:
-        for lfn in lfns:
-          filesOfInterest[lfn] = sources
+  def _lhcbBroadcast(self,sourceSEs,targetSEs,numberOfCopies,cernSE):
+    transID = self.params['TransformationID']
+    # Group the remaining data by run
+    res = self.__groupByRun(self.files)
+    if not res['OK']:
+      return res
+    runFileDict = res['Value']
 
-    targetSELfns = {}
-    for lfn,sources in filesOfInterest.items():
-      targets = []
-      sourceSites = self._getSitesForSEs(sources)
-      if not 'LCG.CERN.ch' in sourceSites:
-        sourceSites.append('LCG.CERN.ch')  
-        targets.append(cernSE)
-      else:
-        randomTape = cernSE
-        while randomTape == cernSE:
-          randomTape = randomize(sourceSEs)[0]
-        site = self._getSiteForSE(randomTape)['Value']
-        sourceSites.append(site)
-        targets.append(randomTape)
-      for targetSE in randomize(targetSEs):
-        if (destinations) and (len(targets) >= destinations):
+    runSitesToUpdate = {}
+    # For each of the runs determine the destination of any previous files
+    runSiteDict = {}
+    if runFileDict:
+      res = self.transClient.getTransformationRuns({'TransformationID':transID,'RunNumber':runFileDict.keys()})
+      if not res['OK']:
+        gLogger.error("Failed to obtain TransformationRuns",res['Message'])
+        return res
+      for runDict in res['Value']:
+        selectedSite = runDict['SelectedSite']
+        runID = runDict['RunNumber']
+        if selectedSite:
+          runSiteDict[runID] = selectedSite
           continue
-        site = self._getSiteForSE(targetSE)['Value']
-        if not site in sourceSites:
-          targets.append(targetSE)
-          sourceSites.append(site)
-      strTargetSEs = str.join(',',sortList(targets))
-      if not targetSELfns.has_key(strTargetSEs):
-        targetSELfns[strTargetSEs] = []
-      targetSELfns[strTargetSEs].append(lfn)
+        res = self.transClient.getTransformationFiles(condDict={'TransformationID':transID,'RunNumber':runID,'Status':['Assigned','Processed']})
+        if not res['OK']:
+          gLogger.error("Failed to get transformation files for run","%s %s" % (runID,res['Message']))
+          continue
+        if res['Value']:
+          assignedSE = res['Value'][0]['UsedSE']
+          if assignedSE:
+            runSiteDict[runID] = assignedSE
+            runSitesToUpdate[runID] = assignedSE
+
+    for runID in sortList(runFileDict.keys()):
+      if runSiteDict.has_key(runID):
+        continue
+      runLfns = runFileDict[runID]
+      if not runLfns:
+        continue
+      exampleRunLfn = randomize(runLfns)[0]
+      exampleRunLfnSEs = sortList(self.data[exampleRunLfn].keys())
+      # Get rid of anything that is only is failover
+      for dummySE in exampleRunLfnSEs:
+        if re.search("-FAILOVER",dummySE):
+          exampleRunLfnSEs.remove(dummySE)
+      if not exampleRunLfnSEs:
+        continue 
+
+      # Ensure that we have a master copy at CERN
+      runTargetSEs = [cernSE]
+      if cernSE in exampleRunLfnSEs:
+        exampleRunLfnSEs.remove(cernSE)
+      selectedRunTargetSites = ['LCG.CERN.ch']
+      # If we know the second master copy use it
+      secondMaster = False
+      for dummySE in exampleRunLfnSEs:
+        if (len(runTargetSEs) < 2):
+          if (dummySE in sourceSEs):
+            if (dummySE not in runTargetSEs):
+              secondMasterSite = self._getSiteForSE(dummySE)['Value'] 
+              if not secondMasterSite in selectedRunTargetSites:
+                selectedRunTargetSites.append(secondMasterSite)
+                runTargetSEs.append(dummySE)
+                exampleRunLfnSEs.remove(dummySE)
+                secondMaster=dummySE
+      # If we do not have a second master copy then select one
+      if not secondMaster:
+        for possibleSecondMaster in randomize(sourceSEs):
+          if len(runTargetSEs) >= 2:
+            continue
+          possibleSecondMasterSite = self._getSiteForSE(possibleSecondMaster)['Value']
+          if not (possibleSecondMasterSite in selectedRunTargetSites):
+            if not (possibleSecondMaster) in runTargetSEs:
+              selectedRunTargetSites.append(possibleSecondMasterSite)
+              runTargetSEs.append(possibleSecondMaster)
+      # Now get select the secondary copies
+      for dummySE in randomize(exampleRunLfnSEs):
+        if len(runTargetSEs) < numberOfCopies:
+          if (dummySE in targetSEs):
+            if (dummySE not in runTargetSEs):
+              possibleSecondarySite = self._getSiteForSE(dummySE)['Value']
+              if not possibleSecondarySite in selectedRunTargetSites:
+                selectedRunTargetSites.append(possibleSecondarySite)
+                runTargetSEs.append(dummySE)
+                exampleRunLfnSEs.remove(dummySE)
+      #Now get the remainder of the required seconday copies
+      for possibleSecondarySE in randomize(targetSEs):
+        if len(runTargetSEs) < numberOfCopies:
+          if not possibleSecondarySE in runTargetSEs:
+            possibleSecondarySite = self._getSiteForSE(possibleSecondarySE)['Value']
+            if not possibleSecondarySite in selectedRunTargetSites:
+              selectedRunTargetSites.append(possibleSecondarySite)
+              runTargetSEs.append(possibleSecondarySE)
+      stringRunTargetSEs = ','.join(sortList(runTargetSEs))
+      runSiteDict[runID] = stringRunTargetSEs
+      runSitesToUpdate[runID] = stringRunTargetSEs
+
+    # Update the TransformationRuns table with the assigned (don't continue if it fails)
+    for runID,targetSite in runSitesToUpdate.items():
+      res = self.transClient.setTransformationRunsSite(transID,runID,targetSite)
+      if not res['OK']:
+        gLogger.error("Failed to assign TransformationRun site",res['Message'])
+        return S_ERROR("Failed to assign TransformationRun site")
+
+    #Now assign the individual files to their targets
+    fileTargets = {}
+    alreadyCompleted = []
+    for fileDict in self.files:
+      lfn = fileDict.get('LFN','')
+      if not lfn:
+        continue
+      runID = fileDict.get('RunNumber',0)
+      if not runID:
+        continue
+      if not runSiteDict.has_key(runID):
+        continue
+      runTargetSEs = sortList(runSiteDict[runID].split(','))
+      existingSites = self._getSitesForSEs(self.data[lfn].keys())
+
+      fileTargets[lfn] = []
+      for runTargetSE in runTargetSEs:
+        runTargetSESite = self._getSiteForSE(runTargetSE)['Value']
+        if not runTargetSESite in existingSites:
+          fileTargets[lfn].append(runTargetSE)
+      if not fileTargets[lfn]:
+        fileTargets.pop(lfn) 
+        alreadyCompleted.append(lfn)
+
+    # Update the status of the already done files
+    if alreadyCompleted:
+      gLogger.info("Found %s files that are already completed" % len(alreadyCompleted))
+      self.transClient.setFileStatusForTransformation(transID,'Processed',alreadyCompleted)
+    
+    # Now group all of the files by their target SEs
+    storageElementGroups = {}
+    for lfn,targetSEs in fileTargets.items():
+      stringTargetSEs = ','.join(sortList(targetSEs))
+      if not storageElementGroups.has_key(stringTargetSEs):
+        storageElementGroups[stringTargetSEs] = []
+      storageElementGroups[stringTargetSEs].append(lfn)
+
+    # Now create reasonable size tasks
     tasks = []
-    for strTargetSEs in sortList(targetSELfns.keys()):
-      lfns = targetSELfns[strTargetSEs]
-      tasks.append((strTargetSEs,lfns))
+    for stringTargetSEs in sortList(storageElementGroups.keys()):
+      stringTargetLFNs = storageElementGroups[stringTargetSEs]
+      for lfnGroup in breakListIntoChunks(sortList(stringTargetLFNs),100):
+        tasks.append((stringTargetSEs,lfnGroup))
     return S_OK(tasks)
-  
+
   def _checkAncestors(self,filesReplicas,ancestorDepth):
     """ Check ancestor availability on sites. Returns a list of SEs where all the ancestors are present
     """
