@@ -104,21 +104,22 @@ class CombinedSoftwareInstallation:
       if not self.jobConfig:
         return DIRAC.S_ERROR('/LocalSite/Architecture is missing and must be specified')
 
+    if not self.ceConfigs:  # redundant check as this is done in the job agent and above
+      DIRAC.gLogger.info( 'Assume locally running job without CE configuration settings' )
+      return DIRAC.S_OK()
+
+    if self.jobConfig==DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' ): # as set by the job agent in case of 'ANY'
+      DIRAC.gLogger.info('Job SystemConfiguration is set to /LocalSite/Architecture, checking compatible platforms')
+      compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(self.jobConfig),[])
+      if not compatibleArchs:
+        DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(self.jobConfig))
+        return DIRAC.S_ERROR('SystemConfig Not Found')
+      self.jobConfig = compatibleArchs[0]
+      DIRAC.gLogger.info('Setting system config to compatible platform %s' %(self.jobConfig))
+
     if not self.jobConfig in self.ceConfigs:
-      if not self.ceConfigs:  # redundant check as this is done in the job agent, if locally running option might not be defined
-        DIRAC.gLogger.info( 'Assume locally running job without CE configuration settings' )
-        return DIRAC.S_OK()
-      elif self.jobConfig==DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' ): # as set by the job agent in case of 'ANY'
-        DIRAC.gLogger.info('Job SystemConfiguration is set to /LocalSite/Architecture, checking compatible platforms')
-        compatibleArchs = DIRAC.gConfig.getValue('/Resources/Computing/OSCompatibility/%s' %(self.jobConfig),[])
-        if not compatibleArchs:
-          DIRAC.gLogger.error('Could not find matching section for %s in /Resources/Computing/OSCompatibility/' %(self.jobConfig))
-          return DIRAC.S_ERROR('SystemConfig Not Found')
-        self.jobConfig = compatibleArchs[0]
-        DIRAC.gLogger.info('Setting system config to compatible platform %s' %(self.jobConfig))
-      else:
-        DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
-        return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
+      DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
+      return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in self.apps:
       DIRAC.gLogger.info('Checking %s_%s for %s with site root %s' %(app[0],app[1],self.jobConfig,self.mySiteRoot))
