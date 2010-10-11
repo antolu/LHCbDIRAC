@@ -228,7 +228,7 @@ class ControlerFileDialog(ControlerAbstract):
     for item in items:
       value = items[item]
       if value['TotalLuminosity'] != None:
-        luminosity += int(value['TotalLuminosity'])
+        luminosity += float(value['TotalLuminosity'])
     return luminosity
   
   #############################################################################
@@ -237,7 +237,7 @@ class ControlerFileDialog(ControlerAbstract):
     for item in items:
       value = items[item]
       if value['Luminosity'] != None:
-        luminosity += int(value['Luminosity'])
+        luminosity += float(value['Luminosity'])
     return luminosity
   
   #############################################################################  
