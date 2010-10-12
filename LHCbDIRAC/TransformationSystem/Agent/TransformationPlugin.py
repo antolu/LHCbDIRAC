@@ -501,8 +501,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
       lfn = fileDict.get('LFN','')
       if not lfn:
         continue
-      runID = fileDict.get('RunNumber',0)
-      if not runID:
+      runID = fileDict.get('RunNumber','IGNORE')
+      if runID == 'IGNORE':
         continue
       if not runSiteDict.has_key(runID):
         continue
