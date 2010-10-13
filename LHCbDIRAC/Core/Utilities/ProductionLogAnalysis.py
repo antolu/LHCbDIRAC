@@ -268,16 +268,18 @@ def getEventsProcessed(logString,service):
       If the string is not found an error is returned
   """
   global numberOfEventsInput  
-  possibleServices = ['DaVinciInit','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
+  possibleServices = ['DaVinciInit','DaVinciInitAlg','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
   if not service in possibleServices:
     gLogger.error("Requested service not available.",service)
     return S_ERROR("Requested service '%s' not available" % service)
   exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
   if service.lower()=='l0muon':
     exp = re.compile(r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" %service)
-
+    
   findline = re.search(exp,logString)
   if not findline:
+    if not re.search('Alg$',service):     
+      return getEventsProcessed(logString,'%sAlg' %service)
     gLogger.error("Could not determine events processed.")
     return S_ERROR("Could not determine events processed")
   eventsProcessed = int(findline.group(1))
