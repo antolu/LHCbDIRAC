@@ -170,10 +170,13 @@ class UserJobFinalization(ModuleBase):
       if not self.jobID:
         self.jobID = 12345
       owner = ''
-      if self.workflow_commons.has_key('Owner'):
-        owner = self.workflow_commons['Owner']
+      if self.workflow_commons.has_key('OwnerName'):
+        owner = self.workflow_commons['OwnerName']
       else:
-        owner = self.getCurrentOwner()['Value']
+        owner = self.getCurrentOwner()
+        if not owner['OK']:
+          return owner
+        owner = owner['Value']
       
       result = constructUserLFNs(int(self.jobID),owner,self.userOutputData,self.userOutputPath)
       if not result['OK']:
