@@ -100,21 +100,21 @@ AssigneeGroups = {
   'VladRobGreigJoel_PROD-Mail': 
   {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
-   'Granularity': ['Site', 'Service'],
+   'Granularity': ['Service'],
    'SiteType': ValidSiteType, 
    'ServiceType': ValidServiceType, 
    'ResourceType': ValidResourceType, 
    'Notifications': ['Mail']
    }, 
-  'VladRobGreigJoel_PROD-Web': 
-  {'Users': ['roma', 'santinel', 'joel'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['Site', 'Service'],
-   'SiteType': ValidSiteType, 
-   'ServiceType': ValidServiceType, 
-   'ResourceType': ValidResourceType, 
-   'Notifications': ['Web']
-   }, 
+#  'VladRobGreigJoel_PROD-Web': 
+#  {'Users': ['roma', 'santinel', 'joel'],
+#   'Setup': ['LHCb-Production'],
+#   'Granularity': ['Site', 'Service'],
+#   'SiteType': ValidSiteType, 
+#   'ServiceType': ValidServiceType, 
+#   'ResourceType': ValidResourceType, 
+#   'Notifications': ['Web']
+#   }, 
   'VladRobGreigJoel_PROD-Mail-2': 
   {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
@@ -124,24 +124,24 @@ AssigneeGroups = {
    'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'], 
    'Notifications': ['Mail']
    }, 
-  'VladRobGreigJoel_PROD-Web-2': 
-  {'Users': ['roma', 'santinel', 'joel'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['Resource'],
-   'SiteType': ValidSiteType, 
-   'ServiceType': ValidServiceType, 
-   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'], 
-   'Notifications': ['Web']
-   }, 
-  'VladRob_DEV': 
-  {'Users': ['roma', 'santinel'],
-   'Setup': ['LHCb-Development', 'LHCb-Certification'], 
-   'Granularity': ValidRes,
-   'SiteType': [], 
-   'ServiceType': ValidServiceType, 
-   'ResourceType': ValidResourceType, 
-   'Notifications': ['Web']
-   }, 
+#  'VladRobGreigJoel_PROD-Web-2': 
+#  {'Users': ['roma', 'santinel', 'joel'],
+#   'Setup': ['LHCb-Production'],
+#   'Granularity': ['Resource'],
+#   'SiteType': ValidSiteType, 
+#   'ServiceType': ValidServiceType, 
+#   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'], 
+#   'Notifications': ['Web']
+#   }, 
+#  'VladRob_DEV': 
+#  {'Users': ['roma', 'santinel'],
+#   'Setup': ['LHCb-Development', 'LHCb-Certification'], 
+#   'Granularity': ValidRes,
+#   'SiteType': [], 
+#   'ServiceType': ValidServiceType, 
+#   'ResourceType': ValidResourceType, 
+#   'Notifications': ['Web']
+#   }, 
   'me_PROD-Mail': 
   {'Users': ['fstagni'],
    'Setup': ['LHCb-Production'],
@@ -151,15 +151,15 @@ AssigneeGroups = {
    'ResourceType': ValidResourceType, 
    'Notifications': ['Mail']
    }, 
-  'me_PROD-Web': 
-  {'Users': ['fstagni'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ValidRes,
-   'SiteType': ValidSiteType, 
-   'ServiceType': ValidServiceType, 
-   'ResourceType': ValidResourceType, 
-   'Notifications': ['Web']
-   }, 
+#  'me_PROD-Web': 
+#  {'Users': ['fstagni'],
+#   'Setup': ['LHCb-Production'],
+#   'Granularity': ValidRes,
+#   'SiteType': ValidSiteType, 
+#   'ServiceType': ValidServiceType, 
+#   'ResourceType': ValidResourceType, 
+#   'Notifications': ['Web']
+#   }, 
   'me_DEV': 
   {'Users': ['fstagni'],
    'Setup': ['LHCb-Development', 'LHCb-Certification'], 
@@ -167,6 +167,24 @@ AssigneeGroups = {
    'SiteType': ValidSiteType, 
    'ServiceType': ValidServiceType, 
    'ResourceType': ValidResourceType, 
+   'Notifications': ['Mail']
+   }, 
+  'Carlos_PROD_SE': 
+  {'Users': ['rsantana'],
+   'Setup': ['LHCb-Production'],
+   'Granularity': ['StorageElement'],
+   'SiteType': ValidSiteType, 
+   'ServiceType': ValidServiceType, 
+   'ResourceType': ValidResourceType, 
+   'Notifications': ['Mail']
+   }, 
+  'Carlos_PROD_Res': 
+  {'Users': ['rsantana'],
+   'Setup': ['LHCb-Production'],
+   'Granularity': ['Resource'],
+   'SiteType': ValidSiteType, 
+   'ServiceType': ValidServiceType, 
+   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'], 
    'Notifications': ['Mail']
    }, 
 }
@@ -710,9 +728,9 @@ Policy_Types = {
      },
   'Alarm_PolType_SE' : 
     { 'Granularity' : ['StorageElement'], 
-      'Status' : ['Bad', 'Banned'],
+      'Status' : ['Banned'],
       'FormerStatus' : ValidStatus,
-      'NewStatus' : ['Bad', 'Banned'],
+      'NewStatus' : ['Banned'],
       'SiteType' : ValidSiteType,
       'ServiceType' : ValidServiceType,
       'ResourceType' : ValidResourceType,
@@ -761,8 +779,8 @@ Commands_ClientsCache = [('ClientsCache_Command', 'JobsEffSimpleEveryOne_Command
                          ]
 
 Commands_AccountingCache = [('AccountingCache_Command', 'TransferQualityByDestSplitted_Command', (2, ), 'Always'),
-#                            ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command', (2, ), 'Always'),
-#                            ('AccountingCache_Command', 'TransferQualityByDestSplittedSite_Command', (24, ), 'Hourly'),
+                            ('AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command', (2, ), 'Always'),
+                            ('AccountingCache_Command', 'TransferQualityByDestSplittedSite_Command', (24, ), 'Hourly'),
 #                            ('AccountingCache_Command', 'TransferQualityBySourceSplittedSite_Command', (24, ), 'Hourly'),
                             ('AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command', (24, ), 'Hourly'),
                             ('AccountingCache_Command', 'FailedJobsBySiteSplitted_Command', (24, ), 'Hourly'),
