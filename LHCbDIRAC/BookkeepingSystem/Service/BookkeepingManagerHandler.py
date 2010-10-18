@@ -87,6 +87,7 @@ class BookkeepingManagerHandler(RequestHandler):
     retVal = dataMGMT_.getAvailableSteps()
     if retVal['OK']:
       parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
+      records = []
       for record in retVal['Value']:
         value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
         records += [value]
