@@ -60,5 +60,5 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getAvailableSteps(self):      
-    return self.dbR_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations',[])
+    return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getSteps',[])
   
