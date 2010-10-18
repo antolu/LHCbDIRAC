@@ -65,13 +65,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(dict) > 0:
       tables = 'steps'
       if dict.has_key('StartDate'):
-        condition = ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+        condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
         tables += ',table(steps.filetypesids) ftypes, filetypes '
         if len(condition) != '':
           condition+= ' and '      
         condition += 'ftypes.filetypeid=filetypes.filetypeid '
-        selection = 'filetypes.name,ftype.visibilityflag '
+        selection = 'filetypes.name,ftypes.visibilityflag '
       command = 'select '+selection+' from '+tables+' where '+condition+' order by inserttimestamps'
       return self.dbR_._query(command)
     else:
