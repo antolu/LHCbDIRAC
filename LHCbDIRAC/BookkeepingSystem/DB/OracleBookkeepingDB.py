@@ -60,7 +60,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getAvailableSteps(self, dict = {}):      
-    condition = ''
+    condition = None
     selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,VisibilityFlag'
     if len(dict) > 0:
       tables = 'steps'
@@ -68,7 +68,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
         tables += ',table(steps.filetypesids) ftypes, filetypes '
-        if len(condition) != '':
+        if condition != None:
           condition+= ' and '      
         condition += 'ftypes.filetypeid=filetypes.filetypeid '
         selection = 'filetypes.name,ftypes.visibilityflag '
