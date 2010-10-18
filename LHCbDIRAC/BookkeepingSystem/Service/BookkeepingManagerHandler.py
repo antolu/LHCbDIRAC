@@ -9,7 +9,6 @@ __RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
-from LHCbDIRAC.BookkeepingSystem.Service.copyFiles                                    import copyXMLfile
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
