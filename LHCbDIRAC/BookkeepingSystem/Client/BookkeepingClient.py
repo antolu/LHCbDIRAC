@@ -46,7 +46,7 @@ class BookkeepingClient:
       return result
   
   #############################################################################
-  def getAvailableSteps(self, dict = None):
+  def getAvailableSteps(self, dict = {}):
     server = self.__getServer()
     return server.getAvailableSteps(dict)
     

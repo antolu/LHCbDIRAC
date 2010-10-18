@@ -83,7 +83,7 @@ class BookkeepingManagerHandler(RequestHandler):
   
   #############################################################################
   types_getAvailableSteps = [DictType]
-  def export_getAvailableSteps(self, dict):
+  def export_getAvailableSteps(self, dict = {}):
     retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
       if dict.has_key('StepId'):

@@ -21,5 +21,5 @@ class IBookkeepingDatabaseClient(object):
     return self.databaseManager_
   
   #############################################################################
-  def getAvailableSteps(self, dict=None):
-    return self.getManager().getAvailableSteps(dict=None)
+  def getAvailableSteps(self, dict={}):
+    return self.getManager().getAvailableSteps(dict)

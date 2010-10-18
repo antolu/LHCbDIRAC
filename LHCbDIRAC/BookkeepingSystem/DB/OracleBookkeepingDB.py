@@ -59,10 +59,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
   
   #############################################################################
-  def getAvailableSteps(self, dict):      
+  def getAvailableSteps(self, dict = {}):      
     condition = ''
     selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,VisibilityFlag'
-    if dict!=None:
+    if len(dict) > 0:
       tables = 'steps'
       if dict.has_key('StartDate'):
         condition = ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
