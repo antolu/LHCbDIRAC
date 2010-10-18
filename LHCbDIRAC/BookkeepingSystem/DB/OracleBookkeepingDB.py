@@ -75,5 +75,5 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command = 'select '+selection+' from'+tables+' where '+condition+' order by inserttimestamp'
       return self.dbR_._query(command)
     else:
-      command = 'select '+selection+' from steps where '+condition+' order by inserttimestamp'
+      command = 'select '+selection+' from steps order by inserttimestamp'
       return self.dbR_._query(command)
