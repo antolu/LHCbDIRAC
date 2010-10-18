@@ -16,6 +16,6 @@ class IBookkeepingDB(object):
   def __init__(self):
     pass
   
-  def getAvailableSteps(self):
+  def getAvailableSteps(self, dict):
     gLogger.error('This method is not implemented!')
   

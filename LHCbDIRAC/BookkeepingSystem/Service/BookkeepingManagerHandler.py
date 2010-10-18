@@ -82,15 +82,22 @@ class BookkeepingManagerHandler(RequestHandler):
           return S_ERROR('Error during processing '+name)
   
   #############################################################################
-  types_getAvailableSteps = []
-  def export_getAvailableSteps(self):
-    retVal = dataMGMT_.getAvailableSteps()
+  types_getAvailableSteps = [DictType]
+  def export_getAvailableSteps(self, dict):
+    retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
-      records = []
-      for record in retVal['Value']:
-        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
-        records += [value]
+      if dict.has_key('StepId'):
+        parameters = ['FileType', 'Visible']
+        records = []
+        for record in retVal['Value']:
+          value = [record[0], record[1]]
+          records += [value]
+      else:
+        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
+        records = []
+        for record in retVal['Value']:
+          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
+          records += [value]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])

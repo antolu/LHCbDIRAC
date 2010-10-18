@@ -59,6 +59,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
   
   #############################################################################
-  def getAvailableSteps(self):      
-    return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getSteps',[])
-  
+  def getAvailableSteps(self, dict):      
+    condition = ''
+    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,VisibilityFlag'
+    if dict!=None:
+      tables = 'steps'
+      if dict.has_key('StartDate'):
+        condition = ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      if dict.has_key('StepId'):
+        tables += ',table(steps.filetypesids) ftypes, filetypes '
+        if len(condition) != '':
+          condition+= ' and '      
+        condition += 'ftypes.filetypeid=filetypes.filetypeid '
+        selection = 'filetypes.name,ftype.visibilityflag '
+      command = 'select '+selection+' from'+tables+' where '+condition+' order by inserttimestamp'
+      return self.dbR_._query(command)
+    else:
+      command = 'select '+selection+' from steps where '+condition+' order by inserttimestamp'
+      return self.dbR_._query(command)
