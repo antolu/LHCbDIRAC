@@ -20,4 +20,6 @@ class IBookkeepingDatabaseClient(object):
   def getManager(self):
     return self.databaseManager_
   
-  
+  #############################################################################
+  def getAvailableSteps(self):
+    return self.getManager().getAvailableSteps()
