@@ -72,8 +72,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
           condition+= ' and '      
         condition += 'ftypes.filetypeid=filetypes.filetypeid '
         selection = 'filetypes.name,ftype.visibilityflag '
-      command = 'select '+selection+' from'+tables+' where '+condition+' order by inserttimestamp'
+      command = 'select '+selection+' from'+tables+' where '+condition+' order by inserttimestamps'
       return self.dbR_._query(command)
     else:
-      command = 'select '+selection+' from steps order by inserttimestamp'
+      command = 'select '+selection+' from steps order by inserttimestamps'
       return self.dbR_._query(command)
