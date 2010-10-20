@@ -86,18 +86,61 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getAvailableSteps(self, dict = {}):
     retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      if dict.has_key('StepId'):
-        parameters = ['FileType', 'Visible']
-        records = []
-        for record in retVal['Value']:
-          value = [record[0], record[1]]
-          records += [value]
-      else:
-        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
-        records = []
-        for record in retVal['Value']:
-          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
-          records += [value]
+      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible']
+      records = []
+      for record in retVal['Value']:
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])
+  
+  #############################################################################
+  types_getStepInputFiles = [IntType]
+  def export_getStepInputFiles(self, StepId):
+    retVal = dataMGMT_.getStepInputFiles(StepId)
+    if retVal['OK']:
+      records = []
+      parameters = ['FileType','Visible']
+      for record in retVal['Value']:
+        records += [[record[0],record[1]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+    
+  #############################################################################
+  types_getStepOutputFiles = [IntType]
+  def export_getStepOutputFiles(self, StepId):                    
+    retVal = dataMGMT_.getStepInputFiles(StepId)
+    if retVal['OK']:
+      records = []
+      parameters = ['FileType','Visible']
+      for record in retVal['Value']:
+        records += [[record[0],record[1]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+    
+  #############################################################################
+  types_getAvailableFileTypes = []
+  def export_getAvailableFileTypes(self):
+    return dataMGMT_.getAvailableFileTypes()
+  
+  #############################################################################
+  types_insertFileTypes = [StringType,StringType]
+  def export_insertFileTypes(self, ftype, desc):
+    return dataMGMT_.insertFileTypes(ftype, desc)
+  
+  #############################################################################
+  types_insertStep = [DictType]
+  def export_insertStep(self, dict):
+    return dataMGMT_.insertStep(dict)
+  
+  #############################################################################
+  types_deleteStep = [IntType]
+  def export_deleteStep(self, stepid):
+    return dataMGMT_.deleteStep(stepid)
+  
+  #############################################################################
+  types_updateStep = [DictType]
+  def export_updateStep(self, dict):
+    return dataMGMT_.updateStep(dict)

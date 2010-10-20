@@ -67,13 +67,87 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if dict.has_key('StartDate'):
         condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
-        tables += ',table(steps.filetypesids) ftypes, filetypes '
-        if condition != '':
-          condition+= ' and '      
-        condition += 'ftypes.filetypeid=filetypes.filetypeid '
-        selection = 'filetypes.name,ftypes.visibilityflag '
-      command = 'select '+selection+' from '+tables+' where '+condition+' order by inserttimestamps'
-      return self.dbR_._query(command)
+        command = 'select '+selection+' from '+tables+' where stepid='+str(dict['StepId'])+' order by inserttimestamps desc'
+        return self.dbR_._query(command)
     else:
-      command = 'select '+selection+' from steps order by inserttimestamps'
+      command = 'select '+selection+' from steps order by inserttimestamps desc'
       return self.dbR_._query(command)
+  
+  #############################################################################
+  def getStepInputFiles(self, StepId):
+    command = 'select inputFiletypes.name,inputFiletypes.visibilityflag from steps, table(steps.InputFileTypes) inputFiletypes where  steps.stepid='+str(StepId)
+    return self.dbR_._query(command)
+          
+  #############################################################################
+  def getStepOutputFiles(self, StepId):
+    command = 'select outputfiletypes.name,outputfiletypes.visibilityflag from steps, table(steps.outputfiletypes) outputfiletypes where  steps.stepid='+str(StepId)
+    return self.dbR_._query(command)
+        
+  #############################################################################
+  def getAvailableFileTypes(self):
+    return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailableFileTypes',[])
+  
+  #############################################################################
+  def insertFileTypes(self, ftype, desc):
+    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertFileTypes', LongType, [ftype,desc,'ROOT_All'])
+  
+  #############################################################################
+  def insertStep(self, dict):
+    values = ''
+    selection = 'insert into steps(stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visibilityflag'
+    if dict.has_key('InputFileTypes'):
+      values = ',filetypesARRAY('
+      selection += ',InputFileTypes'
+      for i in dict['InputFileTypes']:
+        if i.has_key('Name') and i.has_key('Visible'):
+          values += 'ftype(\''+i['Name']+'\',\''+i['Visible']+'\'),'
+      values = values[:-1]
+      values +=')'
+    if dict.has_key('OutputFileTypes'):
+      values +=' , filetypesARRAY('
+      selection += ',OutputFileTypes'
+      for i in dict['OutputFileTypes']:
+        if i.has_key('Name') and i.has_key('Visible'):
+          values += 'ftype(\''+i['Name']+'\',\''+i['Visible']+'\'),'
+      values = values[:-1]
+      values +=')'
+    
+    if dict.has_key('Step'):
+      step = dict['Step']
+      command =  selection+')values(\''+str(step['StepName'])+ \
+      '\',\''+str(step['ApplicationName'])+'\',\''+str(step['ApplicationVersion'])+'\',\''+str(step['OptionFiles'])+'\',\''+str(step['DDDB'])+ \
+      '\',\'' +str(step['CondDB'])+'\',\''+str(step['ExtraPackages'])+'\',\''+str(step['Visible'])+'\''+values+')'
+      return self.dbW_._query(command)
+
+    return S_ERROR('The Filetypes and Step are missing!')
+  
+  #############################################################################
+  def deleteStep(self, stepid):
+    command = 'delete steps where stepid='+str(stepid)
+    return self.dbW_._query(command)
+  
+  #############################################################################
+  def updateStep(self, dict):
+    if dict.has_key('StepId'):
+      stepid = dict.pop('StepId')
+      condition = ' where stepid='+str(stepid)
+      command = 'update steps set '
+      for i in dict:
+        if type(dict[i]) == types.StringType:
+          command += i+ '=\''+str(dict[i])+'\','
+        else:
+          values = 'filetypesARRAY('
+          for j in dict[i]:
+            if j.has_key('Name') and j.has_key('Visible'):
+              values += 'ftype(\''+j['Name']+'\',\''+j['Visible']+'\'),'
+          values = values[:-1]
+          values +=')'
+          command += i+ '='+values+','
+      command = command[:-1]
+      command += condition
+      return self.dbW_._query(command)
+      
+    else:
+      return S_ERROR('Please give a StepId!')
+    return S_ERROR()  
+    

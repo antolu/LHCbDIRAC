@@ -49,4 +49,45 @@ class BookkeepingClient:
   def getAvailableSteps(self, dict = {}):
     server = self.__getServer()
     return server.getAvailableSteps(dict)
-    
+  
+  #############################################################################
+  def getAvailableFileTypes(self):
+    server = self.__getServer()
+    retVal = server.getAvailableFileTypes()
+    if retVal['OK']:
+      records = []
+      parameters = ["FileType","Description"]
+      for record in retVal['Value']:
+        records += [[record[0],record[1]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    return retVal
+  
+  #############################################################################
+  def insertFileTypes(self, ftype, desc):
+    server = self.__getServer()
+    return server.insertFileTypes(ftype, desc)
+  
+  #############################################################################
+  def insertStep(self, dict):
+    server = self.__getServer()
+    return server.insertStep(dict)
+  
+  #############################################################################
+  def deleteStep(self, stepid):
+    server = self.__getServer()
+    return server.deleteStep(int(stepid))
+  
+  #############################################################################
+  def updateStep(self, dict):
+    server = self.__getServer()
+    return server.updateStep(dict)
+  
+  #############################################################################
+  def getStepInputFiles(self, StepId):
+    server = self.__getServer()
+    return server.getStepInputFiles(int(StepId))
+  
+  #############################################################################
+  def getStepOutputFiles(self, StepId):
+    server = self.__getServer()
+    return server.getStepOutputFiles(int(StepId))
