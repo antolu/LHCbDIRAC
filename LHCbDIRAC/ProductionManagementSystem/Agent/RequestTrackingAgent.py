@@ -17,23 +17,8 @@ from DIRAC                          import S_OK, S_ERROR, gConfig, gMonitor, gLo
 import os, time, string
 
 def bkProductionProgress(id,setup):
-# AZ: have to use setup since it's not automatically picked up... WHY ???
   RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
-  result = RPC.getProductionInformations(id)
-  if not result['OK']:
-    return result
-  info = result['Value']
-  if not 'Number of events' in info:
-    return S_OK(0)
-  allevents = info['Number of events']
-  if len(allevents) == 0:
-    return S_OK(0)
-  if len(allevents) > 1:
-    for x in allevents:
-      if x[0] == 'DST':
-        return S_OK(x[1])
-    return S_ERROR('More than one output file type and no DST. Unsupported.')
-  return S_OK(allevents[0][1])
+  return RPC.getProcessedEvents(int(id))
 
 def bkInputNumberOfEvents(r,setup):
   """ Extrim dirty way... But I DO NOT KNOW OTHER !!! """
@@ -50,22 +35,22 @@ def bkInputNumberOfEvents(r,setup):
       v['DataTakingConditions'] = str(r['SimCondition'])
     else:
       v['SimulationConditions'] = str(r['SimCondition'])
-    if long(r['inProductionID']):
-      v['ProductionID'] = str(r['inProductionID'])
+    if str(r['inProductionID']) != '0':
+      v['ProductionID'] = [int(x) for x in str(r['inProductionID']).split(',')]
   except Exception,e:
     return S_ERROR("Can not parse the request: %s" % str(e))
   RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
+  v['NbOfEvents'] = True
   result = RPC.getFilesWithGivenDataSets(v)
   if not result['OK']:
     return result
-  result = RPC.getFilesInformations(result['Value'])
-  if not result['OK']:
-    return result
+  if not result['Value'][0]:
+    return S_OK(0)
   try:
-    evstat=sum([long(x['EventStat']) for x in result['Value'].values()])
-  except:
-    return S_ERROR("Bad files information for %s" % r['RequestID'])
-  return S_OK(evstat)
+    sum = long(result['Value'][0])
+  except Exception,e:
+    return S_ERROR("Can not convert result from BK call: %s" % str(e))
+  return S_OK(sum)
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 
@@ -120,9 +105,10 @@ class RequestTrackingAgent(AgentModule):
     update = []
     if result['OK']:
       for productionID in result['Value']:
-        result = bkProductionProgress(long(productionID),self.setup)
+        result = bkProductionProgress(int(productionID),self.setup)
         if result['OK']:
-          update.append({'ProductionID':productionID,'BkEvents':result['Value']})
+          if result['Value']:
+            update.append({'ProductionID':productionID,'BkEvents':result['Value']})
         else:
           gLogger.error('Progress of %s is not updated: %s' %
                         (productionID,result['Message']))
