@@ -67,8 +67,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if dict.has_key('StartDate'):
         condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
-        command = 'select '+selection+' from '+tables+' where stepid='+str(dict['StepId'])+' order by inserttimestamps desc'
-        return self.dbR_._query(command)
+        if len(condition) > 0:
+          condition += ' and '
+        condition += ' stepid='+str(dict['StepId'])
+      
+      command = 'select '+selection+' from '+tables+' where '+condition+'order by inserttimestamps desc'
+      return self.dbR_._query(command)
     else:
       command = 'select '+selection+' from steps order by inserttimestamps desc'
       return self.dbR_._query(command)
