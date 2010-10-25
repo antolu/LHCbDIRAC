@@ -61,7 +61,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getAvailableSteps(self, dict = {}):      
     condition = ''
-    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,VisibilityFlag'
+    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible'
     if len(dict) > 0:
       tables = 'steps'
       if dict.has_key('StartDate'):
@@ -75,12 +75,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getStepInputFiles(self, StepId):
-    command = 'select inputFiletypes.name,inputFiletypes.visibilityflag from steps, table(steps.InputFileTypes) inputFiletypes where  steps.stepid='+str(StepId)
+    command = 'select inputFiletypes.name,inputFiletypes.visible from steps, table(steps.InputFileTypes) inputFiletypes where  steps.stepid='+str(StepId)
     return self.dbR_._query(command)
           
   #############################################################################
   def getStepOutputFiles(self, StepId):
-    command = 'select outputfiletypes.name,outputfiletypes.visibilityflag from steps, table(steps.outputfiletypes) outputfiletypes where  steps.stepid='+str(StepId)
+    command = 'select outputfiletypes.name,outputfiletypes.visible from steps, table(steps.outputfiletypes) outputfiletypes where  steps.stepid='+str(StepId)
     return self.dbR_._query(command)
         
   #############################################################################
@@ -94,7 +94,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertStep(self, dict):
     values = ''
-    selection = 'insert into steps(stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visibilityflag'
+    selection = 'insert into steps(stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible '
     if dict.has_key('InputFileTypes'):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
