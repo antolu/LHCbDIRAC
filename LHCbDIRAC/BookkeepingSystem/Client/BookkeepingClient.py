@@ -91,3 +91,23 @@ class BookkeepingClient:
   def getStepOutputFiles(self, StepId):
     server = self.__getServer()
     return server.getStepOutputFiles(int(StepId))
+  
+  #############################################################################
+  def getAvailableConfigNames(self):
+    server = self.__getServer()
+    return server.getAvailableConfigNames()
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    server = self.__getServer()
+    return server.getConfigVersions(configname)
+  
+  #############################################################################
+  def getConditions(self, configName, configVersion):
+    server = self.__getServer()
+    return server.getConditions(configName, configVersion)
+  
+  #############################################################################
+  def getProcessingPass(self, configName, configVersion, conddescription, path = '/'):
+    server = self.__getServer()
+    return server.getProcessingPass(configName, configVersion, conddescription, path)

@@ -33,6 +33,8 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
+  def getSimulationConditions(self, configName, configVersion, realdata):
+  	gLogger.error('This method is not implemented!')
   def deleteStep(self, stepid):
     gLogger.error('This method is not implemented!')
     
@@ -46,4 +48,16 @@ class IBookkeepingDB(object):
   
   #############################################################################
   def getStepOutputFiles(self, StepId):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getAvailableConfigNames(self):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProcessingPass(self, configName, configVersion, conddescription, path):
     gLogger.error('This method is not implemented!')

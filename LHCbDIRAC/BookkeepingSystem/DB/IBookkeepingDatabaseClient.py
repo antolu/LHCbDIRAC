@@ -51,3 +51,18 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getStepOutputFiles(self, StepId):
     return self.getManager().getStepOutputFiles(StepId)
+  
+  #############################################################################
+  def getAvailableConfigNames(self):
+    return self.getManager().getAvailableConfigNames()
+  
+  #############################################################################
+  def getConfigVersions(self, configname):
+    return self.getManager().getConfigVersions(configname)
+  #############################################################################
+  def getConditions(self, configName, configVersion):
+    return self.getManager().getConditions(configName, configVersion)
+  
+  #############################################################################
+  def getProcessingPass(self, configName, configVersion, conddescription, path):
+    return self.getManager().getProcessingPass(configName, configVersion, conddescription, path)

@@ -86,10 +86,10 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getAvailableSteps(self, dict = {}):
     retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible']
+      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible', 'OutputFileName','OutputFileNameVisible', 'InputFileName','InputFileNameVisible']
       records = []
       for record in retVal['Value']:
-        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12]]]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])
@@ -144,3 +144,61 @@ class BookkeepingManagerHandler(RequestHandler):
   types_updateStep = [DictType]
   def export_updateStep(self, dict):
     return dataMGMT_.updateStep(dict)
+  
+  ##############################################################################
+  types_getAvailableConfigNames = []
+  def export_getAvailableConfigNames(self):
+    retVal = dataMGMT_.getAvailableConfigNames()
+    if retVal['OK']:
+      records = []
+      parameters = ['Configuration Name']
+      for record in retVal['Value']:
+        records += [[record[0]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+    
+  #############################################################################
+  types_getConfigVersions = [StringType]
+  def export_getConfigVersions(self, configname):
+    retVal =  dataMGMT_.getConfigVersions(configname)
+    if retVal['OK']:
+      records = []
+      parameters = ['Configuration Version']
+      for record in retVal['Value']:
+        records += [[record[0]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+  
+ #############################################################################
+  types_getConditions = [StringType, StringType ]
+  def export_getConditions(self, configName, configVersion):
+    retVal =  dataMGMT_.getConditions(configName, configVersion)
+    if retVal['OK']:
+      values = retVal['Value']
+      if len(values) > 0:
+        if values[0][0] != None:
+          records = []
+          parameters = ['SimId','Description']
+          for record in values:
+            records += [[record[0], record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
+          return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+        elif values[0][1] != None:
+          records = []
+          parameters = ['DaqperiodId','Description']
+          for record in values:
+            records += [[record[1], record[9],record[10], record[11], record[12], record[13], record[14], record[15], record[16], record[17], record[18], record[19], record[20], record[21], record[22], record[23], record[24], record[25]]]
+          return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+        else:
+          return S_ERROR("Condition does not existis!")
+      else:
+        return S_ERROR("Condition does not existis!")
+    else:
+      return retVal
+  
+  #############################################################################
+  types_getProcessingPass = [StringType, StringType, StringType, StringType]
+  def export_getProcessingPass(self, configName, configVersion, conddescription, path):
+    return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, path)
+    
