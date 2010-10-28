@@ -47,6 +47,14 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
+  def setStepInputFiles(self, stepid, files):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def setStepOutputFiles(self, stepid, files):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
   def getStepOutputFiles(self, StepId):
     gLogger.error('This method is not implemented!')
   

@@ -49,6 +49,14 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getStepInputFiles(StepId)
   
   #############################################################################
+  def setStepInputFiles(self, stepid, files):
+    return self.getManager().setStepInputFiles(stepid, files)
+  
+  #############################################################################
+  def setStepOutputFiles(self, stepid, files):
+    return self.getManager().setStepOutputFiles(stepid, files)
+  
+  #############################################################################
   def getStepOutputFiles(self, StepId):
     return self.getManager().getStepOutputFiles(StepId)
   

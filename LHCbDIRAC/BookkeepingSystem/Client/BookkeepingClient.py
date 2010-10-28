@@ -88,6 +88,16 @@ class BookkeepingClient:
     return server.getStepInputFiles(int(StepId))
   
   #############################################################################
+  def setStepInputFiles(self, stepid, files):
+    server = self.__getServer()
+    return server.setStepInputFiles(stepid, files)
+  
+  #############################################################################
+  def setStepOutputFiles(self, stepid, files):
+    server = self.__getServer()
+    return server.setStepOutputFiles(stepid, files)
+  
+  #############################################################################
   def getStepOutputFiles(self, StepId):
     server = self.__getServer()
     return server.getStepOutputFiles(int(StepId))

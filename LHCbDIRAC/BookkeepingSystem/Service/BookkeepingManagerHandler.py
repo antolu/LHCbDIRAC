@@ -86,10 +86,18 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getAvailableSteps(self, dict = {}):
     retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible', 'OutputFileName','OutputFileNameVisible', 'InputFileName','InputFileNameVisible']
-      records = []
-      for record in retVal['Value']:
-        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12]]]
+      if dict.has_key('StepId'):
+        parameters = ['FileType', 'Visible']
+        records = []
+        for record in retVal['Value']:
+          value = [record[0], record[1]]
+          records += [value]
+      else:
+        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
+        records = []
+        for record in retVal['Value']:
+          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
+          records += [value]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])
@@ -106,11 +114,21 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
-    
+  
+  #############################################################################
+  types_setStepInputFiles = [IntType, ListType]
+  def export_setStepInputFiles(self, stepid, files): 
+    return dataMGMT_.setStepInputFiles(stepid, files)
+  
+  #############################################################################
+  types_setStepOutputFiles = [IntType, ListType]
+  def export_setStepOutputFiles(self, stepid, files): 
+    return dataMGMT_.setStepOutputFiles(stepid, files)
+  
   #############################################################################
   types_getStepOutputFiles = [IntType]
   def export_getStepOutputFiles(self, StepId):                    
-    retVal = dataMGMT_.getStepInputFiles(StepId)
+    retVal = dataMGMT_.getStepOutputFiles(StepId)
     if retVal['OK']:
       records = []
       parameters = ['FileType','Visible']

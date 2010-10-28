@@ -57,32 +57,56 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
     self.dbW_ = OracleDB(self.dbServer, self.dbPass, self.dbHost)
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
-
+  
   #############################################################################
   def getAvailableSteps(self, dict = {}):      
-
     condition = ''
-    selection = ' s.stepid, s.stepname, s.applicationname, s.applicationversion,s.optionfiles, s.dddb,s.conddb,s.extrapackages, s.visible,i.name,i.visible,o.name,o.visible '
+    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible'
     if len(dict) > 0:
-      tables = 'steps s, table(s.inputfiletypes)(+) i, table(s.outputfiletypes)(+) o'
+      tables = 'steps'
       if dict.has_key('StartDate'):
-        condition += ' s.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+        condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
         if len(condition) > 0:
           condition += ' and '
-        condition += ' s.stepid='+str(dict['StepId'])
-      
-      command = 'select '+selection+' from '+tables+' where '+condition+'order by s.inserttimestamps desc'
+        condition += ' stepid='+str(dict['StepId'])
+      if dict.has_key('InputFileTypes'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += ''
+      command = 'select '+selection+' from '+tables+' where '+condition+'order by inserttimestamps desc'
       return self.dbR_._query(command)
     else:
-      command = 'select '+selection+' from steps s, table(s.inputfiletypes)(+) i, table(s.outputfiletypes)(+) o order by s.inserttimestamps desc'
+      command = 'select '+selection+' from steps order by inserttimestamps desc'
       return self.dbR_._query(command)
   
   #############################################################################
   def getStepInputFiles(self, StepId):
     command = 'select inputFiletypes.name,inputFiletypes.visible from steps, table(steps.InputFileTypes) inputFiletypes where  steps.stepid='+str(StepId)
     return self.dbR_._query(command)
-          
+  
+  #############################################################################
+  def setStepInputFiles(self, stepid, files):
+    values = 'filetypesARRAY('
+    for i in files:
+      if i.has_key('Name') and i.has_key('Visible'):
+        values += 'ftype(\''+i['Name']+'\',\''+i['Visible']+'\'),'
+    values = values[:-1]
+    values +=')'
+    command = 'update steps set inputfiletypes='+values+' where stepid='+str(stepid)
+    return self.dbW_._query(command)
+      
+  #############################################################################
+  def setStepOutputFiles(self, stepid, files):
+    values = 'filetypesARRAY('
+    for i in files:
+      if i.has_key('Name') and i.has_key('Visible'):
+        values += 'ftype(\''+i['Name']+'\',\''+i['Visible']+'\'),'
+    values = values[:-1]
+    values +=')'
+    command = 'update steps set Outputfiletypes='+values+' where stepid='+str(stepid)
+    return self.dbW_._query(command)
+  
   #############################################################################
   def getStepOutputFiles(self, StepId):
     command = 'select outputfiletypes.name,outputfiletypes.visible from steps, table(steps.outputfiletypes) outputfiletypes where  steps.stepid='+str(StepId)
@@ -263,3 +287,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return S_OK(-1)
     else:
       return retVal
+  
+  def getProductions(self, configName, configVersion, conddescription, processing, evt):
+    pass
