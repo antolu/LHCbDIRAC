@@ -3,7 +3,13 @@
 ########################################################################
 
 """
-
+dict = {'EventTypeId': 93000000, 
+        'ConfigVersion': 'Collision10', 
+        'ProcessingPass': '/Real Data', 
+        'ConfigName': 'LHCb', 
+        'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+        'Production':7421
+         }
 """
 import DIRAC
 from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
@@ -121,3 +127,13 @@ class BookkeepingClient:
   def getProcessingPass(self, configName, configVersion, conddescription, path = '/'):
     server = self.__getServer()
     return server.getProcessingPass(configName, configVersion, conddescription, path)
+  
+  #############################################################################
+  def getProductions(self, dict):
+    server = self.__getServer()
+    return server.getProductions(dict)
+  
+  #############################################################################
+  def getFileTypes(self, dict):
+    server = self.__getServer()
+    return server.getFileTypes(dict)

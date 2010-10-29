@@ -69,3 +69,11 @@ class IBookkeepingDB(object):
   #############################################################################
   def getProcessingPass(self, configName, configVersion, conddescription, path):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductions(self, configName, configVersion, conddescription, processing, evt):
+     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
+    gLogger.error('This method is not implemented!')

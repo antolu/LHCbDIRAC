@@ -74,3 +74,11 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getProcessingPass(self, configName, configVersion, conddescription, path):
     return self.getManager().getProcessingPass(configName, configVersion, conddescription, path)
+  
+  #############################################################################
+  def getProductions(self, configName, configVersion, conddescription, processing, evt):
+    return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt)
+  
+  #############################################################################
+  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
+    return self.getManager().getFileTypes(configName, configVersion, conddescription, processing, evt, production)

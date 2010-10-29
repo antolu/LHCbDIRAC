@@ -93,11 +93,15 @@ class BookkeepingManagerHandler(RequestHandler):
           value = [record[0], record[1]]
           records += [value]
       else:
-        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','VisibilityFlag']
+        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visibile']
         records = []
         for record in retVal['Value']:
           value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
           records += [value]
+      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible']
+      records = []
+      for record in retVal['Value']:
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])
@@ -114,21 +118,11 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
-  
-  #############################################################################
-  types_setStepInputFiles = [IntType, ListType]
-  def export_setStepInputFiles(self, stepid, files): 
-    return dataMGMT_.setStepInputFiles(stepid, files)
-  
-  #############################################################################
-  types_setStepOutputFiles = [IntType, ListType]
-  def export_setStepOutputFiles(self, stepid, files): 
-    return dataMGMT_.setStepOutputFiles(stepid, files)
-  
+    
   #############################################################################
   types_getStepOutputFiles = [IntType]
   def export_getStepOutputFiles(self, StepId):                    
-    retVal = dataMGMT_.getStepOutputFiles(StepId)
+    retVal = dataMGMT_.getStepInputFiles(StepId)
     if retVal['OK']:
       records = []
       parameters = ['FileType','Visible']
@@ -220,3 +214,73 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProcessingPass(self, configName, configVersion, conddescription, path):
     return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, path)
     
+  #############################################################################
+  types_getProductions = [DictType]
+  def export_getProductions(self, dict):
+    configName = 'ALL'
+    configVersion='ALL' 
+    conddescription='ALL' 
+    processing='ALL'
+    evt='ALL'
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      processing = dict['ProcessingPass']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    retVal = dataMGMT_.getProductions(configName, configVersion, conddescription, processing, evt)
+    if retVal['OK']:
+      records = []
+      parameters = ['Production/RunNumber']
+      for record in retVal['Value']:
+        records += [[record[0]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal 
+  
+  #############################################################################
+  types_getFileTypes = [DictType]
+  def export_getFileTypes(self, dict):
+    configName = 'ALL'
+    configVersion='ALL' 
+    conddescription='ALL' 
+    processing='ALL'
+    evt='ALL'
+    production = 'ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      processing = dict['ProcessingPass']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    
+    retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, production)
+    if retVal['OK']:
+      records = []
+      parameters = ['FileTypes']
+      for record in retVal['Value']:
+        records += [[record[0]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal

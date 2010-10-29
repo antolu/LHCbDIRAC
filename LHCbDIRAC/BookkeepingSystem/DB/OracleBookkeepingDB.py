@@ -17,6 +17,10 @@ import datetime
 import types
 global ALLOWED_ALL 
 ALLOWED_ALL = 2
+
+global default 
+default = 'ALL'
+
 class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
@@ -66,14 +70,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tables = 'steps'
       if dict.has_key('StartDate'):
         condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\''+dict['StartDate']+'\',\'YYYY-MM-DD HH24:MI:SS\')'
-      if dict.has_key('StepId'):
+      if dict.has_key('StepId'): 
         if len(condition) > 0:
           condition += ' and '
         condition += ' stepid='+str(dict['StepId'])
       if dict.has_key('InputFileTypes'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += ''
+        return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps',[],True,dict['InputFileTypes'])
       command = 'select '+selection+' from '+tables+' where '+condition+'order by inserttimestamps desc'
       return self.dbR_._query(command)
     else:
@@ -215,21 +217,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ' and newbookkeepingview.configname=\''+str(configName)+'\' and \
       newbookkeepingview.configversion=\''+str(configVersion)+'\''
       
-    retVal = self._getDataTakingConditionId(conddescription)
+    retVal = self._getConditionString(conddescription)
     if retVal['OK']:
-      if retVal['Value'] != -1:
-        condition += ' and productionscontainer.DAQPERIODID ='+str(retVal['Value'])
-      else:
-        retVal = self._getSimulationConditioId(conddescription)
-        if retVal['OK']:
-          if retVal['Value'] != -1:
-           condition += ' and productionscontainer.simid ='+str(retVal['Value'])
-          else:
-            return S_ERROR('Condition does not exists!') 
-        else:
-          return retVal
+      condition = retVal['Value']
     else:
       return retVal
+    
     proc = path.split('/')[len(path.split('/'))-1]
     if proc != '':
       command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,newbookkeepingview,productionscontainer,processing where \
@@ -262,8 +255,27 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     return S_OK([{'ParameterNames':pparameters,'Records':precords,'TotalRecords':len(precords)},{'ParameterNames':eparameters,'Records':erecords,'TotalRecords':len(erecords)}])
      
+  
+  ############################################################################# 
+  def _getConditionString(self, conddescription, table ='productionscontainer'):  
+    condition = ''
+    retVal = self._getDataTakingConditionId(conddescription)
+    if retVal['OK']:
+      if retVal['Value'] != -1:
+        condition += ' and '+table+'.DAQPERIODID ='+str(retVal['Value'])
+      else:
+        retVal = self._getSimulationConditioId(conddescription)
+        if retVal['OK']:
+          if retVal['Value'] != -1:
+           condition += ' and '+table+'.simid ='+str(retVal['Value'])
+          else:
+            return S_ERROR('Condition does not exists!') 
+        else:
+          return retVal
+    else:
+      return retVal
+    return S_OK(condition)
     
-      
   #############################################################################
   def _getDataTakingConditionId(self, desc):
     command = 'select DAQPERIODID from data_taking_conditions where DESCRIPTION=\''+str(desc)+'\''
@@ -288,5 +300,63 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       return retVal
   
-  def getProductions(self, configName, configVersion, conddescription, processing, evt):
-    pass
+  #############################################################################
+  def getProductions(self, configName, configVersion, conddescription=default, processing=default, evt=default):
+    condition = ' and bview.configname=\''+configName+'\' and \
+                  bview.configversion=\''+configVersion+'\''
+    
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'pcont')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+    
+    if evt != default:
+      condition += ' and bview.eventtypeid=90000000'
+    
+    if processing != default:
+      command = "select distinct pcont.production from \
+                 productionscontainer pcont,newbookkeepingview bview \
+                 where pcont.processingid in \
+                    (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='"+processing+"') \
+                  and bview.production=pcont.production "+condition
+    else:
+      command = "select distinct pcont.production from productionscontainer pcont,newbookkeepingview bview where \
+                 bview.production=pcont.production "+condition
+    return self.dbR_._query(command)
+  
+  #############################################################################
+  def getFileTypes(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default):
+    condition = ' and bview.configname=\''+configName+'\' and \
+                  bview.configversion=\''+configVersion+'\' '
+    
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'pcont')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+    
+    if evt != default:
+      condition += ' and bview.eventtypeid=90000000'
+    
+    if production != default:
+      condition += ' and bview.production='+str(production)
+    if processing != default:
+      command = "select distinct ftypes.name from \
+                 productionscontainer pcont,newbookkeepingview bview, filetypes ftypes  \
+                 where pcont.processingid in \
+                    (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='"+processing+"') \
+                  and bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
+    else:
+      command = "select distinct ftypes.name  from productionscontainer pcont, newbookkeepingview bview,  filetypes ftypes where \
+                 bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
+    return self.dbR_._query(command)
+  
