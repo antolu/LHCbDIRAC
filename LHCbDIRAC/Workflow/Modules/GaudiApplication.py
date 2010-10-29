@@ -12,6 +12,7 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs,_makeProductionLfn,_getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions,getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment,addCommandDefaults,createDebugScript
+from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis         import getDaVinciStreamEvents
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
@@ -273,7 +274,7 @@ class GaudiApplication(ModuleBase):
     finalOutputs=[]
     toMatch = ''
     outputDataSE = ''
-    checkEvents = {}
+    bkFileTypes = []
     for output in self.stepOutputs:
       if output['outputDataType']=='dst' or output['outputDataType']=='mdst':
         outputDataSE = output['outputDataSE']
@@ -287,12 +288,12 @@ class GaudiApplication(ModuleBase):
             strippingFiles.append(check)
         for f in strippingFiles:
           bkType = string.upper(string.join(string.split(f,'.')[1:],'.'))
-          fileType = string.lower(bkType.split('.')[0])
-          checkEvents[bkType]=fileType
+          bkFileTypes.append(bkType)
           outputDataType = string.upper(output['outputDataType'])
           finalOutputs.append({'outputDataName':f,'outputDataType':outputDataType,'outputDataSE':outputDataSE,'outputBKType':bkType})
       else:
         finalOutputs.append(output)
+        
     self.log.info('Final step outputs are: %s' %(finalOutputs))
     if self.workflow_commons.has_key('outputList'):
       self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
@@ -310,25 +311,9 @@ class GaudiApplication(ModuleBase):
     self.step_commons['listoutput']=finalOutputs
     
     #Now will attempt to find the number of output events per stream and convey them via the workflow commons dictionary
-    fopen = open(self.applicationLog,'r')
-    lines = fopen.readlines()
-    fopen.close()
-    
-    streamEvents = {}
-    for line in lines:
-      if re.search('OStream\.',line) or re.search('DSTWriter',line):
-        for bkType,typeToMatch in checkEvents.items():
-          if re.search(' \sostream\.%s ' %(typeToMatch),string.lower(line)) or re.search(' \sdstwriter%s\s ' %(typeToMatch),string.lower(line)):
-            try:
-              #2010-03-17 13:16:48 UTC TimingAuditor.T...   INFO     OStream.Bhadron           |   634.903 |  1424.462 |  170.182    6128.6 |       5 |     7.122 |
-              self.log.verbose('Checking " %s "' %(line.strip()))
-              eventsForStream = line.strip().replace('|',' ').split()[-2] #only lines like the above comment have the full stream name printed...
-              streamEvents[bkType] = eventsForStream
-              self.log.info('Found %s events for output stream %s' %(eventsForStream,bkType))
-            except Exception,x:
-              self.log.error('Could not extract stream events from DaVinci log file... something has changed\n"%s" => "%s"' %(line,x))
-
-    if streamEvents:
+    streamEvents = getDaVinciStreamEvents(self.applicationLog,bkFileTypes,toMatch)
+    if streamEvents['OK']:
+      streamEvents = streamEvents['Value']
       self.workflow_commons['StreamEvents']=streamEvents
 
     return S_OK()
