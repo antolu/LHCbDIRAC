@@ -536,4 +536,67 @@ def checkDaVinciEvents(logString):
     
   return S_OK()
 
+#############################################################################
+def getDaVinciStreamEvents(logFile,bkFileTypes,prodJobID):
+  """ Get the number of stream file events, intended to work for both MDST 
+      and DST streams.  The arguments are the path to a log file, list of BK
+      file types to check for and finally the production ID and job ID string
+      created by DIRAC.  
+      
+      Initially this was a workaround in GaudiApplication but is now the default
+      way of handling the streams.  With the method in this utility at least the
+      event counting can now be tested outside of running jobs.
+  """
+
+  fopen = open(logFile,'r')
+  lines = fopen.readlines()
+  fopen.close()  
+  
+  checkStreams = {}
+  for bk in bkFileTypes:
+    if re.search('.',bk):
+      bk = bk.split('.')[0]
+    checkStreams[bk]=string.lower(bk)
+  
+  #Here we rely on there being a string "Events output" in the lines we are interested in
+  davinciStringsToCheck = ['Events output']  
+  
+  candidateLines = []
+  #First get the candidate lines (DaVinci logs can be huge)
+  for line in lines:
+    for check in davinciStringsToCheck:
+      if re.search(check,line):
+        candidateLines.append(line)
+
+  if not candidateLines:
+    gLogger.warn('No candidate lines were found to match the following BK types: %s' %(string.join(bkFileTypes,', ')))
+    return S_ERROR('No matching lines found in log file') 
+
+  streamEvents = {}  
+
+  #The lines to match frequently change for DaVinci but those being used are currently:
+  #2010-10-23 03:28:35 UTC Bhadron_OStream      INFO Events output: 196
+  #N.B. OStream gets shortened e.g. so can't be used as a hook...
+  #2010-10-12 10:12:31 UTC Bd2JpsiKstar_OS...   INFO Events output: 399
+
+  for line in candidateLines:
+    loweredLine = string.lower(line)       
+    for bkType,typeToMatch in checkStreams.items():
+      # N.B. the full stream name must at least be present in the log line
+      if re.search('%s\S+\s+\S+\s+events output' %(typeToMatch),loweredLine):
+        try:
+          gLogger.verbose('Checking " %s "' %(line.strip()))
+          eventsForStream = line.strip().split(' ')[-1]
+          streamEvents[bkType] = eventsForStream
+          gLogger.info('Found %s events for output stream %s' %(eventsForStream,bkType))
+        except Exception,x:
+          gLogger.error('Could not extract stream events from DaVinci log file... something has changed\n"%s" => "%s"' %(line,x))
+
+  for bk in checkStreams.values():
+    bk = bk.upper()
+    if not streamEvents.has_key(bk):
+      gLogger.warn('No number of events was found for output stream "%s", check the DaVinci log' %(bk))
+                    
+  return S_OK(streamEvents)
+
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
