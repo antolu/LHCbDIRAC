@@ -82,3 +82,8 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
     return self.getManager().getFileTypes(configName, configVersion, conddescription, processing, evt, production)
+  
+  #############################################################################
+  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+    return self.getManager().getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality)
+  

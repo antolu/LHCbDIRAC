@@ -77,3 +77,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+    gLogger.error('This method is not implemented!')

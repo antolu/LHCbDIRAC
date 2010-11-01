@@ -114,19 +114,19 @@ class BookkeepingClient:
     return server.getAvailableConfigNames()
   
   #############################################################################
-  def getConfigVersions(self, configname):
+  def getConfigVersions(self, dict):
     server = self.__getServer()
-    return server.getConfigVersions(configname)
+    return server.getConfigVersions(dict)
   
   #############################################################################
-  def getConditions(self, configName, configVersion):
+  def getConditions(self, dict):
     server = self.__getServer()
-    return server.getConditions(configName, configVersion)
+    return server.getConditions(dict)
   
   #############################################################################
-  def getProcessingPass(self, configName, configVersion, conddescription, path = '/'):
+  def getProcessingPass(self, dict, path = '/'):
     server = self.__getServer()
-    return server.getProcessingPass(configName, configVersion, conddescription, path)
+    return server.getProcessingPass(dict, path)
   
   #############################################################################
   def getProductions(self, dict):
@@ -137,3 +137,19 @@ class BookkeepingClient:
   def getFileTypes(self, dict):
     server = self.__getServer()
     return server.getFileTypes(dict)
+  
+  #############################################################################
+  def getFiles(self, dict):
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
+    s = cPickle.dumps(dict)
+    file = tempfile.NamedTemporaryFile()
+    params = str(s)
+    result = bkk.receiveFile(file.name, params)
+    if not result['OK']:
+      return result
+    else:
+      value = cPickle.load(open(file.name))
+      file.close()
+      return S_OK(value)
+    return S_ERROR()
+  

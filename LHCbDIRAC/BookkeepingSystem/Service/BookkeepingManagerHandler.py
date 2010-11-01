@@ -171,9 +171,14 @@ class BookkeepingManagerHandler(RequestHandler):
       return retVal
     
   #############################################################################
-  types_getConfigVersions = [StringType]
-  def export_getConfigVersions(self, configname):
-    retVal =  dataMGMT_.getConfigVersions(configname)
+  types_getConfigVersions = [DictType]
+  def export_getConfigVersions(self, dict):
+    
+    configName = 'ALL'
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+      
+    retVal =  dataMGMT_.getConfigVersions(configName)
     if retVal['OK']:
       records = []
       parameters = ['Configuration Version']
@@ -184,8 +189,17 @@ class BookkeepingManagerHandler(RequestHandler):
       return retVal
   
  #############################################################################
-  types_getConditions = [StringType, StringType ]
-  def export_getConditions(self, configName, configVersion):
+  types_getConditions = [DictType]
+  def export_getConditions(self, dict):
+    configName = 'ALL'
+    configVersion='ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
     retVal =  dataMGMT_.getConditions(configName, configVersion)
     if retVal['OK']:
       values = retVal['Value']
@@ -210,8 +224,21 @@ class BookkeepingManagerHandler(RequestHandler):
       return retVal
   
   #############################################################################
-  types_getProcessingPass = [StringType, StringType, StringType, StringType]
-  def export_getProcessingPass(self, configName, configVersion, conddescription, path):
+  types_getProcessingPass = [DictType, StringType]
+  def export_getProcessingPass(self, dict, path):
+    configName = 'ALL'
+    configVersion='ALL'
+    conddescription='ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
     return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, path)
     
   #############################################################################
@@ -284,3 +311,57 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
+    
+  #############################################################################
+  def transfer_toClient( self, parameters, token, fileHelper ):
+    dict = cPickle.loads(parameters)
+    configName = 'ALL'
+    configVersion='ALL' 
+    conddescription='ALL' 
+    processing='ALL'
+    evt='ALL'
+    production = 'ALL'
+    filetype = 'ALL'
+    quality = 'ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      processing = dict['ProcessingPass']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    
+    if dict.has_key('FileType'):
+      filetype = dict['FileType']
+    
+    if dict.has_key('Quality'):
+      quality = dict['Quality']
+      
+    retVal = dataMGMT_.getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality)  
+    if retVal['OK']:
+      records = []
+      parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
+    'EventInputstat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
+      for record in retVal['Value']:
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13],record[14],record[15]]]
+      result = {'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)}
+      fileString = cPickle.dumps(result, protocol=2)
+      result = fileHelper.stringToNetwork(fileString)  
+      if result['OK']:
+        gLogger.info('Sent file %s of size %d' % (str(dict),len(fileString)))
+      else:
+        return result
+    else:
+      return retVal
+    return S_OK()

@@ -360,3 +360,66 @@ class OracleBookkeepingDB(IBookkeepingDB):
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
     return self.dbR_._query(command)
   
+  #############################################################################
+  def getFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default):
+    condition = ' and c.ConfigName=\''+configName+'\' and \
+                  c.configversion=\''+configVersion+'\' '
+    
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+    
+    if evt != default:
+      condition += ' and f.eventtypeid='+str(evt)
+    
+    if production != default:
+      condition += ' and j.production='+str(production)
+    
+    if filetype != default:
+      condition += "  and ftypes.name='"+str(filetype)+"'"
+    
+    if quality != 'ALL':
+      if type(quality) == types.StringType:
+        command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        condition += ' and f.qualityid='+str(quality)
+      else:
+        conds = ' ('
+        for i in quality:
+          quality = None
+          command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' f.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      
+    if processing != default:
+      condition += " and prod.processingid=(\
+      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
+      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
+      where v.path='"+processing+"')"
+    
+    command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
+    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
+    j.jobid=f.jobid and \
+    ftypes.filetypeid=f.filetypeid and \
+    d.qualityid=f.qualityid and \
+    f.gotreplica='Yes' and \
+    j.configurationid=c.configurationid and \
+    j.production=prod.production"+condition
+    return self.dbR_._query(command)
