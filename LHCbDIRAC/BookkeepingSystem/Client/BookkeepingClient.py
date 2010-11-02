@@ -157,3 +157,269 @@ class BookkeepingClient:
   def getAvailableDataQuality(self):
     server = self.__getServer()
     return server.getAvailableDataQuality()
+  
+  #############################################################################
+  def getAvailableProductions(self):
+     server = self.__getServer()
+     result = server.getAvailableProductions()
+     return result
+  
+  #############################################################################
+  def getAvailableRuns(self):
+    server = self.__getServer()
+    result = server.getAvailableRuns()
+  
+  #############################################################################
+  def getAvailableEventTypes(self):
+    server = self.__getServer()
+    result = server.getAvailableEventTypes()
+    return result
+  
+  #############################################################################
+  def getMoreProductionInformations(self, prodid):
+    server = self.__getServer()
+    result = server.getMoreProductionInformations(prodid)
+    return result
+  
+  #############################################################################
+  def getJobInfo(self, lfn):
+    server = self.__getServer()
+    result = server.getJobInfo(lfn)
+    return result
+
+  #############################################################################
+  def getRunNumber(self, lfn):
+    server = self.__getServer()
+    result = server.getRunNumber(lfn)
+    return result
+  
+  #############################################################################
+  def getProductionFiles(self, prod, fileType, replica='ALL'):
+    server = self.__getServer()
+    result = server.getProductionFiles(int(prod), fileType, replica)
+    return result
+  
+  #############################################################################
+  def getFilesForAGivenProduction(self, dict):
+    server = self.__getServer()
+    result = server.getFilesForAGivenProduction(dict)
+    return result
+  
+  #############################################################################
+  def getAvailableRunNumbers(self):
+    server = self.__getServer()
+    return server.getAvailableRunNumbers()
+  
+  #############################################################################
+  def getRunFiles(self, runid):
+    server = self.__getServer()
+    result = server.getRunFiles(runid)
+    return result
+
+  #############################################################################
+  def updateFileMetaData(self, filename, filesAttr):
+    server = self.__getServer()
+    return server.updateFileMetaData( filename, filesAttr)
+
+  #############################################################################
+  def renameFile(self, oldLFN, newLFN):
+    server = self.__getServer()
+    return server.renameFile(oldLFN, newLFN)
+
+  #############################################################################
+  def getInputAndOutputJobFiles(self, jobids):
+    server = self.__getServer()
+    return server.getInputAndOutputJobFiles(jobids)
+  
+  #############################################################################
+  def getJobsIds(self, filelist):
+    server = self.__getServer()
+    return server.getJobsIds(filelist)
+
+  #############################################################################
+  def insertTag(self, values):
+    server = self.__getServer()
+    result = server.insertTag(values)
+    return result
+
+  #############################################################################
+  def setQuality(self, lfns, flag):
+    if type(lfns) == types.StringType:
+      lfns = [lfns]
+    server = self.__getServer()
+    result = server.setQuality(lfns, flag)
+    return result
+
+  #############################################################################
+  def setRunQualityWithProcessing(self, runNB, procpass, flag):
+    server = self.__getServer()
+    result = server.setRunQualityWithProcessing(long(runNB), procpass, flag)
+    return result
+  
+  #############################################################################
+  def setQualityRun(self, runNb, flag):
+    server = self.__getServer()
+    result = server.setQualityRun(runNb, flag)
+    return result
+  
+  #############################################################################
+  def setQualityProduction(self, prod, flag):
+    server = self.__getServer()
+    result = server.setQualityProduction(prod, flag)
+    return result
+  
+  #############################################################################
+  def getSimCondIDWhenFileName(self, fileName):
+    server = self.__getServer()
+    result = server.getSimCondIDWhenFileName(fileName)
+    return result
+  
+  #############################################################################
+  def getLFNsByProduction(self, prodid):
+    server = self.__getServer()
+    return server.getLFNsByProduction(long(prodid))
+  
+  #############################################################################
+  def getAncestors(self, lfns, depth=1):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAncestors([lfns], depth)
+    else:
+      result = server.getAncestors(lfns, depth)
+    return result
+
+  #############################################################################
+  def getAllAncestors(self, lfns, depth=1):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAllAncestors([lfns], depth)
+    else:
+      result = server.getAllAncestors(lfns, depth)
+    return result
+  
+  #############################################################################
+  def getAllAncestorsWithFileMetaData(self, lfns, depth=1):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAllAncestorsWithFileMetaData([lfns], depth)
+    else:
+      result = server.getAllAncestorsWithFileMetaData(lfns, depth)
+    return result
+  
+  #############################################################################
+  def getAllDescendents(self, lfns, depth = 0, production=0, checkreplica=False):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getAllDescendents([lfns], depth, production, checkreplica)
+    else:
+      result = server.getAllDescendents(lfns, depth, production, checkreplica)
+    return result
+  
+  #############################################################################
+  def getDescendents(self, lfns, depth=0):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.getDescendents([lfns], depth)
+    else:
+      result = server.getDescendents(lfns, depth)
+    return result
+  
+  #############################################################################
+  def checkfile(self, fileName):
+     server = self.__getServer()
+     result = server.checkfile(fileName)
+     return result
+
+   #############################################################################
+  def checkFileTypeAndVersion(self, type, version):
+     server = self.__getServer()
+     result = server.checkFileTypeAndVersion(type, version)
+     return result
+
+  #############################################################################
+  def checkEventType(self, eventTypeId):
+     server = self.__getServer()
+     result = server.checkEventType(lonhg(eventTypeId))
+     return result
+
+  #############################################################################
+  def insertJob(self, job):
+     server = self.__getServer()
+     result = server.insertJob(job)
+     return result
+  
+  #############################################################################
+  def insertInputFile(self, jobID, FileId):
+     server = self.__getServer()
+     result = server.insertInputFile(long(jobID), long(FileId))
+     return result
+  
+    #############################################################################
+  def insertOutputFile(self, file):
+     server = self.__getServer()
+     result = server.insertOutputFile(self, file)
+     return result
+
+  #############################################################################
+  def updateReplicaRow(self, fileID, replica):
+     server = self.__getServer()
+     result = server.updateReplicaRow(long(fileID), replica)
+     return result
+
+  #############################################################################
+  def deleteJob(self, job):
+    server = self.__getServer()
+    result = server.deleteJob(long(job))
+    return result
+  
+  #############################################################################
+  def deleteInputFiles(self, jobid):
+     server = self.__getServer()
+     result = server.deleteInputFiles(long(jobid))
+     return result
+  
+  #############################################################################
+  def deleteFiles(self, lfns):
+    server = self.__getServer()
+    result = server.deleteFiles(lfns)
+    return result
+  
+  #############################################################################
+  def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    server = self.__getServer()
+    result = server.insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+    return result
+  
+  #############################################################################
+  def getSimConditions(self):
+    server = self.__getServer()
+    result = server.getSimConditions()
+    return result
+  
+  #############################################################################
+  def removeReplica(self, fileName):
+    server = self.__getServer()
+    return server.removeReplica(fileName)
+  
+  #############################################################################
+  def getFileMetadata(self, lfns):
+    server = self.__getServer()
+    return server.getFileMetadata(lfns)
+
+  #############################################################################
+  def getFilesInformations(self,lfns):
+    server = self.__getServer()
+    return server.getFilesInformations(lfns)
+  
+  #############################################################################
+  def getFileMetaDataForUsers(self, lfns):
+    server = self.__getServer()
+    result = server.getFileMetaDataForUsers(lfns)
+    return result
+  
+

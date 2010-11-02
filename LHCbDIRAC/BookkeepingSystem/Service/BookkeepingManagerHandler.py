@@ -371,3 +371,230 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getAvailableDataQuality = []
   def export_getAvailableDataQuality(self):
     return dataMGMT_.getAvailableDataQuality()
+  
+  #############################################################################
+  types_getAvailableProductions = []
+  def export_getAvailableProductions(self): 
+    return dataMGMT_.getAvailableProductions()
+  
+  #############################################################################
+  types_getAvailableRuns = []
+  def export_getAvailableRuns(self):
+    return dataMGMT_.getAvailableRuns()
+  
+  #############################################################################  
+  types_getAvailableEventTypes = []
+  def export_getAvailableEventTypes(self):
+    return dataMGMT_.getAvailableEventTypes()
+  
+  #############################################################################
+  types_getMoreProductionInformations = [IntType]
+  def export_getMoreProductionInformations(self, prodid):
+    return dataMGMT_.getMoreProductionInformations(prodid)
+  
+  #############################################################################
+  types_getJobInfo = [StringType]
+  def export_getJobInfo(self, lfn):
+    return dataMGMT_.getJobInfo(lfn)
+  
+  #############################################################################
+  types_getRunNumber = [StringType]
+  def export_getRunNumber(self, lfn):
+    return dataMGMT_.getRunNumber(lfn)
+  
+  #############################################################################  
+  types_getProductionFiles = [IntType, StringType]
+  def export_getProductionFiles(self, prod, fileType, replica='ALL'):
+    return dataMGMT_.getProductionFiles(int(prod), fileType, replica)
+  
+  #############################################################################
+  types_getFilesForAGivenProduction= [DictType]
+  def export_getFilesForAGivenProduction(self, dict):
+    return dataMGMT_.getFilesForAGivenProduction(dict)
+  
+  #############################################################################
+  types_getAvailableRunNumbers = []
+  def export_getAvailableRunNumbers(self):
+    return dataMGMT_.getAvailableRunNumbers()
+  
+  #############################################################################
+  types_getRunFiles = [IntType]
+  def export_getRunFiles(self, runid):
+    return dataMGMT_.getRunFiles(runid)
+  
+  #############################################################################
+  types_updateFileMetaData = [StringType, DictType]
+  def export_updateFileMetaData(self, filename, filesAttr):
+    return dataMGMT_.updateFileMetaData(filename, filesAttr)
+  
+  #############################################################################
+  types_renameFile = [StringType, StringType]
+  def export_renameFile(self, oldLFN, newLFN):
+    return dataMGMT_.renameFile(oldLFN, newLFN)
+  
+  #############################################################################
+  types_getInputAndOutputJobFiles = [ListType]
+  def export_getInputAndOutputJobFiles(self, jobids):
+    return dataMGMT_.getInputAndOutputJobFiles(jobids)
+  
+  #############################################################################
+  types_getJobsIds = [ListType]
+  def export_getJobsIds(self, filelist):
+    return dataMGMT_.getJobsIds(filelist)
+  
+  #############################################################################
+  types_insertTag = [DictType]
+  def export_insertTag(self, values):
+    successfull = {}
+    faild = {} 
+    
+    for i in values:
+      tags = values[i]
+      for tag in tags:
+        retVal = dataMGMT_.existsTag(i, tag)
+        if retVal['OK'] and not retVal['Value']:
+          retVal = dataMGMT_.insertTag(i, tag)
+          if not retVal['OK']:
+            faild[tag]=i
+          else:
+            successfull[tag]=i
+        else:
+          faild[tag]=i
+    return S_OK({'Successfull':successfull, 'Faild':faild})
+  
+  #############################################################################  
+  types_setQuality = [ListType, StringType]
+  def export_setQuality(self, lfns, flag):
+    return dataMGMT_.setQuality(lfns, flag)
+  
+  #############################################################################
+  types_setRunQualityWithProcessing = [LongType,StringType,StringType]
+  def export_setRunQualityWithProcessing(self, runNB, procpass, flag):
+    return dataMGMT_.setRunQualityWithProcessing(runNB, procpass, flag)
+  
+  #############################################################################  
+  types_setQualityRun = [IntType, StringType]
+  def export_setQualityRun(self, runNb, flag):
+    return dataMGMT_.setQualityRun(runNb, flag)
+  
+  #############################################################################  
+  types_setQualityProduction = [IntType, StringType]
+  def export_setQualityProduction(self, prod, flag):
+    return dataMGMT_.setQualityProduction(prod, flag)
+  
+  #############################################################################
+  types_getSimCondIDWhenFileName = [StringType]
+  def export_getSimCondIDWhenFileName(self, fileName):
+    return dataMGMT_.getSimCondIDWhenFileName(fileName)
+  
+  #############################################################################
+  types_getLFNsByProduction = [LongType]
+  def export_getLFNsByProduction(self, prodid):
+    return dataMGMT_.getLFNsByProduction(prodid)
+  
+  #############################################################################
+  types_getAncestors = [ListType, IntType]
+  def export_getAncestors(self, lfns, depth):
+    return dataMGMT_.getAncestors(lfns, depth)
+  
+  #############################################################################
+  types_getAllAncestors = [ListType, IntType]
+  def export_getAllAncestors(self, lfns, depth):
+    return dataMGMT_.getAllAncestors(lfns, depth)
+  
+  #############################################################################
+  types_getAllAncestorsWithFileMetaData = [ListType, IntType]
+  def export_getAllAncestorsWithFileMetaData(self, lfns, depth):
+    return dataMGMT_.getAllAncestorsWithFileMetaData(lfns, depth)
+  
+  #############################################################################
+  types_getAllDescendents = [ListType, IntType, IntType, BooleanType]
+  def export_getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
+    return dataMGMT_.getAllDescendents(lfn, depth, production, checkreplica)
+  
+  #############################################################################
+  types_getDescendents = [ListType, IntType]
+  def export_getDescendents(self, lfn, depth):
+    return dataMGMT_.getDescendents(lfn, depth)
+  
+  #############################################################################
+  types_checkfile = [StringType]
+  def export_checkfile(self, fileName):
+    return dataMGMT_.checkfile(fileName)
+  
+  #############################################################################
+  types_checkFileTypeAndVersion = [StringType, StringType]
+  def export_checkFileTypeAndVersion(self, type, version):
+    return dataMGMT_.checkFileTypeAndVersion(type, version)
+  
+  #############################################################################
+  types_checkEventType = [LongType]
+  def export_checkEventType(self, eventTypeId): 
+    return dataMGMT_.checkEventType(eventTypeId)
+  
+  #############################################################################
+  types_insertJob =[DictType]
+  def export_insertJob(self, job):
+    return dataMGMT_.insertJob(job)
+  
+  #############################################################################
+  types_insertInputFile = [LongType, LongType]
+  def export_insertInputFile(self, jobID, FileId):
+    return dataMGMT_.insertInputFile(jobID, FileId)
+  
+  #############################################################################
+  types_insertOutputFile = [DictType]
+  def export_insertOutputFile(self, file):
+    return dataMGMT_.insertOutputFile(file)  
+  
+  #############################################################################
+  types_updateReplicaRow = [LongType, StringType]
+  def export_updateReplicaRow(self, fileID, replica):
+    return dataMGMT_.updateReplicaRow(self, fileID, replica)
+  
+  types_deleteJob = [LongType]
+  def export_deleteJob(self, job):
+    return dataMGMT_.deleteJob(job)  
+  
+  #############################################################################
+  types_deleteInputFiles = [LongType]
+  def export_deleteInputFiles(self, jobid):
+    return dataMGMT_.deleteInputFiles(long(jobid))
+  
+  #############################################################################
+  types_deleteFiles = [ListType]
+  def export_deleteFiles(self, lfns):
+    return dataMGMT_.deleteFiles(lfns)
+  
+  #############################################################################
+  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insertSimConditions(self, simdesc,BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
+    return dataMGMT_.insertSimConditions(simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity)
+  
+  #############################################################################
+  types_getSimConditions = []
+  def export_getSimConditions(self):
+    return dataMGMT_.getSimConditions()
+  
+  #############################################################################
+  types_removeReplica = [StringType]
+  def export_removeReplica(self, fileName):
+    return dataMGMT_.removeReplica(fileName)
+  
+  #############################################################################
+  types_getFileMetadata = [ListType]
+  def export_getFileMetadata(self, lfns):
+    return dataMGMT_.getFileMetadata(lfns)
+  
+  #############################################################################
+  types_getFilesInformations = [ListType]
+  def export_getFilesInformations(self,lfns):
+    return dataMGMT_.getFilesInformations(lfns)
+  
+  #############################################################################  
+  types_getFileMetaDataForUsers = [ListType]
+  def export_getFileMetaDataForUsers(self, lfns):
+    res = dataMGMT_.getFileMetaDataForUsers(lfns)
+    return res
+  
+  
