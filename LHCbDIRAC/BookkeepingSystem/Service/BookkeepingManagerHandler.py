@@ -206,13 +206,14 @@ class BookkeepingManagerHandler(RequestHandler):
       if len(values) > 0:
         if values[0][0] != None:
           records = []
-          parameters = ['SimId','Description']
+          parameters = ['SimId','Description', 'BeamCondition', 'BeamEnergy', 'Generator', 'MagneticField', 'DetectorCondition', 'Luminosity' ]
           for record in values:
-            records += [[record[0], record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
+            records += [[record[0], record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
           return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
         elif values[0][1] != None:
           records = []
-          parameters = ['DaqperiodId','Description']
+          parameters = ['DaqperiodId','Description', 'BeamCondition','BeanEnergy','MagneticField', 'VELO', 'IT', 'TT', 'OT','RICH1',
+                        'RICH2', 'SPD_PRS', 'ECAL', 'HCAL', 'MUON', 'L0', 'HLT', 'VeloPosition']
           for record in values:
             records += [[record[1], record[9],record[10], record[11], record[12], record[13], record[14], record[15], record[16], record[17], record[18], record[19], record[20], record[21], record[22], record[23], record[24], record[25]]]
           return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
