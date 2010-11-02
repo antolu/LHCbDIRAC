@@ -204,7 +204,7 @@ class LHCB_BKKDBManager(BaseESManager):
         level+=1
         try: 
           result = type(long(i)) == types.LongType
-          if result:
+          if start and result:
             end = True 
         except Exception,ex:
           pass #print 'i',ex     
