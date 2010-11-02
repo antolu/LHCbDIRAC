@@ -417,8 +417,9 @@ class LHCB_BKKDBManager(BaseESManager):
       if dbResult[1]['TotalRecords'] > 0:
         value = {}
         for record in dbResult[1]['Records']:  
-          value = {'EventTypeid':record[0],'Description':record[1]} 
-          entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Processing Pass')] 
+          value = {'Event Type':record[0],'Description':record[1]} 
+          entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types')]
+        self._cacheIt(entityList) 
     else:
       gLogger.error(result['Message'])
     return entityList

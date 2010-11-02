@@ -366,3 +366,8 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       return retVal
     return S_OK()
+  
+  #############################################################################  
+  types_getAvailableDataQuality = []
+  def export_getAvailableDataQuality(self):
+    return dataMGMT_.getAvailableDataQuality()

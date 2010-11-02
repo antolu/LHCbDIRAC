@@ -153,3 +153,7 @@ class BookkeepingClient:
       return S_OK(value)
     return S_ERROR()
   
+  #############################################################################  
+  def getAvailableDataQuality(self):
+    server = self.__getServer()
+    return server.getAvailableDataQuality()
