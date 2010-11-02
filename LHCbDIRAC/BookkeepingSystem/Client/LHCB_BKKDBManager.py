@@ -404,7 +404,7 @@ class LHCB_BKKDBManager(BaseESManager):
   def clevelBody_3(self, path, levels, dict, procpass):
     entityList = list()
     result = self.db_.getProcessingPass(dict, procpass)
-    print result
+    
     if result['OK']:
       dbResult = result['Value']
       if dbResult[0]['TotalRecords'] > 0: # it is a processing pass
