@@ -342,7 +342,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return retVal
     
     if evt != default:
-      condition += ' and bview.eventtypeid=90000000'
+      condition += ' and bview.eventtypeid='+str(evt)
     
     if production != default:
       condition += ' and bview.production='+str(production)
@@ -423,3 +423,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
     j.configurationid=c.configurationid and \
     j.production=prod.production"+condition
     return self.dbR_._query(command)
+  
+  #############################################################################  
+  def getAvailableDataQuality(self):
+    command = ' select dataqualityflag from dataquality'
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    flags = retVal['Value']
+    result = []
+    for i in flags:
+      result += [i[0]]
+    return S_OK(result)
+  
