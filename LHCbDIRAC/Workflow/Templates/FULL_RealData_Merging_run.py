@@ -52,20 +52,21 @@ recoCPU = '{{RecoMaxCPUTime#Reconstruction Max CPU time in secs#1000000}}'
 recoPlugin = '{{RecoPluginType#Reconstruction production plugin name#AtomicRun}}'
 recoAncestorProd = '{{RecoAncestorProd#Reconstruction ancestor production if any#0}}'
 recoDataSE = '{{RecoDataSE#Reconstruction Output Data Storage Element#Tier1-RDST}}'
-recoFilesPerJob = '{{RecoFilesPerJob#Reconstructino Group size or number of files per job#1}}'
+recoFilesPerJob = '{{RecoFilesPerJob#Reconstruction Group size or number of files per job#1}}'
 recoFileMask = '{{RecoOutputDataFileMask#Reconstruction file extns to save (comma separated)#DST,ROOT}}'
 recoTransFlag = '{{RecoTransformation#Reconstruction distribute output data True/False (False if merging)#False}}'
 recoBKPublishing = '{{BKPublishFlag#Reconstruction publish this to the BK#True}}'
 recoStartRun = '{{RecoRunStart#Reconstruction run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#Reconstruction run end, to set the end of the range#0}}'
-
+recoEvtsPerJob = '{{RecoNumberEvents#Reconstruction number of events per job (set to something small for a test)#-1}}'
+unmergedStreamSE = '{{RecoStreamSE#Reconstruction unmerged stream SE#Tier1-DST}}'
 #merging params
 mergeDQFlag = '{{MergeDQFlag#Merging DQ Flag e.g. OK#OK}}'
 mergePriority = '{{MergePriority#Merging production priority#8}}'
 mergePlugin = '{{MergePlugin#Merging production plugin#MergeByRun}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#Merging remove input data flag True/False#False}}'
 mergeProdGroup = '{{MergeProdGroup#Merging what is appended to the BK proc pass#-Merged}}'
-mergeCPU = '{{MergeMaxCPUTime#Merging Max CPU time in secs#100000}}'
+mergeCPU = '{{MergeMaxCPUTime#Merging Max CPU time in secs#300000}}'
 
 #transformation params
 transformationFlag = '{{TransformationEnable#Transformation flag to enable True/False#True}}'
@@ -80,6 +81,7 @@ prodGroup = '{{pDsc}}'
 #used in case of a test e.g. certification etc.
 bkConfigName = '{{configName}}'
 bkConfigVersion = '{{configVersion}}'
+recoRunNumbers='{{inProductionID}}'
 
 #Other parameters from the request page
 recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
@@ -126,6 +128,11 @@ if int(recoStartRun):
 if int(recoEndRun):
   recoInputBKQuery['EndRun']=int(recoEndRun)
 
+if re.search(',',recoRunNumbers) and not int(recoStartRun) and not int(recoEndRun):
+  gLogger.info('Found run numbers to add to BK Query...')
+  runNumbers = [int(i) for i in recoRunNumbers.replace(' ','').split(',')]
+  recoInputBKQuery['RunNumbers']=runNumbers
+
 #Have to see whether it's a two or four step request and react accordingly
 mergingFlag = False
 
@@ -161,7 +168,7 @@ diracProd = DiracProduction() #used to set automatic status
 
 production = Production()
 
-if not destination.lower()=='all':
+if not destination.lower() in ('all','any'):
   gLogger.info('Forcing destination site %s for production' %(destination))
   production.setDestination(destination)
 
@@ -180,10 +187,10 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 brunelOptions="{{p1Opt}}"
 production.addBrunelStep("{{p1Ver}}",recoAppType.lower(),brunelOptions,extraPackages='{{p1EP}}',
                          eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=recoDataSE,
-                         dataType='Data',histograms=True)
+                         dataType='Data',numberOfEvents=recoEvtsPerJob,histograms=True)
 dvOptions="{{p2Opt}}"
 production.addDaVinciStep("{{p2Ver}}","dst",dvOptions,extraPackages='{{p2EP}}',inputDataType=recoAppType.lower(),
-                          dataType='Data',histograms=True)
+                          dataType='Data',outputSE=unmergedStreamSE,histograms=True)
 
 production.addFinalizationStep()
 production.setInputBKSelection(recoInputBKQuery)
@@ -217,15 +224,27 @@ bannedStreams = gConfig.getValue('/Operations/Bookkeeping/BannedStreams',[])
 ### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
 ##################################################################################
 
-bannedStreams.append('HADRON.DST') 
+bannedStreams.append('HADRON.DST')
 bannedStreams.append('HADRONIC.DST')
 bannedStreams.append('DIMUONDIPHOTON.DST')
-bannedStreams.apend('VO.DST')
+bannedStreams.append('VO.DST')
+bannedStreams.append('V0.DST') #Just in case
+#bannedStreams.append('CHARMCONTROL.DST')
+bannedStreams.append('CHARM.DST')  
+bannedStreams.append('DIPHOTONDIMUON.DST')
+
 for okStream in ['BHADRON.DST','CHARM.DST']:
   if okStream in bannedStreams:
     bannedStreams.remove(okStream)
 
+dstList = [] 
+#dstList.append('CHARMMICRODST.MDST')
+#dstList.append('LEPTONICMICRODST.MDST')
+dstList.append('CHARM.MDST')
+dstList.append('LEPTONIC.MDST')
+
 ##################################################################################
+
 
 if not bkFileTypes:
   gLogger.error('Could not contact CS to get BK File Types list! Exiting...')
@@ -239,7 +258,6 @@ if not bannedStreams:
 # Now remove the banned streams
 ###########################################
 
-dstList = []
 setcList = []
 #restrict to '.DST' file types:
 for fType in bkFileTypes:
