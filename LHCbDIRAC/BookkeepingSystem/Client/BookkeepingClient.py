@@ -422,4 +422,160 @@ class BookkeepingClient:
     result = server.getFileMetaDataForUsers(lfns)
     return result
   
+  #############################################################################
+  def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
+    server = self.__getServer()
+    result = server.getProductionFilesForUsers(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
+    return result
+  
+  #############################################################################
+  def exists(self, lfns):
+    server = self.__getServer()
+    return server.exists(lfns)
+  
+  #############################################################################
+  def addReplica(self, fileName):
+    server = self.__getServer()
+    return server.addReplica(fileName)
+  
+  #############################################################################
+  def removeReplica(self, fileName):
+    server = self.__getServer()
+    return server.removeReplica(fileName)
 
+  #############################################################################
+  def getRunInformations(self, runnb):
+    server = self.__getServer()
+    result = server.getRunInformations(runnb)
+    return result
+  
+  #############################################################################
+  def getLogfile(self, lfn):
+    server = self.__getServer()
+    result = server.getLogfile(lfn)
+    return result
+
+  #############################################################################
+  def addEventType(self, evid, desc, primary):
+    server = self.__getServer()
+    return server.addEventType(long(evid), desc, primary)
+
+   #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    server = self.__getServer()
+    return server.updateEventType(long(evid), desc, primary)
+  
+  #############################################################################
+  def addFiles(self, lfns):
+    server = self.__getServer()
+    return server.addFiles(lfns)
+
+  #############################################################################
+  def removeFiles(self, lfns):
+    server = self.__getServer()
+    return server.removeFiles(lfns)
+
+  #############################################################################
+  def getProductionSummary(self, dict):
+    server = self.__getServer()
+    result = server.getProductionSummary(dict)
+    return result
+
+  #############################################################################
+  def getProductionInformations_new(self, prodid):
+    server = self.__getServer()
+    result = server.getProductionInformations_new(prodid)
+    return result 
+  
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    server = self.__getServer()
+    return server.getProductionInformationsFromView(long(prodid))
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    server = self.__getServer()
+    return server.getFileHistory(lfn)
+  
+  #############################################################################
+  def getJobsNb(self, prodid):
+    server = self.__getServer()
+    return server.getJobsNb(long(prodid))
+  
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    server = self.__getServer()
+    return server.getNumberOfEvents(long(prodid))
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    server = self.__getServer()
+    return server.getSizeOfFiles(long(prodid))
+
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    server = self.__getServer()
+    return server.getNbOfFiles(long(prodid))
+
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    server = self.__getServer()
+    return server.getProductionInformation(long(prodid))
+  
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    server = self.__getServer()
+    return server.getNbOfJobsBySites(long(prodid))
+
+  #############################################################################
+  def getAvailableTags(self):
+    server = self.__getServer()
+    return server.getAvailableTags()
+  
+  #############################################################################
+  def getProcessedEvents(self, prodid):
+    server = self.__getServer()
+    return server.getProcessedEvents(int(prodid))
+  
+  #############################################################################
+  def getRunsWithAGivenDates(self, dict):
+    server = self.__getServer()
+    return server.getRunsWithAGivenDates(dict)
+  
+  #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    server = self.__getServer()
+    return server.getProductiosWithAGivenRunAndProcessing(dict)
+  
+  #############################################################################
+  def getDataQualityForRuns(self, runs):
+    server = self.__getServer()
+    return server.getDataQualityForRuns(runs)
+  
+  #############################################################################
+  def setProductionVisible(self, dict):
+    server = self.__getServer()
+    return server.setProductionVisible(dict)
+  
+  #############################################################################
+  def setFilesInvisible(self, lfns):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.setFilesInvisible([lfns])
+    else:
+      result = server.setFilesInvisible(lfns)
+    return result
+  
+  #############################################################################
+  def getTotalProcessingPass(self, prod):
+    server = self.__getServer()
+    result = server.getTotalProcessingPass(long(prod))
+    return result
+  
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    server = self.__getServer()
+    result = server.getRunFlag(long(runnb), processing)
+    return result
+  

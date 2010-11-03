@@ -597,4 +597,311 @@ class BookkeepingManagerHandler(RequestHandler):
     res = dataMGMT_.getFileMetaDataForUsers(lfns)
     return res
   
+  #############################################################################  
+  types_getProductionFilesForUsers = [IntType, DictType, DictType, LongType, LongType]
+  def export_getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
+    res = dataMGMT_.getProductionFilesForUsers(prod, ftype, SortDict, StartItem, Maxitems)
+    return res
+  
+  #############################################################################
+  types_exists = [ListType]
+  def export_exists(self, lfns):
+    return dataMGMT_.exists(lfns)
+  
+  #############################################################################
+  types_addReplica = [StringType]
+  def export_addReplica(self, fileName):
+    return dataMGMT_.addReplica(fileName)
+  
+  #############################################################################
+  types_removeReplica = [StringType]
+  def export_removeReplica(self, fileName):
+    return dataMGMT_.removeReplica(fileName)
+  
+  #############################################################################
+  types_getRunInformations = [IntType]
+  def export_getRunInformations(self, runnb):
+    return dataMGMT_.getRunInformations(runnb)
+  
+  #############################################################################
+  types_getLogfile = [StringType]
+  def export_getLogfile(self, lfn):
+    return dataMGMT_.getLogfile(lfn)
+  
+  #############################################################################
+  types_addEventType = [LongType, StringType, StringType]
+  def export_addEventType(self,evid, desc, primary):
+    result = dataMGMT_.checkEventType(evid)
+    if not result['OK']:
+      value = dataMGMT_.insertEventTypes(evid, desc, primary)
+      if value['OK']:
+        res = S_OK(str(evid)+' event type added successfully!')
+      else:
+        res = S_ERROR(value['Message'])
+    else:
+      return S_OK(str(evid)+' event type exists')
+    return res
+  
+  #############################################################################
+  types_updateEventType = [LongType, StringType, StringType]
+  def export_updateEventType(self, evid, desc, primary):
+    result = dataMGMT_.checkEventType(evid)
+    if not result['OK']:
+      return S_ERROR(str(evid) + ' event type is missing in the BKK database!')
+    else:
+      val = dataMGMT_.updateEventType(evid, desc, primary)
+      if val['OK']:
+        return S_OK(str(evid)+' event type updated successfully!')
+      else:
+        return S_ERROR(value['Message'])  
+  
+  #############################################################################
+  types_addFiles = [ListType]
+  def export_addFiles(self, lfns):
+    result = {}
+    for file in lfns:
+      res = dataMGMT_.addReplica(file)
+      if not res['OK']:
+        result[file]= res['Message']
+    return S_OK(result)
+  
+  #############################################################################
+  types_removeFiles = [ListType]
+  def export_removeFiles(self, lfns):
+    result = {}
+    for file in lfns:
+      res = dataMGMT_.removeReplica(file)
+      if not res['OK']:
+        result[file]= res['Message']
+    return S_OK(result)
+  
+  #############################################################################  
+  types_getProductionSummary = [DictType]
+  def export_getProductionSummary(self, dict):
+    
+    if dict.has_key('ConfigurationName'):
+      cName = dict['ConfigurationName']
+    else:
+      cName = 'ALL'
+    
+    if dict.has_key('ConfigurationVersion'):
+      cVersion = dict['ConfigurationVersion']
+    else:
+      cVersion = 'ALL'
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    else:
+      production = 'ALL'
+      
+    if dict.has_key('SimulationDescription'):
+      simdesc = dict['SimulationDescription']
+    else:
+      simdesc = 'ALL'
+    
+    if dict.has_key('ProcessingPassGroup'):
+      pgroup= dict['ProcessingPassGroup']
+    else:
+      pgroup= 'ALL'
+      
+    if dict.has_key('FileType'):
+      ftype = dict['FileType']
+    else:
+      ftype = 'ALL'
+    
+    if dict.has_key('EventType'):
+      evttype= dict['EventType'] 
+    else:
+      evttype='ALL'
+    
+    retVal = dataMGMT_.getProductionSummary(cName, cVersion, simdesc, pgroup, production, ftype, evttype)
+          
+    return retVal
+  
+  #############################################################################
+  types_getProductionInformations_new = [LongType]
+  def export_getProductionInformations_new(self, prodid):
+    
+    nbjobs = None
+    nbOfFiles = None
+    sizeofFiles = None
+    nbOfEvents = None
+    steps = None
+    prodinfos = None 
+    
+    value = dataMGMT_.getJobsNb(prodid)
+    if value['OK']==True:
+      nbjobs = value['Value']
+      
+    value = dataMGMT_.getNbOfFiles(prodid)
+    if value['OK']==True:
+      nbOfFiles =value['Value']
+      
+    value = dataMGMT_.getSizeOfFiles(prodid)
+    if value['OK']==True:
+      sizeofFiles =  value['Value']
+                 
+    value = dataMGMT_.getNumberOfEvents(prodid)
+    if value['OK']==True:
+      nbOfEvents = value['Value']
+    
+    value = dataMGMT_.getConfigsAndEvtType(prodid)
+    if value['OK']==True:
+      prodinfos = value['Value']
+    
+    path = '/'
+    
+    if len(prodinfos) == 0:
+      return S_ERROR('This production does not contains any jobs!')
+    cname = prodinfos[0][0]
+    cversion = prodinfos[0][1]
+    path += cname+'/'+cversion+'/'
+      
+    value = dataMGMT_.getSteps(prodid)
+    if value['OK']==True:
+      steps = value['Value']
+    else:
+      steps = value['Message']
+      result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
+      return S_OK(result)
+  
+      #return S_ERROR(value['Message'])
+  
+    
+    res = dataMGMT_.getProductionSimulationCond(prodid)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      path += res['Value']
+    res = dataMGMT_.getProductionProcessing(prodid)
+    if not res['OK']:
+      return S_ERROR(res['Message'])
+    else:
+      path += '/'+res['Value']
+    prefix = '\n'+path
+   
+    for i in nbOfEvents:
+      path += prefix + '/'+str(i[2])+'/'+i[0]
+    result = {"Production informations":prodinfos,"Steps":steps,"Number of jobs":nbjobs,"Number of files":nbOfFiles,"Number of events":nbOfEvents, 'Path':path}
+    return S_OK(result)
+  
+  #############################################################################
+  types_getProductionInformationsFromView = [LongType]
+  def export_getProductionInformationsFromView(self, prodid):
+    value = dataMGMT_.getProductionInformationsFromView(prodid)
+    parameters = []
+    infos = []
+    if value['OK']==True:
+      records = value['Value']
+      parameters = ['Production','EventTypeId','FileType','NumberOfEvents','NumberOfFiles']
+      for record in records:
+        infos += [[record[0],record[1],record[2], record[3], record[4]]]
+    else:
+      return S_ERROR(value['Message'])
+    return S_OK({'ParameterNames':parameters,'Records':infos})
+  
+  
+  #############################################################################
+  types_getFileHistory = [StringType]
+  def export_getFileHistory(self, lfn):
+    retVal = dataMGMT_.getFileHistory(lfn)
+    result = {}
+    records = []
+    if retVal['OK']:
+      values = retVal['Value']
+      parameterNames = ['FileId', 'FileName','ADLER32','CreationDate','EventStat','EventtypeId','Gotreplica', 'GUI', 'JobId', 'md5sum', 'FileSize', 'FullStat', 'Dataquality', 'FileInsertDate', 'Luminosity', 'InstLuminosity']
+      sum = 0
+      for record in values:
+        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13], record[14], record[15]]
+        records += [value]
+        sum += 1
+      result = {'ParameterNames':parameterNames,'Records':records,'TotalRecords':sum}
+    else:
+      result = S_ERROR(retVal['Message'])
+    return S_OK(result)
+  
+  #############################################################################
+  types_getJobsNb = [LongType]
+  def export_getJobsNb(self, prodid):
+    return dataMGMT_.getJobsNb(prodid)
+  
+  #############################################################################
+  types_getNumberOfEvents = [LongType]
+  def export_getNumberOfEvents(self, prodid):
+    return dataMGMT_.getNumberOfEvents(prodid)
+  
+  #############################################################################
+  types_getSizeOfFiles = [LongType]
+  def export_getSizeOfFiles(self, prodid):
+    return dataMGMT_.getSizeOfFiles(prodid)
+  
+  #############################################################################
+  types_getNbOfFiles = [LongType]
+  def export_getNbOfFiles(self, prodid):
+    return dataMGMT_.getNbOfFiles(prodid)
+  
+  #############################################################################
+  types_getProductionInformation = [LongType]
+  def export_getProductionInformation(self, prodid):
+    return dataMGMT_.getProductionInformation(prodid)
+  
+  #############################################################################
+  types_getNbOfJobsBySites = [LongType]
+  def export_getNbOfJobsBySites(self, prodid):
+    return dataMGMT_.getNbOfJobsBySites(prodid)
+  
+  #############################################################################
+  types_getAvailableTags = []
+  def export_getAvailableTags(self):
+    return dataMGMT_.getAvailableTags()
+  
+  #############################################################################
+  types_getProcessedEvents = [IntType]
+  def export_getProcessedEvents(self, prodid):
+    retVal = dataMGMT_.getProcessedEvents(prodid)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      result = retVal['Value'][0][0]
+      return S_OK(result)
+  
+  #############################################################################
+  types_getRunsWithAGivenDates = [DictType]
+  def export_getRunsWithAGivenDates(self, dict):
+    return dataMGMT_.getRunsWithAGivenDates(dict)
+  
+  #############################################################################
+  types_getProductiosWithAGivenRunAndProcessing = [DictType]
+  def export_getProductiosWithAGivenRunAndProcessing(self, dict):
+    return dataMGMT_.getProductiosWithAGivenRunAndProcessing(dict)
+  
+  #############################################################################
+  types_getDataQualityForRuns = [ListType]
+  def export_getDataQualityForRuns(self, runs):
+    return dataMGMT_.getDataQualityForRuns(runs)
+  
+  #############################################################################
+  types_setProductionVisible = [DictType]
+  def export_setProductionVisible(self, dict):
+    if dict.has_key('Production') and dict.has_key('Visible'):
+      prod = dict['Production']
+      vis = dict['Visible']
+    return dataMGMT_.setProductionVisible(prod, vis)
+  
+  #############################################################################
+  types_setFilesInvisible = [ListType]
+  def export_setFilesInvisible(self, lfns):
+    return dataMGMT_.setFilesInvisible(lfns)
+  
+  #############################################################################
+  types_getTotalProcessingPass = [LongType]
+  def export_getTotalProcessingPass(self, prod):
+    return dataMGMT_.getTotalProcessingPass(long(prod))
+  
+  #############################################################################
+  types_getRunFlag = [LongType, StringType]
+  def export_getRunFlag(self, runnb, processing):
+    return dataMGMT_.getRunFlag(long(runnb), processing)
+  
+
   

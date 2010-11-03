@@ -192,59 +192,179 @@ class IBookkeepingDB(object):
   
   #############################################################################  
   def getAllDescendents(self, lfn, depth = 0, production=0, checkreplica=False):
-    
+    gLogger.error('This method is not implemented!')
+  
   #############################################################################  
   def getDescendents(self, lfn, depth = 0):
-    
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def checkfile(self, fileName): #file
-
+    gLogger.error('This method is not implemented!')
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-  
+    gLogger.error('This method is not implemented!')
+    
   #############################################################################
   def checkEventType(self, eventTypeId):  #eventType(self, eventTypeId):
-    
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def insertJob(self, job):
-  
+    gLogger.error('This method is not implemented!')
+    
   #############################################################################
   def insertInputFile(self, jobID, FileId):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def insertOutputFile(self, file):
+    gLogger.error('This method is not implemented!')
     
   #############################################################################
   def updateReplicaRow(self, fileID, replica):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def deleteJob(self, job):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def deleteInputFiles(self, jobid):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def deleteFiles(self, lfns):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity):
-    
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def getSimConditions(self):
-  
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def removeReplica(self, fileName):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def getFileMetadata(self, lfns):
+    gLogger.error('This method is not implemented!')
   
   #############################################################################
   def getFilesInformations(self,lfns):
+    gLogger.error('This method is not implemented!')
     
-  
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getProductionFilesForUsers(self, prod, ftypeDict, SortDict, StartItem, Maxitems):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def exists(self, lfns):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def addReplica(self, fileName):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getRunInformations(self, runnb):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getLogfile(self, lfn):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionSummary(self, cName, cVersion, simdesc, pgroup, production, ftype, evttype):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getJobsNb(self, prodid):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getSteps(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getConfigsAndEvtType(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getAvailableTags(self):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getProcessedEvents(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getRunsWithAGivenDates(self, dict):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getDataQualityForRuns(self, runs):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def setProductionVisible(self, prodid, Value):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def setFilesInvisible(self, lfns):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getTotalProcessingPass(self, prod):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    gLogger.error('This method is not implemented!')

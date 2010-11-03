@@ -245,7 +245,7 @@ class IBookkeepingDatabaseClient(object):
   
   #############################################################################
   def getSimConditions(self):
-    return self.getSimConditions()
+    return self.getManager().getSimConditions()
   
   #############################################################################
   def removeReplica(self, fileName):
@@ -262,3 +262,111 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
     return self.getManager().getFileMetaDataForUsers(lfns)
+  
+  #############################################################################
+  def getProductionFilesForUsers(self, prod, ftypeDict, SortDict, StartItem, Maxitems):
+    return self.getManager().getProductionFilesForUsers(prod, ftypeDict, SortDict, StartItem, Maxitems)
+  
+  #############################################################################
+  def exists(self, lfns):
+    return self.getManager().exists(lfns)
+  
+  #############################################################################
+  def addReplica(self, fileName):
+    return self.getManager().addReplica(fileName)
+  
+  #############################################################################
+  def getRunInformations(self, runnb):
+    return self.getManager().getRunInformations(runnb)
+  
+  #############################################################################
+  def getLogfile(self, lfn):
+    return self.getManager().getLogfile(lfn)
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    return self.getManager().updateEventType(evid, desc, primary)
+  
+  #############################################################################
+  def getProductionSummary(self, cName, cVersion, simdesc, pgroup, production, ftype, evttype):
+    return self.getManager().getProductionSummary(self, cName, cVersion, simdesc, pgroup, production, ftype, evttype)
+  
+  #############################################################################
+  def getFileHistory(self, lfn):
+    return self.getManager().getFileHistory(lfn)
+  
+  #############################################################################
+  def getProductionInformationsFromView(self, prodid):
+    return self.getManager().getProductionInformationsFromView(prodid)
+  
+  #############################################################################
+  def getJobsNb(self, prodid):
+    return self.getManager().getJobsNb(prodid)
+    
+  #############################################################################
+  def getNumberOfEvents(self, prodid):
+    return self.getManager().getNumberOfEvents(prodid)
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    return self.getManager().getSizeOfFiles(prodid)
+  
+  #############################################################################
+  def getSizeOfFiles(self, prodid):
+    return self.getManager().getSizeOfFiles(prodid)
+  
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    return self.getManager().getNbOfFiles(prodid)
+  
+  #############################################################################
+  def getProductionInformation(self, prodid):
+    return self.getManager().getProductionInformation(prodid)
+  
+  #############################################################################
+  def getSteps(self, prodid):
+    return self.getManager().getSteps(prodid)
+  
+  #############################################################################
+  def getNbOfJobsBySites(self, prodid):
+    return self.getManager().getNbOfJobsBySites(prodid)
+  
+  #############################################################################
+  def getConfigsAndEvtType(self, prodid):
+    return self.getManager().getConfigsAndEvtType(prodid)
+  
+  #############################################################################
+  def getAvailableTags(self):
+    return self.getManager().getAvailableTags()
+  
+  #############################################################################
+  def getProcessedEvents(self, prodid):
+    return self.getManager().getProcessedEvents(prodid)
+  
+  #############################################################################
+  def getRunsWithAGivenDates(self, dict):
+    return self.getManager().getRunsWithAGivenDates(dict)
+  
+  #############################################################################
+  def getProductiosWithAGivenRunAndProcessing(self, dict):
+    return self.getManager().getProductiosWithAGivenRunAndProcessing(dict)
+  
+  #############################################################################
+  def getDataQualityForRuns(self, runs):
+    return self.getManager().getDataQualityForRuns(runs)
+  
+  #############################################################################
+  def setProductionVisible(self, prodid, Value):
+    return self.getManager().setProductionVisible(prodid, Value)
+  
+  #############################################################################
+  def setFilesInvisible(self, lfns):
+    return self.getManager().setFilesInvisible(lfns)
+  
+  #############################################################################
+  def getTotalProcessingPass(self, prod):
+    return self.getManager().getTotalProcessingPass(prod)
+  
+  #############################################################################
+  def getRunFlag(self, runnb, processing):
+    return self.getManager().getRunFlag(runnb, processing)

@@ -1696,6 +1696,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return S_OK(retVal['Value'][0][0])
     return S_ERROR('getLogfile error!')
   
+  #############################################################################
   def insertEventTypes(self, evid, desc, primary):
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.insertEventTypes',[desc, evid, primary], False)
   
@@ -1704,12 +1705,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbW_.executeStoredProcedure('BKK_ORACLE.updateEventTypes',[desc, evid, primary], False)
   
     
-  #############################################################################
-  def checkProcessingPassAndSimCond(self, production):
-    command = ' select count(*) from productions where production='+ str(production)
-    res = self.dbR_._query(command)
-    return res
-  
   #############################################################################
   def getProductionSummary(self, cName, cVersion, simdesc='ALL', pgroup='ALL', production='ALL', ftype='ALL', evttype='ALL'):
     conditions = ''
