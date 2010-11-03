@@ -41,18 +41,16 @@ testProduction = '{{WorkflowTestFlag#Workflow testing flag e.g. for certificatio
 #mdst params
 mdstPriority = '{{MicroDSTPriority#MicroDST production priority#7}}'
 mdstCPU = '{{MicroDSTMaxCPUTime#MicroDST Max CPU time in secs#1000000}}'
-mdstPlugin = '{{MicroDSTPluginType#MicroDST production plugin name#AtomicRun}}'
+mdstPlugin = '{{MicroDSTPluginType#MicroDST production plugin name#Standard}}'
 mdstAncestorProd = '{{MicroDSTAncestorProd#MicroDST ancestor production if any#0}}'
 mdstDataSE = '{{MicroDSTDataSE#MicroDST Output Data Storage Element#Tier1_M-DST}}'
-mdstFilesPerJob = '{{MicroDSTFilesPerJob#MicroDST Group size or number of files per job#1}}'
-#mdstStreamList = '{{MicroDSTStreams#MicroDST IMPORTANT! List of streams to save#TODO}}'
+mdstFilesPerJob = '{{MicroDSTFilesPerJob#MicroDST Group size or number of files per job#10}}'
 mdstFileMask = '{{MicroDSTOutputDataFileMask#MicroDST file extns to save (comma separated)#DST,ROOT}}'
 mdstTransFlag = '{{MicroDSTTransformation#MicroDST distribute output data True/False (False if merging)#False}}'
 mdstBKPublishing = '{{BKPublishFlag#MicroDST publish this to the BK#True}}'
 mdstStartRun = '{{MicroDSTRunStart#MicroDST run start, to set the start run#0}}'
 mdstEndRun = '{{MicroDSTRunEnd#MicroDST run end, to set the end of the range#0}}'
 mdstIDPolicy = '{{MicroDSTIDPolicy#MicroDST Input data policy e.g. download, protocol#protocol}}'
-mdstInputProd = '{{MicroDSTInputProd#MicroDST Input Production *MUST* be set to preserve BK info#0}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -77,6 +75,7 @@ if testProduction:
 
 inputDataDaVinci = []
 
+events = '-1'
 if testFlag:
   events = '5'
   inputDataDaVinci = ['/lhcb/data/2010/DIMUON.DST/00007544/0000/00007544_00000179_1.dimuon.dst']
@@ -155,7 +154,7 @@ dvOptions="{{p1Opt}}"
 
 production.addDaVinciStep("{{p1Ver}}",mdstAppType.lower(),dvOptions,extraPackages='{{p1EP}}',eventType='{{eventType}}',
                           inputData=inputDataDaVinci,inputDataType='dst',outputSE=mdstDataSE,numberOfEvents=events,
-                          dataType='Data',histograms=False,inputProduction=mdstInputProd)
+                          dataType='Data',histograms=False)
 
 production.addFinalizationStep()
 production.setInputBKSelection(mdstInputBKQuery)
@@ -179,6 +178,7 @@ if testFlag:
 
 result = production.create(bkQuery=mdstInputBKQuery,groupSize=mdstFilesPerJob,derivedProduction=int(mdstAncestorProd),
                            bkScript=mdstScriptFlag,requestID=currentReqID,reqUsed=1,transformation=mdstTransFlag)
+
 if not result['OK']:
   gLogger.error('Production creation failed with result:\n%s\ntemplate is exiting...' %(result))
   DIRAC.exit(2)
