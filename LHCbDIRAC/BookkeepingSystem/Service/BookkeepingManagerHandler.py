@@ -118,11 +118,21 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
-    
+  
+  #############################################################################
+  types_setStepInputFiles = [IntType, ListType]
+  def export_setStepInputFiles(self, stepid, files): 
+    return dataMGMT_.setStepInputFiles(stepid, files)
+  
+  #############################################################################
+  types_setStepOutputFiles = [IntType, ListType]
+  def export_setStepOutputFiles(self, stepid, files): 
+    return dataMGMT_.setStepOutputFiles(stepid, files)
+  
   #############################################################################
   types_getStepOutputFiles = [IntType]
   def export_getStepOutputFiles(self, StepId):                    
-    retVal = dataMGMT_.getStepInputFiles(StepId)
+    retVal = dataMGMT_.getStepOutputFiles(StepId)
     if retVal['OK']:
       records = []
       parameters = ['FileType','Visible']
@@ -436,6 +446,16 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getInputAndOutputJobFiles = [ListType]
   def export_getInputAndOutputJobFiles(self, jobids):
     return dataMGMT_.getInputAndOutputJobFiles(jobids)
+  
+  #############################################################################
+  types_getProductionProcessingPassID = [LongType]
+  def export_getProductionProcessingPassID(self, prodid):
+    return dataMGMT_.getProductionProcessingPassID(prodid)
+  
+  #############################################################################
+  types_getProductionProcessingPass = [LongType]
+  def export_getProductionProcessingPass(self, prodid):
+    return dataMGMT_.getProductionProcessingPass(prodid)
   
   #############################################################################
   types_getJobsIds = [ListType]
@@ -903,5 +923,9 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getRunFlag(self, runnb, processing):
     return dataMGMT_.getRunFlag(long(runnb), processing)
   
-
+  #############################################################################
+  types_getAvailableConfigurations = []
+  def export_getAvailableConfigurations(self):
+    return dataMGMT_.getAvailableConfigurations()
+   
   

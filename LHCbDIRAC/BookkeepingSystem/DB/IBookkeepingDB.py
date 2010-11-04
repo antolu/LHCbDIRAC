@@ -368,3 +368,15 @@ class IBookkeepingDB(object):
   #############################################################################
   def getRunFlag(self, runnb, processing):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getAvailableConfigurations(self):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionProcessingPassID(self, prodid):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionProcessingPass(self, prodid):
+    gLogger.error('This method is not implemented!')

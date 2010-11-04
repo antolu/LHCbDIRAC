@@ -370,3 +370,15 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getRunFlag(self, runnb, processing):
     return self.getManager().getRunFlag(runnb, processing)
+  
+  #############################################################################
+  def getAvailableConfigurations(self):
+    return self.getManager().getAvailableConfigurations()
+  
+  #############################################################################
+  def getProductionProcessingPassID(self, prodid):
+    return self.getManager().getProductionProcessingPassID(prodid)
+  
+  #############################################################################
+  def getProductionProcessingPass(self, prodid):
+    return self.getManager().getProductionProcessingPass(prodid)

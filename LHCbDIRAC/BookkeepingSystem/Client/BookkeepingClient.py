@@ -579,3 +579,25 @@ class BookkeepingClient:
     result = server.getRunFlag(long(runnb), processing)
     return result
   
+  #############################################################################
+  def getAvailableConfigurations(self):
+    server = self.__getServer()
+    result = server.getAvailableConfigurations()
+    return result
+  
+  #######################################################################################################################################################################################################################################
+  def getMoreProductionInformations(self, prodid):
+    server = self.__getServer()
+    result = server.getMoreProductionInformations(prodid)
+    return result
+  
+  #############################################################################
+  def getProductionProcessingPassID(self, prodid):
+    server = self.__getServer()
+    return server.getProductionProcessingPassID(long(prodid))
+  
+  #############################################################################
+  def getProductionProcessingPass(self, prodid):
+    server = self.__getServer()
+    return server.getProductionProcessingPass(long(prodid))
+  
