@@ -54,7 +54,7 @@ from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 ###########################################
-# Configurable parameters
+# Configurable and fixed parameters
 ###########################################
 testFlag = '{{TemplateTest#A flag to set whether a test script should be generated#False}}'
 
@@ -62,7 +62,7 @@ events = '{{MCNumberOfEvents#MC Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#MC Max CPU time in secs#1000000}}'
 priority = '{{MCPriority#MC Production priority#4}}'
 extend = '{{MCExtend#MC extend production by this many jobs#100}}'
-finalAppType = '{{MCFinalAppType#MC final file type to produce and merge e.g. DST,XDST...#DST}}'
+finalAppType = '{{MCFinalAppType#MC final file type to produce and merge e.g. DST,XDST,GEN,SIM...#DST}}'
 
 configName = '{{BKConfigName#BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#BK configuration version e.g. MC09, 2009, 2010#2010}}'
@@ -81,14 +81,25 @@ mergingPriority = '{{MergingPriority#Merging Job Priority e.g. 8 by default#8}}'
 transformationFlag = '{{TransformationEnable#Transformation enable flag Boolean True/False#True}}'
 
 evtType = '{{eventType}}'
+#Often MC requests are defined with many subrequests but we want to retain
+#the parent ID for viewing on the production monitoring page. If a parent
+#request is defined then this is used.
+requestID = '{{ID}}'
+parentReq = '{{_parent}}'
+eventNumberTotal = '{{EventNumberTotal}}'
 
 ###########################################
 # LHCb conventions implied by the above
 ###########################################
+
 if finalAppType.lower()=='xdst':
   booleType = 'xdigi'
 else:
   booleType = 'digi'
+
+# This is SIM unless a one-step (+/- merging)
+# Gauss production is requested, see below.
+gaussAppType = 'sim'
 
 testFlag = eval(testFlag)
 transformationFlag = eval(transformationFlag)
@@ -127,7 +138,7 @@ fiveSteps = '{{p5App}}'
 sixSteps = '{{p6App}}'
 
 if sixSteps:
-  print 'Six steps specified, not sure what to do! Exiting...'
+  gLogger.error('Six steps specified, not sure what to do! Exiting...')
   DIRAC.exit(2)    
 
 if outputFileMask:
@@ -150,6 +161,7 @@ wkfName = 'MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Ev
 production.setWorkflowName('%s_%s' %(wkfName,appendName))
 production.setBKParameters(configName,configVersion,'{{pDsc}}','{{simDesc}}')
 production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
+production.setSimulationEvents(events,eventNumberTotal)
 
 decided=False
 
@@ -169,7 +181,8 @@ if fiveSteps:
   
   prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
   production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                          extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                          extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                          outputSE=defaultOutputSE,appType=gaussAppType)
   production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
                           condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
   mooreOpts = '{{p3Opt}}'
@@ -187,7 +200,8 @@ if fourSteps and not decided:
   if not mergingFlag and threeSteps.lower()=='moore':
     prodDescription = 'A four step workflow Gauss->Boole->Moore-Brunel without merging' 
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     mooreOpts = '{{p3Opt}}'
@@ -200,7 +214,8 @@ if fourSteps and not decided:
   elif not mergingFlag and threeSteps.lower()=='brunel':
     prodDescription = 'A three step workflow Gauss->Boole->Brunel without merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     brunelOpts = '{{p3Opt}}'
@@ -211,7 +226,8 @@ if fourSteps and not decided:
     #Will likely disappear eventually as Moore will start to be used everywhere
     prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     brunelOpts = '{{p3Opt}}'
@@ -231,7 +247,8 @@ if threeSteps and not decided:
   if not mergingFlag and threeSteps.lower()=='brunel':
     prodDescription = 'A three step workflow of Gauss->Boole->Brunel without merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',booleType,booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     brunelOpts = '{{p3Opt}}'
@@ -241,14 +258,16 @@ if threeSteps and not decided:
   elif not mergingFlag and threeSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['digi','xdigi']:
     prodDescription = 'A two step workflow of Gauss->Boole without merging' 
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',finalAppType.lower(),booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     decided=True    
   elif mergingFlag and threeSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['digi','xdigi']:
     prodDescription = 'A three step workflow of Gauss->Boole + Merging' 
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',finalAppType.lower(),booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     mergingVersion = '{{p3Ver}}'
@@ -264,38 +283,34 @@ if twoSteps and not decided:
   if not mergingFlag and twoSteps.lower()=='boole' and finalAppType.lower() in ['digi','xdigi']:
     prodDescription = 'A two step workflow of Gauss->Boole without merging'
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     production.addBooleStep('{{p2Ver}}',finalAppType.lower(),booleOpts,extraPackages='{{p2EP}}',
                             condDBTag='{{p2CDb}}',ddDBTag='{{p2DDDb}}',outputSE=defaultOutputSE)
     decided=True
-  elif mergingFlag and twoSteps.lower()==mergingApp.lower() and finalAppType.lower()=='sim':
+  elif mergingFlag and twoSteps.lower()==mergingApp.lower() and finalAppType.lower() in ['sim','gen']:
     prodDescription = 'A two step workflow of Gauss + Merging'
+    gaussAppType=finalAppType
     production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                            extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                            outputSE=defaultOutputSE,appType=gaussAppType)
     mergingVersion = '{{p2Ver}}'
     mergingCondDB = '{{p2CDb}}'
     mergingDDDB = '{{p2DDDb}}'
     decided=True
   else:
     gLogger.error('Two steps requested but workflow is neither Gauss->Boole without merging for digi / xdigi \
-                  nor Gauss + Merging for sim. Exiting...')  
+                  nor Gauss + Merging for sim or gen. Exiting...')  
     DIRAC.exit(2)
 
 if oneStep and not decided:
-  prodDescription = 'A one step workflow of Gauss only without merging'
+  prodDescription = 'Assuming one step workflow of Gauss only without merging'
+  gaussAppType=finalAppType
   production.addGaussStep('{{p1Ver}}','{{Generator}}',events,gaussOpts,eventType='{{eventType}}',
-                          extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',outputSE=defaultOutputSE)
+                          extraPackages='{{p1EP}}',condDBTag='{{p1CDb}}',ddDBTag='{{p1DDDb}}',
+                          outputSE=defaultOutputSE,appType=gaussAppType)
+  mergingFlag=False
   decided=True
-
-#Boole MDF - ignore as a use-case for now - was only used during FEST exerciseds
-#extraOpts = 'Boole().Outputs  = ["DIGI","MDF"];'
-#extraOpts += """OutputStream("DigiWriter").Output = "DATAFILE='PFN:@{outputData}' TYP='POOL_ROOTTREE' OPT='RECREATE'";"""
-#extraOpts += """OutputStream("RawWriter").Output = "DATAFILE='PFN:@{STEP_ID}.mdf' SVC='LHCb::RawDataCnvSvc' OPT='REC'";"""
-#extraOpts += "MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC';"
-#extraOpts += 'HistogramPersistencySvc().OutputFile = "@{applicationName}_@{STEP_ID}_Hist.root"'
-#outputSE = 'CERN-RDST'
-#extra = {"outputDataName":"@{STEP_ID}.mdf","outputDataType":"mdf","outputDataSE":outputSE}
-#production.addBooleStep('{{p2Ver}}','digi',booleOpts,extraPackages='{{p2EP}}',overrideOpts=extraOpts,extraOutputFile=extra)
 
 # Finally, in case none of the above were eligible.
 if not decided:
@@ -332,7 +347,9 @@ if testFlag:
     gLogger.error('Production test failed with exception:\n%s' %(x))
     DIRAC.exit(2)
 
-result = production.create(requestID=int('{{ID}}'),reqUsed=mcRequestTracking,transformation=mcTransformationFlag,bkScript=mergingFlag)
+result = production.create(requestID=int(requestID),reqUsed=mcRequestTracking,
+                          transformation=mcTransformationFlag,bkScript=mergingFlag,
+                          parentRequestID=int(parentReq))
 if not result['OK']:
   gLogger.error('Error during production creation:\n%s\ncheck that the wkf name is unique.' %(result['Message']))
   DIRAC.exit(2)
@@ -391,14 +408,19 @@ mergeProd.setProdPriority(mergingPriority)
 mergeProd.setFileMask(finalAppType.lower())
 mergeProd.setProdPlugin(mergingPlugin)
 
-result = mergeProd.create(bkScript=False,requestID=int('{{ID}}'),reqUsed=1,transformation=transformationFlag)
+result = mergeProd.create(bkScript=False,requestID=int(requestID),reqUsed=1,
+                          transformation=transformationFlag,parentRequestID=int(parentReq))
 if not result['OK']:
   gLogger.error('Error during merging production creation:\n%s\n' %(result['Message']))
   DIRAC.exit(2)
 
 prodID = result['Value']
 diracProd.production(prodID,'automatic',printOutput=True)
-print 'Merging Production %s successfully created and started in automatic submission mode.' %prodID
+gLogger.info('Merging Production %s successfully created and started in automatic submission mode.' %prodID)
+
+if not transformationFlag:
+  gLogger.info('No transformation requested for production ID %s.' %(prodID))
+  DIRAC.exit(0)  
 
 #################################################################################
 # End of the template.
