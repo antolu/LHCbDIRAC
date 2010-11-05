@@ -80,3 +80,18 @@ CREATE TABLE RequestHistory (
     TimeStamp    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX(TimeStamp)
 );
+
+DROP TABLE IF EXISTS RequestTest;
+CREATE TABLE RequestTest (
+    RequestID INTEGER NOT NULL,
+    INDEX(RequestID),
+    State VARCHAR(32) DEFAULT "",
+    INDEX(State),
+    Actual  INTEGER DEFAULT 0,
+    Link  VARCHAR(128) DEFAULT "",
+    Time  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Input BLOB,
+    Params BLOB,
+    Script BLOB,
+    Template BLOB
+);

@@ -193,19 +193,24 @@ class ProductionRequestHandler( RequestHandler ):
     """
     return self.database.getAllProductionProgress()
 
-  def __getTplFolder(self):
+  def __getTplFolder(self,tt):
     csS=PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
     if not csS:
       return S_ERROR("No ProductionRequest parameters in CS")
-    tplFolder = gConfig.getValue('%s/templateFolder' % csS,'')
-    if not tplFolder:
-      return S_ERROR("No templateFolder in ProductionRequest parameters in CS")
+    if tt == 'template':
+      tplFolder = gConfig.getValue('%s/templateFolder' % csS,'')
+      if not tplFolder:
+        return S_ERROR("No templateFolder in ProductionRequest parameters in CS")
+    else:
+      tplFolder = gConfig.getValue('%s/testFolder' % csS,'')
+      if not tplFolder:
+        return S_ERROR("No testFolder in ProductionRequest parameters in CS")
     if not os.path.exists(tplFolder) or not os.path.isdir(tplFolder):
       return S_ERROR("Template Folder %s doesn't exist" % tplFolder)
     return S_OK(tplFolder)
 
-  def __getTemplate(self,name):
-    ret = self.__getTplFolder()
+  def __getTemplate(self,tt,name):
+    ret = self.__getTplFolder(tt)
     if not ret['OK']:
       return ret
     tplFolder = ret['Value']
@@ -219,10 +224,9 @@ class ProductionRequestHandler( RequestHandler ):
       return S_ERROR("Can't read template (%s)" % str(e))
     return S_OK(body)
 
-  types_getProductionTemplateList = []
-  def export_getProductionTemplateList(self):
+  def __productionTemplateList(self,tt):
     """ Return production template list (file based) """
-    ret = self.__getTplFolder()
+    ret = self.__getTplFolder(tt)
     if not ret['OK']:
       return ret
     tplFolder = ret['Value']
@@ -232,7 +236,7 @@ class ProductionRequestHandler( RequestHandler ):
     for t in tpls:
       if t[-1] == '~':
         continue
-      result = self.__getTemplate(t)
+      result = self.__getTemplate(tt,t)
       if not result['OK']:
         return result
       body = result['Value']
@@ -252,9 +256,23 @@ class ProductionRequestHandler( RequestHandler ):
           results.append(tpl)
     return S_OK(results)
 
+  types_getProductionTemplateList = []
+  def export_getProductionTemplateList(self):
+    """ Return production template list (file based) """
+    return self.__productionTemplateList('template')
+
+  types_getProductionTestList = []
+  def export_getProductionTestList(self):
+    """ Return production tests list (file based) """
+    return self.__productionTemplateList('test')
+
   types_getProductionTemplate = [StringType]
   def export_getProductionTemplate(self,name):
-    return self.__getTemplate(name)
+    return self.__getTemplate('template',name)
+
+  types_getProductionTest = [StringType]
+  def export_getProductionTest(self,name):
+    return self.__getTemplate('test',name)
 
   types_execProductionScript = [StringType,StringType]
   def export_execProductionScript(self,script,workflow):
@@ -343,3 +361,28 @@ class ProductionRequestHandler( RequestHandler ):
     """ Return the dictionary with possible values for filter
     """
     return self.database.getFilterOptions()
+
+  types_getTestList = [LongType]
+  def export_getTestList(self,requestID):
+    """ Get production requests in list format (for portal grid)
+    """
+    return self.database.getTestList(requestID)
+
+  types_submitTest = [DictType,DictType,StringType,StringType]
+  def export_submitTest(self,input,pars,script,tpl):
+    """ Save the test request in the database
+    """
+    creds = self.__clientCredentials()
+    return self.database.submitTest(creds,input,pars,script,tpl)
+
+  types_getTests = [StringType]
+  def export_getTests(self,state):
+    """ Return the list of tests in specified state
+    """
+    return self.database.getTests(state)
+
+  types_setTestResult = [LongType,StringType,StringType]
+  def export_setTestResult(self,requestID,state,link):
+    """ Set test result (to be called by test agent) """
+    creds = self.__clientCredentials()
+    return self.database.setTestResult(requestID,state,link)
