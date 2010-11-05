@@ -23,7 +23,7 @@ from DIRAC.Core.DISET.RPCClient                       import RPCClient
 from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
 
-from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
+from LHCbDIRAC.TransformationSystem.Client.Transformation       import Transformation
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProduction
 from LHCbDIRAC.Interfaces.API.LHCbJob                           import *
@@ -83,7 +83,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     self.setType('MCSimulation')
     self.setSystemConfig(self.systemConfig)
-    self.setCPUTime('300000')
+    self.setCPUTime('1000000')
     self.setLogLevel('verbose')
     self.setJobGroup('@{PRODUCTION_ID}')
     self.setFileMask('dummy')
@@ -339,7 +339,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           outputSE='Tier1_M-DST'
           self.log.verbose('Setting default outputSE to %s' %(outputSE))
 
-    if appType.lower() in ['merge','mdst']:
+    if appType.lower() in ['merge']: #,'mdst']:
       if not outputSE:
         outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
@@ -352,7 +352,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('DaVinci merging / MDST must have an input production ID specified')
         raise TypeError,'inputProduction must be specified'
 
-    if appType.lower()=='setc':
+    if appType.lower() in ['setc','mdst']:
       if not outputSE:
         outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
@@ -854,13 +854,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
     parameters['DataType']=prodWorkflow.findParameter('DataType').getValue()
 
+    if parameters['JobType'].lower()=='mcsimulation':
+      if prodWorkflow.findParameter('EventsPerTask'):
+        parameters['EventsPerTask']=prodWorkflow.findParameter('EventsPerTask').getValue()
+      if prodWorkflow.findParameter('MaxNumberOfTasks'):
+        parameters['MaxNumberOfTasks']=prodWorkflow.findParameter('MaxNumberOfTasks').getValue()
+      
     if prodWorkflow.findParameter('InputData'): #now only comes from BK query
       prodWorkflow.findParameter('InputData').setValue('')
       self.log.verbose('Resetting input data for production to null, this comes from a BK query...')
       prodWorkflow.toXMLFile(prodXMLFile)
 
-    if prodWorkflow.findParameter('ParentRequestID'):
-      parameters['TransformationFamily']=prodWorkflow.findParameter('ParentRequestID').getValue()
+    if prodWorkflow.findParameter('TransformationFamily'):
+      parameters['TransformationFamily']=prodWorkflow.findParameter('TransformationFamily').getValue()
 
     for i in prodWorkflow.step_instances:
       if i.findParameter('eventType'):
@@ -872,9 +878,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if prodWorkflow.findParameter('group_size'):
       parameters['group_size']=prodWorkflow.findParameter('group_size').getValue()
 
-    #parameters['numberOfEvents']=prodWorkflow.findParameter('numberOfEvents').getValue()
     parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
-
+    
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
       prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
       res = prodClient.getBookkeepingQueryForTransformation(int(prodID))
@@ -1000,7 +1005,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,
                   bkScript=True,wfString='',requestID=0,reqUsed=0,
-                  transformation=True,transReplicas=0,bkProcPassPrepend=''):
+                  transformation=True,transReplicas=0,bkProcPassPrepend='',parentRequestID=0):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -1017,9 +1022,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
         The workflow XML is created regardless of the flags.
     """
+    #Needs to be revisited in order to disentangle the many operations.
     prodID = self.defaultProdID
-    #Note after testing that the parent ID always seems to be propagated, setting the below removes the need to add something in the templates.
-    self.setParentRequest(requestID)
+    if not parentRequestID:
+      parentRequestID=requestID
+
+    self.setParentRequest(parentRequestID)
 
     if wfString:
       self.workflow = fromXMLString(wfString)
@@ -1093,7 +1101,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if self.ancestorProduction:
         derivedProduction = self.ancestorProduction
 
-      result = dirac.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,plugin=self.plugin,productionGroup=self.prodGroup,productionType=self.type,derivedProd=derivedProduction)
+      result = dirac.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,
+                                      plugin=self.plugin,productionGroup=self.prodGroup,
+                                      productionType=self.type,derivedProd=derivedProduction)
       if not result['OK']:
         self.log.error('Problem creating production:\n%s' %result)
         return result
@@ -1107,7 +1117,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if bkQuery.has_key('ProcessingPass'):
         if not bkQuery['ProcessingPass']=='All':
           inputProcPass = bkQuery['ProcessingPass']
-          self.log.verbose('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
+          self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
           bkDict['InputProductionTotalProcessingPass']=inputProcPass
 
     if bkProcPassPrepend:
@@ -1139,7 +1149,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if publish:
       try:
-        self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,derivedProd=derivedProduction)
+        self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],
+                                      bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,
+                                      derivedProd=derivedProduction)
       except Exception,x:
         self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
 
@@ -1147,7 +1159,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
       bkFileType = bkQuery['FileType']
-      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,prodPlugin=self.plugin)
+      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
+                                          prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
+                                          parentReqID=parentRequestID)
       if not result['OK']:
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
       else:
@@ -1158,21 +1172,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
         if not result['OK']:
           self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
-#        self.log.verbose('Attempting to set the transformation group: %s' %(self.prodGroup))
-#        result = self.setProdParameter(transID,'TransformationGroup',self.prodGroup)
-#        if not result['OK']:
-#          self.log.error('Could not set TransformationGroup parameter to %s for %s with result %s' %(self.prodGroup,transID,result))
-        if requestID:
-          result = self.setProdParameter(transID,'TransformationFamily',requestID)
-          if not result['OK']:
-            self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(requestID,transID,result))        
         
     elif transformation:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
       bkFileType = bkQuery['FileType']
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
-      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,script=True,prodPlugin=self.plugin)
+      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
+                                           script=True,prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
+                                           parentReqID=parentRequestID)                      
       if not transID['OK']:
         self.log.error('Problem writing transformation script, result was: %s' %transID)
       else:
@@ -1183,9 +1191,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK(prodID)
 
   #############################################################################
-  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin=''):
+  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin='',groupDescription='',parentReqID=0):
     """ Create a transformation to distribute the output data for a given production.
     """
+    #this was an attempt to control the madness of coping with streams, in practice 
+    #it should be cleaned up as this method will only be used for the MC production case
     streams=False
 #    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun' or prodPlugin.lower()=='atomicrun':
     if prodPlugin.lower() in [string.lower(i) for i in self.pluginsTriggeringStreamTypes]:
@@ -1216,7 +1226,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if script:
       transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
       transLines.append('# by %s' %self.prodVersion)
-      transLines.append('from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation')
+      transLines.append('from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation')
       transLines.append('transformation=Transformation()')
       transLines.append('transformation.setTransformationName("%s")' %(tName))
       if type(fileType)==type([]):
@@ -1232,6 +1242,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       transLines.append('transformation.addTransformation()')
       transLines.append('transformation.setStatus("Active")')
       transLines.append('transformation.setAgentType("Automatic")')
+      transLines.append('transformation.setTransformationGroup("%s")' %(groupDescription))
       transLines.append('print transformation.getTransformationID()')
       if os.path.exists('%s.py' %tName):
         shutil.move('%s.py' %tName,'%s.py.backup' %tName)
@@ -1252,8 +1263,27 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     transformation.addTransformation()
     transformation.setStatus('Active')
     transformation.setAgentType('Automatic')
+    transformation.setTransformationGroup(groupDescription)
+    transResult = transformation.getTransformationID()
+    if not transResult['OK']:
+      return transResult
 
-    return transformation.getTransformationID()
+    transID = transResult['Value']
+    if parentRequestID:
+      result = self.setProdParameter(transID,'TransformationFamily',parentReqID)
+      if not result['OK']:
+        self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentReqID,transID,result))        
+
+    # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
+    infoString = []
+    infoString.append('Replication transformation %s was created for %s with plugin %s' %(transID,groupDescription,plugin))
+    info.append('\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' %(inputProd,fileType))
+    infoString = string.join(info,'\n')
+    result = self.setProdParameter(transID,'DetailedInfo',infoString)
+    if not result['OK']:
+      self.log.error('Could not set Transformation DetailedInfo parameter for %s with result %s' %(transID,result))        
+
+    return transResult
 
   #############################################################################
   def _writeBKScript(self,bkDict,prodID):
@@ -1461,7 +1491,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setParentRequest(self,parentID):
     """ Sets the parent request ID for a production.
     """
-    self._setParameter('ParentRequestID','string',str(parentID).replace(' ',''),'ParentRequestID')
+    self._setParameter('TransformationFamily','string',str(parentID).replace(' ',''),'ParentRequestID')
 
   #############################################################################
   def setProdPriority(self,priority):
@@ -1518,3 +1548,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     self._setParameter('DisableCPUCheck','JDL','True','DisableWatchdogCPUCheck')
 
+  #############################################################################  
+  def setSimulationEvents(self,eventsTotal,eventsPerTask):
+    """ In order to set the EventsPerTask and MaxNumberOfTasks parameters for 
+        MC simulation productions.
+    """
+    if int(eventsTotal) and int(eventsPerTask):
+      self._setParameter('EventsPerTask','string',str(eventsPerTask),'EventsPerTask')
+      #Add a 10% buffer
+      maxJobs = int(1.1*int(eventsTotal)/int(eventsPerTask))
+      self._setParameter('MaxNumberOfTasks','string',str(maxJobs),'MaxNumberOfTasks')
+    else:
+      self.log.warn('Either EventsTotal "%s" or EventsPerTask "%s" were set to null' %(eventsTotal,eventsPerTask))
