@@ -167,7 +167,7 @@ class BookkeepingClient:
   #############################################################################
   def getAvailableRuns(self):
     server = self.__getServer()
-    result = server.getAvailableRuns()
+    return server.getAvailableRuns()
   
   #############################################################################
   def getAvailableEventTypes(self):
@@ -268,12 +268,7 @@ class BookkeepingClient:
     result = server.setQualityProduction(prod, flag)
     return result
   
-  #############################################################################
-  def getSimCondIDWhenFileName(self, fileName):
-    server = self.__getServer()
-    result = server.getSimCondIDWhenFileName(fileName)
-    return result
-  
+
   #############################################################################
   def getLFNsByProduction(self, prodid):
     server = self.__getServer()
@@ -484,7 +479,7 @@ class BookkeepingClient:
   #############################################################################
   def getProductionInformations_new(self, prodid):
     server = self.__getServer()
-    result = server.getProductionInformations_new(prodid)
+    result = server.getProductionInformations_new(long(prodid))
     return result 
   
   #############################################################################
@@ -553,11 +548,6 @@ class BookkeepingClient:
     return server.getDataQualityForRuns(runs)
   
   #############################################################################
-  def setProductionVisible(self, dict):
-    server = self.__getServer()
-    return server.setProductionVisible(dict)
-  
-  #############################################################################
   def setFilesInvisible(self, lfns):
     server = self.__getServer()
     result = None
@@ -568,15 +558,9 @@ class BookkeepingClient:
     return result
   
   #############################################################################
-  def getTotalProcessingPass(self, prod):
-    server = self.__getServer()
-    result = server.getTotalProcessingPass(long(prod))
-    return result
-  
-  #############################################################################
   def getRunFlag(self, runnb, processing):
     server = self.__getServer()
-    result = server.getRunFlag(long(runnb), processing)
+    result = server.getRunFlag(long(runnb), long(processing))
     return result
   
   #############################################################################
@@ -588,7 +572,7 @@ class BookkeepingClient:
   #######################################################################################################################################################################################################################################
   def getMoreProductionInformations(self, prodid):
     server = self.__getServer()
-    result = server.getMoreProductionInformations(prodid)
+    result = server.getMoreProductionInformations(int(prodid))
     return result
   
   #############################################################################
@@ -601,3 +585,17 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionProcessingPass(long(prodid))
   
+  #############################################################################
+  def getRunProcessingPass(self, runnumber):
+    server = self.__getServer()
+    return server.getRunProcessingPass(long(runnumber))
+  
+  ############################################################################
+  def getProductionStatus(self, productionid = None, lfns = []):
+    server = self.__getServer()
+    result = None
+    if productionid != None:
+      result = server.checkProductionReplicas(productionid)
+    else:
+      result = server.checkLfns(lfns)
+    return result

@@ -171,13 +171,9 @@ class IBookkeepingDatabaseClient(object):
   def setQualityProduction(self, prod, flag):
     return self.getManager().setQualityProduction(prod, flag)
     
-  #############################################################################
-  def getSimCondIDWhenFileName(self, fileName):
-    return self.getManager().getSimCondIDWhenFileName(fileName)
-  
   #############################################################################  
   def getLFNsByProduction(self, prodid):
-    raise self.getManager().getLFNsByProduction(prodid)
+    return self.getManager().getLFNsByProduction(prodid)
   
   #############################################################################  
   def getAncestors(self, lfn, depth):
@@ -356,10 +352,6 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getDataQualityForRuns(runs)
   
   #############################################################################
-  def setProductionVisible(self, prodid, Value):
-    return self.getManager().setProductionVisible(prodid, Value)
-  
-  #############################################################################
   def setFilesInvisible(self, lfns):
     return self.getManager().setFilesInvisible(lfns)
   
@@ -382,3 +374,15 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getProductionProcessingPass(self, prodid):
     return self.getManager().getProductionProcessingPass(prodid)
+  
+  #############################################################################
+  def getRunProcessingPass(self, runnumber):
+    return self.getManager().getRunProcessingPass(runnumber)
+  
+  #############################################################################
+  def checkProductionStatus(self, productionid = None, lfns = []):
+    return self.getManager().checkProductionStatus(productionid, lfns)
+  
+  #############################################################################
+  def getProductionSimulationCond(self, prod):
+    return self.getManager().getProductionSimulationCond(prod)

@@ -354,10 +354,6 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
     
   #############################################################################
-  def setProductionVisible(self, prodid, Value):
-    gLogger.error('This method is not implemented!')
-  
-  #############################################################################
   def setFilesInvisible(self, lfns):
     gLogger.error('This method is not implemented!')
   
@@ -379,4 +375,16 @@ class IBookkeepingDB(object):
   
   #############################################################################
   def getProductionProcessingPass(self, prodid):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getRunProcessingPass(self, runnumber):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def checkProductionStatus(self, productionid , lfns):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionSimulationCond(self, prod):
     gLogger.error('This method is not implemented!')

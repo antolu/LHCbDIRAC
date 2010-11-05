@@ -93,12 +93,12 @@ class BookkeepingManagerHandler(RequestHandler):
           value = [record[0], record[1]]
           records += [value]
       else:
-        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visibile']
+        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
         records = []
         for record in retVal['Value']:
           value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
           records += [value]
-      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','Optionfiles','DDDB','CONDDB', 'ExtraPackages','Visible']
+      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','OptionFiles','DDDB','CONDDB', 'ExtraPackages','Visible']
       records = []
       for record in retVal['Value']:
         records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
@@ -503,11 +503,6 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.setQualityProduction(prod, flag)
   
   #############################################################################
-  types_getSimCondIDWhenFileName = [StringType]
-  def export_getSimCondIDWhenFileName(self, fileName):
-    return dataMGMT_.getSimCondIDWhenFileName(fileName)
-  
-  #############################################################################
   types_getLFNsByProduction = [LongType]
   def export_getLFNsByProduction(self, prodid):
     return dataMGMT_.getLFNsByProduction(prodid)
@@ -793,11 +788,11 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_ERROR(res['Message'])
     else:
       path += res['Value']
-    res = dataMGMT_.getProductionProcessing(prodid)
+    res = dataMGMT_.getProductionProcessingPass(prodid)
     if not res['OK']:
       return S_ERROR(res['Message'])
     else:
-      path += '/'+res['Value']
+      path += res['Value']
     prefix = '\n'+path
    
     for i in nbOfEvents:
@@ -899,33 +894,34 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getDataQualityForRuns = [ListType]
   def export_getDataQualityForRuns(self, runs):
     return dataMGMT_.getDataQualityForRuns(runs)
-  
-  #############################################################################
-  types_setProductionVisible = [DictType]
-  def export_setProductionVisible(self, dict):
-    if dict.has_key('Production') and dict.has_key('Visible'):
-      prod = dict['Production']
-      vis = dict['Visible']
-    return dataMGMT_.setProductionVisible(prod, vis)
-  
+      
   #############################################################################
   types_setFilesInvisible = [ListType]
   def export_setFilesInvisible(self, lfns):
     return dataMGMT_.setFilesInvisible(lfns)
   
   #############################################################################
-  types_getTotalProcessingPass = [LongType]
-  def export_getTotalProcessingPass(self, prod):
-    return dataMGMT_.getTotalProcessingPass(long(prod))
-  
-  #############################################################################
-  types_getRunFlag = [LongType, StringType]
+  types_getRunFlag = [LongType, LongType]
   def export_getRunFlag(self, runnb, processing):
-    return dataMGMT_.getRunFlag(long(runnb), processing)
+    return dataMGMT_.getRunFlag(runnb, processing)
   
   #############################################################################
   types_getAvailableConfigurations = []
   def export_getAvailableConfigurations(self):
     return dataMGMT_.getAvailableConfigurations()
    
+   #############################################################################
+  types_getRunProcessingPass=[LongType]
+  def export_getRunProcessingPass(self, runnumber):
+    return dataMGMT_.getRunProcessingPass(runnumber)
+  
+  #############################################################################
+  types_checkProductionReplicas = [IntType]
+  def export_checkProductionReplicas(self, productionid = None):
+    return dataMGMT_.checkProductionStatus(productionid)
+  
+  #############################################################################
+  types_checkLfns = [ListType]
+  def export_checkLfns(self, lfns):
+    return dataMGMT_.checkProductionStatus(productionid = None, lfns = lfns)
   

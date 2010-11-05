@@ -1348,7 +1348,8 @@ class LHCB_BKKDBManager(BaseESManager):
 #    takes an absolute path and returns of tuples with prefixes and posfixes
 #    of path elements. If invalid path returns null
   ############################################################################# 
-  def _processPath(self, path):
+  def _processPath(self, path
+                   )
     path = path.encode('ascii')
     path = path.strip(INTERNAL_PATH_SEPARATOR + " ")
     paths = path.split(self.getPathSeparator())    
