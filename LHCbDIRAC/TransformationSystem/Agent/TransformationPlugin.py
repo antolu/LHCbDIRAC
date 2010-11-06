@@ -1,12 +1,12 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-from DIRAC                                                               import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.SiteSEMapping                                  import getSitesForSE,getSEsForSite
-from DIRAC.Core.Utilities.List                                           import breakListIntoChunks, sortList, uniqueElements,randomize
-from DIRAC.DataManagementSystem.Client.ReplicaManager                    import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                    import getAncestorFiles
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.TransformationDBClient  import TransformationDBClient
+from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE,getSEsForSite
+from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, uniqueElements,randomize
+from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                  import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient      import TransformationDBClient
 import time,random,sys,re
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
