@@ -599,3 +599,15 @@ class BookkeepingClient:
     else:
       result = server.checkLfns(lfns)
     return result
+  
+  #############################################################################
+  def getFilesWithGivenDataSets(self, values):
+    server = self.__getServer()
+    return server.getFilesWithGivenDataSets(values)
+  
+  #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, values):
+    server = self.__getServer()
+    return server.getFilesWithGivenDataSetsForUsers(values)
+  
+  

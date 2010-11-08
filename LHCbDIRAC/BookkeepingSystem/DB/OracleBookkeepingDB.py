@@ -14,7 +14,7 @@ from DIRAC.ConfigurationSystem.Client.Config                         import gCon
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 import datetime
-import types
+import types, re
 global ALLOWED_ALL 
 ALLOWED_ALL = 2
 
@@ -1684,7 +1684,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       if len(retVal['Value']) == 0:
         return S_ERROR('Log file is not exist!')
       return S_OK(retVal['Value'][0][0])
-  return S_ERROR('getLogfile error!')
+    return S_ERROR('getLogfile error!')
   
   #############################################################################
   def insertEventTypes(self, evid, desc, primary):
@@ -1960,6 +1960,327 @@ and files.qualityid= dataquality.qualityid'
         return S_ERROR(res['Message'])
     return S_OK('The files are invisible!')
     
-  
+  #############################################################################
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag='Yes'):
+    
+    configid = None
+    condition = ''
+    
+    if configName != 'ALL' and configVersion != 'ALL':
+      command = ' select configurationid from configurations where configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      elif len(res['Value']) == 0:
+        return S_ERROR('Config name and version dosnt exist!')
+      else:
+        configid = res['Value'][0][0]
+        if configid != 0:
+          condition = ' and j.configurationid='+str(configid)
+        else:
+          return S_ERROR('Wrong configuration name and version!')
+                    
+    if production != 'ALL':
+      if type(production) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in production:
+          cond += 'j.production='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      else:
+       condition += ' and j.production='+str(production)
+    
+    if len(runnumbers) > 0:
+      if type(runnumbers) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in runnumbers:
+          cond += 'j.runnumber='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+            
+    tables = ' files f,jobs j '
+    if procPass != 'ALL':
+      condition += " and j.production=prod.production \
+      and prod.processingid=(select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                     FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                    CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                    where v.path='%s')"%(procPass.split('/')[1:][0],procPass);
+      tables += ',productionscontainer prod'
+    
+    if ftype != 'ALL':
+      if type(ftype) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in ftype:
+          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(i)+'\''
+          res = self.dbR_._query(fileType)
+          if not res['OK']:
+            gLogger.error('File Type not found:',res['Message'])
+          elif len(res['Value'])==0:
+            return S_ERROR('File type not found!'+str(i))
+          else:
+            ftypeId = res['Value'][0][0]
+            cond  += ' f.FileTypeId='+str(ftypeId) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond  
+      elif type(ftype) == types.StringType:
+        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+        res = self.dbR_._query(fileType)
+        if not res['OK']:
+          gLogger.error('File Type not found:',res['Message'])
+        elif len(res['Value'])==0:
+          return S_ERROR('File type not found!'+str(ftype))
+        else:
+          ftypeId = res['Value'][0][0]
+          condition += ' and f.FileTypeId='+str(ftypeId)
+
+    if evt != 0:
+      if type(evt) in (types.ListType,types.TupleType):
+        condition += ' and '
+        cond = ' ( '
+        for i in evt:
+          cond +=  ' f.eventtypeid='+str(i) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      elif type(evt) in (types.StringTypes + (types.IntType,types.LongType)):
+        condition +=  ' and f.eventtypeid='+str(evt)
+              
+    if startDate != None:
+      condition += ' and f.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    
+    if endDate != None:
+      condition += ' and f.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    elif startDate != None and endDate == None:
+      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+      condition += ' and f.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
       
+    if flag != 'ALL':
+      if type(flag) in (types.ListType,types.TupleType):
+        conds = ' ('
+        for i in flag:
+          quality = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' f.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      else:
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        
+        condition += ' and f.qualityid='+str(quality)
+      
+    if startRunID != None:
+      condition += ' and j.runnumber>='+str(startRunID)
+    if endRunID != None:
+      condition += ' and j.runnumber<='+str(endRunID)
+    
+    if replicaFlag in ['Yes','No']:
+      condition += ' and f.gotreplica=\''+replicaFlag+'\''
+
+    
+    if simdesc != 'ALL':
+      condition += " and prod.simid=sim.simid and' \
+                     sim.simdescription='%' "%(simdesc)
+      if re.search('productionscontainer',tables):
+        tables += ',simulationconditions sim'
+      else:
+        tables += ',simulationconditions sim, productionscontainer prod'
+      
+    
+    if datataking != 'ALL':
+      condition += " and prod.DAQPERIODID =daq.daqperiodid and \
+                    daq.description='%s' "%(datataking)
+      if re.search('productionscontainer',tables):
+        tables += ',data_taking_conditions daq'
+      else:
+        tables += ',data_taking_conditions daq, productionscontainer prod'
+      
+    
+    if nbofEvents:
+      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+                   
+    else:
+      command =  " select distinct f.filename from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+                   
+    res = self.dbR_._query(command)
+    
+    return res
+   
+  #############################################################################
+  def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag ='Yes'):
+    configid = None
+    condition = ''
+    
+    if configName != 'ALL' and configVersion != 'ALL':
+      command = ' select configurationid from configurations where configurations.ConfigName=\''+configName+'\' and \
+                    configurations.ConfigVersion=\''+configVersion+'\''
+      res = self.dbR_._query(command)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+      elif len(res['Value']) == 0:
+        return S_ERROR('Config name and version dosnt exist!')
+      else:
+        configid = res['Value'][0][0]
+        if configid != 0:
+          condition = ' and j.configurationid='+str(configid)
+        else:
+          return S_ERROR('Wrong configuration name and version!')
+                    
+    if production != 'ALL':
+      if type(production) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in production:
+          cond += 'j.production='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      else:
+       condition += ' and j.production='+str(production)
+    
+    if len(runnumbers) > 0:
+      if type(runnumbers) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in runnumbers:
+          cond += 'j.runnumber='+str(i)+ ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+            
+    tables = ' files f,jobs j '
+    if procPass != 'ALL':
+      condition += " and j.production=prod.production \
+      and prod.processingid=(select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                     FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                    CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                    where v.path='%s')"%(procPass.split('/')[1:][0],procPass);
+      tables += ',productionscontainer prod'
+    
+    if ftype != 'ALL':
+      if type(ftype) == types.ListType:
+        condition += ' and '
+        cond = ' ( '
+        for i in ftype:
+          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(i)+'\''
+          res = self.dbR_._query(fileType)
+          if not res['OK']:
+            gLogger.error('File Type not found:',res['Message'])
+          elif len(res['Value'])==0:
+            return S_ERROR('File type not found!'+str(i))
+          else:
+            ftypeId = res['Value'][0][0]
+            cond  += ' f.FileTypeId='+str(ftypeId) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond  
+      elif type(ftype) == types.StringType:
+        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\''+str(ftype)+'\''
+        res = self.dbR_._query(fileType)
+        if not res['OK']:
+          gLogger.error('File Type not found:',res['Message'])
+        elif len(res['Value'])==0:
+          return S_ERROR('File type not found!'+str(ftype))
+        else:
+          ftypeId = res['Value'][0][0]
+          condition += ' and f.FileTypeId='+str(ftypeId)
+
+    if evt != 0:
+      if type(evt) in (types.ListType,types.TupleType):
+        condition += ' and '
+        cond = ' ( '
+        for i in evt:
+          cond +=  ' f.eventtypeid='+str(i) + ' or '
+        cond = cond[:-3] + ')'
+        condition += cond
+      elif type(evt) in (types.StringTypes + (types.IntType,types.LongType)):
+        condition +=  ' and f.eventtypeid='+str(evt)
+              
+    if startDate != None:
+      condition += ' and f.inserttimestamp >= TO_TIMESTAMP (\''+str(startDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    
+    if endDate != None:
+      condition += ' and f.inserttimestamp <= TO_TIMESTAMP (\''+str(endDate)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+    elif startDate != None and endDate == None:
+      d = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') 
+      condition += ' and f.inserttimestamp <= TO_TIMESTAMP (\''+str(d)+'\',\'YYYY-MM-DD HH24:MI:SS\')'
+      
+    if flag != 'ALL':
+      if type(flag) in (types.ListType,types.TupleType):
+        conds = ' ('
+        for i in flag:
+          quality = None
+          command = 'select QualityId from dataquality where dataqualityflag=\''+str(i)+'\''
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' f.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      else:
+        quality = None
+        command = 'select QualityId from dataquality where dataqualityflag=\''+str(flag)+'\''
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        
+        condition += ' and f.qualityid='+str(quality)
+      
+    if startRunID != None:
+      condition += ' and j.runnumber>='+str(startRunID)
+    if endRunID != None:
+      condition += ' and j.runnumber<='+str(endRunID)
+    
+    if replicaFlag in ['Yes','No']:
+      condition += ' and f.gotreplica=\''+replicaFlag+'\''
+
+    
+    if simdesc != 'ALL':
+      condition += " and prod.simid=sim.simid and' \
+                     sim.simdescription='%' "%(simdesc)
+      if re.search('productionscontainer',tables):
+        tables += ',simulationconditions sim'
+      else:
+        tables += ',simulationconditions sim, productionscontainer prod'
+      
+    
+    if datataking != 'ALL':
+      condition += " and prod.DAQPERIODID =daq.daqperiodid and \
+                    daq.description='%s' "%(datataking)
+      if re.search('productionscontainer',tables):
+        tables += ',data_taking_conditions daq'
+      else:
+        tables += ',data_taking_conditions daq, productionscontainer prod'
+      
+    
+    if nbofEvents:
+      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+                   
+    else:
+      command =  " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+                   
+    res = self.dbR_._query(command)
+    
+    return res
+    
   

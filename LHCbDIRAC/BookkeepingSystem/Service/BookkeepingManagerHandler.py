@@ -925,3 +925,211 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_checkLfns(self, lfns):
     return dataMGMT_.checkProductionStatus(productionid = None, lfns = lfns)
   
+  #############################################################################  
+  types_getFilesWithGivenDataSets = [DictType]
+  def export_getFilesWithGivenDataSets(self, values):
+    
+    simdesc = 'ALL'
+    if values.has_key('SimulationConditions'):
+      simdesc = str(values['SimulationConditions'])   
+    
+    datataking = 'ALL'
+    if values.has_key('DataTakingConditions'):
+      datataking = str(values['DataTakingConditions'])
+    
+    if values.has_key('ProcessingPass'):
+      procPass = values['ProcessingPass']
+    else:
+      procPass = 'ALL'
+    
+    if values.has_key('FileType'):
+      ftype = values['FileType']
+    else:
+      return S_ERROR('FileType is missing!')
+    
+    if values.has_key('EventType'):
+      evt = values['EventType']
+    else:
+      evt = 0
+      
+    if values.has_key('ConfigName'):
+      configname = values['ConfigName']
+    else:
+      configname = 'ALL'
+     
+    if values.has_key('ConfigVersion'):
+      configversion = values['ConfigVersion']
+    else:
+      configversion = 'ALL'
+    
+    if values.has_key('ProductionID'):
+      prod = values['ProductionID']
+      if prod == 0:
+        prod = 'ALL'
+    else:
+      prod = 'ALL'
+    
+    if values.has_key('DataQualityFlag'):
+      flag = values['DataQualityFlag']
+    else:
+      flag = 'ALL'
+    
+    if values.has_key('StartDate'):
+      startd = values['StartDate']
+    else:
+      startd = None
+    
+    if values.has_key('EndDate'):
+      endd = values['EndDate']
+    else:
+      endd = None
+    if values.has_key('NbOfEvents'):
+      nbofevents = values['NbOfEvents']
+    else:
+      nbofevents = False
+    
+    if values.has_key('StartRun'):
+      startRunID = values['StartRun']
+    else:
+      startRunID = None
+    
+    if values.has_key('EndRun'):
+      endRunID = values['EndRun']
+    else:
+      endRunID = None
+    
+    if values.has_key('RunNumbers'):
+      runNbs = values['RunNumbers']
+    else:
+      runNbs = []
+    
+    replicaFlag = 'Yes'
+    if values.has_key('ReplicaFlag'):
+      replicaFlag = values['ReplicaFlag']
+ 
+    result = []
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      values = retVal['Value']
+      for i in values:
+        result += [i[0]]
+
+    return S_OK(result)
+  
+  #############################################################################  
+  types_getFilesWithGivenDataSetsForUsers = [DictType]
+  def export_getFilesWithGivenDataSetsForUsers(self, values):
+    
+    simdesc = 'ALL'
+    if values.has_key('SimulationConditions'):
+      simdesc = str(values['SimulationConditions'])   
+    
+    datataking = 'ALL'
+    if values.has_key('DataTakingConditions'):
+      datataking = str(values['DataTakingConditions'])
+    
+    if values.has_key('ProcessingPass'):
+      procPass = values['ProcessingPass']
+    else:
+      procPass = 'ALL'
+    
+    if values.has_key('FileType'):
+      ftype = values['FileType']
+    else:
+      return S_ERROR('FileType is missing!')
+    
+    if values.has_key('EventType'):
+      evt = values['EventType']
+    else:
+      evt = 0
+      
+    if values.has_key('ConfigName'):
+      configname = values['ConfigName']
+    else:
+      configname = 'ALL'
+     
+    if values.has_key('ConfigVersion'):
+      configversion = values['ConfigVersion']
+    else:
+      configversion = 'ALL'
+    
+    if values.has_key('ProductionID'):
+      prod = values['ProductionID']
+      if prod == 0:
+        prod = 'ALL'
+    else:
+      prod = 'ALL'
+    
+    if values.has_key('DataQualityFlag'):
+      flag = values['DataQualityFlag']
+    else:
+      flag = 'ALL'
+    
+    if values.has_key('StartDate'):
+      startd = values['StartDate']
+    else:
+      startd = None
+    
+    if values.has_key('EndDate'):
+      endd = values['EndDate']
+    else:
+      endd = None
+    if values.has_key('NbOfEvents'):
+      nbofevents = values['NbOfEvents']
+    else:
+      nbofevents = False
+    
+    if values.has_key('StartRun'):
+      startRunID = values['StartRun']
+    else:
+      startRunID = None
+    
+    if values.has_key('EndRun'):
+      endRunID = values['EndRun']
+    else:
+      endRunID = None
+    
+    if values.has_key('RunNumbers'):
+      runNbs = values['RunNumbers']
+    else:
+      runNbs = []
+    
+    replicaFlag = 'Yes'
+    if values.has_key('ReplicaFlag'):
+      replicaFlag = values['ReplicaFlag'] 
+    
+    result = {}
+    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
+    else:
+      values = retVal['Value']
+      nbfiles = 0
+      nbevents = 0
+      evinput = 0
+      fsize = 0
+      tLumi = 0
+      lumi = 0
+      ilumi = 0
+      for i in values:
+       nbfiles=+1
+       if i[1] != None:
+        nbevents+= i[1]
+       if i[2] != None:
+         evinput+= i[2]
+       if i[5] != None:
+         fsize+=i[5]
+       if i[6] != None:
+         tLumi += i[6]
+       if i[7] != None:
+         lumi += i[7]
+       if i[8] != None:
+         ilumi += i[8]
+           
+       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'Luminosity':i[7],'InstLuminosity':i[8]}  
+    summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi,'InstLuminosity':ilumi}
+    result['Summary']=summary
+    return S_OK(result)
+  
