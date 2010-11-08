@@ -1,27 +1,27 @@
 ########################################################################
-# $Id: TransformationHandler.py 18968 2009-12-03 10:33:19Z acsmith $
+# $Id: TransformationManagerHandler.py 18968 2009-12-03 10:33:19Z acsmith $
 ########################################################################
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id: TransformationHandler.py 18968 2009-12-03 10:33:19Z acsmith $"
+__RCSID__ = "$Id: TransformationManagerHandler.py 18968 2009-12-03 10:33:19Z acsmith $"
 
 from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
-from DIRAC.TransformationSystem.Service.TransformationHandler   import TransformationHandlerBase
+from DIRAC.TransformationSystem.Service.TransformationManagerHandler   import TransformationManagerHandlerBase
 from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import TransformationDB
 from types import *
 
 database = False
-def initializeTransformationHandler( serviceInfo ):
+def initializeTransformationManagerHandler( serviceInfo ):
   global database
   database = TransformationDB('TransformationDB', 'Transformation/TransformationDB')
   return S_OK()
 
-class TransformationHandler(TransformationHandlerBase):
+class TransformationManagerHandler(TransformationManagerHandlerBase):
 
   def __init__(self,*args,**kargs):
     self.setDatabase(database)
-    TransformationHandlerBase.__init__(self, *args,**kargs)
+    TransformationManagerHandlerBase.__init__(self, *args,**kargs)
 
   #############################################################################
   #
