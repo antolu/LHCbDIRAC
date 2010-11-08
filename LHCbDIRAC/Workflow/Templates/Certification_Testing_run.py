@@ -324,6 +324,8 @@ mergeProd.setProdPlugin(mergingPlugin)
 # Publish and extend the merging production
 ###########################################
 
+mcMergeID = None
+
 if not debug:
   result = mergeProd.create(bkScript=False,transformation=mergingTransFlag)
   if not result['OK']:
@@ -396,8 +398,11 @@ else:
   gLogger.info('========> Debug flag is set, printing JDL and creating a workflow')
   print recoProd._dumpParameters()
   recoProd.createWorkflow()
-  
-gLogger.info('Execution successful, created MCSimulation %s, MCMerging %s with transformation and Reconstruction %s' %(mcProdID,mcMergeID,recoProdID)) 
+
+if not debug:  
+  gLogger.info('Execution successful, created MCSimulation %s, MCMerging %s with transformation and Reconstruction %s' %(mcProdID,mcMergeID,recoProdID)) 
+else:
+  gLogger.info('Workflows were created and parameters printed at verbose level since /Operations/CertificationTesting/General/Debug=True flag was specified')
 DIRAC.exit(0)
 
 #################################################################################
