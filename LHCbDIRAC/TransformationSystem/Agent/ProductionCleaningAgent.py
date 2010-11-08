@@ -15,11 +15,10 @@ from datetime                                                       import datet
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient   import ProductionClient 
 
 import re, os
 
-AGENT_NAME = 'ProductionManagement/ProductionCleaningAgent'
+AGENT_NAME = 'Transformation/ProductionCleaningAgent'
 
 class ProductionCleaningAgent( AgentModule ):
 
@@ -27,7 +26,7 @@ class ProductionCleaningAgent( AgentModule ):
   def initialize( self ):
     """Sets defaults """
     self.replicaManager = ReplicaManager()
-    self.transClient = ProductionClient()
+    self.transClient = TransformationDBClient()
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()
