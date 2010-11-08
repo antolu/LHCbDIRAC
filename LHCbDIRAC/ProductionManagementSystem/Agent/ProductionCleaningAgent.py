@@ -15,10 +15,11 @@ from datetime                                                       import datet
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+from LHCbDIRAC.ProductionManagement.Client.ProductionClient         import ProductionClient 
 
 import re, os
 
-AGENT_NAME = 'Transformation/ProductionCleaningAgent'
+AGENT_NAME = 'ProductionManagement/ProductionCleaningAgent'
 
 class ProductionCleaningAgent( AgentModule ):
 
