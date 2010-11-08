@@ -15,7 +15,7 @@ from datetime                                                       import datet
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
-from LHCbDIRAC.ProductionManagement.Client.ProductionClient         import ProductionClient 
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient   import ProductionClient 
 
 import re, os
 
