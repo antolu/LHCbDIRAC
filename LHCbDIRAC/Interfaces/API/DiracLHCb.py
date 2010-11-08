@@ -608,6 +608,7 @@ class DiracLHCb(Dirac):
     start = time.time()
     bk = BookkeepingClient()                      
     result = bk.getFilesWithGivenDataSetsForUsers(bkQueryDict)
+#    result = bk.getFilesWithGivenDataSets(bkQueryDict)
     rtime = time.time()-start    
     self.log.info('BK query time: %.2f sec' %rtime)
     
@@ -817,7 +818,7 @@ class DiracLHCb(Dirac):
     if printOutput:
       print '========> Tier-1 status in DIRAC site and SE masks'
       for site in sortList(self.tier1s):
-        print '\n====> %s\n' %site
+        print '\n====> %s is %s in site mask\n' %(site,tierInfo[site]['MaskStatus'])
         print '%s %s %s' %('Storage Element'.ljust(25),'Read Status'.rjust(15),'Write Status'.rjust(15))
         for se in sortList(tierSEs[site]):
           if tierInfo[site].has_key(se):
