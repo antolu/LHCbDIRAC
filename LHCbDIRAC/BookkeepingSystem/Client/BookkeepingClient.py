@@ -153,6 +153,16 @@ class BookkeepingClient:
       return S_OK(value)
     return S_ERROR()
   
+  #############################################################################
+  def getFilesSumary(self, dict):
+    server = self.__getServer()
+    return server.getFilesSumary(dict)
+  
+  #############################################################################
+  def getLimitedFiles(self, dict):
+    server = self.__getServer()
+    return server.getLimitedFiles(dict)
+  
   #############################################################################  
   def getAvailableDataQuality(self):
     server = self.__getServer()

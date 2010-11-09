@@ -2282,5 +2282,135 @@ and files.qualityid= dataquality.qualityid'
     res = self.dbR_._query(command)
     
     return res
+      
+  #############################################################################
+  def getFilesSumary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default):
+    condition = ' and c.ConfigName=\''+configName+'\' and \
+                  c.configversion=\''+configVersion+'\' '
     
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+    
+    if evt != default:
+      condition += ' and f.eventtypeid='+str(evt)
+    
+    if production != default:
+      condition += ' and j.production='+str(production)
+    
+    if filetype != default:
+      condition += "  and ftypes.name='"+str(filetype)+"'"
+    
+    if quality != 'ALL':
+      if type(quality) == types.StringType:
+        command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        condition += ' and f.qualityid='+str(quality)
+      else:
+        conds = ' ('
+        for i in quality:
+          quality = None
+          command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' f.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      
+    if processing != default:
+      condition += " and prod.processingid=(\
+      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
+      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
+      where v.path='"+processing+"')"
+    
+    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
+    j.jobid=f.jobid and \
+    ftypes.filetypeid=f.filetypeid and \
+    d.qualityid=f.qualityid and \
+    f.gotreplica='Yes' and \
+    j.configurationid=c.configurationid and \
+    j.production=prod.production"+condition
+    return self.dbR_._query(command)
+  
+  #############################################################################
+  def getLimitedFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, startitem=0, maxitems=10):
+    condition = ' and c.ConfigName=\''+configName+'\' and \
+                  c.configversion=\''+configVersion+'\' '
+    
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+    
+    if evt != default:
+      condition += ' and f.eventtypeid='+str(evt)
+    
+    if production != default:
+      condition += ' and j.production='+str(production)
+    
+    if filetype != default:
+      condition += "  and ftypes.name='"+str(filetype)+"'"
+    
+    if quality != 'ALL':
+      if type(quality) == types.StringType:
+        command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:',res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        condition += ' and f.qualityid='+str(quality)
+      else:
+        conds = ' ('
+        for i in quality:
+          quality = None
+          command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+          res = self.dbR_._query(command)
+          if not res['OK']:
+            gLogger.error('Data quality problem:',res['Message'])
+          elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+          else:
+            quality = res['Value'][0][0]
+          conds += ' f.qualityid='+str(quality)+' or'
+        condition += 'and'+conds[:-3] + ')'
+      
+    if processing != default:
+      condition += " and prod.processingid=(\
+      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
+      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
+      where v.path='"+processing+"')"
+    
+    command = "select fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
+              (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
+                  (select ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, ftypes.Name ftypen, \
+                          j.runnumber jrun, j.fillnumber jfill, f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
+                           f.luminosity flum, f.instLuminosity finst from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
+    j.jobid=f.jobid and \
+    ftypes.filetypeid=f.filetypeid and \
+    d.qualityid=f.qualityid and \
+    f.gotreplica='Yes' and \
+    j.configurationid=c.configurationid and \
+    j.production=prod.production"+condition +") where rownum <=%d ) where r >%d"%(maxitems,startitem)
+    return self.dbR_._query(command)
+  
   

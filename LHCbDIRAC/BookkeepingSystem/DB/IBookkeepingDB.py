@@ -81,7 +81,15 @@ class IBookkeepingDB(object):
   #############################################################################
   def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
     gLogger.error('This method is not implemented!')
-    
+  
+  #############################################################################
+  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, startItem, maxItem):
+    gLogger.error('This method is not implemented!')
+  
   #############################################################################  
   def getAvailableDataQuality(self):
     gLogger.error('This method is not implemented!')
@@ -395,3 +403,4 @@ class IBookkeepingDB(object):
     
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
     gLogger.error('This method is not implemented!')
+  

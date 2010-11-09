@@ -377,6 +377,109 @@ class BookkeepingManagerHandler(RequestHandler):
       return retVal
     return S_OK()
   
+  #############################################################################
+  types_getFilesSumary = [DictType]
+  def export_getFilesSumary(self, dict):
+    configName = 'ALL'
+    configVersion='ALL' 
+    conddescription='ALL' 
+    processing='ALL'
+    evt='ALL'
+    production = 'ALL'
+    filetype = 'ALL'
+    quality = 'ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      processing = dict['ProcessingPass']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    
+    if dict.has_key('FileType'):
+      filetype = dict['FileType']
+    
+    if dict.has_key('Quality'):
+      quality = dict['Quality']
+      
+    retVal = dataMGMT_.getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality)  
+    if retVal['OK']:
+      records = []
+      parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize','Luminosity','InstLuminosity']
+      for record in retVal['Value']:
+        records += [[record[0],record[1],record[2],record[3],record[4]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+    return S_OK()
+  
+  #############################################################################
+  types_getLimitedFiles = [DictType]
+  def export_getLimitedFiles(self, dict):
+    configName = 'ALL'
+    configVersion='ALL' 
+    conddescription='ALL' 
+    processing='ALL'
+    evt='ALL'
+    production = 'ALL'
+    filetype = 'ALL'
+    quality = 'ALL'
+    start = 0
+    max = 10
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      processing = dict['ProcessingPass']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+    
+    if dict.has_key('FileType'):
+      filetype = dict['FileType']
+    
+    if dict.has_key('Quality'):
+      quality = dict['Quality']
+    
+    if dict.has_key('StartItem'):
+      start = dict['StartItem']
+    
+    if dict.has_key('MaxItem'):
+      max = dict['MaxItem']
+      
+    retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality,start,max)  
+    if retVal['OK']:
+      records = []
+      parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
+    'EventInputstat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
+      for record in retVal['Value']:
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13],record[14],record[15]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal
+    return S_OK()
+  
   #############################################################################  
   types_getAvailableDataQuality = []
   def export_getAvailableDataQuality(self):

@@ -87,6 +87,14 @@ class IBookkeepingDatabaseClient(object):
   def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
     return self.getManager().getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality)
   
+  #############################################################################
+  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+    return self.getManager().getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality)
+  
+  #############################################################################
+  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, startitem, maxiten):
+    return self.getManager().getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, startitem, maxiten)
+  
   #############################################################################  
   def getAvailableDataQuality(self):
     return self.getManager().getAvailableDataQuality()
