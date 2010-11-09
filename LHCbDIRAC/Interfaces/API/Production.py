@@ -19,15 +19,16 @@ __RCSID__ = "$Id$"
 import string, re, os, time, shutil, types, copy
 
 from DIRAC.Core.Workflow.Workflow                     import *
-from DIRAC.Core.DISET.RPCClient                       import RPCClient
+from DIRAC.Core.DISET.RPCClient                       import RPCClient #now only used for ProductionRequest service
 from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
 
-from LHCbDIRAC.TransformationSystem.Client.Transformation       import Transformation
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
-from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProduction
-from LHCbDIRAC.Interfaces.API.LHCbJob                           import *
-from LHCbDIRAC.Core.Utilities.ProductionOptions                 import getOptions
+from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction #only used for output LFNs at the moment
+from LHCbDIRAC.Interfaces.API.LHCbJob                             import *
+from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
@@ -822,7 +823,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if os.path.exists(prodXMLFile):
         self.log.verbose('Using %s for production body' %prodXMLFile)
       else:
-        prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+        prodClient = TransformationDBClient()
         result = prodClient.getTransformationParameters(int(prodID),['Body'])
         if not result['OK']:
           return S_ERROR("Error during command execution: %s" % result['Message'])
@@ -881,7 +882,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
     
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
-      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+      prodClient = TransformationDBClient()
       res = prodClient.getBookkeepingQueryForTransformation(int(prodID))
       if not res['OK']:
         self.log.error(res)
@@ -915,7 +916,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
           if value.lower() == "all":
             del bkDict[name]
 
-      bkserver = RPCClient('Bookkeeping/BookkeepingManager')
+      bkserver = BookkeepingClient()
       self.log.verbose('Will attempt to retrieve an input data file for LFN construction from BK query')
       result = bkserver.getFilesWithGivenDataSets(bkDict)
       if not result['OK']:
@@ -1043,6 +1044,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.error(x)
       return S_ERROR('Could not create workflow')
 
+    workflowBody = ''
+    if os.path.exists(fileName):
+      fopen = open(fileName,'r')
+      workflowBody = fopen.read()
+      fopen.close()
+    else:
+      return S_ERROR('Could not get workflow body')
+
     bkConditions = self.workflow.findParameter('conditions').getValue()
 
     bkDict = {}
@@ -1089,9 +1098,20 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       bkDict['Steps'][step]['DDDb']=self.workflow.findParameter('DDDBTag').getValue()
       bkDict['Steps'][step]['CondDb']=self.workflow.findParameter('CondDBTag').getValue()
 
+    #Adding some MC transformation parameters if present
+    maxNumberOfTasks = 0
+    maxEventsPerTask = 0
+    if self.workflow.findParameter('MaxNumberOfTasks'):
+      maxNumberOfTasks = self.workflow.findParameter('MaxNumberOfTasks').getValue()
+    if self.workflow.findParameter('EventsPerTask'):
+      eventsPerTask = self.workflow.findParameter('EventsPerTask').getValue()
+
+    descShort = self.workflow.getDescrShort()
+    descLong = self.workflow.getDescription()
+
     prodID = 0
     if publish:
-      dirac = DiracProduction()
+      prodClient = TransformationDBClient()
       if self.inputFileMask:
         fileMask = self.inputFileMask
       if self.jobFileGroupSize:
@@ -1101,9 +1121,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if self.ancestorProduction:
         derivedProduction = self.ancestorProduction
 
-      result = dirac.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,
-                                      plugin=self.plugin,productionGroup=self.prodGroup,
-                                      productionType=self.type,derivedProd=derivedProduction)
+      #This mechanism desperately needs to be reviewed
+      result = prodClient.addTransformation(fileName,descShort,descLong,self.type,self.plugin,'Manual',fileMask,
+                                            transformationGroup=self.prodGroup,groupSize = int(groupSize),
+                                            inheritedFrom = int(derivedProduction),body = workflowBody,
+                                            maxTasks=int(maxNumberOfTasks),eventsPerTask=int(eventsPerTask),
+                                            bkQuery=bkQuery)
+        
       if not result['OK']:
         self.log.error('Problem creating production:\n%s' %result)
         return result
@@ -1327,7 +1351,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         in order to construct the BK XML
     """
     if not passDict:
-      prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+      prodClient = TransformationDBClient()
       result = prodClient.getTransformationParameters(int(prodID),['Body'])
       if not result['OK']:
         return S_ERROR("Error during command execution: %s" % result['Message'])
@@ -1361,7 +1385,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if type(pvalue)==type([]):
       pvalue=string.join(pvalue,'\n')
 
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    prodClient = TransformationDBClient()
     if type(pvalue)==type(2):
       pvalue = str(pvalue)
     result = prodClient.setTransformationParameter(int(prodID),str(pname),str(pvalue))
@@ -1373,7 +1397,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def getParameters(self,prodID,pname='',printOutput=False):
     """Get a production parameter or all of them if no parameter name specified.
     """
-    prodClient = RPCClient('ProductionManagement/ProductionManager',timeout=120)
+    prodClient = TransformationDBClient()
     result = prodClient.getTransformation(int(prodID),True)
     if not result['OK']:
       self.log.error(result)
