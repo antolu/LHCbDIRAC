@@ -169,15 +169,15 @@ AssigneeGroups = {
    'ResourceType': ValidResourceType, 
    'Notifications': ['Mail']
    }, 
-  'Carlos_PROD_SE': 
-  {'Users': ['rsantana'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['StorageElement'],
-   'SiteType': ValidSiteType, 
-   'ServiceType': ValidServiceType, 
-   'ResourceType': ValidResourceType, 
-   'Notifications': ['Mail']
-   }, 
+#  'Carlos_PROD_SE': 
+#  {'Users': ['rsantana'],
+#   'Setup': ['LHCb-Production'],
+#   'Granularity': ['StorageElement'],
+#   'SiteType': ValidSiteType, 
+#   'ServiceType': ValidServiceType, 
+#   'ResourceType': ValidResourceType, 
+#   'Notifications': ['Mail']
+#   }, 
   'Carlos_PROD_Res': 
   {'Users': ['rsantana'],
    'Setup': ['LHCb-Production'],
@@ -357,20 +357,20 @@ Policies = {
 #                                        'args': None}}
                           ]
      },     
-  'OnNodePropagation' :
-    { 'Description' : "How the node's site is behaving in the RSS", 
-      'Granularity' : ['Resource'], 
-      'Status' : ValidStatus, 
-      'FormerStatus' : ValidStatus,
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-      'module': 'DownHillPropagation_Policy',
-      'commandIn' : ('RS_Command', 'MonitoredStatus_Command'),
-      'args' : ('Site', ),
-      'SE_Panel' : [ {'RSS':'ResOfStorEl'}
-                    ]
-     },
+#  'OnNodePropagation' :
+#    { 'Description' : "How the site of the node is behaving in the RSS", 
+#      'Granularity' : ['Resource'], 
+#      'Status' : ValidStatus, 
+#      'FormerStatus' : ValidStatus,
+#      'SiteType' : ValidSiteType,
+#      'ServiceType' : ValidServiceType,
+#      'ResourceType' : ValidResourceType,
+#      'module': 'DownHillPropagation_Policy',
+#      'commandIn' : ('RS_Command', 'MonitoredStatus_Command'),
+#      'args' : ('Site', ),
+#      'Resource_Panel' : [ {'RSS':'ResOfStorEl'}
+#                    ]
+#     },
   'JobsEfficiencySimple' :  
     { 'Description' : "Simple jobs efficiency", 
       'Granularity' : ['Service'], 
