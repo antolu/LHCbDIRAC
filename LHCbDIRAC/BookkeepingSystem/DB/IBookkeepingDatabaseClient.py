@@ -403,3 +403,14 @@ class IBookkeepingDatabaseClient(object):
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
     return self.getManager().getFilesWithGivenDataSetsForUsers(simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag)
   
+  #############################################################################
+  def getDataTakingCondId(self, condition):
+    return self.getManager().getDataTakingCondId(condition)
+
+  #############################################################################
+  def getStepIdandName(self, programName, programVersion):
+    return self.getManager().getStepIdandName(programName, programVersion)
+  
+  #############################################################################
+  def addProduction(self, production, simcond, daq, steps, inputproc):
+    return self.getManager().addProduction(production, simcond, daq, steps, inputproc)

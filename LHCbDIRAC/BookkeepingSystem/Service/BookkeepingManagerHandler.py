@@ -93,12 +93,12 @@ class BookkeepingManagerHandler(RequestHandler):
           value = [record[0], record[1]]
           records += [value]
       else:
-        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'Usable']
         records = []
         for record in retVal['Value']:
           value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
           records += [value]
-      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','OptionFiles','DDDB','CONDDB', 'ExtraPackages','Visible']
+      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','OptionFiles','DDDB','CONDDB', 'ExtraPackages','Visible','Usable']
       records = []
       for record in retVal['Value']:
         records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
@@ -1236,3 +1236,32 @@ class BookkeepingManagerHandler(RequestHandler):
     result['Summary']=summary
     return S_OK(result)
   
+  #############################################################################
+  types_addProduction = [DictType]
+  def export_addProduction(self, infos):
+    gLogger.debug(infos)
+    result = None
+    simcond = None
+    daqdesc = None
+    ok = False
+    if infos.has_key('SimulationConditions'):
+      simcond = infos['SimulationConditions']
+      ok = True
+    if infos.has_key('DataTakingConditions'):
+      daqdesc = infos['DataTakingConditions']
+      ok = True
+    if not ok:
+      result = S_ERROR('SimulationConditions or DataTakingConditins is missing!')   
+    if not infos.has_key('Steps'):
+      result = S_ERROR("Missing Steps!")
+    if not infos.has_key('Production'):
+      result = S_ERROR('Production is missing!')
+    
+    if not result:
+      steps = infos['Steps']
+      inputProdTotalProcessingPass = ''
+      production = infos['Production']
+      if infos.has_key('InputProductionTotalProcessingPass'):
+        inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
+    return dataMGMT_.addProduction(production, simcond, daqdesc, steps, inputProdTotalProcessingPass)
+        

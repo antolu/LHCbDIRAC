@@ -65,7 +65,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getAvailableSteps(self, dict = {}):      
     condition = ''
-    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible'
+    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible, Usable'
     if len(dict) > 0:
       tables = 'steps'
       if dict.has_key('StartDate'):
@@ -131,7 +131,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertStep(self, dict):
     values = ''
-    selection = 'insert into steps(stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible '
+    command = "SELECT applications_index_seq.nextval from dual"
+    sid = 0
+    retVal = self.dbR_._query(command)
+    if not retVal['OK']:
+      return retVal
+    else:
+      sid = retVal['Value'][0][0]
+    selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible,usable '
     if dict.has_key('InputFileTypes'):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
@@ -151,10 +158,51 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if dict.has_key('Step'):
       step = dict['Step']
-      command =  selection+')values(\''+str(step['StepName'])+ \
-      '\',\''+str(step['ApplicationName'])+'\',\''+str(step['ApplicationVersion'])+'\',\''+str(step['OptionFiles'])+'\',\''+str(step['DDDB'])+ \
-      '\',\'' +str(step['CONDDB'])+'\',\''+str(step['ExtraPackages'])+'\',\''+str(step['Visible'])+'\''+values+')'
-      return self.dbW_._query(command)
+      command =  selection+")values(%d"%(sid)
+      if step.has_key('StepName'):
+        command += ",'%s'"%(step['StepName'])
+      else:
+        command += ',NULL'
+      if step.has_key('ApplicationName'):
+        command += ",'%s'"%(step['ApplicationName'])
+      else:
+        command += ',NULL'
+      if step.has_key('ApplicationVersion'):
+        command += ",'%s'"%(step['ApplicationVersion'])
+      else:
+        command += ',NULL'
+      if step.has_key('OptionFiles'):
+        command += ",'%s'"%(step['OptionFiles'])
+      else:
+        command += ',NULL'
+      if step.has_key('DDDB'):
+        command += ",'%s'"%(step['DDDB'])
+      else:
+        command += ',NULL'
+      if step.has_key('CONDDB'):
+        command += ",'%s'"%(step['CONDDB'])
+      else:
+        command += ',NULL'
+      if step.has_key('ExtraPackages'):
+        command += ",'%s'"%(step['ExtraPackages'])
+      else:
+        command += ',NULL'
+      if step.has_key('Visible'):
+        command += ",'%s'"%(step['Visible'])
+      else:
+        command += ',NULL'
+      
+      if step.has_key('Usable'):
+        command += ",'%s'"%(step['Usable'])
+      else:
+        command += ',NULL'
+      
+      command += values+")"
+      retVal = self.dbW_._query(command)
+      if retVal['OK']:
+        return S_OK(sid)
+      else:
+        return retVal
 
     return S_ERROR('The Filetypes and Step are missing!')
   
@@ -2348,6 +2396,7 @@ and files.qualityid= dataquality.qualityid'
   
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, startitem=0, maxitems=10):
+   
     condition = ' and c.ConfigName=\''+configName+'\' and \
                   c.configversion=\''+configVersion+'\' '
     
@@ -2413,4 +2462,207 @@ and files.qualityid= dataquality.qualityid'
     j.production=prod.production"+condition +") where rownum <=%d ) where r >%d"%(maxitems,startitem)
     return self.dbR_._query(command)
   
+  #############################################################################
+  def getDataTakingCondId(self, condition):
+    command = 'select DaqPeriodId from data_taking_conditions where ' 
+    for param in condition:
+      if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+        command += str(param)+' is NULL and '
+      elif condition[param] != None:
+        command +=  str(param)+'=\''+condition[param]+'\' and '
+      else:
+        command += str(param)+' is NULL and '
+    
+    command = command[:-4]
+    res = self.dbR_._query(command)
+    if res['OK']:
+        if len(res['Value'])==0:
+          command = 'select DaqPeriodId from data_taking_conditions where ' 
+          for param in condition:
+            if param != 'Description':
+              if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+                command += str(param)+' is NULL and '
+              elif condition[param] != None:
+                command +=  str(param)+'=\''+condition[param]+'\' and '
+              else:
+                command += str(param)+' is NULL and '
+            
+          command = command[:-4]
+          retVal = self.dbR_._query(command)
+          if retVal['OK']:
+            if len(retVal['Value'])!=0:
+              return S_ERROR('Only the Description is different, the other attributes are the same and they are exists in the DB!')
+    return res
   
+  #############################################################################
+  def getStepIdandNameForRUN(self, programName, programVersion):
+    command = "select stepid, stepname from steps where applicationname='%' and applicationversion='%'"%(programName, programVersion)
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      if len(retVal['Value']) == 0:
+        return self.insertStep({'StepName':'Real Data','ApplicationName':programName,'ApplicationVersion':programVersion})
+      else:
+        return S_OK([retVal['Value'][0][0],retVal['Value'][0][1]])
+    else:
+      return retVal
+  
+  #############################################################################
+  def __getPassIds(self, name):
+    command = "select id from processing where name='%s'"%(name)
+    retVal = dbW_._query(command)
+    if retVal['OK']:
+      result = []
+      for i in retVal['Value']:
+        result += [i[0]]
+      return S_OK(result)  
+    else:
+      return retVal
+  
+  #############################################################################
+  def __getprocessingid(self,id):
+    command = 'SELECT name "Name", CONNECT_BY_ISCYCLE "Cycle", \
+   LEVEL, SYS_CONNECT_BY_PATH(name, \'/\') "Path", id "ID" \
+   FROM processing \
+   START WITH id='+str(id)+'\
+   CONNECT BY NOCYCLE PRIOR  parentid=id AND LEVEL <= 5 \
+   ORDER BY  Level desc, "Name", "Cycle", "Path"'
+    return dbW_._query(command)
+  
+  #############################################################################
+  def __checkprocessingpass(self, opath, values):
+    if len(opath)!=len(values):
+      return False
+    else:
+      j = 0
+      for i in values:
+        if i[0]!=opath[j]:
+           return False
+        j += 1
+      return True
+
+  #############################################################################
+  def __insertprocessing(self, values, parentid=None):
+    for i in values:
+      command = "select id from processing where name='%s'"%(i)
+      retVal = dbW_._query(command)
+      if retVal['OK']:
+        if len(retVal['Value']) ==0:
+          if parentid != None:
+            command = 'select max(id)+1 from processing'
+            retVal = dbW_._query(command)
+            if retVal['OK']:
+              id = retVal['Value'][0][0]
+              command = "insert into processing(id,parentid,name)values(%d,%d,'%s')"%(id,parentid,i)
+              retVal = dbW_._query(command)
+              if not retVal['OK']:
+                gLogger.error(retVal['Message'])
+              values.remove(i)
+              self.__insertprocessing(values, id)
+          else:
+            command = 'select max(id)+1 from processing'
+            retVal = dbW_._query(command)
+            if retVal['OK']:
+              id = retVal['Value'][0][0]
+              if id == None:
+                id = 1
+              command = "insert into processing(id,parentid,name)values(%d,null,'%s')"%(id,i)
+              retVal = dbW_._query(command)
+              if not retVal['OK']:
+                gLogger.error(retVal['Message'])  
+              values.remove(i)
+              self.__insertprocessing(values, id)
+        else:
+          if parentid != None:
+            command = 'select max(id)+1 from processing'
+            retVal = dbW_._query(command)
+            if retVal['OK']:
+              id = retVal['Value'][0][0]
+              command = "insert into processing(id,parentid,name)values(%d,%d,'%s')"%(id,parentid,i)
+              retVal = dbW_._query(command)
+              if not retVal['OK']:
+                gLogger.error(retVal['Message'])  
+              values.remove(i)
+              self.__insertprocessing(values, id)
+          else:
+            values.remove(i)
+            parentid = retVal['Value'][0][0]
+            self.__insertprocessing(values,parentid)
+  
+  #############################################################################
+  def addProcessing(self, path):
+    lastindex = len(path)-1
+    retVal = self.__getPassIds(path[lastindex])
+    if not retVal['OK']:
+      return retVal
+    else:
+      ids = retVal['Value']
+      if len(ids) == 0:
+        newpath = list(path)
+        self.__insertprocessing(newpath)
+        return self.__getPassIds(path[lastindex])
+      else:
+        for i in ids:
+          procs = getprocessingid(i)
+          if len(procs)>0: 
+            if self.__checkprocessingpass(path, procs):
+              return S_OK(ppp[len(ppp)-1][4])       
+        newpath = list(path)
+        self.__insertprocessing(newpath) 
+        return getPassIds(path[lastindex])
+    return S_ERROR()
+  
+  #############################################################################
+  def insertStepsContainer(self, prod, stepid, step):
+    return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertStepsContainer',[prod, stepid, step], False)
+  
+  #############################################################################  
+  def insertproductionscontainer(self, prod, processingid, simid,daqperiodid):
+    return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertproductionscontainer',[ prod, processingid, simid,daqperiodid], False)
+    
+  #############################################################################
+  def addProductionSteps(self, steps, prod):
+    level = 1
+    for i in stpes:
+      retVal = self.insertStepsContainer(prod, i['StepId'], level)
+      if not retVal['OK']:
+        return retVal
+      level += 1
+    return S_OK()
+  
+  #############################################################################
+  def addProduction(self, production, simcond=None, daq=None, steps=default, inputproc=''):
+    path = []
+    if inputproc != '':
+      path = inputproc.split('/')[1:]
+    for i in steps:
+      path += [i['StepName']]  
+    
+    processingid = None
+    retVal = self.addProcessing(path)
+    if not retVal['OK']:
+      return retVal
+    else:
+      if len(retVal['Value'])>1:
+        return S_ERROR('The proccesing pass exist! You have to ask Zoltan!')
+      else:
+        processingid = retVal['Value'][0]
+    retVal = self.addProductionSteps(steps, production)
+    if retVal['OK']:
+      sim = None
+      did = None
+      if daq!= None:
+        retVal = self._getDataTakingConditionId(daq)
+        if retVal['OK'] and retVal['Value'] > -1:
+          did = retVal['Value']
+        else:
+          return S_ERROR('Data taking condition is missing!!')
+      if simcond != None:
+        retVal = self._getSimulationConditioId(simcond)
+        if retVal['OK'] and retVal['Value'] > -1:
+          sim = retVal['Value']
+        else:
+          return S_ERROR('Data taking condition is missing!!')
+      return self.insertproductionscontainer(production,processingid,sim,did)
+    else:
+      return retVal
+    return S_OK('The production processing pass is entered to the bkk')

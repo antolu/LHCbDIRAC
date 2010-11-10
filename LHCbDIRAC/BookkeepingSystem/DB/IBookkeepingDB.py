@@ -404,3 +404,14 @@ class IBookkeepingDB(object):
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
     gLogger.error('This method is not implemented!')
   
+  #############################################################################
+  def getDataTakingCondId(self, condition):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getStepIdandName(self, programName, programVersion):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def addProduction(self, production, simcond, daq, steps, inputproc):
+    gLogger.error('This method is not implemented!')

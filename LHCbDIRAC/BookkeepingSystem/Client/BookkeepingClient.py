@@ -620,4 +620,9 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getFilesWithGivenDataSetsForUsers(values)
   
+  #############################################################################
+  def addProduction(self, dict):
+    server = self.__getServer()
+    return server.addProduction(dict)
+
   

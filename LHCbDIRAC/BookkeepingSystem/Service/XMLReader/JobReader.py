@@ -6,20 +6,20 @@
 
 """
 
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobConfiguration           import JobConfiguration
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobOption                  import JobOption
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.File                       import File
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.InputFile                  import InputFile
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.JobParameters              import JobParameters
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.Job                        import Job
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.FileParam                  import FileParam
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.SimulationConditions       import SimulationConditions
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.DataTakingConditions       import DataTakingConditions
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.FileReplica            import FileReplica
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Replica.ReplicaParam           import ReplicaParam
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.Quality                    import Quality
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.Job.QualityParameters          import QualityParameters
-from DIRAC                                                                  import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobConfiguration           import JobConfiguration
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobOption                  import JobOption
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.File                       import File
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.InputFile                  import InputFile
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters              import JobParameters
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.Job                        import Job
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                  import FileParam
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.SimulationConditions       import SimulationConditions
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.DataTakingConditions       import DataTakingConditions
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.FileReplica            import FileReplica
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.ReplicaParam           import ReplicaParam
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.Quality                    import Quality
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.QualityParameters          import QualityParameters
+from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"
 
