@@ -3,6 +3,11 @@
 ########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
+    
+    The methods here are mostly from ancient history and need to be 
+    reviewed, these methods were grouped together as they form the
+    "interface" for production clients and workflow modules to create LFNs.
+    
 """
 
 __RCSID__ = "$Id$"
@@ -190,6 +195,31 @@ def constructUserLFNs(jobID,owner,outputFiles,outputPath):
     gLogger.info('No output LFN(s) constructed')
     
   return S_OK(outputData)
+
+#############################################################################
+def preSubmissionLFNs(jobCommons,jobCode,productionID='1',jobID='2',inputData=None):
+  """ Constructs LFNs to be added to the job description prior to submission
+      or simply for visual inspection. 
+      
+      This is a wrapper around constructProductionLFNs used by the production
+      clients.
+  """
+  outputList = []
+  for line in jobCode.split("\n"):
+    if line.count("listoutput"):
+      outputList += eval(line.split("#")[0].split("=")[-1])
+
+  jobCommons['outputList']=outputList
+  jobCommons['PRODUCTION_ID']=productionID
+  jobCommons['JOB_ID']=jobID
+  if inputData:
+    jobCommons['InputData']=inputData
+
+  gLogger.debug(jobCommons)
+  result = constructProductionLFNs(jobCommons)
+  if not result['OK']:
+    self.log.error(result)
+  return result
 
 #############################################################################
 def _makeProductionPath(JOB_ID,LFN_ROOT,typeName,mode,prodstring,log=False):
