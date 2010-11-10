@@ -33,8 +33,8 @@ from DIRAC.Core.Utilities.Time                      import toString
 from DIRAC.Core.Security.X509Chain                  import X509Chain
 from DIRAC.Core.Security                            import Locations, CS
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
-from LHCbDIRAC.Core.Utilities.ProductionData                      import constructProductionLFNs
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from LHCbDIRAC.Core.Utilities.ProductionData                      import constructProductionLFNs,preSubmissionLFNs
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
@@ -62,7 +62,8 @@ class DiracProduction:
     self.prodAdj = 22
     self.proxy = None
     self.commands = {'start':['Active','Manual'],'stop':['Stopped','Manual'],'automatic':['Active','Automatic'],'manual':['Active','Manual'],'completed':['Completed','Manual'],'completing':['Completing','Automatic'],'cleaning':['Cleaning','Manual'],'flush':['Flush','Automatic'],'deleted':['Deleted','Manual'],'archived':['Archived','Manual'],'valinput':['ValidatingInput','Manual'],'valoutput':['ValidatingOutput','Manual'],'remove':['RemovingFiles','Manual'],'validated':['ValidatedOutput','Manual'],'removed':['RemovedFiles','Manual']}
-    self.prodClient = ProductionClient()
+#    self.prodClient = ProductionClient()
+    self.prodClient = TransformationDBClient()
 
   #############################################################################
   def getAllProductions(self,printOutput=False):
@@ -572,13 +573,6 @@ class DiracProduction:
     return result
 
   #############################################################################
-#  def getProductionFileMask(self,productionID=None,printOutput=False):
-#    """Returns the regular expressions used to define data for productions.
-#    """
-#    #TODO: write
-#    return S_OK()
-
-  #############################################################################
   def getProductionCommands(self):
     """ Returns the list of possible commands and their meaning.
     """
@@ -934,14 +928,8 @@ class DiracProduction:
        selections. By default, the date is the creation date of the production.
     """
     if not Date:
-      self.log.verbose('No Date supplied, attempting to find creation date of production %s' %ProductionID)
-      result = self.prodClient.getTransformationParameters(long(ProductionID),['CreationDate'])
-      if not result['OK']:
-        self.log.warn('Could not obtain production metadata for ID %s:\n%s' %(productionID,result))
-        return result
-      Date = result['Value']
-      self.log.verbose('Production %s was created on %s' %(ProductionID,Date))
-
+      self.log.verbose('No Date supplied, setting old date for production %s' %ProductionID)
+      Date='2001-01-01'
     return self.diracAPI.selectJobs(Status,MinorStatus,ApplicationStatus,Site,Owner,str(ProductionID).zfill(8),Date)
 
   #############################################################################
@@ -999,11 +987,11 @@ class DiracProduction:
     return result
 
   #############################################################################
-  def createProduction(self,fileName,fileMask='',groupSize=1,bkQuery={},plugin='',productionGroup='',productionType='',derivedProd='',maxJobs=0,printOutput=False):
+  def createProduction(self,fileName,fileMask='',groupSize=1,bkQuery={},plugin='',productionGroup='',productionType='',derivedProd='',maxTasks=0,eventsPerTask=0,printOutput=False):
     """ Create a production, based on the supplied parameters.
         Any input data can be specified by either fileMast or bkQuery. If both are specified then the BKQuery takes precedence.
 
-        Usage: createProduction <filename> <filemask> <groupsize> <bkquery> <plugin> <prodGroup> <prodType> <maxJobs>
+        Usage: createProduction <filename> <filemask> <groupsize> <bkquery> <plugin> <prodGroup> <prodType> <maxTasks>
     """
     if not os.path.exists(fileName):
       return self.__errorReport('%s does not exist' %fileName)
@@ -1054,13 +1042,16 @@ class DiracProduction:
     if not type(productionType)==type(" "):
       return self.__errorReport('Production type must be a string')
 
-    if type(maxJobs) == type(" "):
+    if type(maxTasks) == type(" "):
       try:
-        maxJobs = int(maxJobs)
+        maxTasks = int(maxTasks)
       except Exception,x:
         return self.__errorReport(str(x),'Expected integer or string for max jobs')
 
-    result = self.prodClient.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,bkQuery=bkQuery,plugin=plugin,productionGroup=productionGroup,productionType=productionType,derivedProd=derivedProd,maxJobs=maxJobs)
+    result = self.prodClient.createProduction(fileName,fileMask=fileMask,groupSize=groupSize,
+                                              bkQuery=bkQuery,plugin=plugin,productionGroup=productionGroup,
+                                              productionType=productionType,derivedProd=derivedProd,
+                                              maxTasks=maxTasks,eventsPerTask=eventsPerTask)
     if not result['OK']:
       return self.__errorReport(result,'Could not create production from %s' %(fileName))  
 
@@ -1182,31 +1173,15 @@ class DiracProduction:
 
   #############################################################################
   def _getOutputLFNs(self,jobDescription,productionID='1',jobID='2',inputData=None):
-    """ Temporary function that attempts to calculate the output LFN structure
+    """ This mehtod obtains the output LFN structure
         based on workflow conventions.
     """
     if not os.path.exists(jobDescription): # e.g. when using as a developer function
       self.__createJobDescriptionFile(jobDescription)
 
     job = Job(jobDescription)
-
-    commons = job._getParameters()
-    code = job.createCode()
-    outputList = []
-    for line in code.split("\n"):
-      if line.count("listoutput"):
-        outputList += eval(line.split("#")[0].split("=")[-1])
-
-    commons['outputList']=outputList
-    commons['PRODUCTION_ID']=productionID
-    commons['JOB_ID']=jobID
-    if inputData:
-      commons['InputData']=inputData
-
-    self.log.debug(commons)
-    result = constructProductionLFNs(commons)
-    if not result['OK']:
-      self.log.error(result['Message'])
+    result = preSubmissionLFNs(job._getParameters(),job.createCode(),
+                               productionID=productionID,jobID=jobID,inputData=inputData)
     return result
 
   #############################################################################
@@ -1323,19 +1298,5 @@ class DiracProduction:
       return S_OK(response)
     else:
       return S_ERROR(response)
-
-  #############################################################################
-  def checkJobsUpdateStatusUnused(self,productionID):
-    return S_OK()
-
-  def checkProductionRequestsReadyForValidating(self,prodID):
-    return S_OK()
-
-  def checkAncestorsProcessedOnce(self,blah):
-    print 'must break list into chunks from script'
-    return S_OK()
-
-  def checkDescendentsProcessedOnce(self,blah):
-    return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
