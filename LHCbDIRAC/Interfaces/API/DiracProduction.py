@@ -9,10 +9,11 @@ Script.parseCommandLine()
 
 """DIRAC Production Management Class
 
-   The DIRAC Production class allows to submit jobs using the
-   Production Management System.
+   This class allows to monitor the progress of productions operationally.
+   
+   Of particular use are the monitoring functions allowing to drill down 
+   by site, minor status and application status for a given transformation.  
 
-   Helper functions are to be documented with example usage.
 """
 
 __RCSID__ = "$Id$"
@@ -20,16 +21,11 @@ __RCSID__ = "$Id$"
 import string, re, os, time, shutil, types, copy
 import pprint
 
-from DIRAC.Interfaces.API.Job                       import Job
-from DIRAC.Interfaces.API.Dirac                     import Dirac
-from DIRAC.Core.DISET.RPCClient                     import RPCClient
-from DIRAC.Core.Utilities.File                      import makeGuid
-from DIRAC.Core.Utilities.Time                      import toString
-from DIRAC.Core.Security.X509Chain                  import X509Chain
-from DIRAC.Core.Security                            import Locations, CS
-
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
-from LHCbDIRAC.Core.Utilities.ProductionData                      import constructProductionLFNs,preSubmissionLFNs
+from DIRAC.Interfaces.API.Job                                 import Job
+from DIRAC.Interfaces.API.Dirac                               import Dirac
+from DIRAC.Core.DISET.RPCClient                               import RPCClient
+from DIRAC.Core.Utilities.Time                                import toString
+from DIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
