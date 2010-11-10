@@ -8,7 +8,7 @@ __VERSION__ = "$Revision: 1.40 $"
 import DIRAC
 from DIRAC                                          import gLogger
 from DIRAC.Interfaces.API.Job                       import Job
-from LHCbDIRAC.Core.Utilities.ProductionData        import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ProductionData        import preSubmissionLFNs
 
 class OutputDataPolicy:
 
@@ -21,22 +21,9 @@ class OutputDataPolicy:
     jobID = self.paramDict['TaskID']
     inputData = self.paramDict['InputData']
     
-    job = Job(jobDescription)
-    commons = job._getParameters()
-    code = job.createCode()
-    outputList = []
-    for line in code.split("\n"):
-      if line.count("listoutput"):
-        outputList += eval(line.split("#")[0].split("=")[-1])
-
-    commons['outputList']=outputList
-    commons['PRODUCTION_ID']=prodID
-    commons['JOB_ID']=jobID
-    if inputData:
-      commons['InputData']=inputData
-
-    gLogger.debug(commons)
-    result = constructProductionLFNs(commons)
+    job = Job(jobDescription)    
+    result = preSubmissionLFNs(job._getParameters(),job.createCode(),
+                               productionID=prodID,jobID=jobID,inputData=inputData)
     if not result['OK']:
-      gLogger.error(result['Message'])
+      gLogger.error(result)
     return result
