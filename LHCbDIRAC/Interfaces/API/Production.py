@@ -19,16 +19,17 @@ __RCSID__ = "$Id$"
 import string, re, os, time, shutil, types, copy
 
 from DIRAC.Core.Workflow.Workflow                     import *
-from DIRAC.Core.DISET.RPCClient                       import RPCClient #now only used for ProductionRequest service
+from DIRAC.Core.DISET.RPCClient                       import RPCClient #only used for ProductionRequest service
 from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
-from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction #only used for output LFNs at the moment
-from LHCbDIRAC.Interfaces.API.LHCbJob                             import *
+from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
+from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
+
 
 COMPONENT_NAME='LHCbSystem/Client/Production'
 
@@ -1333,12 +1334,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not prodXMLFile:
       self.log.verbose('Using workflow object to generate XML file')
       prodXMLFile=self.workflow.toXMLFile('%s.xml' %self.name)
-    dirac = DiracProduction()
     if not prodID:
       prodID = self.defaultProdID
     if not prodJobID:
       prodJobID = self.defaultProdJobID
-    result = dirac._getOutputLFNs(prodXMLFile,productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
+
+    job = Job(prodXMLFile)  
+    result = preSubmissionLFNs(job._getParameters(),job.createCode(),
+                               productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
     if not result['OK']:
       return result
     lfns = result['Value']
