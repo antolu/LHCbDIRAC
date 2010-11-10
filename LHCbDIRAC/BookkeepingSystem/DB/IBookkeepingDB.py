@@ -415,3 +415,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def addProduction(self, production, simcond, daq, steps, inputproc):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def checkProcessingPassAndSimCond(self, production):
+    gLogger.error('This method is not implemented!')

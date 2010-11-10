@@ -96,12 +96,12 @@ class BookkeepingManagerHandler(RequestHandler):
         parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'Usable']
         records = []
         for record in retVal['Value']:
-          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]
+          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9]]
           records += [value]
       parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','OptionFiles','DDDB','CONDDB', 'ExtraPackages','Visible','Usable']
       records = []
       for record in retVal['Value']:
-        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8]]]
+        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9]]]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR(retVal['Message'])
@@ -797,13 +797,13 @@ class BookkeepingManagerHandler(RequestHandler):
   types_getProductionSummary = [DictType]
   def export_getProductionSummary(self, dict):
     
-    if dict.has_key('ConfigurationName'):
-      cName = dict['ConfigurationName']
+    if dict.has_key('ConfigName'):
+      cName = dict['ConfigName']
     else:
       cName = 'ALL'
     
-    if dict.has_key('ConfigurationVersion'):
-      cVersion = dict['ConfigurationVersion']
+    if dict.has_key('ConfigVersion'):
+      cVersion = dict['ConfigVersion']
     else:
       cVersion = 'ALL'
     
@@ -817,8 +817,8 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       simdesc = 'ALL'
     
-    if dict.has_key('ProcessingPassGroup'):
-      pgroup= dict['ProcessingPassGroup']
+    if dict.has_key('ProcessingPass'):
+      pgroup= dict['ProcessingPass']
     else:
       pgroup= 'ALL'
       

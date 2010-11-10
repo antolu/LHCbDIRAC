@@ -2509,7 +2509,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def __getPassIds(self, name):
     command = "select id from processing where name='%s'"%(name)
-    retVal = dbW_._query(command)
+    retVal = self.dbR_._query(command)
     if retVal['OK']:
       result = []
       for i in retVal['Value']:
@@ -2526,7 +2526,7 @@ and files.qualityid= dataquality.qualityid'
    START WITH id='+str(id)+'\
    CONNECT BY NOCYCLE PRIOR  parentid=id AND LEVEL <= 5 \
    ORDER BY  Level desc, "Name", "Cycle", "Path"'
-    return dbW_._query(command)
+    return self.dbR_._query(command)
   
   #############################################################################
   def __checkprocessingpass(self, opath, values):
@@ -2544,29 +2544,29 @@ and files.qualityid= dataquality.qualityid'
   def __insertprocessing(self, values, parentid=None):
     for i in values:
       command = "select id from processing where name='%s'"%(i)
-      retVal = dbW_._query(command)
+      retVal = self.dbR_._query(command)
       if retVal['OK']:
         if len(retVal['Value']) ==0:
           if parentid != None:
             command = 'select max(id)+1 from processing'
-            retVal = dbW_._query(command)
+            retVal = self.dbR_._query(command)
             if retVal['OK']:
               id = retVal['Value'][0][0]
               command = "insert into processing(id,parentid,name)values(%d,%d,'%s')"%(id,parentid,i)
-              retVal = dbW_._query(command)
+              retVal = self.dbW_._query(command)
               if not retVal['OK']:
                 gLogger.error(retVal['Message'])
               values.remove(i)
               self.__insertprocessing(values, id)
           else:
             command = 'select max(id)+1 from processing'
-            retVal = dbW_._query(command)
+            retVal = self.dbR_._query(command)
             if retVal['OK']:
               id = retVal['Value'][0][0]
               if id == None:
                 id = 1
               command = "insert into processing(id,parentid,name)values(%d,null,'%s')"%(id,i)
-              retVal = dbW_._query(command)
+              retVal = self.dbW_._query(command)
               if not retVal['OK']:
                 gLogger.error(retVal['Message'])  
               values.remove(i)
@@ -2574,11 +2574,11 @@ and files.qualityid= dataquality.qualityid'
         else:
           if parentid != None:
             command = 'select max(id)+1 from processing'
-            retVal = dbW_._query(command)
+            retVal = self.dbR_._query(command)
             if retVal['OK']:
               id = retVal['Value'][0][0]
               command = "insert into processing(id,parentid,name)values(%d,%d,'%s')"%(id,parentid,i)
-              retVal = dbW_._query(command)
+              retVal = self.dbW_._query(command)
               if not retVal['OK']:
                 gLogger.error(retVal['Message'])  
               values.remove(i)
@@ -2602,13 +2602,13 @@ and files.qualityid= dataquality.qualityid'
         return self.__getPassIds(path[lastindex])
       else:
         for i in ids:
-          procs = getprocessingid(i)
+          procs = self.__getprocessingid(i)
           if len(procs)>0: 
             if self.__checkprocessingpass(path, procs):
               return S_OK(ppp[len(ppp)-1][4])       
         newpath = list(path)
         self.__insertprocessing(newpath) 
-        return getPassIds(path[lastindex])
+        return self.__getPassIds(path[lastindex])
     return S_ERROR()
   
   #############################################################################
@@ -2622,7 +2622,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def addProductionSteps(self, steps, prod):
     level = 1
-    for i in stpes:
+    for i in steps:
       retVal = self.insertStepsContainer(prod, i['StepId'], level)
       if not retVal['OK']:
         return retVal
@@ -2630,22 +2630,30 @@ and files.qualityid= dataquality.qualityid'
     return S_OK()
   
   #############################################################################
+  def checkProcessingPassAndSimCond(self, production):
+    command = ' select count(*) from productionscontainer where production='+ str(production)
+    res = self.dbR_._query(command)
+    return res
+  
+  #############################################################################
   def addProduction(self, production, simcond=None, daq=None, steps=default, inputproc=''):
     path = []
     if inputproc != '':
       path = inputproc.split('/')[1:]
     for i in steps:
-      path += [i['StepName']]  
+      if i['Visible']=='Y':
+        path += [i['StepName']]  
     
     processingid = None
     retVal = self.addProcessing(path)
     if not retVal['OK']:
       return retVal
     else:
-      if len(retVal['Value'])>1:
-        return S_ERROR('The proccesing pass exist! You have to ask Zoltan!')
-      else:
+      print len(retVal['Value'])
+      if len(retVal['Value'])>0:
         processingid = retVal['Value'][0]
+      else:
+        return S_ERROR('The proccesing pass exist! You have to ask Zoltan!')
     retVal = self.addProductionSteps(steps, production)
     if retVal['OK']:
       sim = None

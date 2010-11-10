@@ -410,11 +410,11 @@ class XMLFilesReaderManager:
       retVal = dataManager_.getStepIdandNameForRUN(programName, programVersion)
       if not retVal['OK']:
         return S_ERROR(retVal['Message'])
-      passIndex = retVal['Value']
-      gLogger.debug('Pass_indexid', passIndex)
+      steps = {'Steps':[{'StepId':retVal['Value'][0],'StepName':retVal['Value'][1],'Visible':'Y'}]}
+      gLogger.debug('Pass_indexid', steps)
       gLogger.debug('Data taking', dataTackingPeriodID)
       gLogger.debug('production', production)
-      res = dataManager_.insertProcessing_pass(production, passIndex, dataTackingPeriodID)
+      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodID, steps=steps, inputproc='')
       if res['OK']:
         gLogger.info("New processing pass has been created!")
         gLogger.info("New production is:",production)
@@ -518,19 +518,4 @@ class XMLFilesReaderManager:
 
     return S_OK()
 
-  #############################################################################
-  def getJobs(self):
-    return self.jobs_
-
-  #############################################################################
-  def getReplicas(self):
-    return self.replicas_
-
-  def destroy(self):
-    del self.jobs_[:]
-    del self.replicas_[:]
-
-  #############################################################################
-
-
-
+  

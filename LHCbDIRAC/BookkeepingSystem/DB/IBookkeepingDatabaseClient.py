@@ -414,3 +414,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def addProduction(self, production, simcond, daq, steps, inputproc):
     return self.getManager().addProduction(production, simcond, daq, steps, inputproc)
+  
+  #############################################################################
+  def checkProcessingPassAndSimCond(self, production):
+    return self.getManager().checkProcessingPassAndSimCond(production)
