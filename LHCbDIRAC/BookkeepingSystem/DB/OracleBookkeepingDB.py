@@ -377,7 +377,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return retVal
     
     if evt != default:
-      condition += ' and bview.eventtypeid=90000000'
+      condition += ' and bview.eventtypeid='+str(evt)
     
     if processing != default:
       command = "select distinct pcont.production from \
