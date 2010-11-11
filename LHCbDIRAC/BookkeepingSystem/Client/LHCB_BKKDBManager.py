@@ -412,7 +412,7 @@ class LHCB_BKKDBManager(BaseESManager):
         if add:
           entityList += [add]
       for record in dbResult[0]['Records']:  
-        entityList += [self._getEntityFromPath(path, record[1], levels, 'Processing Pass')]
+        entityList += [self._getEntityFromPath(path, record[0], levels, 'Processing Pass')]
       self._cacheIt(entityList)
       if dbResult[1]['TotalRecords'] > 0:
         value = {}

@@ -301,19 +301,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
           erecords += [[record[0],record[1]]]
       else:
         return retVal
-      command = 'SELECT distinct id, name \
+      command = 'SELECT distinct name \
       FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
       productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     else:
-      command = 'SELECT distinct id, name \
+      command = 'SELECT distinct name \
       FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
       productionscontainer.production=newbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       precords = []
-      pparameters = ['Id','Name']
+      pparameters = ['Name']
       for record in retVal['Value']:
-        precords += [[record[0],record[1]]]
+        precords += [[record[0]]]
     else:
       return retVal
     
@@ -472,7 +472,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
-      condition += " and prod.processingid=(\
+      condition += " and prod.processingid in (\
       select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
       FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
       CONNECT BY NOCYCLE PRIOR  id=parentid) v\
