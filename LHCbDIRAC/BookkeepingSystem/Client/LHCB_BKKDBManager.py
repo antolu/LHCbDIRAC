@@ -311,7 +311,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult['Records']:
-        entityList += [self._getEntityFromPath(path, record[0], levels)]
+        entityList += [self._getEntityFromPath(path, record[0], levels,None,{},'getAvailableConfigNames')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
@@ -337,7 +337,7 @@ class LHCB_BKKDBManager(BaseESManager):
       dbResult = result['Value']
       description = dbResult["ParameterNames"][0]
       for record in dbResult['Records']:
-        entityList += [self._getEntityFromPath(path, record[0], levels, description)]
+        entityList += [self._getEntityFromPath(path, record[0], levels, description,dict,'getConfigVersions')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
@@ -375,7 +375,7 @@ class LHCB_BKKDBManager(BaseESManager):
         for i in dbResult['ParameterNames']:
           value[i] = record[j]
           j+=1
-        entityList += [self._getSpecificEntityFromPath(path, value, record[1], levels, None, 'Simulation Conditions/DataTaking')]
+        entityList += [self._getSpecificEntityFromPath(path, value, record[1], levels, None, 'Simulation Conditions/DataTaking',dict,'getConditions')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
@@ -403,8 +403,8 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_3(self, path, levels, dict, procpass):
     entityList = list()
+    dict['ProcessingPass']=procpass
     result = self.db_.getProcessingPass(dict, procpass)
-    
     if result['OK']:
       dbResult = result['Value']
       if dbResult[0]['TotalRecords'] > 0: # it is a processing pass
@@ -412,13 +412,13 @@ class LHCB_BKKDBManager(BaseESManager):
         if add:
           entityList += [add]
       for record in dbResult[0]['Records']:  
-        entityList += [self._getEntityFromPath(path, record[0], levels, 'Processing Pass')]
+        entityList += [self._getEntityFromPath(path, record[0], levels, 'Processing Pass',dict,'getProcessingPass')]
       self._cacheIt(entityList)
       if dbResult[1]['TotalRecords'] > 0:
         value = {}
         for record in dbResult[1]['Records']:  
           value = {'Event Type':record[0],'Description':record[1]} 
-          entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types')]
+          entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types',dict,'getProcessingPass')]
         self._cacheIt(entityList) 
     else:
       gLogger.error(result['Message'])
@@ -452,7 +452,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult['Records']:
-         entityList += [self._getEntityFromPath(path, record[0], levels, 'FileTypes')]
+         entityList += [self._getEntityFromPath(path, record[0], levels, 'FileTypes',dict,'getFileTypes')]
       self._cacheIt(entityList)
     else:
         gLogger.error(result['Message'])
@@ -1280,7 +1280,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
   
   ############################################################################# 
-  def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None):
+  def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None, selection = None, method = None):
      
     if isinstance(newPathElement, types.DictType):
       # this must be a file
@@ -1308,6 +1308,12 @@ class LHCB_BKKDBManager(BaseESManager):
       if leveldescription <> None:
         entity.update({'level':leveldescription})
       
+      if selection!=None:
+        entity.update({'selection':selection})
+      
+      if method!=None:
+        entity.update({'method':method})
+        
       if not self.advancedQuery_ and level==6:
         entity.update({'showFiles':0})
       elif  self.advancedQuery_ and level==7:
@@ -1319,7 +1325,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entity
   
   ############################################################################# 
-  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level, description=None, leveldescription=None):
+  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level, description=None, leveldescription=None, selection=None, method=None):
     if isinstance(value, types.DictType):
       entity = objects.Entity(value)
       type = self.LHCB_BKDB_FILE_TYPE
@@ -1338,6 +1344,12 @@ class LHCB_BKKDBManager(BaseESManager):
       if leveldescription <> None:
         entity.update({'level':leveldescription})
     
+      if selection!=None:
+        entity.update({'selection':selection})
+      
+      if method != None:
+        entity.update({'method':method})
+        
       if not self.advancedQuery_ and level==6:
         entity.update({'showFiles':0})
       elif  self.advancedQuery_ and level==7:
