@@ -154,6 +154,7 @@ configVersion = getParam('BK','ConfigVersion','test')
 #MC parameters
 paramType = 'MC'
 events = getParam(paramType,'NumberOfEvents','10')
+eventNumberTotal=getParam(paramType,'EventNumberTotal','1000000')
 cpu = getParam(paramType,'CPU','100000')
 priority = getParam(paramType,'Priority','4')
 extend = getParam(paramType,'Extend','50')
@@ -231,6 +232,9 @@ production.setProdType('MCSimulation')
 production.setWorkflowName('MC_Test_%sEvents_%s' %(events,appendName))
 production.setBKParameters(configName,configVersion,prodGroup,simCond)
 production.setDBTags(conditionsDBTag,detDescDBTag)
+#This isn't associated to a request so is outside of the status machine
+#but fill the events total with a large number anyway to track progress.
+production.setSimulationEvents(events,eventNumberTotal)
 
 prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
 
