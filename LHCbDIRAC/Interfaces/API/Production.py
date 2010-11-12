@@ -22,6 +22,7 @@ from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient #only used for ProductionRequest service
 from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
+from DIRAC                                            import gConfig,gLogger
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
