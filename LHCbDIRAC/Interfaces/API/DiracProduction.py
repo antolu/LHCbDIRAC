@@ -53,7 +53,6 @@ class DiracProduction:
     self.prodAdj = 22
     self.proxy = None
     self.commands = {'start':['Active','Manual'],'stop':['Stopped','Manual'],'automatic':['Active','Automatic'],'manual':['Active','Manual'],'completed':['Completed','Manual'],'completing':['Completing','Automatic'],'cleaning':['Cleaning','Manual'],'flush':['Flush','Automatic'],'deleted':['Deleted','Manual'],'archived':['Archived','Manual'],'valinput':['ValidatingInput','Manual'],'valoutput':['ValidatingOutput','Manual'],'remove':['RemovingFiles','Manual'],'validated':['ValidatedOutput','Manual'],'removed':['RemovedFiles','Manual']}
-#    self.prodClient = ProductionClient()
     self.prodClient = TransformationDBClient()
 
   #############################################################################
@@ -601,7 +600,7 @@ class DiracProduction:
 
     actions = commands[command]
     self.log.info('Setting production status to %s and submission mode to %s for productionID %s' %(actions[0],actions[1],productionID))
-    result = self.prodClient.setProductionStatus(long(productionID), actions[0])
+    result = self.prodClient.setTransformationParameter(long(productionID),"Status", actions[0])
     if not result['OK']:
       self.log.warn('Problem updating transformation status with result:\n%s' %result)
       return result
