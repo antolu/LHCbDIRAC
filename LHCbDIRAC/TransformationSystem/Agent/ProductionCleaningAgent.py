@@ -108,7 +108,7 @@ class ProductionCleaningAgent( AgentModule ):
       return res
     gLogger.info( "Successfully archived production %d" % prodID )
     # Change the status of the production to archived
-    res = self.transClient.setProductionStatus( prodID, 'Archived' )
+    res = self.transClient.setTransformationParameter( prodID, 'Status', 'Archived' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to Archived" % ( prodID ), res['Message'] )
       return res
@@ -141,7 +141,7 @@ class ProductionCleaningAgent( AgentModule ):
       return res
     gLogger.info( "Successfully removed output of production %d" % prodID )
     # Change the status of the production to RemovedFiles
-    res = self.transClient.setProductionStatus( prodID, 'RemovedFiles' )
+    res = self.transClient.setTransformationParameter( prodID, 'Status', 'RemovedFiles' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to RemovedFiles" % ( prodID ), res['Message'] )
       return res
@@ -187,7 +187,7 @@ class ProductionCleaningAgent( AgentModule ):
       return res
     gLogger.info( "Successfully cleaned production %d" % prodID )
     # Change the status of the production to deleted
-    res = self.transClient.setProductionStatus( prodID, 'Deleted' )
+    res = self.transClient.setTransformationParameter( prodID, 'Status', 'Deleted' )
     if not res['OK']:
       gLogger.error( "Failed to update status of production %s to Deleted" % ( prodID ), res['Message'] )
       return res
@@ -202,7 +202,7 @@ class ProductionCleaningAgent( AgentModule ):
   def getProductionDirectories( self, prodID ):
     """ Get the directories for the supplied productionID from the production management system """
     directories = []
-    res = self.transClient.getParameters( prodID, pname = 'OutputDirectories' )
+    res = self.transClient.getTransformationParameters( prodID, pname = 'OutputDirectories' )
     if not res['OK']:
       gLogger.error("Failed to obtain production directories",res['Message'])
       return res
