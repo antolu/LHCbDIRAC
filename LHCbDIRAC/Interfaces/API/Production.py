@@ -1187,7 +1187,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       bkFileType = bkQuery['FileType']
       result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
                                           prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
-                                          parentReqID=parentRequestID)
+                                          parentRequestID=parentRequestID)
       if not result['OK']:
         self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
       else:
@@ -1206,7 +1206,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
       transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
                                            script=True,prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
-                                           parentReqID=parentRequestID)                      
+                                           parentRequestID=parentRequestID)                      
       if not transID['OK']:
         self.log.error('Problem writing transformation script, result was: %s' %transID)
       else:
@@ -1217,7 +1217,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK(prodID)
 
   #############################################################################
-  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin='',groupDescription='',parentReqID=0):
+  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin='',groupDescription='',parentRequestID=0):
     """ Create a transformation to distribute the output data for a given production.
     """
     #this was an attempt to control the madness of coping with streams, in practice 
@@ -1303,8 +1303,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
     infoString = []
     infoString.append('Replication transformation %s was created for %s with plugin %s' %(transID,groupDescription,plugin))
-    info.append('\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' %(inputProd,fileType))
-    infoString = string.join(info,'\n')
+    infoString.append('\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' %(inputProd,fileType))
+    infoString = string.join(infoString,'\n')
     result = self.setProdParameter(transID,'DetailedInfo',infoString)
     if not result['OK']:
       self.log.error('Could not set Transformation DetailedInfo parameter for %s with result %s' %(transID,result))        
