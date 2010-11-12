@@ -34,7 +34,8 @@ from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionClient import ProductionClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
 import string, time
@@ -123,8 +124,8 @@ class ProductionStatusAgent( AgentModule ):
     #Select productions in ValidatedOutput and recheck #BK events
     #Either request is Done, productions Completed, MC prods go to RemoveInputs
     #or request is Active, productions Active, MC prods Active (and extended correctly)
-    productionClient = ProductionClient()
-    res = productionClient.getTransformationWithStatus( 'ValidatedOutput' )
+    transformationClient = TransformationDBClient()
+    res = transformationClient.getTransformationWithStatus( 'ValidatedOutput' )
     if not res['OK']:
       self.log.error( "Failed to get ValidatedOutput productions", res['Message'] )
       return res
@@ -259,7 +260,7 @@ class ProductionStatusAgent( AgentModule ):
       self.updateProductionStatus( prodID, 'ValidatingInput', 'Active' )
 
     #Final action is to update MC input productions to completed that have been treated
-    res = productionClient.getTransformationWithStatus( 'RemovedFiles' )
+    res = transformationClient.getTransformationWithStatus( 'RemovedFiles' )
     if not res['OK']:
       gLogger.error( "Failed to get RemovedFiles productions", res['Message'] )
       return res
@@ -283,14 +284,14 @@ class ProductionStatusAgent( AgentModule ):
     """ This function checks for a production parameter "AssociatedTransformation"
         and if found will also update the transformation ID to the supplied status.
     """
-    productionClient = ProductionClient()
-    result = productionClient.getParameters( prodID, 'AssociatedTransformation' )
+    transformationClient = TransformationDBClient()
+    result = transformationClient.getTransformationParameters( prodID, 'AssociatedTransformation' )
     if not result['OK']:
       self.log.info( 'No associated transformation found for productionID %s' % prodID )
       return S_OK()
 
     transID = int( result['Value'] )
-    res = productionClient.setProductionStatus( transID, status )
+    res = transformationClient.setTransformationParameter( transID, 'Status', status )
     if not res['OK']:
       self.log.error( "Failed to update status of transformation %s to %s" % ( transID, status ) )
     else:
@@ -365,7 +366,7 @@ class ProductionStatusAgent( AgentModule ):
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
     """
-    productionClient = ProductionClient()
+    transformationClient = TransformationDBClient()
     dProd = DiracProduction()
     result = dProd.getProduction( long( prodID ) )
     if not result['OK']:
@@ -377,7 +378,7 @@ class ProductionStatusAgent( AgentModule ):
       #self.updatedProductions[prodID]={'to':status,'from':origStatus}
       #return S_OK()
       self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
-      res = productionClient.setProductionStatus( prodID, status )
+      res = transformationClient.setTransformationParameter( prodID, 'Status', status )
       if not res['OK']:
         self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
       else:
