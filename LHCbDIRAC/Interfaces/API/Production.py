@@ -1106,7 +1106,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if self.workflow.findParameter('MaxNumberOfTasks'):
       maxNumberOfTasks = self.workflow.findParameter('MaxNumberOfTasks').getValue()
     if self.workflow.findParameter('EventsPerTask'):
-      eventsPerTask = self.workflow.findParameter('EventsPerTask').getValue()
+      maxEventsPerTask = self.workflow.findParameter('EventsPerTask').getValue()
 
     descShort = self.workflow.getDescrShort()
     descLong = self.workflow.getDescription()
@@ -1127,7 +1127,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       result = prodClient.addTransformation(fileName,descShort,descLong,self.type,self.plugin,'Manual',fileMask,
                                             transformationGroup=self.prodGroup,groupSize = int(groupSize),
                                             inheritedFrom = int(derivedProduction),body = workflowBody,
-                                            maxTasks=int(maxNumberOfTasks),eventsPerTask=int(eventsPerTask),
+                                            maxTasks=int(maxNumberOfTasks),eventsPerTask=int(maxEventsPerTask),
                                             bkQuery=bkQuery)
         
       if not result['OK']:
