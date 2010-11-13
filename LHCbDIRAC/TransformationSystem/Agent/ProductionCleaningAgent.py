@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities.List                                      import sortL
 from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
 from datetime                                                       import datetime, timedelta
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 
 import re, os
@@ -26,7 +26,7 @@ class ProductionCleaningAgent( AgentModule ):
   def initialize( self ):
     """Sets defaults """
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationDBClient()
+    self.transClient = TransformationClient()
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()

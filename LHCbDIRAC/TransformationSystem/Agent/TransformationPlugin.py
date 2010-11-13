@@ -6,7 +6,7 @@ from DIRAC.Core.Utilities.List                                         import br
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles                  import getAncestorFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient      import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 import time,random,sys,re
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
@@ -15,7 +15,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
   def __init__(self,plugin):
     DIRACTransformationPlugin.__init__(self,plugin)
-    self.transClient = TransformationDBClient()
+    self.transClient = TransformationClient()
 
   def _AtomicRun(self):
     possibleTargets = ['LCG.CERN.ch','LCG.CNAF.it','LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.PIC.es','LCG.RAL.uk','LCG.SARA.nl']

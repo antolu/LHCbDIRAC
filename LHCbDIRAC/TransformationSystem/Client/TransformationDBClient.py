@@ -1,15 +1,15 @@
 """ Class that contains client access to the transformation DB handler. """
 ########################################################################
-# $Id: TransformationDBClient.py 18427 2009-11-20 10:28:53Z acsmith $
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/LHCbDIRAC/TransformationSystem/Client/TransformationDBClient.py $
+# $Id: TransformationClient.py 18427 2009-11-20 10:28:53Z acsmith $
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/LHCbDIRAC/TransformationSystem/Client/TransformationClient.py $
 ########################################################################
-__RCSID__ = "$Id: TransformationDBClient.py 19179 2009-12-04 09:54:19Z acsmith $"
+__RCSID__ = "$Id: TransformationClient.py 19179 2009-12-04 09:54:19Z acsmith $"
 
-from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient as DIRACTransformationDBClient  
+from DIRAC                                                    import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient as DIRACTransformationClient  
 import types
     
-class TransformationDBClient(DIRACTransformationDBClient):
+class TransformationClient(DIRACTransformationClient):
 
   """ Exposes the functionality available in the LHCbDIRAC/TransformationHandler
 

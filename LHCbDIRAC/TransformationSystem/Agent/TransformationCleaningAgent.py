@@ -12,7 +12,7 @@ from DIRAC.RequestManagementSystem.Client.RequestClient             import Reque
 from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent   import TransformationCleaningAgent as DIRACTransformationCleaningAgent
 from DIRAC.WorkloadManagementSystem.Client.WMSClient                import WMSClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 from datetime                                                       import datetime, timedelta
 import re, os
@@ -25,7 +25,7 @@ class TransformationCleaningAgent(DIRACTransformationCleaningAgent):
   def initialize( self ):
     """Sets defaults """
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationDBClient()
+    self.transClient = TransformationClient()
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()

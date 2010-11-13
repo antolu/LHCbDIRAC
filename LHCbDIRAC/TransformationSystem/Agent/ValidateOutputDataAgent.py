@@ -12,7 +12,7 @@ from DIRAC.DataManagementSystem.Client.StorageUsageClient           import Stora
 from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient 
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient   import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
 import re, os
 
@@ -26,7 +26,7 @@ class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
     """
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationDBClient()
+    self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
     self.fileCatalogClient = FileCatalogClient()
     self.am_setModuleParam( "shifterProxy", "DataManager" )

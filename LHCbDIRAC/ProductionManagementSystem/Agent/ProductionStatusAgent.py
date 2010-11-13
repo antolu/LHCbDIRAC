@@ -34,7 +34,7 @@ from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
@@ -124,7 +124,7 @@ class ProductionStatusAgent( AgentModule ):
     #Select productions in ValidatedOutput and recheck #BK events
     #Either request is Done, productions Completed, MC prods go to RemoveInputs
     #or request is Active, productions Active, MC prods Active (and extended correctly)
-    transformationClient = TransformationDBClient()
+    transformationClient = TransformationClient()
     res = transformationClient.getTransformationWithStatus( 'ValidatedOutput' )
     if not res['OK']:
       self.log.error( "Failed to get ValidatedOutput productions", res['Message'] )
@@ -284,7 +284,7 @@ class ProductionStatusAgent( AgentModule ):
     """ This function checks for a production parameter "AssociatedTransformation"
         and if found will also update the transformation ID to the supplied status.
     """
-    transformationClient = TransformationDBClient()
+    transformationClient = TransformationClient()
     result = transformationClient.getTransformationParameters( prodID, 'AssociatedTransformation' )
     if not result['OK']:
       self.log.info( 'No associated transformation found for productionID %s' % prodID )
@@ -366,7 +366,7 @@ class ProductionStatusAgent( AgentModule ):
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
     """
-    transformationClient = TransformationDBClient()
+    transformationClient = TransformationClient()
     dProd = DiracProduction()
     result = dProd.getProduction( long( prodID ) )
     if not result['OK']:

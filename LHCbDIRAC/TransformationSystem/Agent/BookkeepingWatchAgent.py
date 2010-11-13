@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                                import S_OK, S_ERROR, gConfig, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient         import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import sortList
 import os, time, datetime
 
@@ -24,7 +24,7 @@ class BookkeepingWatchAgent(AgentModule):
     self.pollingTime = self.am_getOption('PollingTime',120)
     self.fullUpdatePeriod = self.am_getOption('FullUpdatePeriod',86400)
     gMonitor.registerActivity("Iteration","Agent Loops",AGENT_NAME,"Loops/min",gMonitor.OP_SUM)
-    self.transClient = TransformationDBClient('TransformationDB')
+    self.transClient = TransformationClient('TransformationDB')
     # Create the BK client
     self.bkClient = BookkeepingClient()
     return S_OK()

@@ -25,7 +25,7 @@ from DIRAC.Interfaces.API.Job                                 import Job
 from DIRAC.Interfaces.API.Dirac                               import Dirac
 from DIRAC.Core.DISET.RPCClient                               import RPCClient
 from DIRAC.Core.Utilities.Time                                import toString
-from DIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
 from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
 
@@ -53,7 +53,7 @@ class DiracProduction:
     self.prodAdj = 22
     self.proxy = None
     self.commands = {'start':['Active','Manual'],'stop':['Stopped','Manual'],'automatic':['Active','Automatic'],'manual':['Active','Manual'],'completed':['Completed','Manual'],'completing':['Completing','Automatic'],'cleaning':['Cleaning','Manual'],'flush':['Flush','Automatic'],'deleted':['Deleted','Manual'],'archived':['Archived','Manual'],'valinput':['ValidatingInput','Manual'],'valoutput':['ValidatingOutput','Manual'],'remove':['RemovingFiles','Manual'],'validated':['ValidatedOutput','Manual'],'removed':['RemovedFiles','Manual']}
-    self.prodClient = TransformationDBClient()
+    self.prodClient = TransformationClient()
 
   #############################################################################
   def getAllProductions(self,printOutput=False):

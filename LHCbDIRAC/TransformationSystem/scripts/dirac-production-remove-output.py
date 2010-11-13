@@ -15,14 +15,14 @@ else:
   transIDs = [int(arg) for arg in sys.argv[1:]]
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient         import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC                                                                import gLogger
 import DIRAC
 
 agent = TransformationCleaningAgent('Transformation/TransformationCleaningAgent','dirac-production-remove-output')
 agent.initialize()
 
-client = TransformationDBClient()
+client = TransformationClient()
 for transID in transIDs:
   res = client.getTransformationParameters(transID,['Status'])
   if not res['OK']:

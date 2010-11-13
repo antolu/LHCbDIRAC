@@ -8,7 +8,7 @@ import string, os, shutil, types, pprint
 
 from DIRAC                                                                import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation                     import Transformation as DIRACTransformation
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient         import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient 
 
 COMPONENT_NAME='Transformation'
@@ -17,7 +17,7 @@ class Transformation(DIRACTransformation):
 
   #############################################################################
   def __init__(self,transID=0):
-    DIRACTransformation.__init__(self,transID=transID,transClient=TransformationDBClient())
+    DIRACTransformation.__init__(self,transID=transID,transClient=TransformationClient())
 
     self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast','RAWShares','AtomicRun'] 
     if not  self.paramValues.has_key('BkQuery'):

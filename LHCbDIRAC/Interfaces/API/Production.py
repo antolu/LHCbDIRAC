@@ -25,7 +25,7 @@ from DIRAC.Interfaces.API.Dirac                       import Dirac
 from DIRAC                                            import gConfig,gLogger
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
-from LHCbDIRAC.TransformationSystem.Client.TransformationDBClient import TransformationDBClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
@@ -825,7 +825,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if os.path.exists(prodXMLFile):
         self.log.verbose('Using %s for production body' %prodXMLFile)
       else:
-        prodClient = TransformationDBClient()
+        prodClient = TransformationClient()
         result = prodClient.getTransformationParameters(int(prodID),['Body'])
         if not result['OK']:
           return S_ERROR("Error during command execution: %s" % result['Message'])
@@ -884,7 +884,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
     
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
-      prodClient = TransformationDBClient()
+      prodClient = TransformationClient()
       res = prodClient.getBookkeepingQueryForTransformation(int(prodID))
       if not res['OK']:
         self.log.error(res)
@@ -1113,7 +1113,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     prodID = 0
     if publish:
-      prodClient = TransformationDBClient()
+      prodClient = TransformationClient()
       if self.inputFileMask:
         fileMask = self.inputFileMask
       if self.jobFileGroupSize:
@@ -1340,7 +1340,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not prodJobID:
       prodJobID = self.defaultProdJobID
 
-    job = Job(prodXMLFile)  
+    job = LHCbJob(prodXMLFile)  
     result = preSubmissionLFNs(job._getParameters(),job.createCode(),
                                productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
     if not result['OK']:
@@ -1355,7 +1355,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         in order to construct the BK XML
     """
     if not passDict:
-      prodClient = TransformationDBClient()
+      prodClient = TransformationClient()
       result = prodClient.getTransformationParameters(int(prodID),['Body'])
       if not result['OK']:
         return S_ERROR("Error during command execution: %s" % result['Message'])
@@ -1389,7 +1389,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if type(pvalue)==type([]):
       pvalue=string.join(pvalue,'\n')
 
-    prodClient = TransformationDBClient()
+    prodClient = TransformationClient()
     if type(pvalue)==type(2):
       pvalue = str(pvalue)
     result = prodClient.setTransformationParameter(int(prodID),str(pname),str(pvalue))
@@ -1401,7 +1401,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def getParameters(self,prodID,pname='',printOutput=False):
     """Get a production parameter or all of them if no parameter name specified.
     """
-    prodClient = TransformationDBClient()
+    prodClient = TransformationClient()
     result = prodClient.getTransformation(int(prodID),True)
     if not result['OK']:
       self.log.error(result)
