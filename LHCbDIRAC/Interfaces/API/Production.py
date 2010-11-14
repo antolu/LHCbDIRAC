@@ -858,8 +858,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['DataType']=prodWorkflow.findParameter('DataType').getValue()
 
     if parameters['JobType'].lower()=='mcsimulation':
-      if prodWorkflow.findParameter('EventsPerTask'):
-        parameters['EventsPerTask']=prodWorkflow.findParameter('EventsPerTask').getValue()
+      # A.T. EventsPerTask is considered immutable by Andrew
+      #if prodWorkflow.findParameter('EventsPerTask'):
+      #  parameters['EventsPerTask']=prodWorkflow.findParameter('EventsPerTask').getValue()
       if prodWorkflow.findParameter('MaxNumberOfTasks'):
         parameters['MaxNumberOfTasks']=prodWorkflow.findParameter('MaxNumberOfTasks').getValue()
       
@@ -999,7 +1000,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not disable:
       for n,v in parameters.items():
-        result = self.setProdParameter(prodID,n,v)
+        result = self.setProdParameter(prodID,n,v)       
         if not result['OK']:
           self.log.error(result['Message'])
 
@@ -1172,7 +1173,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         self.log.error('Attempt to add production %s to request %s failed, dictionary below:\n%s' %(prodID,requestID,reqDict))
       else:
         self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
-
+ 
     if publish:
       try:
         self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],
@@ -1180,7 +1181,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                                       derivedProd=derivedProduction)
       except Exception,x:
         self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
-
+ 
     if transformation and not bkScript:
       if not bkQuery.has_key('FileType'):
         return S_ERROR('BK query does not include FileType!')
@@ -1394,7 +1395,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       pvalue = str(pvalue)
     result = prodClient.setTransformationParameter(int(prodID),str(pname),str(pvalue))
     if not result['OK']:
-      self.log.error('Problem setting parameter %s for production %s and value:\n%s' %(prodID,pname,pvalue))
+      self.log.error('Problem setting parameter %s for production %s and value: %s' %(pname,prodID,pvalue))
     return result
 
   #############################################################################
