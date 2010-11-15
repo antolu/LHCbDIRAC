@@ -147,14 +147,12 @@ if fiveSteps:
   DIRAC.exit(2)    
 
 if threeSteps and not fourSteps:
-  gLogger.error('Three steps specified (only), not sure what to do! Exiting...')
-  DIRAC.exit(2)
+  gLogger.info('Reconstruction production + merging is requested...')
+  mergingFlag = True
 
 if fourSteps:
-  gLogger.info('Reconstruction production + merging is requested...')
-  mergingFlag=True
-else:
-  gLogger.info('Reconstruction production without merging is requested...')
+  gLogger.error('Reconstruction production with tagging + merging is requested but this is no longer supported! Exiting...')
+  DIRAC.exit(2)
 
 recoScriptFlag = False
 if not recoBKPublishing:
@@ -217,64 +215,50 @@ gLogger.info('Reconstruction production successfully created with ID %s and star
 if not mergingFlag:
   DIRAC.exit(0)
 
-bkFileTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
-bannedStreams = gConfig.getValue('/Operations/Bookkeeping/BannedStreams',[])
-
 ##################################################################################
 ### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
 ##################################################################################
 
-bannedStreams.append('HADRON.DST')
-bannedStreams.append('HADRONIC.DST')
-bannedStreams.append('DIMUONDIPHOTON.DST')
-bannedStreams.append('VO.DST')
-bannedStreams.append('V0.DST') #Just in case
-#bannedStreams.append('CHARMCONTROL.DST')
-bannedStreams.append('CHARM.DST')  
-bannedStreams.append('DIPHOTONDIMUON.DST')
+#The below list is not yet defined in the central CS but can be to allow a bit of flexibility
+#anything in the above list will trigger a merging production.
+streamsListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST', 
+                      'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST', 
+                      'LEPTONICFULL.DST', 'CHARMFULL.DST', 'CALIBRATION.DST']
 
-for okStream in ['BHADRON.DST','CHARM.DST']:
-  if okStream in bannedStreams:
-    bannedStreams.remove(okStream)
+streamsList = gConfig.getValue('/Operations/Reconstruction/MergingStreams',streamsListDefault)
 
-dstList = [] 
-#dstList.append('CHARMMICRODST.MDST')
-#dstList.append('LEPTONICMICRODST.MDST')
-dstList.append('CHARM.MDST')
-dstList.append('LEPTONIC.MDST')
+#The below list is not yet defined in the central CS but can be to allow a bit of flexibility
+#anything in the above list will trigger default replication policy according to the computing
+#model. 
+replicateListDefault =  ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST', 
+                         'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST']
+
+replicateList = gConfig.getValue('/Operations/Reconstruction/ReplicationStandard',replicateListDefault)
+
+#This new case will be handled outside of this template (at least initially)
+onlyOneOtherSite = ['LEPTONICFULL.DST', 'CHARMFULL.DST']
+
+#The use-case of not performing replication and sending a stream to CERN is handled by the below
+#CS section, similarly to the above I did not add the section to the CS. 
+onlyCERNDefault = ['CALIBRATION.DST'] 
+
+onlyCERN = gConfig.getValue('/Operations/Reconstruction/OnlyCERN',onlyCERNDefault)
+
+
+dstList = streamsList # call it dstList just to accommodate future hacks
 
 ##################################################################################
 
-
-if not bkFileTypes:
-  gLogger.error('Could not contact CS to get BK File Types list! Exiting...')
-  DIRAC.exit(2)
-  
-if not bannedStreams:
-  gLogger.error('List of banned streams is null unexpectedly. Exiting...')
-  DIRAC.exit(2)
 
 ###########################################
 # Now remove the banned streams
 ###########################################
 
-setcList = []
-#restrict to '.DST' file types:
-for fType in bkFileTypes:
-  if re.search('\.DST$',fType) and not fType in bannedStreams:
-    dstList.append(fType)
-  if re.search('\.SETC$',fType) and not fType in bannedStreams:
-    setcList.append(fType)
-
-if not dstList or not setcList:
+if not dstList: # or not setcList:
   gLogger.error('Could not find any file types to merge! Exiting...')
   DIRAC.exit(2)
 
-#Until issue of naming streamed SETC files is resolved
-setcList.append('SETC')
-
-gLogger.info('List of DST file types from BK is: %s' %(string.join(dstList,', ')))
-gLogger.info('List of SETC file types from BK is: %s' %(string.join(setcList,', ')))
+gLogger.info('List of DST file types is: %s' %(string.join(dstList,', ')))
 
 ###########################################
 # Some parameters
@@ -304,6 +288,10 @@ prodGroup += mergeProdGroup
 productionList = []
 
 for mergeStream in dstList:
+  mergeSE = 'Tier1_M-DST'
+  if mergeStream.lower() in onlyCERN:
+    mergeSE = 'CERN_M-DST'
+  
   mergeBKQuery = { 'ProductionID'             : recoProdID,
                    'DataQualityFlag'          : mergeDQFlag,
                    'FileType'                 : mergeStream}
@@ -323,8 +311,10 @@ for mergeStream in dstList:
   
   mergeProd.addDaVinciStep('{{p3Ver}}','merge',mergeOpts,extraPackages='{{p3EP}}',eventType='{{eventType}}',
                            inputDataType=mergeStream.lower(),extraOpts=dvExtraOptions,
-                           inputProduction=recoProdID,inputData=[])
-  mergeProd.addDaVinciStep('{{p4Ver}}','setc',taggingOpts,extraPackages='{{p4EP}}',inputDataType=mergeStream.lower())
+                           inputProduction=recoProdID,inputData=[],outputSE=mergeSE)
+
+# N.B. Now we remove the tagging step.
+#  mergeProd.addDaVinciStep('{{p4Ver}}','setc',taggingOpts,extraPackages='{{p4EP}}',inputDataType=mergeStream.lower())
   
   mergeProd.addFinalizationStep(removeInputData=mergeRemoveInputsFlag)
   mergeProd.setInputBKSelection(mergeBKQuery)
@@ -332,7 +322,8 @@ for mergeStream in dstList:
   mergeProd.setProdGroup(prodGroup)
   mergeProd.setProdPriority(mergePriority)
   mergeProd.setJobFileGroupSize(mergeGroupSize)
-  mergeProd.setFileMask('setc;%s' %(mergeStream.lower()))
+#  mergeProd.setFileMask('setc;%s' %(mergeStream.lower()))
+  mergeProd.setFileMask(mergeStream.lower())
   mergeProd.setProdPlugin(mergePlugin)
 
   result = mergeProd.create(bkScript=False,requestID=currentReqID,reqUsed=1,transformation=mergeTransFlag,bkProcPassPrepend='{{inProPass}}')
@@ -354,7 +345,7 @@ if not transformationFlag:
   gLogger.info('Template finished successfully.')
   DIRAC.exit(0)
 
-transDict = {'DST':dstList,'SETC':setcList}
+transDict = {'DST':replicateList} # We used to also distribute the SETC files as well
 
 for streamType,streamList in transDict.items():
   transBKQuery = {  'ProductionID'           : productionList,
