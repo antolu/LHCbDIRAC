@@ -1300,6 +1300,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       result = self.setProdParameter(transID,'TransformationFamily',parentReqID)
       if not result['OK']:
         self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentReqID,transID,result))        
+    
+    result = self.setProdParameter(transID,'groupDescription',groupDescription)       
+    if not result['OK']:
+      self.log.error('Could no set groupDescription parameter with result %s' %(result['Message']))
 
     # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
     infoString = []
@@ -1533,6 +1537,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """ Sets a user defined tag for the production as appears on the monitoring page
     """
     self.prodGroup = group
+    self._setParameter('ProcessingType','JDL',str(group),'ProductionGroupOrType')
 
   #############################################################################
   def setProdPlugin(self,plugin):
