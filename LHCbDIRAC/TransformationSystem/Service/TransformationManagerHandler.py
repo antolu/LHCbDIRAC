@@ -55,6 +55,12 @@ class TransformationManagerHandler(TransformationManagerHandlerBase):
     res = database.setBookkeepingQueryEndRunForTransformation(transName, runNumber)
     return self._parseRes(res)
 
+  types_setBookkeepingQueryStartRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
+  def export_setBookkeepingQueryStartRunForTransformation(self, transName, runNumber):
+    res = database.setBookkeepingQueryStartRunForTransformation(transName, runNumber)
+    return self._parseRes(res)
+
+
   #############################################################################
   #
   # Managing the TransformationRuns table
