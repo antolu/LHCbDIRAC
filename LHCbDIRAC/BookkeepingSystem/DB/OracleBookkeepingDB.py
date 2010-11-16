@@ -75,7 +75,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
           condition += ' and '
         condition += ' stepid='+str(dict['StepId'])
       if dict.has_key('InputFileTypes'):
-        return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps',[],True,dict['InputFileTypes'])
+        flist = dict['InputFileTypes']
+        flist.sort()
+        return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps',[],True, flist)
       command = 'select '+selection+' from '+tables+' where '+condition+'order by inserttimestamps desc'
       return self.dbR_._query(command)
     else:
@@ -89,6 +91,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def setStepInputFiles(self, stepid, files):
+    files = sorted(files, key=lambda k: k['FileType'])
     if len(files) == 0:
       values = 'null'
     else:
@@ -103,6 +106,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
   #############################################################################
   def setStepOutputFiles(self, stepid, files):
+    files = sorted(files, key=lambda k: k['FileType'])
     if len(files) == 0:
       values = 'null'
     else:
@@ -140,17 +144,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
       sid = retVal['Value'][0][0]
     selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible,usable '
     if dict.has_key('InputFileTypes'):
+      inputf = dict['InputFileTypes']
+      inputf = sorted(inputf, key=lambda k: k['FileType'])
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
-      for i in dict['InputFileTypes']:
+      for i in inputf:
         if i.has_key('FileType') and i.has_key('Visible'):
           values += 'ftype(\''+i['FileType']+'\',\''+i['Visible']+'\'),'
       values = values[:-1]
       values +=')'
     if dict.has_key('OutputFileTypes'):
+      outputf = dict['OutputFileTypes']
+      outputf = sorted(outputf, key=lambda k: k['FileType'])
       values +=' , filetypesARRAY('
       selection += ',OutputFileTypes'
-      for i in dict['OutputFileTypes']:
+      for i in outputf:
         if i.has_key('FileType') and i.has_key('Visible'):
           values += 'ftype(\''+i['FileType']+'\',\''+i['Visible']+'\'),'
       values = values[:-1]
@@ -223,7 +231,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
         else:
           if len(dict[i]) > 0:
             values = 'filetypesARRAY('
-            for j in dict[i]:
+            ftypes = dict[i]
+            ftypes = sorted(ftypes, key=lambda k: k['FileType'])
+            for j in ftypes:
               if j.has_key('FileType') and j.has_key('Visible'):
                 values += 'ftype(\''+j['FileType']+'\',\''+j['Visible']+'\'),'
             values = values[:-1]
@@ -257,7 +267,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_._query(command)
     
   #############################################################################
-  def getConditions(self, configName, configVersion):
+  def getConditions(self, configName, configVersion, evt):
+    
+    condition = ''
+    if configName != default:
+      condition += " and newbookkeepingview.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and newbookkeepingview.configversion='%s' "%(configVersion)
+    
+    
+    if evt != default:
+      condition += " and newbookkeepingview.eventtypeid="+str(evt)
+    
     command = 'select distinct simulationConditions.SIMID,data_taking_conditions.DAQPERIODID,simulationConditions.SIMDESCRIPTION, simulationConditions.BEAMCOND, \
     simulationConditions.BEAMENERGY, simulationConditions.GENERATOR,simulationConditions.MAGNETICFIELD,simulationConditions.DETECTORCOND, simulationConditions.LUMINOSITY, \
     data_taking_conditions.DESCRIPTION,data_taking_conditions.BEAMCOND, data_taking_conditions.BEAMENERGY,data_taking_conditions.MAGNETICFIELD, \
@@ -265,28 +287,38 @@ class OracleBookkeepingDB(IBookkeepingDB):
     data_taking_conditions.SPD_PRS, data_taking_conditions.ECAL, data_taking_conditions.HCAL, data_taking_conditions.MUON, data_taking_conditions.L0, data_taking_conditions.HLT,\
      data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions,newbookkeepingView where \
       newbookkeepingview.simid=simulationConditions.simid(+) and \
-      newbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+) \
-      and newbookkeepingview.configname=\''+configName+'\' and \
-      newbookkeepingview.configversion=\''+configVersion+'\''
+      newbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)'+condition 
+      
+      
     return self.dbR_._query(command)
   
   #############################################################################
-  def getProcessingPass(self, configName, configVersion, conddescription, path='/'):
+  def getProcessingPass(self, configName, configVersion, conddescription, runnumber, production, path='/'):
     
     erecords = []
     eparameters =  []
     precords = []
     pparameters =  []
     
-    condition = ' and newbookkeepingview.configname=\''+str(configName)+'\' and \
-      newbookkeepingview.configversion=\''+str(configVersion)+'\''
-      
-    retVal = self._getConditionString(conddescription)
-    if retVal['OK']:
-      condition = retVal['Value']
-    else:
-      return retVal
+    condition = ''
+    if configName != default:
+      condition += " and newbookkeepingview.configname='%s' "%(configName)
     
+    if configVersion != default:
+      condition += " and newbookkeepingview.configversion='%s' "%(configVersion)
+    
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription)
+      if retVal['OK']:
+        condition = retVal['Value']
+      else:
+        return retVal
+    if production != default:
+      condition += ' and newbookkeepingview.production='+str(production)
+    
+    if runnumber != default:
+      condition += ' and newbookkeepingview.runnumber='+str(runnumber)
+      
     proc = path.split('/')[len(path.split('/'))-1]
     if proc != '':
       command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,newbookkeepingview,productionscontainer,processing where \
@@ -318,7 +350,53 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return retVal
     
     return S_OK([{'ParameterNames':pparameters,'Records':precords,'TotalRecords':len(precords)},{'ParameterNames':eparameters,'Records':erecords,'TotalRecords':len(erecords)}])
-     
+  
+  #############################################################################
+  def getStandardProcessingPass(self, configName=default, configVersion=default, conddescription=default, eventType=default, production=default, path='/'):
+    
+    records = []
+    parameters =  []
+    
+    condition = ''
+    if configName != default:
+      condition += " and newbookkeepingview.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and newbookkeepingview.configversion='%s' "%(configVersion)
+    
+    
+    if eventType != default:
+      condition += " and newbookkeepingview.eventtypeid="+str(eventType)
+    
+    if production != default:
+      condition += " and newbookkeepingview.production="+str(production)
+      
+    if conddescription!= default:
+      retVal = self._getConditionString(conddescription)
+      if retVal['OK']:
+        condition = retVal['Value']
+      else:
+        return retVal
+      
+    proc = path.split('/')[len(path.split('/'))-1]
+    if proc != '':
+      command = 'SELECT distinct name \
+      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+    else:
+      command = 'SELECT distinct name \
+      FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      records = []
+      parameters = ['Name']
+      for record in retVal['Value']:
+        records += [[record[0]]]
+    else:
+      return retVal
+    return S_OK([{'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)}])
+  
   
   ############################################################################# 
   def _getConditionString(self, conddescription, table ='productionscontainer'):  
@@ -394,9 +472,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_._query(command)
   
   #############################################################################
-  def getFileTypes(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default):
-    condition = ' and bview.configname=\''+configName+'\' and \
-                  bview.configversion=\''+configVersion+'\' '
+  def getFileTypes(self, configName, configVersion, conddescription=default, processing=default, evt=default, runnb=default, production=default):
+    
+    condition = ''
+    
+    if configName != default:
+      condition += " and bview.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and bview.configversion='%s' "%(configVersion)
     
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'pcont')
@@ -410,6 +494,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     
     if production != default:
       condition += ' and bview.production='+str(production)
+    
+    if runnb != default:
+      condition += ' and bview.runnumber='+str(runnb)
+      
     if processing != default:
       command = "select distinct ftypes.name from \
                  productionscontainer pcont,newbookkeepingview bview, filetypes ftypes  \
@@ -425,9 +513,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_._query(command)
   
   #############################################################################
-  def getFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default):
-    condition = ' and c.ConfigName=\''+configName+'\' and \
-                  c.configversion=\''+configVersion+'\' '
+  def getFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, runnb = default):
+    condition = ''    
+    if configName != default:
+      condition += " and c.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and c.configversion='%s' "%(configVersion)
     
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'prod')
@@ -442,10 +534,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if production != default:
       condition += ' and j.production='+str(production)
     
+    if runnb != default:
+      condition += ' and j.runnumber='+str(runnb)
+      
     if filetype != default:
       condition += "  and ftypes.name='"+str(filetype)+"'"
-    
-    if quality != 'ALL':
+
+    if quality != default:
       if type(quality) == types.StringType:
         command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
         res = self.dbR_._query(command)
@@ -457,19 +552,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
           quality = res['Value'][0][0]
         condition += ' and f.qualityid='+str(quality)
       else:
-        conds = ' ('
-        for i in quality:
-          quality = None
-          command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
-          res = self.dbR_._query(command)
-          if not res['OK']:
-            gLogger.error('Data quality problem:',res['Message'])
-          elif len(res['Value']) == 0:
-              return S_ERROR('Dataquality is missing!')
-          else:
-            quality = res['Value'][0][0]
-          conds += ' f.qualityid='+str(quality)+' or'
-        condition += 'and'+conds[:-3] + ')'
+        if len(quality) > 0:
+          conds = ' ('
+          for i in quality:
+            quality = None
+            command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+            res = self.dbR_._query(command)
+            if not res['OK']:
+              gLogger.error('Data quality problem:',res['Message'])
+            elif len(res['Value']) == 0:
+                return S_ERROR('Dataquality is missing!')
+            else:
+              quality = res['Value'][0][0]
+            conds += ' f.qualityid='+str(quality)+' or'
+          condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
       condition += " and prod.processingid in (\
@@ -2332,9 +2428,14 @@ and files.qualityid= dataquality.qualityid'
     return res
       
   #############################################################################
-  def getFilesSumary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default):
-    condition = ' and c.ConfigName=\''+configName+'\' and \
-                  c.configversion=\''+configVersion+'\' '
+  def getFilesSumary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, runnb=default):
+    
+    condition = ''    
+    if configName != default:
+      condition += " and c.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and c.configversion='%s' "%(configVersion)
     
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'prod')
@@ -2349,6 +2450,9 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production='+str(production)
     
+    if runnb != default:
+      condition += ' and j.runnumber='+str(runnb)
+      
     if filetype != default:
       condition += "  and ftypes.name='"+str(filetype)+"'"
     
@@ -2395,11 +2499,15 @@ and files.qualityid= dataquality.qualityid'
     return self.dbR_._query(command)
   
   #############################################################################
-  def getLimitedFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, startitem=0, maxitems=10):
+  def getLimitedFiles(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality = default, runnb=default, startitem=0, maxitems=10):
    
-    condition = ' and c.ConfigName=\''+configName+'\' and \
-                  c.configversion=\''+configVersion+'\' '
+    condition = ''    
+    if configName != default:
+      condition += " and c.configname='%s' "%(configName)
     
+    if configVersion != default:
+      condition += " and c.configversion='%s' "%(configVersion)
+      
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'prod')
       if retVal['OK']:
@@ -2412,6 +2520,9 @@ and files.qualityid= dataquality.qualityid'
     
     if production != default:
       condition += ' and j.production='+str(production)
+    
+    if runnb != default:
+      condition += ' and j.runnumber='+str(runnb)
     
     if filetype != default:
       condition += "  and ftypes.name='"+str(filetype)+"'"
@@ -2674,3 +2785,35 @@ and files.qualityid= dataquality.qualityid'
     else:
       return retVal
     return S_OK('The production processing pass is entered to the bkk')
+  
+  #############################################################################
+  def getEventTypes(self, configName, configVersion):
+    return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getEventTypes', [configName, configVersion])
+  
+  #############################################################################
+  def getStandardEventTypes(self, configName=default, configVersion=default, prod = default):
+    condition = ''
+    if configName != default:
+      condition += " newbookkeepingview.configname='%s' "%(configName)
+    
+    if configVersion != default:
+      condition += " and newbookkeepingview.configversion='%s' "%(configVersion)
+    
+    if prod != default:
+      if condition == '':
+        condition += 'newbookkeepingview.production='+str(prod)
+      else:
+        condition += ' and newbookkeepingview.production='+str(prod)
+    
+    command = ' select newbookkeepingview.eventtypeid, newbookkeepingview.description from newbookkeepingview where ' +condition 
+    retVal = self.dbR_._query(command)
+    records = []
+    if retVal['OK']:
+      parameters = ['EventTypeId','Description']
+      for record in retVal['Value']:
+        records += [[record[0],record[1]]]
+    else:
+      return retVal 
+    
+    return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    

@@ -68,32 +68,36 @@ class IBookkeepingDatabaseClient(object):
   def getConfigVersions(self, configname):
     return self.getManager().getConfigVersions(configname)
   #############################################################################
-  def getConditions(self, configName, configVersion):
-    return self.getManager().getConditions(configName, configVersion)
+  def getConditions(self, configName, configVersion, evt):
+    return self.getManager().getConditions(configName, configVersion, evt)
   
   #############################################################################
-  def getProcessingPass(self, configName, configVersion, conddescription, path):
-    return self.getManager().getProcessingPass(configName, configVersion, conddescription, path)
+  def getProcessingPass(self, configName, configVersion, conddescription, runnumber,prod, path):
+    return self.getManager().getProcessingPass(configName, configVersion, conddescription, runnumber, prod, path)
+  
+  #############################################################################
+  def getStandardProcessingPass(self, configName, configVersion, conddescription, eventType, prod, path='/'):
+    return self.getManager().getStandardProcessingPass(configName, configVersion, conddescription, eventType, prod, path)
   
   #############################################################################
   def getProductions(self, configName, configVersion, conddescription, processing, evt):
     return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt)
   
   #############################################################################
-  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
-    return self.getManager().getFileTypes(configName, configVersion, conddescription, processing, evt, production)
+  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production):
+    return self.getManager().getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
   
   #############################################################################
-  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
-    return self.getManager().getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality)
+  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
+    return self.getManager().getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
   
   #############################################################################
-  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
-    return self.getManager().getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality)
+  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
+    return self.getManager().getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
   
   #############################################################################
-  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, startitem, maxiten):
-    return self.getManager().getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, startitem, maxiten)
+  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startitem, maxiten):
+    return self.getManager().getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startitem, maxiten)
   
   #############################################################################  
   def getAvailableDataQuality(self):
@@ -418,3 +422,11 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
     return self.getManager().checkProcessingPassAndSimCond(production)
+  
+  #############################################################################
+  def getEventTypes(self, configName, configVersion):
+    return self.getManager().getEventTypes(configName, configVersion)
+  
+  #############################################################################
+  def getStandardEventTypes(self, configName, configVersion, prod):
+    return self.getManager().getStandardEventTypes(configName, configVersion, prod )

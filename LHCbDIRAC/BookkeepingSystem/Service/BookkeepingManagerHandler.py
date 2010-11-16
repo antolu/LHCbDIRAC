@@ -203,6 +203,7 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getConditions(self, dict):
     configName = 'ALL'
     configVersion='ALL'
+    evt='ALL'
     
     if dict.has_key('ConfigName'):
       configName = dict['ConfigName']
@@ -210,7 +211,10 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('ConfigVersion'):
       configVersion = dict['ConfigVersion']
     
-    retVal =  dataMGMT_.getConditions(configName, configVersion)
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+      
+    retVal =  dataMGMT_.getConditions(configName, configVersion,evt)
     if retVal['OK']:
       values = retVal['Value']
       if len(values) > 0:
@@ -240,6 +244,8 @@ class BookkeepingManagerHandler(RequestHandler):
     configName = 'ALL'
     configVersion='ALL'
     conddescription='ALL'
+    prod = 'ALL'
+    runnb = 'ALL'
     
     if dict.has_key('ConfigName'):
       configName = dict['ConfigName']
@@ -250,8 +256,39 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('ConditionDescription'):
       conddescription = dict['ConditionDescription']
     
-    return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, path)
+    if dict.has_key('Production'):
+      prod = dict['Production']
     
+    if dict.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+    return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, runnb, prod, path)
+    
+  ############################################################################
+  types_getStandardProcessingPass = [DictType, StringType]
+  def export_getStandardProcessingPass(self, dict, path):
+    configName = 'ALL'
+    configVersion='ALL'
+    conddescription='ALL'
+    prod = 'ALL'
+    evt = 'ALL'
+    
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('ConditionDescription'):
+      conddescription = dict['ConditionDescription']
+    
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+    
+    if dict.has_key('Production'):
+      prod = dict['Production']
+    
+    return dataMGMT_.getStandardProcessingPass(configName, configVersion, conddescription, evt, prod, path)
+  
   #############################################################################
   types_getProductions = [DictType]
   def export_getProductions(self, dict):
@@ -294,6 +331,7 @@ class BookkeepingManagerHandler(RequestHandler):
     processing='ALL'
     evt='ALL'
     production = 'ALL'
+    runnb = 'ALL'
     
     if dict.has_key('ConfigName'):
       configName = dict['ConfigName']
@@ -313,7 +351,10 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('Production'):
       production = dict['Production']
     
-    retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, production)
+    if dict.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+      
+    retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
     if retVal['OK']:
       records = []
       parameters = ['FileTypes']
@@ -322,7 +363,25 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
+  
+  #############################################################################
+  types_getStandardEventTypes = [DictType]
+  def export_getStandardEventTypes(self, dict):
+    configName = 'ALL'
+    configVersion='ALL' 
+    production = 'ALL'
     
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']
+    
+    if dict.has_key('Production'):
+      production = dict['Production']
+      
+    return dataMGMT_.getStandardEventTypes(configName, configVersion, production )
+  
   #############################################################################
   def transfer_toClient( self, parameters, token, fileHelper ):
     dict = cPickle.loads(parameters)
@@ -353,17 +412,20 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('Production'):
       production = dict['Production']
     
+    if dict.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+      
     if dict.has_key('FileType'):
       filetype = dict['FileType']
     
     if dict.has_key('Quality'):
       quality = dict['Quality']
       
-    retVal = dataMGMT_.getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality)  
+    retVal = dataMGMT_.getFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)  
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
-    'EventInputstat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
+    'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
       for record in retVal['Value']:
         records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13],record[14],record[15]]]
       result = {'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)}
@@ -388,6 +450,7 @@ class BookkeepingManagerHandler(RequestHandler):
     production = 'ALL'
     filetype = 'ALL'
     quality = 'ALL'
+    runnb = 'ALL'
     
     if dict.has_key('ConfigName'):
       configName = dict['ConfigName']
@@ -407,13 +470,16 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('Production'):
       production = dict['Production']
     
+    if dict.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+      
     if dict.has_key('FileType'):
       filetype = dict['FileType']
     
     if dict.has_key('Quality'):
       quality = dict['Quality']
       
-    retVal = dataMGMT_.getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality)  
+    retVal = dataMGMT_.getFilesSumary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)  
     if retVal['OK']:
       records = []
       parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize','Luminosity','InstLuminosity']
@@ -435,6 +501,7 @@ class BookkeepingManagerHandler(RequestHandler):
     production = 'ALL'
     filetype = 'ALL'
     quality = 'ALL'
+    runnb = 'ALL'
     start = 0
     max = 10
     
@@ -456,6 +523,9 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('Production'):
       production = dict['Production']
     
+    if dic.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+       
     if dict.has_key('FileType'):
       filetype = dict['FileType']
     
@@ -468,11 +538,11 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('MaxItem'):
       max = dict['MaxItem']
       
-    retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality,start,max)  
+    retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, start,max)  
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
-    'EventInputstat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
+    'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
       for record in retVal['Value']:
         records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9],record[10],record[11],record[12],record[13],record[14],record[15]]]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
@@ -1264,4 +1334,25 @@ class BookkeepingManagerHandler(RequestHandler):
       if infos.has_key('InputProductionTotalProcessingPass'):
         inputProdTotalProcessingPass = infos['InputProductionTotalProcessingPass']
     return dataMGMT_.addProduction(production, simcond, daqdesc, steps, inputProdTotalProcessingPass)
+    
+  #############################################################################
+  types_getEventTypes = [DictType]
+  def export_getEventTypes(self, dict): 
+    configName = 'ALL'
+    configVersion='ALL'
         
+    if dict.has_key('ConfigName'):
+      configName = dict['ConfigName']
+    
+    if dict.has_key('ConfigVersion'):
+      configVersion = dict['ConfigVersion']  
+    
+    retVal = dataMGMT_.getEventTypes(configName, configVersion)
+    if retVal['OK']:
+      records = []
+      parameters = 'EventTypeId','Description'
+      for record in retVal['Value']:
+        records += [[record[0],record[1]]]
+      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+    else:
+      return retVal

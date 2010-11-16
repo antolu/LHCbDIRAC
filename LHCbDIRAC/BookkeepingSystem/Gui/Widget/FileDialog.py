@@ -152,7 +152,8 @@ class FileDialog(QDialog, Ui_FileDialog):
     tabledata =[]
     #print data
              #['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']  
-    header = ['FileName','EventStat', 'FileSize', 'CreationDate','JobStart', 'JobEnd', 'DataQuality', 'RunNumber','FillNumber','FullStat','EventInputStat','Luminosity']
+    header = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
+    'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()
@@ -272,14 +273,30 @@ class FileDialog(QDialog, Ui_FileDialog):
   
   #############################################################################  
   def showSelection(self, dict):
-    self.configname.setText(dict["Configuration Name"])
-    self.configversion.setText(dict["Configuration Version"])
-    self.simulation.setText(dict["Simulation Condition"])
-    self.processing.setText(dict["Processing Pass"])
-    self.eventtype.setText(dict["Event type"])
-    self.filetype.setText(dict["File Type"])
-    self.production.setText(dict["Production"])
-    self.progrnameandversion.setText(dict["Program name"] + ' - '+dict["Program version"])
+    
+    
+    if dict.has_key('ConfigName'):
+      self.configname.setText(dict["ConfigName"])
+      
+    if dict.has_key('ConfigVersion'):
+      self.configversion.setText(dict["ConfigVersion"])
+    
+    if dict.has_key('ConditionDescription'):
+      self.simulation.setText(dict["ConditionDescription"])
+    
+    if dict.has_key('ProcessingPass'):
+      self.processing.setText(dict["ProcessingPass"])
+    
+    if dict.has_key('EventTypeId'):
+      self.eventtype.setText(dict["EventTypeId"])
+    
+    if dict.has_key('Production'):
+      self.production.setText('')
+    
+    if dict.has_key('FileType'):
+      self.filetype.setText(dict["FileType"])
+    
+    self.progrnameandversion.setText('')
   
   def clearTable(self):
     #self.tableView().clear()

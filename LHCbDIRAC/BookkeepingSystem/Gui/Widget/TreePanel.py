@@ -114,6 +114,9 @@ class TreePanel(QTreeWidget):
     node = children[keys[0]]
     if node.has_key('level'):
       self.createdumyNode({'name':node['level']}, parent)
+    
+    if node.has_key('level2'):
+      self.createdumyNode({'name':node['level2']}, parent)
       
     for child in keys:
       self.parseFolderElement(children[child],parent)

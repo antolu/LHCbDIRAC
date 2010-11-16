@@ -55,14 +55,13 @@ class LHCB_BKKDBManager(BaseESManager):
                                  ''
                                   ]
   
-  LHCB_BKDB_PREFIXES_EVENTTYPE = ['CFGN',
-                                  'CFGV',
-                                  'EVT',
-                                  'SCON',
-                                  'PAS',
-                                  'PROD',
-                                  'FTY',
-                                  'PRO',
+  LHCB_BKDB_PREFIXES_EVENTTYPE = ['ConfigName',
+                                  'ConfigVersion',
+                                  'EventTypeid',
+                                  'Simulation/DataTaking',
+                                  'ProcessingPass',
+                                  'Production',
+                                  'FileType',
                                    '',
                                   ]
   LHCB_BKDB_PREFIXES=[]
@@ -99,7 +98,12 @@ class LHCB_BKKDBManager(BaseESManager):
     print "If you need help, you will use client.help() command."
     
     self.dataQualities_ = {}
-  
+    retVal = self.db_.getAvailableFileTypes()
+    if not retVal['OK']:
+      return retVal
+    else:
+     self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
+        
   ############################################################################# 
   def _updateTreeLevels(self, level):
     self.treeLevels_ = level
@@ -187,15 +191,21 @@ class LHCB_BKKDBManager(BaseESManager):
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     processedPath = self._processPath(path)
     tmpPath = list(processedPath)
-    level,procpass = self.__getLevel(tmpPath, [])
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+      level,procpass = self.__getEvtLevel(tmpPath, [], level=0, start = False, end = False, processingpath='', startlevel=4)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+      level,procpass = self.__getRunLevel(tmpPath, [], level=0, start = False, end = False, processingpath='', startlevel=1)
+    else:
+      level,procpass = self.__getLevel(tmpPath, [])
     self._updateTreeLevels(level)
     return level,processedPath,procpass
   
   #############################################################################
   # This method recursive visite all the tree nodes and found the processing pass
-  def __getLevel(self, path, visited = [], level=0, start = False, end = False, processingpath=''): 
+  def __getLevel(self, path, visited = [], level=0, start = False, end = False, processingpath='', startlevel=3): 
+    
     for i in path:
-      if level == 3 and start==False:
+      if level == startlevel and start==False:
         for j in visited:
           path.remove(j)
         level += 1
@@ -209,10 +219,61 @@ class LHCB_BKKDBManager(BaseESManager):
         except Exception,ex:
           pass #print 'i',ex     
         if start and not end:
-          level = 3
+          level = startlevel
           processingpath +='/'+i
-        elif end and level<=4:
-          level = 4
+        elif end and level<=startlevel+1:
+          level = startlevel + 1
+      visited += [i]
+    return level, processingpath
+  
+  #############################################################################
+  def __getRunLevel(self, path, visited = [], level=0, start = False, end = False, processingpath='', startlevel=1): 
+    
+    for i in path:
+      if level == startlevel and start==False:
+        for j in visited:
+          path.remove(j)
+        level += 1
+        return self.__getRunLevel(path, visited, level, start=True)
+      else:
+        level+=1
+        try: 
+          result = type(long(i)) == types.LongType
+          if start and result:
+            end = True 
+        except Exception,ex:
+          pass #print 'i',ex     
+        if start and not end:
+          level = startlevel
+          processingpath +='/'+i
+        elif end and level<=startlevel+1:
+          level = startlevel + 1
+      visited += [i]
+    return level, processingpath
+  
+  #############################################################################
+  # This method recursive visite all the tree nodes and found the processing pass
+  def __getEvtLevel(self, path, visited = [], level=0, start = False, end = False, processingpath='', startlevel=4): 
+    
+    for i in path:
+      if level == startlevel and start==False:
+        for j in visited:
+          path.remove(j)
+        level += 1
+        return self.__getEvtLevel(path, visited, level, start=True)
+      else:
+        level+=1
+        try: 
+          result = (type(long(i)) == types.LongType)   
+        except Exception,ex:
+           result = i in self.__filetypes
+        if start and result:
+            end = True          
+        if start and not end:
+          level = startlevel
+          processingpath +='/'+i
+        elif end and level<=startlevel+1:
+          level = startlevel + 1
       visited += [i]
     return level, processingpath
           
@@ -220,60 +281,43 @@ class LHCB_BKKDBManager(BaseESManager):
   def _listConfigs(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
     levels, processedPath,procpass = self.getLevelAndPath(path)
-
-    if levels == 0:
+        
+    if levels == 0: #configname
       self.clevelHeader_0(path, levels, processedPath)
       entityList += self.clevelBody_0(path, levels,)
     
-    if levels == 1: 
+    if levels == 1: #config version
       dict = self.clevelHeader_1(path, levels, processedPath) 
       entityList += self.clevelBody_1(path, levels, dict)  
     
-    if levels == 2: 
+    if levels == 2: # sim or data desc 
       dict = self.clevelHeader_2(path, levels, processedPath) 
       entityList += self.clevelBody_2(path, levels, dict)
     
-    
-    if levels == 3: 
+    if levels == 3: #processing 
       dict = self.clevelHeader_3(path, levels, processedPath) 
       entityList += self.clevelBody_3(path, levels, dict, procpass)
     
-    if levels == 4: 
+    if levels == 4 and self.advancedQuery_: #prod
       dict = self.clevelHeader_4(path, levels, processedPath, procpass) 
       entityList += self.clevelBody_4(path, levels, dict)
-    
-    
-    if levels == 5: 
+    elif levels == 4 and not self.advancedQuery_:
+      processedPath += ['ALL']
+      dict = self.clevelHeader_5(path, 5, processedPath, procpass) 
+      entityList += self.clevelBody_5(path, 5, dict)
+     
+    if levels == 5 and self.advancedQuery_: #file type
       dict = self.clevelHeader_5(path, levels, processedPath, procpass) 
       entityList += self.clevelBody_5(path, levels, dict)
-    '''
     elif levels == 5 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[5],'ALL'))
-      path = newPath
-      v,processedPath = self._processPath(path)
       levels = 6
     
-    
-    if levels == 6: 
-      configName, configVersion, simid, processing, evtType, prod = self.clevelHeader_6(path, levels, processedPath) 
-      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod)
-
-    if levels == 7 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType, prod, ftype = self.clevelHeader_7(path, levels, processedPath) 
-      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
-    elif levels == 7 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_CONFIG[7],'ALL'))
-      path = newPath
-      v,processedPath = self._processPath(path)
-      levels = 8
-
-    if levels == 8 and StartItem == 0 and Maxitems == 0: 
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_8(path, levels, processedPath) 
-      entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-    elif levels == 8 and (StartItem != 0 or Maxitems != 0): 
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.clevelHeader_8(path, levels, processedPath) 
-      entityList += self.clevelBodyLimited_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems)
-    '''
+    if levels == 6 and StartItem == 0 and Maxitems == 0: #files
+      dict = self.clevelHeader_6(path, levels, processedPath, procpass) 
+      entityList += self.clevelBody_6(path, levels, dict)
+    elif levels == 6 and (StartItem != 0 or Maxitems != 0): #files
+      dict = self.clevelHeader_6(path, levels, processedPath, procpass) 
+      entityList += self.clevelBodyLimited_6(path, levels, dict, SelectionDict, SortDict, StartItem, Maxitems)
     return entityList
   
   ############################################################################# 
@@ -282,7 +326,7 @@ class LHCB_BKKDBManager(BaseESManager):
       return self._getEntityFromPath(path, "ALL", levels, description)
     else:
        return None
-  
+    
   def __createPath(self, processedPath, name):
     path = ''
     for i in processedPath:
@@ -429,11 +473,12 @@ class LHCB_BKKDBManager(BaseESManager):
     entityList = list()
     
     gLogger.debug("listing event types")
-    dict = {'ConfigName': processedPath[0],
-            'ConfigVersion':processedPath[1],
-            'ConditionDescription':processedPath[2],
-            'ProcessingPass':procpass,
-            'EventTypeId':processedPath[len(processedPath)-1]}
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3]}
+    dict['ProcessingPass']=procpass
     
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters: ")
@@ -448,6 +493,45 @@ class LHCB_BKKDBManager(BaseESManager):
   ############################################################################# 
   def clevelBody_4(self, path, levels, dict):
     entityList = list()
+    result = self.db_.getProductions(dict)
+    if result['OK']:
+      dbResult = result['Value']
+      print dbResult 
+      for record in dbResult['Records']:
+         entityList += [self._getEntityFromPath(path, str(record[0]), levels, 'Production(s)/Run(s)',dict,'getProductions')]
+      self._cacheIt(entityList)
+    else:
+        gLogger.error(result['Message'])
+    return entityList    
+  
+  ############################################################################# 
+  def clevelHeader_5(self, path, levels, processedPath, procpass):
+    entityList = list()
+    
+    gLogger.debug("listing event types")
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    if self.advancedQuery_:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3],'Production':processedPath[4]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3]}
+    dict['ProcessingPass']=procpass
+        
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug("Selected parameters: ")
+    gLogger.debug("-----------------------------------------------------------")
+    gLogger.debug(dict)
+    gLogger.debug("-----------------------------------------------------------")
+
+    gLogger.debug("Available event types types:")
+    return dict
+  
+  
+  ############################################################################# 
+  def clevelBody_5(self, path, levels, dict):
+    entityList = list()
     result = self.db_.getFileTypes(dict)
     if result['OK']:
       dbResult = result['Value']
@@ -457,18 +541,22 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
         gLogger.error(result['Message'])
     return entityList    
-    
+  
   ############################################################################# 
-  def clevelHeader_5(self, path, levels, processedPath, procpass):
+  def clevelHeader_6(self, path, levels, processedPath, procpass):
     entityList = list()
     gLogger.debug("listing event types")    
-    dict = {'ConfigName': processedPath[0],
-            'ConfigVersion':processedPath[1],
-            'ConditionDescription':processedPath[2],
-            'ProcessingPass':procpass,
-            'EventTypeId':processedPath[len(processedPath)-2],
-            'FileType':processedPath[len(processedPath)-1]}
     
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    if self.advancedQuery_: 
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3],'Production':processedPath[4],'FileType':processedPath[5]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3],'FileType':processedPath[4]}
+    dict['ProcessingPass']=procpass
+   
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters: ")
     gLogger.debug("-----------------------------------------------------------")
@@ -478,512 +566,278 @@ class LHCB_BKKDBManager(BaseESManager):
     return dict
   
   ############################################################################# 
-  def clevelBody_5(self, path, levels, dict):
+  def clevelBody_6(self, path, levels, dict):
     entityList = list()
+    dict['Quality']=self.__getSelectedQualities()
     result = self.db_.getFiles(dict)
     if result['OK']:
-      print result['Value']
-    return entityList
-  
-  ############################################################################# 
-  def clevelHeader_6(self, path, levels, processedPath):
-    entityList = list()
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-  
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " % (configName))
-    gLogger.debug("Configuration Version  | %s " % (configVersion))
-    gLogger.debug("Simulation Condition   | %s " % (str(simid)))
-    gLogger.debug("Processing Pass        | %s " % (str(processing)))
-    gLogger.debug("Event type             | %s " % (str(evtType)))
-    gLogger.debug("Production             | %s"  % (str(processedPath[4][1])))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Available file types:")
-    return configName, configVersion, simid, processing, evtType, prod
-  
-  ############################################################################# 
-  def clevelBody_6(self, path, levels, configName, configVersion, simid, processing, evtType, prod):
-    entityList = list()
-    result = self.db_.getFileTypesWithSimcond(configName, configVersion, simid, processing, evtType, prod)
-    if result['OK']:
-      dbResult = result['Value']
-      for record in dbResult:
-        ftype = str(record[0])
-        entityList += [self._getEntityFromPath(path, ftype, levels, 'File types')]
-      self._cacheIt(entityList)
-    else:
-      gLogger.error(result['Message'])
-    return entityList
-  
-  ############################################################################# 
-  def clevelHeader_7(self, path, levels, processedPath):
-    entityList = list()
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]  
-    
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " % (str(processing)))
-    gLogger.debug("Event type             | %s " % (str(evtType)))
-    gLogger.debug("Production             | %s " % (str(processedPath[4][1])))
-    gLogger.debug("File Type              | %s " % (str(ftype)))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Available program name and version:")
-    return configName, configVersion, simid, processing, evtType, prod, ftype
-  
-  ############################################################################# 
-  def clevelBody_7(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype):
-    entityList = list()
-    result = self.db_.getProgramNameWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype)
-    if result['OK']:
-      dbResult = result['Value']
-      if len(dbResult) > 1:
-        add = self.__addAll(path, levels, 'Program name and version')
-        if add:
-          entityList += [add] 
-      
-      for record in dbResult:
-        programName = record[0]
-        programVersion = record[1]
-        program = programName+' '+programVersion
-        entityList += [self._getEntityFromPath(path, program, levels, 'Program name and version')]
-      self._cacheIt(entityList)
-    else:
-      gLogger.error(result['Message'])
-    return entityList
- 
-  ############################################################################# 
-  def clevelHeader_8(self, path, levels, processedPath):
-    entityList = list()
-    self.files_ = []
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if processedPath[7][1] != 'ALL':
-      pname = processedPath[7][1].split(' ')[0]
-      pversion = processedPath[7][1].split(' ')[1]
-    else:
-      pname = processedPath[7][1]
-      pversion = processedPath[7][1]
-
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " % (str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(processedPath[4][1])))
-    gLogger.debug("File Type              | %s " %(str(ftype)))
-    gLogger.debug("Program name           | %s " %(pname))
-    gLogger.debug("Program version        | %s " %(pversion))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("File list:\n")
-    return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
-  
-  ############################################################################# 
-  def clevelBody_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion):
-    entityList = list()
-  
-    result = self.db_.getFilesWithSimcondAndDataQuality(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, self.dataQualities_)
-    #result = self.db_.getFilesWithSimcond(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-    selection = {"Configuration Name":configName, \
-                 "Configuration Version":configVersion, \
-                 "Simulation Condition":str(simid), \
-                 "Processing Pass":str(processing), \
-                 "Event type":str(evtType), \
-                 "Production":str(prod), \
-                 "File Type":str(ftype), \
-                 "Program name":pname, \
-                 "Program version":pversion}
-    
-    if result['OK']:
-      dbResult = result['Value']
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evtType,'EventInputStat':record[14], 'TotalLuminosity':record[15], 'Luminosity':record[16], 'Selection':selection}
+      for record in result['Value']['Records']:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
+                 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+                 'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
         self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-      self._cacheIt(entityList)    
+        entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
+      self._cacheIt(entityList)
     else:
-      gLogger.error(result['Message'])
-    
+      return result        
     return entityList
-
-
-  ############################################################################# 
-  def clevelBodyLimited_8(self, path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems):
-    entityList = list()
-    result = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, None)
-    
-    params = result['ParameterNames']
-    records = result['Records']
-    
-    selection = {"Configuration Name":configName, \
-                 "Configuration Version":configVersion, \
-                 "Simulation Condition":str(simid), \
-                 "Processing Pass":str(processing), \
-                 "Event type":str(evtType), \
-                 "Production":str(prod), \
-                 "File Type":str(ftype), \
-                 "Program name":pname, \
-                 "Program version":pversion}
-      
-    parametersNames = ['Name','EventStat', 'FileSize','CreationDate','JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity', 'Luminosity']
-    for record in records:
-      value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],'WorkerNode':record[6],'FileType':record[7], 'EvtTypeId':record[8], 'RunNumber':record[9],'FillNumber':record[10],'FullStat':record[11], 'DataQuality':record[12], 'EventInputStat':record[13],'TotalLuminosity':record[14],'Luminosity':record[15],'Selection':selection}
-      self.files_ += [record[0]]
-      entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-    self._cacheIt(entityList)    
-    
-    return entityList
-
   
-
+  #############################################################################
+  def clevelBodyLimited_6(self, path, levels, dict,SelectionDict, SortDict, StartItem, Maxitems):
+    entityList = list()
+    dict['Quality']=self.__getSelectedQualities()
+    result = self.__getFiles(dict, SortDict, StartItem, Maxitems)
+    for record in result['Records']:
+      value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
+               'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+               'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
+      self.files_ += [record[0]]
+      entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
+    self._cacheIt(entityList)        
+    return entityList
+  
   ############################################################################# 
   def _listEventTypes(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
-    levels, processedPath = self.getLevel(path)
-  
-    if levels == 0:
-       self.clevelHeader_0(path, levels, processedPath)
-       entityList += self.clevelBody_0(path, levels,)
-    if levels == 1: 
-      configName = self.clevelHeader_1(path, levels, processedPath) 
-      entityList += self.clevelBody_1(path, levels, configName)  
-
-    if levels == 2: 
-      configName, configVersion = self.clevelHeader_2(path, levels, processedPath) 
-      entityList += self.elevelBody_2(path, levels, configName, configVersion)
-   
-    if levels == 3: 
-      configName, configVersion, eventType = self.elevelHeader_3(path, levels, processedPath) 
-      entityList += self.elevelBody_3(path, levels, configName, configVersion, eventType)
+    levels, processedPath,procpass = self.getLevelAndPath(path)
     
-    if levels == 4: 
-      configName, configVersion, eventtype, simcond = self.elevelHeader_4(path, levels, processedPath) 
-      entityList += self.elevelBody_4(path, levels, configName, configVersion, eventtype, simcond)
+    if levels == 0: #configname
+      self.clevelHeader_0(path, levels, processedPath)
+      entityList += self.clevelBody_0(path, levels,)
+    
+    if levels == 1: #config version
+      dict = self.clevelHeader_1(path, levels, processedPath) 
+      entityList += self.clevelBody_1(path, levels, dict)  
+
+    if levels == 2: #event type
+      dict = self.clevelHeader_2(path, levels, processedPath) 
+      entityList += self.elevelBody_2(path, levels, dict)
    
-    if levels == 5 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType = self.elevelHedaer_5(path, levels, processedPath) 
-      entityList += self.clevelBody_5(path, levels, configName, configVersion, simid, processing, evtType)
-    elif levels == 5 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[5],'ALL'))
-      path = newPath
-      v,processedPath = self._processPath(path)
+    if levels == 3: # sim ot daq desq
+      dict = self.elevelHeader_3(path, levels, processedPath) 
+      entityList += self.elevelBody_3(path, levels, dict)
+    
+    if levels == 4: #processing pass
+      dict = self.elevelHeader_4(path, levels, processedPath)
+      entityList += self.elevelBody_4(path, levels, dict,procpass)
+   
+    if self.advancedQuery_ and levels == 5:
+      dict = self.elevelHedaer_5(path, levels, processedPath, procpass)
+      entityList += self.clevelBody_5(path, levels, dict)
+    elif levels == 5:
       levels = 6
     
-
-    if levels == 6: 
-      configName, configVersion, simid, processing, evtType, prod = self.elevelHeader_6(path, levels, processedPath) 
-      entityList += self.clevelBody_6(path, levels, configName, configVersion, simid, processing, evtType, prod)
-   
-    if levels == 7 and self.advancedQuery_: 
-      configName, configVersion, simid, processing, evtType, prod, ftype = self.elevelHeader_7(path, levels, processedPath) 
-      entityList += self.clevelBody_7(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype)
-    elif levels == 7 and not self.advancedQuery_:
-      newPath = self.__createPath(processedPath,(self.LHCB_BKDB_PREFIXES_EVENTTYPE[7],'ALL'))
-      path = newPath
-      v,processedPath = self._processPath(path)
-      levels = 8
-      
-    if levels == 8 and StartItem == 0 and Maxitems == 0:
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_8(path, levels, processedPath) 
-      entityList += self.clevelBody_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
-    elif levels == 8 and (StartItem != 0 or Maxitems != 0):  
-      configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion = self.elevelHeader_8(path, levels, processedPath) 
-      entityList += self.clevelBodyLimited_8(path, levels, configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SelectionDict, SortDict, StartItem, Maxitems)
-    
+    if levels == 6 and StartItem == 0 and Maxitems == 0: #files
+      dict = self.elevelHeader_6(path, levels, processedPath, procpass) 
+      entityList += self.clevelBody_6(path, levels, dict)
+    elif levels == 6 and (StartItem != 0 or Maxitems != 0): #files
+      dict = self.elevelHeader_6(path, levels, processedPath, procpass) 
+      entityList += self.clevelBodyLimited_6(path, levels, dict, SelectionDict, SortDict, StartItem, Maxitems)
+       
     return entityList
   
    ############################################################################# 
-  def elevelBody_2(self, path, levels, configName, configVersion):      
+  def elevelBody_2(self, path, levels, dict):      
     entityList = list()
-    result = self.db_.getEventTypes(configName, configVersion)
+    result = self.db_.getEventTypes(dict)
     if result['OK']:
       dbResult = result['Value']
       if len(dbResult) > 1:
         add = self.__addAll(path, levels, 'Event types')
         if add:
           entityList += [add]        
-      for record in dbResult:
-        event = str(record[0])
-        value = {'Event Type':record[0],'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Event types')]
+      for record in dbResult['Records']:  
+        value = {'Event Type':record[0],'Description':record[1]} 
+        entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types',dict,'getEventTypes')]
       self._cacheIt(entityList)      
     else:
       gLogger.error(result['Message'])
+      return result
     return entityList
 
   ############################################################################# 
   def elevelHeader_3(self, path, levels, processedPath):
     gLogger.debug("listing simulation conditions")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    eventType = processedPath[2][1]
+        
+    dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventTypeId': processedPath[2]}
+    
     
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name      | %s " %(configName))
-    gLogger.debug("Configuration Version   | %s " %(configVersion))
-    gLogger.debug("Event Type              | %s " %(str(eventType)))
+    gLogger.debug(dict)
     gLogger.debug("-----------------------------------------------------------")
     
-    gLogger.debug("Available simulation conditions:")
-    return configName, configVersion, eventType
+    gLogger.debug("Available conditions:")
+    return dict
   
   ############################################################################# 
-  def elevelBody_3(self,path, levels, configName, configVersion, eventType):
+  def elevelBody_3(self,path, levels, dict):
     entityList = list()
-    if configName=='MC' or configName=='certification' or configName=='development':
-      result = self.db_.getSimCondWithEventType(configName, configVersion, eventType)
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
-          if add:
-            entityList += [add]       
-        for record in dbResult:
-          simid = str(record[0])
-          description = record[1]
-          value = {'SimulationCondition':simid, 'Simulation Description':description, 'BeamCond':record[2],'BeamEnergy':record[3],'Generator':record[4],'MagneticFileld':record[5],'DetectorCond':record[6],'Luminosity':record[7]}
-          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
+    
+    result = self.db_.getConditions(dict) 
+    if result['OK']:
+      dbResult = result['Value']
+      if dbResult["TotalRecords"] > 1:
+        add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
+        if add:
+          entityList += [add]
+      for record in dbResult['Records']:
+        value = {}
+        j = 0
+        for i in dbResult['ParameterNames']:
+          value[i] = record[j]
+          j+=1
+        entityList += [self._getSpecificEntityFromPath(path, value, record[1], levels, None, 'Simulation Conditions/DataTaking',dict,'getConditions')]
+      self._cacheIt(entityList)
     else:
-      result = self.db_.getSimulationConditions(configName, configVersion, 1) 
-      if result['OK']:
-        dbResult = result['Value']
-        if len(dbResult) > 1:
-          add = self.__addAll(path, levels, 'Simulation Conditions/DataTaking')
-          if add:
-            entityList += [add]       
-        for record in dbResult:
-          simid = str(record[0])
-          description = record[1]
-          value = {'BEAMCOND':record[2],'BEAMENERGY':record[3],'MAGNETICFIELD':record[4],'VELO':record[5],'IT':record[6],'TT':record[7],'OT':record[8],'RICH1':record[9],'RICH2':record[10],'SPD_PRS':record[11],'ECAL':record[12],'HCAL':record[13],'MUON':record[14],'L0':record[15],'HLT':record[16], 'VeloPosition':record[17]}
-          entityList += [self._getSpecificEntityFromPath(path, value, simid, levels, description, 'Simulation Conditions/DataTaking')]
-        self._cacheIt(entityList)
-      else:
-        gLogger.error(result['Message'])
+      gLogger.error(result['Message'])
+
     return entityList
-  
+
   ############################################################################# 
   def elevelHeader_4(self, path, levels, processedPath):
     gLogger.debug("listing processing pass")
-    configName = processedPath[0][1] 
-    configVersion = processedPath[1][1]
-    eventtype = processedPath[2][1]
-    simcond = processedPath[3][1]
- 
+    
+    dict = {'ConfigName': processedPath[0],
+            'ConfigVersion':processedPath[1],
+            'EventTypeId':processedPath[2],
+            'ConditionDescription':processedPath[3]
+             }
+    
+    
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters: ")
     gLogger.debug("-----------------------------------------------------------")
-
-    gLogger.debug("Configuration Name      | %s " %(configName))
-    gLogger.debug("Configuration Version   | %s " %(configVersion))
-    gLogger.debug("Event type              | %s " %(str(eventtype)))
-    gLogger.debug("Simulation Condition    | %s " %(str(simcond)))
+    gLogger.debug(dict)
     gLogger.debug("-----------------------------------------------------------")
 
     gLogger.debug("Available processing pass types:")
-    return configName, configVersion, eventtype, simcond
+    return dict
   
   ############################################################################# 
-  def elevelBody_4(self, path, levels, configName, configVersion, eventtype, simcond):
+  def elevelBody_4(self, path, levels, dict, procpass):
     entityList = list()
-    result = self.db_.getProPassWithEventTypeNew(configName, configVersion, eventtype, simcond)
+
+    result = self.db_.getStandardProcessingPass(dict,  procpass)
     if result['OK']:
       dbResult = result['Value']
-      if len(dbResult) > 1:
+      if dbResult[0]['TotalRecords'] > 0: # it is a processing pass
         add = self.__addAll(path, levels, 'Processing Pass')
         if add:
-          entityList += [add]        
-      for record in dbResult:
-        proc = str(record[1])
-        value = {'passid':record[0],'Total ProcessingPass':proc}
-        entityList += [self._getSpecificEntityFromPath(path, value, proc, levels, None, 'Processing Pass')]
-      self._cacheIt(entityList)
+          entityList += [add]
+        for record in dbResult[0]['Records']:  
+          entityList += [self._getEntityFromPath(path, record[0], levels, 'Processing Pass',dict,'getProcessingPass')]
+        self._cacheIt(entityList)
+      elif self.advancedQuery_:
+        dict['ProcessingPass'] = procpass
+        result = self.db_.getProductions(dict)
+        if result['OK']:
+          dbResult = result['Value']
+          print dbResult 
+          for record in dbResult['Records']:
+             entityList += [self._getEntityFromPath(path, str(record[0]), levels, 'Production(s)/Run(s)',dict,'getProductions')]
+          self._cacheIt(entityList)
+      else:
+        dict['ProcessingPass'] = procpass
+        result = self.db_.getFileTypes(dict)
+        if result['OK']:
+          dbResult = result['Value']
+          for record in dbResult['Records']:
+             entityList += [self._getEntityFromPath(path, record[0], levels, 'FileTypes',dict,'getFileTypes')]
+          self._cacheIt(entityList)  
     else:
-        gLogger.error(result['Message'])
+      gLogger.error(result['Message'])
     return entityList
   
   ############################################################################# 
-  def elevelHedaer_5(self, path, levels, processedPath):
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    evtType = processedPath[2][1]
-    simid = processedPath[3][1]
-    processing = processedPath[4][1]
+  def elevelHedaer_5(self, path, levels, processedPath, procpass):
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    if self.advancedQuery_:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1],'EventTypeId': processedPath[2],'ConditionDescription': processedPath[3],'Production':processedPath[4]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventTypeId': processedPath[2],'ConditionDescription': processedPath[3]}
+    dict['ProcessingPass']=procpass
+    
     
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:   ")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
+    gLogger.debug(dict)
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Available Production(s):")
-    return configName, configVersion, simid, processing, evtType
+    return dict
   
   ############################################################################# 
-  def elevelHeader_6(self, path, levels, processedPath):
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    evtType = processedPath[2][1]
-    simid = processedPath[3][1]
-    processing = processedPath[4][1] 
-    prod = processedPath[5][1]
+  def elevelHeader_6(self, path, levels, processedPath,procpass):
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    if self.advancedQuery_:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1],'EventTypeId': processedPath[2],'ConditionDescription': processedPath[3],'Production':processedPath[4],'FileType':processedPath[5]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1],'EventTypeId': processedPath[2],'ConditionDescription': processedPath[3],'FileType':processedPath[4]}
+    dict['ProcessingPass']=procpass
+    
             
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:   ")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(prod)))
+    gLogger.debug(dict)
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Available file types:")
-    return configName, configVersion, simid, processing, evtType, prod
-  
-  #############################################################################       
-  def elevelHeader_7(self, path, levels, processedPath):
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    evtType = processedPath[2][1]
-    simid = processedPath[3][1]
-    processing = processedPath[4][1] 
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]  
-    
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(prod)))
-    gLogger.debug("File Type              | %s " %(str(ftype)))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Available program name and version:")
-    return configName, configVersion, simid, processing, evtType, prod, ftype
+    return dict
       
-  
-  ############################################################################# 
-  def elevelHeader_8(self, path, levels, processedPath):
-  
-    self.files_ = []
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    evtType = processedPath[2][1]
-    simid = processedPath[3][1]
-    processing = processedPath[4][1] 
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if len(processedPath[7][1]) < 8:
-      pname = 'ALL'
-      pversion = 'ALL'
-    else:
-      pname = processedPath[7][1].split(' ')[0]
-      pversion = processedPath[7][1].split(' ')[1]
-
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(prod)))
-    gLogger.debug("File Type              | %s " %(str(ftype)))
-    gLogger.debug("Program name           | %s " %(pname))
-    gLogger.debug("Program version        | %s " %(pversion))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("File list:\n")
-    
-    return configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion
-  
   ############################################################################# 
   def _listProduction(self, path, SelectionDict, SortDict, StartItem, Maxitems):    
     
     entityList = list()
-    levels, processedPath = self.getLevel(path)
-    
+    levels, processedPath,procpass = self.getLevelAndPath(path)
+    print levels, processedPath,procpass
     if levels == 0:
        self.plevelHeader_0(path, levels, processedPath)
        entityList += self.plevelBody_0(path, levels, None)
        
     if levels == 1: 
-      production = self.rlevelHeader_2(path, levels, processedPath) 
-      entityList += self.plevelBody_2(path, levels, production)
+      dict = self.plevelHeader_2(path, levels, processedPath) 
+      entityList += self.plevelBody_2(path, levels, dict)
     
     if levels == 2:
-      production, evt = self.plevelHeader_3(path, levels, processedPath) 
-      entityList += self.plevelBody_3(path, levels, production, evt)
+      dict = self.plevelHeader_3(path, levels, processedPath) 
+      entityList += self.plevelBody_3(path, levels, dict)
     
     if levels == 3:
-      production, evt, ftype = self.plevelHeader_4(path, levels, processedPath) 
-      entityList += self.plevelBody_4(path, levels, production, evt, ftype)
+      dict = self.plevelHeader_4(path, levels, processedPath) 
+      entityList += self.plevelBody_4(path, levels, dict)
     
     return entityList
   
   ############################################################################# 
   def _listRuns(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
-    levels, processedPath = self.getLevel(path)
+    
+    levels, processedPath,procpass = self.getLevelAndPath(path)
     
     if levels == 0:
        self.rlevelHeader_0(path, levels, processedPath)
        entityList += self.rlevelBody_0(path, levels, None)
        
     if levels == 1: 
-      runnumber = self.rlevelHeader_2(path, levels, processedPath) 
-      entityList += self.rlevelBody_2(path, levels, str(runnumber))
+      dict = self.rlevelHeader_2(path, levels, processedPath) 
+      entityList += self.rlevelBody_2(path, levels, dict, procpass)
     
     if levels == 2:
-      runnumber, processing = self.rlevelHeader_3(path, levels, processedPath) 
-      entityList += self.rlevelBody_3(path, levels, runnumber, processing)
+      dict = self.rlevelHeader_3(path, levels, processedPath, procpass) 
+      entityList += self.rlevelBody_3(path, levels, dict)
     
     if levels == 3:
-      runnumber, processing, evt = self.rlevelHeader_4(path, levels, processedPath) 
-      entityList += self.rlevelBody_4(path, levels, runnumber, processing, evt)
-    
-    if levels == 4:
-      runnumber, processing, evt, ftype = self.rlevelHeader_5(path, levels, processedPath) 
-      entityList += self.rlevelBody_5(path, levels, runnumber, processing, evt, ftype)
-    
-    
+      dict = self.rlevelHeader_4(path, levels, processedPath,procpass) 
+      entityList += self.clevelBody_6(path, levels, dict)
+        
     return entityList
 
    ############################################################################# 
@@ -1015,25 +869,32 @@ class LHCB_BKKDBManager(BaseESManager):
   def plevelHeader_2(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("listing eventtype")
-    production = processedPath[0][1]  
+    
+    dict = {'Production':processedPath[0]}
+     
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Production        | %s " % (production))
+    gLogger.debug(dict)
     
     gLogger.debug("Available event types:")
-    return production
+    return dict
   
   ############################################################################# 
-  def plevelBody_2(self, path, levels, production):
+  def plevelBody_2(self, path, levels, dict):
     entityList = list()
-    result = self.db_.getEventTyesWithProduction(production)
+    
+    result = self.db_.getStandardEventTypes(dict)
     if result['OK']:
       dbResult = result['Value']
-      for record in dbResult:
-        event = str(record[0])
-        value = {'Event Type':record[0],'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, event, levels, None, 'Event types')]
+      print dbResult
+      if len(dbResult) > 1:
+        add = self.__addAll(path, levels, 'Event types')
+        if add:
+          entityList += [add]        
+      for record in dbResult['Records']:  
+        value = {'Event Type':record[0],'Description':record[1]} 
+        entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types',dict,'getEventTypes')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
@@ -1043,26 +904,23 @@ class LHCB_BKKDBManager(BaseESManager):
   def plevelHeader_3(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("listing file types")
-    production = processedPath[0][1] 
-    eventtype =  processedPath[1][1] 
+    dict = {'Production':processedPath[0],'EventTypeId': processedPath[1]}
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Production        | %s " % (production))
-    gLogger.debug("Event type        | %s " % (eventtype))
+    gLogger.debug(dict)
     
     gLogger.debug("Available file types:")
-    return production, eventtype
+    return dict
   
   ############################################################################# 
-  def plevelBody_3(self, path, levels, production, evt):
+  def plevelBody_3(self, path, levels, dict):
     entityList = list()
-    result = self.db_.getFileTypesWithSimcond('ALL', 'ALL', 'ALL', 'ALL', evt, production)
+    result = self.db_.getFileTypes(dict)
     if result['OK']:
       dbResult = result['Value']
-      for record in dbResult:
-        ftype = str(record[0])
-        entityList += [self._getEntityFromPath(path, ftype, levels, 'File types')]
+      for record in dbResult['Records']:
+         entityList += [self._getEntityFromPath(path, record[0], levels, 'FileTypes',dict,'getFileTypes')]
       self._cacheIt(entityList)
     else:
       gLogger.error(result['Message'])
@@ -1072,43 +930,31 @@ class LHCB_BKKDBManager(BaseESManager):
   def plevelHeader_4(self, path, levels, processedPath): 
     entityList = list()
     gLogger.debug("listing file types")
-    production = processedPath[0][1] 
-    eventtype =  processedPath[1][1] 
-    ftype = processedPath[2][1] 
+    dict = {'Production':processedPath[0],'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
+     
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Production        | %s " % (production))
-    gLogger.debug("Event type        | %s " % (eventtype))
-    gLogger.debug("File type         | %s " % (ftype))
+    gLogger.debug(dict)
     
     gLogger.debug("Available files:")
-    return production, eventtype, ftype
+    return dict
   
   ############################################################################# 
-  def plevelBody_4(self, path, levels, production, evt, ftype):
+  def plevelBody_4(self, path, levels, dict):
     entityList = list()
-    result = self.db_.getFilesWithSimcondAndDataQuality('ALL', 'ALL', 'ALL', 'ALL', evt, production, ftype, 'ALL', 'ALL', self.dataQualities_)
-    #result = self.db_.getFilesWithSimcond('ALL', 'ALL', 'ALL', 'ALL', evt, production, ftype, 'ALL', 'ALL')
-    selection = {"Configuration Name":'ALL', \
-                 "Configuration Version":'ALL', \
-                 "Simulation Condition":'ALL', \
-                 "Processing Pass":'ALL', \
-                 "Event type":str(evt), \
-                 "Production":str(production), \
-                 "File Type":str(ftype), \
-                 "Program name":'ALL', \
-                 "Program version":'ALL'}
-    
+    dict['Quality']=self.__getSelectedQualities()
+    result = self.db_.getFiles(dict)
     if result['OK']:
-      dbResult = result['Value']
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14], 'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
+      for record in result['Value']['Records']:
+        value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
+                 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+                 'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
         self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-      self._cacheIt(entityList)    
+        entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
+      self._cacheIt(entityList)
     else:
-      gLogger.error(result['Message'])
+      return result
     
     return entityList
   
@@ -1140,60 +986,66 @@ class LHCB_BKKDBManager(BaseESManager):
   def rlevelHeader_2(self, path, levels, processedPath):
     entityList = list()
     gLogger.debug("listing processing pass")
-    runnumber = processedPath[0][1]  
+    dict  = {'RunNumber':processedPath[0]}  
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("RunNumber        | %s " % (runnumber))
+    gLogger.debug(dict)
     
     gLogger.debug("Available processing pass:")
-    return runnumber
+    return dict
   
   ############################################################################# 
-  def rlevelBody_2(self, path, levels, runnumber):
+  def rlevelBody_2(self, path, levels, dict, procpass):
     entityList = list()
-    result = self.db_.getProPassWithRunNumber(runnumber)
+    dict['ProcessingPass']=procpass
+    result = self.db_.getProcessingPass(dict, procpass)
     if result['OK']:
       dbResult = result['Value']
-      if len(dbResult) > 1:
+      if dbResult[0]['TotalRecords'] > 0: # it is a processing pass
         add = self.__addAll(path, levels, 'Processing Pass')
         if add:
           entityList += [add]
-      for record in dbResult:
-        prod = str(record[1])
-        value = {'passid':record[0],'Total ProcessingPass':prod}
-  
-        entityList += [self._getSpecificEntityFromPath(path, value, prod, levels, None,  'Processing Pass')]
+      for record in dbResult[0]['Records']:  
+        entityList += [self._getEntityFromPath(path, record[0], levels, 'Processing Pass',dict,'getProcessingPass')]
       self._cacheIt(entityList)
+      if dbResult[1]['TotalRecords'] > 0:
+        value = {}
+        for record in dbResult[1]['Records']:  
+          value = {'Event Type':record[0],'Description':record[1]} 
+          entityList += [self._getSpecificEntityFromPath(path, value, str(record[0]), levels, None, 'Event types',dict,'getProcessingPass')]
+        self._cacheIt(entityList) 
     else:
       gLogger.error(result['Message'])
     return entityList
   
   #############################################################################
-  def rlevelHeader_3(self, path, levels, processedPath):
+  def rlevelHeader_3(self, path, levels, processedPath, procpass):
     entityList = list()
     gLogger.debug("listing eventtypes")
-    runnumber = processedPath[0][1] 
-    processing =  processedPath[1][1] 
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    dict = { 'RunNumber':processedPath[0],'EventTypeId': processedPath[1]}
+    dict['ProcessingPass']=procpass
+    
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Run number        | %s " % (runnumber))
-    gLogger.debug("Processing pass   | %s " % (processing))
+    gLogger.debug(dict)
     
     gLogger.debug("Available eventtypes types:")
-    return runnumber, processing
+    return dict
   
   #############################################################################
-  def rlevelBody_3(self, path, levels, runnumber,processing):
+  def rlevelBody_3(self, path, levels, dict):
     entityList = list()
-    result = self.db_.getEventTypeWithAgivenRuns(runnumber, processing)
+    result = self.db_.getFileTypes(dict)
     if result['OK']:
       dbResult = result['Value']
-      for record in dbResult:
-        evtType = str(record[0])
-        value = {'Event Type':evtType,'Description':record[1]}
-        entityList += [self._getSpecificEntityFromPath(path, value, evtType, levels,None, 'Event types')]
+      for record in dbResult['Records']:
+         entityList += [self._getEntityFromPath(path, record[0], levels, 'FileTypes',dict,'getFileTypes')]
       self._cacheIt(entityList)
     else:
         gLogger.error(result['Message'])
@@ -1201,24 +1053,25 @@ class LHCB_BKKDBManager(BaseESManager):
   
   
    ############################################################################# 
-  def rlevelHeader_4(self, path, levels, processedPath):
+  def rlevelHeader_4(self, path, levels, processedPath, procpass):
     entityList = list()
     gLogger.debug("listing file types")
-    runnumber = processedPath[0][1] 
-    processing = processedPath[1][1]
-    eventtype = processedPath[2][1]
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
+    
+    dict = { 'RunNumber':processedPath[0],'EventTypeId': processedPath[1],'FileType':processedPath[2]}
+    dict['ProcessingPass']=procpass
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Runnumber         | %s " % (runnumber))
-    gLogger.debug("Processing pass   | %s " % (processing))
-    gLogger.debug("Event type        | %s " % (eventtype))
+    gLogger.debug(dict)
     
     gLogger.debug("Available file types:")
-    return runnumber, processing, eventtype
+    return dict
   
   ############################################################################# 
-  def rlevelBody_4(self, path, levels, runnumber, processing, evt):
+  def rlevelBody_4(self, path, levels, dict):
     entityList = list()
     result = self.db_.getFileTypesWithAgivenRun(runnumber, processing, evt)
     if result['OK']:
@@ -1230,55 +1083,7 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       gLogger.error(result['Message'])
     return entityList
-  
-  ############################################################################# 
-  def rlevelHeader_5(self, path, levels, processedPath): 
-    entityList = list()
-    gLogger.debug("listing file types")
-    runnumber = processedPath[0][1] 
-    processing = processedPath[1][1] 
-    eventtype =  processedPath[2][1] 
-    ftype = processedPath[3][1] 
     
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Run number        | %s " % (runnumber))
-    gLogger.debug("Processing pass   | %s " % (processing))
-    gLogger.debug("Event type        | %s " % (eventtype))
-    gLogger.debug("File type         | %s " % (ftype))
-    
-    gLogger.debug("Available files:")
-    return runnumber, processing, eventtype, ftype
-  
-  ############################################################################# 
-  def rlevelBody_5(self, path, levels, runnumber, processing, evt, ftype):
-    entityList = list()   
-    dict = {'Ppass':processing, 'Evid':evt, 'Rnumber':runnumber, 'Ftye':ftype, 'Quality':self.dataQualities_}
-    result = self.db_.getRunFilesWithAgivenRunWithDataQuality(dict)
-    selection = {"Configuration Name":'ALL', \
-                 "Configuration Version":'ALL', \
-                 "Simulation Condition":'ALL', \
-                 "Processing Pass":str(processing), \
-                 "Event type":str(evt), \
-                 "Production":'ALL', \
-                 "File Type":str(ftype), \
-                 "Program name":'ALL', \
-                 "Program version":'ALL', \
-                 "RunNumber":str(runnumber)}
-    
-    if result['OK']:
-      dbResult = result['Value']
-      for record in dbResult:
-        value = {'name':record[0],'EventStat':record[1], 'FileSize':str(record[2]),'CreationDate':record[3],'Generator':record[4],'GeometryVersion':record[5],       'JobStart':record[6], 'JobEnd':record[7],'WorkerNode':record[8],'FileType':record[9],'RunNumber':record[10],'FillNumber':record[11],'FullStat':record[12], 'DataQuality':record[13],'EvtTypeId':evt,'EventInputStat':record[14],'TotalLuminosity':record[15],'Luminosity':record[16],'Selection':selection}
-        self.files_ += [record[0]]
-        entityList += [self._getEntityFromPath(path, value, levels,'List of files')]
-      self._cacheIt(entityList)    
-    else:
-      gLogger.error(result['Message'])
-    
-    return entityList
-  
   ############################################################################# 
   def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None, selection = None, method = None):
      
@@ -1289,7 +1094,13 @@ class LHCB_BKKDBManager(BaseESManager):
       entity.update({'FileName':entity['name']})
       expandable = False
       entity.update({'expandable':expandable})
-      type = self.LHCB_BKDB_FILE_TYPE                            
+      type = self.LHCB_BKDB_FILE_TYPE
+      if selection!=None:
+        entity.update({'selection':selection})
+      
+      if method!=None:
+        entity.update({'method':method})
+                                  
     else:
       # this must be a folder
       entity = objects.Entity()
@@ -1308,13 +1119,19 @@ class LHCB_BKKDBManager(BaseESManager):
       if leveldescription <> None:
         entity.update({'level':leveldescription})
       
+      if leveldescription == 'FileTypes':
+        entity.update({'showFiles':0})
+        
       if selection!=None:
         entity.update({'selection':selection})
       
       if method!=None:
         entity.update({'method':method})
-        
-      if not self.advancedQuery_ and level==6:
+   
+      elif level == 5:
+        entity.update({'showFiles':0})
+      '''
+      if not self.advancedQuery_ and level==4:
         entity.update({'showFiles':0})
       elif  self.advancedQuery_ and level==7:
         entity.update({'showFiles':0})
@@ -1322,6 +1139,7 @@ class LHCB_BKKDBManager(BaseESManager):
         entity.update({'showFiles':0})
       elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3] and level == 3:
         entity.update({'showFiles':0})
+      '''
     return entity
   
   ############################################################################# 
@@ -1349,11 +1167,10 @@ class LHCB_BKKDBManager(BaseESManager):
       
       if method != None:
         entity.update({'method':method})
-        
-      if not self.advancedQuery_ and level==6:
+       
+      if level == 5:
         entity.update({'showFiles':0})
-      elif  self.advancedQuery_ and level==7:
-        entity.update({'showFiles':0})  
+      
     return entity
     
 
@@ -1455,8 +1272,8 @@ class LHCB_BKKDBManager(BaseESManager):
       for record in dbResult:
         prod = str(record[0])
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
-                 'Location':record[9], 'Name':record[10], 'NumberofEvents':record[11], \
-                  'StatisticsRequested':record[12], 'WNCPUPOWER':record[13], 'CPUTime':record[14], 'WNCACHE':record[15], 'WNMEMORY':record[16], 'WNMODEL':record[17], 'WORKERNODE':record[18],'WNCPUHS06':record[19],'TotalLuminosity':record[21]}  
+                 'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
+                  'StatisticsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTime':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14],'WNCPUHS06':record[15],'TotalLuminosity':record[17]}  
     else:
       gLogger.error(result['Message'])
     return value
@@ -1474,256 +1291,97 @@ class LHCB_BKKDBManager(BaseESManager):
       return self._getLimitedFilesRuns(SelectionDict, SortDict, StartItem, Maxitems)
   
   #############################################################################       
-  def _getLimitedFilesConfigParams(self, SelectionDict, SortDict, StartItem, Maxitems):
-    entityList = list()
-    path = SelectionDict['fullpath'] 
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-   
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    self._updateTreeLevels(levels)
-    #if levels == 7:
-    self.files_ = []
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if len(processedPath) < 8:
-      pname = 'ALL'
-      pversion = 'ALL'
-    else: 
-      if processedPath[7][1] != 'ALL':
-        pname = processedPath[7][1].split(' ')[0]
-        pversion = processedPath[7][1].split(' ')[1]
-      else:
-        pname = processedPath[7][1]
-        pversion = processedPath[7][1]
-
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(prod)))
-    gLogger.debug("File Type              | %s " %(str(ftype)))
-    gLogger.debug("Program name           | %s " %(pname))
-    gLogger.debug("Program version        | %s " %(pversion))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("File list:\n")
+  def _getLimitedFilesConfigParams(self, SelectionDict, SortDict, StartItem, Maxitems):  
+    path = SelectionDict['fullpath']
+    levels, processedPath,procpass = self.getLevelAndPath(path)
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
     
-    selection = {"Configuration Name":configName, \
-                 "Configuration Version":configVersion, \
-                 "Simulation Condition":str(simid), \
-                 "Processing Pass":str(processing), \
-                 "Event type":str(evtType), \
-                 "Production":str(prod), \
-                 "File Type":str(ftype), \
-                 "Program name":pname, \
-                 "Program version":pversion}
-  
-    return self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection)
+    if self.advancedQuery_:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3],'Production':processedPath[4],'FileType':processedPath[5]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2],'EventTypeId': processedPath[3],'FileType':processedPath[4]}
+    dict['ProcessingPass']=procpass
+    dict['fullpath']=path
+    
+    return self.__getFiles(dict, SortDict, StartItem, Maxitems)
     
     
   
   #############################################################################       
   def _getLimitedFilesEventTypeParams(self, SelectionDict, SortDict, StartItem, Maxitems):
-    entityList = list()
-    path = SelectionDict['fullpath'] 
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-   
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    self._updateTreeLevels(levels)
-      
-    #if levels == 7:    
-    self.files_ = []
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    evtType = processedPath[2][1]
-    simid = processedPath[3][1]
-    processing = processedPath[4][1] 
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if len(processedPath) < 8:
-      pname = 'ALL'
-      pversion = 'ALL'
-    else:
-      pname = processedPath[7][1].split(' ')[0]
-      pversion = processedPath[7][1].split(' ')[1]
-
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Selected parameters:   ")
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("Configuration Name     | %s " %(configName))
-    gLogger.debug("Configuration Version  | %s " %(configVersion))
-    gLogger.debug("Simulation Condition   | %s " %(str(simid)))
-    gLogger.debug("Processing Pass        | %s " %(str(processing)))
-    gLogger.debug("Event type             | %s " %(str(evtType)))
-    gLogger.debug("Production             | %s " %(str(prod)))
-    gLogger.debug("File Type              | %s " %(str(ftype)))
-    gLogger.debug("Program name           | %s " %(pname))
-    gLogger.debug("Program version        | %s " %(pversion))
-    gLogger.debug("-----------------------------------------------------------")
-    gLogger.debug("File list:\n")
+    path = SelectionDict['fullpath']
+    levels, processedPath,procpass = self.getLevelAndPath(path)
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
     
-    selection = {"Configuration Name":configName, \
-                 "Configuration Version":configVersion, \
-                 "Simulation Condition":str(simid), \
-                 "Processing Pass":str(processing), \
-                 "Event type":str(evtType), \
-                 "Production":str(prod), \
-                 "File Type":str(ftype), \
-                 "Program name":pname, \
-                 "Program version":pversion}
-          
-    return self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection)
-  
+    if self.advancedQuery_:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1],'EventTypeId': processedPath[2], 'ConditionDescription': processedPath[3],'Production':processedPath[4],'FileType':processedPath[5]}
+    else:
+      dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventTypeId': processedPath[2],'ConditionDescription': processedPath[3],'FileType':processedPath[4]}
+    dict['ProcessingPass']=procpass
+    dict['fullpath']=path
+    
+    return self.__getFiles(dict, SortDict, StartItem, Maxitems)
+    
   def _getLimitedFilesProductions(self, SelectionDict, SortDict, StartItem, Maxitems):
-    entityList = list()
-    path = SelectionDict['fullpath'] 
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-   
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    self._updateTreeLevels(levels)
-      
-    #if levels == 7:    
-    self.files_ = []
-    gLogger.debug("listing files")
-    prod = processedPath[0][1]
-    evtType = processedPath[1][1]
-    ftype = processedPath[2][1]
-        
-    selection = {"Configuration Name":'ALL', \
-                 "Configuration Version":'ALL', \
-                 "Simulation Condition":'ALL', \
-                 "Processing Pass":'ALL', \
-                 "Event type":str(evtType), \
-                 "Production":str(prod), \
-                 "File Type":str(ftype), \
-                 "Program name":'ALL', \
-                 "Program version":'ALL'}
-          
-    return self.__getFiles('ALL', 'ALL', 'ALL', 'ALL', evtType, prod, ftype, 'ALL', 'ALL', SortDict, StartItem, Maxitems, selection)
+    path = SelectionDict['fullpath']
+    levels, processedPath,procpass = self.getLevelAndPath(path)
+
+    dict = { 'Production': processedPath[0], 'EventTypeId': processedPath[1],'FileType':processedPath[2]}
+    dict['fullpath']=path
+    
+    return self.__getFiles(dict, SortDict, StartItem, Maxitems)
 
   #############################################################################
   def _getLimitedFilesRuns(self, SelectionDict, SortDict, StartItem, Maxitems):
-    entityList = list()
-    path = SelectionDict['fullpath'] 
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-   
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    self._updateTreeLevels(levels)
+    path = SelectionDict['fullpath']
+    levels, processedPath,procpass = self.getLevelAndPath(path)
+    r = procpass.split('/')[1:]
+    for i in r:
+      processedPath.remove(i)
       
-    #if levels == 7:    
-    self.files_ = []
-    gLogger.debug("listing files")
-    runnumber = processedPath[0][1]
-    processing = processedPath[1][1]
-    evtType = processedPath[2][1]
-    ftype = processedPath[3][1]
-        
-    selection = {"Configuration Name":'ALL', \
-                 "Configuration Version":'ALL', \
-                 "Simulation Condition":'ALL', \
-                 "Processing Pass":str(processing),\
-                 "Event type":str(evtType), \
-                 "Production":'ALL', \
-                 "File Type":str(ftype), \
-                 "Program name":'ALL', \
-                 "Program version":'ALL',\
-                 "RunNumber":str(runnumber)}
-          
+    dict = {'RunNumber':processedPath[0],'EventTypeId': processedPath[1],'FileType':processedPath[2],'ProcessingPass':procpass}
+    dict['fullpath']=path
     
-    return self.__getRunFiles(evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection)  
-  
-  
+    return self.__getFiles(dict, SortDict, StartItem, Maxitems)
+
   
   #############################################################################       
-  def __getRunFiles(self, evtType, ftype, processing, runnumber, SortDict, StartItem, Maxitems, selection):
-    totalrecords = 0
-    nbOfEvents = 0
-    filesSize = 0
-    if len(SortDict) > 0:
-      res = self.db_.getLimitedNbOfRunFiles(processing,evtType, runnumber,ftype)
-      if not res['OK']:
-        gLogger.error(res['Message'])
-      else:
-        totalrecords = res['Value'][0][0]
-        nbOfEvents = res['Value'][0][1]
-        filesSize = res['Value'][0][2]
-    records = []
-    parametersNames=[]
-    if StartItem > -1 and Maxitems != 0:
-      result = self.db_.getLimitedFilesWithAgivenRun(processing,evtType, runnumber,ftype, StartItem, Maxitems)
-          
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat', 'TotalLuminosity','Luminosity']
-      
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          value = [str(record[1]), record[2],record[3],str(record[4]),str(record[7]),str(record[8]), record[9], record[10],record[11],record[12], record[13], record[14], record[15], record[16],record[17], record[18]]
-          records += [value]
-      else:
-        gLogger.error(result['Message'])
-    
-    return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize }} } 
-  
-  #############################################################################       
-  def __getFiles(self,configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, SortDict, StartItem, Maxitems, selection):
+  def __getFiles(self, dict, SortDict, StartItem, Maxitems):
     totalrecords = 0
     nbOfEvents = 0
     filesSize = 0
     lumi = 0
+    selection = dict
     if len(SortDict) > 0:
-      res = self.db_.getLimitedNbOfFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion)
+      res = self.db_.getFilesSumary(dict)
       if not res['OK']:
         gLogger.error(res['Message'])
       else:
-        totalrecords = res['Value'][0][0]
-        nbOfEvents = res['Value'][0][1]
-        filesSize = res['Value'][0][2]
-        lumi = res['Value'][0][3]
+        records = res['Value']['Records']
+        params = res['Value']['ParameterNames']
+        totalrecords = records[0][0]
+        nbOfEvents = records[0][1]
+        filesSize =  records[0][2]
+        lumi = records[0][3]
     records = []
     parametersNames=[]
     if StartItem > -1 and Maxitems != 0:
-      dict = {'CName':configName,'CVersion':configVersion, 'Simid':simid,'Ppass':processing,'Etype':evtType,'Prod':prod,'Ftype':ftype,'Pname':pname,'Pversion':pversion,'Sitem':StartItem,'Mitem':Maxitems,'Quality':self.dataQualities_}
-      result = self.db_.getLimitedFilesWithSimcondAndDataQuality(dict)
-            
-      parametersNames = ['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat','TotalLuminosity', 'Luminosity']
+      dict['StartItem']=StartItem
+      dict['MaxItem']=Maxitems
+      dict['Quality']=self.__getSelectedQualities()
+      result = self.db_.getLimitedFiles(dict)
       
-      if result['OK']:
-        dbResult = result['Value']
-        for record in dbResult:
-          value = [record[1],record[2],record[3],str(record[4]),str(record[7]),str(record[8]),record[9],record[10], evtType, record[11],record[12],record[13], record[14], record[15],record[16], record[17]]
-          records += [value]
+      if result['OK']:      
+        parametersNames = result['Value']['ParameterNames'] 
+        records = result['Value']['Records']
+        totalrecords = result['Value']['TotalRecords']
       else:
         gLogger.error(result['Message'])
+        return result
     
     return {'TotalRecords':totalrecords,'ParameterNames':parametersNames,'Records':records,'Extras': {'Selection':selection, 'GlobalStatistics':{'Number of Events':nbOfEvents, 'Files Size':filesSize,'Luminosity': lumi}} } 
   
@@ -1957,3 +1615,10 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def setDataQualities(self, values):
     self.dataQualities_ = values
+  
+  def __getSelectedQualities(self):
+    res = []
+    for i in self.dataQualities_:
+      if self.dataQualities_[i]==True:
+        res += [i]
+    return res

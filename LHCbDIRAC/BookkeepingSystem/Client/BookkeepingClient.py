@@ -129,6 +129,11 @@ class BookkeepingClient:
     return server.getProcessingPass(dict, path)
   
   #############################################################################
+  def getStandardProcessingPass(self, dict, path = '/'):
+    server = self.__getServer()
+    return server.getStandardProcessingPass(dict, path)
+  
+  #############################################################################
   def getProductions(self, dict):
     server = self.__getServer()
     return server.getProductions(dict)
@@ -625,4 +630,12 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.addProduction(dict)
 
+  #############################################################################
+  def getEventTypes(self, dict):
+    server = self.__getServer()
+    return server.getEventTypes(dict)
   
+  #############################################################################
+  def getStandardEventTypes(self, dict):
+    server = self.__getServer()
+    return server.getStandardEventTypes(dict)

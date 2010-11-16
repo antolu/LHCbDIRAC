@@ -67,7 +67,15 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getProcessingPass(self, configName, configVersion, conddescription, path):
+  def getProcessingPass(self, configName, configVersion, conddescription, runnumber, prod, path):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getStandardProcessingPass(self, configName, configVersion, conddescription, eventType, prod, path='/'):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getConditions(self, configName, configVersion, evt):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
@@ -75,19 +83,19 @@ class IBookkeepingDB(object):
      gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, production):
+  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+  def getFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality):
+  def getFilesSumary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, startItem, maxItem):
+  def getLimitedFiles(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startItem, maxItem):
     gLogger.error('This method is not implemented!')
   
   #############################################################################  
@@ -418,4 +426,12 @@ class IBookkeepingDB(object):
   
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getEventTypes(self, configName, configVersion):
+    gLogger.error('This method is not implemented!')
+    
+  #############################################################################
+  def getStandardEventTypes(self, configName, configVersion, prod ):
     gLogger.error('This method is not implemented!')

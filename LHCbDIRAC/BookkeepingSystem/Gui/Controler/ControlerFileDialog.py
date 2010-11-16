@@ -43,7 +43,7 @@ class ControlerFileDialog(ControlerAbstract):
     keys = items.keys()
     if len(keys) > 0:
       value = items[keys[0]]
-      self.getWidget().showSelection(value['Selection'])
+      self.getWidget().showSelection(value['selection'])
       if res:
         
         events = self.countNumberOfEvents(items)
