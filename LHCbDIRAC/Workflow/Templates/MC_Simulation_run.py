@@ -156,7 +156,7 @@ if sysConfig:
   production.setSystemConfig(sysConfig)
 
 production.setProdType('MCSimulation')
-wkfName = 'Request{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
+wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
 
 production.setWorkflowName('%s_%s' %(wkfName,appendName))
 production.setBKParameters(configName,configVersion,'{{pDsc}}','{{simDesc}}')
@@ -390,7 +390,7 @@ if sysConfig:
   mergeProd.setSystemConfig(sysConfig)
      
 mergeProd.setProdType('Merge')
-mergingName = 'Request{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' %(finalAppType,evtType,mcProdID,mergingGroupSize)
+mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' %(finalAppType,evtType,mcProdID,mergingGroupSize)
 mergeProd.setWorkflowName(mergingName)
 mergeProd.setWorkflowDescription('MC workflow for merging outputs from a previous production.')
 mergeProd.setBKParameters(configName,configVersion,'{{pDsc}}','{{simDesc}}')
