@@ -1287,10 +1287,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     transformation.setPlugin(plugin)
     if replicas > 1:
      transformation.setDestinations(replicas)
+    transformation.setTransformationGroup(groupDescription)     
     transformation.addTransformation()
     transformation.setStatus('Active')
     transformation.setAgentType('Automatic')
-    transformation.setTransformationGroup(groupDescription)
     transResult = transformation.getTransformationID()
     if not transResult['OK']:
       return transResult
@@ -1301,13 +1301,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not result['OK']:
         self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentReqID,transID,result))        
     
+    # Since other prods also have this parameter defined.
     result = self.setProdParameter(transID,'groupDescription',groupDescription)       
     if not result['OK']:
       self.log.error('Could no set groupDescription parameter with result %s' %(result['Message']))
 
     # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
     infoString = []
-    infoString.append('Replication transformation %s was created for %s with plugin %s' %(transID,groupDescription,plugin))
+    infoString.append('Replication transformation %s was created for %s\nWith plugin %s' %(transID,groupDescription,plugin))
     infoString.append('\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' %(inputProd,fileType))
     infoString = string.join(infoString,'\n')
     result = self.setProdParameter(transID,'DetailedInfo',infoString)
