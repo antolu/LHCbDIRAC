@@ -1297,9 +1297,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     transID = transResult['Value']
     if parentRequestID:
-      result = self.setProdParameter(transID,'TransformationFamily',parentReqID)
+      result = self.setProdParameter(transID,'TransformationFamily',parentRequestID)
       if not result['OK']:
-        self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentReqID,transID,result))        
+        self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentRequestID,transID,result))        
     
     # Since other prods also have this parameter defined.
     result = self.setProdParameter(transID,'groupDescription',groupDescription)       
