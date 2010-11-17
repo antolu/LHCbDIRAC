@@ -451,3 +451,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def getDataTakingCondDesc(self, condition):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionOutputFiles(self, prod):
+    gLogger.error('This method is not implemented!')

@@ -732,8 +732,7 @@ class LHCB_BKKDBManager(BaseESManager):
         dict['ProcessingPass'] = procpass
         result = self.db_.getProductions(dict)
         if result['OK']:
-          dbResult = result['Value']
-          print dbResult 
+          dbResult = result['Value'] 
           for record in dbResult['Records']:
              entityList += [self._getEntityFromPath(path, str(record[0]), levels, 'Production(s)/Run(s)',dict,'getProductions')]
           self._cacheIt(entityList)
@@ -796,7 +795,7 @@ class LHCB_BKKDBManager(BaseESManager):
     
     entityList = list()
     levels, processedPath,procpass = self.getLevelAndPath(path)
-    print levels, processedPath,procpass
+    
     if levels == 0:
        self.plevelHeader_0(path, levels, processedPath)
        entityList += self.plevelBody_0(path, levels, None)
@@ -886,7 +885,6 @@ class LHCB_BKKDBManager(BaseESManager):
     result = self.db_.getStandardEventTypes(dict)
     if result['OK']:
       dbResult = result['Value']
-      print dbResult
       if len(dbResult) > 1:
         add = self.__addAll(path, levels, 'Event types')
         if add:

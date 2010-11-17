@@ -302,6 +302,11 @@ class XMLFilesReaderManager:
 
 
     outputFiles = job.getJobOutputFiles()
+    prod = job.getParam('Production').getValue()
+    retVal = dataManager_.getProductionOutputFiles(prod)
+    if not retVal['OK']:
+      return retVal
+    outputFileTypes = retVal['Value']
     for file in outputFiles:
       if dqvalue != None:
         newFileParams = FileParam()
@@ -313,6 +318,12 @@ class XMLFilesReaderManager:
         newFileParams.setParamName('QualityId')
         newFileParams.setParamValue('OK')
         file.addFileParam(newFileParams)
+      ftype = file.getFileType()
+      if outputFileTypes.has_key(ftype):
+        vFileParams = FileParam()
+        vFileParams.setParamName('VisibilityFlag')
+        vFileParams.setParamValue(outputFileTypes[ftype])
+        file.addFileParam(vFileParams)
         
       result = self.__insertOutputFiles(job, file)
       if not result['OK']:

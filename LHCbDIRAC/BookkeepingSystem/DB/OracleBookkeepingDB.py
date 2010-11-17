@@ -123,7 +123,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getStepOutputFiles(self, StepId):
     command = 'select outputfiletypes.name,outputfiletypes.visible from steps, table(steps.outputfiletypes) outputfiletypes where  steps.stepid='+str(StepId)
     return self.dbR_._query(command)
-        
+  
+  #############################################################################
+  def getProductionOutputFiles(self, prod):
+    command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
+            where st.stepid=s.stepid and st.production="+str(prod)
+    retVal = self.dbR_._query(command)
+    result = {}
+    if retVal['OK']:
+      for i in retVal['Value']:
+        result[i[0]]=i[1]
+    else:
+      return retVal
+    return S_OK(result)
+             
   #############################################################################
   def getAvailableFileTypes(self):
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailableFileTypes',[])
@@ -321,11 +334,26 @@ class OracleBookkeepingDB(IBookkeepingDB):
       
     proc = path.split('/')[len(path.split('/'))-1]
     if proc != '':
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(path.split('/')[1], path)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = ''
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      
+      if pro == '':
+        return S_ERROR('Empty Directory')
       command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,newbookkeepingview,productionscontainer,processing where \
         newbookkeepingview.production=productionscontainer.production and \
         eventTypes.EventTypeId=newbookkeepingview.eventtypeid and \
         productionscontainer.processingid=processing.id and \
-        processing.name=\''+str(proc)+'\''+condition
+        processing.id in (%s) %s'%(pro,condition)
+        
       retVal = self.dbR_._query(command)
       if retVal['OK']:
         eparameters = ['EventTypeId','Description']
@@ -499,14 +527,22 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and bview.runnumber='+str(runnb)
       
     if processing != default:
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
       command = "select distinct ftypes.name from \
                  productionscontainer pcont,newbookkeepingview bview, filetypes ftypes  \
-                 where pcont.processingid in \
-                    (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='"+processing+"') \
-                  and bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
+                 where pcont.processingid in %s \
+                  and bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid %s"%(pro,condition)
     else:
       command = "select distinct ftypes.name  from productionscontainer pcont, newbookkeepingview bview,  filetypes ftypes where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
@@ -568,11 +604,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
           condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
-      condition += " and prod.processingid in (\
-      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
-      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
-      where v.path='"+processing+"')"
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+      
+      condition += " and prod.processingid in %s"%(pro)
     
     command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
@@ -580,6 +625,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     ftypes.filetypeid=f.filetypeid and \
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
+    f.visibilityFlag='Y' and \
     j.configurationid=c.configurationid and \
     j.production=prod.production"+condition
     return self.dbR_._query(command)
@@ -1430,7 +1476,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     'FullStat':None, \
                     'QualityId': 'UNCHECKED', \
                     'Luminosity':0, \
-                    'InstLuminosity':0}
+                    'InstLuminosity':0,\
+                    'VisibilityFlag':'Y'}
       
       for param in file:
         if not attrList.__contains__(param):
@@ -1460,7 +1507,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
                     attrList['FullStat'], utctime,\
                     attrList['QualityId'], \
                     attrList['Luminosity'], \
-                    attrList['InstLuminosity'] ] ) 
+                    attrList['InstLuminosity'], \
+                    attrList['VisibilityFlag'] ] ) 
       return result
       
   #############################################################################
@@ -2147,11 +2195,21 @@ and files.qualityid= dataquality.qualityid'
             
     tables = ' files f,jobs j '
     if procPass != 'ALL':
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+            
       condition += " and j.production=prod.production \
-      and prod.processingid=(select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                     FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                    CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                    where v.path='%s')"%(procPass.split('/')[1:][0],procPass);
+                     and prod.processingid in %s"%(pro);
       tables += ',productionscontainer prod'
     
     if ftype != 'ALL':
@@ -2308,11 +2366,21 @@ and files.qualityid= dataquality.qualityid'
             
     tables = ' files f,jobs j '
     if procPass != 'ALL':
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+            
       condition += " and j.production=prod.production \
-      and prod.processingid=(select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                     FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                    CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                    where v.path='%s')"%(procPass.split('/')[1:][0],procPass);
+                     and prod.processingid in %s"%(pro);
       tables += ',productionscontainer prod'
     
     if ftype != 'ALL':
@@ -2483,11 +2551,20 @@ and files.qualityid= dataquality.qualityid'
         condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
-      condition += " and prod.processingid in (\
-      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
-      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
-      where v.path='"+processing+"')"
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+      
+      condition += " and prod.processingid in %s"%(pro)
     
     command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
     j.jobid=f.jobid and \
@@ -2554,11 +2631,20 @@ and files.qualityid= dataquality.qualityid'
         condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
-      condition += " and prod.processingid=(\
-      select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-      FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
-      CONNECT BY NOCYCLE PRIOR  id=parentid) v\
-      where v.path='"+processing+"')"
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'"%(processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro+="%s,"%(str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+      
+      condition += " and prod.processingid in %s"%(pro)
     
     command = "select fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
               (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \

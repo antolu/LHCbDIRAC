@@ -650,3 +650,7 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionProcessingPassSteps(dict)
   
+  #############################################################################
+  def getProductionOutputFiles(self, dict):
+    server = self.__getServer()
+    return server.getProductionOutputFiles(dict)

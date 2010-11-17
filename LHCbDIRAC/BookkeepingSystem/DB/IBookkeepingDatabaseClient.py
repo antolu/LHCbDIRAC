@@ -446,3 +446,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getDataTakingCondDesc(self, condition):
     return self.getManager().getDataTakingCondDesc(condition)
+  
+  #############################################################################
+  def getProductionOutputFiles(self, prod):
+    return self.getManager().getProductionOutputFiles(prod)

@@ -524,7 +524,7 @@ class BookkeepingManagerHandler(RequestHandler):
     if dict.has_key('Production'):
       production = dict['Production']
     
-    if dic.has_key('RunNumber'):
+    if dict.has_key('RunNumber'):
       runnb = dict['RunNumber']
        
     if dict.has_key('FileType'):
@@ -1383,3 +1383,12 @@ class BookkeepingManagerHandler(RequestHandler):
       return dataMGMT_.getProductionProcessingPassSteps(dict['Production'])
     else:
       return S_ERROR('The Production dictionary key is missing!!!')
+  
+  #############################################################################
+  types_getProductionOutputFiles = [DictType]
+  def export_getProductionOutputFiles(self, dict):
+    if dict.has_key('Production'):
+      return dataMGMT_.getProductionOutputFiles(dict['Production'])
+    else:
+      return S_ERROR('The Production dictionary key is missing!!!')
+  
