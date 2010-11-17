@@ -40,6 +40,9 @@ from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transform
 # Configurable parameters
 ###########################################
 
+testFlag = '{{TemplateTest#A flag to set whether a test script should be generated#False}}'
+recoTestData = '{{TemplateTestData#A simple mechanism to convey a file for testing#LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw}}'
+
 # workflow params for all productions
 appendName = '{{WorkflowAppendName#Workflow string to append to production name#1}}'
 sysConfig = '{{WorkflowSystemConfig#Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
@@ -90,8 +93,11 @@ recoBKPublishing = eval(recoBKPublishing)
 mergeRemoveInputsFlag = eval(mergeRemoveInputsFlag)
 transformationFlag = eval(transformationFlag)
 testProduction = eval(testProduction)
+testFlag = eval(testFlag)
 
-if testProduction:
+inputDataList = []
+
+if testProduction or testFlag:
   bkConfigName = 'certification'
   bkConfigVersion = 'test'
 
@@ -99,6 +105,12 @@ if testProduction:
 recoType="FULL"
 recoAppType = "SDST"
 recoIDPolicy='download'
+
+if testFlag:
+  if recoEvtsPerJob=='-1':
+    recoEvtsPerJob = '5'
+  inputDataList.append(recoTestData)
+  recoIDPolicy = 'protocol'
 
 #Sort out the reco file mask
 if recoFileMask:
@@ -184,7 +196,7 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 
 brunelOptions="{{p1Opt}}"
 production.addBrunelStep("{{p1Ver}}",recoAppType.lower(),brunelOptions,extraPackages='{{p1EP}}',
-                         eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=recoDataSE,
+                         eventType='{{eventType}}',inputData=inputDataList,inputDataType='mdf',outputSE=recoDataSE,
                          dataType='Data',numberOfEvents=recoEvtsPerJob,histograms=True)
 dvOptions="{{p2Opt}}"
 production.addDaVinciStep("{{p2Ver}}","dst",dvOptions,extraPackages='{{p2EP}}',inputDataType=recoAppType.lower(),
@@ -197,6 +209,22 @@ production.setFileMask(recoFileMask)
 production.setProdPriority(recoPriority)
 production.setProdPlugin(recoPlugin)
 production.setInputDataPolicy(recoIDPolicy)
+
+#################################################################################
+# End of production API script, now what to do with the production object
+#################################################################################
+
+if testFlag:
+  gLogger.info('Production test will be launched with number of events set to %s.' %(recoEvtsPerJob))
+  try:
+    result = production.runLocal()
+    if result['OK']:
+      DIRAC.exit(0)
+    else:
+      DIRAC.exit(2)
+  except Exception,x:
+    gLogger.error('Production test failed with exception:\n%s' %(x))
+    DIRAC.exit(2)
 
 result = production.create(bkQuery=recoInputBKQuery,groupSize=recoFilesPerJob,derivedProduction=int(recoAncestorProd),
                            bkScript=recoScriptFlag,requestID=currentReqID,reqUsed=1,transformation=recoTransFlag)
