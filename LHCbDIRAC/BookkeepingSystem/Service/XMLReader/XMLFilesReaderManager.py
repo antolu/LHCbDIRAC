@@ -154,7 +154,7 @@ class XMLFilesReaderManager:
             if not result['OK']:
               return S_ERROR("The event type " + str(value) + " is missing.\n")
             evtExists = True              
-
+      
       if not evtExists and file.getFileType() not in ['LOG']:
         inputFiles = job.getJobInputFiles()
         if len(inputFiles) > 0:
@@ -186,9 +186,11 @@ class XMLFilesReaderManager:
       if not job.exists('RunNumber') and len(infiles) > 0:
         fileName = infiles[0].getFileName()
         retVal = dataManager_.getRunNumber(fileName)
+        
         if not retVal['OK']:
           return S_ERROR(retVal['Message'])
         value = retVal['Value']
+        
         if len(value) > 0 and value[0][0] != None: 
           runnumber = value[0][0]
           newJobParams = JobParameters()
@@ -196,9 +198,11 @@ class XMLFilesReaderManager:
           newJobParams.setValue(str(runnumber))
           job.addJobParams(newJobParams)
           prod = job.getParam('Production').getValue()
-          retVal = dataManager_.getTotalProcessingPass(prod)
+          
+          retVal = dataManager_.getProductionProcessingPass(prod)
           if retVal['OK']:
             proc = retVal['Value']
+          
             retVal = dataManager_.getRunFlag(runnumber, proc)
             if retVal['OK']:
               dqvalue = retVal['Value']
@@ -213,9 +217,11 @@ class XMLFilesReaderManager:
     sumEventInputStat = 0
     sumEvtStat = 0
     sumLuminosity = 0
+    
     for i in inputfiles:
       fname = i.getFileName()
       res = dataManager_.getJobInfo(fname)
+      
       if res['OK']:
         value = res["Value"]
         if len(value) > 0 and value[0][2] != None:
@@ -244,7 +250,6 @@ class XMLFilesReaderManager:
       newJobParams.setName('EventInputStat')
       newJobParams.setValue(str(evtinput))
       job.addJobParams(newJobParams)
-    
     
     outputFiles = job.getJobOutputFiles()
     for file in outputFiles:
@@ -376,7 +381,7 @@ class XMLFilesReaderManager:
       
       datataking['Description'] = context.getOutput()
         
-      res = dataManager_.getDataTakingCondId(datataking)
+      res = dataManager_.getDataTakingCondDesc(datataking)
       dataTackingPeriodID = None
       if res['OK']:
         daqid = res['Value']
@@ -404,17 +409,22 @@ class XMLFilesReaderManager:
         elif param.getName() == 'RunNumber':
           production = long(param.getValue()) * -1
           found = True
+      
       if not found:
         gLogger.error('Runn number is missing!')
         return S_ERROR('Runn number is missing!')
+      
       retVal = dataManager_.getStepIdandNameForRUN(programName, programVersion)
+      
       if not retVal['OK']:
         return S_ERROR(retVal['Message'])
       steps = {'Steps':[{'StepId':retVal['Value'][0],'StepName':retVal['Value'][1],'Visible':'Y'}]}
       gLogger.debug('Pass_indexid', steps)
       gLogger.debug('Data taking', dataTackingPeriodID)
       gLogger.debug('production', production)
-      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodID, steps=steps, inputproc='')
+      
+      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodID, steps=steps['Steps'], inputproc='')
+      
       if res['OK']:
         gLogger.info("New processing pass has been created!")
         gLogger.info("New production is:",production)

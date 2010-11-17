@@ -68,6 +68,6 @@ class TabWidget(QWidget):
     if self.__data == None:
       gLogger.error('Wrong tab!')
     else:
-      return self.__data[0][2]
+      return str(self.__data[1][1])
       
   

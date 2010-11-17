@@ -430,3 +430,19 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getStandardEventTypes(self, configName, configVersion, prod):
     return self.getManager().getStandardEventTypes(configName, configVersion, prod )
+  
+  #############################################################################
+  def getProcessingPassSteps(self, procpass, cond, stepname):
+    return self.getManager().getProcessingPassSteps(procpass, cond, stepname)
+      
+  #############################################################################
+  def getProductionProcessingPassSteps(self, prod):
+    return self.getManager().getProductionProcessingPassSteps(prod)
+  
+  #############################################################################
+  def getStepIdandNameForRUN(self, programName, programVersion):
+    return self.getManager().getStepIdandNameForRUN(programName, programVersion)
+  
+  #############################################################################
+  def getDataTakingCondDesc(self, condition):
+    return self.getManager().getDataTakingCondDesc(condition)

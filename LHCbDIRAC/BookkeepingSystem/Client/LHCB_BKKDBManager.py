@@ -281,7 +281,7 @@ class LHCB_BKKDBManager(BaseESManager):
   def _listConfigs(self, path, SelectionDict, SortDict, StartItem, Maxitems):
     entityList = list()
     levels, processedPath,procpass = self.getLevelAndPath(path)
-        
+    
     if levels == 0: #configname
       self.clevelHeader_0(path, levels, processedPath)
       entityList += self.clevelBody_0(path, levels,)
@@ -496,7 +496,6 @@ class LHCB_BKKDBManager(BaseESManager):
     result = self.db_.getProductions(dict)
     if result['OK']:
       dbResult = result['Value']
-      print dbResult 
       for record in dbResult['Records']:
          entityList += [self._getEntityFromPath(path, str(record[0]), levels, 'Production(s)/Run(s)',dict,'getProductions')]
       self._cacheIt(entityList)
@@ -1584,13 +1583,9 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       return s
     
-  #############################################################################       
-  def getProcessingPassDesc(self, desc, passid, simid='ALL'):
-    return self.db_.getProcessingPassDesc(desc, passid, simid)
-  
   #############################################################################
-  def getProcessingPassDesc_new(self, desc, simid='ALL'):
-    return self.db_.getProcessingPassDesc_new(desc, simid)
+  def getProcessingPassSteps(self, dict):
+    return self.db_.getProcessingPassSteps(dict)
   
   #############################################################################       
   def getMoreProductionInformations(self, prodid):
@@ -1605,8 +1600,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return self.db_.getFileHistory(lfn)
   
   #############################################################################
-  def getProcessingPassDescfromProduction(self, prod):
-    return self.db_.getProcessingPassDescfromProduction(prod)
+  def getProductionProcessingPassSteps(self, dict):
+    return self.db_.getProductionProcessingPassSteps(dict)
   
   #############################################################################
   def getAvailableDataQuality(self):

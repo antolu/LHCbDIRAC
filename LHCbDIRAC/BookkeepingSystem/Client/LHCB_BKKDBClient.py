@@ -83,13 +83,9 @@ class LHCB_BKKDBClient(BaseESClient):
   def getLimitedInformations(self, StartItem, Maxitems, path):
     return self.getManager().getLimitedInformations(StartItem, Maxitems, path)
   
-  #############################################################################       
-  def getProcessingPassDesc(self, desc, passid, simid='ALL'):
-    return self.getManager().getProcessingPassDesc(desc, passid, simid)
-  
   #############################################################################
-  def getProcessingPassDesc_new(self, desc, simid='ALL'):
-    return self.getManager().getProcessingPassDesc_new(desc, simid)
+  def getProcessingPassSteps(self, dict):
+    return self.getManager().getProcessingPassSteps(dict)
   
   #############################################################################       
   def getMoreProductionInformations(self, prodid):
@@ -112,8 +108,8 @@ class LHCB_BKKDBClient(BaseESClient):
     return self.getManager().getQueriesTypes()
   
   #############################################################################
-  def getProcessingPassDescfromProduction(self, prod):
-    return self.getManager().getProcessingPassDescfromProduction(prod)
+  def getProductionProcessingPassSteps(self, dict):
+    return self.getManager().getProductionProcessingPassSteps(dict)
   
   #############################################################################
   def getAvailableDataQuality(self):

@@ -639,3 +639,14 @@ class BookkeepingClient:
   def getStandardEventTypes(self, dict):
     server = self.__getServer()
     return server.getStandardEventTypes(dict)
+  
+  #############################################################################
+  def getProcessingPassSteps(self, dict):
+    server = self.__getServer()
+    return server.getProcessingPassSteps(dict)
+  
+  #############################################################################
+  def getProductionProcessingPassSteps(self, dict):
+    server = self.__getServer()
+    return server.getProductionProcessingPassSteps(dict)
+  

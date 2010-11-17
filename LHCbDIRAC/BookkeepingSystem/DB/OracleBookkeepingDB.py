@@ -2483,7 +2483,7 @@ and files.qualityid= dataquality.qualityid'
         condition += 'and'+conds[:-3] + ')'
       
     if processing != default:
-      condition += " and prod.processingid=(\
+      condition += " and prod.processingid in (\
       select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
       FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
       CONNECT BY NOCYCLE PRIOR  id=parentid) v\
@@ -2606,8 +2606,40 @@ and files.qualityid= dataquality.qualityid'
     return res
   
   #############################################################################
+  def getDataTakingCondDesc(self, condition):
+    command = 'select description from data_taking_conditions where ' 
+    for param in condition:
+      if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+        command += str(param)+' is NULL and '
+      elif condition[param] != None:
+        command +=  str(param)+'=\''+condition[param]+'\' and '
+      else:
+        command += str(param)+' is NULL and '
+    
+    command = command[:-4]
+    res = self.dbR_._query(command)
+    if res['OK']:
+        if len(res['Value'])==0:
+          command = 'select DaqPeriodId from data_taking_conditions where ' 
+          for param in condition:
+            if param != 'Description':
+              if type(condition[param]) == types.StringType and len(condition[param].strip()) == 0: 
+                command += str(param)+' is NULL and '
+              elif condition[param] != None:
+                command +=  str(param)+'=\''+condition[param]+'\' and '
+              else:
+                command += str(param)+' is NULL and '
+            
+          command = command[:-4]
+          retVal = self.dbR_._query(command)
+          if retVal['OK']:
+            if len(retVal['Value'])!=0:
+              return S_ERROR('Only the Description is different, the other attributes are the same and they are exists in the DB!')
+    return res
+  
+  #############################################################################
   def getStepIdandNameForRUN(self, programName, programVersion):
-    command = "select stepid, stepname from steps where applicationname='%' and applicationversion='%'"%(programName, programVersion)
+    command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s'"%(programName, programVersion)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       if len(retVal['Value']) == 0:
@@ -2748,9 +2780,11 @@ and files.qualityid= dataquality.qualityid'
   
   #############################################################################
   def addProduction(self, production, simcond=None, daq=None, steps=default, inputproc=''):
+    
     path = []
     if inputproc != '':
       path = inputproc.split('/')[1:]
+    
     for i in steps:
       if i['Visible']=='Y':
         path += [i['StepName']]  
@@ -2816,4 +2850,91 @@ and files.qualityid= dataquality.qualityid'
       return retVal 
     
     return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+  
+  #############################################################################
+  def getProcessingPassSteps(self, procpass=default, cond=default, stepname=default):
+    
+    processing = {}
+    condition = ''
+    
+    if procpass!=default:
+      condition += " and prod.processingid in ( \
+                    select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                        FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                        CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
+                       )"%(procpass.split('/')[1], procpass)
+    
+    if cond!=default:
+      retVal = self._getConditionString(cond,'prod')
+      if retVal['OK']:
+        condition = retVal['Value']
+      else:
+        return retVal
+      
+    
+    if stepname!= default:
+      condition += " and s.stepname='%s' "%(stepname)
+    
+    command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion, s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
+                from steps s, productionscontainer prod, stepscontainer cont \
+               where \
+              cont.stepid=s.stepid and \
+              prod.production=cont.production %s order by cont.step"%(condition)
+  
+    retVal = self.dbR_._query(command)
+    records = []
+    #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+    parametersNames = ['id', 'name']
+    if retVal['OK']:
+      nb = 0
+      for i in retVal['Value']:
+        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+        records = [ ['StepId',i[0]], ['StepName',i[1]],['ApplicationName',i[2]], ['ApplicationVersion',i[3]],['OptionFiles',i[4]],['DDDB',i[5]],['CONDDB',i[6]], ['ExtraPackages',i[7]],['Visible',i[8]]]
+        step = 'Step-%s'%(i[0])
+        processing[step] = records
+        nb += 1
+    else:
+      return retVal
+    
+    return S_OK({'Parameters':parametersNames,'Records':processing, 'TotalRecords':nb})
+  
+  #############################################################################
+  def getProductionProcessingPassSteps(self, prod):
+    processing = {}
+    retVal = self.getProductionProcessingPass(prod)
+    if retVal['OK']:
+      procpass = retVal['Value']
+    
+    condition = ''
+    
+    
+    if procpass!=default:
+      condition += " and prod.processingid in ( \
+                    select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                        FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                        CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
+                       )"%(procpass.split('/')[1], procpass)
+    
+    command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion, s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
+                from steps s, productionscontainer prod, stepscontainer cont \
+               where \
+              cont.stepid=s.stepid and \
+              prod.production=cont.production %s and prod.production=%dorder by cont.step"%(condition,prod)
+  
+    retVal = self.dbR_._query(command)
+    records = []
+    #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+    parametersNames = ['id', 'name']
+    if retVal['OK']:
+      nb = 0
+      for i in retVal['Value']:
+        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+        records = [ ['StepId',i[0]], ['ProcessingPass',procpass],['ApplicationName',i[2]], ['ApplicationVersion',i[3]],['OptionFiles',i[4]],['DDDB',i[5]],['CONDDB',i[6]], ['ExtraPackages',i[7]],['Visible',i[8]]]
+        step = i[1]
+        processing[step] = records
+        nb += 1
+    else:
+      return retVal
+    
+    return S_OK({'Parameters':parametersNames,'Records':processing, 'TotalRecords':nb})
     

@@ -219,7 +219,7 @@ class ControlerMain(ControlerAbstract):
       elif message.action() == 'procDescription':
         desc = message['groupdesc']
         passdesc = ''
-        retVal = self.__bkClient.getProcessingPassDesc_new(desc)
+        retVal = self.__bkClient.getProcessingPassSteps({'StepName':desc})
         if not retVal['OK']:
           gLogger.error(retVal['Message'])
           return None   
@@ -266,7 +266,7 @@ class ControlerMain(ControlerAbstract):
             QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
 
       elif message.action()=='ProductionInformations': 
-        res = self.__bkClient.getProcessingPassDescfromProduction(int(message['production']))
+        res = self.__bkClient.getProductionProcessingPassSteps({'Production':int(message['production'])})
         if res['OK']:
           return res['Value']
         else:

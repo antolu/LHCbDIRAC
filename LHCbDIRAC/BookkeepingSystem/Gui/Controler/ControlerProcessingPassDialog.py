@@ -19,12 +19,17 @@ class ControlerProcessingPassDialog(ControlerAbstract):
   def messageFromParent(self, message):
     if message.action() == 'showprocessingpass':
         feedback = message['items']
-        widget = self.getWidget()
-        widget.setTotalProccesingPass('PorcessingPass')
-        tabwidget = widget.getTabWidget()
-        tabwidget.clear()# cleaning, I have to delete the existing tabs
+        proc = ''
         records = feedback['Records'] 
         parameters = feedback['Parameters']
+        if feedback['TotalRecords'] > 0:
+          proc = records[records.keys()[0]][1][1]
+        
+        widget = self.getWidget()
+        widget.setTotalProccesingPass(proc)
+        tabwidget = widget.getTabWidget()
+        tabwidget.clear()# cleaning, I have to delete the existing tabs
+        
         tabs = {}
         for i in records:
           tab = widget.createTabWidget(records[i])

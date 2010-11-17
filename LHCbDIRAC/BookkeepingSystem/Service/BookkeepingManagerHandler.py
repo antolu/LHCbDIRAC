@@ -8,7 +8,7 @@
 __RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
-from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -393,6 +393,7 @@ class BookkeepingManagerHandler(RequestHandler):
     production = 'ALL'
     filetype = 'ALL'
     quality = 'ALL'
+    runnb = 'ALL'
     
     if dict.has_key('ConfigName'):
       configName = dict['ConfigName']
@@ -1356,3 +1357,29 @@ class BookkeepingManagerHandler(RequestHandler):
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return retVal
+  
+  #############################################################################
+  types_getProcessingPassSteps = [DictType]
+  def export_getProcessingPassSteps(self, dict):
+    procpass = 'ALL'
+    cond = 'ALL'
+    stepname = 'ALL'
+    
+    if dict.has_key('StepName'):
+      stepname = dict['StepName']
+    
+    if dict.has_key('ConditionDescription'):
+      cond = dict['ConditionDescription']
+    
+    if dict.has_key('ProcessingPass'):
+      procpass = dict['ProcessingPass']
+      
+    return dataMGMT_.getProcessingPassSteps(procpass, cond, stepname)
+  
+  #############################################################################
+  types_getProductionProcessingPassSteps = [DictType]
+  def export_getProductionProcessingPassSteps(self, dict):
+    if dict.has_key('Production'):
+      return dataMGMT_.getProductionProcessingPassSteps(dict['Production'])
+    else:
+      return S_ERROR('The Production dictionary key is missing!!!')

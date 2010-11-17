@@ -435,3 +435,19 @@ class IBookkeepingDB(object):
   #############################################################################
   def getStandardEventTypes(self, configName, configVersion, prod ):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProcessingPassSteps(self, procpass, cond, stepname):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getProductionProcessingPassSteps(self, prod):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getStepIdandNameForRUN(self, programName, programVersion):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getDataTakingCondDesc(self, condition):
+    gLogger.error('This method is not implemented!')
