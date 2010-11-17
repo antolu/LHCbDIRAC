@@ -121,6 +121,8 @@ if mergingFlag:
   mcTransformationFlag=False
 
 if testFlag:
+  configName = 'certification'
+  configVersion = 'test'
   events = '5'
 
 #The below is in order to choose the right steps in the workflow automatically
