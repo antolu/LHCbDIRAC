@@ -455,3 +455,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def getProductionOutputFiles(self, prod):
     gLogger.error('This method is not implemented!')
+  
+   #############################################################################
+  def existsTag(self, name, value):
+    gLogger.error('This method is not implemented!')

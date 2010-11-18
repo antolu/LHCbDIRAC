@@ -450,3 +450,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getProductionOutputFiles(self, prod):
     return self.getManager().getProductionOutputFiles(prod)
+  
+  #############################################################################
+  def existsTag(self, name, value):
+    return self.getManager().existsTag(name, value)
