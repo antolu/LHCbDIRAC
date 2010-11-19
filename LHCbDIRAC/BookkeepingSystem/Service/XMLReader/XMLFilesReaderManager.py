@@ -189,10 +189,9 @@ class XMLFilesReaderManager:
         
         if not retVal['OK']:
           return S_ERROR(retVal['Message'])
-        value = retVal['Value']
+        runnumber = retVal['Value']
         
-        if len(value) > 0 and value[0][0] != None: 
-          runnumber = value[0][0]
+        if runnumber != None: 
           newJobParams = JobParameters()
           newJobParams.setName('RunNumber')
           newJobParams.setValue(str(runnumber))

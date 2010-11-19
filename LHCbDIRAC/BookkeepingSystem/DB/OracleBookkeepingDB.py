@@ -718,10 +718,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getRunNumber(self, lfn):
-    command = 'select jobs.runnumber from jobs,files where files.jobid=jobs.jobid and files.filename=\''+str(lfn)+'\''
-    res = self.dbR_._query(command)
-    return res
-         
+    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getRunNumber',LongType,[lfn])
+             
   #############################################################################
   def getProductionFiles(self, prod, ftype, gotreplica='ALL'):
     command = ''
