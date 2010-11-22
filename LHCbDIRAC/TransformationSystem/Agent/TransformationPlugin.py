@@ -536,7 +536,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
     for stringTargetSEs in sortList(storageElementGroups.keys()):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks(sortList(stringTargetLFNs),100):
-        tasks.append((stringTargetSEs,lfnGroup))
+        for targetSE in stringTargetSEs.split(','):
+          tasks.append((targetSE,lfnGroup))
     return S_OK(tasks)
 
   def _checkAncestors(self,filesReplicas,ancestorDepth):
