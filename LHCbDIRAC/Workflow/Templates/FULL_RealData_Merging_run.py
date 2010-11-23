@@ -34,7 +34,7 @@ gLogger = gLogger.getSubLogger('FULL_RealData_Merging_run.py')
 #################################################################################
 from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.ProductionManagementSystem.Client.Transformation import Transformation
+from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 ###########################################
 # Configurable parameters
