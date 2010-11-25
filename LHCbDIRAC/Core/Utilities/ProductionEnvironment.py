@@ -23,7 +23,11 @@ gLogger = gLogger.getSubLogger('ProductionEnvironment')
 groupLogin = 'LbLogin.sh'
 projectEnv = 'SetupProject.sh'
 defaultCatalogName = 'pool_xml_catalog.xml'
-timeout = 600
+timeout = gConfig.getValue('/Operations/EnvironmentScripts/Default',600)
+siteSpecificTimeout = gConfig.getValue('/Operations/EnvironmentScripts/%s' %(DIRAC.siteName()),0)
+if siteSpecificTimeout:
+  gLogger.info('Using timeout of %ss for site %s, overrides global default of %ss' %(siteSpecificTimeout,DIRAC.siteName(),timeout))
+  timeout = siteSpecificTimeout  
 
 #############################################################################
 def getProjectEnvironment(systemConfiguration,applicationName,applicationVersion='',extraPackages='',runTimeProject='',site='',directory='',generatorName='',poolXMLCatalogName=defaultCatalogName,env=None):
@@ -289,10 +293,10 @@ def getProjectCommand(location,applicationName,applicationVersion,extraPackages=
   cmd.append('--ignore-missing')
   
   if extraPackages:
-    gLogger.verbose('Requested extra package versions: %s' %(string.join(extraPackages,', ')))
     if not type(extraPackages)==type([]) and extraPackages:
       extraPackages=[extraPackages]  
 
+    gLogger.verbose('Requested extra package versions: %s' %(string.join(extraPackages,', ')))
     for package in extraPackages:
       if not re.search('.',package):
         gLogger.error('Not sure what to do with "%s", expected "<Application>.<Version>", will be left out')
