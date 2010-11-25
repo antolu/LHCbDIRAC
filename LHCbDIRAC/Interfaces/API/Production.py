@@ -180,7 +180,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',
                    extraPackages='',outputSE=None,histograms=False,overrideOpts='',extraOpts='',
-                   appType='sim',condDBTag='global',ddDBTag='global',abandonOutput=False):
+                   appType='sim',condDBTag='global',ddDBTag='global',abandonOutput=False,
+                   stepID='',stepName='',stepVisible=''):
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
     """
@@ -207,7 +208,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
     gaussStep = self._addGaudiStep('Gauss',appVersion,appType,numberOfEvents,optionsFile,
                                    optionsLine,eventType,extraPackages,outputSE,'','None',
-                                   histograms,firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput)
+                                   histograms,firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
+                                   stepID,stepName,stepVisible)                                   
     self.gaussList.append(gaussStep.getName())
     gaussStep.setValue('numberOfEventsInput', 0)
     gaussStep.setValue('numberOfEventsOutput', 0)
@@ -216,7 +218,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
                    outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',
-                   extraOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global',abandonOutput=False):
+                   extraOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global',abandonOutput=False,
+                   stepID='',stepName='',stepVisible=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
         currently assumes input data type is sim
@@ -251,13 +254,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
                        eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,extraOutputFile,condDBTag,ddDBTag,'',abandonOutput)
+                       firstEventNumber,extraOutputFile,condDBTag,ddDBTag,'',abandonOutput,
+                       stepID,stepName,stepVisible)                       
 
   #############################################################################
   def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
                     inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,
                     overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',
-                    condDBTag='global',ddDBTag='global',abandonOutput=False):
+                    condDBTag='global',ddDBTag='global',abandonOutput=False,
+                    stepID='',stepName='',stepVisible=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst / sdst
         inputDataType is mdf / digi
@@ -305,13 +310,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
                        eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput)
+                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
+                       stepID,stepName,stepVisible)                       
 
   #############################################################################
   def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
                      inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,
                      overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',
-                     condDBTag='global',ddDBTag='global',inputProduction='',abandonOutput=False):
+                     condDBTag='global',ddDBTag='global',inputProduction='',abandonOutput=False,
+                     stepID='',stepName='',stepVisible=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
         inputDataType is rdst / fetc / sdst
@@ -346,11 +353,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not outputSE:
         outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
-      if inputProduction:
-        result = self._setInputProductionBKStepInfo(inputProduction,{})
-        if not result['OK']:
-          self.log.error(result)
-          raise TypeError,'inputProduction must exist and have BK parameters'
       else:
         self.log.error('DaVinci merging / MDST must have an input production ID specified')
         raise TypeError,'inputProduction must be specified'
@@ -383,13 +385,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,
                        extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput)
+                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
+                       stepID,stepName,stepVisible)                       
 
   #############################################################################
   def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
                    inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,
                    overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='MC',
-                   condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False):
+                   condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False,
+                   stepID='',stepName='',stepVisible=''):
     """ Wraps around addGaudiStep and getOptions.
         appType is digi (simulation) / dst and inputDataType is digi / raw only at the moment.
     """
@@ -430,24 +434,20 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
     self._addGaudiStep('Moore',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
                        eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,outputAppendName,abandonOutput)
+                       firstEventNumber,{},condDBTag,ddDBTag,outputAppendName,abandonOutput,
+                       stepID,stepName,stepVisible)                       
 
   #############################################################################
   def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',
                    eventType='firstStep',extraPackages='',inputData='previousStep',
                    inputDataType='dst',outputSE=None,overrideOpts='',extraOpts='',numberOfEvents='-1',
-                   passDict={},condDBTag='global',ddDBTag='global',dataType='MC'):
+                   passDict={},condDBTag='global',ddDBTag='global',dataType='MC',
+                   stepID='',stepName='',stepVisible=''):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
-    if inputProduction:
-      result = self._setInputProductionBKStepInfo(inputProduction,passDict)
-      if not result['OK']:
-        self.log.error(result)
-        raise TypeError,'inputProduction must exist and have BK parameters'
-
     firstEventNumber=0
     histograms=False
     appName = 'LHCb'
@@ -471,53 +471,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = "%s\n%s" % (optionsLine,extraOpts)
 
     self._setParameter('dataType','string',dataType,'DataType')
-    if inputDataType.lower()=='mdf':
-      self._addMergeMDFStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                            eventType,extraPackages,outputSE,inputData,inputDataType,
-                            histograms,firstEventNumber,{})
-    else:
-      self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                         eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                         firstEventNumber,{},condDBTag,ddDBTag,'',False) 
+
+    self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
+                       eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
+                       firstEventNumber,{},condDBTag,ddDBTag,'',False,
+                       stepID,stepName,stepVisible) 
     #if using LHCb to merge we won't want to abandon the output
-
-  #############################################################################
-  def _addMergeMDFStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                       eventType,extraPackages,outputSE,inputData='previousStep',inputDataType='None',
-                       histograms=False,firstEventNumber=0,extraOutput={}):
-    """Helper function.
-    """
-    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
-      raise TypeError,'Expected strings for application name and version'
-
-    self.gaudiStepCount +=1
-    MergeMDFModule = ModuleDefinition('MergeMDF')
-    MergeMDFModule.setDescription('Merge MDF Files Module')
-
-    body = string.replace(self.importLine,'<MODULE>','MergeMDF')
-    MergeMDFModule.setBody(body)
-
-    MergeMDFStep = StepDefinition('Merge_MDF_Step')
-    MergeMDFStep.addModule(MergeMDFModule)
-    MergeMDFStep.createModuleInstance('MergeMDF', 'MergeMDFModule')
-    MergeMDFStep.addParameterLinked(MergeMDFModule.parameters)
-    self._addParameter(MergeMDFStep,'applicationLog','string','','ApplicationLogFile')
-    self._addParameter(MergeMDFStep,'listoutput','list',[],'StepOutputList')
-
-    self.workflow.addStep(MergeMDFStep)
-
-    stepInstance = self.workflow.createStepInstance('Merge_MDF_Step', 'MergeMDF_%s' %eventType)
-    outputList =[{"outputDataName":"@{STEP_ID}.mdf","outputDataType":"MDF","outputDataSE":outputSE}]
-    stepInstance.setValue('listoutput',(outputList))
-    stepInstance.setValue('applicationLog', 'Merge_@{STEP_ID}.log')
-    self.setInputData(inputData)
-    return stepInstance
 
   #############################################################################
   def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,
                     extraPackages,outputSE,inputData='previousStep',inputDataType='None',
                     histograms=False,firstEventNumber=0,extraOutput={},
-                    condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False):
+                    condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False,
+                    stepID=0,stepName='',stepVisible=''):
     """Helper function.
     """
     if not type(appName) == type(' ') or not type(appVersion) == type(' '):
@@ -622,7 +588,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       dddbOpt = ddDBTag.replace(' ','')
 
     #to construct the BK processing pass structure, starts from step '0'
-    stepID = 'Step%s' %(self.gaudiStepCount-1)
+    stepIDInternal = 'Step%s' %(self.gaudiStepCount-1)
     bkOptionsFile = optionsFile
     if re.search('@{eventType}',optionsFile):
       bkOptionsFile = string.replace(optionsFile,'@{eventType}',str(eventType))
@@ -632,9 +598,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                   'OptionFiles':bkOptionsFile,
                   'DDDb':dddbOpt,
                   'CondDb':conddbOpt,
-                  'ExtraPackages':extraPackages}
+                  'ExtraPackages':extraPackages,
+                  'BKStepID':stepID,
+                  'StepName':stepName,
+                  'StepVisible':stepVisible}
 
-    self.bkSteps[stepID]=stepBKInfo
+    self.bkSteps[stepIDInternal]=stepBKInfo
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
     self.ioDict[self.gaudiStepCount]=gaudiStep.getName()
@@ -788,22 +757,24 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     finalizeStep.setValue('FailoverEnable',sendFailover)
 
   #############################################################################
-  def createWorkflow(self):
+  def createWorkflow(self,name=''):
     """ Create XML for local testing.
     """
-    name = '%s.xml' % self.name
+    if not name:
+      name = self.name
+    if not re.search('xml$',name):
+      name = '%s.xml' %name
     if os.path.exists(name):
       shutil.move(name,'%s.backup' %name)
+    name = name.replace('/','').replace('\\','')    
     self.workflow.toXMLFile(name)
+    return S_OK(name)
 
   #############################################################################
   def runLocal(self):
     """ Create XML workflow for local testing then reformulate as a job and run locally.
     """
-    name = '%s.xml' % self.name
-    if os.path.exists(name):
-      shutil.move(name,'%s.backup' %name)
-    self.workflow.toXMLFile(name)
+    name = self.createWorkflow()['Value']
     j = LHCbJob(name)
     d = Dirac()
     return d.submit(j,mode='local')
@@ -867,7 +838,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if prodWorkflow.findParameter('InputData'): #now only comes from BK query
       prodWorkflow.findParameter('InputData').setValue('')
       self.log.verbose('Resetting input data for production to null, this comes from a BK query...')
-      prodWorkflow.toXMLFile(prodXMLFile)
+      prodXMLFile = self.createWorkflow(prodXMLFile)['Value']
+      #prodWorkflow.toXMLFile(prodXMLFile)
 
     if prodWorkflow.findParameter('TransformationFamily'):
       parameters['TransformationFamily']=prodWorkflow.findParameter('TransformationFamily').getValue()
@@ -1037,15 +1009,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.workflow = fromXMLString(wfString)
       self.name = self.workflow.getName()
 
-    workflowName = self.workflow.getName()
-    fileName = '%s.xml' %workflowName
-    self.log.verbose('Workflow XML file name is: %s' %fileName)
-
     try:
-      self.createWorkflow()
+      fileName = self.createWorkflow()['Value']
     except Exception,x:
       self.log.error(x)
       return S_ERROR('Could not create workflow')
+
+    self.log.verbose('Workflow XML file name is: %s' %fileName)
 
     workflowBody = ''
     if os.path.exists(fileName):
@@ -1058,8 +1028,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     bkConditions = self.workflow.findParameter('conditions').getValue()
 
     bkDict = {}
-    bkDict['Steps']=self.workflow.findParameter('BKProcessingPass').getValue()
+    bkSteps = self.workflow.findParameter('BKProcessingPass').getValue()
+    bkDict['Steps']= bkSteps
     bkDict['GroupDescription']=self.workflow.findParameter('groupDescription').getValue()
+
+    # After the reorganisation by steps release this stuff can be greatly simplified
+    # only the stepID, stepName and stepVisible need to be tracked.
+    # In the first instance I am just demonstrating the new functionality without making
+    # sweeping changes
+    bkDictStep={} 
 
     bkClient = BookkeepingClient()
     #Add the BK conditions metadata / name
@@ -1075,31 +1052,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not bkConditions in simulationDescriptions:
       self.log.verbose('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
       bkDict['DataTakingConditions']=bkConditions
+      bkDictStep['DataTakingConditions']=bkConditions
       realDataFlag = True
     else:
       self.log.verbose('Found simulation conditions for %s' %bkConditions)
-      sim = {}
-      for record in simConds['Value']:
-        if bkConditions==str(record[1]):
-          simDesc = bkConditions
-          beamcond = str(record[2])
-          energy = str(record[3])
-          gen = str(record[4])
-          mag = str(record[5])
-          detcond = str(record[6])
-          lumi = str(record[7])
-          sim = {'BeamEnergy':energy,'Generator': gen,'Luminosity': lumi,'MagneticField':mag,'BeamCond': beamcond,'DetectorCond':detcond,'SimDescription':simDesc}
-
-      if not sim:
-        raise TypeError,'Could not determine simulation conditions from BK'
-
-      bkDict['SimulationConditions']=sim
-
-    #Now update the DB tags to be correct for the bookkeeping
-    stepKeys = bkDict['Steps'].keys()
-    for step in stepKeys:
-      bkDict['Steps'][step]['DDDb']=self.workflow.findParameter('DDDBTag').getValue()
-      bkDict['Steps'][step]['CondDb']=self.workflow.findParameter('CondDBTag').getValue()
+      bkDict['SimulationConditions']=bkConditions
+      bkDictStep['SimulationConditions']=bkConditions
 
     #Adding some MC transformation parameters if present
     maxNumberOfTasks = 0
@@ -1140,30 +1098,60 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.verbose('Publish flag is disabled, using default production ID')
 
     bkDict['Production']=int(prodID)
+    bkDictStep['Production']=int(prodID)
+    
+    queryProdID=0
+    if bkQuery.has_key('ProductionID'):
+      queryProdID=int(bkQuery['ProductionID'])
+    queryProcPass=''
+    if bkQuery.has_key('ProcessingPass'):
+      if not bkQuery['ProcessingPass']=='All':
+        queryProcPass = bkQuery['ProcessingPass']      
+     
     if bkQuery:
-      if bkQuery.has_key('ProcessingPass'):
-        if not bkQuery['ProcessingPass']=='All':
-          inputProcPass = bkQuery['ProcessingPass']
-          self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,inputProcPass))
-          bkDict['InputProductionTotalProcessingPass']=inputProcPass
-
+      if queryProdID:
+        inputPass = bkClient.getProductionProcessingPass(queryProdID)
+        if not inputPass['OK']:
+          self.log.error(inputPass)
+          self.log.error('Production %s was created but BK processsing pass for %s was not found' %(prodID,queryProdID))
+          return inputPass
+        inputPass = inputPass['Value']
+        self.log.info('Setting %s as BK input production for %s with processing pass %s' %(queryProdID,prodID,inputPass))
+        bkDict['InputProductionTotalProcessingPass']= inputPass
+        bkDictStep['InputProductionTotalProcessingPass']=inputPass
+      elif queryProcPass:
+        self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,queryProcPass))
+        bkDict['InputProductionTotalProcessingPass']=queryProcPass
+        bkDictStep['InputProductionTotalProcessingPass']=queryProcPass          
+          
     if bkProcPassPrepend:
       self.log.info('The following path will be prepended to the BK processing pass for this production: %s' %(bkProcPassPrepend))
       bkDict['InputProductionTotalProcessingPass']=bkProcPassPrepend
+      bkDictStep['InputProductionTotalProcessingPass']=bkProcPassPrepend
+
+    stepList = []
+    stepKeys = bkSteps.keys()
+    #The BK needs an ordered list of steps
+    stepKeys.sort()
+    for step in stepKeys:
+      stepID = bkSteps[step]['BKStepID']
+      if stepID:
+        stepName = bkSteps[step]['StepName']
+        stepVisible = bkSteps[step]['StepVisible']
+        stepList.append({'StepId':int(stepID),'StepName':stepName,'Visible':stepVisible})
+
+    #This is the last component necessary for the BK publishing (post reorganisation)
+    bkDictStep['Steps']=stepList
 
     if bkScript:
       self.log.verbose('Writing BK publish script...')
-      self._writeBKScript(bkDict,prodID)
+      self._publishProductionToBK(bkDictStep,prodID,script=True)
     else:
-      for n,v in bkDict.items():
+      for n,v in bkDictStep.items():
         self.log.verbose('%s BK parameter is: %s' %(n,v))
 
     if publish and not bkScript:
-      self.log.verbose('Attempting to publish production to the BK')
-      result = bkClient.addProduction(bkDict)
-      if not result['OK']:
-        self.log.error(result)
-      self.log.verbose('BK publishing result: %s' %result)
+      self._publishProductionToBK(bkDictStep,prodID,script=False)
 
     if requestID and publish:
       reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
@@ -1248,7 +1236,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if streams:
       tName = 'StreamsReplication_Prod%s' %(inputProd)
     if reqID:
-      tName = 'Request_%s_%s' %(reqID,tName)
+      tName = 'Request%s_%s' %(reqID,tName)
 
     if script:
       transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
@@ -1318,21 +1306,28 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return transResult
 
   #############################################################################
-  def _writeBKScript(self,bkDict,prodID):
-    """Writes the production publishing script for the BK.
+  def _publishProductionToBK(self,bkDict,prodID,script=False):
+    """Publishes the production to the BK or writes a script to do so.
     """
-    bkName = 'insertBKPass%s.py' %(prodID)
-    if os.path.exists(bkName):
-      shutil.move(bkName,'%s.backup' %bkName)
-    fopen = open(bkName,'w')
-    bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
-    bkLines.append('# by %s' %self.prodVersion)
-    bkLines.append('from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
-    bkLines.append('bkClient = BookkeepingClient()')
-    bkLines.append('bkDict = %s' %bkDict)
-    bkLines.append('print bkClient.addProduction(bkDict)')
-    fopen.write(string.join(bkLines,'\n')+'\n')
-    fopen.close()
+    if script:
+      bkName = 'insertBKPass%s.py' %(prodID)
+      if os.path.exists(bkName):
+        shutil.move(bkName,'%s.backup' %bkName)
+      fopen = open(bkName,'w')
+      bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
+      bkLines.append('# by %s' %self.prodVersion)
+      bkLines.append('from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
+      bkLines.append('bkClient = BookkeepingClient()')
+      bkLines.append('bkDict = %s' %bkDict)
+      bkLines.append('print bkClient.addProduction(bkDict)')
+      fopen.write(string.join(bkLines,'\n')+'\n')
+      fopen.close()
+      return S_OK(bkName)
+    self.log.verbose('Attempting to publish production %s to the BK' %(prodID))
+    result = BookkeepingClient().addProduction(bkDict)
+    if not result['OK']:
+      self.log.error(result)
+    return result
 
   #############################################################################
   def getOutputLFNs(self,prodID=None,prodJobID=None,inputDataLFN=None,prodXMLFile=''):
@@ -1340,7 +1335,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     if not prodXMLFile:
       self.log.verbose('Using workflow object to generate XML file')
-      prodXMLFile=self.workflow.toXMLFile('%s.xml' %self.name)
+      prodXMLFile=self.createWorkflow()
     if not prodID:
       prodID = self.defaultProdID
     if not prodJobID:
@@ -1354,39 +1349,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     lfns = result['Value']
     self.log.verbose(lfns)
     return result
-
-  #############################################################################
-  def _setInputProductionBKStepInfo(self,prodID,passDict={}):
-    """ This private method will attempt to retrieve the input production XML file
-        in order to construct the BK XML
-    """
-    if not passDict:
-      prodClient = TransformationClient()
-      result = prodClient.getTransformationParameters(int(prodID),['Body'])
-      if not result['OK']:
-        return S_ERROR("Error during command execution: %s" % result['Message'])
-      if not result['Value']:
-        return S_ERROR("No body of production %s was found" % prodID)
-
-      prodXMLFile = 'InputProduction%s.xml' %prodID
-      body = result['Value']
-      fd = open( prodXMLFile, 'wb' )
-      fd.write(body)
-      fd.close()
-
-      prodWorkflow = Workflow(prodXMLFile)
-      passDict = prodWorkflow.findParameter('BKProcessingPass').getValue()
-      if not passDict:
-        return S_ERROR('Could not find BKProcessingPass for production %s' %prodID)
-
-    #add merge step...
-    for stepID in passDict.keys():
-      self.log.verbose('Adding BK processing step %s from production %s:\n%s' %(stepID,prodID,passDict[stepID]))
-      self.bkSteps[stepID]=passDict[stepID]
-    self.__addBKPassStep()
-    self.gaudiStepCount+=len(passDict.keys())
-    #note that the merging production step number will follow on from the previous production
-    return S_OK()
 
   #############################################################################
   def setProdParameter(self,prodID,pname,pvalue):
