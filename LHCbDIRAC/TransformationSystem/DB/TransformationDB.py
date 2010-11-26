@@ -246,6 +246,8 @@ class TransformationDB(DIRACTransformationDB):
       for fileDict in res['Value']:
         fileIDs.append(fileDict['FileID'])
         runID = fileDict.get('RunNumber')
+        if not runID:
+          runID=0
         lfn = fileDict['LFN']
         foundLfns.append(lfn)
         if fileDict['Status'] != 'Unused':
