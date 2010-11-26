@@ -489,6 +489,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
     # Update the TransformationRuns table with the assigned (don't continue if it fails)
     for runID,targetSite in runSitesToUpdate.items():
+      if not runID:
+        continue
       res = self.transClient.setTransformationRunsSite(transID,runID,targetSite)
       if not res['OK']:
         gLogger.error("Failed to assign TransformationRun site",res['Message'])
