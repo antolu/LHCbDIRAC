@@ -261,7 +261,7 @@ class TransformationDB(DIRACTransformationDB):
     # Insert the task into the jobs table and retrieve the taskID
     self.lock.acquire()
     req = "INSERT INTO TransformationTasks(TransformationID, ExternalStatus, ExternalID, TargetSE, CreationTime, LastUpdateTime, RunNumber) VALUES\
-     (%s,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),%d);" % (transID,'Created', 0, se,runID)
+     (%d,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),%d);" % (transID,'Created', 0, se,runID)
     res = self._update(req,connection)
     if not res['OK']:
       self.lock.release()
