@@ -91,6 +91,7 @@ class BookkeepingWatchAgent(AgentModule):
       if lfnListBK:
         lfnChunks = breakListIntoChunks(lfnListBK,1000)
         for lfnList in lfnChunks:
+          addedLfns = []
           gLogger.verbose('Processing %d lfns for transformation %d' % (len(lfnList),transID) )
           # Add the files to the transformation
           gLogger.verbose('Adding %d lfns for transformation %d' % (len(lfnList),transID) )
@@ -106,33 +107,31 @@ class BookkeepingWatchAgent(AgentModule):
               for lfn,status in result['Value']['Successful'].items():
                 if status == 'Added':
                   addedLfns.append(lfn)
-              gLogger.info("BookkeepingWatchAgent.execute: Added %d files to transformation" % len(addedLfns))
+              gLogger.info("BookkeepingWatchAgent.execute: Added %d files to transformation %d" % (len(addedLfns),transID) )
               #addedLfns = result['Value']['Successful'].keys() # TO BE COMMENTED OUT ONCE BACK POPULATION IS DONE
 
-      # Add the RunNumber to the newly inserted files
-      if addedLfns:
-        lfnChunks = breakListIntoChunks(addedLfns,1000)
-        for lfnList in lfnChunks:
-          gLogger.info("BookkeepingWatchAgent.execute: Obtaining metadata for %d files" % len(lfnList))
-          start = time.time()
-          res = self.bkClient.getFileMetadata(lfnList)
-          rtime = time.time()-start
-          gLogger.verbose("BK query time: %.2f seconds." % (rtime))
-          if not res['OK']:
-            gLogger.error("BookkeepingWatchAgent.execute: Failed to get BK metadata",res['Message']) 
-          else:
-            runDict = {}
-            for lfn,metadata in res['Value'].items():
-              runID = metadata.get('RunNumber',0)
-              if runID:
-                runID = int(runID)
-                if not runDict.has_key(runID):
-                  runDict[runID] = []
-                runDict[runID].append(lfn)
-            for runID in sortList(runDict.keys()):
-              lfns = runDict[runID]
-              gLogger.verbose("BookkeepingWatchAgent.execute: Associating %d files to run %d" % (len(lfns),runID)) 
-              res = self.transClient.addTransformationRunFiles(transID,runID,sortList(lfns))
-              if not res['OK']:
-                gLogger.warn("BookkeepingWatchAgent.execute: Failed to associated files to run",res['Message'])
+          # Add the RunNumber to the newly inserted files
+          if addedLfns:
+            gLogger.info("BookkeepingWatchAgent.execute: Obtaining metadata for %d files" % len(addedLfns))
+            start = time.time()
+            res = self.bkClient.getFileMetadata(addedLfns)
+            rtime = time.time()-start
+            gLogger.verbose("BK query time: %.2f seconds." % (rtime))
+            if not res['OK']:
+              gLogger.error("BookkeepingWatchAgent.execute: Failed to get BK metadata",res['Message']) 
+            else:
+              runDict = {}
+              for lfn,metadata in res['Value'].items():
+                runID = metadata.get('RunNumber',0)
+                if runID:
+                  runID = int(runID)
+                  if not runDict.has_key(runID):
+                    runDict[runID] = []
+                  runDict[runID].append(lfn)
+              for runID in sortList(runDict.keys()):
+                lfns = runDict[runID]
+                gLogger.verbose("BookkeepingWatchAgent.execute: Associating %d files to run %d" % (len(lfns),runID)) 
+                res = self.transClient.addTransformationRunFiles(transID,runID,sortList(lfns))
+                if not res['OK']:
+                  gLogger.warn("BookkeepingWatchAgent.execute: Failed to associated files to run",res['Message'])
     return S_OK() 
