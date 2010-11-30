@@ -42,6 +42,8 @@ args = Script.getPositionalArgs()
 
 import DIRAC
 
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
 from DIRAC import gConfig,gLogger
 gLogger = gLogger.getSubLogger('Certification_Testing')
 
@@ -54,33 +56,46 @@ csPath = '/Operations/CertificationTesting'
 def getProjectParameters(projectName):
   """ Get and check project parameters.
   """
-  projectSection = '%s/Projects/%s' %(csPath,projectName)
+  projectSection = '%s/ProjectSteps/%s' %(csPath,projectName)
   result = gConfig.getOptionsDict(projectSection)
   if not result['OK']:
     gLogger.error('Could not get project section %s from the CS with result:\n%s' %(projectSection,result))
     DIRAC.exit(2)
   
   # A project minimally must have a version and options field specified  
-  if not result['Value'].has_key('Version'):
-    gLogger.error('Section %s does not contain the %s Version' %(projectSection,projectName))
+  if not result['Value'].has_key('StepName'):
+    gLogger.error('Section %s does not contain the %s StepName' %(projectSection,projectName))
     DIRAC.exit(2)
   
-  if not result['Value'].has_key('Options'):
-    gLogger.error('Section %s does not contain the %s Options' %(projectSection,projectName))
+  if not result['Value'].has_key('StepID'):
+    gLogger.error('Section %s does not contain the %s StepID' %(projectSection,projectName))
+    DIRAC.exit(2)
+
+  stepInfo = result['Value']  
+  gLogger.notice('Retrieving BK step info for %s StepName %s, StepID %s' %(projectName,stepInfo['StepName'],stepInfo['StepID']))
+  
+  result = BookkeepingClient().getAvailableSteps({'StepName':stepInfo['StepName'],'StepId':stepInfo['StepID']})
+  if not result['OK']:
+    gLogger.error('Could not retrieve step information for %s, StepName "%s", StepID "%s", exiting...' %(projectName,stepInfo['StepName'],stepInfo['StepID']))
     DIRAC.exit(2)
   
-  if projectName=='Brunel':
-    if not result['Value'].has_key('RecoOptions'):
-      gLogger.error('No %s/RecoOptions were found for Brunel' %(projectSection))
-      DIRAC.exit(2)  
-
-#for opts in ['TaggingOptions','MergingOptions']:
-#  if not davinci.has_key(opts):
-#    gLogger.error('No %s were found for DaVinci' %(opts))
-#    DIRAC.exit(2)
-
-  gLogger.verbose('%s version %s, %s' %(projectName,result['Value']['Version'],result['Value']['Options']))
-  return result['Value']  
+  if not result['Value']['Records']:
+    gLogger.error('%s step record not found in BK (returned []) for %s, check CS.' %(projectName,stepInfo['StepName']))
+    DIRAC.exit(2)
+  
+  #BK result structure uses lists:
+  #2010-11-30 10:28:32 UTC Certification_Testing_run.py/Certification_Testing NOTICE: Retrieving BK step info for Gauss StepName 2010-Sim08, StepID 7095
+  #{'TotalRecords': 1, 'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'Usable'], 'Records': [[7095, '2010-Sim08', 'Gauss', 'v38r9', '$APPCONFIGOPTS/Gauss/Beam3500GeV-md100-nu3.py;$DECFILESROOT/options/@{eventType}.opts;$LBPYTHIAROOT/options/Pythia.py', 'head-20101026', 'sim-20101026-vc-md100', 'AppConfig.v3r82;DecFiles.v21r3;SQLDDDB.v5r41', 'Y', 'Y']]}
+  stepFields = result['Value']['Records'][0]
+  if not len(stepFields)>=8:
+    gLogger.error('Could not obtain all necessary information for %s step %s check BK definition.' %(projectName,stepInfo['StepName']))
+    DIRAC.exit(0)
+    
+  stepInfo['Version']= stepFields[3]
+  stepInfo['Options']=stepFields[4] 
+  stepInfo['ExtraPackages']=stepFields[7]
+  stepInfo['StepVisible']=stepFields[8]
+  return stepInfo
 
 def getBKQueryDict():
   """ Return a BK query dictionary object with all the useful keys for
@@ -129,7 +144,8 @@ gauss = getProjectParameters('Gauss')
 boole = getProjectParameters('Boole')
 lhcb = getProjectParameters('LHCb')
 #Brunel is used once in simulation and again in the reco, needs special treatment
-brunel = getProjectParameters('Brunel')
+brunel = getProjectParameters('BrunelMC')
+recoBrunel = getProjectParameters('BrunelReco')
 #DaVinci has several uses only when merging is included
 davinci = getProjectParameters('DaVinci')
 
@@ -205,7 +221,6 @@ prodGroup = '%s_%s' %(configName.capitalize(),appendName)
 
 #The below is to get an ordinary Boole digi step to produce MDF 
 mdfOutput = {"outputDataName":"@{STEP_ID}.mdf","outputDataType":"mdf","outputDataSE":mdfOutputSE}
-
 booleExtraOpts = 'Boole().Outputs  = [\"DIGI\",\"MDF\"];'
 booleExtraOpts += "OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{STEP_ID}.mdf\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\";"
 
@@ -239,15 +254,29 @@ production.setDBTags(conditionsDBTag,detDescDBTag)
 
 prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
 
-production.addGaussStep(gauss['Version'],gaussGenerator,events,gauss['Options'],
+  
+#Treat the special case of Gauss options where the chosen event type and generator will actually
+#be used:
+gaussOpts = gauss['Options']
+defaultEvtOpts = gConfig.getValue('/Operations/Gauss/EvtOpts','$DECFILESROOT/options/%s.opts' %(evtType))
+if not defaultEvtOpts in gaussOpts:
+  gaussOpts+=';%s' %defaultEvtOpts
+defaultGenOpts = gConfig.getValue('/Operations/Gauss/Gen%sOpts' %(gaussGenerator),'$LBPYTHIAROOT/options/%s.py' %(gaussGenerator))
+if not defaultGenOpts in gaussOpts:
+  gaussOpts+=';%s' %defaultGenOpts
+
+production.addGaussStep(gauss['Version'],gaussGenerator,events,gaussOpts,
                         eventType=evtType,extraPackages=gauss['ExtraPackages'],
-                        condDBTag=conditionsDBTag,ddDBTag=detDescDBTag)
+                        condDBTag=conditionsDBTag,ddDBTag=detDescDBTag,
+                        stepID=gauss['StepID'],stepName=gauss['StepName'],stepVisible=gauss['StepVisible'])                          
 production.addBooleStep(boole['Version'],booleAppType.lower(),boole['Options'],extraOpts=booleExtraOpts,
                         extraPackages=boole['ExtraPackages'],extraOutputFile=mdfOutput,
-                        condDBTag=conditionsDBTag,ddDBTag=detDescDBTag)
+                        condDBTag=conditionsDBTag,ddDBTag=detDescDBTag,
+                        stepID=boole['StepID'],stepName=boole['StepName'],stepVisible=boole['StepVisible'])                        
 production.addBrunelStep(brunel['Version'],brunelAppType.lower(),brunel['Options'],
                          extraPackages=brunel['ExtraPackages'],inputDataType=booleAppType.lower(),
-                         condDBTag=conditionsDBTag,ddDBTag=detDescDBTag)
+                         condDBTag=conditionsDBTag,ddDBTag=detDescDBTag,
+                         stepID=brunel['StepID'],stepName=brunel['StepName'],stepVisible=brunel['StepVisible'])                         
   
 prodDescription = '%s for BK %s %s event type %s with %s events per job and final\
                    application file type %s.' %(prodDescription,configName,configVersion,evtType,events,brunelAppType)
@@ -268,7 +297,7 @@ production.setFileMask(outputFileMask)
 ###########################################
 # Publish and extend the MC production
 ###########################################
-mcProdID=''
+mcProdID='0'
 
 if not debug:
   #Note we should publish the production to get the MDF files in the BK!
@@ -300,7 +329,7 @@ mergingBKQuery = getBKQueryDict()
 mergingBKQuery['FileType']=brunelAppType.upper()
 mergingBKQuery['EventType']=evtType
 #in case we are just using debug mode
-if mcProdID:
+if int(mcProdID):
   mergingBKQuery['ProductionID']=int(mcProdID)
 
 #Start the production definition
@@ -314,7 +343,8 @@ mergeProd.setDBTags(conditionsDBTag,detDescDBTag)
 
 mergeProd.addMergeStep(lhcb['Version'],optionsFile=lhcb['Options'],eventType=evtType,
                        inputDataType=brunelAppType.lower(),inputProduction=mcProdID,inputData=[],
-                       condDBTag=conditionsDBTag,ddDBTag=detDescDBTag)
+                       condDBTag=conditionsDBTag,ddDBTag=detDescDBTag,
+                       stepID=lhcb['StepID'],stepName=lhcb['StepName'],stepVisible=lhcb['StepVisible'])                                                
 
 mergeProd.addFinalizationStep(removeInputData=mergingRemoveIDFlag)
 mergeProd.setInputBKSelection(mergingBKQuery)
@@ -351,10 +381,10 @@ else:
 
 # First define the necessary fields in the BK query (could use MC prodID to
 # navigate to the MDF files but will try to be as authentic as possible with
-# the query
+# the query)
 recoBKQuery = getBKQueryDict()
 recoBKQuery['SimulationConditions']=simCond
-recoBKQuery['ProcessingPass']=prodGroup
+#recoBKQuery['ProcessingPass']=prodGroup
 recoBKQuery['FileType']='MDF'
 recoBKQuery['EventType']=evtType
 recoBKQuery['ConfigName']=configName
@@ -370,13 +400,15 @@ recoProd.setWorkflowDescription("%s Real data reconstruction production." %(prod
 recoProd.setBKParameters(configName,configVersion,recoProdGroup,simCond)
 recoProd.setDBTags(recoConditionsDBTag,recoDetDescDBTag)
 
-recoProd.addBrunelStep(brunel['Version'],recoAppType.lower(),brunel['RecoOptions'],
-                       extraPackages=brunel['ExtraPackages'],eventType=evtType,inputData=[],
-                       inputDataType='mdf',dataType='Data',histograms=True)
-
+recoProd.addBrunelStep(recoBrunel['Version'],recoAppType.lower(),recoBrunel['Options'],
+                       extraPackages=recoBrunel['ExtraPackages'],eventType=evtType,inputData=[],
+                       inputDataType='mdf',dataType='Data',histograms=True,
+                       stepID=recoBrunel['StepID'],stepName=recoBrunel['StepName'],stepVisible=recoBrunel['StepVisible'])                                                
+                       
 recoProd.addDaVinciStep(davinci['Version'],'dst',davinci['Options'],
                         extraPackages=davinci['ExtraPackages'],inputDataType=recoAppType.lower(),
-                        dataType='Data',histograms=True)
+                        dataType='Data',histograms=True,
+                        stepID=davinci['StepID'],stepName=davinci['StepName'],stepVisible=davinci['StepVisible'])                                                
 
 recoProd.addFinalizationStep()
 recoProd.setInputBKSelection(recoBKQuery)
@@ -411,30 +443,6 @@ else:
   gLogger.info('Workflows were created and parameters printed at verbose level since /Operations/CertificationTesting/General/Debug=True flag was specified')
 DIRAC.exit(0)
 
-#################################################################################
-# This is the start of the reconstruction merging production definition - TODO
-#################################################################################
-
-#recoMergeBKQuery = getBKQueryDict()
-
-###########################################
-# Publish and extend the reco production
-###########################################
-
-#if not debug:
-#  result = recoMergeProd.create(bkQuery=recoMergeBKQuery,bkScript=True,transformation=recoTransFlag)
-#  if not result['OK']:
-#    gLogger.error('Error during reconstruction production creation:\n%s\n' %(result['Message']))
-#    DIRAC.exit(2)
-#  
-#  recoMergeProdID = result['Value']
-#  diracProd.production(recoMergeProdID,subMode,printOutput=True)
-#  gLogger.info('Reco merging production %s successfully created and started in %s submission mode.' %(recoMergeProdID,subMode))
-#else:
-#  gLogger.info('========> Debug flag is set, printing JDL and creating a workflow')
-#  print recoMergeProd._dumpParameters()
-#  recoMergeProd.createWorkflow()
-#  
 #################################################################################
 # End of the template.
 #################################################################################
