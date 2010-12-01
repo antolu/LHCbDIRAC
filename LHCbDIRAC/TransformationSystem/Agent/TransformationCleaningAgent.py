@@ -24,6 +24,7 @@ class TransformationCleaningAgent(DIRACTransformationCleaningAgent):
   #############################################################################
   def initialize( self ):
     """Sets defaults """
+    self.storageUsageClient = StorageUsageClient()    
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationClient()
     self.wmsClient = WMSClient()
