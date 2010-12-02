@@ -58,7 +58,7 @@ mdstIDPolicy = '{{MicroDSTIDPolicy#MicroDST Input data policy e.g. download, pro
 
 currentReqID = int('{{ID}}')
 prodGroup = '{{pDsc}}'
-#used in case of a test e.g. certification etc.
+#reset in case of a test e.g. certification etc.
 bkConfigName = '{{configName}}'
 bkConfigVersion = '{{configVersion}}'
 
@@ -154,7 +154,7 @@ dvOptions="{{p1Opt}}"
 
 production.addDaVinciStep("{{p1Ver}}",mdstAppType.lower(),dvOptions,extraPackages='{{p1EP}}',eventType='{{eventType}}',
                           inputData=inputDataDaVinci,inputDataType='dst',outputSE=mdstDataSE,numberOfEvents=events,
-                          dataType='Data',histograms=False)
+                          dataType='Data',histograms=False,stepID='{{p1Step}}',stepName='{{p1Name}}',stepVisible='{{p1Vis}}')
 
 production.addFinalizationStep()
 production.setInputBKSelection(mdstInputBKQuery)
