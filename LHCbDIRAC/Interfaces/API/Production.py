@@ -322,6 +322,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
         inputDataType is rdst / fetc / sdst
+        [inputProduction is not used and is only there for backwards compatibility]
     """
     eventType = self.__getEventType(eventType)
     self.__checkArguments(extraPackages, optionsFile)
@@ -353,9 +354,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if not outputSE:
         outputSE='Tier1_M-DST'
         self.log.verbose('Setting default outputSE to %s' %(outputSE))
-      else:
-        self.log.error('DaVinci merging / MDST must have an input production ID specified')
-        raise TypeError,'inputProduction must be specified'
 
     if appType.lower() in ['setc','mdst']:
       if not outputSE:
@@ -1236,7 +1234,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if streams:
       tName = 'StreamsReplication_Prod%s' %(inputProd)
     if reqID:
-      tName = 'Request%s_%s' %(reqID,tName)
+      tName = 'Request_%s_%s' %(reqID,tName)
 
     if script:
       transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
