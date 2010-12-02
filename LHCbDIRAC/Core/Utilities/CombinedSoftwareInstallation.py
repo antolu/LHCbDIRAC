@@ -118,6 +118,8 @@ class CombinedSoftwareInstallation:
         return DIRAC.S_ERROR('SystemConfig Not Found')
       self.jobConfig = compatibleArchs[0]
       DIRAC.gLogger.info('Setting system config to compatible platform %s' %(self.jobConfig))
+      if not self.jobConfig in self.ceConfigs:
+        self.ceConfigs.append(self.jobConfig)
 
     if not self.jobConfig in self.ceConfigs:
       DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
