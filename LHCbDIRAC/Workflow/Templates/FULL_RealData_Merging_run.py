@@ -68,7 +68,6 @@ mergeDQFlag = '{{MergeDQFlag#Merging DQ Flag e.g. OK#OK}}'
 mergePriority = '{{MergePriority#Merging production priority#8}}'
 mergePlugin = '{{MergePlugin#Merging production plugin#MergeByRun}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#Merging remove input data flag True/False#False}}'
-mergeProdGroup = '{{MergeProdGroup#Merging what is appended to the BK proc pass#-Merged}}'
 mergeCPU = '{{MergeMaxCPUTime#Merging Max CPU time in secs#300000}}'
 
 #transformation params
@@ -129,6 +128,10 @@ recoInputBKQuery = { 'SimulationConditions'     : 'All',
                  'ProductionID'             : 0,
                  'DataQualityFlag'          : recoDQFlag}
 
+if testProduction:
+  recoInputBKQuery['DataTakingConditions']='All'
+  recoInputBKQuery['SimulationConditions']='{{simDesc}}'
+  gLogger.notice('Since the test production flag is specified reverting DataTaking to Simulation Conditions in BK Query')
 
 if int(recoEndRun) and int(recoStartRun):
   if int(recoEndRun)<int(recoStartRun):
@@ -197,10 +200,12 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 brunelOptions="{{p1Opt}}"
 production.addBrunelStep("{{p1Ver}}",recoAppType.lower(),brunelOptions,extraPackages='{{p1EP}}',
                          eventType='{{eventType}}',inputData=inputDataList,inputDataType='mdf',outputSE=recoDataSE,
-                         dataType='Data',numberOfEvents=recoEvtsPerJob,histograms=True)
+                         dataType='Data',numberOfEvents=recoEvtsPerJob,histograms=True,
+                         stepID='{{p1Step}}',stepName='{{p1Name}}',stepVisible='{{p1Vis}}')                         
 dvOptions="{{p2Opt}}"
 production.addDaVinciStep("{{p2Ver}}","dst",dvOptions,extraPackages='{{p2EP}}',inputDataType=recoAppType.lower(),
-                          dataType='Data',outputSE=unmergedStreamSE,histograms=True)
+                          dataType='Data',outputSE=unmergedStreamSE,histograms=True,
+                          stepID='{{p2Step}}',stepName='{{p2Name}}',stepVisible='{{p2Vis}}')                          
 
 production.addFinalizationStep()
 production.setInputBKSelection(recoInputBKQuery)
@@ -303,12 +308,6 @@ mergeTransFlag = False
 mergeOpts='{{p3Opt}}'
 taggingOpts='{{p4Opt}}'
 
-#very important! must add 'Merging' or whatever user decides to the processing pass from the initial step
-if not re.search('^-',mergeProdGroup):
-  mergeProdGroup = '-%s' %(mergeProdGroup)
-
-prodGroup += mergeProdGroup
-
 ###########################################
 # Start the productions for each file type
 ###########################################
@@ -339,7 +338,8 @@ for mergeStream in dstList:
   
   mergeProd.addDaVinciStep('{{p3Ver}}','merge',mergeOpts,extraPackages='{{p3EP}}',eventType='{{eventType}}',
                            inputDataType=mergeStream.lower(),extraOpts=dvExtraOptions,
-                           inputProduction=recoProdID,inputData=[],outputSE=mergeSE)
+                           inputProduction=recoProdID,inputData=[],outputSE=mergeSE,
+                           stepID='{{p3Step}}',stepName='{{p3Name}}',stepVisible='{{p3Vis}}')                            
 
 # N.B. Now we remove the tagging step.
 #  mergeProd.addDaVinciStep('{{p4Ver}}','setc',taggingOpts,extraPackages='{{p4EP}}',inputDataType=mergeStream.lower())
@@ -354,7 +354,7 @@ for mergeStream in dstList:
   mergeProd.setFileMask(mergeStream.lower())
   mergeProd.setProdPlugin(mergePlugin)
 
-  result = mergeProd.create(bkScript=False,requestID=currentReqID,reqUsed=1,transformation=mergeTransFlag,bkProcPassPrepend='{{inProPass}}')
+  result = mergeProd.create(bkScript=False,requestID=currentReqID,reqUsed=1,transformation=mergeTransFlag) #,bkProcPassPrepend='{{inProPass}}')
   if not result['OK']:
     gLogger.error('Production creation failed with result:\n%s\ntemplate is exiting...' %(result))
     DIRAC.exit(2)
