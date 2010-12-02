@@ -101,6 +101,11 @@ recoInputBKQuery = { 'SimulationConditions'     : 'All',
                      'ProductionID'             : 0,
                      'DataQualityFlag'          : recoDQFlag}
 
+if testProduction:
+  recoInputBKQuery['DataTakingConditions']='All'
+  recoInputBKQuery['SimulationConditions']='{{simDesc}}'
+  gLogger.notice('Since the test production flag is specified reverting DataTaking to Simulation Conditions in BK Query')
+
 if int(recoEndRun) and int(recoStartRun):
   if int(recoEndRun)<int(recoStartRun):
     gLogger.error('Your end run "%s" should be less than your start run "%s"!' %(recoEndRun,recoStartRun))
@@ -152,12 +157,14 @@ production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
 brunelOptions="{{p1Opt}}"
 production.addBrunelStep("{{p1Ver}}",recoAppType.lower(),brunelOptions,extraPackages='{{p1EP}}',
                          eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=recoDataSE,
-                         dataType='Data',histograms=True)
+                         dataType='Data',histograms=True,
+                         stepID='{{p1Step}}',stepName='{{p1Name}}',stepVisible='{{p1Vis}}')
 
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
   production.addDaVinciStep("{{p2Ver}}","davincihist","{{p2Opt}}",extraPackages='{{p2EP}}',
-                            inputDataType=appType.lower(),histograms=True,abandonOutput=True)
+                            inputDataType=recoAppType.lower(),histograms=True,abandonOutput=True,
+                            stepID='{{p2Step}}',stepName='{{p2Name}}',stepVisible='{{p2Vis}}')                            
 
 production.addFinalizationStep()
 production.setInputBKSelection(recoInputBKQuery)
