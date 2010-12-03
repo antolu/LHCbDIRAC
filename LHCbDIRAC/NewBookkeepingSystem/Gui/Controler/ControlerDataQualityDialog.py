@@ -5,8 +5,8 @@
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                       import Message
 
 __RCSID__ = "$Id: $"
 

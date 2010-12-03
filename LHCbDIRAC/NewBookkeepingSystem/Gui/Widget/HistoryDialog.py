@@ -5,9 +5,9 @@
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog_ui           import Ui_HistoryDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                 import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerHistoryDialog  import ControlerHistoryDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.HistoryDialog_ui           import Ui_HistoryDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel                 import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerHistoryDialog  import ControlerHistoryDialog
 
 import DIRAC,os
 

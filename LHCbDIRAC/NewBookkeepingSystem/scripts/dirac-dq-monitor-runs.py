@@ -1,8 +1,8 @@
 #! /usr/bin/env python
-from DIRAC.Core.Base.Script                                  import parseCommandLine
+from DIRAC.Core.Base.Script                                     import parseCommandLine
 parseCommandLine()
-from DIRAC.Core.Utilities.List                               import sortList,breakListIntoChunks
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient    import BookkeepingClient
+from DIRAC.Core.Utilities.List                                  import sortList,breakListIntoChunks
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient    import BookkeepingClient
 import sys,os,time
 
 bkDict = {'ConfigName'           :'LHCb',

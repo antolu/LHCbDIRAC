@@ -4,10 +4,10 @@
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog_ui           import Ui_ProcessingPassDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                        import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProcessingPassDialog_ui           import Ui_ProcessingPassDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel                        import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
 import LHCbDIRAC,os
 
 __RCSID__ = "$Id$"
@@ -22,7 +22,7 @@ class ProcessingPassDialog(QDialog,Ui_ProcessingPassDialog):
     self.__controler = ControlerProcessingPassDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.closeButton.setIcon(closeIcon)
         

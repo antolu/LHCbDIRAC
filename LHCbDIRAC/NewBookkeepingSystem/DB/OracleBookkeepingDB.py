@@ -7,7 +7,7 @@
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDB                   import IBookkeepingDB
+from LHCbDIRAC.NewBookkeepingSystem.DB.IBookkeepingDB                import IBookkeepingDB
 from types                                                           import *
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
@@ -972,7 +972,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       retVal = self._getDataQualityId(flag)
       if retVal['OK']:
         flag = retVal['Value']
-        command = 'insert into runquality(runnumber,processingid,qualityid) values('+str(runNB)+','+str(processingid)+','+str(flag)+')'
+        command = 'insert into newrunquality(runnumber,processingid,qualityid) values('+str(runNB)+','+str(processingid)+','+str(flag)+')'
         return self.dbW_._query(command)
       else:
         return retVal

@@ -3,11 +3,11 @@
 ########################################################################
 
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
-from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread 
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                          import Item
+from LHCbDIRAC.NewBookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
+from LHCbDIRAC.NewBookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread 
 from DIRAC.Interfaces.API.Dirac                                      import Dirac
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 

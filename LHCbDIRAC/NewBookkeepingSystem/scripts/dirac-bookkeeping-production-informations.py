@@ -23,7 +23,7 @@ if len(args) < 1:
   
 exitCode = 0
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 prod=long(args[0])
 

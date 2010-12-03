@@ -7,16 +7,16 @@
 """
 
 from xml.dom.minidom                                                                    import parse, parseString
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
 from DIRAC.ConfigurationSystem.Client.Config                                            import gConfig
 from DIRAC                                                                              import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
-#from DIRAC.BookkeepingSystem.Client.BookkeepingClient                                  import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
+#from DIRAC.NewBookkeepingSystem.Client.BookkeepingClient                                  import BookkeepingClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager                                   import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                        import FileParam
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters                    import JobParameters
-from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                      import *
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.Job.FileParam                        import FileParam
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.Job.JobParameters                    import JobParameters
+from LHCbDIRAC.NewBookkeepingSystem.DB.DataTakingConditionInterpreter                      import *
 import os,sys,datetime,re
 
 __RCSID__ = "$Id$"

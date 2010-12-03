@@ -9,7 +9,7 @@ __VERSION__ = "$ $"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
-client = RPCClient('Bookkeeping/BookkeepingManager')
+client = RPCClient('Bookkeeping/NewBookkeepingManager')
 import os,sys
 
 args = Script.getPositionalArgs()

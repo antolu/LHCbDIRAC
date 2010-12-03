@@ -6,9 +6,9 @@
 
 """
 
-from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDatabaseClient             import IBookkeepingDatabaseClient 
-from LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB                    import OracleBookkeepingDB
-from DIRAC                                                                 import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.NewBookkeepingSystem.DB.IBookkeepingDatabaseClient             import IBookkeepingDatabaseClient 
+from LHCbDIRAC.NewBookkeepingSystem.DB.OracleBookkeepingDB                    import OracleBookkeepingDB
+from DIRAC                                                                    import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"
 

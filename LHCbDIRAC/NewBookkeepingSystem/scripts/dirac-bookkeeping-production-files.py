@@ -20,7 +20,7 @@ else:
   prodID = int(sys.argv[1])
   type = sys.argv[2]
 
-client = RPCClient('Bookkeeping/BookkeepingManager')
+client = RPCClient('Bookkeeping/NewBookkeepingManager')
 res = client.getProductionFiles(prodID,type)
 if not res['OK']:
   print 'Failed to retrieve production files: %s' % res['Message']

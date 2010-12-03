@@ -7,8 +7,8 @@
 """
 
 
-from LHCbDIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
+from LHCbDIRAC.NewBookkeepingSystem.Client.BaseESClient                        import BaseESClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
 __RCSID__ = "$Id$"
 

@@ -5,17 +5,17 @@
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                        import Item
 import LHCbDIRAC, os
 
 __RCSID__ = "$Id$"
 
-#from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
+#from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
 #############################################################################  
 class TreeWidget(QWidget, Ui_TreeWidget):
@@ -43,7 +43,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     
     self.tree.setupControler()
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
     self.bookmarksButton.setIcon(bookmarksIcon)
     

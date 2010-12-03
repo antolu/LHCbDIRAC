@@ -7,8 +7,8 @@
 """
 
 from DIRAC                                                                   import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
-from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
+from LHCbDIRAC.NewBookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
 __RCSID__ = "$Id$"

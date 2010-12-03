@@ -34,7 +34,7 @@ def changeCS(path,val):
 bookkeepingSection = '/Operations/Bookkeeping'
 filetypeSection = '/Operations/Bookkeeping/FileTypes'
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 exitCode = 0

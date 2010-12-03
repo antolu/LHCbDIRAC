@@ -4,9 +4,9 @@
 
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.InfoDialog_ui           import Ui_Dialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 import LHCbDIRAC, os
 
 __RCSID__ = "$Id$"
@@ -21,7 +21,7 @@ class InfoDialog(QDialog, Ui_Dialog):
     self.__controler = ControlerInfoDialog(self, parent.getControler())
     self.connect(self.pushButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     closeIcon = QIcon(picturesPath+"/images/close.png")
     self.pushButton.setIcon(closeIcon)
     

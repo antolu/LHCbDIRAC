@@ -5,7 +5,7 @@
 
 import DIRAC
 from DIRAC.Interfaces.API.Dirac                           import Dirac
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient  import LHCB_BKKDBClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.LHCB_BKKDBClient  import LHCB_BKKDBClient
 from DIRAC.Core.Base                                      import Script
 
 __RCSID__ = "$Id$"

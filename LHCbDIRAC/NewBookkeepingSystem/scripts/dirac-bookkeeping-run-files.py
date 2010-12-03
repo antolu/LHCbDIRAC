@@ -21,7 +21,7 @@ if not len(sys.argv) == 2:
 else:
   runID = int(sys.argv[1])
 
-client = RPCClient('Bookkeeping/BookkeepingManager')
+client = RPCClient('Bookkeeping/NewBookkeepingManager')
 res = client.getRunFiles(runID)
 if not res['OK']:
   print 'Failed to retrieve run files: %s' % res['Message']

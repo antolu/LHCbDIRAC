@@ -5,8 +5,8 @@
 
 __RCSID__ = "$Id: $"
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract      import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                    import Message
 from DIRAC.Core.DISET.RPCClient                                          import RPCClient
 from DIRAC.FrameworkSystem.Client.UserProfileClient                      import UserProfileClient
 from PyQt4.QtCore import *

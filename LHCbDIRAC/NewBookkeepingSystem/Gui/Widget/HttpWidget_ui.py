@@ -19,7 +19,7 @@ class Ui_HttpWidget(object):
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.back = QtGui.QPushButton(HttpWidget)
-        picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+        picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(picturesPath+"/images/back.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.back.setIcon(icon)

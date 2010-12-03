@@ -5,8 +5,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item              import Item
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 import LHCbDIRAC, types, os
 
 __RCSID__ = "$Id$"
@@ -44,7 +44,7 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
     
     self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")

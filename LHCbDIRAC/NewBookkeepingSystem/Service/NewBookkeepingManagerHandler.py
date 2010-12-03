@@ -7,8 +7,8 @@
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
+from LHCbDIRAC.NewBookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -25,7 +25,7 @@ dataMGMT_ = None
 
 reader_ = None
 
-def initializeBookkeepingManagerHandler( serviceInfo ):
+def initializeNewBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
   global dataMGMT_
@@ -38,7 +38,7 @@ def initializeBookkeepingManagerHandler( serviceInfo ):
 
 ToDoPath = gConfig.getValue("stuart","/opt/bookkeeping/XMLProcessing/ToDo")
     
-class BookkeepingManagerHandler(RequestHandler):
+class NewBookkeepingManagerHandler(RequestHandler):
 
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed 

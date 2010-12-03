@@ -5,11 +5,11 @@
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Bookmarks_ui                            import Ui_BookmarksWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerBookmarks                   import ControlerBookmarks
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                                     import Item
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                              import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarksWidget                      import AddBookmarksWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.Bookmarks_ui                            import Ui_BookmarksWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerBookmarks                   import ControlerBookmarks
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                                     import Item
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel                              import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.AddBookmarksWidget                      import AddBookmarksWidget
 import LHCbDIRAC, os
 __RCSID__ = " $"
 
@@ -27,7 +27,7 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     addIcon = QIcon(picturesPath+"/images/add.png")
     self.addButton.setIcon(addIcon)
     

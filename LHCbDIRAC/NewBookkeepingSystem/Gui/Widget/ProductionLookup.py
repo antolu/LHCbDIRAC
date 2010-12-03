@@ -3,9 +3,9 @@
 ########################################################################
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup_ui               import Ui_Production
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProductionLookup_ui               import Ui_Production
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
 import DIRAC,os
 
 __RCSID__ = "$Id$"

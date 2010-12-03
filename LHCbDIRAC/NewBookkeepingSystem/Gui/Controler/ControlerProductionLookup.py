@@ -3,9 +3,9 @@
 ########################################################################
 
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                          import Item
 
 from PyQt4.QtGui                                                     import *
 __RCSID__ = "$Id$"

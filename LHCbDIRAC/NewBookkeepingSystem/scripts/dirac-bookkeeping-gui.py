@@ -10,7 +10,7 @@ from DIRAC.Core.Security.Misc                                  import getProxyIn
 from DIRAC.Core.Security.CS                                    import getDNForUsername
 from DIRAC                                                     import gLogger, S_OK, S_ERROR
 import DIRAC
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from DIRAC.Core.Base import Script

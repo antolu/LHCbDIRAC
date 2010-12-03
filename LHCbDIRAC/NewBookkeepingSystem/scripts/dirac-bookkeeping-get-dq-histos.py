@@ -9,7 +9,7 @@ __VERSION__ = "$ $"
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.Utilities.List import sortList
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()

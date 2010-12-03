@@ -5,7 +5,7 @@
 from PyQt4.QtGui                                                    import *
 from PyQt4.QtCore                                                   import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel              import TableModel
 
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 

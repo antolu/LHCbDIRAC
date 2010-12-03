@@ -3,7 +3,7 @@
 ########################################################################
 
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
 __RCSID__ = "$Id$"
 

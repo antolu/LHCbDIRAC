@@ -33,7 +33,7 @@ if start != '':
 if end != '':
   dict['EndDate'] = end
 
-client = RPCClient('Bookkeeping/BookkeepingManager')
+client = RPCClient('Bookkeeping/NewBookkeepingManager')
 res = client.getRunsWithAGivenDates(dict)
 if not res['OK']:
   print 'Failed to retrieve runs: %s' % res['Message']

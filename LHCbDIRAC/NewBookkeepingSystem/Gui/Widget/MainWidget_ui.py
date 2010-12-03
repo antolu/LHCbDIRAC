@@ -8,7 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeWidget  import TreeWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeWidget  import TreeWidget
 
 class Ui_MainWidget(object):
     def setupUi(self, MainWidget):

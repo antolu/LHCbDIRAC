@@ -5,7 +5,7 @@
 """
 """
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.Client                                  import IndentMaker
+from LHCbDIRAC.NewBookkeepingSystem.Client                               import IndentMaker
 from UserDict                                                            import UserDict
 
 import types

@@ -6,12 +6,12 @@
 LHCb Bookkeeping database manager
 """
 
-from DIRAC                                                                   import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
-from LHCbDIRAC.BookkeepingSystem.Client                                      import objects
-from LHCbDIRAC.BookkeepingSystem.Client.Help                                 import Help
-from DIRAC.DataManagementSystem.Client.ReplicaManager                        import ReplicaManager
+from DIRAC                                                                      import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.NewBookkeepingSystem.Client.BaseESManager                        import BaseESManager
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client                                      import objects
+from LHCbDIRAC.NewBookkeepingSystem.Client.Help                                 import Help
+from DIRAC.DataManagementSystem.Client.ReplicaManager                           import ReplicaManager
 import os
 import types
 import sys

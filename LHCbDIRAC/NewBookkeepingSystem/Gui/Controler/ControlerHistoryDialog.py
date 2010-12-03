@@ -5,9 +5,9 @@
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import HistoryNavigationCommand
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                       import Message
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import HistoryNavigationCommand
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 

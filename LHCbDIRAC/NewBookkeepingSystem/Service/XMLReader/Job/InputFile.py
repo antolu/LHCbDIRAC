@@ -6,7 +6,7 @@
 
 """
 
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.File                       import File
+from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.Job.File                       import File
 
 __RCSID__ = "$Id$"
 

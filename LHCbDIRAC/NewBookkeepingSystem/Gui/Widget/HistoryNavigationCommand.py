@@ -4,7 +4,7 @@
 
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.Command                      import Command
 __RCSID__ = "$Id$"
 
 

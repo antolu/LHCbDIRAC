@@ -4,8 +4,8 @@
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave_ui                   import Ui_Dialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAdvancedSave          import ControlerAdvancedSave
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.AdvancedSave_ui                   import Ui_Dialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerAdvancedSave          import ControlerAdvancedSave
 
 import DIRAC,os
 

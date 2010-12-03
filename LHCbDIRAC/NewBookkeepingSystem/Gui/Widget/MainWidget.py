@@ -6,17 +6,17 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget_ui                 import Ui_MainWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import ControlerMain
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                           import Item
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.DataQualityDialog             import DataQualityDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.MainWidget_ui                 import Ui_MainWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerMain              import ControlerMain
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                           import Item
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Message                        import Message
+from LHCbDIRAC.NewBookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.DataQualityDialog             import DataQualityDialog
 
 __RCSID__ = "$Id$"
 
-#from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
+#from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 
 #############################################################################  
 class MainWidget(QMainWindow, Ui_MainWidget):

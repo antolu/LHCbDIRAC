@@ -4,8 +4,8 @@
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.DataQualityDialog_ui              import Ui_DataQualityDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerDataQualityDialog     import ControlerDataQualityDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.DataQualityDialog_ui              import Ui_DataQualityDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerDataQualityDialog     import ControlerDataQualityDialog
 import LHCbDIRAC,os
 
 __RCSID__ = "$ $"
@@ -21,7 +21,7 @@ class DataQualityDialog(QDialog, Ui_DataQualityDialog):
     
     self.connect(self.OkButton, SIGNAL("clicked()"), self.__controler.close)
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     OkICon = QIcon(picturesPath+"/images/ok.png")
     self.OkButton.setIcon(OkICon)
     self.__checkboses = []

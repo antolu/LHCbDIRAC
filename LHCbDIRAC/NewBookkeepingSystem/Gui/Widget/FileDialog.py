@@ -5,12 +5,12 @@
 from PyQt4.QtGui                                import *
 from PyQt4.QtCore                               import *
 
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FileDialog_ui           import Ui_FileDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TableModel              import TableModel
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.LogFileWidget           import LogFileWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
 import LHCbDIRAC,os
 
 __RCSID__ = "$Id$"
@@ -31,7 +31,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect(self.advancedSave, SIGNAL("clicked()"), self.__controler.advancedSave)
     self.connect(self.nextButton, SIGNAL("clicked()"), self.__controler.next)
     
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/BookkeepingSystem/Gui/Widget'
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     saveIcon = QIcon(picturesPath+"/images/save.png")
     self.saveButton.setIcon(saveIcon)
     self.advancedSave.setIcon(saveIcon)

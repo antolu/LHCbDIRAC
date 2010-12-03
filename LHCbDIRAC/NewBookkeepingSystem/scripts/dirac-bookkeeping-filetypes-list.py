@@ -14,7 +14,7 @@ from DIRAC.Core.Base                                               import Script
 from DIRAC.ConfigurationSystem.Client.Config                       import gConfig
 Script.parseCommandLine( ignoreErrors = True )
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 exitCode = 0
 

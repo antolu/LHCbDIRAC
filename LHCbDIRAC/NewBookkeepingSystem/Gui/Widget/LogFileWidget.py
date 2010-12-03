@@ -9,7 +9,7 @@ import sys
 
 from PyQt4                                                               import QtCore, QtGui
 from HttpWidget_ui                                                       import Ui_HttpWidget
-from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo
 
 class LogFileWidget(QtGui.QDialog):
   
