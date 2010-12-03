@@ -51,7 +51,7 @@ gLogger = gLogger.getSubLogger('Certification_Testing')
 # Any functions to make things simpler
 #################################################################################
 
-csPath = '/Operations/CertificationTesting'
+csPath = '/Operations/CertificationTesting/%s' %(gConfig.getValue('/DIRAC/Setup'))
 
 def getProjectParameters(projectName):
   """ Get and check project parameters.
