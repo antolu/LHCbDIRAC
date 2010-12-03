@@ -32,7 +32,7 @@ class BookkeepingClient:
     if self.rpcClient:
       return self.rpcClient
     else:
-      return RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
+      return RPCClient('Bookkeeping/NewBookkeepingManager', timeout=timeout)
 
   #############################################################################
   def echo(self,string):
