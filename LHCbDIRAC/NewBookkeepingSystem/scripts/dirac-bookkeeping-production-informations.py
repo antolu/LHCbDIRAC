@@ -28,7 +28,7 @@ bk = BookkeepingClient()
 prod=long(args[0])
 
 res = bk.getProductionInformations_new(prod)
-print res
+
 if res['OK']:
     val = res['Value']
     print "Production Info: "

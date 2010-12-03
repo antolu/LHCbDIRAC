@@ -63,6 +63,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
   
   #############################################################################
+  def __isSpecialFileType(self, flist):
+    if ('RAW' in flist) or ('MDF' in flist):
+      return True
+    else:
+      for i in flist:
+        if re.search('HIST', i):
+          return True
+    return False 
+  
+  #############################################################################
   def getAvailableSteps(self, dict = {}):      
     condition = ''
     selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible, Usable'
@@ -74,10 +84,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         if len(condition) > 0:
           condition += ' and '
         condition += ' stepid='+str(dict['StepId'])
+      if dict.has_key('StepName'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " stepname='%s'"%(dict['StepName'])
+        
       if dict.has_key('InputFileTypes'):
         flist = dict['InputFileTypes']
         flist.sort()
-        return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps',[],True, flist)
+        if self.__isSpecialFileType(flist):  
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleStepsRealAndMC',[],True, flist)
+        else: 
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps',[],True, flist)
       command = 'select '+selection+' from '+tables+' where '+condition+'order by inserttimestamps desc'
       return self.dbR_._query(command)
     else:
@@ -2193,10 +2211,11 @@ and files.qualityid= dataquality.qualityid'
             
     tables = ' files f,jobs j '
     if procPass != 'ALL':
+      if not re.search('^/',procPass): procPass = procPass.replace(procPass,'/%s' %procPass) 
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
                                            FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
                                               CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'"%(processing.split('/')[1], processing)
+                     where v.path='%s'"%(procPass.split('/')[1], procPass)
       retVal = self.dbR_._query(command)
       if not retVal['OK']:
         return retVal
@@ -2204,7 +2223,7 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         pro+="%s,"%(str(i[0]))
       pro = pro[:-1]
-      pro += (')')
+      pro += ')'
             
       condition += " and j.production=prod.production \
                      and prod.processingid in %s"%(pro);
@@ -2295,8 +2314,8 @@ and files.qualityid= dataquality.qualityid'
 
     
     if simdesc != 'ALL':
-      condition += " and prod.simid=sim.simid and' \
-                     sim.simdescription='%' "%(simdesc)
+      condition += " and prod.simid=sim.simid and \
+                     sim.simdescription='%s' "%(simdesc)
       if re.search('productionscontainer',tables):
         tables += ',simulationconditions sim'
       else:
@@ -2364,10 +2383,11 @@ and files.qualityid= dataquality.qualityid'
             
     tables = ' files f,jobs j '
     if procPass != 'ALL':
+      if not re.search('^/',procPass): procPass = procPass.replace(procPass,'/%s' %procPass) 
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
                                            FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
                                               CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'"%(processing.split('/')[1], processing)
+                     where v.path='%s'"%(procPass.split('/')[1], procPass)
       retVal = self.dbR_._query(command)
       if not retVal['OK']:
         return retVal
@@ -2375,8 +2395,8 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         pro+="%s,"%(str(i[0]))
       pro = pro[:-1]
-      pro += (')')
-            
+      pro += ')'
+        
       condition += " and j.production=prod.production \
                      and prod.processingid in %s"%(pro);
       tables += ',productionscontainer prod'
@@ -2569,6 +2589,7 @@ and files.qualityid= dataquality.qualityid'
     ftypes.filetypeid=f.filetypeid and \
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
+    f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and \
     j.production=prod.production"+condition
     return self.dbR_._query(command)
@@ -2653,6 +2674,7 @@ and files.qualityid= dataquality.qualityid'
     ftypes.filetypeid=f.filetypeid and \
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
+    f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and \
     j.production=prod.production"+condition +") where rownum <=%d ) where r >%d"%(maxitems,startitem)
     return self.dbR_._query(command)
@@ -2873,12 +2895,13 @@ and files.qualityid= dataquality.qualityid'
       if i['Visible']=='Y':
         path += [i['StepName']]  
     
+    if len(path) == 0:
+      return S_ERROR('You have to define the input processing pass or you have to have a visible step!')
     processingid = None
     retVal = self.addProcessing(path)
     if not retVal['OK']:
       return retVal
     else:
-      print len(retVal['Value'])
       if len(retVal['Value'])>0:
         processingid = retVal['Value'][0]
       else:
