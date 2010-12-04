@@ -2,7 +2,6 @@
 # $HeadURL$
 ########################################################################
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                                    import AgentModule
@@ -10,7 +9,6 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager               import Repli
 from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
 from DIRAC.WorkloadManagementSystem.Client.WMSClient                import WMSClient
 from DIRAC.Core.Utilities.List                                      import sortList, breakListIntoChunks
-from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
 from datetime                                                       import datetime, timedelta
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
@@ -30,8 +28,12 @@ class ProductionCleaningAgent( AgentModule ):
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
     self.transformationTypes = self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] )
     return S_OK()
 
@@ -204,25 +206,25 @@ class ProductionCleaningAgent( AgentModule ):
     directories = []
     res = self.transClient.getTransformationParameters( prodID, pname = 'OutputDirectories' )
     if not res['OK']:
-      gLogger.error("Failed to obtain production directories",res['Message'])
+      gLogger.error( "Failed to obtain production directories", res['Message'] )
       return res
     directories = res['Value'].splitlines()
     from DIRAC.Core.DISET.RPCClient import RPCClient
-    client = RPCClient("DataManagement/StorageUsage")
-    res = client.getStorageDirectories('','',prodID,[])
+    client = RPCClient( "DataManagement/StorageUsage" )
+    res = client.getStorageDirectories( '', '', prodID, [] )
     if not res['OK']:
-      gLogger.error("Failed to obtain storage usage directories",res['Message'])
+      gLogger.error( "Failed to obtain storage usage directories", res['Message'] )
       return res
     for dir in res['Value']:
       if not dir in directories:
-        directories.append(dir)
+        directories.append( dir )
     for dir in directories:
       prodStr = str( prodID ).zfill( 8 )
       if not re.search( prodStr, dir ):
-        directories.remove(dir)
+        directories.remove( dir )
     if not directories:
-      gLogger.info("No output directories found")
-    return S_OK(directories)
+      gLogger.info( "No output directories found" )
+    return S_OK( directories )
 
   #############################################################################
   #
