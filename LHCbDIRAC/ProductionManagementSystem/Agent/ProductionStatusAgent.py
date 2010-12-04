@@ -29,7 +29,6 @@ __VERSION__ = "$Revision: 1.9 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
@@ -49,8 +48,12 @@ class ProductionStatusAgent( AgentModule ):
     """Sets default values.
     """
     self.am_setOption( 'PollingTime', 2 * 60 * 60 )
-    self.am_setModuleParam( "shifterProxy", "ProductionManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/ProductionManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
     #Agent parameters
     self.updatedProductions = {}
     self.updatedRequests = []
