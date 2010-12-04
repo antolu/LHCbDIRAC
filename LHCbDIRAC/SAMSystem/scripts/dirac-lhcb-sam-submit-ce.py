@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL$
-# File :   dirac-lhcb-sam-submit-ce
-# Author : Stuart Paterson
+# File :    dirac-lhcb-sam-submit-ce
+# Author :  Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-ce.py 18813 2009-12-01 14:46:33Z paterson $"
-__VERSION__ = "$Revision: 1.2 $"
-import sys,string
+__RCSID__ = "$Id: dirac-lhcb-sam-submit-ce.py 18813 2009-12-01 14:46:33Z paterson $"
+import sys, string
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -29,65 +28,65 @@ args = Script.getPositionalArgs()
 
 #Default values
 ce = ''
-removeLock=False
-deleteSharedArea=False
-enable=True
-softwareEnable=True
-reportEnable=False
-logUpload=True
-publishResults=True
-mode='wms'
-install_project=None
-scriptName=''
+removeLock = False
+deleteSharedArea = False
+enable = True
+softwareEnable = True
+reportEnable = False
+logUpload = True
+publishResults = True
+mode = 'wms'
+install_project = None
+scriptName = ''
 
 def usage():
-  print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
-  DIRAC.exit(2)
+  print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
+  DIRAC.exit( 2 )
 
 if args:
   usage()
 
-def getBoolean(value):
-  if value.lower()=='true':
+def getBoolean( value ):
+  if value.lower() == 'true':
     return True
-  elif value.lower()=='false':
+  elif value.lower() == 'false':
     return False
   else:
     print 'ERROR: expected boolean'
-    DIRAC.exit(2)
+    DIRAC.exit( 2 )
 
 exitCode = 0
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0]=="ce":
-    ce=switch[1]
-  elif switch[0]=="removeLock":
-    removeLock=getBoolean(switch[1])
-  elif switch[0]=="deleteSharedArea":
-    deleteSharedArea=getBoolean(switch[1])
-  elif switch[0]=="enable":
-    enable=getBoolean(switch[1])
-  elif switch[0]=="logUpload":
-    logUpload=getBoolean(switch[1])
-  elif switch[0]=="publishResults":
-    publishResults=getBoolean(switch[1])
-  elif switch[0]=="mode":
-    mode=switch[1]
-  elif switch[0]=="softwareEnable":
-    softwareEnable=getBoolean(switch[1])
-  elif switch[0]=="reportEnable":
-    reportEnable=getBoolean(switch[1])
-  elif switch[0]=="install_project":
-    install_project=switch[1]
-  elif switch[0].lower()=="script":
-    scriptName=switch[1]
+  if switch[0] == "ce":
+    ce = switch[1]
+  elif switch[0] == "removeLock":
+    removeLock = getBoolean( switch[1] )
+  elif switch[0] == "deleteSharedArea":
+    deleteSharedArea = getBoolean( switch[1] )
+  elif switch[0] == "enable":
+    enable = getBoolean( switch[1] )
+  elif switch[0] == "logUpload":
+    logUpload = getBoolean( switch[1] )
+  elif switch[0] == "publishResults":
+    publishResults = getBoolean( switch[1] )
+  elif switch[0] == "mode":
+    mode = switch[1]
+  elif switch[0] == "softwareEnable":
+    softwareEnable = getBoolean( switch[1] )
+  elif switch[0] == "reportEnable":
+    reportEnable = getBoolean( switch[1] )
+  elif switch[0] == "install_project":
+    install_project = switch[1]
+  elif switch[0].lower() == "script":
+    scriptName = switch[1]
 
 diracSAM = DiracSAM()
-result = diracSAM.submitSAMJob(ce,removeLock,deleteSharedArea,logUpload,publishResults,mode,enable,softwareEnable,reportEnable,install_project,scriptName)
+result = diracSAM.submitSAMJob( ce, removeLock, deleteSharedArea, logUpload, publishResults, mode, enable, softwareEnable, reportEnable, install_project, scriptName )
 if not result['OK']:
-  print 'ERROR %s' %result['Message']
+  print 'ERROR %s' % result['Message']
   exitCode = 2
 else:
-  print 'JobID: %s' %(result['Value'])
+  print 'JobID: %s' % ( result['Value'] )
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )

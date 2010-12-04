@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL$
-# File :   dirac-lhcb-sam-submit-all
-# Author : Stuart Paterson
+# File :    dirac-lhcb-sam-submit-all
+# Author :  Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-lhcb-sam-submit-all.py 18813 2009-12-01 14:46:33Z paterson $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__ = "$Id: dirac-lhcb-sam-submit-all.py 18813 2009-12-01 14:46:33Z paterson $"
 import sys
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -19,27 +18,27 @@ from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 script = ''
 
 def usage():
-  print 'Usage: %s [--script=<SCRIPT NAME>]' %(Script.scriptName)
+  print 'Usage: %s [--script=<SCRIPT NAME>]' % ( Script.scriptName )
   print 'SAM test jobs will be submitted to all CEs defined in the DIRAC CS'
-  DIRAC.exit(2)
+  DIRAC.exit( 2 )
 
 if args:
   usage()
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower()=="script":
-    script=switch[1]
+  if switch[0].lower() == "script":
+    script = switch[1]
 
 exitCode = 0
 diracSAM = DiracSAM()
-result = diracSAM._promptUser('Are you sure you want to submit SAM jobs for all CEs known to DIRAC?')
+result = diracSAM._promptUser( 'Are you sure you want to submit SAM jobs for all CEs known to DIRAC?' )
 if not result['OK']:
   print 'Action cancelled.'
-  DIRAC.exit(2)
+  DIRAC.exit( 2 )
 
-result = diracSAM.submitAllSAMJobs(softwareEnableFlag=True,scriptName=script)
+result = diracSAM.submitAllSAMJobs( softwareEnableFlag = True, scriptName = script )
 if not result['OK']:
-  print 'ERROR %s' %result['Message']
+  print 'ERROR %s' % result['Message']
   exitCode = 2
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )
