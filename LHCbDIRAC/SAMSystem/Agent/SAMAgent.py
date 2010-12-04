@@ -11,7 +11,6 @@ from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
-from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.Core.Utilities import shellCall
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Utilities import List
@@ -91,10 +90,10 @@ class SAMAgent( AgentModule ):
     self.pollingTime = self.am_getOption( 'PollingTime', 3600 * 6 )
     gLogger.info( "PollingTime %d hours" % ( int( self.pollingTime ) / 3600 ) )
 
-    self.useProxies = self.am_getOption( 'UseProxies', 'True' ).lower() in ( "y", "yes", "true" )
-    self.proxyLocation = self.am_getOption( 'ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
+    # This sets the Default Proxy to used as that defined under
+    # /Operations/Shifter/SAMManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'SAMManager' )
 
     gMonitor.registerActivity( "TotalSites", "Total Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
     gMonitor.registerActivity( "ActiveSites", "Active Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
@@ -106,9 +105,6 @@ class SAMAgent( AgentModule ):
     result = self.samPub.install()
     if not result['OK']:
       gLogger.error( "SAM publisher installation", result['Message'] )
-
-    if self.useProxies:
-      self.am_setModuleParam( "shifterProxy", "SAMManager" )
 
     return result
 
