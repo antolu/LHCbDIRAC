@@ -19,232 +19,232 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC  import gMonitor
 
-import os,time
+import os, time
 
 AGENT_NAME = "SAM/SAMAgent"
 
 class SAMPublisher:
 
-  def __init__(self):
+  def __init__( self ):
     self.Script = None
-    self.samPublishClient = os.getenv('DIRAC','/opt/dirac/pro')+'/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz'
+    self.samPublishClient = os.getenv( 'DIRAC', '/opt/dirac/pro' ) + '/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz'
 
-  def install(self, dest=None):
-    cmd = 'tar -zxvf %s' %(self.samPublishClient)
+  def install( self, dest = None ):
+    cmd = 'tar -zxvf %s' % ( self.samPublishClient )
     if dest:
-      gLogger.info("Publisher","Try to install in %s "%(dest))
-      if not os.path.isdir(dest):
-        return S_ERROR("Publisher","No such directory: %s"%(dest))
-      cmd += " --directory %s"%(dest)
-    res = shellCall(0,cmd)
+      gLogger.info( "Publisher", "Try to install in %s " % ( dest ) )
+      if not os.path.isdir( dest ):
+        return S_ERROR( "Publisher", "No such directory: %s" % ( dest ) )
+      cmd += " --directory %s" % ( dest )
+    res = shellCall( 0, cmd )
     if not res['OK']:
       return res
     if res['Value'][0]:
-      return S_ERROR(res['Value'][2])
+      return S_ERROR( res['Value'][2] )
     if dest:
       dirname = dest
     else:
       dirname = os.getcwd()
-    self.Script = os.path.join(dirname,"sam/bin/same-publish-tuples")
+    self.Script = os.path.join( dirname, "sam/bin/same-publish-tuples" )
     return S_OK()
 
-  def publish(self,testName,ce,status,detailedData=None):
+  def publish( self, testName, ce, status, detailedData = None ):
 
     if not self.Script:
-      return S_ERROR("SAMPublisher is not installed")
+      return S_ERROR( "SAMPublisher is not installed" )
 
     if not detailedData:
       detailedData = 'EOT\n<br>\nEOT'
 
-    timeStr = time.strftime("%Y-%m-%d-%H-%M-%S",time.gmtime())
+    timeStr = time.strftime( "%Y-%m-%d-%H-%M-%S", time.gmtime() )
 
-    defFile = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n" %{'TestName':testName}
-    envFile = "envName: CE-%s\nname: LHCbSAMTest\nvalue: OK\n" %(timeStr)
-    resultFile = "nodename: %s\ntestname: %s\nenvName: CE-%s\nvoname: lhcb\nstatus: %d\ndetaileddata: %s\n"%(ce,testName,timeStr,status,detailedData)
+    defFile = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n" % {'TestName':testName}
+    envFile = "envName: CE-%s\nname: LHCbSAMTest\nvalue: OK\n" % ( timeStr )
+    resultFile = "nodename: %s\ntestname: %s\nenvName: CE-%s\nvoname: lhcb\nstatus: %d\ndetaileddata: %s\n" % ( ce, testName, timeStr, status, detailedData )
 
     publishFlag = True
 
-    for test,cont in (('TestDef',defFile),('TestEnvVars',envFile),('TestData',resultFile)):
+    for test, cont in ( ( 'TestDef', defFile ), ( 'TestEnvVars', envFile ), ( 'TestData', resultFile ) ):
       fname = os.tmpnam()
-      fopen = open(fname,'w')
-      fopen.write(cont)
+      fopen = open( fname, 'w' )
+      fopen.write( cont )
       fopen.close()
-      cmd = '%s %s %s' %(self.Script,test,fname)
-      result = shellCall(0,cmd)
+      cmd = '%s %s %s' % ( self.Script, test, fname )
+      result = shellCall( 0, cmd )
       if not result['OK']:
-        gLogger.warn("Publishing %s"%(test),result['Message'])
+        gLogger.warn( "Publishing %s" % ( test ), result['Message'] )
         publishFlag = False
       elif result['Value'][0]:
-        gLogger.warn("Publishing %s"%(test),result['Value'][2])
+        gLogger.warn( "Publishing %s" % ( test ), result['Value'][2] )
         publishFlag = False
 
-      os.remove(fname)
+      os.remove( fname )
 
     if publishFlag:
       return S_OK()
     else:
-      return S_ERROR("Publishing error")
+      return S_ERROR( "Publishing error" )
 
-class SAMAgent(AgentModule):
+class SAMAgent( AgentModule ):
 
-  def initialize(self):
-    self.pollingTime = self.am_getOption('PollingTime',3600*6)
-    gLogger.info("PollingTime %d hours" %(int(self.pollingTime)/3600))
+  def initialize( self ):
+    self.pollingTime = self.am_getOption( 'PollingTime', 3600 * 6 )
+    gLogger.info( "PollingTime %d hours" % ( int( self.pollingTime ) / 3600 ) )
 
-    self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
-    self.proxyLocation = self.am_getOption('ProxyLocation', '' )
+    self.useProxies = self.am_getOption( 'UseProxies', 'True' ).lower() in ( "y", "yes", "true" )
+    self.proxyLocation = self.am_getOption( 'ProxyLocation', '' )
     if not self.proxyLocation:
       self.proxyLocation = False
 
-    gMonitor.registerActivity("TotalSites","Total Sites","SAMAgent","Sites",gMonitor.OP_SUM,3600*2)
-    gMonitor.registerActivity("ActiveSites","Active Sites","SAMAgent","Sites",gMonitor.OP_SUM,3600*2)
-    gMonitor.registerActivity("BannedSites","Banned Sites","SAMAgent","Sites",gMonitor.OP_SUM,3600*2)
-    gMonitor.registerActivity("DeletedJobs","Deleted Jobs","SAMAgent","Jobs",gMonitor.OP_SUM,3600*2)
+    gMonitor.registerActivity( "TotalSites", "Total Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
+    gMonitor.registerActivity( "ActiveSites", "Active Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
+    gMonitor.registerActivity( "BannedSites", "Banned Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
+    gMonitor.registerActivity( "DeletedJobs", "Deleted Jobs", "SAMAgent", "Jobs", gMonitor.OP_SUM, 3600 * 2 )
 
     self.samPub = SAMPublisher()
 
     result = self.samPub.install()
     if not result['OK']:
-      gLogger.error("SAM publisher installation", result['Message'])
+      gLogger.error( "SAM publisher installation", result['Message'] )
 
     if self.useProxies:
       self.am_setModuleParam( "shifterProxy", "SAMManager" )
 
     return result
 
-  def execute(self):
+  def execute( self ):
 
-    gLogger.debug("Executing %s"%(AGENT_NAME))
+    gLogger.debug( "Executing %s" % ( AGENT_NAME ) )
 
     self._clearSAMjobs()
     self._siteAccount()
 
     diracSAM = DiracSAM()
 
-    result = diracSAM.submitAllSAMJobs(False) # Forbidden software installation
+    result = diracSAM.submitAllSAMJobs( False ) # Forbidden software installation
     if not result['OK']:
-      gLogger.error(result['Message'])
+      gLogger.error( result['Message'] )
 
     return result
 
-  def _siteAccount(self):
+  def _siteAccount( self ):
 
-    gLogger.debug("Executing %s"%(AGENT_NAME))
+    gLogger.debug( "Executing %s" % ( AGENT_NAME ) )
 
-    wmsAdmin = RPCClient('WorkloadManagement/WMSAdministrator')
+    wmsAdmin = RPCClient( 'WorkloadManagement/WMSAdministrator' )
     result = wmsAdmin.getSiteMask()
     if not result[ 'OK' ]:
       self.log.error( "Can't get SiteMask: %s" % result[ 'Message' ] )
       return result
     sitesmask = result['Value']
-    numsitesmask = len(sitesmask)
+    numsitesmask = len( sitesmask )
 
-    result = gConfig.getSections('/Resources/Sites/LCG')
+    result = gConfig.getSections( '/Resources/Sites/LCG' )
     if not result[ 'OK' ]:
       self.log.error( "Can't get Sites: %s" % result[ 'Message' ] )
       return result
     sites = result['Value']
-    numsites = len(sites)
+    numsites = len( sites )
 
-    gMonitor.addMark("TotalSites", numsites)
-    gMonitor.addMark("ActiveSites", numsitesmask)
-    gMonitor.addMark("BannedSites", numsites - numsitesmask)
-    gMonitor.addMark("DeletedJobs", self.deletedJobs)
+    gMonitor.addMark( "TotalSites", numsites )
+    gMonitor.addMark( "ActiveSites", numsitesmask )
+    gMonitor.addMark( "BannedSites", numsites - numsitesmask )
+    gMonitor.addMark( "DeletedJobs", self.deletedJobs )
 
-    self.log.verbose("Site Account finished")
+    self.log.verbose( "Site Account finished" )
 
     return S_OK()
 
-  def _clearSAMjobs(self,days=2):
+  def _clearSAMjobs( self, days = 2 ):
 
-    gLogger.info("Clear SAM jobs for last %d day(s)"%days)
+    gLogger.info( "Clear SAM jobs for last %d day(s)" % days )
     dirac = Dirac()
 
     samPub = self.samPub
     testName = 'CE-lhcb-availability'
 
 
-    sites = gConfig.getSections('/Resources/Sites/LCG')['Value']
+    sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
 
     allces = []
     jobIDs = []
     conditions = {}
     conditions['JobGroup'] = 'SAM'
 
-    days_ago = time.gmtime(time.time()-60*60*24*days)
-    Date = '%s-%s-%s' %(days_ago[0],str(days_ago[1]).zfill(2),str(days_ago[2]).zfill(2))
+    days_ago = time.gmtime( time.time() - 60 * 60 * 24 * days )
+    Date = '%s-%s-%s' % ( days_ago[0], str( days_ago[1] ).zfill( 2 ), str( days_ago[2] ).zfill( 2 ) )
 
     for site in sites:
 
-      opt = gConfig.getOptionsDict('/Resources/Sites/LCG/%s'%site)['Value']
-      name = opt.get('Name','')
-      ces = List.fromChar( opt.get('CE',''))
+      opt = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )['Value']
+      name = opt.get( 'Name', '' )
+      ces = List.fromChar( opt.get( 'CE', '' ) )
       allces += ces
 
       conditions['Site'] = site
-      monitoring = RPCClient('WorkloadManagement/JobMonitoring',timeout=120)
+      monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
 
-      result = monitoring.getJobs(conditions,Date)
+      result = monitoring.getJobs( conditions, Date )
       if not result['OK']:
-        gLogger.warn("Error get Jobs for Site %s"%(site),result['Message'])
+        gLogger.warn( "Error get Jobs for Site %s" % ( site ), result['Message'] )
         continue
-      gLogger.debug("Jobs for site %s"%site,repr(result['Value']))
+      gLogger.debug( "Jobs for site %s" % site, repr( result['Value'] ) )
       jobIDs += result['Value']
 
     ceOldWaitingJobs = {}
     ceNewStartedJobs = {}
 
-    startedStatus = ("Done","Failed","Completed","Running")
+    startedStatus = ( "Done", "Failed", "Completed", "Running" )
 
     for j in jobIDs:
 
-      result = monitoring.getJobAttributes(int(j))
+      result = monitoring.getJobAttributes( int( j ) )
       if not result['OK']:
-        gLogger.warn("getJobAttributes", result['Message'])
+        gLogger.warn( "getJobAttributes", result['Message'] )
         continue
 
       attr = result['Value']
-      ce = attr["JobName"].replace("SAM-","")
-      submitTime = time.strptime(attr["SubmissionTime"]+"[UTC]", "%Y-%m-%d %H:%M:%S[%Z]")
-      deltat = time.time() - time.mktime(submitTime)
-      dayAndNight = bool(int(deltat)/(60*60*24))
+      ce = attr["JobName"].replace( "SAM-", "" )
+      submitTime = time.strptime( attr["SubmissionTime"] + "[UTC]", "%Y-%m-%d %H:%M:%S[%Z]" )
+      deltat = time.time() - time.mktime( submitTime )
+      dayAndNight = bool( int( deltat ) / ( 60 * 60 * 24 ) )
       status = attr['Status']
-      gLogger.debug("Job %s from CE %s %s"%(j,ce,status))
+      gLogger.debug( "Job %s from CE %s %s" % ( j, ce, status ) )
 
-      if dayAndNight and status=='Waiting':
-        ceOldWaitingJobs.setdefault(ce,[]).append(j)
+      if dayAndNight and status == 'Waiting':
+        ceOldWaitingJobs.setdefault( ce, [] ).append( j )
 
       if not dayAndNight and status in startedStatus:
-        ceNewStartedJobs.setdefault(ce,[]).append(j)
+        ceNewStartedJobs.setdefault( ce, [] ).append( j )
 
     oldWaitingJobs = []
     for jobs in ceOldWaitingJobs.values():
-      oldWaitingJobs.extend(jobs)
+      oldWaitingJobs.extend( jobs )
     for job in oldWaitingJobs:
-      gLogger.debug("Kill Old SAM Job",repr(job))
-      dirac.delete(int(job))
-    gLogger.info("%s:"%(AGENT_NAME)," %d SAM jobs were deleted"%(len(oldWaitingJobs)))
-    self.deletedJobs = len(oldWaitingJobs)
+      gLogger.debug( "Kill Old SAM Job", repr( job ) )
+      dirac.delete( int( job ) )
+    gLogger.info( "%s:" % ( AGENT_NAME ), " %d SAM jobs were deleted" % ( len( oldWaitingJobs ) ) )
+    self.deletedJobs = len( oldWaitingJobs )
 
     ceOldWaitingJobs = ceOldWaitingJobs.keys()
     ceNewStartedJobs = ceNewStartedJobs.keys()
-    gLogger.info("ceOldWaitingJobs",repr(ceOldWaitingJobs))
-    gLogger.info("ceNewStartedJobs",repr(ceNewStartedJobs))
+    gLogger.info( "ceOldWaitingJobs", repr( ceOldWaitingJobs ) )
+    gLogger.info( "ceNewStartedJobs", repr( ceNewStartedJobs ) )
 
     for ce in allces:
       status = 0
-      if (ce in ceNewStartedJobs) and (ce in ceOldWaitingJobs):
+      if ( ce in ceNewStartedJobs ) and ( ce in ceOldWaitingJobs ):
         status = 40
-      if (ce in ceNewStartedJobs) and not (ce in ceOldWaitingJobs):
+      if ( ce in ceNewStartedJobs ) and not ( ce in ceOldWaitingJobs ):
         status = 10
-      if not (ce in ceNewStartedJobs) and (ce in ceOldWaitingJobs):
+      if not ( ce in ceNewStartedJobs ) and ( ce in ceOldWaitingJobs ):
         status = 50
 
-      gLogger.verbose("CE status:","%s %d"%(ce,status))
+      gLogger.verbose( "CE status:", "%s %d" % ( ce, status ) )
 
-      res = samPub.publish(testName,ce,status)
+      res = samPub.publish( testName, ce, status )
       if not res['OK']:
-        gLogger.warn("SAM publisher error for CE %s"%ce, res['Message'])
+        gLogger.warn( "SAM publisher error for CE %s" % ce, res['Message'] )
 
 
 
