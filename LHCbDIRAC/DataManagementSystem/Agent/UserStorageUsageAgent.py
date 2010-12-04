@@ -6,7 +6,6 @@ __RCSID__ = "$Id: UserStorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
-from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.Core.Utilities.List import sortList
 
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
@@ -29,8 +28,12 @@ class UserStorageUsageAgent( StorageUsageAgent ):
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
     return S_OK()
 
   def removeEmptyDir( self, directory ):
