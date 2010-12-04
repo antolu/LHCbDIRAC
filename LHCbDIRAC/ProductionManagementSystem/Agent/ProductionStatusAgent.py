@@ -25,7 +25,6 @@
 """
 
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision: 1.9 $"
 
 from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                               import AgentModule
