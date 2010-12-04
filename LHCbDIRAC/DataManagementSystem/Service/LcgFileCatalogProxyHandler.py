@@ -6,7 +6,6 @@ __RCSID__ = "$Id: LcgFileCatalogProxyHandler.py 18296 2009-11-17 14:40:02Z acsmi
 from DIRAC                                          import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                import RequestHandler
 from DIRAC.Resources.Catalog.FileCatalog            import FileCatalog
-from DIRAC.Core.Utilities.Shifter                   import setupShifterProxyInEnv
 from DIRAC.Core.Utilities.Subprocess                    import pythonCall
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient    import gProxyManager
 import os, shutil
