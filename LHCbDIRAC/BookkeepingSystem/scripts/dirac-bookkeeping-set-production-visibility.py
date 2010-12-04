@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id$ 
-# File :   dirac-bookkeeping-set-production-visibility
-# Author : Zoltan Mathe
+# $HeadURL$
+# File :    dirac-bookkeeping-set-production-visibility
+# Author :  Zoltan Mathe
 ########################################################################
 
-__RCSID__   = "$Id: $"
-__VERSION__ = "$ $"
+__RCSID__ = "$Id$"
 
-import sys,string,re
+import sys, string, re
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -24,27 +23,27 @@ bk = BookkeepingClient()
 
 exitCode = 0
 
-prod = raw_input("Production: " )
-visible = raw_input("Visible(True,False):")
+prod = raw_input( "Production: " )
+visible = raw_input( "Visible(True,False):" )
 print 'Do you want to change the visibility(yes or no)?'
-value = raw_input('Choice:')
-choice=value.lower()
-if choice in ['yes','y']:
+value = raw_input( 'Choice:' )
+choice = value.lower()
+if choice in ['yes', 'y']:
   if visible.upper() == 'TRUE':
-    res = bk.setProductionVisible({'Production':int(prod), 'Visible':True})
+    res = bk.setProductionVisible( {'Production':int( prod ), 'Visible':True} )
     if res["OK"]:
       print 'The production visible!'
     else:
       print res['Message']
-      DIRAC.exit(255)
+      DIRAC.exit( 255 )
   else:
-    res = bk.setProductionVisible({'Production':int(prod), 'Visible':False})
+    res = bk.setProductionVisible( {'Production':int( prod ), 'Visible':False} )
     if res["OK"]:
       print 'The production invisible!'
     else:
       print res['Message']
-      DIRAC.exit(255)
+      DIRAC.exit( 255 )
 else:
-  print 'Unespected choice:',value
+  print 'Unespected choice:', value
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )

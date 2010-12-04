@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL:  $
-# File :   dirac-bookkeeping-filetypes-list
-# Author : Zoltan Mathe
+# $HeadURL$
+# File :    dirac-bookkeeping-filetypes-list
+# Author :  Zoltan Mathe
 ########################################################################
 
-__RCSID__   = "$Id: $"
-__VERSION__ = "$ $"
+__RCSID__ = "$Id$"
 
-import sys,string,re
+import sys, string, re
 import DIRAC
 from DIRAC.Core.Base                                               import Script
 from DIRAC.ConfigurationSystem.Client.Config                       import gConfig
@@ -18,20 +17,20 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 bk = BookkeepingClient()
 exitCode = 0
 
-dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
+dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
 
 mfiletypes = []
-res=bk.getAvailableFileTypes()
+res = bk.getAvailableFileTypes()
 if res['OK']:
   dbresult = res['Value']
   print 'Filetypes:'
   for record in dbresult:
-    print str(record[0]).ljust(10)
+    print str( record[0] ).ljust( 10 )
     if record[0] not in dataTypes:
       mfiletypes += [record[0]]
-  if len(mfiletypes) > 0:
+  if len( mfiletypes ) > 0:
     print 'File Types have to be add to CS:'
     for i in mfiletypes:
-      print str(i).ljust(10)
+      print str( i ).ljust( 10 )
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )

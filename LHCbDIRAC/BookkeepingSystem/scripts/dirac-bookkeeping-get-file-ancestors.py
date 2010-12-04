@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL:  $
-# File :   dirac-bookkeeping-get-file-ancestors
-# Author : Zoltan Mathe
+# $HeadURL$
+# File :    dirac-bookkeeping-get-file-ancestors
+# Author :  Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: $"
-__VERSION__ = "$ $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -18,36 +17,36 @@ args = Script.getPositionalArgs()
 bk = BookkeepingClient()
 
 def usage():
-  print 'Usage: %s <lfn> or <file name> <level>' %(Script.scriptName)
-  DIRAC.exit(2)
+  print 'Usage: %s <lfn> or <file name> <level>' % ( Script.scriptName )
+  DIRAC.exit( 2 )
 
-if len(args) < 2: 
+if len( args ) < 2:
   usage()
 
 exitCode = 0
-file = str(args[0])
-level = int(args[1])
+file = str( args[0] )
+level = int( args[1] )
 lfns = []
 try:
-  files =open(file)
+  files = open( file )
   for f in files:
-    lfns +=  [f.strip()]
-except Exception,ex:
+    lfns += [f.strip()]
+except Exception, ex:
   lfns = [file]
 
-result = bk.getAncestors(lfns, level)
+result = bk.getAncestors( lfns, level )
 
 if not result['OK']:
-  print 'ERROR %s' %(result['Message'])
+  print 'ERROR %s' % ( result['Message'] )
   exitCode = 2
 else:
   values = result['Value']
   print 'Successful:'
   files = values['Successful']
   for i in files.keys():
-    print i+':'
+    print i + ':'
     for j in files[i]:
-      print '                 '+j
-  print 'Faild:',values['Failed']
-  
-DIRAC.exit(exitCode)
+      print '                 ' + j
+  print 'Faild:', values['Failed']
+
+DIRAC.exit( exitCode )

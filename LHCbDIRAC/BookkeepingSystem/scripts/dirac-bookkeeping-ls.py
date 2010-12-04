@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id: dirac-bookkeeping-ls.py 18178 2009-11-11 14:07:40Z zmathe $
+# $Id$
 ########################################################################
 
 import DIRAC
@@ -8,7 +8,7 @@ from DIRAC.Interfaces.API.Dirac                           import Dirac
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient  import LHCB_BKKDBClient
 from DIRAC.Core.Base                                      import Script
 
-__RCSID__ = "$Id: dirac-bookkeeping-ls.py 18178 2009-11-11 14:07:40Z zmathe $"
+__RCSID__ = "$Id$"
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
