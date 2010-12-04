@@ -8,7 +8,6 @@ from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.RequestManagementSystem.Client.RequestClient     import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer  import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
-from DIRAC.Core.Utilities.Shifter                           import setupShifterProxyInEnv
 from DIRAC.Core.Utilities.Subprocess                        import shellCall
 from DIRAC.ConfigurationSystem.Client                       import PathFinder
 from DIRAC.DataManagementSystem.Client.DataLoggingClient    import DataLoggingClient
@@ -48,14 +47,10 @@ class RAWIntegrityAgent( AgentModule ):
     gMonitor.registerActivity( "WaitSize", "Size of migration buffer", "RAWIntegriryAgent", "GB", gMonitor.OP_MEAN )
     gMonitor.registerActivity( "MigrationRate", "Observed migration rate", "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
-    self.useProxies = self.am_getOption( 'UseProxies', 'True' ).lower() in ( "y", "yes", "true" )
-    self.proxyLocation = self.am_getOption( 'ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
-
-    if self.useProxies:
-      self.am_setModuleParam( 'shifterProxy', 'DataManager' )
-      self.am_setModuleParam( 'shifterProxyLocation', self.proxyLocation )
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
 
     return S_OK()
 
@@ -281,6 +276,3 @@ class RAWIntegrityAgent( AgentModule ):
               gLogger.info( "RAWIntegrityAgent.execute: Successfully updated status in raw integrity database." )
 
     return S_OK()
-
-
-
