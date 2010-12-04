@@ -4,33 +4,32 @@ parseCommandLine()
 ########################################################################
 # $HeadURL$
 ########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.2 $"
+__RCSID__ = "$Id$"
 
 import sys
-if len(sys.argv) < 2:
+if len( sys.argv ) < 2:
   print 'Usage: dirac-production-remove-output transID [transID] [transID]'
   sys.exit()
 else:
-  transIDs = [int(arg) for arg in sys.argv[1:]]
+  transIDs = [int( arg ) for arg in sys.argv[1:]]
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC                                                                import gLogger
 import DIRAC
 
-agent = TransformationCleaningAgent('Transformation/TransformationCleaningAgent','dirac-production-remove-output')
+agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent', 'dirac-production-remove-output' )
 agent.initialize()
 
 client = TransformationClient()
 for transID in transIDs:
-  res = client.getTransformationParameters(transID,['Status'])
+  res = client.getTransformationParameters( transID, ['Status'] )
   if not res['OK']:
-    gLogger.error("Failed to determine transformation status")
-    gLogger.error(res['Message'])
+    gLogger.error( "Failed to determine transformation status" )
+    gLogger.error( res['Message'] )
     continue
   status = res['Value']
-  if not status in ['RemovingFiles','RemovingOutput','ValidatingInput','Active']:
-    gLogger.error("The transformation is in %s status and the outputs can not be removed" % status)
+  if not status in ['RemovingFiles', 'RemovingOutput', 'ValidatingInput', 'Active']:
+    gLogger.error( "The transformation is in %s status and the outputs can not be removed" % status )
     continue
-  agent.removeTransformationOutput(transID)
+  agent.removeTransformationOutput( transID )
