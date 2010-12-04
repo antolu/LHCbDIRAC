@@ -31,7 +31,6 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaMan
 from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
 from DIRAC.Core.Utilities.List                                 import uniqueElements
 from DIRAC.Core.Utilities.Time                                 import timeInterval, dateTime
-from DIRAC.Core.Utilities.Shifter                              import setupShifterProxyInEnv
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
@@ -56,8 +55,12 @@ class DataRecoveryAgent( AgentModule ):
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
     self.am_setOption( 'PollingTime', 2 * 60 * 60 ) #no stalled jobs are considered so can be frequent
-    self.am_setModuleParam( "shifterProxy", "ProductionManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/ProductionManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
     return S_OK()
 
   #############################################################################
