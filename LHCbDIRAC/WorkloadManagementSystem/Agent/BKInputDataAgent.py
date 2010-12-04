@@ -17,66 +17,66 @@ from DIRAC                                                 import gConfig, S_OK,
 
 import os, re, time, string
 
-class BKInputDataAgent(OptimizerModule):
+class BKInputDataAgent( OptimizerModule ):
 
   #############################################################################
-  def initializeOptimizer(self):
+  def initializeOptimizer( self ):
     """Initialize specific parameters for BKInputDataAgent.
     """
-    self.dataAgentName        = self.am_getOption('InputDataAgent','InputData')
+    self.dataAgentName = self.am_getOption( 'InputDataAgent', 'InputData' )
 
     #Define the shifter proxy needed
     self.am_setModuleParam( "shifterProxy", "ProductionManager" )
 
-    self.bkClient = RPCClient('Bookkeeping/BookkeepingManager')
+    self.bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
     return S_OK()
 
   #############################################################################
-  def checkJob(self,job,classAdJob):
+  def checkJob( self, job, classAdJob ):
     """This method controls the checking of the job.
     """
 
-    result = self.jobDB.getInputData(job)
+    result = self.jobDB.getInputData( job )
     if not result['OK']:
-      self.log.warn('Failed to get input data from JobdB for %s' % (job) )
-      self.log.warn(result['Message'])
+      self.log.warn( 'Failed to get input data from JobdB for %s' % ( job ) )
+      self.log.warn( result['Message'] )
       return result
     if not result['Value']:
-      self.log.verbose('Job %s has no input data requirement' % (job) )
-      return self.setNextOptimizer(job)
+      self.log.verbose( 'Job %s has no input data requirement' % ( job ) )
+      return self.setNextOptimizer( job )
 
-    self.log.verbose('Job %s has an input data requirement and will be processed' % (job))
+    self.log.verbose( 'Job %s has an input data requirement and will be processed' % ( job ) )
     inputData = result['Value']
-    result = self.__determineInputDataIntegrity(job,inputData)
+    result = self.__determineInputDataIntegrity( job, inputData )
     if not result['OK']:
       self.log.warn( result['Message'] )
       return result
-    return self.setNextOptimizer(job)
+    return self.setNextOptimizer( job )
 
   #############################################################################
   def __determineInputDataIntegrity( self, job, inputData ):
     """This method checks the mutual consistency of the file catalog and bookkeeping information.
     """
-    lfns = [string.replace(fname,'LFN:','') for fname in inputData]
+    lfns = [string.replace( fname, 'LFN:', '' ) for fname in inputData]
 
     # Remove user generated files as they will not have BK entries
-    self.log.info("Obtained %s input files for job" % len(lfns))
+    self.log.info( "Obtained %s input files for job" % len( lfns ) )
     productionFiles = []
     for lfn in lfns:
-      if not lfn.startswith('/lhcb/user'):
-        productionFiles.append(lfn)
+      if not lfn.startswith( '/lhcb/user' ):
+        productionFiles.append( lfn )
     if not productionFiles:
-      self.log.info("No production files to be checked")
+      self.log.info( "No production files to be checked" )
       return S_OK()
-    self.log.info("Checking the consistency of %s production files" % len(productionFiles))
+    self.log.info( "Checking the consistency of %s production files" % len( productionFiles ) )
 
     # Obtain the metadata stored in the BK
     start = time.time()
-    res = self.bkClient.getFileMetadata(productionFiles)
+    res = self.bkClient.getFileMetadata( productionFiles )
     timing = time.time() - start
-    self.log.info('BK Lookup Time: %.2f seconds ' % (timing) )
+    self.log.info( 'BK Lookup Time: %.2f seconds ' % ( timing ) )
     if not res['OK']:
-      self.log.warn(res['Message'])
+      self.log.warn( res['Message'] )
       return res
 
     # Fail the job if any of the files are not in the BK
@@ -84,57 +84,57 @@ class BKInputDataAgent(OptimizerModule):
     badLFNs = []
     bkGuidDict = {}
     for lfn in productionFiles:
-      if not bkFileMetadata.has_key(lfn):
-        badLFNs.append('BK:%s Problem: %s' %(lfn,'File does not exist in the BK'))
+      if not bkFileMetadata.has_key( lfn ):
+        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
     if badLFNs:
-      self.log.info('Found %s problematic LFN(s) for job %s' % (len(badLFNs),job) )
-      param = string.join(badLFNs,'\n')
-      self.log.info(param)
-      result = self.setJobParam(job,self.am_getModuleParam( 'optimizerName' ),param)
+      self.log.info( 'Found %s problematic LFN(s) for job %s' % ( len( badLFNs ), job ) )
+      param = string.join( badLFNs, '\n' )
+      self.log.info( param )
+      result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:
-        self.log.warn(result['Message'])
-      return S_ERROR('BK Input Data Not Available')
+        self.log.warn( result['Message'] )
+      return S_ERROR( 'BK Input Data Not Available' )
 
     # Get the LFC metadata from the InputData optimizer
-    res = self.getOptimizerJobInfo(job,self.dataAgentName)
+    res = self.getOptimizerJobInfo( job, self.dataAgentName )
     if not res['OK']:
-      self.log.warn(res['Message'])
-      return S_ERROR('Failed To Get LFC Metadata')
+      self.log.warn( res['Message'] )
+      return S_ERROR( 'Failed To Get LFC Metadata' )
     lfcMetadataResult = res['Value']
     if not lfcMetadataResult['Value']:
       errStr = 'LFC Metadata Not Available'
-      self.log.warn(errStr)
-      return S_ERROR(errStr)
+      self.log.warn( errStr )
+      return S_ERROR( errStr )
     lfcMetadata = res['Value']
 
     # Verify the consistency of the LFC and BK metadata
     badFileCount = 0
-    for lfn,lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
+    for lfn, lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
       bkMeta = bkFileMetadata[lfn]
-      badFile=False
-      if lfcMeta.has_key('GUID') and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper():
-        badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK GUID Mismatch'))
-        badFile=True
+      badFile = False
+      if lfcMeta.has_key( 'GUID' ) and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper():
+        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK GUID Mismatch' ) )
+        badFile = True
       if not bkMeta['FileSize']:
-        bkMeta['FileSize']=0
-      if lfcMeta.has_key('Size') and int(lfcMeta['Size']) != int(bkMeta['FileSize']):
-        badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK File Size Mismatch'))
-        badFile=True
-      if lfcMeta.has_key('CheckSumType') and (lfcMeta['CheckSumType'] == 'AD') and bkMeta['ADLER32']:
+        bkMeta['FileSize'] = 0
+      if lfcMeta.has_key( 'Size' ) and int( lfcMeta['Size'] ) != int( bkMeta['FileSize'] ):
+        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK File Size Mismatch' ) )
+        badFile = True
+      if lfcMeta.has_key( 'CheckSumType' ) and ( lfcMeta['CheckSumType'] == 'AD' ) and bkMeta['ADLER32']:
         if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
-          badLFNs.append('BK:%s Problem: %s' %(lfn,'LFC-BK Checksum Mismatch'))
-          badFile=True
+          badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK Checksum Mismatch' ) )
+          badFile = True
       if badFile:
-        badFileCount +=1
+        badFileCount += 1
 
     # Failed the job if there are any inconsistencies
     if badLFNs:
-      self.log.info('Found %s problematic LFN(s) for job %s' % (badFileCount,job) )
-      param = string.join(badLFNs,'\n')
-      self.log.info(param)
-      result = self.setJobParam(job,self.am_getModuleParam( 'optimizerName' ),param)
+      self.log.info( 'Found %s problematic LFN(s) for job %s' % ( badFileCount, job ) )
+      param = string.join( badLFNs, '\n' )
+      self.log.info( param )
+      result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:
-        self.log.warn(result['Message'])
-      return S_ERROR('BK-LFC Integrity Check Failed')
+        self.log.warn( result['Message'] )
+      return S_ERROR( 'BK-LFC Integrity Check Failed' )
 
     return S_OK()
