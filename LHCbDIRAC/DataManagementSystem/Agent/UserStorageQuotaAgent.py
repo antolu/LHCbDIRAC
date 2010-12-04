@@ -24,8 +24,12 @@ class UserStorageQuotaAgent( AgentModule ):
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
     self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', 1000 ) # Default is 1TB
     gLogger.info( "initialize: Default quota found to be %d GB" % self.defaultQuota )
     return S_OK()
