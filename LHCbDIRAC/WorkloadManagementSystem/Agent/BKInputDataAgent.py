@@ -26,7 +26,10 @@ class BKInputDataAgent( OptimizerModule ):
     self.dataAgentName = self.am_getOption( 'InputDataAgent', 'InputData' )
 
     #Define the shifter proxy needed
-    self.am_setModuleParam( "shifterProxy", "ProductionManager" )
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/ProductionManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
     self.bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
     return S_OK()
