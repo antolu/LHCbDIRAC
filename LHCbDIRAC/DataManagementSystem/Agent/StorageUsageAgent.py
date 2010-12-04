@@ -6,8 +6,6 @@ __RCSID__ = "$Id: StorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
-from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
-
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser   import NamespaceBrowser
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import CatalogDirectory
 from DIRAC.Core.Utilities.List                           import sortList
@@ -28,9 +26,13 @@ class StorageUsageAgent( AgentModule ):
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
-    self.activePeriod = self.am_getOption('ActivePeriod',0)
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
+    self.activePeriod = self.am_getOption( 'ActivePeriod', 0 )
     return S_OK()
 
   def execute( self ):
@@ -104,12 +106,12 @@ class StorageUsageAgent( AgentModule ):
           if timeDiff.includes( rightNow ):
             chosenDirs.append( subDir )
         else:
-          chosenDirs.append(subDir)
+          chosenDirs.append( subDir )
 
       oNamespaceBrowser.updateDirs( chosenDirs )
       gLogger.info( "execute: There are %s active directories to be searched." % oNamespaceBrowser.getNumberActiveDirs() )
-    
-    self.publishDirectories(directoriesToPublish)
+
+    self.publishDirectories( directoriesToPublish )
     gLogger.info( "execute: Finished recursive directory search." )
     return S_OK()
 
