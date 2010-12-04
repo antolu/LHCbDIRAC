@@ -1,7 +1,7 @@
 ########################################################################
 # $HeadURL$
-# File :   CondDBAgent.py
-# Author : Stuart Paterson
+# File :    CondDBAgent.py
+# Author :  Stuart Paterson
 ########################################################################
 
 """ The LHCb Conditions DB Agent processes jobs with CondDB tag requirements.
@@ -37,7 +37,11 @@ class CondDBAgent( OptimizerModule ):
     """Initialize specific parameters for CondDBAgent.
     """
     #Define the shifter proxy needed
-    self.am_setModuleParam( "shifterProxy", "ProductionManager" )
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/ProductionManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
     self.tagWaitTime = self.am_getOption( 'MaxTagWaitTime', 12 )
     self.rm = ReplicaManager()
     result = S_OK()
@@ -224,5 +228,3 @@ class CondDBAgent( OptimizerModule ):
       return S_ERROR( 'Requested CondDB tags not available at the following sites:\n%s' % ( string.join( tagMissingSites, ', ' ) ) )
 
     return S_OK()
-
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
