@@ -2,14 +2,12 @@
 # $HeadURL$
 ########################################################################
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision: 1.5 $"
 
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
 from DIRAC.Core.Utilities.List                                      import sortList
-from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
-from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient 
+from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
@@ -18,7 +16,7 @@ import re, os
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
-class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
+class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
   #############################################################################
   def initialize( self ):
@@ -29,20 +27,24 @@ class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
     self.fileCatalogClient = FileCatalogClient()
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
-    self.transformationTypes = sortList(self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge']))
-    gLogger.info("Will treat the following transformation types: %s" % str(self.transformationTypes))
-    self.directoryLocations = sortList(self.am_getOption('DirectoryLocations',['TransformationDB','StorageUsage']))
-    gLogger.info("Will search for directories in the following locations: %s" % str(self.directoryLocations))
-    storageElements = gConfig.getValue('/Resources/StorageElementGroups/Tier1_MC_M-DST',[])
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
+    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] ) )
+    gLogger.info( "Will treat the following transformation types: %s" % str( self.transformationTypes ) )
+    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', ['TransformationDB', 'StorageUsage'] ) )
+    gLogger.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
+    storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
     storageElements.extend( ['CNAF_MC-DST', 'CNAF-RAW'] )
-    self.activeStorages = sortList(self.am_getOption('ActiveSEs',storageElements))
-    gLogger.info("Will check the following storage elements: %s" % str(self.activeStorages))
+    self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
+    gLogger.info( "Will check the following storage elements: %s" % str( self.activeStorages ) )
     return S_OK()
 
   #############################################################################
-  def checkTransformationIntegrity(self,prodID):
+  def checkTransformationIntegrity( self, prodID ):
     """ This method contains the real work
     """
     gLogger.info( "-" * 40 )
@@ -112,7 +114,7 @@ class ValidateOutputDataAgent(DIRACValidateOutputDataAgent):
     #
     # This check performs SE->Catalog->BK for possible output directories
     #
-    for storageElementName in sortList(self.activeStorages):
+    for storageElementName in sortList( self.activeStorages ):
       res = self.integrityClient.storageDirectoryToCatalog( directories, storageElementName )
       if not res['OK']:
         gLogger.error( res['Message'] )
