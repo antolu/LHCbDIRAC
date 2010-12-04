@@ -10,7 +10,6 @@ __RCSID__ = "$Id$"
 from DIRAC                                                    import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                              import AgentModule
 from DIRAC.Core.Utilities.Subprocess                          import shellCall
-from DIRAC.Core.Utilities.Shifter                             import setupShifterProxyInEnv
 from DIRAC.Resources.Storage.StorageElement                   import StorageElement
 import sys, os, shutil
 import time
@@ -36,13 +35,10 @@ class TargzJobLogAgent( AgentModule ):
     self.logPath = self.am_getOption( 'LogPath', '/storage/lhcb/MC/MC09/LOG' )
     gLogger.info( "LogPath", self.logPath )
 
-    self.useProxies = self.am_getOption( 'UseProxies', 'True' ).lower() in ( "y", "yes", "true" )
-    self.proxyLocation = self.am_getOption( 'ProxyLocation', '' )
-    if not self.proxyLocation:
-      self.proxyLocation = False
-
-    if self.useProxies:
-      self.am_setModuleParam( "shifterProxy", "SAMManager" )
+    # This sets the Default Proxy to used as that defined under
+    # /Operations/Shifter/SAMManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'SAMManager' )
 
     self.storageElement = StorageElement( "CERN-tape" )
     self.destDirectory = "/lhcb/backup/log"
@@ -107,10 +103,10 @@ class TargzJobLogAgent( AgentModule ):
 
         self._tarJobDir( path, prod, job )
         open( os.path.join( jobpath, 'index.html' ), 'w' ).write( lines )
-	numberOfTared += 1
+        numberOfTared += 1
       except Exception, x:
         gLogger.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
-	numberOfFailed += 1
+        numberOfFailed += 1
 
     gLogger.info( "Number of tared jobs %d" % numberOfTared )
     gLogger.info( "Number of failed jobs %d" % numberOfFailed )
@@ -219,10 +215,10 @@ class TargzJobLogAgent( AgentModule ):
         if not res['Value']['Failed']:
           subprodpath = os.path.join( path, prod, sub )
           gLogger.info( "rmTree", subprodpath )
-	  shutil.rmtree( subprodpath )
-	  tared = True
-	else:
-	  gLogger.error( "putFile", res['Value']['Failed'] )
+          shutil.rmtree( subprodpath )
+          tared = True
+        else:
+          gLogger.error( "putFile", res['Value']['Failed'] )
       else:
         gLogger.error( "putFile", res['Message'] )
     else:
