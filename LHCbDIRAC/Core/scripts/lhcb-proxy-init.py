@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL$
-# File :   dirac-proxy-init.py
-# Author : Adrian Casajus
+# File :    dirac-proxy-init.py
+# Author :  Adrian Casajus
 ########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.15 $"
+__RCSID__ = "$Id$"
 
 import sys
 import os
@@ -29,7 +28,7 @@ time = cliParams.getProxyLifeTime()
 retVal = generateProxy( cliParams )
 if not retVal[ 'OK' ]:
   print "Can't create a proxy: %s" % retVal[ 'Message' ]
-  sys.exit(1)
+  sys.exit( 1 )
 
 from DIRAC import gConfig
 from DIRAC.Core.Security import CS, Properties
@@ -42,13 +41,13 @@ def uploadProxyToMyProxy( params, DNAsUsername ):
   if DNAsUsername:
     params.debugMsg( "Uploading pilot proxy with group %s to %s..." % ( params.getDIRACGroup(), myProxy.getMyProxyServer() ) )
   else:
-    params.debugMsg(  "Uploading user proxy with group %s to %s..." % ( params.getDIRACGroup(), myProxy.getMyProxyServer() ) )
-  retVal =  myProxy.getInfo( proxyInfo[ 'path' ], useDNAsUserName = DNAsUsername )
+    params.debugMsg( "Uploading user proxy with group %s to %s..." % ( params.getDIRACGroup(), myProxy.getMyProxyServer() ) )
+  retVal = myProxy.getInfo( proxyInfo[ 'path' ], useDNAsUserName = DNAsUsername )
   if retVal[ 'OK' ]:
     remainingSecs = ( int( params.getProxyRemainingSecs() / 3600 ) * 3600 ) - 7200
     myProxyInfo = retVal[ 'Value' ]
     if 'timeLeft' in myProxyInfo and remainingSecs < myProxyInfo[ 'timeLeft' ]:
-      params.debugMsg(  " Already uploaded" )
+      params.debugMsg( " Already uploaded" )
       return True
   retVal = generateProxy( params )
   if not retVal[ 'OK' ]:
@@ -67,7 +66,7 @@ def uploadProxyToMyProxy( params, DNAsUsername ):
   return True
 
 def uploadProxyToDIRACProxyManager( params ):
-  params.debugMsg(  "Uploading user pilot proxy with group %s..." % ( params.getDIRACGroup() ) )
+  params.debugMsg( "Uploading user pilot proxy with group %s..." % ( params.getDIRACGroup() ) )
   params.onTheFly = True
   retVal = uploadProxy( params )
   if not retVal[ 'OK' ]:
@@ -80,17 +79,17 @@ Script.enableCS()
 retVal = getProxyInfo( retVal[ 'Value' ] )
 if not retVal[ 'OK' ]:
   print "Can't create a proxy: %s" % retVal[ 'Message' ]
-  sys.exit(1)
+  sys.exit( 1 )
 
 proxyInfo = retVal[ 'Value' ]
 if 'username' not in proxyInfo:
   print "Not authorized in DIRAC"
-  sys.exit(1)
+  sys.exit( 1 )
 
 retVal = CS.getGroupsForUser( proxyInfo[ 'username' ] )
 if not retVal[ 'OK' ]:
   print "No groups defined for user %s" % proxyInfo[ 'username' ]
-  sys.exit(1)
+  sys.exit( 1 )
 availableGroups = retVal[ 'Value' ]
 
 pilotGroup = False
@@ -99,27 +98,27 @@ for group in availableGroups:
   if Properties.PILOT in groupProps or Properties.GENERIC_PILOT in groupProps:
     pilotGroup = group
     break
-  
+
 issuerCert = proxyInfo[ 'chain' ].getIssuerCert()[ 'Value' ]
 remainingSecs = issuerCert.getRemainingSecs()[ 'Value' ]
-cliParams.setProxyRemainingSecs( remainingSecs - 300 )  
+cliParams.setProxyRemainingSecs( remainingSecs - 300 )
 
 if not pilotGroup:
   print "WARN: No pilot group defined for user %s" % proxyInfo[ 'username' ]
   if cliParams.strict:
-    sys.exit(1)
+    sys.exit( 1 )
 else:
   cliParams.setDIRACGroup( pilotGroup )
   #uploadProxyToMyProxy( cliParams, True )
   success = uploadProxyToDIRACProxyManager( cliParams )
   if not success and cliParams.strict:
-    sys.exit(1)
+    sys.exit( 1 )
 
 cliParams.setDIRACGroup( proxyInfo[ 'group' ] )
 #uploadProxyToMyProxy( cliParams, False )
 success = uploadProxyToDIRACProxyManager( cliParams )
 if not success and cliParams.strict:
-  sys.exit(1)
+  sys.exit( 1 )
 
 finalChain = proxyInfo[ 'chain' ]
 
@@ -133,16 +132,16 @@ if vomsMapping:
     print "          Accessing data in the grid storage from the user interface will not be possible."
     print "          The grid jobs will not be affected."
     if cliParams.strict:
-      sys.exit(1)
+      sys.exit( 1 )
   else:
     finalChain = retVal[ 'Value' ]
 
 retVal = finalChain.dumpAllToFile( proxyInfo[ 'path' ] )
 if not retVal[ 'OK' ]:
   print "Cannot write proxy to file %s" % proxyInfo[ 'path' ]
-  sys.exit(1)
-cliParams.debugMsg(  "done" )
-sys.exit(0)
+  sys.exit( 1 )
+cliParams.debugMsg( "done" )
+sys.exit( 0 )
 
 
 

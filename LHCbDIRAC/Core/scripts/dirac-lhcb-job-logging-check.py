@@ -2,12 +2,11 @@
 import os, sys
 ########################################################################
 # $HeadURL$
-# File :   dirac-lhcb-job-logging-check
-# Author : Greig A Cowan
+# File :    dirac-lhcb-job-logging-check
+# Author :  Greig A Cowan
 ########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.6 $"
-import sys,string, pprint
+__RCSID__ = "$Id$"
+import sys, string, pprint
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -27,20 +26,20 @@ from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.Core.Utilities.List import sortList
 args = Script.getPositionalArgs()
 
-wmsStatus=None
-minorStatus=None
-appStatus=None
-site=None
-owner=None
-jobGroup=None
-date=None
-verbose=False
+wmsStatus = None
+minorStatus = None
+appStatus = None
+site = None
+owner = None
+jobGroup = None
+date = None
+verbose = False
 
 def usage():
-  print 'Usage: %s [Try -h,--help for more information]' %(Script.scriptName)
-  DIRAC.exit(2)
+  print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
+  DIRAC.exit( 2 )
 
-def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac):
+def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac ):
   '''Gets information about jobs from the WMS'''
   # getJobStates
   result_wms = dirac.selectJobs( Status = wmsStatus,
@@ -54,50 +53,50 @@ def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, da
 
   if not result_wms['OK']:
     print 'ERROR %s' % result_wms['Message']
-    DIRAC.exit( 2)
+    DIRAC.exit( 2 )
   else:
     # create list of jobIDs in this state belonging to this production
     jobIDs = result_wms['Value']
-    
+
   return jobIDs
 
-def getAttributes( jobID):
-  result = dirac.attributes( jobID, printOutput=False)
+def getAttributes( jobID ):
+  result = dirac.attributes( jobID, printOutput = False )
   if result['OK']:
     return result['Value']['Owner']
 
-def getLogging( jobID):
-  result = dirac.loggingInfo(jobID,printOutput=False)
+def getLogging( jobID ):
+  result = dirac.loggingInfo( jobID, printOutput = False )
   if result['OK']:
     try:
       for status in result['Value']:
-        if ( status[0] == 'Running' ) and ('error' in status[2].lower() or \
+        if ( status[0] == 'Running' ) and ( 'error' in status[2].lower() or \
              'not found' in status[2].lower() or \
-             'exited with status' in status[2].lower()):
+             'exited with status' in status[2].lower() ):
           failed_time = status[3]
           return failed_time, status[2]
-        elif ( status[0] == 'Completed' ) and ('error' in status[1].lower() or \
+        elif ( status[0] == 'Completed' ) and ( 'error' in status[1].lower() or \
              'not found' in status[1].lower() or \
-             'exited with status' in status[1].lower()):
+             'exited with status' in status[1].lower() ):
           failed_time = status[3]
           return failed_time, status[1]
     except:
       return None, None
 
 
-def getParameters( jobID):
-  result = dirac.parameters(jobID,printOutput=False)  
+def getParameters( jobID ):
+  result = dirac.parameters( jobID, printOutput = False )
   if result['OK']:
     try:
       node = result['Value']['HostName']
       walltime = result['Value']['WallClockTime(s)']
       cputime = result['Value']['TotalCPUTime(s)']
-      memory = result['Value']['Memory(kB)'] 
-      eff = float(cputime)/float(walltime)
+      memory = result['Value']['Memory(kB)']
+      eff = float( cputime ) / float( walltime )
       return node, eff, memory
     except:
       return None, None, None
-    
+
 
 if args:
   usage()
@@ -105,22 +104,22 @@ if args:
 exitCode = 0
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower()=="status":
-    wmsStatus=switch[1]
-  elif switch[0].lower()=="minorstatus":
-    minorStatus=switch[1]
-  elif switch[0].lower()=="applicationstatus":
-    appStatus=switch[1]
-  elif switch[0].lower()=="site":
-    site=switch[1]
-  elif switch[0].lower()=="owner":
-    owner=switch[1]
-  elif switch[0].lower()=="jobgroup":
-    jobGroup=switch[1]
-  elif switch[0].lower()=="date":
-    date=switch[1]
-  elif switch[0].lower()=="verbose":
-    verbose=switch[1]
+  if switch[0].lower() == "status":
+    wmsStatus = switch[1]
+  elif switch[0].lower() == "minorstatus":
+    minorStatus = switch[1]
+  elif switch[0].lower() == "applicationstatus":
+    appStatus = switch[1]
+  elif switch[0].lower() == "site":
+    site = switch[1]
+  elif switch[0].lower() == "owner":
+    owner = switch[1]
+  elif switch[0].lower() == "jobgroup":
+    jobGroup = switch[1]
+  elif switch[0].lower() == "date":
+    date = switch[1]
+  elif switch[0].lower() == "verbose":
+    verbose = switch[1]
 
 selDate = date
 if not date:
@@ -135,48 +134,48 @@ input sandbox or issues with LFN resolution) then there will be no job
 logging information available to summarise.
 '''
 
-jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac)
+jobIDs = getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac )
 error2Nodes = {}
 node2Errors = {}
 error2Users = {}
 user2Errors = {}
 efficiencies = []
 
-print 'Number of jobs that pass the above criteria: %d' % len(jobIDs)
+print 'Number of jobs that pass the above criteria: %d' % len( jobIDs )
 
 for jobID in jobIDs:
   print jobID
-  node, eff, memory = getParameters( int(jobID))
-  logging = getLogging( int(jobID))
-  user = getAttributes( int(jobID))
-  
+  node, eff, memory = getParameters( int( jobID ) )
+  logging = getLogging( int( jobID ) )
+  user = getAttributes( int( jobID ) )
+
   if not logging:
     continue
 
   if eff:
-    efficiencies.append( eff)
+    efficiencies.append( eff )
     eff = '%0.2f' % eff
-  
+
   try:
     if error2Nodes.has_key( logging[1] ):
-      error2Nodes[ logging[1] ].append( node)
+      error2Nodes[ logging[1] ].append( node )
     else:
-      error2Nodes[ logging[1] ] = [ node ] 
+      error2Nodes[ logging[1] ] = [ node ]
 
-    if node2Errors.has_key( node):
-      node2Errors[ node ].append( logging[1])
+    if node2Errors.has_key( node ):
+      node2Errors[ node ].append( logging[1] )
     else:
-      node2Errors[ node ] = [ logging[1]]  
+      node2Errors[ node ] = [ logging[1]]
 
     if error2Users.has_key( logging[1] ):
-      error2Users[ logging[1] ].append( user)
+      error2Users[ logging[1] ].append( user )
     else:
-      error2Users[ logging[1] ] = [ user ] 
+      error2Users[ logging[1] ] = [ user ]
 
-    if user2Errors.has_key( user):
-      user2Errors[ user ].append( logging[1])
+    if user2Errors.has_key( user ):
+      user2Errors[ user ].append( logging[1] )
     else:
-      user2Errors[ user ] = [ logging[1]]  
+      user2Errors[ user ] = [ logging[1]]
 
     if verbose:
       print jobID, node, logging[0], logging[1], eff, memory
@@ -187,48 +186,48 @@ print
 print '##################################'
 print '# Error-Node summary information #'
 print '##################################'
-print "%s %s %s" % ("Error".ljust(50),"Occurences".ljust(12),"Unique nodes".ljust(15))
-for error in sortList(error2Nodes.keys()):
+print "%s %s %s" % ( "Error".ljust( 50 ), "Occurences".ljust( 12 ), "Unique nodes".ljust( 15 ) )
+for error in sortList( error2Nodes.keys() ):
   nodes = error2Nodes[error]
-  print "%s %s %s" % (error.ljust(50),str(len(nodes)).ljust(12),str(len(set(nodes))).ljust(15))
+  print "%s %s %s" % ( error.ljust( 50 ), str( len( nodes ) ).ljust( 12 ), str( len( set( nodes ) ) ).ljust( 15 ) )
 
 print
 print '##################################'
 print '# Error-User summary information #'
 print '##################################'
-print "%s %s %s" % ("Error".ljust(50),"Occurences".ljust(12),"Unique users".ljust(15))
-for error in sortList(error2Users.keys()):
+print "%s %s %s" % ( "Error".ljust( 50 ), "Occurences".ljust( 12 ), "Unique users".ljust( 15 ) )
+for error in sortList( error2Users.keys() ):
   users = error2Users[error]
-  print "%s %s %s" % (error.ljust(50),str(len(users)).ljust(12),str(len(set(users))).ljust(15))
+  print "%s %s %s" % ( error.ljust( 50 ), str( len( users ) ).ljust( 12 ), str( len( set( users ) ) ).ljust( 15 ) )
 
 print
 print '###################################'
 print '# Node-Error summary information  #'
 print '###################################'
-print "%s %s %s" % ("Node".ljust(50),"Errors".ljust(12),"Unique errors".ljust(15))
-for node in sortList(node2Errors.keys()):
+print "%s %s %s" % ( "Node".ljust( 50 ), "Errors".ljust( 12 ), "Unique errors".ljust( 15 ) )
+for node in sortList( node2Errors.keys() ):
   errors = node2Errors[node]
   if node:
-    print "%s %s %s" % (node.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
+    print "%s %s %s" % ( node.ljust( 50 ), str( len( errors ) ).ljust( 12 ), str( len( set( errors ) ) ).ljust( 15 ) )
   else:
-    print "%s %s %s" % (''.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
+    print "%s %s %s" % ( ''.ljust( 50 ), str( len( errors ) ).ljust( 12 ), str( len( set( errors ) ) ).ljust( 15 ) )
 
 print
 print '###################################'
 print '# User-Error summary information  #'
 print '###################################'
-print "%s %s %s" % ("User".ljust(50),"Errors".ljust(12),"Unique errors".ljust(15))
-for user in sortList(user2Errors.keys()):
+print "%s %s %s" % ( "User".ljust( 50 ), "Errors".ljust( 12 ), "Unique errors".ljust( 15 ) )
+for user in sortList( user2Errors.keys() ):
   errors = user2Errors[user]
-  print "%s %s %s" % (user.ljust(50),str(len(errors)).ljust(12),str(len(set(errors))).ljust(15))
+  print "%s %s %s" % ( user.ljust( 50 ), str( len( errors ) ).ljust( 12 ), str( len( set( errors ) ) ).ljust( 15 ) )
 
-n = len(efficiencies)
+n = len( efficiencies )
 if n != 0:
-  average = sum( efficiencies)/len( efficiencies)
+  average = sum( efficiencies ) / len( efficiencies )
   tmp = 0.0
   for eff in efficiencies:
-    tmp += (eff - average)**2
-  stddev = ( tmp/ len(efficiencies))**0.5
+    tmp += ( eff - average ) ** 2
+  stddev = ( tmp / len( efficiencies ) ) ** 0.5
 
   print '\nAverage CPU efficiency is %0.2f' % average
   print 'Standard Deviation of CPU efficiency is %0.2f' % stddev
