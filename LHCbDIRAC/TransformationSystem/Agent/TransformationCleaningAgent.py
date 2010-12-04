@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
 from DIRAC.Core.Utilities.List                                      import sortList, breakListIntoChunks
-from DIRAC.Core.Utilities.Shifter                                   import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
 from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient
@@ -29,8 +28,12 @@ class TransformationCleaningAgent( DIRACTransformationCleaningAgent ):
     self.wmsClient = WMSClient()
     self.requestClient = RequestClient()
     self.bkClient = BookkeepingClient()
-    self.am_setModuleParam( "shifterProxy", "DataManager" )
-    self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( gConfig.getValue( '/LocalSite/InstancePath', rootPath ), AGENT_NAME ) )
+
+    # This sets the Default Proxy to used as that defined under 
+    # /Operations/Shifter/DataManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+
     self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge', 'Replication'] ) )
     gLogger.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
     self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', ['TransformationDB', 'StorageUsage'] ) )
