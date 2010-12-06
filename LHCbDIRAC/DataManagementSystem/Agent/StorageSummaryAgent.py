@@ -15,7 +15,7 @@ __RCSID__ = "$Id: StorageSummaryAgent.py 31247 2010-12-04 10:32:34Z rgracian $"
 
 from DIRAC.Core.Base.AgentModule                                        import AgentModule
 from DIRAC.Core.Utilities.List                                          import sortList,intListToString
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 
 from DIRAC  import gConfig, S_OK, S_ERROR
@@ -28,14 +28,14 @@ class StorageSummaryAgent(AgentModule):
   def initialize(self):
     """Sets defaults
     """
-    self.pollingTime = self.am_setOption('PollingTime',60*60*4)
-    self.outputFileName = self.am_setOption('OutputFileName','StorageSummaryAgentOutput.txt')
+    self.pollingTime = self.am_setOption('PollingTime',14400)
+    self.outputFileName = 'StorageSummaryAgentOutput.txt'
     return S_OK()
 
   #############################################################################
   def execute(self):
     """The StorageSummaryAgent execution method.
-    """
+    """    
     if os.path.exists(self.outputFileName):
       shutil.move(self.outputFileName,'%s.backup' %(self.outputFileName))
       
@@ -83,7 +83,11 @@ class StorageSummaryAgent(AgentModule):
           self.log.error(proPassName,res['Message'])        
           continue
         productions = sortList([x[0] for x in res['Value']])
-        self.log.verbose("\n\t%s (%s)" % (proPassName,intListToString(sortList(productions))))
+        procPassSummary = "\n\t%s (%s)" % (proPassName,intListToString(sortList(productions)))
+        self.log.verbose(procPassSummary)
+        fopen = open(self.outputFileName,'a')    
+        fopen.write(procPassSummary)
+        fopen.close()
         prodFileTypeEvents = {}
         my_total = 0
         my_total_perSE = {}
