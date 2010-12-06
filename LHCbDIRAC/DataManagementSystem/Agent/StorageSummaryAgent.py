@@ -83,7 +83,7 @@ class StorageSummaryAgent(AgentModule):
           self.log.error(proPassName,res['Message'])        
           continue
         productions = sortList([x[0] for x in res['Value']])
-        procPassSummary = "\n\t%s (%s)" % (proPassName,intListToString(sortList(productions)))
+        procPassSummary = "\n\t%s (%s)\n" % (proPassName,intListToString(sortList(productions)))
         self.log.verbose(procPassSummary)
         fopen = open(self.outputFileName,'a')    
         fopen.write(procPassSummary)
