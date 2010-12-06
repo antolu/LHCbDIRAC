@@ -26,7 +26,7 @@ from DIRAC                                            import gConfig,gLogger
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
