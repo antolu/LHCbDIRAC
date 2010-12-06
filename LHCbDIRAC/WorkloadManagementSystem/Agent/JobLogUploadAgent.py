@@ -14,7 +14,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.WorkloadManagementSystem.Client.SandboxClient import SandboxClient
+from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC.RequestManagementSystem.Agent.RequestAgentMixIn import RequestAgentMixIn
 
@@ -34,6 +34,8 @@ class JobLogUploadAgent(AgentModule,RequestAgentMixIn):
     gMonitor.registerActivity("Successful",         "Request Forward Successful",   "JobLogUploadAgent",      "Requests/min",   gMonitor.OP_SUM)
     gMonitor.registerActivity("Failed",             "Request Forward Failed",       "JobLogUploadAgent",      "Requests/min",   gMonitor.OP_SUM)
 
+    self.workDir = self.am_getWorkDirectory()
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
     self.local = PathFinder.getServiceURL("RequestManagement/localURL")
     if not self.local:
       errStr = 'The RequestManagement/localURL option must be defined.'
@@ -136,8 +138,8 @@ class JobLogUploadAgent(AgentModule,RequestAgentMixIn):
     os.makedirs(workDir)
 
     # 1. Output sandbox
-    sandboxClient = SandboxClient(sandbox_type='Output')
-    result = sandboxClient.getSandbox(jobID,workDir)
+    sandboxClient = SandboxStoreClient()
+    result = sandboxClient.downloadSandboxForJob( jobID, 'Output', workDir )
     if not result['OK']:
       shutil.rmtree(workDir)
       return result
