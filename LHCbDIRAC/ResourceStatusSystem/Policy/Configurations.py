@@ -169,15 +169,15 @@ AssigneeGroups = {
    'ResourceType': ValidResourceType, 
    'Notifications': ['Mail']
    }, 
-#  'Carlos_PROD_SE': 
-#  {'Users': ['rsantana'],
-#   'Setup': ['LHCb-Production'],
-#   'Granularity': ['StorageElement'],
-#   'SiteType': ValidSiteType, 
-#   'ServiceType': ValidServiceType, 
-#   'ResourceType': ValidResourceType, 
-#   'Notifications': ['Mail']
-#   }, 
+  'Carlos_PROD_SE': 
+  {'Users': ['rsantana'],
+   'Setup': ['LHCb-Production'],
+   'Granularity': ['StorageElement'],
+   'SiteType': ValidSiteType, 
+   'ServiceType': ValidServiceType, 
+   'ResourceType': ValidResourceType, 
+   'Notifications': ['Mail']
+   }, 
   'Carlos_PROD_Res': 
   {'Users': ['rsantana'],
    'Setup': ['LHCb-Production'],
