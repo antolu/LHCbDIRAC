@@ -5,6 +5,18 @@
 # Author :  Zoltan Mathe
 ########################################################################
 __RCSID__ = "$Id$"
+
+from DIRAC.Core.Base import Script
+
+Script.setUsageMessage("""
+Command to invoke the LHCb Bookkeeping Database graphical user interface
+
+Usage:
+   %s [options]
+""" % Script.scriptName)
+
+Script.parseCommandLine( ignoreErrors = True )
+
 from DIRAC.Core.Security.Misc                                  import getProxyInfo
 from DIRAC.Core.Security.CS                                    import getDNForUsername
 from DIRAC                                                     import gLogger, S_OK, S_ERROR
@@ -12,8 +24,6 @@ import DIRAC
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from DIRAC.Core.Base import Script
-Script.parseCommandLine( ignoreErrors = True )
 
 import sys
 
