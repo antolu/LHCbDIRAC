@@ -20,7 +20,7 @@ from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient           import S
 
 from DIRAC  import gConfig, S_OK, S_ERROR
 
-import sys,re
+import sys,re,shutil,os
 
 class StorageSummaryAgent(AgentModule):
 
@@ -28,13 +28,17 @@ class StorageSummaryAgent(AgentModule):
   def initialize(self):
     """Sets defaults
     """
-    self.pollingTime = self.am_setOption('PollingTime',10)
+    self.pollingTime = self.am_setOption('PollingTime',60*60*4)
+    self.outputFileName = self.am_setOption('OutputFileName','StorageSummaryAgentOutput.txt')
     return S_OK()
 
   #############################################################################
   def execute(self):
     """The StorageSummaryAgent execution method.
     """
+    if os.path.exists(self.outputFileName):
+      shutil.move(self.outputFileName,'%s.backup' %(self.outputFileName))
+      
     bkClient = BookkeepingClient()
     suClient = StorageUsageClient()    
     sesOfInterest = ''#['CERN_M-DST']
@@ -44,8 +48,8 @@ class StorageSummaryAgent(AgentModule):
     configVersion = 'Collision10'
     res = bkClient.getSimulationConditions(configName,configVersion,1)
     if not res['OK']:
-      print 'ERROR', res['Message']
-      sys.exit(-1)
+      self.log.error(res)
+      return res
     
     dataTakingConds = {}
     for dataTakingTuple in res['Value']:
@@ -55,13 +59,13 @@ class StorageSummaryAgent(AgentModule):
         dataTakingConds[dataTakingCond] = dataTakingCondID
     
     processingPassTotals = {}
-
+    
     for dataTakingCond in sortList(dataTakingConds.keys()):
       print dataTakingCond
       dataTakingCondID = dataTakingConds[dataTakingCond] 
       res = bkClient.getProPassWithSimCondNew(configName,configVersion,str(dataTakingCondID))
       if not res['OK']:
-        print 'ERROR',dataTakingCond,res['Message']
+        self.log.error(dataTakingCond,res['Message'])
         continue
       proPassTuples = res['Value']
       processedProcessingPasses = []
@@ -76,10 +80,10 @@ class StorageSummaryAgent(AgentModule):
         processedProcessingPasses.append(proPassName)
         res = bkClient.getProductionsWithSimcond(configName, configVersion, str(dataTakingCondID), proPassName, 'ALL')
         if not res['OK']:
-          print 'ERROR',proPassName, res['Message']
+          self.log.error(proPassName,res['Message'])        
           continue
         productions = sortList([x[0] for x in res['Value']])
-        print "\n\t%s (%s)" % (proPassName,intListToString(sortList(productions)))
+        self.log.verbose("\n\t%s (%s)" % (proPassName,intListToString(sortList(productions))))
         prodFileTypeEvents = {}
         my_total = 0
         my_total_perSE = {}
@@ -92,7 +96,7 @@ class StorageSummaryAgent(AgentModule):
           #  continue
           res = bkClient.getNumberOfEvents(prodID)
           if not res['OK']:
-            print 'ERROR',prodID,res['Message']
+            self.log.error(prodID,res['Message'])
             continue
           for eventNumberTuple in res['Value']:
             resFileType,resEvtNumber,resEventType,physEventNumber = eventNumberTuple
@@ -115,10 +119,9 @@ class StorageSummaryAgent(AgentModule):
           for prodFileType in prodFileTypes:
             res = suClient.getStorageSummary('/lhcb/data',prodFileType,prodID,sesOfInterest)
             if not res['OK']:
-              print 'ERROR',prodID,prodFileType,res['Message']
+              self.log.error('Error for prod %s file type %s' %(prodID,prodFileType),res['Message'])
               continue
             usageDict = res['Value']
-      #print "entering the loop"
             for seName in sortList(usageDict.keys()):
               files = usageDict[seName]['Files']
               size = usageDict[seName]['Size']
@@ -126,13 +129,6 @@ class StorageSummaryAgent(AgentModule):
               if not my_total_perSE.has_key(seName):
                 my_total_perSE[seName] = {'Size':0}
               my_total_perSE[seName]['Size'] += size
-              #print seName
-              #if seName == 'CERN_M-DST' :
-              #   my_total += size
-              #
-              #print "%s %s %s %s %s GB" % (str(prodID).ljust(8),prodFileType.ljust(25),seName.ljust(15),str(files).rjust(8),str("%.1f" % (mysize)).rjust(20))
-              #  original #print "%s %s %s %s %s %s %s" % (dataTakingCond.ljust(35),proPassName.ljust(60),str(prodID).ljust(8),prodFileType.ljust(25),seName.ljust(15),str(files).rjust(8),str("%.1f" % (mysize)).rjust(20))
-              # Totals
               if not processingPassTotals.has_key(dataTakingCond):
                 processingPassTotals[dataTakingCond] = {}
               if not processingPassTotals[dataTakingCond].has_key(proPassName):
@@ -141,22 +137,22 @@ class StorageSummaryAgent(AgentModule):
                 processingPassTotals[dataTakingCond][proPassName][prodFileType] = {'Files':0,'Size':0,'Events':0}
               processingPassTotals[dataTakingCond][proPassName][prodFileType]['Files'] += files
               processingPassTotals[dataTakingCond][proPassName][prodFileType]['Size'] += size
-        #for prodFileType,prodFileTypeEvents in prodFileTypeEvents.items():
-        #  processingPassTotals[dataTakingCond][proPassName][prodFileType]['Events'] = prodFileTypeEvents
+#        for prodFileType,prodFileTypeEvents in prodFileTypeEvents.items():
+#          processingPassTotals[dataTakingCond][proPassName][prodFileType]['Events'] = prodFileTypeEvents
         #print processingPassTotals[dotaTakingCond][proPassName]
-        #
-        #print "leaving the loop"
-        print "  "
-        print "   Totals per SE ( %s )" % (dataTakingCond)
-        print "   SE                       Size(GB) "
-        #print "Total do CERN_M-DST = %s" %(str("%.1f" % (my_total))) 
+        summary = '\n  Totals per SE ( %s )\n   SE                       Size(GB)\n' %(dataTakingCond)
         tot_geral = 0
         for SeTOT in sortList(my_total_perSE.keys()):     # sortList(fileDict.keys()):
           tot_SE = my_total_perSE[SeTOT]['Size']/(1000.0*1000.0*1000.0) 
           tot_geral += tot_SE
-          print "%s %s" % (str(SeTOT).ljust(15), str("%.1f" % (tot_SE)).rjust(20))
-        print "------------------------------------ "
-        print "%s %s" % (str("TOTAL").ljust(15), str("%.1f" % (tot_geral)).rjust(20))
+          summary+="%s %s\n" % (str(SeTOT).ljust(15), str("%.1f" % (tot_SE)).rjust(20))
+          
+        summary += "------------------------------------\n"
+        summary += "%s %s\n" % (str("TOTAL").ljust(15), str("%.1f" % (tot_geral)).rjust(20))
+        self.log.info(summary)
+        fopen = open(self.outputFileName,'a')    
+        fopen.write(summary)
+        fopen.close()
         if not processingPassTotals.has_key(dataTakingCond):
           continue
         if not processingPassTotals[dataTakingCond].has_key(proPassName):
