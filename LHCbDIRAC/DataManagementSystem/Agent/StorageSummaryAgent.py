@@ -15,7 +15,7 @@ __RCSID__ = "$Id: StorageSummaryAgent.py 31247 2010-12-04 10:32:34Z rgracian $"
 
 from DIRAC.Core.Base.AgentModule                                        import AgentModule
 from DIRAC.Core.Utilities.List                                          import sortList,intListToString
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 
 from DIRAC  import gConfig, S_OK, S_ERROR
