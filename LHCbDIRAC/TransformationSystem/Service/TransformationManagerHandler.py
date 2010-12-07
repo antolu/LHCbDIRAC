@@ -168,8 +168,10 @@ class TransformationManagerHandler(TransformationManagerHandlerBase):
       transID = transRunDict['TransformationID']
       runID = transRunDict['RunNumber']
       if not transRunStatusDict.has_key(transID):
+        transRun += [0.,0,0,0,0,0]
         continue
       if not transRunStatusDict[transID].has_key(runID):
+        transRun += [0.,0,0,0,0,0]
         continue
       # Update the status counters
       status = transRunDict['Status']
