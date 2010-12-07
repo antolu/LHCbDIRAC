@@ -12,7 +12,7 @@ from DIRAC.Core.Utilities.List                                      import sortL
 from datetime                                                       import datetime, timedelta
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 
 import re, os
 

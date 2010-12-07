@@ -9,7 +9,7 @@ import string, os, shutil, types, pprint
 from DIRAC                                                                import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation                     import Transformation as DIRACTransformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient 
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient 
 
 COMPONENT_NAME='Transformation'
 
