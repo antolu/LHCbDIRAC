@@ -6,13 +6,16 @@
 
 """   This utility simply queries the BK for ancestor files of a specified
       LFN with a given ancestor depth.  
+      
+      N.B. this made more sense during the transitional period between old
+      and new BK but now could most likely be refactored into the BK client.
 """
 
 __RCSID__ = "$Id$"
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 
 import time, string
 
