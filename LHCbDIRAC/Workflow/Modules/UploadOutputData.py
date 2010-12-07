@@ -10,7 +10,7 @@ __RCSID__ = "$Id$"
 from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
 from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionData               import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase

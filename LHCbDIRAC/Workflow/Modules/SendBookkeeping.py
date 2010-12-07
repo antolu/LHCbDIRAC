@@ -11,7 +11,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
