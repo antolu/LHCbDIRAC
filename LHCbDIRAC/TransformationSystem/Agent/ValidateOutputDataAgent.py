@@ -51,7 +51,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     gLogger.info( "Checking the integrity of production %s" % prodID )
     gLogger.info( "-" * 40 )
 
-    res = self.getProductionDirectories( prodID )
+    res = self.getTransformationDirectories( prodID )
     if not res['OK']:
       return res
     directories = res['Value']
