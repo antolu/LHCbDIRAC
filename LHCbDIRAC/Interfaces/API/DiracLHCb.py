@@ -22,8 +22,8 @@ from DIRAC.Interfaces.API.Dirac                     import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles,getRootFileGUID
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles     import getAncestorFiles
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles     import getAncestorFiles
 
 import os,glob,fnmatch,string,time,re
 

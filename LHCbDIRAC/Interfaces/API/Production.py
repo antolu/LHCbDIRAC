@@ -1314,7 +1314,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen = open(bkName,'w')
       bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
       bkLines.append('# by %s' %self.prodVersion)
-      bkLines.append('from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
+      bkLines.append('from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
       bkLines.append('bkClient = BookkeepingClient()')
       bkLines.append('bkDict = %s' %bkDict)
       bkLines.append('print bkClient.addProduction(bkDict)')
