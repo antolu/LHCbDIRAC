@@ -16,7 +16,7 @@ Script.registerSwitch( "i", "ignore", "Optional flag to ignore missing files" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac                              import Dirac
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles        import getAncestorFiles
+from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles        import getAncestorFiles
 
 args = Script.getPositionalArgs()
 
