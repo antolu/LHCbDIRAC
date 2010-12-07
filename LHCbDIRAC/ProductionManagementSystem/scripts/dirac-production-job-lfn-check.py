@@ -31,7 +31,7 @@ def printDict(dictionary):
 
 from LHCbDIRAC.Core.Utilities.JobInfoFromXML        import JobInfoFromXML
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 rm = ReplicaManager()

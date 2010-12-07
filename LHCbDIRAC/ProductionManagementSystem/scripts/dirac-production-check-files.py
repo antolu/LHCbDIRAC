@@ -26,7 +26,7 @@ from DIRAC.Interfaces.API.Dirac                       import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.Interfaces.API.DiracProduction      import DiracProduction
 from LHCbDIRAC.Core.Utilities.JobInfoFromXML    import JobInfoFromXML
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 args = Script.getPositionalArgs()
 
