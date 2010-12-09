@@ -145,7 +145,7 @@ class BookkeepingClient:
   
   #############################################################################
   def getFiles(self, dict):
-    bkk = TransferClient('Bookkeeping/BookkeepingManager')
+    bkk = TransferClient('Bookkeeping/NewBookkeepingManager')
     s = cPickle.dumps(dict)
     file = tempfile.NamedTemporaryFile()
     params = str(s)

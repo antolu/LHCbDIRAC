@@ -131,7 +131,7 @@ class Entity(dict):
           s += '\n' + 'fullpath: ' + str(self['fullpath'])
         if VERBOSE:
           for key in keys:
-            if key != 'name' and key != 'level' and key != 'fullpath' and key != 'expandable' and key != 'Selection':
+            if key != 'name' and key != 'level' and key != 'fullpath' and key != 'expandable' and key != 'selection' and key != 'method' and key !='showFiles':
               s += "\n " + str(key) + " : "
               value = self[key]
               # some entities do not have this key. Ignore then.
