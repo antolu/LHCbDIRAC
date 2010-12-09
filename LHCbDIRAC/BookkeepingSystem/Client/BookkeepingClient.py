@@ -22,7 +22,7 @@ class BookkeepingClient:
   def __init__( self, rpcClient = None ):
     self.rpcClient = rpcClient
 
-  def __getServer(self,timeout=600):
+  def __getServer(self,timeout=3600):
     if self.rpcClient:
       return self.rpcClient
     else:
