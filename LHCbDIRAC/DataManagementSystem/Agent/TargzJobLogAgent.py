@@ -190,10 +190,23 @@ class TargzJobLogAgent( AgentModule ):
     tarname = "/tmp/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + ".tgz"
 
-    if not self._noStorageFile( destFile ):
-      gLogger.info( "File exist ", destFile )
-      return S_OK()
+    res = self.storageElement.getPfnForLfn(destFile)
+    if res['OK']:
+      pfn = res["Value"]
+    else:
+      gLogger.error("getPfnForLfnfor file %s"%destFile, res['Message'])
+      return S_ERROR()
 
+    res = self.storageElement.exists(pfn,True)
+    if res['OK']:
+      if res['Value']:
+        gLogger.error("file exists ", pfn)
+        return S_ERROR()
+    else:
+      gLogger.error("Can not check file exists %s"%pfn, res['Message'])
+      return S_ERROR()
+          
+    tared = False
     try:
       os.chdir( path )
       subprodpath = os.path.join( prod, sub )
@@ -201,32 +214,33 @@ class TargzJobLogAgent( AgentModule ):
       tarFile = tarfile.open( tarname, "w:gz" )
       tarFile.add( subprodpath )
       tarFile.close()
+      tared = True
     finally:
       os.chdir( oldpath )
 
-    tared = False
-    res = self.storageElement.getPfnForLfn( destFile )
+    if not tared: 
+      os.remove(tarname)
+      gLogger.error("Can not tar file %s",subprodpath)
+      return S_ERROR()
+    
+    putok = False
+    fileDict = {pfn:tarname}
+    gLogger.info("putFile",fileDict)
+    res = self.storageElement.putFile(fileDict)
     if res['OK']:
-      pfn = res["Value"]
-      fileDict = {pfn:tarname}
-      gLogger.info( "putFile", fileDict )
-      res = self.storageElement.putFile( fileDict )
-      if res['OK']:
-        if not res['Value']['Failed']:
-          subprodpath = os.path.join( path, prod, sub )
-          gLogger.info( "rmTree", subprodpath )
-          shutil.rmtree( subprodpath )
-          tared = True
-        else:
-          gLogger.error( "putFile", res['Value']['Failed'] )
+      if not res['Value']['Failed']:
+        subprodpath = os.path.join( path, prod, sub)
+        gLogger.info( "rmTree", subprodpath )
+        shutil.rmtree(subprodpath)
+        putok = True
       else:
-        gLogger.error( "putFile", res['Message'] )
+        gLogger.error("putFile", res['Value']['Failed'])
     else:
-      print res
+      gLogger.error("putFile",res['Message'])
 
-    gLogger.info( "remove ", tarname )
-    os.remove( tarname )
-    if tared:
+    os.remove(tarname)
+
+    if putok:
       return S_OK()
     else:
       return S_ERROR()
