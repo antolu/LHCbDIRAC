@@ -623,24 +623,23 @@ class BookkeepingManagerHandler(RequestHandler):
       lumi = 0
       ilumi = 0
       for i in values:
-       nbfiles=+1
-       if i[1] != None:
-        nbevents+= i[1]
-       if i[2] != None:
-         evinput+= i[2]
-       if i[5] != None:
-         fsize+=i[5]
-       if i[6] != None:
-         tLumi += i[6]
-       if i[7] != None:
-         lumi += i[7]
-       if i[8] != None:
-         ilumi += i[8]
-           
-       result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'Luminosity':i[7],'InstLuminosity':i[8]}  
-       if nbfiles > 0:
-         summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi,'InstLuminosity':ilumi}
-         result['Summary']=summary
+        nbfiles = nbfiles +1
+        if i[1] != None:
+          nbevents+= i[1]
+        if i[2] != None:
+          evinput+= i[2]
+        if i[5] != None:
+          fsize+=i[5]
+        if i[6] != None:
+          tLumi += i[6]
+        if i[7] != None:
+          lumi += i[7]
+        if i[8] != None:
+          ilumi += i[8]   
+        result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'Luminosity':i[7],'InstLuminosity':i[8]}  
+      if nbfiles > 0:
+        summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi,'InstLuminosity':ilumi}
+        result['Summary']=summary
     return S_OK(result)
   
   types_getProcessedEvents = [IntType]

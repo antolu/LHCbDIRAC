@@ -572,7 +572,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       for record in result['Value']['Records']:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-                 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+                 'FileType':dict['FileType'],'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],'EventTypeId':dict['EventTypeId'],
                  'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
@@ -588,7 +588,7 @@ class LHCB_BKKDBManager(BaseESManager):
     result = self.__getFiles(dict, SortDict, StartItem, Maxitems)
     for record in result['Records']:
       value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-               'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+               'FileType':dict['FileType'],'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],'EventTypeId':dict['EventTypeId'],
                'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
@@ -945,7 +945,7 @@ class LHCB_BKKDBManager(BaseESManager):
     if result['OK']:
       for record in result['Value']['Records']:
         value = {'name':record[0],'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-                 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
+                 'FileType':dict['FileType'],'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11], 'EventTypeId':dict['EventTypeId'],
                  'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
         self.files_ += [record[0]]
         entityList += [self._getEntityFromPath(path, value, levels,'List of files',dict,'getFiles')]
@@ -1423,7 +1423,7 @@ class LHCB_BKKDBManager(BaseESManager):
     files = {}
     # The list has to be convert to dictionary
     for i in values:
-      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[7],'EvtTypeId':i[8]}
+      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[7],'EventTypeId':i[8]}
       
     return self.writeJobOptions(files,optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
   
@@ -1486,7 +1486,7 @@ class LHCB_BKKDBManager(BaseESManager):
     fileType = None
     for i in files:
         file = files[i]
-        type = int(file['EvtTypeId'])
+        type = int(file['EventTypeId'])
         stat = 0
         if file['EventStat'] != None:
           stat = int(file['EventStat'])
