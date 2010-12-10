@@ -1515,7 +1515,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     simcondition = ''
     daqcondition = ''
     if simdesc == 'ALL' and datataking =='ALL':
-      command = ' select filename from '+tables+' where files.jobid= jobs.jobid and files.gotreplica=\'Yes\'' +condition + jcondition + pcondition
+      command = ' select files.filename, files.eventstat, jobs.eventinputstat, jobs.runnumber, jobs.fillnumber, files.filesize, jobs.totalluminosity, files.luminosity, files.instLuminosity from '+tables+' where files.jobid= jobs.jobid and files.gotreplica=\'Yes\'' +condition + jcondition + pcondition
       res = self.dbR_._query(command)
       return res
     elif simdesc != 'ALL':

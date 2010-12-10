@@ -638,9 +638,9 @@ class BookkeepingManagerHandler(RequestHandler):
          ilumi += i[8]
            
        result[i[0]] = {'EventStat':i[1],'EventInputStat':i[2],'Runnumber':i[3],'Fillnumber':i[4],'FileSize':i[5], 'TotalLuminosity':i[6],'Luminosity':i[7],'InstLuminosity':i[8]}  
-    if nbfiles > 0:
-      summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi,'InstLuminosity':ilumi}
-      result['Summary']=summary
+       if nbfiles > 0:
+         summary = {'Number Of Files':nbfiles,'Number of Events':nbevents,'EventInputStat':evinput,'FileSize':fsize/1000000000., 'TotalLuminosity':tLumi,'Luminosity':lumi,'InstLuminosity':ilumi}
+         result['Summary']=summary
     return S_OK(result)
   
   types_getProcessedEvents = [IntType]
