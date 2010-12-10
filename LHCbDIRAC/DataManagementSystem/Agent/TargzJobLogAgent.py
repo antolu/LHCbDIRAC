@@ -244,12 +244,3 @@ class TargzJobLogAgent( AgentModule ):
       return S_OK()
     else:
       return S_ERROR()
-
-  def _noStorageFile( self, path ):
-
-    com = 'rfstat /castor/cern.ch/grid/%s' % path
-    res = shellCall( 5, com )
-    if res['OK'] and res['Value'][0] == 1:
-      return True
-    else:
-      return False
