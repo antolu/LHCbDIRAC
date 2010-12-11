@@ -67,19 +67,25 @@ class TargzJobLogAgent( AgentModule ):
 #    g3 = gConfig.getValue(self.section+'/JobGlob', '????')
     g3 = self.am_getOption( 'JobGlob', '????' )
     gLogger.info( "JobGlob", g3 )
+    
+    logPathList = self.am_getOption('LogPathList', [])
+    gLogger.info( "LogPathList", logPathList )
 
     numberOfTared = 0
     numberOfFailed = 0
-    for subprodpath in self._iFindOldSubProd( path, g1, g2, prodage ):
-      pathlist = subprodpath.split( "/" )
-      sub = pathlist[-1]
-      prod = pathlist[-2]
-      gLogger.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
-      res = self._tarSubProdDir( path, prod, sub )
-      if res['OK']:
-        numberOfTared += 1
-      else:
-        numberOfFailed += 1
+
+    for path in logPathList:
+      gLogger.info( "LogPath", path )
+      for subprodpath in self._iFindOldSubProd( path, g1, g2, prodage ):
+        pathlist = subprodpath.split( "/" )
+        sub = pathlist[-1]
+        prod = pathlist[-2]
+        gLogger.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
+        res = self._tarSubProdDir( path, prod, sub )
+        if res['OK']:
+          numberOfTared += 1
+        else:
+          numberOfFailed += 1
 
     gLogger.info( "Number of tared subproduction %d" % numberOfTared )
     gLogger.info( "Number of failed subproduction %d" % numberOfFailed )
@@ -87,26 +93,28 @@ class TargzJobLogAgent( AgentModule ):
     numberOfTared = 0
     numberOfFailed = 0
 
-    for jobpath in self._iFindOldJob( path, g1, g2, g3, jobage ):
-      pathlist = jobpath.split( "/" )
-      job = pathlist[-1]
-      prod = pathlist[-3]
-      gLogger.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
+    for path in logPathList:
+      gLogger.info( "LogPath", path )
+      for jobpath in self._iFindOldJob( path, g1, g2, g3, jobage ):
+        pathlist = jobpath.split( "/" )
+        job = pathlist[-1]
+        prod = pathlist[-3]
+        gLogger.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
 
-      name = prod + "_" + job + ".tgz"
-      try:
-        lines = open( os.path.join( jobpath, 'index.html' ) ).read()
-        lines = lines.replace( '</title>', ' compressed</title>' )
-        lines = lines.replace( '</h3>', ' compressed</h3>', 1 )
-        lines = re.compile( '<a href.*</a><br>.*\n' ).sub( '', lines )
-        lines = lines.replace( 'compressed</h3>', 'compressed</h3>\n<br><a href="%s">%s</a><br>' % ( name, name ) )
+        name = prod + "_" + job + ".tgz"
+        try:
+          lines = open( os.path.join( jobpath, 'index.html' ) ).read()
+          lines = lines.replace( '</title>', ' compressed</title>' )
+          lines = lines.replace( '</h3>', ' compressed</h3>', 1 )
+          lines = re.compile( '<a href.*</a><br>.*\n' ).sub( '', lines )
+          lines = lines.replace( 'compressed</h3>', 'compressed</h3>\n<br><a href="%s">%s</a><br>' % ( name, name ) )
 
-        self._tarJobDir( path, prod, job )
-        open( os.path.join( jobpath, 'index.html' ), 'w' ).write( lines )
-        numberOfTared += 1
-      except Exception, x:
-        gLogger.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
-        numberOfFailed += 1
+          self._tarJobDir( path, prod, job )
+          open( os.path.join( jobpath, 'index.html' ), 'w' ).write( lines )
+          numberOfTared += 1
+        except Exception, x:
+          gLogger.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
+          numberOfFailed += 1
 
     gLogger.info( "Number of tared jobs %d" % numberOfTared )
     gLogger.info( "Number of failed jobs %d" % numberOfFailed )
