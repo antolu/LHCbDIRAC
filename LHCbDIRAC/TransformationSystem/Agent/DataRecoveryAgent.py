@@ -25,16 +25,16 @@
 
 __RCSID__ = "$Id: DataRecovery.py 18182 2009-11-11 14:45:10Z paterson $"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, gLogger, rootPath
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestClient        import RequestClient
-from DIRAC.Core.Utilities.List                                 import uniqueElements
-from DIRAC.Core.Utilities.Time                                 import timeInterval, dateTime
-from DIRAC.Core.DISET.RPCClient                                import RPCClient
+from DIRAC                                                       import S_OK, S_ERROR, gConfig, gLogger, rootPath
+from DIRAC.Core.Base.AgentModule                                 import AgentModule
+from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
+from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
+from DIRAC.Core.Utilities.List                                   import uniqueElements
+from DIRAC.Core.Utilities.Time                                   import timeInterval, dateTime
+from DIRAC.Core.DISET.RPCClient                                  import RPCClient
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.DB.ProductionDB      import ProductionDB
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 import string, re, datetime
 
@@ -48,7 +48,8 @@ class DataRecoveryAgent( AgentModule ):
     """
     self.enableFlag = '' #defined below
     self.replicaManager = ReplicaManager()
-    self.prodDB = ProductionDB()
+    #self.prodDB = ProductionDB()
+    self.transClient = TransformationClient('TransformationDB')
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
     self.taskIDName = 'TaskID'
@@ -243,7 +244,7 @@ class DataRecoveryAgent( AgentModule ):
   def getEligibleTransformations( self, status, typeList ):
     """ Select transformations of given status and type.
     """
-    res = self.prodDB.getTransformations( condDict = {'Status':status, 'Type':typeList} )
+    res = self.transClient.getTransformations( condDict = {'Status':status, 'Type':typeList} )
     self.log.debug( res )
     if not res['OK']:
       return res
@@ -259,7 +260,7 @@ class DataRecoveryAgent( AgentModule ):
     """
     #Until a query for files with timestamp can be obtained must rely on the
     #WMS job last update
-    res = self.prodDB.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
+    res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
     self.log.debug( res )
     if not res['OK']:
       return res
@@ -294,7 +295,7 @@ class DataRecoveryAgent( AgentModule ):
     now = dateTime()
     olderThan = now - delta
 
-    res = self.prodDB.getTransformationTasks( condDict = condDict, older = olderThan, timeStamp = 'LastUpdateTime', inputVector = True )
+    res = self.transClient.getTransformationTasks( condDict = condDict, older = olderThan, timeStamp = 'LastUpdateTime', inputVector = True )
     self.log.debug( res )
     if not res['OK']:
       self.log.error( 'getTransformationTasks returned an error:\n%s' )
@@ -471,7 +472,7 @@ class DataRecoveryAgent( AgentModule ):
       return S_OK()
 
     self.log.info( 'Updating %s files to "%s" status for %s' % ( len( fileList ), fileStatus, transformation ) )
-    result = self.prodDB.setFileStatusForTransformation( int( transformation ), fileStatus, fileList, force = False )
+    result = self.transClient.setFileStatusForTransformation( int( transformation ), fileStatus, fileList, force = False )
     self.log.debug( result )
     if not result['OK']:
       self.log.error( result )
