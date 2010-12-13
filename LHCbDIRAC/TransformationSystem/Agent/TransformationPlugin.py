@@ -288,7 +288,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       runLfns = runFiles.get(runID,[])
       if not runLfns:
         if requireFlush:
-          self.transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Active')
+          self.transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Flush')
         continue
       runReplicas = {}
       for lfn in runLfns:
@@ -312,7 +312,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
         return res
       allTasks.extend(res['Value'])
       if requireFlush:
-        self.transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Active')
+        self.transClient.setTransformationRunStatus(self.params['TransformationID'],runID,'Flush')
     return S_OK(allTasks)
 
   def _ByRun(self,param='', plugin='Standard'):
