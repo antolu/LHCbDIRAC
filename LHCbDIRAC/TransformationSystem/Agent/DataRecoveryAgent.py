@@ -38,7 +38,7 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import Transfor
 
 import string, re, datetime
 
-AGENT_NAME = 'ProductionManagement/DataRecoveryAgent'
+AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
 class DataRecoveryAgent( AgentModule ):
 
