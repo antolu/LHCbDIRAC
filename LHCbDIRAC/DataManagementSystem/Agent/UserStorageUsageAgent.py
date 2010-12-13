@@ -34,6 +34,8 @@ class UserStorageUsageAgent( StorageUsageAgent ):
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
+    self.activePeriod = self.am_getOption( 'ActivePeriod', 0 )
+
     return S_OK()
 
   def removeEmptyDir( self, directory ):
