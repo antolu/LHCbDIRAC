@@ -985,17 +985,10 @@ class ProductionRequestDB(DB):
 
   def __clearProcessingPass(self,rec):
     """ clear processing pass section.
-        Processing pass name, first app. with version are untouched
     """
     rec['ProID'] = None
     detail = cPickle.loads(rec['ProDetail'])
     nd = {}
-    for x in ['pDsc','p1Ver','p1App']:
-      if x in detail:
-        nd[x] = detail[x]
-    if 'p1App' in nd and 'p1Ver' in nd:
-      nd['pAll'] = u'%s-%s' % (nd['p1App'],nd['p1Ver'])
-      nd['p1Html'] = u'<b>Pass 1:</b> %s<br>' % nd['pAll']
     rec['ProDetail'] = cPickle.dumps(nd)
     
   def __duplicateDeep(self,requestID,masterID,parentID,creds,connection,

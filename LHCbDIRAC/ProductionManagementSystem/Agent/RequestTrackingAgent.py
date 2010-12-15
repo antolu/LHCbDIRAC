@@ -17,7 +17,7 @@ from DIRAC                          import S_OK, S_ERROR, gConfig, gMonitor, gLo
 import os, time, string
 
 def bkProductionProgress(id,setup):
-  RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
+  RPC = RPCClient('Bookkeeping/NewBookkeepingManager',setup=setup)
   return RPC.getProcessedEvents(int(id))
 
 def bkInputNumberOfEvents(r,setup):
@@ -39,7 +39,7 @@ def bkInputNumberOfEvents(r,setup):
       v['ProductionID'] = [int(x) for x in str(r['inProductionID']).split(',')]
   except Exception,e:
     return S_ERROR("Can not parse the request: %s" % str(e))
-  RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
+  RPC = RPCClient('Bookkeeping/NewBookkeepingManager',setup=setup)
   v['NbOfEvents'] = True
   result = RPC.getFilesWithGivenDataSets(v)
   if not result['OK']:
