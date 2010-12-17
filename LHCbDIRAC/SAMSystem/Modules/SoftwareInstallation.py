@@ -146,6 +146,13 @@ class SoftwareInstallation(ModuleBaseSAM):
         self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
         sharedArea = newSharedArea
 
+    if DIRAC.siteName() in ['LCG.IN2P3.fr','LCG.IN2P3-T2.fr']:
+      self.log.info('Changing shared area path to writeable volume at IN2P3')
+      if re.search('.in2p3.fr',sharedArea):
+        newSharedArea = sharedArea.replace('in2p3.fr','.in2p3.fr')
+        self.writeToLog('Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s' %(sharedArea,newSharedArea))
+        sharedArea = newSharedArea
+
     # Purge shared area if requested.
     if self.purgeSharedArea:
       self.log.info('Flag to purge the site shared area at %s is enabled' %sharedArea)
@@ -202,7 +209,7 @@ class SoftwareInstallation(ModuleBaseSAM):
               self.log.error('InstallApplication("%s","%s","%s") failed with exception:\n%s' %(appNameVersion,systemConfig,sharedArea,x))
             sys.stdout=orig
             catch.close()
-            sys.stdout.flush()            
+            sys.stdout.flush()
             if not result: #or not result['OK']:
               if isPoolAccount:
                 self.__changePermissions(sharedArea)
@@ -227,12 +234,12 @@ class SoftwareInstallation(ModuleBaseSAM):
           sys.stdout=catch
           result = False
           try:
-            result = RemoveApplication(appNameVersion, systemConfig, sharedArea )              
+            result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
           except Exception,x:
             self.log.error('RemoveApplication("%s","%s","%s") failed with exception:\n%s' %(appNameVersion,systemConfig,sharedArea,x))
           sys.stdout=orig
           catch.close()
-          sys.stdout.flush()          
+          sys.stdout.flush()
           result = True #Not sure why it is ignored if this fails - to be reviewed...
           if not result: # or not result['OK']:
             if isPoolAccount:
