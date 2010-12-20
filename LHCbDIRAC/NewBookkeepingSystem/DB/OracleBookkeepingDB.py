@@ -489,9 +489,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return retVal
   
   #############################################################################
-  def getProductions(self, configName, configVersion, conddescription=default, processing=default, evt=default):
-    condition = ' and bview.configname=\''+configName+'\' and \
-                  bview.configversion=\''+configVersion+'\''
+  def getProductions(self, configName=default, configVersion=default, conddescription=default, processing=default, evt=default):
+    
+    condition = ''
+    if configName != default:
+      condition += " and bview.configname='%s'"%(configName)
+    if configVersion != default:
+      condition += " and bview.configversion='%s'"%(configVersion)
     
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'pcont')
