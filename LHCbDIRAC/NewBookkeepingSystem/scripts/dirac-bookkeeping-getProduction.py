@@ -1,30 +1,29 @@
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL$
-# File :   dirac-bookkeeping-getProduction
-# Author : Zoltan Mathe
+# File :    dirac-bookkeeping-getProduction
+# Author :  Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$ $"
+"""
+  Retrieve productions with the given conditions
+"""
+__RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... ProgramName=<name> ProgramVersion=<version> Evt=<evt>' % Script.scriptName,
+                                     'Arguments:',
+                                     '  ProgramName:     Name of the Program (ie, Boole, ALL)',
+                                     '  ProgramVersion:  Version of the Program (ie, v13r3, ALL)',
+                                     '  Evt:             Event Type (ie, 13463000, ALL)' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
-def usage():
-  print 'Usage: %s ProgramName=Boole ProgramVersion=v13r3 Evt=ALL' %(Script.scriptName)
-  print 'OR'
-  print 'Usage: %s ProgramName=ALL ProgramVersion=ALL Evt=13463000' %(Script.scriptName)
-  print 'OR'
-  print 'Usage: %s ProgramName=ALL ProgramVersion=v13r3 Evt=ALL' %(Script.scriptName)
-  print 'OR'
-  print 'Usage: %s ProgramName=Brunel ProgramVersion=ALL Evt=ALL' %(Script.scriptName)
-  DIRAC.exit(2)
+if len( args ) < 3:
+  Script.showHelp()
 
-if len(args) < 3:
-  usage()
-  
 exitCode = 0
 
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -33,27 +32,29 @@ bk = BookkeepingClient()
 prgn = ''
 prgv = ''
 evt = ''
-for i in range(0,len(args)):
+for i in range( 0, len( args ) ):
   arg = args[i]
-  values = arg.split('=')
-  if len(values) == 1:
-    print 'Wrong format!'
-    DIRAC.exit(2)
-  if values[0]=='ProgramName':
+  values = arg.split( '=' )
+  if len( values ) == 1:
+    Script.showHelp()
+  if values[0] == 'ProgramName':
     prgn = values[1]
-  elif values[0]=='ProgramVersion':
+  elif values[0] == 'ProgramVersion':
     prgv = values[1]
-  elif values[0]=='Evt':
+  elif values[0] == 'Evt':
     evt = values[1]
-  
-res = bk.getProductionsWithPrgAndEvt(prgn,prgv,evt)
+
+res = bk.getProductionsWithPrgAndEvt( prgn, prgv, evt )
 if not res['OK']:
-  print 'ERROR',res['Message']
+  print 'ERROR', res['Message']
+  exitCode = 2
 else:
   values = res['Value']
-  print  '%s %s %s' % ('EventTypeId'.ljust(20),'Description'.ljust(50),'Production'.ljust(40))
+  print  '%s %s %s' % ( 'EventTypeId'.ljust( 20 ), 'Description'.ljust( 50 ), 'Production'.ljust( 40 ) )
   for record in values:
     eid = record[0]
     desc = record[1]
     prod = record[2]
-    print '%s %s %s' % (str(eid).ljust(20),desc.ljust(50),str(prod).ljust(40))
+    print '%s %s %s' % ( str( eid ).ljust( 20 ), desc.ljust( 50 ), str( prod ).ljust( 40 ) )
+
+DIRAC.exit( exitCode )

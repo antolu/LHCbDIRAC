@@ -1,53 +1,65 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL:  $
-# File :   dirac-bookkeeping-get-file-ancestors
-# Author : Zoltan Mathe
+# $HeadURL$
+# File :    dirac-bookkeeping-get-file-ancestors
+# Author :  Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: $"
-__VERSION__ = "$ $"
+"""
+  Report ancestors for the given LFNs
+"""
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... LFN|File [Level]' % Script.scriptName,
+                                     'Arguments:',
+                                     '  LFN:      Logical File Name',
+                                     '  File:     Name of the file with a list of LFNs',
+                                     '  Level:    Number of levels to search (default: 1)' ] ) )
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
-bk = BookkeepingClient()
+if len( args ) == 1:
+  level = 1
+elif len( args ) == 2:
+  try:
+    level = int( args[1] )
+  except:
+    Script.showHelp()
+else:
+  Script.showHelp()
 
-def usage():
-  print 'Usage: %s <lfn> or <file name> <level>' %(Script.scriptName)
-  DIRAC.exit(2)
-
-if len(args) < 2: 
-  usage()
+file = str( args[0] )
 
 exitCode = 0
-file = str(args[0])
-level = int(args[1])
+
 lfns = []
 try:
-  files =open(file)
+  files = open( file )
   for f in files:
-    lfns +=  [f.strip()]
-except Exception,ex:
+    lfns += [f.strip()]
+except Exception, ex:
   lfns = [file]
 
-result = bk.getAncestors(lfns, level)
+bk = BookkeepingClient()
+result = bk.getAncestors( lfns, level )
 
 if not result['OK']:
-  print 'ERROR %s' %(result['Message'])
+  print 'ERROR %s' % ( result['Message'] )
   exitCode = 2
 else:
   values = result['Value']
   print 'Successful:'
   files = values['Successful']
   for i in files.keys():
-    print i+':'
+    print i + ':'
     for j in files[i]:
-      print '                 '+j
-  print 'Faild:',values['Failed']
-  
-DIRAC.exit(exitCode)
+      print '                 ' + j
+  print 'Failed:', values['Failed']
+
+DIRAC.exit( exitCode )

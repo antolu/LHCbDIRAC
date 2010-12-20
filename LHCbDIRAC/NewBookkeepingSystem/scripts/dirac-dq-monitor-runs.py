@@ -1,9 +1,22 @@
 #! /usr/bin/env python
-from DIRAC.Core.Base.Script                                     import parseCommandLine
-parseCommandLine()
-from DIRAC.Core.Utilities.List                                  import sortList,breakListIntoChunks
+########################################################################
+# $HeadURL$
+# File :    dirac-dq-monitor-runs.py
+# Author :  Zoltan Mathe
+########################################################################
+"""
+  Retrieve from the Bookkeeping runs from a given date range
+"""
+__RCSID__ = "$Id$"
+import DIRAC
+from DIRAC.Core.Base import Script
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
+Script.parseCommandLine( ignoreErrors = True )
+from DIRAC.Core.Utilities.List                                  import sortList, breakListIntoChunks
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient    import BookkeepingClient
-import sys,os,time
+import sys, os, time
 
 bkDict = {'ConfigName'           :'LHCb',
           'ConfigVersion'        :'Collision10',
@@ -12,30 +25,32 @@ bkDict = {'ConfigName'           :'LHCb',
           'DataQualityFlag'      : 'UNCHECKED'}
 
 bkClient = BookkeepingClient()
-for eventType in [91000000,90000000]:
+for eventType in [91000000, 90000000]:
   bkDict['EventType'] = eventType
-  res=bkClient.getFilesWithGivenDataSets(bkDict)
+  res = bkClient.getFilesWithGivenDataSets( bkDict )
   if not res['OK']:
-    print res['Message']
-    sys.exit()
+    print 'ERROR:', res['Message']
+    DIRAC.exit( 2 )
   lfns = res['Value']
-  print 'Found %s UNCHECKED files from %s stream' % (len(lfns),eventType)
+  print 'Found %s UNCHECKED files from %s stream' % ( len( lfns ), eventType )
 
   allMetadata = {}
-  for lfnList in breakListIntoChunks(lfns,1000):
+  for lfnList in breakListIntoChunks( lfns, 1000 ):
     startTime = time.time()
-    res=bkClient.getFileMetadata(lfnList)
+    res = bkClient.getFileMetadata( lfnList )
     if not res['OK']:
-      print res['Message']
-      sys.exit()
-    allMetadata.update(res['Value'])
+      print 'ERROR:', res['Message']
+      DIRAC.exit( 2 )
+    allMetadata.update( res['Value'] )
 
   uncheckedRuns = []
-  for lfn in sortList(allMetadata.keys()):
+  for lfn in sortList( allMetadata.keys() ):
     runNumber = allMetadata[lfn]['RunNumber']
     if not runNumber in uncheckedRuns:
-      uncheckedRuns.append(runNumber)
+      uncheckedRuns.append( runNumber )
   if uncheckedRuns:
-    print 'Corresponding to %s runs:' % len(uncheckedRuns)
-    for run in sortList(uncheckedRuns):
+    print 'Corresponding to %s runs:' % len( uncheckedRuns )
+    for run in sortList( uncheckedRuns ):
       print run
+
+DIRAC.exit()

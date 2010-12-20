@@ -1,48 +1,50 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: $
-# File : dirac-bookkeeping-setdataquality-run-processing-pass.py  
-# Author : Zoltan Mathe
+# $HeadURL$
+# File :    dirac-bookkeeping-setdataquality-run-processing-pass.py  
+# Author :  Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id: $"
-__VERSION__ = "$Revision: 1.2 $"
+"""
+  Set Data Quality Flag for the given run and Processing Pass
+"""
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Run Pass Flag' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Run:      Run number',
+                                     '  Pass:     Processing Pass',
+                                     '  Flag:     Quality Flag' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
-
-def usage():
-  print 'Available data quality flags:'
-   
+if len( args ) < 3:
   result = bk.getAvailableDataQuality()
   if not result['OK']:
-    print 'ERROR %s' %(result['Message'])
-    exitCode = 2
-  
-  for i in result['Value']:
-    print i
-  print 'Usage: %s <RunNumber> <Processing pass> <DataQualityFlag>' %(Script.scriptName)
-  DIRAC.exit(2)
-
-if len(args) < 3: 
-  usage()
+    print 'ERROR: %s' % ( result['Message'] )
+    DIRAC.exit( 2 )
+  flags = result['Value']
+  print "Available Data Quality Flags"
+  for flag in flags:
+    print flag
+  Script.showHelp()
 
 exitCode = 0
-rnb = int(args[0])
-proc = str(args[1])
-flag = str(args[2])
-result = bk.setRunQualityWithProcessing(rnb,proc,flag)
+rnb = int( args[0] )
+proc = args[1]
+flag = args[2]
+result = bk.setRunQualityWithProcessing( rnb, proc, flag )
 
 if not result['OK']:
-  print 'ERROR %s' %(result['Message'])
+  print 'ERROR: %s' % ( result['Message'] )
   exitCode = 2
 else:
   print 'The run is flagged!'
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )

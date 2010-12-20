@@ -1,31 +1,35 @@
 #!/usr/bin/env python
+########################################################################
+# $HeadURL$
+# File :    dirac-bookkeeping-get-runsWithAGivenDate.py
+# Author :  Zoltan Mathe
+########################################################################
+"""
+  Retrieve from the Bookkeeping runs from a given date range
+"""
+__RCSID__ = "$Id$"
 
-
-__RCSID__   = "$Id: $"
-__VERSION__ = "$ $"
-
-from DIRAC import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
-import sys
 
 from DIRAC.Core.Base import Script
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Start [End]' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Start:    Start date (Format: YYYY-MM-DD)',
+                                     '  End:      End date (Format: YYYY-MM-DD)' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
 
 start = ''
 end = ''
-if not len(sys.argv) == 2:
-  print 'Usage: dirac-bookkeeping-get-runsWithAGivenDate.py StartDate EndDate'
-  print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py yyyy-mm-dd'
-  print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py 2010-04-02'
-  print 'For ex: dirac-bookkeeping-get-runsWithAGivenDate.py 2010-04-02 2010-04-10'
-  sys.exit(0)
-else:
-  if len(sys.argv) > 2:
-    start = sys.argv[1]
-    end = sys.argv[2]
-  else:
-    start = sys.argv[1]
+if len( args ) > 2 or not args:
+  Script.showHelp()
+
+if len( args ) == 2:
+  end = args[1]
+start = args[0]
 
 dict = {}
 if start != '':
@@ -33,14 +37,16 @@ if start != '':
 if end != '':
   dict['EndDate'] = end
 
-client = RPCClient('Bookkeeping/NewBookkeepingManager')
-res = client.getRunsWithAGivenDates(dict)
+client = RPCClient( 'Bookkeeping/NewBookkeepingManager' )
+res = client.getRunsWithAGivenDates( dict )
 if not res['OK']:
-  print 'Failed to retrieve runs: %s' % res['Message']
+  print 'ERROR: Failed to retrieve runs: %s' % res['Message']
 else:
-  if not res['Value']:
-    print 'No runs found for a given date %s' % runID
+  if not res['Value']['Runs']:
+    print 'No runs found for a given dates', start, end
   else:
-    print 'Runs:',res['Value']['Runs']
-    print 'Processed runs:', res['Value']['ProcessedRuns']
-    print 'Not processed runs:', res['Value']['NotProcessedRuns']
+    print 'Runs:', res['Value']['Runs']
+    if 'ProcessedRuns' in res['Value']:
+      print 'Processed runs:', res['Value']['ProcessedRuns']
+    if 'NotProcessedRuns' in res['Value']:
+      print 'Not processed runs:', res['Value']['NotProcessedRuns']

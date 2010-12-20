@@ -1,64 +1,67 @@
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL$
-# File :   dirac-bookkeeping-setdataquality-files
-# Author : Zoltan Mathe
+# File :    dirac-bookkeeping-setdataquality-files
+# Author :  Zoltan Mathe
 ########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.3 $"
+"""
+  Set Quality Flag for the given files  
+"""
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... LFN|File Flag' % Script.scriptName,
+                                     'Arguments:',
+                                     '  LFN:      Logical File Name',
+                                     '  File:     Name of the file with a list of LFNs',
+                                     '  Flag:     Quality Flag' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
-def usage():
-  print 'Available data quality flags:'
-   
+if len( args ) < 2:
   result = bk.getAvailableDataQuality()
   if not result['OK']:
-    print 'ERROR %s' %(result['Message'])
-    exitCode = 2
-  
-  for i in result['Value']:
-    print i
-  print 'Usage: %s <lfn> or <file name> <DataQualityFlag>' %(Script.scriptName)
-  DIRAC.exit(2)
-
-if len(args) < 2: 
-  usage()
+    print 'ERROR: %s' % ( result['Message'] )
+    DIRAC.exit( 2 )
+  flags = result['Value']
+  print "Available Data Quality Flags"
+  for flag in flags:
+    print flag
+  Script.showHelp()
 
 exitCode = 0
-file = str(args[0])
-flag = str(args[1])
+file = args[0]
+flag = args[1]
 lfns = []
 try:
-  files =open(file)
+  files = open( file )
   for f in files:
-    lfns +=  [f.strip()]
-except Exception,ex:
+    lfns += [f.strip()]
+except Exception, ex:
   lfns = [file]
 
-result = bk.setQuality(lfns,flag)
+result = bk.setQuality( lfns, flag )
 
 if not result['OK']:
-  print 'ERROR %s' %(result['Message'])
+  print 'ERROR: %s' % ( result['Message'] )
   exitCode = 2
 else:
   succ = result['Value']['Successful']
   failed = result['Value']['Failed']
-  print 'The data quality seted to the following files:'
+  print 'The data quality has been set for the following files:'
   for i in succ:
     print i
-  
-  if len(failed) != 0:
-    print 'The data quality has been not seted to the following files:'
+
+  if len( failed ) != 0:
+    print 'The data quality has not been set for the following files:'
     for i in failed:
       print i
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )
