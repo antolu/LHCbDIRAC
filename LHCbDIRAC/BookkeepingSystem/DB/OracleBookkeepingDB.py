@@ -548,8 +548,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getProductionsWithSimcond(self, configName, configVersion, simcondid, procPass, evtId):
     all = 0
-    condition = ' and bookkeepingview.configname=\''+configName+'\' and \
-                    bookkeepingview.configversion=\''+configVersion+'\''
+    
+    condition = ''
+    if configName != 'ALL':
+      condition += " and bookkeepingview.configname='%s'"%(configName)
+    if configVersion != 'ALL':
+      condition += " and bookkeepingview.configversion='%s'"%(configVersion)
     
     if simcondid != 'ALL':
       condition += ' and bookkeepingview.DAQPeriodId='+str(simcondid)
