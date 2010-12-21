@@ -197,7 +197,7 @@ class ModuleBase( object ):
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if ( ( metadata['type'].lower() not in fileMask ) or ( fileName.split( '.' )[-1] not in fileMask ) ):
+        if ( ( metadata['type'].lower() not in fileMask ) and ( fileName.split( '.' )[-1] not in fileMask ) ):
           del( candidateFiles[fileName] )
           self.log.info( 'Output file %s was produced but will not be treated (outputDataFileMask is %s)' % ( fileName, string.join( self.outputDataFileMask, ', ' ) ) )
     else:
