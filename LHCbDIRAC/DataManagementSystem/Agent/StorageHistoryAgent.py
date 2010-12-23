@@ -75,7 +75,6 @@ class StorageHistoryAgent( AgentModule ):
                                                                    userCatalogData[ user ][ 'Size' ] / ( 1024.0 ** 3 ),
                                                                    userCatalogData[ user ][ 'Files' ] ) )
     self.log.notice( "Sending %s records to accounting" % numRows )
-    return S_OK()
 
     return gDataStoreClient.commit()
 
