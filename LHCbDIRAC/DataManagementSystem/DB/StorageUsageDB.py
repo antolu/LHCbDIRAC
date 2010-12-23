@@ -264,7 +264,7 @@ class StorageUsageDB( DB ):
       userName = self._escapeString( userName )[ 'Value' ][1:-1]
       sqlCond.append( "d.Path LIKE '/lhcb/user/%s/%s/%%" % ( userName[0], userName ) )
     else:
-      sqlCond.append( "d.Path LIKE '/lhcb/user/%/%'" )
+      sqlCond.append( "d.Path LIKE '/lhcb/user/_/%'" )
     sqlCmd = "SELECT %s, SUM( su.Size ) FROM `su_Directory` as d, `su_SEUsage` as su WHERE %s GROUP BY %s" % ( self.__userExpression(),
                                                                                                                " AND ".join( sqlCond ),
                                                                                                                self.__userExpression() )
@@ -279,7 +279,7 @@ class StorageUsageDB( DB ):
   def getUserSummaryPerSE( self, userName = False ):
     sqlUser = self.__userExpression()
     sqlFields = ( sqlUser, "su.SEName", "SUM(su.Size)", "SUM(su.Files)" )
-    sqlCond = [ "d.DID = su.DID", "d.Path LIKE '/lhcb/user/%/%'" ]
+    sqlCond = [ "d.DID = su.DID", "d.Path LIKE '/lhcb/user/_/%'" ]
     if userName:
       sqlCond.append( "%s = %s" % ( sqlUser, self._escapeString( userName )[ 'Value' ] ) )
     sqlGroup = ( sqlUser, "su.SEName" )
@@ -341,6 +341,6 @@ class StorageUsageDB( DB ):
       userName = self._escapeString( userName )[ 'Value' ][1:-1]
       path = "/lhcb/user/%s/%s" % ( userName[0], userName )
     else:
-      path = "/lhcb/user/%/%"
+      path = "/lhcb/user/_/%"
     return self.__getSummary( path, groupingField = self.__userExpression( "Path" ) )
 
