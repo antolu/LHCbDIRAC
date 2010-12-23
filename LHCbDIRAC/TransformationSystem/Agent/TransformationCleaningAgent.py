@@ -10,6 +10,7 @@ from DIRAC.RequestManagementSystem.Client.RequestClient             import Reque
 from DIRAC.Resources.Catalog.FileCatalogClient                      import FileCatalogClient
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent   import TransformationCleaningAgent as DIRACTransformationCleaningAgent
 from DIRAC.WorkloadManagementSystem.Client.WMSClient                import WMSClient
+from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 from datetime                                                       import datetime, timedelta
