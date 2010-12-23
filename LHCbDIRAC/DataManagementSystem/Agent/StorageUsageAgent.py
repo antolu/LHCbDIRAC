@@ -11,7 +11,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 
-import time, os
+import time, os, re
 from types import *
 
 AGENT_NAME = 'DataManagement/StorageUsageAgent'
@@ -37,8 +37,60 @@ class StorageUsageAgent( AgentModule ):
     self.activePeriod = self.am_getOption( 'ActivePeriod', 0 )
     return S_OK()
 
+  def __writeReplicasListFiles( self, dirPath ):
+    self.log.info( "Dumping replicas in dir %s to file" % dirPath )
+    result = self.catalog.getCatalogDirectoryReplicas( dirPath )
+    if not result[ 'OK' ]:
+      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, result[ 'Message' ] ) )
+      return result
+    if dirPath in result[ 'Value' ][ 'Failed' ]:
+      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, result[ 'Value' ][ 'Failed' ][ dirPath ] ) )
+      return result
+    dirData = result[ 'Value' ][ 'Successful' ][ dirPath ]
+    filesOpened = {}
+    for lfn in dirData:
+      for SEName in dirData[ lfn ]:
+        if SEName not in filesOpened:
+          filePath = os.path.join( self.__replicaListFilesDir, "%s.replicas.%s" % ( self.__startExecutionTime, SEName ) )
+          #Check if file is opened and if not open it
+          if SEName not in filesOpened:
+            if SEName not in self.__replicaFilesUsed:
+              self.__replicaFilesUsed.add( SEName )
+              filesOpened[ SEName ] = file( filePath, "w" )
+            else:
+              filesOpened[ SEName ] = file( filePath, "a" )
+          #SEName file is opened. Write
+          filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
+    for SEName in filesOpened:
+      filesOpened[ SEName ].close()
+    return S_OK()
+
+  def __resetReplicaListFiles( self ):
+    self.__replicaFilesUsed = set()
+    self.__replicaListFilesDir = os.path.join( self.am_getOption( "WorkDirectory" ), "replicaLists" )
+    self.log.info( "Replica Lists directory is %s" % self.__replicaListFilesDir )
+    now = time.time()
+    maxReplicaListAge = self.am_getOption( "MaxReplicaListAge", 86400*5 )
+    if not os.path.isdir( self.__replicaListFilesDir ):
+      os.makedirs( self.__replicaListFilesDir )
+    repRE = re.compile( "^([0-9]+)\.replicas.(.*)$" )
+    for fileName in os.listdir( self.__replicaListFilesDir ):
+      match = repRE.match( fileName )
+      if match:
+        try:
+          iterationTime = float( match.group( 1 ) )
+        except ValueError, e:
+          continue
+        fileAge = now - iterationTime
+        self.log.info( "Replica List file %s has %s seconds" % ( fileName, fileAge ) )
+        if fileAge >= maxReplicaListAge:
+          filePath = os.path.join( self.__replicaListFilesDir, fileName )
+          self.log.notice( "Deleting %s" % filePath )
+          os.unlink( filePath )
+
   def execute( self ):
-    startExecuteTime = time.time()
+    self.__startExecutionTime = long( time.time() )
+    self.__resetReplicaListFiles()
     res = self.StorageUsageDB.getStorageSummary()
     if res['OK']:
       gLogger.notice( "Storage Usage Summary" )
@@ -98,6 +150,8 @@ class StorageUsageAgent( AgentModule ):
         for storageElement in sortList( siteUsage.keys() ):
           usageDict = siteUsage[storageElement]
           gLogger.verbose( "%s %s %s" % ( storageElement.ljust( 40 ), str( usageDict['Files'] ).rjust( 20 ), str( usageDict['Size'] ).rjust( 20 ) ) )
+        if self.am_getOption( "DumpReplicasToFile", False ):
+          self.__writeReplicasListFiles( currentDir )
       elif len( subDirs ) == 0 and len( closedDirs ) == 0:
         if not currentDir == baseDir:
           self.removeEmptyDir( currentDir )
@@ -129,8 +183,8 @@ class StorageUsageAgent( AgentModule ):
     #Clean records older than 1 day
     gLogger.info( "Finished recursive directory search." )
 
-    elapsedTime = time.time() - startExecuteTime
-    result = self.StorageUsageDB.purgeOutdatedEntries( baseDir, self.am_getOption( "OutdatedSeconds", elapsedTime * 2 ) )
+    elapsedTime = time.time() - self.__startExecutionTime
+    result = self.StorageUsageDB.purgeOutdatedEntries( baseDir, long( self.am_getOption( "OutdatedSeconds", elapsedTime * 2  + 60) ) )
     if not result[ 'OK' ]:
       return result
     self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
@@ -157,3 +211,4 @@ class StorageUsageAgent( AgentModule ):
     if not res['OK']:
       gLogger.error( "Failed to publish directories", res['Message'] )
     return res
+
