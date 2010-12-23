@@ -295,7 +295,7 @@ class StorageUsageDB( DB ):
       seName = row[1]
       if userName not in userData:
         userData[ userName ] = {}
-      userData[ userName ][ seName ] = { 'Size' : row[2], 'Files' : row[3] }
+      userData[ userName ][ seName ] = { 'Size' : long( row[2] ), 'Files' : long( row[3] ) }
     return S_OK( userData )
 
   ######
