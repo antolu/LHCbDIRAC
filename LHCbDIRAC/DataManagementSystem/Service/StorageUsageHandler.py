@@ -41,7 +41,21 @@ class StorageUsageHandler( RequestHandler ):
   def export_getStorageDirectorySummary( self, directory = '', filetype = '', production = '', sites = [] ):
     """ Retieve a directory summary for the storage usage
     """
+    result = storageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
+    if not result[ 'OK' ]:
+      return result
+    dl = []
+    for dirPath in result[ 'Value' ]:
+      dl.append( ( dirPath, result[ 'Value' ][ dirPath ][ 'Size' ], result[ 'Value' ][ dirPath ][ 'Files' ] ) )
+    return S_OK( dl )
+
+
+  types_getStorageDirectoryData = []
+  def export_getStorageDirectoryData( self, directory = '', filetype = '', production = '', sites = [] ):
+    """ Retieve a directory summary for the storage usage
+    """
     return storageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
+
 
   types_getStorageDirectories = []
   def export_getStorageDirectories( self, directory = '', filetype = '', production = '', sites = [] ):

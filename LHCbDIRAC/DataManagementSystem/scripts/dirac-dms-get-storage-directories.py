@@ -43,7 +43,7 @@ for switch in Script.getUnprocessedSwitches():
 
 allDirs = []
 if not prods:
-  res = rpc.getStorageDirectorySummary( dir, fileType, '', ses )
+  res = rpc.getStorageDirectoryData( dir, fileType, '', ses )
   if not res['OK']:
     print "ERROR getting storage directories", res['Message']
   else:
@@ -51,7 +51,7 @@ if not prods:
       if resDir not in allDirs:
         allDirs.append( resDir )
 for prod in prods:
-  res = rpc.getStorageDirectorySummary( dir, fileType, prod, ses )
+  res = rpc.getStorageDirectoryData( dir, fileType, prod, ses )
   if not res['OK']:
     print "ERROR getting storage directories", res['Message']
   else:

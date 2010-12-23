@@ -81,7 +81,7 @@ if not prods:
 
 if full:
   for prodID in sortList( prods ):
-    res = rpc.getStorageDirectorySummary( dir, fileType, prodID, ses )
+    res = rpc.getStorageDirectoryData( dir, fileType, prodID, ses )
     if not res['OK']:
       print 'Failed to get directories', res['Message']
       DIRAC.exit( 2 )
