@@ -51,7 +51,7 @@ class StorageUsageAgent( AgentModule ):
     for lfn in dirData:
       for SEName in dirData[ lfn ]:
         if SEName not in filesOpened:
-          filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" %  ( SEName,
+          filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" % ( SEName,
                                                                                              self.__baseDirLabel ) )
           #Check if file is opened and if not open it
           if SEName not in filesOpened:
@@ -87,7 +87,7 @@ class StorageUsageAgent( AgentModule ):
       match = current.match( fileName )
       if match:
         newFileName = "replicas.%s.%s.old" % ( match.group( 1 ), self.__baseDirLabel )
-        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ), 
+        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
                                                      os.path.join( self.__replicaListFilesDir, newFileName ) ) )
         os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
                    os.path.join( self.__replicaListFilesDir, newFileName ) )
@@ -96,7 +96,7 @@ class StorageUsageAgent( AgentModule ):
       match = filling.match( fileName )
       if match:
         newFileName = "replicas.%s.%s" % ( match.group( 1 ), self.__baseDirLabel )
-        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ), 
+        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
                                                      os.path.join( self.__replicaListFilesDir, newFileName ) ) )
         os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
                    os.path.join( self.__replicaListFilesDir, newFileName ) )
@@ -198,7 +198,7 @@ class StorageUsageAgent( AgentModule ):
     self.publishDirectories( directoriesToPublish )
 
     #Move replica list files
-    self.__replicaListFilesDone() 
+    self.__replicaListFilesDone()
 
     #Clean records older than 1 day
     gLogger.info( "Finished recursive directory search." )
@@ -216,6 +216,8 @@ class StorageUsageAgent( AgentModule ):
     if not res['OK']:
       gLogger.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
       return S_OK()
+
+    #TODO: Download user proxy and discover identity from the metadata
     res = self.catalog.removeCatalogDirectory( dirPath )
     if not res['OK']:
       gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
