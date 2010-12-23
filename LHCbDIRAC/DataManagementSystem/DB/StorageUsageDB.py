@@ -86,7 +86,8 @@ class StorageUsageDB( DB ):
         sqlCmd = "INSERT INTO `su_Directory` ( DID, Path, Files, Size ) VALUES ( 0, %s, %d, %d )" % ( sqlDirPath, files, size )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
-          return result
+          self.log.error( "Cannot insert directory", "%s: %s" % ( dirPath, result[ 'Message' ] ) )
+          continue
         dirIDs[ dirPath ] = result[ 'lastRowId' ]
       result = self.__updateSEUsage( dirIDs[ dirPath ], SEUsage )
       if not result[ 'OK' ]:

@@ -134,7 +134,7 @@ class StorageUsageAgent( AgentModule ):
     directoriesToPublish = {}
     while dirExplorer.isActive():
       currentDir = dirExplorer.getNextDir()
-      gLogger.notice( "Getting usage for %s." % currentDir )
+      gLogger.notice( "Getting usage for %s" % currentDir )
       numberOfFiles = 0
       subDirs = []
 
