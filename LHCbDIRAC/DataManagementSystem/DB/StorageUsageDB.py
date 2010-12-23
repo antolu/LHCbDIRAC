@@ -1,373 +1,344 @@
 """ StorageUsageDB class is a front-end to the Storage Usage Database.
 """
-import re, os, sys,threading
+import re, os, sys, threading
 import time, datetime
 from types import *
 
-from DIRAC import gConfig,gLogger,S_OK, S_ERROR
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
-from DIRAC.Core.Utilities.List import intListToString,stringListToString
+from DIRAC.Core.Utilities.List import intListToString, stringListToString
 
 #############################################################################
 
-class StorageUsageDB(DB):
+class StorageUsageDB( DB ):
 
-  def __init__( self, maxQueueSize=10 ):
+  def __init__( self, maxQueueSize = 10 ):
     """ Standard Constructor
     """
-    DB.__init__(self,'StorageUsageDB','DataManagement/StorageUsageDB',maxQueueSize)
-    self.getIdLock = threading.Lock()
+    DB.__init__( self, 'StorageUsageDB', 'DataManagement/StorageUsageDB', maxQueueSize )
+    self.__initializeDB()
 
-  #############################################################################
-  #
-  # Methods for bulk insertion
-  #
+  def __initializeDB( self ):
+    """
+    Create the tables
+    """
+    result = self._query( "show tables" )
+    if not result[ 'OK' ]:
+      return result
 
-  def publishDirectories(self,directoryDict):
+    tablesInDB = [ t[0] for t in result[ 'Value' ] ]
+    tablesToCreate = {}
+    self.__tablesDesc = {}
+
+    self.__tablesDesc[ 'su_Directory' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+                                                           'Path' : 'VARCHAR(255) NOT NULL',
+                                                           'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                           'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                           },
+                                             'PrimaryKey' : 'Path',
+                                             'Indexes': { 'id': [ 'dID' ] }
+                                            }
+
+    self.__tablesDesc[ 'su_SEUsage' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'SEName' : 'VARCHAR(32) NOT NULL',
+                                                       'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'Updated' : 'DATETIME NOT NULL'
+                                                  },
+                                       'PrimaryKey' : [ 'DID', 'SEName' ],
+                                       'Indexes': { 'SE': [ 'SEName' ] },
+                                     }
+
+    for tableName in self.__tablesDesc:
+      if not tableName in tablesInDB:
+        tablesToCreate[ tableName ] = self.__tablesDesc[ tableName ]
+
+    return self._createTables( tablesToCreate )
+
+  ################
+  # Bulk insertion
+  ################
+
+  def publishDirectories( self, directoryDict ):
     """ Inserts a group of directoires with their usage """
-    res = self.__getDirectoryPathIDs(directoryDict.keys())
-    if not res['OK']:
-      return res
-    directoryIDs = res['Value']
-    toCreate = []
-    for directoryPath in directoryDict.keys():
-      if not directoryPath in directoryIDs.keys():
-        toCreate.append((directoryPath,directoryDict[directoryPath]['Files'],directoryDict[directoryPath]['TotalSize']))
-    res = self.__insertDirectories(toCreate)
-    directoryIDs.update(res['Value'])
-    return self.__insertDirectoriesUsage(directoryDict,directoryIDs)
-    
-  def __getDirectoryPathIDs(self,directories):
-    """ Get the directoryIDs associated to a list of paths from the Directory table """
-    req = "SELECT DirectoryPath,DirectoryID FROM Directory WHERE DirectoryPath IN (%s);" % stringListToString(directories)
-    print req
-    res = self._query(req)
-    if not res['OK']:
-      return res
-    dirs = {}
-    for dir,id in res['Value']:
-      dirs[dir] = id
-    return S_OK(dirs)
-
-  def __insertDirectories(self,toCreate):
-    dirIDs = {}
-    for directoryPath,directoryFiles,directorySize in toCreate:
-      req = "INSERT INTO Directory (DirectoryPath,DirectoryFiles,DirectorySize) VALUES ('%s',%s,%s);" % (directoryPath,directoryFiles,directorySize)
-      res = self._update(req)
-      if not res['OK']:
-        continue
-      dirIDs[directoryPath] = res['lastRowId']
-    return S_OK(dirIDs)
-
-  def __insertDirectoriesUsage(self, directoryDict,directoryIDs):
-    """ Inserts the usage for the directoryID into the DirectoryUsage table """
-    req = "DELETE FROM DirectoryUsage WHERE DirectoryID IN (%s)" % intListToString(directoryIDs.values())
-    print req
-    res = self._update(req)
-    if not res['OK']:
-      return res
-    req = "INSERT INTO DirectoryUsage (DirectoryID,StorageElement,StorageElementSize,StorageElementFiles,Updated) VALUES"
-    valuesToJoin = []
-    for lfn,directoryID in directoryIDs.items():
-      for storageElement,usageDict in directoryDict[lfn]['SEUsage'].items():
-        storageElementSize = usageDict['Size']
-        storageElementFiles= usageDict['Files']
-        valuesToJoin.append("(%s,'%s',%s,%s,NOW())" % (directoryID,storageElement,storageElementSize,storageElementFiles))
-    req = "%s %s" % (req,intListToString(valuesToJoin))
-    print req
-    return self._update(req)
-
-  #############################################################################
-  #
-  # Methods for manipulating the multiple tables
-  #
-
-  def insertDirectory(self,directory,directoryFiles,directorySize):
-    """ Insert the directory into the Directory table and adds the parameters to the DirectoryParameters table
-    """
-    res = self.__getDirectoryID(directory)
-    if not res['OK']:
-      return res
-    elif res['Value']:
-      # The directory already exists
-      return S_OK()
-    else:
-      res = self.__insertDirectory(directory, directoryFiles, directorySize)
-      if not res['OK']:
-        errStr = res['Message']
-        res = self.removeDirectory(directory)
-        return S_ERROR(errStr)
+    result = self.__getIDs( directoryDict )
+    if not result[ 'OK' ]:
+      return result
+    dirIDs = result[ 'Value' ]
+    for dirPath in directoryDict:
+      try:
+        files = long( directoryDict[ dirPath ][ 'Files' ] )
+        size = long( directoryDict[ dirPath ][ 'TotalSize' ] )
+      except ValueError, e:
+        return S_ERROR( "Values must be ints: %s" % str( e ) )
+      SEUsage = directoryDict[ dirPath ][ 'SEUsage' ]
+      if dirPath[-1] != "/":
+        dirPath = "%s/" % dirPath
+      sqlDirPath = self._escapeString( dirPath )[ 'Value' ]
+      if dirPath in dirIDs:
+        sqlCmd = "UPDATE `su_Directory` SET Files=%d, Size=%d WHERE Path = %s" % ( files, size, sqlDirPath )
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          return result
       else:
-        directoryID = res['Value']
-        for parameter in directory.split('/'):
-          if parameter:
-            res = self.__insertDirectoryParam(directoryID, parameter)
-            if not res['OK']:
-              errStr = res['Message']
-              res = self.removeDirectory(directory)
-              return S_ERROR(errStr)
-        return S_OK(directoryID)
+        sqlCmd = "INSERT INTO `su_Directory` ( DID, Path, Files, Size ) VALUES ( 0, %s, %d, %d )" % ( sqlDirPath, files, size )
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          return result
+        dirIDs[ dirPath ] = result[ 'lastRowId' ]
+      result = self.__updateSEUsage( dirIDs[ dirPath ], SEUsage )
+      if not result[ 'OK' ]:
+        return result
+    return S_OK()
 
-  def removeDirectory(self,directory):
-    """ Remove the directory from all tables in the database
-    """
-    res = self.__getDirectoryID(directory)
-    if not res['OK']:
-      return res
-    elif not res['Value']:
+  def __getIDs( self, dirList ):
+    dl = []
+    for dirPath in dirList:
+      if dirPath[-1] != "/":
+        dirPath = "%s/" % dirPath
+      dl.append( self._escapeString( dirPath )[ 'Value' ] )
+    sqlCmd = "SELECT Path, DID FROM `su_Directory` WHERE Path in ( %s )" % ", ".join( dl )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( dict( result[ 'Value' ] ) )
+
+  def __updateSEUsage( self, dirID, SEUsage ):
+    sqlCmd = "DELETE FROM `su_SEUsage` WHERE DID=%d" % dirID
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    if not SEUsage:
+      self.log.error( "Ooops. Dir has no SEUsage!", "ID %s" % dirID )
       return S_OK()
-    else:
-      directoryID = res['Value']
-      return self.__removeDirectory([directoryID])
+    sqlVals = []
+    for SEName in SEUsage:
+      try:
+        size = SEUsage[ SEName ][ 'Size' ]
+        files = SEUsage[ SEName ][ 'Files' ]
+      except ValueError, e:
+        return S_ERROR( "Values must be ints: %s" % str( e ) )
+      sqlVals.append( "( %d, %s, %d, %d, UTC_TIMESTAMP() )" % ( dirID, self._escapeString( SEName )[ 'Value' ], size, files ) )
+    sqlIn = "INSERT INTO `su_SEUsage` ( DID, SEname, Size, Files, Updated ) VALUES %s" % ", ".join( sqlVals )
+    return self._update( sqlIn )
 
-  def recursiveRemoveDirectory(self,directory):
-    """ Remove recursively directory from all tables in the database
-    """
-    res = self.__getDirectoryIDs(directory)
-    if not res['OK']:
-      return res
-    elif not res['Value']:
+  #############
+  # Remove dir
+  #############
+
+  def __getIDsLike( self, dirPath ):
+    dirPath = self._escapeString( dirPath )[ 'Value' ][1:-1]
+    while dirPath and dirPath[-1] == "/":
+      dirPath = dirPath[:-1]
+    sqlCmd = "SELECT Path, DID FROM `su_Directory` WHERE Path LIKE '%s/%%'" % dirPath
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( dict( result[ 'Value' ] ) )
+
+  def removeDirectory( self, dirPath ):
+    result = self.__getIDsLike( dirPath )
+    if not result[ 'OK' ]:
+      return result
+    dirIDs = result[ 'Value' ]
+    if not dirIDs:
       return S_OK()
-    else:
-      directoryIDs = res['Value']
-      return self.__removeDirectory(directoryIDs)
+    sqlIDs = ", ".join( [ str( dirIDs[ path ] ) for path in dirIDs ] )
+    for tableName in ( 'su_Directory', 'su_SEUsage' ):
+      sqlCmd = "DELETE FROM `%s` WHERE DID in ( %s )" % ( tableName, sqlIDs )
+      result = self._update( sqlCmd )
+      if not result[ 'OK' ]:
+        return result
+    return S_OK()
 
-  def __removeDirectory(self,directoryIDs):
-    """ Remove all the directory ids from all tables
-    """
-    failed = False
-    req = "DELETE FROM DirectoryUsage WHERE DirectoryID IN (%s);" % intListToString(directoryIDs)
-    res = self._update(req)
-    if not res['OK']:
-      failed = True
-      err = res['Message']
-    req = "DELETE FROM DirectoryParameters WHERE DirectoryID IN (%s);" % intListToString(directoryIDs)
-    res = self._update(req)
-    if not res['OK']:
-      failed = True
-      err = res['Message']
-    req = "DELETE FROM Directory WHERE DirectoryID IN (%s);" % intListToString(directoryIDs)
-    res = self._update(req)
-    if not res['OK']:
-      failed = True
-      err = res['Message']
-    if failed:
-      return S_ERROR(errStr)
-    else:
-      return S_OK()
 
-  #############################################################################
-  #
-  # Methods for manipulating the Directory table
-  #
+  ################
+  # Clean outdated entries
+  ################
 
-  def __insertDirectory(self,directory,directoryFiles,directorySize):
-    """ Inserts the directory into the Directory table
-    """
-    req = "INSERT INTO Directory (DirectoryPath,DirectoryFiles,DirectorySize) VALUES ('%s',%s,%s);" % (directory,directoryFiles,directorySize)
-    err = "StorageUsageDB.__insertDirectory: Failed to insert directory."
-    self.getIdLock.acquire()
-    res = self._update(req)
-    if not res['OK']:
-      self.getIdLock.release()
-      return S_ERROR("%s %s" % (err,res['Message']))
-    req = "SELECT MAX(DirectoryID) FROM Directory;"
-    res = self._query(req)
-    self.getIdLock.release()
-    if not res['OK']:
-      err = "StorageUsageDB.__insertDirectory: Failed to get DirectoryID from Directory table."
-      return S_ERROR("%s %s" % err,res['Message'])
-    if not res['Value']:
-      err = "StorageUsageDB.__insertDirectory: Directory details don't appear in Directory table."
-      return S_ERROR(err)
-    directoryID = res['Value'][0][0]
-    return S_OK(directoryID)
+  def purgeOutdatedEntries( self, rootDir = False, outdatedSeconds = 86400 ):
+    try:
+      outdatedSeconds = max( 1, long( outdatedSeconds ) )
+    except ValueError:
+      return S_ERROR( "Ooutdated seconds needs to be a number" )
 
-  def __getDirectoryID(self,directory):
-    """ Obtain the directoryID from the Directory table
-    """
-    req = "SELECT DirectoryID from Directory WHERE DirectoryPath = '%s';" % directory
-    err = "StorageUsageDB.__getDirectoryID: Failed to determine directoryID."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    elif res['Value']:
-      return S_OK(res['Value'][0][0])
-    else:
-      return S_OK(False)
+    sqlCond = [ "TIMESTAMPDIFF( SECOND, su.Updated, UTC_TIMESTAMP() ) > %d" % outdatedSeconds ]
+    sqlTables = [ "`su_SEUsage` as su" ]
+    sqlLimit = 1000
+    if rootDir:
+      rootDir = self._escapeString( rootDir )[ 'Value' ][1:-1]
+      while rootDir[-1] == "/":
+        rootDir = rootDir[:-1]
+      sqlTables.append( "`su_Directory` as d" )
+      sqlCond.append( "d.Path LIKE '%s/%%'" % rootDir )
+      sqlCond.append( "d.DID = su.DID" )
+    sqlCmd = "SELECT DISTINCT su.DID FROM %s WHERE %s LIMIT %d" % ( ", ".join( sqlTables ), " AND ".join( sqlCond ), sqlLimit )
+    cleaned = 0
+    while True:
+      result = self._query( sqlCmd )
+      if not result[ 'OK' ]:
+        return result
+      idList = [ str( row[0] ) for row in result[ 'Value' ] ]
+      if not idList:
+        break
+      cleaned += len( idList )
+      sqlIdList = ", ".join( idList )
+      for tblName in ( 'su_Directory', 'su_SEUsage' ):
+        result = self._update( "DELETE FROM `%s` WHERE DID IN ( %s )" % ( tblName, sqlIdList ) )
+        if not result[ 'OK' ]:
+          return result
+      if len( idList ) < sqlLimit:
+        break
+    return S_OK( cleaned )
 
-  def __getDirectoryIDs(self,directory):
-    """ Obtain the directoryID from the Directory table
-    """
-    req = "SELECT DISTINCT DirectoryID from Directory WHERE DirectoryPath like '%s%s';" % (directory,'%')
-    err = "StorageUsageDB.__getDirectoryIDs: Failed to determine directoryID."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    elif res['Value']:
-      directoryIDs = []
-      for tuple in res['Value']:
-        directoryIDs.append(tuple[0])
-      return S_OK(directoryIDs)
-    else:
-      return S_OK(False)
+  ###############
+  #  Get Storage info
+  ###############
 
-  #############################################################################
-  #
-  # Methods for manipulating the DirectoryParameters table
-  #
-
-  def __insertDirectoryParam(self, directoryID, parameter):
-    """ Inserts the parameters for the directoryID to the DirectoryParameters table
-    """
-    req = "INSERT INTO DirectoryParameters (DirectoryID,Parameter) VALUES (%s,'%s');" % (directoryID,parameter)
-    res = self._update(req)
-    return res
-
-  #############################################################################
-  #
-  # Methods for manipulating the DirectoryUsage table
-  #
-
-  def __checkDirectoryUsage(self,directoryID,storageElement):
-    """ Checks the pre-existance of the directoryID,storageElement pair in the DirectoryUsage table
-    """
-    req = "SELECT DirectoryID from DirectoryUsage WHERE DirectoryID = %s and StorageElement = '%s';" % (directoryID,storageElement)
-    err = "StorageUsageDB.__checkDirectoryUsage: Failed to determine existence."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err,res['Message']))
-    if res['Value']:
-      return S_OK(True)
-    else:
-      return S_OK(False)
-
-  def __insertDirectoryUsage(self, directoryID,storageElement,storageElementSize,storageElementFiles):
-    """ Inserts the usage for the directoryID into the DirectoryUsage table
-    """
-    req = "INSERT INTO DirectoryUsage (DirectoryID,StorageElement,StorageElementSize,StorageElementFiles,Updated) \
-           VALUES (%s,'%s',%s,%s,NOW());" % (directoryID,storageElement,storageElementSize,storageElementFiles)
-    res = self._update(req)
-    return res
-
-  def __updateDirectoryUsage(self,directoryID,storageElement,storageElementSize,storageElementFiles):
-    """ Updates an existing entry in the site usage
-    """
-    req = "UPDATE DirectoryUsage SET StorageElementSize = %s, StorageElementFiles = %s, Updated=NOW() WHERE DirectoryID = %s and StorageElement = '%s';" % (storageElementSize,storageElementFiles,directoryID,storageElement)
-    res = self._update(req)
-    return res
-
-  def publishDirectoryUsage(self,directory,storageElement,storageElementSize,storageElementFiles):
-    """ Publish the usage of the directory
-    """
-    res = self.__getDirectoryID(directory)
-    if not res['OK']:
-      return res
-    elif not res['Value']:
-      return S_ERROR("StorageUsageDB.publishDirectoryUsage: Directory does not exist.")
-    else:
-      directoryID = res['Value']
-      res = self.__checkDirectoryUsage(directoryID,storageElement)
-      if not res['OK']:
-        return res
-      elif not res['Value']:
-        res = self.__insertDirectoryUsage(directoryID,storageElement,storageElementSize,storageElementFiles)
-      else:
-        res = self.__updateDirectoryUsage(directoryID,storageElement,storageElementSize,storageElementFiles)
-      return res
-
-  #############################################################################
-  #
-  # Methods for retreiving storage usage
-  #
-
-  def getStorageSummary(self,dir='',fileType='',production='',sites=[]):
-    """ Retrieves the storage summary for all of the known directories
-    """
-    req = "SELECT DU.StorageElement,SUM(DU.StorageElementSize),SUM(DU.StorageElementFiles) FROM DirectoryUsage AS DU, Directory AS D WHERE D.DirectoryPath LIKE '%s%s'" % (dir,'%')
-    if fileType:
-      req = "%s AND D.DirectoryPath LIKE '%s/%s%s'" % (req,'%',fileType,'%')
-    if production:
-      req = "%s AND D.DirectoryPath LIKE '%s/%s/%s'" % (req,'%',("%8.f" % int(production)).replace(' ','0'),'%')
-    if sites:
-      req = "%s AND DU.StorageElement IN (%s)" % (req,stringListToString(sites))
-    req = "%s AND DU.DirectoryID=D.DirectoryID GROUP BY DU.StorageElement;" % req
-    err = "StorageUsageDB.getStorageSummary: Failed to get storage summary."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    usageDict = {}
-    for storageElement,size,files in res['Value']:
-      usageDict[storageElement] = {'Size':int(size), 'Files':int(files)}
-    return S_OK(usageDict)
-
-  def getStorageDirectorySummary(self,dir='',fileType='',production='',sites=[]):
-    """ Gets the directories grouped by storage element
-    """
-    req = "SELECT D.DirectoryPath,SUM(DU.StorageElementSize),SUM(DU.StorageElementFiles) FROM DirectoryUsage AS DU, Directory AS D WHERE D.DirectoryPath LIKE '%s%s'" % (dir,'%')
-    if fileType:
-      req = "%s AND D.DirectoryPath LIKE '%s/%s%s'" % (req,'%',fileType,'%')
-    if production:
-      req = "%s AND D.DirectoryPath LIKE '%s/%s/%s'" % (req,'%',("%8.f" % int(production)).replace(' ','0'),'%')
-    if sites:
-      req = "%s AND DU.StorageElement IN (%s)" % (req,stringListToString(sites))
-    req = "%s AND DU.DirectoryID=D.DirectoryID GROUP BY D.DirectoryPath ORDER BY SUM(DU.StorageElementSize) DESC;" % req
-    err = "StorageUsageDB.getStorageDirectorySummary: Failed to get storage summary."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    dirUsage = []
-    for path,size,files in res['Value']:
-      dirUsage.append((path,long(size),int(files)))
-    return S_OK(dirUsage)
-
-  def getStorageDirectories(self,dir='',fileType='',production='',sites=[]):
-    """ Gets the storage directories found for the supplied selections
-    """
-    req = "SELECT DirectoryPath FROM Directory WHERE DirectoryPath LIKE '%s%s'" % (dir,'%')
-    if fileType:
-      req = "%s AND DirectoryPath LIKE '%s/%s%s'" % (req,'%',fileType,'%')
-    if production:
-      req = "%s AND DirectoryPath LIKE '%s/%s/%s'" % (req,'%',("%8.f" % int(production)).replace(' ','0'),'%')
-    req = "%s ORDER BY DirectoryPath DESC;" % req
-    err = "StorageUsageDB.getStorageDirectories: Failed to get storage directories."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    dirs = []
-    for dir in res['Value']:
-      dirs.append(dir[0])
-    return S_OK(dirs)
-
-  def getUserStorageUsage(self,username=''):
-    """ Retrieves the storage usage for each of the known users
-    """
-    if username:
-      req = "SELECT d.DirectoryID,d.DirectoryPath,SUM(du.StorageElementSize) FROM Directory AS d, DirectoryUsage AS du  WHERE d.DirectoryPath LIKE '/lhcb/user/%s/%s/%s' AND d.DirectoryID = du.DirectoryID GROUP BY d.DirectoryID;" % (username[0],username,'%')
-    else:
-      req = "SELECT d.DirectoryID,d.DirectoryPath,SUM(du.StorageElementSize) FROM Directory AS d, DirectoryUsage AS du  WHERE d.DirectoryPath LIKE '/lhcb/user/%' AND d.DirectoryID = du.DirectoryID GROUP BY d.DirectoryID;"
-    err = "StorageUsageDB.getUserStorageUsage: Failed to obtain user storage usage."
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    else:
-      userDict = {}
-      for directoryID,directoryPath,directorySize in res['Value']:
-        userName = directoryPath.split('/')[4]
-        if not userDict.has_key(userName):
-          userDict[userName] = 0
-        userDict[userName] += int(directorySize)
-      return S_OK(userDict)
-
-  def getStorageElementSelection(self):
+  def getStorageElementSelection( self ):
     """ Retireve the possible selections available through the web-monitor
     """
-    err = "StorageUsageDB.: Failed to obtain distinct storage elements."
-    req = "SELECT DISTINCT StorageElement FROM DirectoryUsage ORDER BY StorageElement;"
-    res = self._query(req)
-    if not res['OK']:
-      return S_ERROR("%s %s" % (err, res['Message']))
-    storageElements = []
-    for tuple in res['Value']:
-      storageElements.append(tuple[0])
-    return S_OK(storageElements)
+    sqlCmd = "SELECT DISTINCT SEName FROM `su_SEUsage` ORDER BY SEName"
+    result = self._query( sqlCmd )
+    if not result['OK']:
+      return result
+    return S_OK( [ row[0] for row in result[ 'Value' ] ] )
+
+  def __getStorageCond( self, path, fileType, production, SEs ):
+    path = self._escapeString( path )[ 'Value' ][1:-1]
+    while path and path[-1] == "/":
+      path = path[:-1]
+    sqlCond = [ "d.DID = su.DID", "d.Path LIKE '%s/%%'" % path ]
+    if fileType:
+      fileType = self._escapeString( fileType )[ 'Value' ][1:-1]
+      sqlCond.append( "d.Path LIKE '%%/%s%%'" % fileType )
+    if production:
+      try:
+        sqlCond.append( "d.Path LIKE '%%/%08.d%%'" % long( production ) )
+      except ValueError:
+        return S_ERROR( "production has to be a number" )
+    if SEs:
+      sqlCond.append( "su.SEName in ( %s )" % ", ".join( [ self._escapeString( SEName )[ 'Value' ] for SEName in SEs ] ) )
+    return sqlCond
+
+  def __getStorageSummary( self, path , fileType = False, production = False, SEs = [], groupingField = "su.SEName" ):
+    """ Retrieves the storage summary for all of the known directories
+    """
+    sqlCond = self.__getStorageCond( path, fileType, production, SEs )
+    sqlFields = ( groupingField, "SUM(su.Size)", "SUM(su.Files)" )
+    sqlCmd = "SELECT %s FROM `su_SEUsage` as su,`su_Directory` as d WHERE %s GROUP BY %s" % ( ", ".join( sqlFields ),
+                                                                                              " AND ".join( sqlCond ),
+                                                                                              groupingField )
+    result = self._query( sqlCmd )
+    if not result['OK']:
+      return result
+    usageDict = {}
+    for gf, size, files in result['Value']:
+      usageDict[ gf ] = { 'Size' : long( size ), 'Files' : long( files ) }
+    return S_OK( usageDict )
+
+  def getStorageSummary( self, path, fileType = False, production = False, SEs = [] ):
+    return self.__getStorageSummary( path, fileType, production, SEs, "su.SEName" )
+
+  def getStorageDirectorySummary( self, path, fileType = False, production = False, SEs = [] ):
+    return self.__getStorageSummary( path, fileType, production, SEs, "d.Path" )
+
+  def getStorageDirectories( self, path, fileType = False, production = False, SEs = [] ):
+    sqlCond = self.__getStorageCond( path, fileType, production, SEs )
+    sqlCmd = "SELECT DISTINCT d.Path FROM `su_SEUsage` as su,`su_Directory` as d WHERE %s" % ( " AND ".join( sqlCond ) )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( [ row[0] for row in result[ 'Value' ] ] )
+
+  def __userExpression( self, fieldName = "d.Path" ):
+    return "SUBSTRING_INDEX( SUBSTRING_INDEX( %s, '/', 5 ), '/', -1 )" % fieldName
+
+  def getUserStorageUsage( self, userName = False ):
+    """ Get the usage in the SEs 
+    """
+    sqlCond = [ "d.DID = su.DID" ]
+    if userName:
+      userName = self._escapeString( userName )[ 'Value' ][1:-1]
+      sqlCond.append( "d.Path LIKE '/lhcb/user/%s/%s/%%" % ( userName[0], userName ) )
+    else:
+      sqlCond.append( "d.Path LIKE '/lhcb/user/%/%'" )
+    sqlCmd = "SELECT %s, SUM( su.Size ) FROM `su_Directory` as d, `su_SEUsage` as su WHERE %s GROUP BY %s" % ( self.__userExpression(),
+                                                                                                               " AND ".join( sqlCond ),
+                                                                                                               self.__userExpression() )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    userStorage = {}
+    for row in result[ 'Value' ]:
+      userStorage[ row[0] ] = long( row[1] )
+    return S_OK( userStorage )
+
+  def getUserSummaryPerSE( self, userName = False ):
+    sqlUser = self.__userExpression()
+    sqlFields = ( sqlUser, "su.SEName", "SUM(su.Size)", "SUM(su.Files)" )
+    sqlCond = [ "d.DID = su.DID", "d.Path LIKE '/lhcb/user/%/%'" ]
+    if userName:
+      sqlCond.append( "%s = %s" % ( sqlUser, self._escapeString( userName )[ 'Value' ] ) )
+    sqlGroup = ( sqlUser, "su.SEName" )
+    sqlCmd = "SELECT % s FROM `su_Directory` as d, `su_SEUsage` as su WHERE %s GROUP BY %s" % ( ", ".join( sqlFields ),
+                                                                                                " AND ".join( sqlCond ),
+                                                                                                ", ".join( sqlGroup ) )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    userData = {}
+    for row in result[ 'Value' ]:
+      userName = row[ 0 ]
+      seName = row[1]
+      if userName not in userData:
+        userData[ userName ] = {}
+      userData[ userName ][ seName ] = { 'Size' : row[2], 'Files' : row[3] }
+    return S_OK( userData )
+
+  ######
+  # Catalog queries
+  ######
+
+  def __getCatalogCond( self, path, fileType, production ):
+    path = self._escapeString( path )[ 'Value' ][1:-1]
+    while path and path[-1] == "/":
+      path = path[:-1]
+    sqlCond = [ "Path LIKE '%s/%%'" % path ]
+    if fileType:
+      fileType = self._escapeString( fileType )[ 'Value' ][1:-1]
+      sqlCond.append( "Path LIKE '%%/%s%%'" % fileType )
+    if production:
+      try:
+        sqlCond.append( "Path LIKE '%%/%08.d%%'" % long( production ) )
+      except ValueError:
+        return S_ERROR( "production has to be a number" )
+    return sqlCond
+
+  def __getSummary( self, path, fileType = False, production = False, groupingField = "Path" ):
+    """ Retrieves the storage summary for all of the known directories
+    """
+    sqlCond = self.__getCatalogCond( path, fileType, production )
+    sqlFields = ( groupingField, "SUM(Size)", "SUM(Files)" )
+    sqlCmd = "SELECT %s FROM `su_Directory` WHERE %s GROUP BY %s" % ( ", ".join( sqlFields ),
+                                                                                              " AND ".join( sqlCond ),
+                                                                                              groupingField )
+    result = self._query( sqlCmd )
+    if not result['OK']:
+      return result
+    usageDict = {}
+    for gf, size, files in result['Value']:
+      usageDict[ gf ] = { 'Size' : long( size ), 'Files' : long( files ) }
+    return S_OK( usageDict )
+
+  def getSummary( self, path, fileType = False, production = False ):
+    return self.__getSummary( path, fileType, production, "Path" )
+
+  def getUserSummary( self, userName = False ):
+    if userName:
+      userName = self._escapeString( userName )[ 'Value' ][1:-1]
+      path = "/lhcb/user/%s/%s" % ( userName[0], userName )
+    else:
+      path = "/lhcb/user/%/%"
+    return self.__getSummary( path, groupingField = self.__userExpression( "Path" ) )
+

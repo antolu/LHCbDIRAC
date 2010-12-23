@@ -6,10 +6,10 @@ __RCSID__ = "$Id: StorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
-from DIRAC.DataManagementSystem.Agent.NamespaceBrowser   import NamespaceBrowser
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import CatalogDirectory
-from DIRAC.Core.Utilities.List                           import sortList
-from DIRAC.Core.Utilities.Time                           import timeInterval, dateTime, week
+from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
+from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 
 import time, os
 from types import *
@@ -36,64 +36,74 @@ class StorageUsageAgent( AgentModule ):
     return S_OK()
 
   def execute( self ):
+    startExecuteTime = time.time()
     res = self.StorageUsageDB.getStorageSummary()
     if res['OK']:
-      gLogger.info( "execute: Storage Usage Summary" )
-      gLogger.info( "============================================================" )
-      gLogger.info( "execute: %s %s %s" % ( 'Storage Element'.ljust( 40 ), 'Number of files'.rjust( 20 ), 'Total size'.rjust( 20 ) ) )
+      gLogger.notice( "Storage Usage Summary" )
+      gLogger.notice( "============================================================" )
+      gLogger.notice( "%s %s %s" % ( 'Storage Element'.ljust( 40 ), 'Number of files'.rjust( 20 ), 'Total size'.rjust( 20 ) ) )
       for se in sortList( res['Value'].keys() ):
         usage = res['Value'][se]['Size']
         files = res['Value'][se]['Files']
         site = se.split( '_' )[0].split( '-' )[0]
-        gLogger.info( "execute: %s %s %s" % ( se.ljust( 40 ), str( files ).rjust( 20 ), str( usage ).rjust( 20 ) ) )
+        gLogger.notice( "%s %s %s" % ( se.ljust( 40 ), str( files ).rjust( 20 ), str( usage ).rjust( 20 ) ) )
         gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site, "", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-used" % se, usage )
         gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site, "Files", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-files" % se, files )
 
+
     baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
     ignoreDirectories = self.am_getOption( 'Ignore', [] )
-    oNamespaceBrowser = NamespaceBrowser( baseDir )
-    gLogger.info( "execute: Initiating with %s as base directory." % baseDir )
+    dirExplorer = DirectoryExplorer( reverse = True )
+    dirExplorer.addDir( baseDir )
+    gLogger.notice( "Initiating with %s as base directory." % baseDir )
 
     # Loop over all the directories and sub-directories
     directoriesToPublish = {}
-    while ( oNamespaceBrowser.isActive() ):
-      currentDir = oNamespaceBrowser.getActiveDir()
-      gLogger.info( "execute: Getting usage for %s." % currentDir )
+    while dirExplorer.isActive():
+      currentDir = dirExplorer.getNextDir()
+      gLogger.notice( "Getting usage for %s." % currentDir )
       numberOfFiles = 0
       subDirs = []
+
       res = self.catalog.getCatalogDirectorySize( currentDir )
       if not res['OK']:
-        gLogger.error( "execute: Completely failed to get usage.", "%s %s" % ( currentDir, res['Message'] ) )
-      elif res['Value']['Failed'].has_key( currentDir ):
-        gLogger.error( "execute: Failed to get usage.", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
-      else:
-        directoryMetadata = res['Value']['Successful'][currentDir]
-        subDirs = directoryMetadata['SubDirs']
-        closedDirs = directoryMetadata['ClosedDirs']
-        gLogger.info( "execute: Found %s sub-directories." % len( subDirs ) )
-        if closedDirs:
-          gLogger.info( "execute: %s sub-directories are closed (ignored)." % len( closedDirs ) )
-          for dir in closedDirs:
-            gLogger.info( "execute: %s" % dir )
-            subDirs.pop( dir )
-        numberOfFiles = int( directoryMetadata['Files'] )
-        gLogger.info( "execute: Found %s files in the directory." % numberOfFiles )
-        totalSize = long( directoryMetadata['TotalSize'] )
+        gLogger.error( "Completely failed to get usage.", "%s %s" % ( currentDir, res['Message'] ) )
+        continue
 
-        siteUsage = directoryMetadata['SiteUsage']
-        if numberOfFiles > 0:
-          directoriesToPublish[currentDir] = {'Files':numberOfFiles, 'TotalSize':totalSize, 'SEUsage':siteUsage}
-          gLogger.verbose( "%s %s %s" % ( 'Storage Element'.ljust( 40 ), 'Number of files'.rjust( 20 ), 'Total size'.rjust( 20 ) ) )
-          for storageElement in sortList( siteUsage.keys() ):
-            usageDict = siteUsage[storageElement]
-            gLogger.verbose( "%s %s %s" % ( storageElement.ljust( 40 ), str( usageDict['Files'] ).rjust( 20 ), str( usageDict['Size'] ).rjust( 20 ) ) )
-        elif ( len( subDirs ) == 0 ) and ( len( closedDirs ) == 0 ):
-          if not currentDir == baseDir:
-            self.removeEmptyDir( currentDir )
-        if len( directoriesToPublish ) == 100:
-          self.publishDirectories( directoriesToPublish )
+      if currentDir in res['Value']['Failed']:
+        gLogger.error( "Failed to get usage.", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
+        continue
+
+      directoryMetadata = res['Value']['Successful'][currentDir]
+      subDirs = directoryMetadata['SubDirs']
+      closedDirs = directoryMetadata['ClosedDirs']
+      gLogger.info( "Found %s sub-directories." % len( subDirs ) )
+      if closedDirs:
+        gLogger.info( "%s sub-directories are closed (ignored)." % len( closedDirs ) )
+        for dir in closedDirs:
+          gLogger.info( "closed dir %s" % dir )
+          subDirs.pop( dir )
+      numberOfFiles = long( directoryMetadata['Files'] )
+      gLogger.info( "Found %s files in the directory." % numberOfFiles )
+      totalSize = long( directoryMetadata['TotalSize'] )
+
+      siteUsage = directoryMetadata['SiteUsage']
+      if numberOfFiles > 0:
+        directoriesToPublish[currentDir] = {'Files':numberOfFiles, 'TotalSize':totalSize, 'SEUsage':siteUsage}
+        gLogger.verbose( "%s %s %s" % ( 'Storage Element'.ljust( 40 ), 'Number of files'.rjust( 20 ), 'Total size'.rjust( 20 ) ) )
+        for storageElement in sortList( siteUsage.keys() ):
+          usageDict = siteUsage[storageElement]
+          gLogger.verbose( "%s %s %s" % ( storageElement.ljust( 40 ), str( usageDict['Files'] ).rjust( 20 ), str( usageDict['Size'] ).rjust( 20 ) ) )
+      elif len( subDirs ) == 0 and len( closedDirs ) == 0:
+        if not currentDir == baseDir:
+          self.removeEmptyDir( currentDir )
+          continue
+
+      #Try to publish every 100 dirs
+      if len( directoriesToPublish ) % 100 == 0 and directoriesToPublish:
+        if self.publishDirectories( directoriesToPublish )[ 'OK' ]:
           directoriesToPublish = {}
 
       chosenDirs = []
@@ -108,31 +118,40 @@ class StorageUsageAgent( AgentModule ):
         else:
           chosenDirs.append( subDir )
 
-      oNamespaceBrowser.updateDirs( chosenDirs )
-      gLogger.info( "execute: There are %s active directories to be searched." % oNamespaceBrowser.getNumberActiveDirs() )
+      dirExplorer.addDirList( chosenDirs )
+      self.log.notice( "%d dirs to be explored. %d not yet commited." % ( dirExplorer.getNumRemainingDirs(), len( directoriesToPublish ) ) )
 
+    #Publish remaining directories
     self.publishDirectories( directoriesToPublish )
-    gLogger.info( "execute: Finished recursive directory search." )
+
+    #Clean records older than 1 day
+    gLogger.info( "Finished recursive directory search." )
+
+    elapsedTime = time.time() - startExecuteTime
+    result = self.StorageUsageDB.purgeOutdatedEntries( baseDir, self.am_getOption( "OutdatedSeconds", elapsedTime * 2 ) )
+    if not result[ 'OK' ]:
+      return result
+    self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
     return S_OK()
 
-  def removeEmptyDir( self, directory ):
-    gLogger.info( "removeEmptyDir: Attempting to remove empty directory from Storage Usage database" )
-    res = self.StorageUsageDB.publishEmptyDirectory( directory )
+  def removeEmptyDir( self, dirPath ):
+    self.log.notice( "Deleting empty directory %s" % dirPath )
+    res = self.StorageUsageDB.removeDirectory( dirPath )
     if not res['OK']:
-      gLogger.error( "removeEmptyDir: Failed to remove empty directory from Storage Usage database.", res['Message'] )
+      gLogger.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
+      return S_OK()
+    res = self.catalog.removeCatalogDirectory( dirPath )
+    if not res['OK']:
+      gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
+    elif dirPath in res['Value']['Failed']:
+      gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Value' ][ 'Failed' ][ dirPath ] )
     else:
-      res = self.catalog.removeCatalogDirectory( directory )
-      if not res['OK']:
-        gLogger.error( "removeEmptyDir: Failed to remove empty directory from File Catalog.", res['Message'] )
-      elif res['Value']['Failed'].has_key( directory ):
-        gLogger.error( "removeEmptyDir: Failed to remove empty directory from File Catalog.", res['Value']['Failed'][directory] )
-      else:
-        gLogger.info( "removeEmptyDir: Successfully removed empty directory from File Catalog." )
+      gLogger.info( "Successfully removed empty directory from File Catalog." )
     return S_OK()
 
   def publishDirectories( self, directoriesToPublish ):
-    gLogger.info( "publishDirectories: Publishing usage for %d directories" % len( directoriesToPublish ) )
+    gLogger.info( "Publishing usage for %d directories" % len( directoriesToPublish ) )
     res = self.StorageUsageDB.publishDirectories( directoriesToPublish )
     if not res['OK']:
-      gLogger.error( "publishDirectories: Failed to publish directories", res['Message'] )
+      gLogger.error( "Failed to publish directories", res['Message'] )
     return res
