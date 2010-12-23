@@ -27,7 +27,7 @@ class StorageUsageAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
 
-    self.am_setOption( "PollingTime", 86400 )
+    self.am_setOption( "PollingTime", 43200 )
 
     # This sets the Default Proxy to used as that defined under 
     # /Operations/Shifter/DataManager
