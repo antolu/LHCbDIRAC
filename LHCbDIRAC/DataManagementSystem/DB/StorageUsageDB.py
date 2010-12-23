@@ -61,6 +61,8 @@ class StorageUsageDB( DB ):
 
   def publishDirectories( self, directoryDict ):
     """ Inserts a group of directoires with their usage """
+    if not directoryDict:
+      return S_OK()
     result = self.__getIDs( directoryDict )
     if not result[ 'OK' ]:
       return result
