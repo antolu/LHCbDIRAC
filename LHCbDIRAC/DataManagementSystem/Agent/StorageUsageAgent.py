@@ -203,11 +203,14 @@ class StorageUsageAgent( AgentModule ):
     #Clean records older than 1 day
     gLogger.info( "Finished recursive directory search." )
 
-    elapsedTime = time.time() - self.__startExecutionTime
-    result = self.StorageUsageDB.purgeOutdatedEntries( self.__baseDir, long( self.am_getOption( "OutdatedSeconds", elapsedTime * 2 + 60 ) ) )
-    if not result[ 'OK' ]:
-      return result
-    self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
+    if self.am_getOption( "PurgeOutdatedRecords", True ):
+      elapsedTime = time.time() - self.__startExecutionTime
+      outdatedSeconds = max( max( self.am_getOption( "PollingTime" ), elapsedTime ) * 2, 86400 )
+      result = self.StorageUsageDB.purgeOutdatedEntries( self.__baseDir, long( outdatedSeconds ) )
+      if not result[ 'OK' ]:
+        return result
+      self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
+
     return S_OK()
 
   def removeEmptyDir( self, dirPath ):
