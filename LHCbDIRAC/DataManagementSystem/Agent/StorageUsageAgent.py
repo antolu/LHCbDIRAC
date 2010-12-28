@@ -60,8 +60,8 @@ class StorageUsageAgent( AgentModule ):
               filesOpened[ SEName ] = file( filePath, "w" )
             else:
               filesOpened[ SEName ] = file( filePath, "a" )
-          #SEName file is opened. Write
-          filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
+        #SEName file is opened. Write
+        filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
     for SEName in filesOpened:
       filesOpened[ SEName ].close()
     return S_OK()
