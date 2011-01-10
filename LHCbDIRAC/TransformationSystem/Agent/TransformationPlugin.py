@@ -40,7 +40,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       normalisedExistingCount = self._normaliseShares(existingCount)
       for se in sortList(normalisedExistingCount.keys()):
         gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
-     
+
     # Group the remaining data by run
     res = self.__groupByRun(self.files)
     if not res['OK']:
@@ -124,14 +124,14 @@ class TransformationPlugin(DIRACTransformationPlugin):
         for se in replicaSEs:
           if se in possibleSEs:
             tasks.append((se,[lfn]))
-    
+
     # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
     for runID,targetSite in runSitesToUpdate.items():
       res = self.transClient.setTransformationRunsSite(transID,runID,targetSite)
       if not res['OK']:
         gLogger.error("Failed to assign TransformationRun site",res['Message'])
         continue
-    return S_OK(tasks) 
+    return S_OK(tasks)
 
   def __groupByRun(self,files):
     runFiles = {}
@@ -148,10 +148,10 @@ class TransformationPlugin(DIRACTransformationPlugin):
     possibleTargets = ['CNAF-RAW','GRIDKA-RAW','IN2P3-RAW','NIKHEF-RAW','PIC-RAW','RAL-RAW']
     transID = self.params['TransformationID']
 
-    # Get the requested shares from the CS 
+    # Get the requested shares from the CS
     res = self._getShares('CPU')
     if not res['OK']:
-      return res  
+      return res
     cpuShares = res['Value']
     # Remove the CERN component and renormalise
     if cpuShares.has_key('LCG.CERN.ch'):
@@ -194,12 +194,12 @@ class TransformationPlugin(DIRACTransformationPlugin):
       return res
     existingCount = res['Value']
     if existingCount:
-      gLogger.info("Existing storage element utilization (%):") 
+      gLogger.info("Existing storage element utilization (%):")
       normalisedExistingCount = self._normaliseShares(existingCount)
       for se in sortList(normalisedExistingCount.keys()):
         gLogger.info("%s: %.1f" % (se.ljust(15),normalisedExistingCount[se]))
 
-    # Group the remaining data by run 
+    # Group the remaining data by run
     res = self.__groupByRunAndParam(self.data,param='Standard')
     if not res['OK']:
       return res
@@ -210,7 +210,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     if runFileDict:
       res = self.transClient.getTransformationRuns({'TransformationID':transID,'RunNumber':runFileDict.keys()})
       if not res['OK']:
-        gLogger.error("Failed to obtain TransformationRuns",res['Message']) 
+        gLogger.error("Failed to obtain TransformationRuns",res['Message'])
         return res
       for runDict in res['Value']:
         runSiteDict[runDict['RunNumber']] = runDict['SelectedSite']
@@ -236,7 +236,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       else:
         res = self._getNextSite(existingCount,cpuShares)
         if not res['OK']:
-          gLogger.error("Failed to get next destination SE",res['Message']) 
+          gLogger.error("Failed to get next destination SE",res['Message'])
           continue
         targetSite = res['Value']
         res = getSEsForSite(targetSite)
@@ -252,7 +252,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
       res = self.transClient.setTransformationRunsSite(transID,runID,assignedSE)
       if not res['OK']:
-        gLogger.error("Failed to assign TransformationRun site",res['Message'])      
+        gLogger.error("Failed to assign TransformationRun site",res['Message'])
         continue
       #Create the tasks
       tasks.append((assignedSE,unusedLfns))
@@ -334,34 +334,34 @@ class TransformationPlugin(DIRACTransformationPlugin):
         if not res['OK']:
           return res
         allTasks.extend(res['Value'])
-    return S_OK(allTasks)  
+    return S_OK(allTasks)
 
   def _ByRunBySize(self):
     return self._ByRun(plugin='BySize')
-  
+
   def _ByRunFileTypeSize(self):
     return self._ByRun(param='FileType',plugin='BySize')
-  
+
   def _ByRunFileType(self):
     return self._ByRun(param='FileType')
 
   def _ByRunEventTypeSize(self):
     return self._ByRun(param='EventTypeId',plugin='BySize')
-  
+
   def _ByRunEventType(self):
     return self._ByRun(param='EventTypeId')
 
   def _LHCbDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_M-DST','CNAF_M-DST','GRIDKA_M-DST','IN2P3_M-DST','NIKHEF_M-DST','PIC_M-DST','RAL_M-DST'])
-    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','NIKHEF-DST','RAL-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_M-DST','CNAF-DST','GRIDKA-DST','IN2P3-DST', 'NIKHEF-DST','PIC-DST','RAL-DST'])
     numberOfCopies = int(self.params.get('NumberOfReplicas',4))
     return self._lhcbBroadcast(sourceSEs, targetSEs, numberOfCopies, 'CERN_M-DST')
 
   def _LHCbMCDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
-    sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','RAL_MC_M-DST'])
-    targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
+    sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','PIC_MC_M-DST','RAL_MC_M-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','CNAF_MC_DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
     numberOfCopies = int(self.params.get('NumberOfReplicas',3))
     return self._lhcbBroadcast(sourceSEs, targetSEs, numberOfCopies, 'CERN_MC_M-DST')
 
@@ -387,7 +387,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     start = time.time()
     res = bk.getFileMetadata(lfns)
     gLogger.verbose("Obtained BK file metadata in %.2f seconds" % (time.time()-start))
-    if not res['OK']: 
+    if not res['OK']:
       gLogger.error("Failed to get bookkeeping metadata",res['Message'])
     return res
 
@@ -430,13 +430,10 @@ class TransformationPlugin(DIRACTransformationPlugin):
       if not runLfns:
         continue
       exampleRunLfn = randomize(runLfns)[0]
-      exampleRunLfnSEs = sortList(self.data[exampleRunLfn].keys())
       # Get rid of anything that is only is failover
-      for dummySE in exampleRunLfnSEs:
-        if re.search("-FAILOVER",dummySE):
-          exampleRunLfnSEs.remove(dummySE)
+      exampleRunLfnSEs = [se for se in sortList(self.data[exampleRunLfn].keys()) if not re.search("-FAILOVER",se)]
       if not exampleRunLfnSEs:
-        continue 
+        continue
 
       # Ensure that we have a master copy at CERN
       runTargetSEs = [cernSE]
@@ -445,40 +442,36 @@ class TransformationPlugin(DIRACTransformationPlugin):
       selectedRunTargetSites = ['LCG.CERN.ch']
       # If we know the second master copy use it
       secondMaster = False
-      for dummySE in exampleRunLfnSEs:
-        if (len(runTargetSEs) < 2):
-          if (dummySE in sourceSEs):
-            if (dummySE not in runTargetSEs):
-              secondMasterSite = self._getSiteForSE(dummySE)['Value'] 
-              if not secondMasterSite in selectedRunTargetSites:
-                selectedRunTargetSites.append(secondMasterSite)
-                runTargetSEs.append(dummySE)
-                exampleRunLfnSEs.remove(dummySE)
-                secondMaster=dummySE
+      for dummySE in list(exampleRunLfnSEs):
+        if len(runTargetSEs) >= 2: break
+        if dummySE in sourceSEs and dummySE not in runTargetSEs:
+          secondMasterSite = self._getSiteForSE(dummySE)['Value']
+          if not secondMasterSite in selectedRunTargetSites:
+            selectedRunTargetSites.append(secondMasterSite)
+            runTargetSEs.append(dummySE)
+            exampleRunLfnSEs.remove(dummySE)
+            secondMaster=dummySE
       # If we do not have a second master copy then select one
       if not secondMaster:
         for possibleSecondMaster in randomize(sourceSEs):
-          if len(runTargetSEs) >= 2:
-            continue
+          if len(runTargetSEs) >= 2: break
           possibleSecondMasterSite = self._getSiteForSE(possibleSecondMaster)['Value']
-          if not (possibleSecondMasterSite in selectedRunTargetSites):
-            if not (possibleSecondMaster) in runTargetSEs:
-              selectedRunTargetSites.append(possibleSecondMasterSite)
-              runTargetSEs.append(possibleSecondMaster)
+          if not possibleSecondMasterSite in selectedRunTargetSites and possibleSecondMaster not in runTargetSEs:
+            selectedRunTargetSites.append(possibleSecondMasterSite)
+            runTargetSEs.append(possibleSecondMaster)
       # Now get select the secondary copies
       for dummySE in randomize(exampleRunLfnSEs):
-        if len(runTargetSEs) < numberOfCopies:
-          if (dummySE in targetSEs):
-            if (dummySE not in runTargetSEs):
-              possibleSecondarySite = self._getSiteForSE(dummySE)['Value']
-              if not possibleSecondarySite in selectedRunTargetSites:
+        if len(runTargetSEs) >= numberOfCopies: break
+        if dummySE in targetSEs and dummySE not in runTargetSEs:
+            possibleSecondarySite = self._getSiteForSE(dummySE)['Value']
+            if not possibleSecondarySite in selectedRunTargetSites:
                 selectedRunTargetSites.append(possibleSecondarySite)
                 runTargetSEs.append(dummySE)
                 exampleRunLfnSEs.remove(dummySE)
-      #Now get the remainder of the required seconday copies
+      #Now get the remainder of the required secondary copies
       for possibleSecondarySE in randomize(targetSEs):
-        if len(runTargetSEs) < numberOfCopies:
-          if not possibleSecondarySE in runTargetSEs:
+        if len(runTargetSEs) >= numberOfCopies: break
+        if not possibleSecondarySE in runTargetSEs:
             possibleSecondarySite = self._getSiteForSE(possibleSecondarySE)['Value']
             if not possibleSecondarySite in selectedRunTargetSites:
               selectedRunTargetSites.append(possibleSecondarySite)
@@ -517,14 +510,14 @@ class TransformationPlugin(DIRACTransformationPlugin):
         if not runTargetSESite in existingSites:
           fileTargets[lfn].append(runTargetSE)
       if not fileTargets[lfn]:
-        fileTargets.pop(lfn) 
+        fileTargets.pop(lfn)
         alreadyCompleted.append(lfn)
 
     # Update the status of the already done files
     if alreadyCompleted:
       gLogger.info("Found %s files that are already completed" % len(alreadyCompleted))
       self.transClient.setFileStatusForTransformation(transID,'Processed',alreadyCompleted)
-    
+
     # Now group all of the files by their target SEs
     storageElementGroups = {}
     for lfn,targetSEs in fileTargets.items():
@@ -551,7 +544,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
       gLogger.warn(res['Message'])
       return res
     ancestorDict = res['Value']
-    
+
     # Get the replicas for all the ancestors
     allAncestors = []
     for ancestors in ancestorDict.values():
@@ -589,5 +582,5 @@ class TransformationPlugin(DIRACTransformationPlugin):
     for lfn,replicas in self.data.items():
       if len(replicas) == 0:
         gLogger.error("File ancestors not found at corresponding sites",lfn)
-        ancestorProblems.append(lfn)          
+        ancestorProblems.append(lfn)
     return S_OK()
