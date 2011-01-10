@@ -361,7 +361,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
   def _LHCbMCDSTBroadcast(self):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     sourceSEs = self.params.get('SourceSE',['CERN_MC_M-DST','CNAF_MC_M-DST','GRIDKA_MC_M-DST','IN2P3_MC_M-DST','NIKHEF_MC_M-DST','PIC_MC_M-DST','RAL_MC_M-DST'])
-    targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','CNAF_MC_DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
+    targetSEs = self.params.get('TargetSE',['CERN_MC_M-DST','CNAF_MC-DST','GRIDKA_MC-DST','IN2P3_MC-DST','NIKHEF_MC-DST','PIC_MC-DST','RAL_MC-DST'])
     numberOfCopies = int(self.params.get('NumberOfReplicas',3))
     return self._lhcbBroadcast(sourceSEs, targetSEs, numberOfCopies, 'CERN_MC_M-DST')
 
@@ -482,8 +482,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
     # Update the TransformationRuns table with the assigned (don't continue if it fails)
     for runID,targetSite in runSitesToUpdate.items():
-      if not runID:
-        continue
+      #if not runID:
+      #  continue
       res = self.transClient.setTransformationRunsSite(transID,runID,targetSite)
       if not res['OK']:
         gLogger.error("Failed to assign TransformationRun site",res['Message'])
@@ -531,8 +531,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
     for stringTargetSEs in sortList(storageElementGroups.keys()):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks(sortList(stringTargetLFNs),100):
-        for targetSE in stringTargetSEs.split(','):
-          tasks.append((targetSE,lfnGroup))
+        tasks.append((stringTargetSEs,lfnGroup))
     return S_OK(tasks)
 
   def _checkAncestors(self,filesReplicas,ancestorDepth):
