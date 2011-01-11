@@ -98,11 +98,12 @@ class LHCB_BKKDBManager(BaseESManager):
     print "If you need help, you will use client.help() command."
     
     self.dataQualities_ = {}
-    retVal = self.db_.getAvailableFileTypes()
-    if not retVal['OK']:
-      return retVal
-    else:
-     self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
+    #retVal = self.db_.getAvailableFileTypes()
+    #if not retVal['OK']:
+    #  return retVal
+    #else:
+    # self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
+    self.__filetypes = []
         
   ############################################################################# 
   def _updateTreeLevels(self, level):
