@@ -58,7 +58,7 @@ class LocalSoftwareInstall:
     shutil.copy('install_project.py','lib')
     os.chdir('lib')
     for app in self.apps:
-      cmd = '%s install_project -p %s -v %s -b' % (( sys.executable,)+app)
+      cmd = '%s install_project -b %s %s' % (( sys.executable,)+app)
       ret = systemCall( 3600, cmd.split(), callbackFunction=log )
       if not ret['OK']:
         break

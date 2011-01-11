@@ -208,9 +208,12 @@ def CheckApplication( app, config, area ):
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
   cmdTuple += ['-d']
-  cmdTuple += [ '-p', appName ]
-  cmdTuple += [ '-v', appVersion ]
+  cmdTuple += ['-b']
   cmdTuple += [ '--check' ]
+#  cmdTuple += [ '-p', appName ]
+#  cmdTuple += [ '-v', appVersion ]
+  cmdTuple += [ appName ]
+  cmdTuple += [ appVersion ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
   ret = DIRAC.systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
@@ -269,9 +272,9 @@ def InstallApplication( app, config, area ):
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
   cmdTuple += ['-d']
-  cmdTuple += [ '-p', appName ]
-  cmdTuple += [ '-v', appVersion ]
   cmdTuple += ['-b']
+  cmdTuple += [ appName ]
+  cmdTuple += [ appVersion ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
@@ -412,10 +415,12 @@ def RemoveApplication( app, config, area ):
   os.chdir( area )
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmdTuple += [ '-p', appName ]
-  cmdTuple += [ '-v', appVersion ]
   #removal options
   cmdTuple += [ '-r', '-d' ]
+#  cmdTuple += [ '-p', appName ]
+#  cmdTuple += [ '-v', appVersion ]
+  cmdTuple += [ appName ]
+  cmdTuple += [ appVersion ]
 
   ret = DIRAC.systemCall( 3600, cmdTuple, env = cmtEnv, callbackFunction = log )
   os.chdir( curDir )
