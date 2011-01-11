@@ -115,6 +115,19 @@ class StorageUsageDB( DB ):
       self.log.error( "Ooops. Dir has no SEUsage!", "ID %s" % dirID )
       return S_OK()
     sqlVals = []
+    #HACK: Make sure SEName makes sense
+    fixedSEUsage = {}
+    for SEName in SEUsage:
+      if SEName == "CERN-Tape":
+        SEName = "CERN-tape"
+      if not SEName in fixedSEUsage:
+        fixedSEUsage[ SEName ] = { 'Size' : 0, 'Files' : 0 }
+      fixedSEUsage[ SEName ][ 'Size' ] += SEUsage[ SEName ][ 'Size' ]
+      fixedSEUsage[ SEName ][ 'Files' ] += SEUsage[ SEName ][ 'Files' ]
+    if fixedSEUsage != SEUsage:
+      self.log.warn( "Fixed dirID %s SEUsage from:\n %s\nto:\n %s" % ( dirID, SEUsage, fixedSEUsage ) )
+    SEUsage = fixedSEUsage
+    #Insert data
     for SEName in SEUsage:
       try:
         size = SEUsage[ SEName ][ 'Size' ]
