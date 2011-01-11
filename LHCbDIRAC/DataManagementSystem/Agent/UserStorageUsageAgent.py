@@ -14,6 +14,6 @@ class UserStorageUsageAgent( StorageUsageAgent ):
   def removeEmptyDir( self, dirPath ):
     #Do not remove user's home dir
     if len( List.fromChar( dirPath, "/" ) ) > 4:
-      return StorageUsageAgent.removeEmptyDir( dirPath )
+      return StorageUsageAgent.removeEmptyDir( self, dirPath )
     return S_OK()
 
