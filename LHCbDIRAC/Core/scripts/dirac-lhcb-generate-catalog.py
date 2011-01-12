@@ -4,6 +4,9 @@
 # File :    dirac-lhcb-generate-catalog.py
 # Author :  Stuart Paterson
 ########################################################################
+"""
+  Create a pool xml catalog slice for the specified LFNs
+"""
 __RCSID__ = "$Id$"
 
 import DIRAC
@@ -13,6 +16,11 @@ Script.registerSwitch( "n:", "site=", "DIRAC Site Name" )
 Script.registerSwitch( "f:", "catalog=", "Catalogue File Name e.g. can be /path/to/catalog/file.xml, defaults to pool_xml_catalog.xml in PWD" )
 Script.registerSwitch( "d:", "depth=", "Optional ancestor depth to be queried from the Bookkeeping system" )
 Script.registerSwitch( "i", "ignore", "Optional flag to ignore missing files" )
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... LFN ...' % Script.scriptName,
+                                     'Arguments:',
+                                     '  LFN:      Logical File Name' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac                              import Dirac
@@ -20,13 +28,8 @@ from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles        import getAncest
 
 args = Script.getPositionalArgs()
 
-def usage():
-  print 'Usage: %s <LFN> |[<LFN>]  --site=<DIRAC Site Name> --catalog=<Catalog File Name>' % ( Script.scriptName )
-  print 'Try --help, -h for more information.'
-  DIRAC.exit( 2 )
-
 if not args:
-  usage()
+  Script.showHelp()
 
 dirac = Dirac()
 exitCode = 0
