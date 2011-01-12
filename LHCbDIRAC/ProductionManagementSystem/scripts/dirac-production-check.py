@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id$
+# $HeadURL$
 # File :   dirac-lhcb-production-check.py
 # Author : Paul Szczypka
 ########################################################################
-
 """
-dirac-lhcb-production-check.py
-Provides general information about a production which should be useful when a shifter is preparing a production status report.
+  Provides general information about a production which should be useful when a shifter is preparing a production status report.
 
 It lists the numbe rof jobs in each major state with an example jobID.
 It also lists the base locations of the files produced, the number of events produced and then number of files in the bookkeeping.
 """
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 import DIRAC
@@ -19,20 +18,16 @@ import DIRAC
 from random import choice
 import sys, time, commands, string, re
 
-def getBoolean( value ):
-  if value.lower() == 'true':
-    return True
-  elif value.lower() == 'false':
-    return False
-  else:
-    print 'ERROR: expected boolean'
-    DIRAC.exit( 2 )
-
 Script.registerSwitch( "q", "Sequential", "Get info for all productions in the range [ProdIDLow,ProdIDHigh]." )
 Script.registerSwitch( "r", "RandomExample", "Return random example values rather then simply the first item" )
 Script.registerSwitch( "j:", "JobStatus=", "Only look at jobs with selected Status" )
 Script.registerSwitch( "f", "FileExample", "Print example bookkeeping file locations." )
-Script.registerSwitch( "d:", "FromDate=", "Start date of query period, string format: 'YYYY-MM-DD'" )
+Script.registerSwitch( "D:", "FromDate=", "Start date of query period, string format: 'YYYY-MM-DD'" )
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Prod ...|Prod1 Prod2' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Prod:      DIRAC Production Id (or JobGroup)' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
 
@@ -49,12 +44,8 @@ optionJobStatus = 'Done'
 fileExample = False
 fromDate = '2000-01-01'
 
-def usage():
-  print 'Usage: %s [<Production ID>]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
-if len( args ) < 1:
-  usage()
+if len( args ) == 0:
+  Script.showHelp()
 
 #print Script.getUnprocessedSwitches()
 for switch in Script.getUnprocessedSwitches():
@@ -76,18 +67,22 @@ bk = BookkeepingClient()
 
 
 if sequentialProds:
-    if len( args ) <= 1:
-      print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." % ( args[0] )
-      DIRAC.exit( 1 )
-    else:
+  print "length of args: %s" % ( len( args ) )
+  if len( args ) == 1:
+    print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." % ( args[0] )
+    DIRAC.exit( 2 )
+  else:
+    try:
       prodIDLow = int( args[0] )
       prodIDHigh = int( args[1] )
-      print "Sequential Productions: prodLow: %s      prodHigh: %s" % ( prodIDLow, prodIDHigh )
-      if ( prodIDHigh - prodIDLow ) <= 0:
-        print "Error: ProdIDHigh is less than ProdIDLow, using appropriate range."
-        temp = prodIDLow
-        prodIDLow = prodIDHigh
-        prodIDHigh = temp
+    except:
+      print 'ERROR: Production IDs must be integers'
+      DIRAC.exit( 2 )
+    if ( prodIDHigh - prodIDLow ) < 0:
+      temp = prodIDLow
+      prodIDLow = prodIDHigh
+      prodIDHigh = temp
+    print "Sequential Productions: prodLow: %s      prodHigh: %s" % ( prodIDLow, prodIDHigh )
 
 print "===========================================================\n"
 
@@ -95,7 +90,7 @@ jobStatus = ( 'Completed', 'Done', 'Failed', 'Killed', 'Matched', 'Received', 'R
 
 if not optionJobStatus in jobStatus:
   print "ERROR: Job State: %s is not valid." % ( optionJobStatus )
-  DIRAC.exit( exitcode )
+  DIRAC.exit( 2 )
 
 
 def loopOverProds( prodID, fromDate, status ):
@@ -162,23 +157,23 @@ def loopOverProds( prodID, fromDate, status ):
     print ""
     for event in events:
       myType = event[0].ljust( 4 )
-      print "Number of Events of type %.20s: %.7d" % ( myType, event[1] )
+      print "Number of Events of type %.20s: %.7s" % ( myType, event[1] )
 
     files = val['Number of files']
     for file in files:
       myType = file[1].ljust( 4 )
-      print " Number of Files of type %.20s: %.7d" % ( myType, file[0] )
+      print " Number of Files of type %.20s: %.7s" % ( myType, file[0] )
 
     jobs = val['Number of jobs']
     if jobs[0]:
-      print "               Number of Steps: %.7d" % ( jobs[0] )
+      print "               Number of Steps: %.7s" % ( jobs[0] )
 
   print "-----------------------------------------------------------\n"
   return
 
 # Collect Job data:
 if sequentialProds:
-    for prodID in range( int( prodIDLow ), int( prodIDHigh ) + 1 ):
+    for prodID in range( prodIDLow, prodIDHigh + 1 ):
         loopOverProds( prodID, fromDate, optionJobStatus )
 else:
     for prodID in args:
