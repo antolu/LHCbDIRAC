@@ -4,6 +4,9 @@
 # File :    dirac-dms-fix-file-guid
 # Author :  Stuart Paterson, Philippe Charpentier
 ########################################################################
+"""
+  Fix incorrect file GUIDs
+"""
 __RCSID__ = "$Id$"
 
 import os, string
@@ -13,7 +16,7 @@ from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "f:", "OldLFN=", "LFN of existing file to be fixed." )
 Script.registerSwitch( "n:", "NewLFN=", "Optional: specify a new LFN for the file (retaining the existing file with incorrect GUID)." )
-Script.registerSwitch( "d:", "Directory=", "Optional: directory to download file (defaults to TMPDIR then PWD)." )
+Script.registerSwitch( "D:", "Directory=", "Optional: directory to download file (defaults to TMPDIR then PWD)." )
 Script.registerSwitch( "k", "Keep", "Optional: specify this switch to retain the local copy of the downloaded file" )
 Script.registerSwitch( "m", "SafeMode", "Optional: specify this switch to run the script in safe mode (will check the GUIDs only)" )
 Script.parseCommandLine( ignoreErrors = True )
@@ -36,13 +39,8 @@ if os.environ.has_key( 'TMPDIR' ):
 
 dirac = Dirac()
 
-def usage():
-  print 'Script to fix incorrect file GUIDs.'
-  print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
 if args or not Script.getUnprocessedSwitches():
-  usage()
+  Script.showHelp()
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() in ( 'f', 'oldlfn' ):
