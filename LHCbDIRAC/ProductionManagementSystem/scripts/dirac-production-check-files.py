@@ -4,8 +4,11 @@
 # File :    dirac-lhcb-production-check-files
 # Author :  Greig A Cowan
 ########################################################################
+"""
+  Select jobs with given conditions and check the status of: LFC, BK and prodDB
+"""
 __RCSID__ = "$Id$"
-import os, sys, popen2
+import os, sys
 import sys, string, pprint
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -18,8 +21,11 @@ Script.registerSwitch( "", "Owner=", "Owner (DIRAC nickname)" )
 Script.registerSwitch( "", "ProductionID=", "Select jobs for specified job group" )
 Script.registerSwitch( "", "Date=", "Date in YYYY-MM-DD format, if not specified default is today" )
 Script.registerSwitch( "", "Verbose=", "For more detailed information about file and job states. Default False." )
-#Script.initAsScript()
-Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
+#ÊScript.addDefaultOptionValue( "LogLevel", "ALWAYS" )
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
+
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac                       import Dirac
@@ -38,10 +44,6 @@ owner = None
 prodID = None
 date = None
 verbose = False
-
-def usage():
-  print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
 
 def getWmsJobMetadata( prodID, wmsStatus, minorStatus, site, diracProd ):
   '''Gets information about jobs from the WMS'''
@@ -224,7 +226,7 @@ def setProdDbStatus( summary ):
   return
 
 if args:
-  usage()
+  Script.showHelp()
 
 exitCode = 0
 
