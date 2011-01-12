@@ -4,6 +4,9 @@
 # File :    dirac-lhcb-add-software
 # Author :  Stuart Paterson
 ########################################################################
+"""
+  Modify Configuration to add a new SW in the automatic installation list
+"""
 __RCSID__ = "$Id$"
 
 from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
@@ -14,15 +17,17 @@ from DIRAC                                                   import gConfig
 
 import string
 
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Name Version' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Name:     Name of the LHCb software package',
+                                     '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 diracAdmin = DiracAdmin()
 modifiedCS = False
 mailadress = 'lhcb-sam@cern.ch'
-
-def usage():
-  print 'Usage: %s <NAME> <VERSION>' % ( Script.scriptName )
-  DIRAC.exit( 2 )
 
 def changeCS( path, val ):
   val.sort()
@@ -33,8 +38,8 @@ def changeCS( path, val ):
     print result['Message']
     DIRAC.exit( 255 )
 
-if len( args ) < 2:
-  usage()
+if len( args ) != 2:
+  Script.showHelp()
 
 softwareSection = '/Operations/SoftwareDistribution'
 activeSection = '/Operations/SoftwareDistribution/Active'
