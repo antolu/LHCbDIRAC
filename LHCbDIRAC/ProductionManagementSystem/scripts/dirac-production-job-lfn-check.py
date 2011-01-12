@@ -1,23 +1,29 @@
 #! /usr/bin/env python
-
+########################################################################
+# $HeadURL$
+# File :    dirac-production-job-lfn-check.py
+# Author :  Stuart Paterson
+########################################################################
+"""
+  Select jobs and check the status of: LFC, BK and prodDB
+"""
+__RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
-
-
-def usage():
-  print 'Usage: %s [Try -h,--help for more information] job [job2 [job3 [...]]]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Job ...' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Job:      DIRAC Job Id' ] ) )
+Script.parseCommandLine( ignoreErrors = True )
 
 args = Script.getPositionalArgs()
-
 if len( args ) == 0:
-  usage()
+  Script.showHelp()
 
 def printDict( dictionary ):
   """ Dictionary pretty printing
   """
-
   key_max = 0
   value_max = 0
   for key, value in dictionary.items():
@@ -27,7 +33,6 @@ def printDict( dictionary ):
       value_max = len( str( value ) )
   for key, value in dictionary.items():
     print key.rjust( key_max ), ' : ', str( value ).ljust( value_max )
-
 
 from LHCbDIRAC.Core.Utilities.JobInfoFromXML        import JobInfoFromXML
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -71,7 +76,7 @@ for arg in args:
       print replicas['Message']
 
     bkresponce = bk.exists( lfns )
-    print "Bookkeping:"
+    print "Bookkeeping:"
     if bkresponce['OK']:
       bkvalue = bkresponce['Value']
       printDict( bkvalue )
