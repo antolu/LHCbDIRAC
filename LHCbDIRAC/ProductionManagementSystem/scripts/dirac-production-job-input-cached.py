@@ -1,35 +1,36 @@
 #! /usr/bin/env python
-
+########################################################################
+# $HeadURL$
+# File :    dirac-production-job-input-cached.py
+# Author :  Greig A Cowan
+########################################################################
+"""
+  Cache input LFNs for given job
+"""
 __author__ = 'Greig A Cowan'
 __date__ = 'Sept 2008'
 __RCSID__ = '$Id$'
 
 import DIRAC
 from DIRAC.Core.Base import Script
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Job ...' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Job:      DIRAC Job Id' ] ) )
+Script.parseCommandLine( ignoreErrors = True )
+
+args = Script.getPositionalArgs()
+if len( args ) == 0:
+  Script.showHelp()
+
 from DIRAC.Interfaces.API.Dirac import Dirac
 from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
 
-def usage():
-  print 'Usage: %s [Try -h,--help for more information] job [job2 [job3 [...]]]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
-#Script.initAsScript()
-Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
-Script.parseCommandLine( ignoreErrors = True )
-args = Script.getPositionalArgs()
-
-if len( args ) == 0:
-  usage()
-
+#ÊScript.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 jobToLfns = {}
 
 for arg in args:
-  try:
-    job = int( arg )
-  except:
-    print "Wrong argument, job must be integer %s  " % arg
-    continue
-
   # Get job input LFNs
   jobinfo = JobInfoFromXML( job )
   result = jobinfo.valid()
