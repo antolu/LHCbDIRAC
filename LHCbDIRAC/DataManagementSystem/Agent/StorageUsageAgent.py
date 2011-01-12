@@ -9,7 +9,6 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
 from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
 from DIRAC.Core.Utilities import List
-from DIRAC.Core.Utilities.ThreadScheduler import gThreadScheduler
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 
 import time, os, re, threading
