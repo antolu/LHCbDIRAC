@@ -9,12 +9,11 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
 from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
 from DIRAC.Core.Utilities import List
+from DIRAC.Core.Utilities.ThreadScheduler import gThreadScheduler
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 
-import time, os, re
+import time, os, re, threading
 from types import *
-
-AGENT_NAME = 'DataManagement/StorageUsageAgent'
 
 class StorageUsageAgent( AgentModule ):
 
@@ -22,10 +21,10 @@ class StorageUsageAgent( AgentModule ):
     self.catalog = CatalogDirectory()
     if self.am_getOption( 'DirectDB', False ):
       from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
-      self.StorageUsageDB = StorageUsageDB()
+      self.__storageUsage = StorageUsageDB()
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient
-      self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
+      self.__storageUsage = RPCClient( 'DataManagement/StorageUsage' )
 
     self.am_setOption( "PollingTime", 43200 )
 
@@ -34,34 +33,39 @@ class StorageUsageAgent( AgentModule ):
     # the shifterProxy option in the Configsorteduration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.activePeriod = self.am_getOption( 'ActivePeriod', 0 )
+    self.__activePeriod = self.am_getOption( 'ActivePeriod', 0 )
+    self.__dataLock = threading.Lock()
+    self.__publishLock = threading.Lock()
     return S_OK()
 
-  def __writeReplicasListFiles( self, dirPath ):
-    self.log.info( "Dumping replicas in dir %s to file" % dirPath )
-    result = self.catalog.getCatalogDirectoryReplicas( dirPath )
+  def __writeReplicasListFiles( self, dirPathList ):
+    self.log.info( "Dumping replicas for %s dirs" % len( dirPathList ) )
+    result = self.catalog.getCatalogDirectoryReplicas( dirPathList )
     if not result[ 'OK' ]:
-      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, result[ 'Message' ] ) )
+      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPathList, result[ 'Message' ] ) )
       return result
-    if dirPath in result[ 'Value' ][ 'Failed' ]:
-      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, result[ 'Value' ][ 'Failed' ][ dirPath ] ) )
-      return result
-    dirData = result[ 'Value' ][ 'Successful' ][ dirPath ]
+    resData = result[ 'Value' ]
     filesOpened = {}
-    for lfn in dirData:
-      for SEName in dirData[ lfn ]:
-        if SEName not in filesOpened:
-          filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" % ( SEName,
-                                                                                             self.__baseDirLabel ) )
-          #Check if file is opened and if not open it
+    for dirPath in dirPathList:
+      if dirPath in result[ 'Value' ][ 'Failed' ]:
+        self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, resData[ 'Failed' ][ dirPath ] ) )
+        continue
+      dirData = resData[ 'Successful' ][ dirPath ]
+      for lfn in dirData:
+        for SEName in dirData[ lfn ]:
           if SEName not in filesOpened:
-            if SEName not in self.__replicaFilesUsed:
-              self.__replicaFilesUsed.add( SEName )
-              filesOpened[ SEName ] = file( filePath, "w" )
-            else:
-              filesOpened[ SEName ] = file( filePath, "a" )
-        #SEName file is opened. Write
-        filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
+            filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" % ( SEName,
+                                                                                               self.__baseDirLabel ) )
+            #Check if file is opened and if not open it
+            if SEName not in filesOpened:
+              if SEName not in self.__replicaFilesUsed:
+                self.__replicaFilesUsed.add( SEName )
+                filesOpened[ SEName ] = file( filePath, "w" )
+              else:
+                filesOpened[ SEName ] = file( filePath, "a" )
+          #SEName file is opened. Write
+          filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
+    #Close the files
     for SEName in filesOpened:
       filesOpened[ SEName ].close()
     return S_OK()
@@ -103,13 +107,8 @@ class StorageUsageAgent( AgentModule ):
 
     return S_OK()
 
-  def execute( self ):
-    self.__baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
-    self.__baseDirLabel = "_".join( List.fromChar( self.__baseDir, "/" ) )
-
-    self.__startExecutionTime = long( time.time() )
-    self.__resetReplicaListFiles()
-    res = self.StorageUsageDB.getStorageSummary()
+  def __printSummary( self ):
+    res = self.__storageUsage.getStorageSummary()
     if res['OK']:
       gLogger.notice( "Storage Usage Summary" )
       gLogger.notice( "============================================================" )
@@ -124,78 +123,34 @@ class StorageUsageAgent( AgentModule ):
         gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site, "Files", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-files" % se, files )
 
+  def execute( self ):
+    self.__publishDirQueue = {}
+    self.__dirsToPublish = {}
+    self.__baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
+    self.__baseDirLabel = "_".join( List.fromChar( self.__baseDir, "/" ) )
 
-    ignoreDirectories = self.am_getOption( 'Ignore', [] )
-    dirExplorer = DirectoryExplorer( reverse = True )
-    dirExplorer.addDir( self.__baseDir )
+    self.__startExecutionTime = long( time.time() )
+    self.__dirExplorer = DirectoryExplorer( reverse = True )
+    self.__resetReplicaListFiles()
+
+    self.__printSummary()
+
+    self.__dirExplorer.addDir( self.__baseDir )
     gLogger.notice( "Initiating with %s as base directory." % self.__baseDir )
-
     # Loop over all the directories and sub-directories
-    directoriesToPublish = {}
-    while dirExplorer.isActive():
-      currentDir = dirExplorer.getNextDir()
-      gLogger.notice( "Getting usage for %s" % currentDir )
-      numberOfFiles = 0
-      subDirs = []
-
-      res = self.catalog.getCatalogDirectorySize( currentDir )
-      if not res['OK']:
-        gLogger.error( "Completely failed to get usage.", "%s %s" % ( currentDir, res['Message'] ) )
-        continue
-
-      if currentDir in res['Value']['Failed']:
-        gLogger.error( "Failed to get usage.", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
-        continue
-
-      directoryMetadata = res['Value']['Successful'][currentDir]
-      subDirs = directoryMetadata['SubDirs']
-      closedDirs = directoryMetadata['ClosedDirs']
-      gLogger.info( "Found %s sub-directories." % len( subDirs ) )
-      if closedDirs:
-        gLogger.info( "%s sub-directories are closed (ignored)." % len( closedDirs ) )
-        for dir in closedDirs:
-          gLogger.info( "closed dir %s" % dir )
-          subDirs.pop( dir )
-      numberOfFiles = long( directoryMetadata['Files'] )
-      gLogger.info( "Found %s files in the directory." % numberOfFiles )
-      totalSize = long( directoryMetadata['TotalSize'] )
-
-      siteUsage = directoryMetadata['SiteUsage']
-      if numberOfFiles > 0:
-        directoriesToPublish[currentDir] = {'Files':numberOfFiles, 'TotalSize':totalSize, 'SEUsage':siteUsage}
-        gLogger.verbose( "%s %s %s" % ( 'Storage Element'.ljust( 40 ), 'Number of files'.rjust( 20 ), 'Total size'.rjust( 20 ) ) )
-        for storageElement in sorted( siteUsage ):
-          usageDict = siteUsage[storageElement]
-          gLogger.verbose( "%s %s %s" % ( storageElement.ljust( 40 ), str( usageDict['Files'] ).rjust( 20 ), str( usageDict['Size'] ).rjust( 20 ) ) )
-        if self.am_getOption( "DumpReplicasToFile", False ):
-          self.__writeReplicasListFiles( currentDir )
-      elif len( subDirs ) == 0 and len( closedDirs ) == 0:
-        if not currentDir == self.__baseDir:
-          self.removeEmptyDir( currentDir )
-          continue
-
-      #Try to publish every 100 dirs
-      if len( directoriesToPublish ) % 100 == 0 and directoriesToPublish:
-        if self.publishDirectories( directoriesToPublish )[ 'OK' ]:
-          directoriesToPublish = {}
-
-      chosenDirs = []
-      rightNow = dateTime()
-      for subDir in subDirs:
-        if subDir in ignoreDirectories:
-          continue
-        if self.activePeriod:
-          timeDiff = timeInterval( subDirs[subDir], self.activePeriod * week )
-          if timeDiff.includes( rightNow ):
-            chosenDirs.append( subDir )
-        else:
-          chosenDirs.append( subDir )
-
-      dirExplorer.addDirList( chosenDirs )
-      self.log.notice( "%d dirs to be explored. %d not yet commited." % ( dirExplorer.getNumRemainingDirs(), len( directoriesToPublish ) ) )
+    iterTime = []
+    while self.__dirExplorer.isActive():
+      startT = time.time()
+      self.__exploreDir( self.__dirExplorer.getNextDir() )
+      iterTime.append( time.time() - startT )
+      print "ITER TOOK", iterTime[-1]
+    tTt = 0.0
+    for iT in iterTime:
+      tTt += iT
+    print "AVG ITER TIME", tTt / len( iterTime )
 
     #Publish remaining directories
-    self.publishDirectories( directoriesToPublish )
+    self.__publishData( background = False )
 
     #Move replica list files
     self.__replicaListFilesDone()
@@ -206,16 +161,80 @@ class StorageUsageAgent( AgentModule ):
     if self.am_getOption( "PurgeOutdatedRecords", True ):
       elapsedTime = time.time() - self.__startExecutionTime
       outdatedSeconds = max( max( self.am_getOption( "PollingTime" ), elapsedTime ) * 2, 86400 )
-      result = self.StorageUsageDB.purgeOutdatedEntries( self.__baseDir, long( outdatedSeconds ) )
+      result = self.__storageUsage.purgeOutdatedEntries( self.__baseDir, long( outdatedSeconds ) )
       if not result[ 'OK' ]:
         return result
       self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
 
     return S_OK()
 
+  def __exploreDir( self, dirPath ):
+    gLogger.notice( "Exploring %s" % dirPath )
+
+    res = self.catalog.getCatalogDirectorySize( dirPath )
+    if not res['OK']:
+      gLogger.error( "Completely failed to get usage.", "%s %s" % ( dirPath, res['Message'] ) )
+      return
+
+    if dirPath in res['Value']['Failed']:
+      gLogger.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
+      return
+
+    directoryMetadata = res['Value']['Successful'][dirPath]
+    subDirs = directoryMetadata['SubDirs']
+    closedDirs = directoryMetadata['ClosedDirs']
+
+    gLogger.info( "Found %s sub-directories" % len( subDirs ) )
+
+    if closedDirs:
+      gLogger.info( "%s sub-directories are closed (ignored)" % len( closedDirs ) )
+      for dir in closedDirs:
+        gLogger.info( "Closed dir %s" % dir )
+        subDirs.pop( dir )
+
+    numberOfFiles = long( directoryMetadata['Files'] )
+    totalSize = long( directoryMetadata['TotalSize'] )
+    gLogger.info( "Found %s files in the directory ( %s bytes )" % ( numberOfFiles, totalSize ) )
+
+    siteUsage = directoryMetadata['SiteUsage']
+    if numberOfFiles > 0:
+      dirData = { 'Files' : numberOfFiles, 'TotalSize' : totalSize, 'SEUsage' : siteUsage }
+      self.__addDirToPublishQueue( dirPath, dirData )
+      #Print statistics
+      gLogger.verbose( "%s %s %s" % ( 'Storage Element'.ljust( 40 ),
+                                      'Number of files'.rjust( 20 ),
+                                      'Total size'.rjust( 20 ) ) )
+      for storageElement in sorted( siteUsage ):
+        usageDict = siteUsage[storageElement]
+        gLogger.verbose( "%s %s %s" % ( storageElement.ljust( 40 ),
+                                        str( usageDict['Files'] ).rjust( 20 ),
+                                        str( usageDict['Size'] ).rjust( 20 ) ) )
+    #If it's empty delete it
+    elif len( subDirs ) == 0 and len( closedDirs ) == 0:
+      if not dirPath == self.__baseDir:
+        self.removeEmptyDir( dirPath )
+        return
+
+    chosenDirs = []
+    rightNow = dateTime()
+    for subDir in subDirs:
+      if subDir in self.am_getOption( 'Ignore', [] ):
+        continue
+      if self.__activePeriod:
+        timeDiff = timeInterval( subDirs[subDir], self.__activePeriod * week )
+        if timeDiff.includes( rightNow ):
+          chosenDirs.append( subDir )
+      else:
+        chosenDirs.append( subDir )
+
+    self.__dirExplorer.addDirList( chosenDirs )
+    self.log.notice( "%d dirs to be explored. %d not yet commited." % ( self.__dirExplorer.getNumRemainingDirs(),
+                                                                        len( self.__publishDirQueue ) + len ( self.__dirsToPublish ) ) )
+
+
   def removeEmptyDir( self, dirPath ):
     self.log.notice( "Deleting empty directory %s" % dirPath )
-    res = self.StorageUsageDB.removeDirectory( dirPath )
+    res = self.__storageUsage.removeDirectory( dirPath )
     if not res['OK']:
       gLogger.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
       return S_OK()
@@ -230,11 +249,46 @@ class StorageUsageAgent( AgentModule ):
       gLogger.info( "Successfully removed empty directory from File Catalog." )
     return S_OK()
 
-  def publishDirectories( self, directoriesToPublish ):
-    gLogger.info( "Publishing usage for %d directories" % len( directoriesToPublish ) )
-    res = self.StorageUsageDB.publishDirectories( directoriesToPublish )
-    if not res['OK']:
-      gLogger.error( "Failed to publish directories", res['Message'] )
-    return res
+  def __addDirToPublishQueue( self, dirName, dirData ):
+    self.__publishDirQueue[ dirName ] = dirData
+    numDirsToPublish = len( self.__publishDirQueue )
+    if numDirsToPublish and numDirsToPublish % self.am_getOption( "PublishClusterSize", 100 ) == 0:
+      self.__publishData( background = True )
+
+  def __publishData( self, background = True ):
+    self.__dataLock.acquire()
+    try:
+      self.__dirsToPublish.update( self.__publishDirQueue )
+      self.__publishDirQueue = {}
+      #Dump to file
+      if self.am_getOption( "DumpReplicasToFile", False ):
+        self.__writeReplicasListFiles( list( self.__dirsToPublish ) )
+    finally:
+      self.__dataLock.release()
+    if background:
+      pubThread = threading.Thread( target = self.__executePublishData )
+      pubThread.setDaemon( 1 )
+      pubThread.start()
+    else:
+      self.__executePublishData()
+
+  def __executePublishData( self ):
+    self.__dataLock.acquire()
+    try:
+      if not self.__dirsToPublish:
+        gLogger.info( "No data to be published" )
+        return
+      gLogger.info( "Publishing usage for %d directories" % len( self.__dirsToPublish ) )
+
+      res = self.__storageUsage.publishDirectories( self.__dirsToPublish )
+      if res['OK']:
+        self.__dirsToPublish = {}
+      else:
+        gLogger.error( "Failed to publish directories", res['Message'] )
+      return res
+
+    finally:
+      self.__dataLock.release()
+
 
 
