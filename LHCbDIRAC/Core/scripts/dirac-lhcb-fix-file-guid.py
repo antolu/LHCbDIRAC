@@ -19,6 +19,9 @@ Script.registerSwitch( "n:", "NewLFN=", "Optional: specify a new LFN for the fil
 Script.registerSwitch( "D:", "Directory=", "Optional: directory to download file (defaults to TMPDIR then PWD)." )
 Script.registerSwitch( "k", "Keep", "Optional: specify this switch to retain the local copy of the downloaded file" )
 Script.registerSwitch( "m", "SafeMode", "Optional: specify this switch to run the script in safe mode (will check the GUIDs only)" )
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Name Version' % Script.scriptName ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
 args = Script.getPositionalArgs()
