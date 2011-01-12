@@ -1,12 +1,13 @@
 #! /usr/bin/env python
-import os, sys, popen2
 ########################################################################
 # $HeadURL$
-# File :    dirac-wms-select-jobs
+# File :    dirac-production-job-select-check.py
 # Author :  Stuart Paterson
 ########################################################################
+"""
+  Select jobs with given conditions and check the status of: LFC, BK and prodDB
+"""
 __RCSID__ = "$Id$"
-import sys, string
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -18,7 +19,10 @@ Script.registerSwitch( "", "Owner=", "Owner (DIRAC nickname)" )
 Script.registerSwitch( "", "JobGroup=", "Select jobs for specified job group" )
 Script.registerSwitch( "", "Date=", "Date in YYYY-MM-DD format, if not specified default is today" )
 Script.registerSwitch( "", "JobID=", "Select job with jobID" )
-Script.registerSwitch( "", "Verbose", "Verbosily" )
+Script.registerSwitch( "", "Verbose", "Verbosity" )
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
@@ -35,6 +39,8 @@ from DIRAC.Core.DISET.RPCClient                     import RPCClient
 prodClient = RPCClient( 'ProductionManagement/ProductionManager' )
 
 args = Script.getPositionalArgs()
+if args:
+  Script.showHelp()
 
 #Default values
 status = None
@@ -47,17 +53,9 @@ date = None
 jobID = None
 verbose = False
 
-def usage():
-  print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
-if args:
-  usage()
-
 def printDict( dictionary ):
   """ Dictionary pretty printing
   """
-
   key_max = 0
   value_max = 0
   for key, value in dictionary.items():
@@ -115,8 +113,8 @@ else:
   jobs = result['Value']
 
 
-print '==> Selected %s jobs with conditions: %s' % ( len( jobs ), string.join( conds, ', ' ) )
-print string.join( jobs, ', ' )
+print '==> Selected %s jobs with conditions: %s' % ( len( jobs ), ', '.join( conds ) )
+print ', '.join( jobs )
 
 jobsOK = []
 jobsLFC = []
@@ -125,7 +123,6 @@ jobsPROD = []
 
 
 for job in jobs:
-  j = int( job )
   jobinfo = JobInfoFromXML( job )
   result = jobinfo.valid()
   if not result['OK']:
@@ -163,7 +160,7 @@ for job in jobs:
   else:
     bkvalue = bkresponce['Value']
     if verbose:
-      print "Bookkeping:"
+      print "Bookkeeping:"
       printDict( bkvalue )
     count = 0
     for value in bkvalue.itervalues():
@@ -196,13 +193,13 @@ for job in jobs:
     print fs['Message']
 
   if okLFC and okBK and okPROD:
-    jobsOK.append( j )
+    jobsOK.append( job )
   if not okLFC:
-    jobsLFC.append( j )
+    jobsLFC.append( job )
   if not okBK:
-    jobsBK.append( j )
+    jobsBK.append( job )
   if not okPROD:
-    jobsPROD.append( j )
+    jobsPROD.append( job )
 
 
 print "OK: %i job(s)" % len( jobsOK )
