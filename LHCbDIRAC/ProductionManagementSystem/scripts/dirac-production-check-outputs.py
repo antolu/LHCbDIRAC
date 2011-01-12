@@ -1,49 +1,35 @@
 #! /usr/bin/env python
 ########################################################################
-# $Id$
+# $HeadURL$
 # File :   dirac-lhcb-production-check-outputs.py
 # Author : Paul Szczypka
 ########################################################################
+"""
+  Check all output files of a given production.
+
+  It creates (and overwrites) the following files by default:
+   bookkeepingLFNs.txt     : A list of all bookkeeping LFN's for selected productions.
+   prods.txt               : A list of all selected productions
+   productionOutputData.txt: A list of all the production Output Data
+"""
+__RCSID__ = '$Id$'
 import sys, time, commands, os
 import DIRAC
 from DIRAC.Core.Base import Script
-
-"""
-dirac-lhcb-production-check-outputs: used to obtain all files produced by a prodiction which need to be cleaned.
-It creates (and overwrites) the following files by default:
-bookkeepingLFNs.txt     : A list of all bookkeeping LFN's for selected productions.
-prods.txt               : A list of all selected productions
-productionOutputData.txt: A list of all the production Output Data
-
-
-"""
-
-
-Script.registerSwitch( "q", "Sequential", "Get LFN's for all productions in the range [ProdIDLow,ProdIDHigh]." )
+Script.registerSwitch( "q", "Sequential", "Get LFN's for all productions in the range [Prod1 Prod2]." )
 Script.registerSwitch( "n", "NoFiles", "Do not write or create files (requires verbose to be useful)." )
-Script.registerSwitch( "f:", "FromDate=", "Start date of query period, string format: 'YYYY-MM-DD'" )
-Script.registerSwitch( "p:", "OutputDir=", "Output Directory for files. Default: $PWD" )
+Script.registerSwitch( "f:", "FromDate=", "Start date of query period, format: 'YYYY-MM-DD' (default today)" )
+Script.registerSwitch( "p:", "OutputDir=", "Output Directory for files (default: $PWD)" )
 Script.registerSwitch( "v", "Verbose", "Enable Verbose Output" )
-#Script.registerSwitch( "", "", "" )
-
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Prod ...|Prod1 Prod2' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Prod:      DIRAC Production Id (or JobGroup)' ] ) )
 Script.parseCommandLine ( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 from LHCbDIRAC.Interfaces.API.DiracProduction            import DiracProduction
-
-def getBoolean( value ):
-  if value.lower() == 'true':
-    return True
-  elif value.lower() == 'false':
-    return False
-  else:
-    print 'ERROR: expected boolean'
-    DIRAC.exit( 2 )
-
-def usage():
-  print 'Usage: %s [<Production IDs>] -f <YYYY-MM-DD> -n <-p <OutputDir>> -v | -q <Production ID Low> <Production ID High>' % ( Script.scriptName )
-  DIRAC.exit( 2 )
-
 
 args = Script.getPositionalArgs()
 
@@ -54,8 +40,8 @@ fromDate = 'today'
 outputDir = os.environ.get( 'PWD' )
 verbose = False
 
-if len( args ) < 1:
-  usage()
+if len( args ) == 0:
+  Script.showHelp()
 
 #print Script.getUnprocessedSwitches()
 for switch in Script.getUnprocessedSwitches():
@@ -68,6 +54,7 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ( 'p', 'outputdir' ):
     if not os.path.isdir( switch[1] ):
       print "ERROR: %s is not a valid directory, using default value." % ( switch[1] )
+      DIRAC.exit( 2 )
     else:
       outputDir = switch[1]
   elif switch[0].lower() in ( 'v', 'verbose' ):
@@ -76,26 +63,26 @@ for switch in Script.getUnprocessedSwitches():
 if verbose:
   print "Using outputDir: %s" % ( outputDir )
 
-
-
+if sequentialProds:
+  print "length of args: %s" % ( len( args ) )
+  if len( args ) == 1:
+    print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." % ( args[0] )
+    DIRAC.exit( 2 )
+  else:
+    try:
+      prodIDLow = int( args[0] )
+      prodIDHigh = int( args[1] )
+    except:
+      print 'ERROR: Production IDs must be integers'
+      DIRAC.exit( 2 )
+    if ( prodIDHigh - prodIDLow ) < 0:
+      temp = prodIDLow
+      prodIDLow = prodIDHigh
+      prodIDHigh = temp
+    print "Sequential Productions: prodLow: %s      prodHigh: %s" % ( prodIDLow, prodIDHigh )
 
 dirac = Dirac()
 d = DiracProduction()
-
-if sequentialProds:
-    print "length of args: %s" % ( len( args ) )
-    if len( args ) <= 1:
-      print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." % ( args[0] )
-      DIRAC.exit( 1 )
-    else:
-      prodIDLow = int( args[0] )
-      prodIDHigh = int( args[1] )
-      print "prodHigh: %s      prodLow: %s" % ( prodIDHigh, prodIDLow )
-      if ( prodIDHigh - prodIDLow ) <= 0:
-        print "Error: ProdIDHigh is less than ProdIDLow, using appropriate range."
-        temp = prodIDLow
-        prodIDLow = prodIDHigh
-        prodIDHigh = temp
 
 prodFileName = 'prods.txt'
 bkFileName = 'bookkeepingLFNs.txt'
@@ -177,5 +164,4 @@ if recordData:
 if recordData:
   print "Data written to:\n%s\n%s\n%s" % ( prodFileName, bkFileName, podFileName )
 
-
-DIRAC.exit( 1 )
+DIRAC.exit()
