@@ -4,29 +4,31 @@
 # File :    dirac-lhcb-check-software
 # Author :  Joel Closier
 ########################################################################
+"""
+  Script to check if a package and version exist in the list of software distributed on the GRID
+"""
 __RCSID__ = "$Id: dirac-lhcb-check-software.py 18700 2009-11-30 13:48:50Z paterson $"
-
-"""
-Script to check if a package and version exist in the list of software distributed on the GRID
-"""
 
 import sys, string
 import DIRAC
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities import List
 from DIRAC import gConfig
 
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Name Version' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Name:     Name of the LHCb software package',
+                                     '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
-def usage():
-  print 'Usage: %s [package] [ version] [<Optional System Configuration To Query For>]' % ( Script.scriptName )
-  DIRAC.exit( 2 )
 
+if len( args ) != 2:
+  Script.showHelp()
 
-if len( args ) > 3:
-  usage()
-else:
-  package = args[0] + '.' + args[1]
+package = args[0] + '.' + args[1]
 
 softwareDistribution = gConfig.getOptionsDict( '/Operations/SoftwareDistribution' )
 if not softwareDistribution['OK']:
@@ -39,9 +41,9 @@ systemConfigs.remove( 'Active' )
 systemConfigs.remove( 'Deprecated' )
 
 
-active = software['Active'].replace( ' ', '' ).split( ',' )
+active = List.fromChar( software['Active'], ',' )
 active.sort()
-deprecated = software['Deprecated'].replace( ' ', '' ).split( ',' )
+deprecated = List.fromChar( software['Deprecated'], ',' )
 deprecated.sort()
 
 if not package in active:
