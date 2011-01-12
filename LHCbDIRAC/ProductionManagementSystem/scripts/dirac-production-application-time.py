@@ -1,35 +1,27 @@
 #!/usr/bin/env python
 ########################################################################
-# $Id$
-# File :   dirac-lhcb-application-time.py
-# Author : Paul Szczypka
+# $HeadURL$
+# File :    dirac-production-application-time
+# Author :  Paul Szczypka
 ########################################################################
-
 """
-Records the average time spent running all applications in a production or series of productions.
+  Records the average time spent running all applications in given production, break down by Site. 
 """
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base                                        import Script
 
 from random import choice
-import sys,time,commands,string,re
+import sys, time, commands, string, re
 import datetime
 
-def getBoolean(value):
-  if value.lower()=='true':
-    return True
-  elif value.lower()=='false':
-    return False
-  else:
-    print 'ERROR: expected boolean'
-    DIRAC.exit(2)
-
 Script.registerSwitch( "q", "Sequential", "Get info for all productions in the range [ProdIDLow,ProdIDHigh]." )
-#Script.registerSwitch( "r", "RandomExample", "Return random example values rather then simply the first item")
-#Script.registerSwitch( "j:", "JobStatus=", "Only look at jobs with selected Status")
-#Script.registerSwitch( "f", "FileExample", "Print example bookkeeping file locations.")
-#Script.registerSwitch( "d:", "FromDate=", "Start date of query period, string format: 'YYYY-MM-DD'")
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Prod ...|Prod1 Prod2' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Prod:      DIRAC Production Id (or JobGroup)' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
 
@@ -41,102 +33,97 @@ args = Script.getPositionalArgs()
 
 #Default Values
 sequentialProds = False
-#randomExample=False
-#optionJobStatus='Done'
-#fileExample=False
-#fromDate='2000-01-01'
 
-def usage():
-  print 'Usage: %s [-q] <Production ID> [<Production ID High>]' %(Script.scriptName)
-  print '%s prints production metrics for all applications broken down by site.' %(Script.scriptName)
-  print 'This requires analysing all jobs in a "Done" or "Completed" state for each production so can take some time.'
-  DIRAC.exit(2)
+if len( args ) == 0:
+  Script.showHelp()
 
-if len(args) < 1:
-  usage()
-  
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower() in ('q', 'sequential'):
+  if switch[0].lower() in ( 'q', 'sequential' ):
     sequentialProds = True
-    
+
 exitCode = 0
 dirac = Dirac()
 dp = DiracProduction()
 bk = BookkeepingClient()
 
+print 'This requires analysing all jobs in a "Done" or "Completed" state for each production so can take some time.'
 
 if sequentialProds:
-    if len(args) <= 1:
-      print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." %(args[0])
-      DIRAC.exit(1)
-    else:
-      prodIDLow = int(args[0])
-      prodIDHigh = int(args[1])
-      print "Sequential Productions: prodLow: %s      prodHigh: %s" %(prodIDLow, prodIDHigh)
-      if (prodIDHigh - prodIDLow) <= 0:
-        print "Error: ProdIDHigh is less than ProdIDLow, using appropriate range."
-        temp = prodIDLow
-        prodIDLow = prodIDHigh
-        prodIDHigh = temp
+  print "length of args: %s" % ( len( args ) )
+  if len( args ) == 1:
+    print "ERROR: Option 'Sequential' selected but only one argument (%s) supplied." % ( args[0] )
+    DIRAC.exit( 2 )
+  else:
+    try:
+      prodIDLow = int( args[0] )
+      prodIDHigh = int( args[1] )
+    except:
+      print 'ERROR: Production IDs must be integers'
+      DIRAC.exit( 2 )
+    if ( prodIDHigh - prodIDLow ) < 0:
+      temp = prodIDLow
+      prodIDLow = prodIDHigh
+      prodIDHigh = temp
+    print "Sequential Productions: prodLow: %s      prodHigh: %s" % ( prodIDLow, prodIDHigh )
 
 print "===========================================================\n"
 
-def loopOverProds(prodID, siteTimes):
-    prodJobsSummary = dp.getProductionJobSummary(prodID)
+def loopOverProds( prodID, siteTimes ):
+    prodJobsSummary = dp.getProductionJobSummary( prodID )
     jobsDone = prodJobsSummary['Value']['Done']['Execution Complete']['JobList']
     jobsCompleted = prodJobsSummary['Value']['Completed']['Pending Requests']['JobList']
     jobsToAnalyse = jobsDone + jobsCompleted
-    howManyJobs = len(jobsToAnalyse)
+    howManyJobs = len( jobsToAnalyse )
 
-    print "Analysing %s jobs for Production %s" %(howManyJobs, prodID)
-    
+    print "Analysing %s jobs for Production %s" % ( howManyJobs, prodID )
+
     # RegEx for application start and end.
     startRegx = r"(?P<exe>Executing )(?P<app>.*)_(?P<stepNum>.*$)"
-    endRegx   = r"(?P<app>.*) Step OK"
+    endRegx = r"(?P<app>.*) Step OK"
     # Compile RegEx
-    startCregx = re.compile(startRegx)
-    endCregx =   re.compile(endRegx)
-      
+    startCregx = re.compile( startRegx )
+    endCregx = re.compile( endRegx )
+
     for job in jobsToAnalyse:
-        jobLog = dp.getProdJobLoggingInfo(job)
-        result = dirac.attributes(job)
+        jobLog = dp.getProdJobLoggingInfo( job )
+        result = dirac.attributes( job )
         if not result['OK']:
-          errorList.append( (job, result['Message']) )
+          errorList.append( ( job, result['Message'] ) )
           exitCode = 2
 
         jobSite = result['Value']['Site']
 
         for logBit in jobLog['Value']:
           for bit in logBit:
-            s = startCregx.search(bit)
+            s = startCregx.search( bit )
             if s:
-              startTime = datetime.datetime(*time.strptime(logBit[3], "%Y-%m-%d %H:%M:%S")[0:6])
-              if siteTimes.has_key(jobSite):
+              startTime = datetime.datetime( *time.strptime( logBit[3], "%Y-%m-%d %H:%M:%S" )[0:6] )
+              if siteTimes.has_key( jobSite ):
                 # Add key if it's not already there
-                if not siteTimes[jobSite].has_key(s.group('app')):
-                  print "\033[1;32mADDING KEY: %s for site: %s\033[1;m" %(s.group('app'), jobSite)
-                  siteTimes[jobSite][s.group('app')] = {'Time': 0, 'jobCount': 0}
+                if not siteTimes[jobSite].has_key( s.group( 'app' ) ):
+                  print "\033[1;32mADDING KEY: %s for site: %s\033[1;m" % ( s.group( 'app' ), jobSite )
+                  siteTimes[jobSite][s.group( 'app' )] = {'Time': 0, 'jobCount': 0}
             else:
-              e = endCregx.search(bit)
+              e = endCregx.search( bit )
               if e:
-                endTime = datetime.datetime(*time.strptime(logBit[3], "%Y-%m-%d %H:%M:%S")[0:6])
-                appTime = (endTime - startTime).seconds
-                if siteTimes.has_key(jobSite):
-                  if siteTimes[jobSite].has_key(e.group('app')):
-                    siteTimes[jobSite][e.group('app')]['Time'] += appTime
-                    siteTimes[jobSite][e.group('app')]['jobCount'] += 1
+                endTime = datetime.datetime( *time.strptime( logBit[3], "%Y-%m-%d %H:%M:%S" )[0:6] )
+                appTime = ( endTime - startTime ).seconds
+                if siteTimes.has_key( jobSite ):
+                  if siteTimes[jobSite].has_key( e.group( 'app' ) ):
+                    siteTimes[jobSite][e.group( 'app' )]['Time'] += appTime
+                    siteTimes[jobSite][e.group( 'app' )]['jobCount'] += 1
                   else:
-                    print "\033[1;31mERROR in endTime for match: %s\033[1;m" %(logBit[3])
-                
+                    print "\033[1;31mERROR in endTime for match: %s\033[1;m" % ( logBit[3] )
 
-    print "Production Statistics for ProdID: %s" %(prodID)
+
+    print "Production Statistics for ProdID: %s" % ( prodID )
     for site in siteTimes.keys():
-      print "Site: %s" %site
+      print "Site: %s" % site
       apps = siteTimes[site]
       for app in apps.keys():
         # Print site metrics
         # Leading zero on the float doesn't seem to work. :(
-        print "App: %s  MeanTime (s): %07.2f  Jobs: %d" %(app.rjust(13), float(apps[app]['Time'])/float(apps[app]['jobCount']), apps[app]['jobCount'])
+        print "App: %s  MeanTime (s): %07.2f  Jobs: %d" % ( app.rjust( 13 ), float( apps[app]['Time'] ) / float( apps[app]['jobCount'] ), apps[app]['jobCount'] )
 
     print "------------------------------------"
 
@@ -157,16 +144,16 @@ def setVars():
 
   siteTime = {}
   for site in sites:
-    siteTime["%s" %site] = {}
+    siteTime["%s" % site] = {}
   return siteTime
 
 
 appTime = setVars()
 if sequentialProds:
-    for prodID in range(int(prodIDLow), int(prodIDHigh) + 1):
-      loopOverProds(prodID, appTime)
+    for prodID in range( prodIDLow, prodIDHigh + 1 ):
+      loopOverProds( prodID, appTime )
 else:
     for prodID in args:
-      loopOverProds(int(prodID), appTime)
+      loopOverProds( int( prodID ), appTime )
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )
