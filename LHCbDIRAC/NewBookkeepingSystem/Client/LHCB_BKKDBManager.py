@@ -1376,7 +1376,8 @@ class LHCB_BKKDBManager(BaseESManager):
       if result['OK']:      
         parametersNames = result['Value']['ParameterNames'] 
         records = result['Value']['Records']
-        totalrecords = result['Value']['TotalRecords']
+        if totalrecords == 0:
+          totalrecords = result['Value']['TotalRecords']
       else:
         gLogger.error(result['Message'])
         return result

@@ -2626,7 +2626,6 @@ and files.qualityid= dataquality.qualityid'
     
     if filetype != default:
       condition += "  and ftypes.name='"+str(filetype)+"'"
-    
     if quality != 'ALL':
       if type(quality) == types.StringType:
         command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
@@ -2639,20 +2638,21 @@ and files.qualityid= dataquality.qualityid'
           quality = res['Value'][0][0]
         condition += ' and f.qualityid='+str(quality)
       else:
-        conds = ' ('
-        for i in quality:
-          quality = None
-          command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
-          res = self.dbR_._query(command)
-          if not res['OK']:
-            gLogger.error('Data quality problem:',res['Message'])
-          elif len(res['Value']) == 0:
-              return S_ERROR('Dataquality is missing!')
-          else:
-            quality = res['Value'][0][0]
-          conds += ' f.qualityid='+str(quality)+' or'
-        condition += 'and'+conds[:-3] + ')'
-      
+        if type(quality) == types.ListType and len(quality) > 0:
+          conds = ' ('
+          for i in quality:
+            quality = None
+            command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
+            res = self.dbR_._query(command)
+            if not res['OK']:
+              gLogger.error('Data quality problem:',res['Message'])
+            elif len(res['Value']) == 0:
+                return S_ERROR('Dataquality is missing!')
+            else:
+              quality = res['Value'][0][0]
+            conds += ' f.qualityid='+str(quality)+' or'
+          condition += 'and'+conds[:-3] + ')'
+    
     if processing != default:
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
                                            FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
@@ -2680,7 +2680,7 @@ and files.qualityid= dataquality.qualityid'
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and \
-    j.production=prod.production"+condition +") where rownum <=%d ) where r >%d"%(maxitems,startitem)
+    j.production=prod.production %s) where rownum <=%d ) where r >%d"%(condition, int(maxitems),int(startitem))
     return self.dbR_._query(command)
   
   #############################################################################
