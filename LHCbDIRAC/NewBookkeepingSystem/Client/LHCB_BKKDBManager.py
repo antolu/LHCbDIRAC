@@ -1394,82 +1394,54 @@ class LHCB_BKKDBManager(BaseESManager):
   
   #############################################################################       
   def writePythonOrJobOptions(self, StartItem, Maxitems, path, savetype ): 
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-    selection = {}
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if len(processedPath) < 8:
-      pname = 'ALL'
-      pversion = 'ALL'
-    else: 
-      if processedPath[7][1] != 'ALL':
-        pname = processedPath[7][1].split(' ')[0]
-        pversion = processedPath[7][1].split(' ')[1]
-      else:
-        pname = processedPath[7][1]
-        pversion = processedPath[7][1]
-    retVal = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
-    values = retVal['Records']
-    files = {}
-    # The list has to be convert to dictionary
-    for i in values:
-      files[i[0]] = {'FileName':i[0],'EventStat':i[1], 'FileSize':i[2], 'FileType':i[7],'EventTypeId':i[8]}
-      
-    return self.writeJobOptions(files,optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
+    result = None
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+      result = self._getLimitedFilesConfigParams({'fullpath':path}, {}, StartItem, Maxitems) 
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+      result = self._getLimitedFilesEventTypeParams({'fullpath':path}, {}, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+      result = self._getLimitedFilesProductions({'fullpath':path}, {}, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+      result = self._getLimitedFilesRuns({'fullpath':path}, {}, StartItem, Maxitems)
+    
+    if result.has_key('TotalRecords') and result['TotalRecords'] > 0:
+      values = result['Records']
+      params = result['ParameterNames'] 
+      files = {}
+      # The list has to be convert to dictionary
+      for i in values:
+        files[i[0]] = {'FileName':i[params.index('Name')],'EventStat':i[params.index('EventStat')], 
+                       'FileSize':i[params.index('FileSize')], 'FileType':i[params.index('FileType')],'EventTypeId':i[params.index('EventTypeId')]}
+      return self.writeJobOptions(files,optionsFile = '', savedType = savetype, catalog = None, savePfn=None)
+    else:
+      return S_ERROR("Error discoverd during the option file creation!")
   
   #############################################################################         
   def getLimitedInformations(self,StartItem, Maxitems, path):
-    path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
-    valid, processedPath = self._processPath(path)
-    selection = {}
-    if not valid:
-      gLogger.error(path + " is not valid!");
-      raise ValueError, "Invalid path '%s'" % path
-        # get directory content
-    levels = len(processedPath)
-    gLogger.debug("listing files")
-    configName = processedPath[0][1]
-    configVersion = processedPath[1][1]
-    simid = processedPath[2][1]
-    processing = processedPath[3][1]
-    evtType = processedPath[4][1]
-    prod = processedPath[5][1]
-    ftype = processedPath[6][1]
-    if len(processedPath) < 8:
-      pname = 'ALL'
-      pversion = 'ALL'
-    else: 
-      if processedPath[7][1] != 'ALL':
-        pname = processedPath[7][1].split(' ')[0]
-        pversion = processedPath[7][1].split(' ')[1]
-      else:
-        pname = processedPath[7][1]
-        pversion = processedPath[7][1]
-    files = self.__getFiles(configName, configVersion, simid, processing, evtType, prod, ftype, pname, pversion, {'sas':1}, StartItem, Maxitems, selection)
+    result = None
+    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+      result = self._getLimitedFilesConfigParams({'fullpath':path}, {'need':0}, StartItem, Maxitems) 
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+      result = self._getLimitedFilesEventTypeParams({'fullpath':path}, {'need':0}, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+      result = self._getLimitedFilesProductions({'fullpath':path}, {'need':0}, StartItem, Maxitems)
+    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+      result = self._getLimitedFilesRuns({'fullpath':path}, {'need':0}, StartItem, Maxitems)
     
-    nbe = 0
-    fsize=0
-    nbfiles = 0
-    
-    for file in files['Records']:
-      nbfiles += 1
-      if file[2] != None:
-        nbe += int(file[1])
-      if file[2] != None:
-        fsize += int(file[2])
-    return S_OK({'Number of Events':nbe, 'Files Size':fsize,'Number of files':nbfiles} )  
+    if result.has_key('TotalRecords') and result['TotalRecords'] > 0:  
+      nbe = 0
+      fsize=0
+      nbfiles = 0
+      params = result['ParameterNames']
+      for file in result['Records']:
+        nbfiles += 1
+        if file[params.index('EventStat')] != None:
+          nbe += int(file[params.index('EventStat')])
+        if file[params.index('FileSize')] != None:
+          fsize += int(file[params.index('FileSize')])
+      return S_OK({'Number of Events':nbe, 'Files Size':fsize,'Number of files':nbfiles} )
+    else:
+      return S_ERROR("Error discoverd during the option file creation!")    
     
   #############################################################################       
   def writeJobOptions(self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None):

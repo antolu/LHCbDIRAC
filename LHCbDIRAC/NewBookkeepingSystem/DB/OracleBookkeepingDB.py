@@ -2669,9 +2669,9 @@ and files.qualityid= dataquality.qualityid'
       
       condition += " and prod.processingid in %s"%(pro)
     
-    command = "select fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
-              (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
-                  (select ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, ftypes.Name ftypen, \
+    command = "select fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
+              (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen, evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst from \
+                  (select ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, ftypes.Name ftypen, f.eventtypeid evttypeid,\
                           j.runnumber jrun, j.fillnumber jfill, f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
                            f.luminosity flum, f.instLuminosity finst from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
     j.jobid=f.jobid and \
