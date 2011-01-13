@@ -6,12 +6,16 @@ __RCSID__ = "$Id: StorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
+from DIRAC.Core.Utilities.DictCache import DictCache
 
 import time, os, re, threading
+import tempfile
 from types import *
 
 class StorageUsageAgent( AgentModule ):
@@ -34,40 +38,45 @@ class StorageUsageAgent( AgentModule ):
 
     self.__activePeriod = self.am_getOption( 'ActivePeriod', 0 )
     self.__dataLock = threading.Lock()
-    self.__publishLock = threading.Lock()
+    self.__replicaListLock = threading.Lock()
+    self.__proxyCache = DictCache()
     return S_OK()
 
   def __writeReplicasListFiles( self, dirPathList ):
-    self.log.info( "Dumping replicas for %s dirs" % len( dirPathList ) )
-    result = self.catalog.getCatalogDirectoryReplicas( dirPathList )
-    if not result[ 'OK' ]:
-      self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPathList, result[ 'Message' ] ) )
-      return result
-    resData = result[ 'Value' ]
-    filesOpened = {}
-    for dirPath in dirPathList:
-      if dirPath in result[ 'Value' ][ 'Failed' ]:
-        self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, resData[ 'Failed' ][ dirPath ] ) )
-        continue
-      dirData = resData[ 'Successful' ][ dirPath ]
-      for lfn in dirData:
-        for SEName in dirData[ lfn ]:
-          if SEName not in filesOpened:
-            filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" % ( SEName,
-                                                                                               self.__baseDirLabel ) )
-            #Check if file is opened and if not open it
+    self.__replicaListLock.acquire()
+    try:
+      self.log.info( "Dumping replicas for %s dirs" % len( dirPathList ) )
+      result = self.catalog.getCatalogDirectoryReplicas( dirPathList )
+      if not result[ 'OK' ]:
+        self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPathList, result[ 'Message' ] ) )
+        return result
+      resData = result[ 'Value' ]
+      filesOpened = {}
+      for dirPath in dirPathList:
+        if dirPath in result[ 'Value' ][ 'Failed' ]:
+          self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPath, resData[ 'Failed' ][ dirPath ] ) )
+          continue
+        dirData = resData[ 'Successful' ][ dirPath ]
+        for lfn in dirData:
+          for SEName in dirData[ lfn ]:
             if SEName not in filesOpened:
-              if SEName not in self.__replicaFilesUsed:
-                self.__replicaFilesUsed.add( SEName )
-                filesOpened[ SEName ] = file( filePath, "w" )
-              else:
-                filesOpened[ SEName ] = file( filePath, "a" )
-          #SEName file is opened. Write
-          filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
-    #Close the files
-    for SEName in filesOpened:
-      filesOpened[ SEName ].close()
-    return S_OK()
+              filePath = os.path.join( self.__replicaListFilesDir, "replicas.%s.%s.filling" % ( SEName,
+                                                                                                 self.__baseDirLabel ) )
+              #Check if file is opened and if not open it
+              if SEName not in filesOpened:
+                if SEName not in self.__replicaFilesUsed:
+                  self.__replicaFilesUsed.add( SEName )
+                  filesOpened[ SEName ] = file( filePath, "w" )
+                else:
+                  filesOpened[ SEName ] = file( filePath, "a" )
+            #SEName file is opened. Write
+            filesOpened[ SEName ].write( "%s -> %s\n" % ( lfn, dirData[ lfn ][ SEName ] ) )
+      #Close the files
+      for SEName in filesOpened:
+        filesOpened[ SEName ].close()
+      return S_OK()
+    finally:
+      self.__replicaListLock.release()
 
   def __resetReplicaListFiles( self ):
     self.__replicaFilesUsed = set()
@@ -77,34 +86,38 @@ class StorageUsageAgent( AgentModule ):
     self.log.info( "Replica Lists directory is %s" % self.__replicaListFilesDir )
 
   def __replicaListFilesDone( self ):
-    old = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
-    current = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
-    filling = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
-    #Delete old
-    for fileName in os.listdir( self.__replicaListFilesDir ):
-      match = old.match( fileName )
-      if match:
-        os.unlink( os.path.join( self.__replicaListFilesDir, fileName ) )
-    #Current -> old
-    for fileName in os.listdir( self.__replicaListFilesDir ):
-      match = current.match( fileName )
-      if match:
-        newFileName = "replicas.%s.%s.old" % ( match.group( 1 ), self.__baseDirLabel )
-        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
-                                                     os.path.join( self.__replicaListFilesDir, newFileName ) ) )
-        os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
-                   os.path.join( self.__replicaListFilesDir, newFileName ) )
-    # filling to current
-    for fileName in os.listdir( self.__replicaListFilesDir ):
-      match = filling.match( fileName )
-      if match:
-        newFileName = "replicas.%s.%s" % ( match.group( 1 ), self.__baseDirLabel )
-        self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
-                                                     os.path.join( self.__replicaListFilesDir, newFileName ) ) )
-        os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
-                   os.path.join( self.__replicaListFilesDir, newFileName ) )
+    self.__replicaListLock.acquire()
+    try:
+      old = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
+      current = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
+      filling = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
+      #Delete old
+      for fileName in os.listdir( self.__replicaListFilesDir ):
+        match = old.match( fileName )
+        if match:
+          os.unlink( os.path.join( self.__replicaListFilesDir, fileName ) )
+      #Current -> old
+      for fileName in os.listdir( self.__replicaListFilesDir ):
+        match = current.match( fileName )
+        if match:
+          newFileName = "replicas.%s.%s.old" % ( match.group( 1 ), self.__baseDirLabel )
+          self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
+                                                       os.path.join( self.__replicaListFilesDir, newFileName ) ) )
+          os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
+                     os.path.join( self.__replicaListFilesDir, newFileName ) )
+      # filling to current
+      for fileName in os.listdir( self.__replicaListFilesDir ):
+        match = filling.match( fileName )
+        if match:
+          newFileName = "replicas.%s.%s" % ( match.group( 1 ), self.__baseDirLabel )
+          self.log.info( "Moving \n %s\n to \n %s" % ( os.path.join( self.__replicaListFilesDir, fileName ),
+                                                       os.path.join( self.__replicaListFilesDir, newFileName ) ) )
+          os.rename( os.path.join( self.__replicaListFilesDir, fileName ),
+                     os.path.join( self.__replicaListFilesDir, newFileName ) )
 
-    return S_OK()
+      return S_OK()
+    finally:
+      self.__replicaListLock.release()
 
   def __printSummary( self ):
     res = self.__storageUsage.getStorageSummary()
@@ -137,16 +150,16 @@ class StorageUsageAgent( AgentModule ):
     self.__dirExplorer.addDir( self.__baseDir )
     gLogger.notice( "Initiating with %s as base directory." % self.__baseDir )
     # Loop over all the directories and sub-directories
-    iterTime = []
+    totalIterTime = 0.0
+    numIterations = 0.0
     while self.__dirExplorer.isActive():
       startT = time.time()
       self.__exploreDir( self.__dirExplorer.getNextDir() )
-      iterTime.append( time.time() - startT )
-      print "ITER TOOK", iterTime[-1]
-    tTt = 0.0
-    for iT in iterTime:
-      tTt += iT
-    print "AVG ITER TIME", tTt / len( iterTime )
+      iterTime = time.time() - startT
+      totalIterTime += iterTime
+      numIterations += 1
+      gLogger.verbose( "Query took %.2f seconds" % iterTime )
+    gLogger.verbose( "Average iteration time: %2.f seconds" % ( totalIterTime / numIterations ) )
 
     #Publish remaining directories
     self.__publishData( background = False )
@@ -230,6 +243,37 @@ class StorageUsageAgent( AgentModule ):
     self.log.notice( "%d dirs to be explored. %d not yet commited." % ( self.__dirExplorer.getNumRemainingDirs(),
                                                                         len( self.__publishDirQueue ) + len ( self.__dirsToPublish ) ) )
 
+  def __getOwnerProxy( self, dirPath ):
+    gLogger.verbose( "Retrieving dir metadata..." )
+
+    result = self.catalog.getCatalogDirectoryMetadata( dirPath, singleFile = True )
+    if not result[ 'OK' ]:
+      gLogger.error( "Could not get metadata info", res[ 'Message' ] )
+    ownerRole = result[ 'Value' ][ 'OwnerRole' ]
+    ownerDN = result[ 'Value' ][ 'OwnerDN' ]
+    if ownerRole[0] != "/":
+      ownerRole = "/%s" % ownerRole
+
+    #Getting the proxy...
+    cacheKey = ( ownerDN, ownerRole )
+    userProxy = self.__proxyCache.get( cacheKey, 3600 )
+    if userProxy:
+      return S_OK( userProxy )
+    downErrors = []
+    for ownerGroup in Registry.getGroupsWithVOMSAttribute( ownerRole ):
+      print "OENRA", ownerGroup
+      result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = True,
+                                                requiredVOMSAttribute = ownerRole )
+      if not result[ 'OK' ]:
+        downErrors.append( "Could not download user proxy", "%s : %s" % ( cacheKey, result[ 'Message' ] ) )
+        continue
+      userProxy = result[ 'Value' ]
+      secsLeft = max( 0, userProxy.getRemainingSecs()[ 'Value' ] )
+      self.__proxyCache.add( cacheKey, secsLeft, userProxy )
+      return S_OK( userProxy )
+    return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
+
+
 
   def removeEmptyDir( self, dirPath ):
     self.log.notice( "Deleting empty directory %s" % dirPath )
@@ -238,15 +282,31 @@ class StorageUsageAgent( AgentModule ):
       gLogger.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
       return S_OK()
 
-    #TODO: Download user proxy and discover identity from the metadata
-    res = self.catalog.removeCatalogDirectory( dirPath )
-    if not res['OK']:
-      gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
-    elif dirPath in res['Value']['Failed']:
-      gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Value' ][ 'Failed' ][ dirPath ] )
-    else:
-      gLogger.info( "Successfully removed empty directory from File Catalog." )
-    return S_OK()
+    result = self.__getOwnerProxy( dirPath )
+    if not result[ 'OK' ]:
+      gLogger.error( result[ 'Message' ] )
+      return result
+
+    userProxy = result[ 'Value' ]
+    result = userProxy.dumpAllToFile()
+    if not result[ 'OK' ]:
+      return result
+    upFile = result[ 'Value' ]
+    prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
+    os.environ[ 'X509_USER_PROXY' ] = upFile
+
+    try:
+      res = self.catalog.removeCatalogDirectory( dirPath )
+      if not res['OK']:
+        gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
+      elif dirPath in res['Value']['Failed']:
+        gLogger.error( "Failed to remove empty directory from File Catalog.", res[ 'Value' ][ 'Failed' ][ dirPath ] )
+      else:
+        gLogger.info( "Successfully removed empty directory from File Catalog." )
+      return S_OK()
+    finally:
+      os.environ[ 'X509_USER_PROXY' ] = prevProxyEnv
+      os.unlink( upFile )
 
   def __addDirToPublishQueue( self, dirName, dirData ):
     self.__publishDirQueue[ dirName ] = dirData
@@ -257,11 +317,13 @@ class StorageUsageAgent( AgentModule ):
   def __publishData( self, background = True ):
     self.__dataLock.acquire()
     try:
-      self.__dirsToPublish.update( self.__publishDirQueue )
-      self.__publishDirQueue = {}
       #Dump to file
       if self.am_getOption( "DumpReplicasToFile", False ):
-        self.__writeReplicasListFiles( list( self.__dirsToPublish ) )
+        repThread = threading.Thread( target = self.__writeReplicasListFiles,
+                                      args = ( list( self.__publishDirQueue ), ) )
+
+      self.__dirsToPublish.update( self.__publishDirQueue )
+      self.__publishDirQueue = {}
     finally:
       self.__dataLock.release()
     if background:
