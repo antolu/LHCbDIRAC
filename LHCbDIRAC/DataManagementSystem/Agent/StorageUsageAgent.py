@@ -261,7 +261,6 @@ class StorageUsageAgent( AgentModule ):
       return S_OK( userProxy )
     downErrors = []
     for ownerGroup in Registry.getGroupsWithVOMSAttribute( ownerRole ):
-      print "OENRA", ownerGroup
       result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = True,
                                                 requiredVOMSAttribute = ownerRole )
       if not result[ 'OK' ]:
@@ -270,6 +269,7 @@ class StorageUsageAgent( AgentModule ):
       userProxy = result[ 'Value' ]
       secsLeft = max( 0, userProxy.getRemainingSecs()[ 'Value' ] )
       self.__proxyCache.add( cacheKey, secsLeft, userProxy )
+      gLogger.verbose( "Got proxy for %s@%s [%s]" % ( ownerDN, ownerGroup, ownerRole ) )
       return S_OK( userProxy )
     return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
 
