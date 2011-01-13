@@ -22,9 +22,16 @@ class StorageUsageHandler( RequestHandler ):
   def export_publishDirectories( self, directoryDict ):
     return storageUsageDB.publishDirectories( directoryDict )
 
-  types_removeDirectory = [StringType]
-  def export_removeDirectory( self, dirPath ):
-    return storageUsageDB.removeDirectory( dirPath )
+  types_removeDirectory = [ ( StringType, ListType, TupleType ) ]
+  def export_removeDirectory( self, dirPaths ):
+    if type( dirPaths ) == StringType:
+      dirPaths = ( dirPaths, )
+    for dirPath in dirPaths:
+      result = storageUsageDB.removeDirectory( dirPath )
+      if not result[ 'OK' ]:
+        gLogger.error( "Could not delete directory", "%s : %s" % ( dirPath, result[ 'Message' ] ) )
+        return result
+    return S_OK()
 
   ##################################################################
   #
