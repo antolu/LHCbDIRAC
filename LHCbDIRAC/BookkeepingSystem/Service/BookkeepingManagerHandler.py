@@ -1432,4 +1432,8 @@ class BookkeepingManagerHandler( RequestHandler ):
       else:
         return result
       return S_OK()
+  types_getRunNumber = [ListType]
+  def export_getRunNumber( self, lfns ):
+    return dataMGMT_.getRunNumber( lfns )
+
 #-----------------------------------END Event Types------------------------------------------------------------------
