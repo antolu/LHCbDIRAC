@@ -265,7 +265,7 @@ class StorageUsageAgent( AgentModule ):
       result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = True,
                                                 requiredVOMSAttribute = ownerRole )
       if not result[ 'OK' ]:
-        downErrors.append( "Could not download user proxy", "%s : %s" % ( cacheKey, result[ 'Message' ] ) )
+        downErrors.append( "%s : %s" % ( cacheKey, result[ 'Message' ] ) )
         continue
       userProxy = result[ 'Value' ]
       secsLeft = max( 0, userProxy.getRemainingSecs()[ 'Value' ] )
