@@ -295,6 +295,9 @@ class XMLFilesReaderManager:
           else:
             gLogger.warn(res['Message'])
       job.removeParam('JobType')        
+    
+    if job.exists('JobType'):
+      job.removeParam('JobType')
 
     result = self.__insertJob(job)
 
