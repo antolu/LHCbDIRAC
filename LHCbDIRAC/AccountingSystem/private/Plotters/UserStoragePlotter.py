@@ -49,8 +49,8 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "Catalog registered files"
   def _reportCatalogFiles( self, reportRequest ):
-    if reportRequest[ 'grouping' ] == "StorageElement":
-      return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
+    #if reportRequest[ 'grouping' ] == "StorageElement":
+    #  return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'LogicalFiles', 'entriesInBucket'
@@ -149,3 +149,74 @@ class UserStoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( plotInfo[ 'granularity' ], reportRequest[ 'startTime' ], reportRequest[ 'endTime' ], plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
+  ###
+
+  _reportPFNvsLFNFileMultiplicityName = "Replica multiplicity"
+  def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
+    return self._multiplicityReport( reportRequest, "LogicalFiles", "PhysicalFiles" )
+
+  def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
+    metadata = { 'title' : 'PFN/LFN files %s' % reportRequest[ 'grouping' ],
+                 'starttime' : reportRequest[ 'startTime' ],
+                 'endtime' : reportRequest[ 'endTime' ],
+                 'span' : plotInfo[ 'granularity' ],
+                 'ylabel' : plotInfo[ 'unit' ] }
+    plotInfo[ 'graphDataDict' ] = self._fillWithZero( plotInfo[ 'granularity' ], reportRequest[ 'startTime' ], reportRequest[ 'endTime' ], plotInfo[ 'graphDataDict' ] )
+    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+
+  _reportPFNvsLFNSizeMultiplicityName = "Size multiplicity"
+  def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
+    return self._multiplicityReport( reportRequest, "LogicalSize", "PhysicalSize" )
+
+  def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
+    metadata = { 'title' : 'PFN/LFN size  %s' % reportRequest[ 'grouping' ],
+                 'starttime' : reportRequest[ 'startTime' ],
+                 'endtime' : reportRequest[ 'endTime' ],
+                 'span' : plotInfo[ 'granularity' ],
+                 'ylabel' : plotInfo[ 'unit' ] }
+    plotInfo[ 'graphDataDict' ] = self._fillWithZero( plotInfo[ 'granularity' ], reportRequest[ 'startTime' ], reportRequest[ 'endTime' ], plotInfo[ 'graphDataDict' ] )
+    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+
+  def _multiplicityReport( self, reportRequest, logicalField, physicalField ):
+    #Step 1 get the total LFNs for each bucket
+    selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
+                     [ 'User', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
+                   )
+    retVal = self._getTimedData( reportRequest[ 'startTime' ],
+                                 reportRequest[ 'endTime' ],
+                                 selectFields,
+                                 reportRequest[ 'condDict' ],
+                                 ( '%s', [ 'User' ] ),
+                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
+    if not retVal[ 'OK' ]:
+      return retVal
+    dataDict, granularity = retVal[ 'Value' ]
+    self.stripDataField( dataDict, 0 )
+    bucketTotals = self._getBucketTotals( dataDict )
+    #Step 2 get the total PFNs
+    selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s/%s)",
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
+                                    physicalField, 'entriesInBucket'
+                                   ]
+                   )
+    retVal = self._getTimedData( reportRequest[ 'startTime' ],
+                                reportRequest[ 'endTime' ],
+                                selectFields,
+                                reportRequest[ 'condDict' ],
+                                reportRequest[ 'groupingFields' ],
+                                { 'convertToGranularity' : 'average', 'checkNone' : True } )
+    if not retVal[ 'OK' ]:
+      return retVal
+    dataDict, granularity = retVal[ 'Value' ]
+    print dataDict
+    self.stripDataField( dataDict, 0 )
+    #Step 3 divide the PFNs by the total amount of LFNs
+    finalData = {}
+    for k in dataDict:
+      for bt in dataDict[ k ]:
+        if bt in bucketTotals:
+          if k not in finalData:
+            finalData[ k ] = {}
+          finalData[ k ][ bt ] = dataDict[ k ][ bt ] / bucketTotals[ bt ]
+    return S_OK( { 'data' : finalData, 'graphDataDict' : finalData,
+                   'granularity' : granularity, 'unit' : 'replicas' } )
