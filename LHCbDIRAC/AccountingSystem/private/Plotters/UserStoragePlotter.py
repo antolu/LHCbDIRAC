@@ -49,8 +49,8 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "Catalog registered files"
   def _reportCatalogFiles( self, reportRequest ):
-    #if reportRequest[ 'grouping' ] == "StorageElement":
-    #  return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
+    if reportRequest[ 'grouping' ] == "StorageElement":
+      return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'LogicalFiles', 'entriesInBucket'
@@ -153,6 +153,8 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNFileMultiplicityName = "Replica multiplicity"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
+    if reportRequest[ 'grouping' ] == "User":
+      return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalFiles", "PhysicalFiles" )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
@@ -166,6 +168,8 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNSizeMultiplicityName = "Size multiplicity"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
+    if reportRequest[ 'grouping' ] == "User":
+      return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalSize", "PhysicalSize" )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
