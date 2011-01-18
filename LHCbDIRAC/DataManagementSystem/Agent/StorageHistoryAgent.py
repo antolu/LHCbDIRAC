@@ -41,13 +41,13 @@ class StorageHistoryAgent( AgentModule ):
     if not result[ 'OK' ]:
       return result
     userCatalogData = result[ 'Value' ]
+    print userCatalogData
     self.log.notice( "Got summary for %s users" % ( len( userCatalogData ) ) )
     result = self.__stDB.getUserSummaryPerSE()
     if not result[ 'OK' ]:
       return result
     userSEData = result[ 'Value' ]
     self.log.notice( "Got SE summary for %s users" % ( len( userSEData ) ) )
-
 
     now = Time.dateTime()
     numRows = 0
