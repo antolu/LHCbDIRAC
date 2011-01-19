@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC  import S_OK, S_ERROR, gLogger
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
@@ -190,9 +190,7 @@ class ModuleBase( object ):
         self.log.error( 'Output data file %s does not exist locally' % fileName )
         return S_ERROR( 'Output Data Not Found' )
 
-    #Select which files have to be uploaded  
-    candidateFiles = {}
-    #in principle all
+    #Select which files have to be uploaded: in principle all
     candidateFiles = fileInfo
 
     if fileMask and fileMask != ['']:
