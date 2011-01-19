@@ -100,7 +100,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self.dataQualities_ = {}
     retVal = self.db_.getAvailableFileTypes()
     if not retVal['OK']:
-      return retVal
+      gLogger.error(retVal)
     else:
      self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
     
