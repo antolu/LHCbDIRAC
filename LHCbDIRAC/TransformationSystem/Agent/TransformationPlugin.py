@@ -583,3 +583,108 @@ class TransformationPlugin(DIRACTransformationPlugin):
         gLogger.error("File ancestors not found at corresponding sites",lfn)
         ancestorProblems.append(lfn)
     return S_OK()
+
+  def _LHCbMCDSTBroadcastRandom( self ):
+    """ This plug-in broadcasts files to master1, to master2 and to (NumberOfReplicas-2) secondary SEs  """
+
+    transID = self.params['TransformationID']
+
+    master1SEs = self.params.get( 'Master1SE', ['CERN_MC_M-DST'] )
+    master2SEs = self.params.get( 'Master2SE', ['CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
+    secondarySEs = self.params.get( 'SecondarySE', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
+
+    master1ActiveSEs = self.__getActiveSEs( master1SEs )
+    master2ActiveSEs = self.__getActiveSEs( master2SEs )
+    secondaryActiveSEs = self.__getActiveSEs( secondarySEs )
+
+    storageElementGroups = {}
+
+    replicaGroups = self._getFileGroups( self.data )
+
+    try:
+      for replicaSE, lfns in replicaGroups.items():
+
+        existingSEs = replicaSE.split( ',' )
+
+        master1se = []
+        for se in existingSEs:
+          if se in master1SEs:
+            master1se.append( se )
+        for se in master1se:
+          existingSEs.remove( se )
+
+        master2se = []
+        for se in existingSEs:
+          if se in master2SEs:
+            master2se.append( se )
+        for se in master2se:
+          existingSEs.remove( se )
+
+        secondaryses = []
+        for se in existingSEs:
+          if se in secondarySEs:
+            secondaryses.append(se)
+
+        if master1se and master2se and len( secondaryses ) >= numberOfCopies - 2:
+          gLogger.info( "Found %s files that are already completed" % len( lfns ) )
+          continue
+
+        targetSEs = []
+
+        if not master1se:
+          if master1ActiveSEs:
+            se = randomize( master1ActiveSEs )[0]
+            targetSEs.append( se )
+          else:
+            gLogger.warning( "Can not select Active SE for Master1SE" )
+            continue
+
+        if not master2se:
+          if master2ActiveSEs:
+            se = randomize( master2ActiveSEs )[0]
+            targetSEs.append( se )
+          else:
+            gLogger.warning( "Can not select Active SE for Master2SE" )
+            continue
+  
+        if len( secondaryses ) < numberOfCopies - 2:
+          candidateSEs = copy.copy( secondaryActiveSEs )
+          needtocopy = numberOfCopies - 2
+          for se in secondaryses:
+            needtocopy = needtocopy - 1
+            if se in candidateSEs:
+              candidateSEs.remove( se )
+  
+          if len( candidateSEs ) >= needtocopy:
+            candidateSEs = randomize( candidateSEs )
+            for icopy in range( needtocopy ):
+              targetSEs.append( candidateSEs[icopy] )
+          else:
+            gLogger.warning( "Can not select Active SE for SecondarySE" )
+            continue
+  
+        if targetSEs:
+          stringTargetSEs = ','.join( sortList( targetSEs ) )
+          if not storageElementGroups.has_key( stringTargetSEs ):
+            storageElementGroups[stringTargetSEs] = []
+          storageElementGroups[stringTargetSEs].extend( lfns )
+
+    except:
+      gLogger.exception()
+     # Now create reasonable size tasks
+    tasks = []
+    for stringTargetSEs in sortList( storageElementGroups.keys() ):
+      stringTargetLFNs = storageElementGroups[stringTargetSEs]
+      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
+        tasks.append( ( stringTargetSEs, lfnGroup ) )
+
+    return S_OK( tasks )
+
+  def __getActiveSEs( self, selist ):
+    activeSE = []
+    for se in selist:
+      res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
+      if res['OK'] and res['Value'] == 'Active':
+        activeSE.append( se )
+    return activeSE
