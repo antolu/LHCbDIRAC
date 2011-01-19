@@ -5,9 +5,8 @@
 ########################################################################
 __RCSID__ = "$Id: TransformationClient.py 19179 2009-12-04 09:54:19Z acsmith $"
 
-from DIRAC                                                    import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC                                                    import S_OK, gLogger
 from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient as DIRACTransformationClient  
-import types
     
 class TransformationClient(DIRACTransformationClient):
 
