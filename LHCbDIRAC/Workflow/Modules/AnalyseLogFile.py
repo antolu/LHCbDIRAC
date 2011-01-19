@@ -4,18 +4,17 @@
 
 __RCSID__ = "$Id$"
 
-import commands, os, time, smtplib, re, string, shutil, glob
+import os, re, string, glob
 
 from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRAC.Resources.Catalog.PoolXMLFile                 import getGUID
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
-from DIRAC.Core.DISET.RPCClient                          import RPCClient
 
 from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis      import analyseLogFile
 from LHCbDIRAC.Core.Utilities.ProductionData             import getLogPath,constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC
 
 class AnalyseLogFile(ModuleBase):
@@ -89,22 +88,22 @@ class AnalyseLogFile(ModuleBase):
       self.log.verbose('Job has no input data requirement')
 
     if self.step_commons.has_key('applicationVersion'):
-       self.applicationVersion = self.step_commons['applicationVersion']
+      self.applicationVersion = self.step_commons['applicationVersion']
     
     if self.step_commons.has_key('applicationLog'):    
-       self.applicationLog = self.step_commons['applicationLog']
+      self.applicationLog = self.step_commons['applicationLog']
 
     if self.step_commons.has_key('inputDataType'):
-       self.inputDataType = self.step_commons['inputDataType']
+      self.inputDataType = self.step_commons['inputDataType']
 
     if self.step_commons.has_key('numberOfEvents'):
-       self.numberOfEvents = self.step_commons['numberOfEvents']
+      self.numberOfEvents = self.step_commons['numberOfEvents']
 
     if self.step_commons.has_key('numberOfEventsInput'):
-       self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
+      self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
 
     if self.step_commons.has_key('numberOfEventsOutput'):
-       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
+      self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
 
     #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key('LogFilePath'):
@@ -151,7 +150,7 @@ class AnalyseLogFile(ModuleBase):
       if re.search('^core.[0-9]+$',file):
         self.coreFile = file
         self.log.error('Found a core dump file in the current working directory: %s' %(self.coreFile))
-        self.finalizeWithErrors(res['Message'])
+        self.finalizeWithErrors('Found a core dump file in the current working directory: %s' %(self.coreFile))
         self.updateFileStatus(self.jobInputData,'ApplicationCrash')
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']: return S_OK()
