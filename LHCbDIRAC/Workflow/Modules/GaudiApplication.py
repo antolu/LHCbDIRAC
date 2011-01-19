@@ -7,7 +7,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                        import shellCall
 from DIRAC.Resources.Catalog.PoolXMLCatalog                 import PoolXMLCatalog
-from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
 from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs, _makeProductionLfn, _getLFNRoot
 from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions, getModuleOptions
