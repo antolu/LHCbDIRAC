@@ -16,13 +16,13 @@
 
 __RCSID__ = "$Id$"
 
-import string, re, os, time, shutil, types, copy
+import string, shutil
 
 from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.DISET.RPCClient                       import RPCClient #only used for ProductionRequest service
-from DIRAC.Core.Utilities.List                        import removeEmptyElements,uniqueElements
+from DIRAC.Core.Utilities.List                        import removeEmptyElements, uniqueElements
 from DIRAC.Interfaces.API.Dirac                       import Dirac
-from DIRAC                                            import gConfig,gLogger
+from DIRAC                                            import gConfig
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
@@ -32,40 +32,40 @@ from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOpti
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
 
 
-COMPONENT_NAME='LHCbSystem/Client/Production'
+COMPONENT_NAME = 'LHCbSystem/Client/Production'
 
-class Production(LHCbJob):
+class Production( LHCbJob ):
 
   #############################################################################
-  def __init__(self,script=None):
+  def __init__( self, script = None ):
     """Instantiates the Workflow object and some default parameters.
     """
-    LHCbJob.__init__(self,script)
-    self.prodVersion=__RCSID__
+    LHCbJob.__init__( self, script )
+    self.prodVersion = __RCSID__
     self.csSection = '/Production/Defaults'
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    tier1List = ['LCG.CERN.ch','LCG.CNAF.it','LCG.NIKHEF.nl','LCG.PIC.es','LCG.RAL.uk',
-                 'LCG.GRIDKA.de','LCG.IN2P3.fr','LCG.SARA.nl']
-    self.tier1s=gConfig.getValue('%s/Tier1s' %(self.csSection),tier1List)
+    tier1List = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk',
+                 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.SARA.nl', 'CREAM.NIKHEF.nl', 'CREAM.CNAF.it']
+    self.tier1s = gConfig.getValue( '%s/Tier1s' % ( self.csSection ), tier1List )
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
-    self.histogramName =gConfig.getValue('%s/HistogramName' %(self.csSection),defaultHistName)
-    self.histogramSE =gConfig.getValue('%s/HistogramSE' %(self.csSection),'CERN-HIST')
-    self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'ANY')
+    self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
+    self.histogramSE = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
+    self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     lfn = '/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw'
-    self.inputDataDefault = gConfig.getValue('%s/InputDataDefault' %(self.csSection),lfn)
+    self.inputDataDefault = gConfig.getValue( '%s/InputDataDefault' % ( self.csSection ), lfn )
     self.defaultProdID = '12345'
     self.defaultProdJobID = '12345'
     self.ioDict = {}
     self.gaussList = []
-    self.prodTypes = ['DataReconstruction','DataStripping','MCSimulation','MCStripping',
-                      'Merge','Test']
-    self.pluginsTriggeringStreamTypes = ['ByFileTypeSize','ByRunFileTypeSize',
-                                         'ByRun','AtomicRun']
-    self.name='unspecifiedWorkflow'
+    self.prodTypes = ['DataReconstruction', 'DataStripping', 'MCSimulation', 'MCStripping',
+                      'Merge', 'Test']
+    self.pluginsTriggeringStreamTypes = ['ByFileTypeSize', 'ByRunFileTypeSize',
+                                         'ByRun', 'AtomicRun']
+    self.name = 'unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
     self.prodGroup = ''
@@ -81,516 +81,517 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.__setDefaults()
 
   #############################################################################
-  def __setDefaults(self):
+  def __setDefaults( self ):
     """Sets some default parameters.
     """
-    self.setType('MCSimulation')
-    self.setSystemConfig(self.systemConfig)
-    self.setCPUTime('1000000')
-    self.setLogLevel('verbose')
-    self.setJobGroup('@{PRODUCTION_ID}')
-    self.setFileMask('dummy')
+
+    # Location: DIRAC.Interfaces.API.Job
+    self.setType( 'MCSimulation' )
+    self.setSystemConfig( self.systemConfig )
+    self.setCPUTime( '1000000' )
+    self.setLogLevel( 'verbose' )
+    self.setJobGroup( '@{PRODUCTION_ID}' )
+
+    self.setFileMask( '' )
 
     #version control
-    self._setParameter('productionVersion','string',self.prodVersion,'ProdAPIVersion')
+    self._setParameter( 'productionVersion', 'string', self.prodVersion, 'ProdAPIVersion' )
 
     #General workflow parameters
-    self._setParameter('PRODUCTION_ID','string',self.defaultProdID.zfill(8),'ProductionID')
-    self._setParameter('JOB_ID','string',self.defaultProdJobID.zfill(8),'ProductionJobID')
-    self._setParameter('poolXMLCatName','string','pool_xml_catalog.xml','POOLXMLCatalogName')
-    self._setParameter('Priority','JDL','1','Priority')
-    self._setParameter('emailAddress','string','lhcb-datacrash@cern.ch','CrashEmailAddress')
-    self._setParameter('DataType','string','MC','Priority') #MC or DATA
-    self._setParameter('outputMode','string','Local','SEResolutionPolicy')
+    self._setParameter( 'PRODUCTION_ID', 'string', self.defaultProdID.zfill( 8 ), 'ProductionID' )
+    self._setParameter( 'JOB_ID', 'string', self.defaultProdJobID.zfill( 8 ), 'ProductionJobID' )
+    self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
+    self._setParameter( 'Priority', 'JDL', '1', 'Priority' )
+    self._setParameter( 'emailAddress', 'string', 'lhcb-datacrash@cern.ch', 'CrashEmailAddress' )
+    self._setParameter( 'DataType', 'string', 'MC', 'Priority' ) #MC or DATA
+    self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
 
     #Options related parameters
-    self._setParameter('CondDBTag','string','sim-20090112','CondDBTag')
-    self._setParameter('DDDBTag','string','head-20090112','DetDescTag')
-    self._setParameter('EventMaxDefault','string','-1','DefaultNumberOfEvents')
+    self._setParameter( 'CondDBTag', 'string', 'sim-20090112', 'CondDBTag' )
+    self._setParameter( 'DDDBTag', 'string', 'head-20090112', 'DetDescTag' )
+    self._setParameter( 'EventMaxDefault', 'string', '-1', 'DefaultNumberOfEvents' )
     #BK related parameters
-    self._setParameter('configName','string','MC','ConfigName')
-    self._setParameter('configVersion','string','2009','ConfigVersion')
-    self._setParameter('conditions','string','','SimOrDataTakingCondsString')
+    self._setParameter( 'configName', 'string', 'MC', 'ConfigName' )
+    self._setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
+    self._setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
 
   #############################################################################
-  def _setParameter(self,name,parameterType,parameterValue,description):
+  def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
-    proposedParam = gConfig.getValue('%s/%s' %(self.csSection,name),'')
+    proposedParam = gConfig.getValue( '%s/%s' % ( self.csSection, name ), '' )
     if proposedParam:
-      self.log.debug('Setting %s from CS defaults = %s' %(name,proposedParam)) 
-      self._addParameter(self.workflow,name,parameterType,proposedParam,description)
+      self.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
+      self._addParameter( self.workflow, name, parameterType, proposedParam, description )
     else:
-      self.log.debug('Setting parameter %s = %s' %(name,parameterValue))
-      self._addParameter(self.workflow,name,parameterType,parameterValue,description)
+      self.log.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
+      self._addParameter( self.workflow, name, parameterType, parameterValue, description )
 
   #############################################################################
-  def __getEventType(self,eventType):
+  def __getEventType( self, eventType ):
     """ Checks whether or not the global event type should be set.
     """
-    if eventType.lower()=='firststep' and not self.firstEventType:
-      raise TypeError,'Must specify event type for initial step'
-    elif eventType.lower()=='firststep' and self.firstEventType:
-      eventType=self.firstEventType
+    if eventType.lower() == 'firststep' and not self.firstEventType:
+      raise TypeError, 'Must specify event type for initial step'
+    elif eventType.lower() == 'firststep' and self.firstEventType:
+      eventType = self.firstEventType
     elif not self.firstEventType:
       self.firstEventType = eventType
 
-    self.log.verbose('Setting event type for current step to %s' %(eventType))
+    self.log.verbose( 'Setting event type for current step to %s' % ( eventType ) )
     return eventType
 
   #############################################################################
-  def __checkArguments(self,extraPackages,optionsFile):
+  def __checkArguments( self, extraPackages, optionsFile ):
     """ Checks for typos in the structure of standard arguments to workflows.
         In case of any non-standard settings will raise an exception preventing
         creation of the production. Must be called after setting the first event type
         of the production.
     """
-    separator = ';'
     if not extraPackages:
-      extraPackages=[]
+      extraPackages = []
 
     if not optionsFile:
-      optionsFile=[]
+      optionsFile = []
 
     if extraPackages:
-      if not re.search(';',extraPackages):
-        extraPackages=[extraPackages]
+      if not re.search( ';', extraPackages ):
+        extraPackages = [extraPackages]
       else:
-        extraPackages=string.split(extraPackages,';')
+        extraPackages = string.split( extraPackages, ';' )
     if optionsFile:
-      if not re.search(';',optionsFile):
+      if not re.search( ';', optionsFile ):
         optionsFile = [optionsFile]
 
     for p in extraPackages:
-      self.log.verbose('Checking extra package: %s' %(p))
-      if not re.search('.',p):
-        raise TypeError,'Must have extra packages in the following format "Name.Version" not %s' %(p)
+      self.log.verbose( 'Checking extra package: %s' % ( p ) )
+      if not re.search( '.', p ):
+        raise TypeError, 'Must have extra packages in the following format "Name.Version" not %s' % ( p )
 
     for o in optionsFile:
-      if re.search('DECFILESROOT',o):
-        self.log.verbose('%s specified, checking event type options: %s' %(self.firstEventType,o))
-        if re.search('@',o) or re.search('%s' %self.firstEventType,o):
-          self.log.verbose('Options: %s specify event type correctly' %(o))
+      if re.search( 'DECFILESROOT', o ):
+        self.log.verbose( '%s specified, checking event type options: %s' % ( self.firstEventType, o ) )
+        if re.search( '@', o ) or re.search( '%s' % self.firstEventType, o ):
+          self.log.verbose( 'Options: %s specify event type correctly' % ( o ) )
         else:
-          raise TypeError,'Event type options must be the event type number or workflow parameter'
+          raise TypeError, 'Event type options must be the event type number or workflow parameter'
 
-    self.log.verbose('Extra packages and event type options are correctly specified')
+    self.log.verbose( 'Extra packages and event type options are correctly specified' )
     return S_OK()
 
   #############################################################################
-  def addGaussStep(self,appVersion,generatorName,numberOfEvents,optionsFile,eventType='firstStep',
-                   extraPackages='',outputSE=None,histograms=False,overrideOpts='',extraOpts='',
-                   appType='sim',condDBTag='global',ddDBTag='global',abandonOutput=False,
-                   stepID='',stepName='',stepVisible=''):
+  def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
+                   extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
+                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                   stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
-    firstEventNumber=1
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
+    firstEventNumber = 1
     if not overrideOpts:
-      optionsLine = getOptions('Gauss',appType,extraOpts=None,histogram=self.histogramName,
-                               condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for Gauss are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'Gauss', appType, extraOpts = None, histogram = self.histogramName,
+                               condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for Gauss are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
     if not outputSE:
-      outputSE='Tier1-RDST'
-      self.log.verbose('Setting default outputSE to %s' %(outputSE))
+      outputSE = 'Tier1-RDST'
+      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    gaussStep = self._addGaudiStep('Gauss',appVersion,appType,numberOfEvents,optionsFile,
-                                   optionsLine,eventType,extraPackages,outputSE,'','None',
-                                   histograms,firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
-                                   stepID,stepName,stepVisible)                                   
-    self.gaussList.append(gaussStep.getName())
-    gaussStep.setValue('numberOfEventsInput', 0)
-    gaussStep.setValue('numberOfEventsOutput', 0)
-    gaussStep.setValue('generatorName',generatorName)
+    self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
+    gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
+                                   optionsLine, eventType, extraPackages, outputSE, '', 'None',
+                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
+                                   stepID, stepName, stepVisible )
+    self.gaussList.append( gaussStep.getName() )
+    gaussStep.setValue( 'numberOfEventsInput', 0 )
+    gaussStep.setValue( 'numberOfEventsOutput', 0 )
+    gaussStep.setValue( 'generatorName', generatorName )
 
   #############################################################################
-  def addBooleStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
-                   outputSE=None,histograms=False,inputData='previousStep',overrideOpts='',
-                   extraOpts='',extraOutputFile={},condDBTag='global',ddDBTag='global',abandonOutput=False,
-                   stepID='',stepName='',stepVisible=''):
+  def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
+                   outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
+                   extraOpts = '', extraOutputFile = {}, condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                   stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
         currently assumes input data type is sim
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
-    firstEventNumber=0
-    numberOfEvents='-1'
-    inputDataType='sim'
-    inputData='previousStep'
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
+    firstEventNumber = 0
+    numberOfEvents = '-1'
+    inputDataType = 'sim'
+    inputData = 'previousStep'
 
     if not overrideOpts:
-      optionsLine = getOptions('Boole',appType,extraOpts=None,histogram=self.histogramName,
-                               condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for Boole are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'Boole', appType, extraOpts = None, histogram = self.histogramName,
+                               condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for Boole are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
     if not outputSE:
-      outputSE='Tier1-RDST'
-      self.log.verbose('Setting default outputSE to %s' %(outputSE))
+      outputSE = 'Tier1-RDST'
+      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if extraOutputFile:
-      self.log.verbose('Adding output file to Boole step %s' %extraOutputFile)
+      self.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
 
-    self._setParameter('dataType','string','MC','DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Boole',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                       eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,extraOutputFile,condDBTag,ddDBTag,'',abandonOutput,
-                       stepID,stepName,stepVisible)                       
+    self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
+    self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
+                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
+                       firstEventNumber, extraOutputFile, condDBTag, ddDBTag, '', abandonOutput,
+                       stepID, stepName, stepVisible )
 
   #############################################################################
-  def addBrunelStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
-                    inputData='previousStep',inputDataType='mdf',outputSE=None,histograms=False,
-                    overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',
-                    condDBTag='global',ddDBTag='global',abandonOutput=False,
-                    stepID='',stepName='',stepVisible=''):
+  def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
+                    inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
+                    overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                    condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst / sdst
         inputDataType is mdf / digi
         enough to set one of the above
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
-    if appType.lower() in ['rdst','sdst']:
-      dataType='DATA'
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
+    if appType.lower() in ['rdst', 'sdst']:
+      dataType = 'DATA'
       if not outputSE:
-        outputSE='Tier1-RDST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))
+        outputSE = 'Tier1-RDST'
+        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
     else:
-      if not appType.lower() in ['dst','xdst']:
-        raise TypeError,'Application type not recognised'
-      if inputDataType.lower()=='digi':
-        dataType='MC'
+      if not appType.lower() in ['dst', 'xdst']:
+        raise TypeError, 'Application type not recognised'
+      if inputDataType.lower() == 'digi':
+        dataType = 'MC'
         if not outputSE:
-          outputSE='Tier1_MC_M-DST'
-          self.log.verbose('Setting default outputSE to %s' %(outputSE))
-      elif inputDataType.lower()=='fetc':
+          outputSE = 'Tier1_MC_M-DST'
+          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      elif inputDataType.lower() == 'fetc':
         #Must rely on data type for fetc only
         if not outputSE:
-          if dataType.lower()=='mc':
-            outputSE='Tier1_MC_M-DST'
-            self.log.verbose('Setting default outputSE to %s' %(outputSE))
+          if dataType.lower() == 'mc':
+            outputSE = 'Tier1_MC_M-DST'
+            self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
           else:
-            outputSE='Tier1_M-DST' #for real data master dst
-            self.log.verbose('Setting default outputSE to %s' %(outputSE))
+            outputSE = 'Tier1_M-DST' #for real data master dst
+            self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
-      optionsLine = getOptions('Brunel',appType,extraOpts=None,histogram=self.histogramName,
-                               condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for Brunel are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'Brunel', appType, extraOpts = None, histogram = self.histogramName,
+                               condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for Brunel are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
-    firstEventNumber=0
-    self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Brunel',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                       eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
-                       stepID,stepName,stepVisible)                       
+    firstEventNumber = 0
+    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
+    self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
+                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
+                       firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
+                       stepID, stepName, stepVisible )
 
   #############################################################################
-  def addDaVinciStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
-                     inputData='previousStep',inputDataType='rdst',outputSE=None,histograms=False,
-                     overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='DATA',
-                     condDBTag='global',ddDBTag='global',inputProduction='',abandonOutput=False,
-                     stepID='',stepName='',stepVisible=''):
+  def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
+                     inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
+                     overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                     condDBTag = 'global', ddDBTag = 'global', inputProduction = '', abandonOutput = False,
+                     stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
-        inputDataType is rdst / fetc / sdst
+        inputDataType is dst / rdst / fetc / sdst 
         [inputProduction is not used and is only there for backwards compatibility]
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
-    firstEventNumber=0
-    appTypes = ['dst','fetc','setc','rdst','davincihist','merge','mdst']
-    inputDataTypes = ['rdst','dst','sdst']
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
+    firstEventNumber = 0
+    appTypes = ['dst', 'fetc', 'setc', 'rdst', 'davincihist', 'merge', 'mdst']
+    inputDataTypes = ['rdst', 'dst', 'sdst']
     if not appType.lower() in appTypes:
-      raise TypeError,'Application type not currently supported (%s)' % appTypes
-    if not inputDataType.lower() in inputDataTypes and not appType.lower() in ['merge','setc']: 
-      raise TypeError,'Only %s input data types supported' %(string.join(inputDataTypes,', '))
+      raise TypeError, 'Application type not currently supported (%s)' % appTypes
+    if not inputDataType.lower() in inputDataTypes and not appType.lower() in ['merge', 'setc']:
+      raise TypeError, 'Only %s input data types supported' % ( string.join( inputDataTypes, ', ' ) )
 
-    if inputDataType.lower() in ['rdst','sdst']:
-      dataType='DATA'
+    if inputDataType.lower() in ['rdst', 'sdst']:
+      dataType = 'DATA'
       if not outputSE:
-        outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))
-    elif inputDataType.lower()=='dst':
+        outputSE = 'Tier1_M-DST'
+        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+    elif inputDataType.lower() == 'dst':
       if not dataType:
-        raise TypeError,'Must clarify MC / DATA for DST->DST processing'
+        raise TypeError, 'Must clarify MC / DATA for DST->DST processing'
       if not outputSE:
-        if dataType.upper()=='MC':
-          outputSE='Tier1_MC_M-DST'
-          self.log.verbose('Setting default outputSE to %s' %(outputSE))
+        if dataType.upper() == 'MC':
+          outputSE = 'Tier1_MC_M-DST'
+          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
         else:
-          outputSE='Tier1_M-DST'
-          self.log.verbose('Setting default outputSE to %s' %(outputSE))
+          outputSE = 'Tier1_M-DST'
+          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['merge']: #,'mdst']:
       if not outputSE:
-        outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))
+        outputSE = 'Tier1_M-DST'
+        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    if appType.lower() in ['setc','mdst']:
+    if appType.lower() in ['setc', 'mdst']:
       if not outputSE:
-        outputSE='Tier1_M-DST'
-        self.log.verbose('Setting default outputSE to %s' %(outputSE))
+        outputSE = 'Tier1_M-DST'
+        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
-      optionsLine = getOptions('DaVinci',appType,extraOpts=None,inputType=inputDataType,
-                                histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for DaVinci are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'DaVinci', appType, extraOpts = None, inputType = inputDataType,
+                                histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 #      print optionsLine
 
-    if appType.lower()=='davincihist':
-      appType='dst'
+    if appType.lower() == 'davincihist':
+      appType = 'dst'
 
-    if  appType.lower()=='merge':
-      appType=inputDataType.lower()
+    if  appType.lower() == 'merge':
+      appType = inputDataType.lower()
 
-    self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('DaVinci',appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,
-                       extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,'',abandonOutput,
-                       stepID,stepName,stepVisible)                       
+    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
+    self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
+                       extraPackages, outputSE, inputData, inputDataType, histograms,
+                       firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
+                       stepID, stepName, stepVisible )
 
   #############################################################################
-  def addMooreStep(self,appVersion,appType,optionsFile,eventType='firstStep',extraPackages='',
-                   inputData='previousStep',inputDataType='raw',outputSE=None,histograms=False,
-                   overrideOpts='',extraOpts='',numberOfEvents='-1',dataType='MC',
-                   condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False,
-                   stepID='',stepName='',stepVisible=''):
+  def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
+                   inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
+                   overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'MC',
+                   condDBTag = 'global', ddDBTag = 'global', outputAppendName = '', abandonOutput = False,
+                   stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is digi (simulation) / dst and inputDataType is digi / raw only at the moment.
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
 
-    firstEventNumber=0
-    appTypes = ['dst','digi']
-    inputDataTypes = ['raw','digi']
+    firstEventNumber = 0
+    appTypes = ['dst', 'digi']
+    inputDataTypes = ['raw', 'digi']
     if not appType in appTypes:
-      raise TypeError,'Application type not currently supported (%s)' % appTypes
+      raise TypeError, 'Application type not currently supported (%s)' % appTypes
     if not inputDataType in inputDataTypes:
-      raise TypeError,'Only RAW and DIGI input data type currently supported'
+      raise TypeError, 'Only RAW and DIGI input data type currently supported'
 
-    if not dataType.lower()=='mc':
-      raise TypeError,'Only MC data type is supported'
+    if not dataType.lower() == 'mc':
+      raise TypeError, 'Only MC data type is supported'
 
     if not outputSE:
-      outputSE='Tier1_MC_M-DST'
-      if inputDataType.lower()=='digi':
-        outputSE='Tier1-RDST' #convention for intermediate outputs that are not saved by default
+      outputSE = 'Tier1_MC_M-DST'
+      if inputDataType.lower() == 'digi':
+        outputSE = 'Tier1-RDST' #convention for intermediate outputs that are not saved by default
 
-    self.log.verbose('Setting default outputSE to %s' %(outputSE))
+    self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
-      optionsLine = getOptions('Moore',appType,extraOpts=None,inputType=inputDataType,
-                               histogram=self.histogramName,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for Moore are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'Moore', appType, extraOpts = None, inputType = inputDataType,
+                               histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for Moore are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
-    self._setParameter('dataType','string',dataType,'DataType') #MC or DATA to be reviewed
-    self._addGaudiStep('Moore',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                       eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,outputAppendName,abandonOutput,
-                       stepID,stepName,stepVisible)                       
+    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
+    self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
+                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
+                       firstEventNumber, {}, condDBTag, ddDBTag, outputAppendName, abandonOutput,
+                       stepID, stepName, stepVisible )
 
   #############################################################################
-  def addMergeStep(self,appVersion='v26r3',optionsFile='$STDOPTS/PoolCopy.opts',inputProduction='',
-                   eventType='firstStep',extraPackages='',inputData='previousStep',
-                   inputDataType='dst',outputSE=None,overrideOpts='',extraOpts='',numberOfEvents='-1',
-                   passDict={},condDBTag='global',ddDBTag='global',dataType='MC',
-                   stepID='',stepName='',stepVisible=''):
+  def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts', inputProduction = '',
+                   eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
+                   inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
+                   passDict = {}, condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
+                   stepID = '', stepName = '', stepVisible = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
-    eventType = self.__getEventType(eventType)
-    self.__checkArguments(extraPackages, optionsFile)
-    firstEventNumber=0
-    histograms=False
-    appName = 'LHCb'
+    eventType = self.__getEventType( eventType )
+    self.__checkArguments( extraPackages, optionsFile )
+    firstEventNumber = 0
+    histograms = False
     #appVersion =''
     #optionsFile = ''
     appType = inputDataType
     if not outputSE:
-      outputSE='Tier1_MC_M-DST'
-      self.log.verbose('Setting default outputSE to %s' %(outputSE))
+      outputSE = 'Tier1_MC_M-DST'
+      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
-      optionsLine = getOptions('Merge',appType,extraOpts=None,condDB=condDBTag,ddDB=ddDBTag)
-      self.log.verbose('Default options for Merging are:\n%s' %(string.join(optionsLine,'\n')))
-      optionsLine = string.join(optionsLine,';')
+      optionsLine = getOptions( 'Merge', appType, extraOpts = None, condDB = condDBTag, ddDB = ddDBTag )
+      self.log.verbose( 'Default options for Merging are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
 
     if extraOpts:
-      extraOpts = removeEmptyElements(string.split(extraOpts,'\n'))
-      extraOpts = string.join(extraOpts,';')
-      optionsLine = "%s\n%s" % (optionsLine,extraOpts)
+      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
+      extraOpts = string.join( extraOpts, ';' )
+      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
-    self._setParameter('dataType','string',dataType,'DataType')
+    self._setParameter( 'dataType', 'string', dataType, 'DataType' )
 
-    self._addGaudiStep('LHCb',appVersion,appType,numberOfEvents,optionsFile,optionsLine,
-                       eventType,extraPackages,outputSE,inputData,inputDataType,histograms,
-                       firstEventNumber,{},condDBTag,ddDBTag,'',False,
-                       stepID,stepName,stepVisible) 
+    self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
+                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
+                       firstEventNumber, {}, condDBTag, ddDBTag, '', False,
+                       stepID, stepName, stepVisible )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
-  def _addGaudiStep(self,appName,appVersion,appType,numberOfEvents,optionsFile,optionsLine,eventType,
-                    extraPackages,outputSE,inputData='previousStep',inputDataType='None',
-                    histograms=False,firstEventNumber=0,extraOutput={},
-                    condDBTag='global',ddDBTag='global',outputAppendName='',abandonOutput=False,
-                    stepID=0,stepName='',stepVisible=''):
+  def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
+                    extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
+                    histograms = False, firstEventNumber = 0, extraOutput = {},
+                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '', abandonOutput = False,
+                    stepID = 0, stepName = '', stepVisible = '' ):
     """Helper function.
     """
-    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
-      raise TypeError,'Expected strings for application name and version'
+    if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
+      raise TypeError, 'Expected strings for application name and version'
 
-    self.gaudiStepCount +=1
-    gaudiStep =  self.__getGaudiApplicationStep('%s_%s' %(appName,self.gaudiStepCount))
+    self.gaudiStepCount += 1
+    gaudiStep = self.__getGaudiApplicationStep( '%s_%s' % ( appName, self.gaudiStepCount ) )
 
     #lower the appType if not creating a template
-    if appType and not re.search('{{',appType):
-      appType = string.lower(appType)
+    if appType and not re.search( '{{', appType ):
+      appType = string.lower( appType )
 
-    gaudiStep.setValue('applicationName',appName)
-    gaudiStep.setValue('applicationVersion',appVersion)
+    gaudiStep.setValue( 'applicationName', appName )
+    gaudiStep.setValue( 'applicationVersion', appVersion )
     if outputAppendName:
-      appType = string.lower('%s.%s' %(outputAppendName,appType))
+      appType = string.lower( '%s.%s' % ( outputAppendName, appType ) )
 
-    gaudiStep.setValue('applicationType',appType)
-    if type(optionsFile)==type([]):
-      optionsFile = string.join(optionsFile,';')
-    optionsFile = optionsFile.replace(' ','')
+    gaudiStep.setValue( 'applicationType', appType )
+    if type( optionsFile ) == type( [] ):
+      optionsFile = string.join( optionsFile, ';' )
+    optionsFile = optionsFile.replace( ' ', '' )
 
-    gaudiStep.setValue('optionsFile',optionsFile)
-    gaudiStep.setValue('optionsLine',optionsLine)
-    gaudiStep.setValue('optionsLinePrev','None')
-    gaudiStep.setValue('numberOfEvents', numberOfEvents)
-    gaudiStep.setValue('eventType',eventType)
+    gaudiStep.setValue( 'optionsFile', optionsFile )
+    gaudiStep.setValue( 'optionsLine', optionsLine )
+    gaudiStep.setValue( 'optionsLinePrev', 'None' )
+    gaudiStep.setValue( 'numberOfEvents', numberOfEvents )
+    gaudiStep.setValue( 'eventType', eventType )
     if extraPackages:
-      if type(extraPackages)==type([]):
-        extraPackages = string.join(extraPackages,';')
+      if type( extraPackages ) == type( [] ):
+        extraPackages = string.join( extraPackages, ';' )
 
-      extraPackages = extraPackages.replace(' ','')
-      gaudiStep.setValue('extraPackages',extraPackages)
-      self.__addSoftwarePackages(extraPackages)
+      extraPackages = extraPackages.replace( ' ', '' )
+      gaudiStep.setValue( 'extraPackages', extraPackages )
+      self.__addSoftwarePackages( extraPackages )
 
     if firstEventNumber:
-      gaudiStep.setValue('firstEventNumber',firstEventNumber)
+      gaudiStep.setValue( 'firstEventNumber', firstEventNumber )
 
     if not inputData:
-      self.log.verbose('%s step has no data requirement or is linked to the overall input data' %appName)
-      gaudiStep.setLink('inputData','self','InputData')
-    elif inputData=='previousStep':
-      self.log.verbose('Taking input data as output from previous Gaudi step')
-      if not self.ioDict.has_key(self.gaudiStepCount-1):
-        raise TypeError,'Expected previously defined Gaudi step for input data'
-      gaudiStep.setLink('inputData',self.ioDict[self.gaudiStepCount-1],'outputData')
-    elif inputData=='firstStep':
-      self.log.verbose('Taking input data as output from first Gaudi step')
+      self.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
+      gaudiStep.setLink( 'inputData', 'self', 'InputData' )
+    elif inputData == 'previousStep':
+      self.log.verbose( 'Taking input data as output from previous Gaudi step' )
+      if not self.ioDict.has_key( self.gaudiStepCount - 1 ):
+        raise TypeError, 'Expected previously defined Gaudi step for input data'
+      gaudiStep.setLink( 'inputData', self.ioDict[self.gaudiStepCount - 1], 'outputData' )
+    elif inputData == 'firstStep':
+      self.log.verbose( 'Taking input data as output from first Gaudi step' )
       stepKeys = self.ioDict.keys()
       stepKeys.sort()
-      gaudiStep.setLink('inputData',self.ioDict[stepKeys[0]],'outputData')
+      gaudiStep.setLink( 'inputData', self.ioDict[stepKeys[0]], 'outputData' )
     else:
-      self.log.verbose('Assume input data requirement should be added to job')
-      self.setInputData(inputData)
-      gaudiStep.setLink('inputData','self','InputData')
+      self.log.verbose( 'Assume input data requirement should be added to job' )
+      self.setInputData( inputData )
+      gaudiStep.setLink( 'inputData', 'self', 'InputData' )
       #such that it can be overwritten during submission
       #but also the template value can be used for testing
 
     if inputDataType != 'None':
-      if re.search('{{',inputDataType):
-        gaudiStep.setValue('inputDataType',inputDataType)
+      if re.search( '{{', inputDataType ):
+        gaudiStep.setValue( 'inputDataType', inputDataType )
       else:
-        gaudiStep.setValue('inputDataType',string.upper(inputDataType))
+        gaudiStep.setValue( 'inputDataType', string.upper( inputDataType ) )
 
-    gaudiStep.setValue('applicationLog', '@{applicationName}_@{STEP_ID}.log')
-    gaudiStep.setValue('outputData','@{STEP_ID}.@{applicationType}')
-    
+    gaudiStep.setValue( 'applicationLog', '@{applicationName}_@{STEP_ID}.log' )
+    gaudiStep.setValue( 'outputData', '@{STEP_ID}.@{applicationType}' )
+
     gaudiStepOutput = {}
-    gaudiStepOutput['outputDataName']='@{STEP_ID}.@{applicationType}'
-    gaudiStepOutput['outputDataType']='@{applicationType}'
-    gaudiStepOutput['outputDataSE']=outputSE
+    gaudiStepOutput['outputDataName'] = '@{STEP_ID}.@{applicationType}'
+    gaudiStepOutput['outputDataType'] = '@{applicationType}'
+    gaudiStepOutput['outputDataSE'] = outputSE
 
     if abandonOutput:
-      gaudiStepOutput['abandonOutput']='True' # this is conditional only on the key
-    
-    outputList=[gaudiStepOutput]
+      gaudiStepOutput['abandonOutput'] = 'True' # this is conditional only on the key
+
+    outputList = [gaudiStepOutput]
 
     if histograms:
       histoFile = {}
-      histoFile['outputDataName']=self.histogramName
-      histoFile['outputDataType']='HIST'
-      histoFile['outputDataSE']=self.histogramSE      
-      outputList.append(histoFile)
+      histoFile['outputDataName'] = self.histogramName
+      histoFile['outputDataType'] = 'HIST'
+      histoFile['outputDataSE'] = self.histogramSE
+      outputList.append( histoFile )
     if extraOutput:
-      outputList.append(extraOutput)
+      outputList.append( extraOutput )
 
-    gaudiStep.setValue('listoutput',(outputList))
+    gaudiStep.setValue( 'listoutput', ( outputList ) )
 
     #Ensure the global input data type is null
     description = 'Default input data type field'
-    self._addParameter(self.workflow,'InputDataType','JDL','',description)
+    self._addParameter( self.workflow, 'InputDataType', 'JDL', '', description )
 
     # now we have to tell DIRAC to install the necessary software
-    self.__addSoftwarePackages('%s.%s' %(appName,appVersion))
+    self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     dddbOpt = "@{DDDBTag}"
     conddbOpt = "@{CondDBTag}"
     if not condDBTag.lower() == 'global':
-      self.log.verbose('Specific CondDBTag setting found for %s step, setting to: %s' %(appName,condDBTag))
-      conddbOpt = condDBTag.replace(' ','')
+      self.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, condDBTag ) )
+      conddbOpt = condDBTag.replace( ' ', '' )
     if not ddDBTag.lower() == 'global':
-      self.log.verbose('Specific DDDBTag setting found for %s step, setting to: %s' %(appName,ddDBTag))
-      dddbOpt = ddDBTag.replace(' ','')
+      self.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, ddDBTag ) )
+      dddbOpt = ddDBTag.replace( ' ', '' )
 
     #to construct the BK processing pass structure, starts from step '0'
-    stepIDInternal = 'Step%s' %(self.gaudiStepCount-1)
+    stepIDInternal = 'Step%s' % ( self.gaudiStepCount - 1 )
     bkOptionsFile = optionsFile
-    if re.search('@{eventType}',optionsFile):
-      bkOptionsFile = string.replace(optionsFile,'@{eventType}',str(eventType))
-      
+    if re.search( '@{eventType}', optionsFile ):
+      bkOptionsFile = string.replace( optionsFile, '@{eventType}', str( eventType ) )
+
     stepBKInfo = {'ApplicationName':appName,
                   'ApplicationVersion':appVersion,
                   'OptionFiles':bkOptionsFile,
@@ -601,385 +602,403 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                   'StepName':stepName,
                   'StepVisible':stepVisible}
 
-    self.bkSteps[stepIDInternal]=stepBKInfo
+    self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
-    self.ioDict[self.gaudiStepCount]=gaudiStep.getName()
+    self.ioDict[self.gaudiStepCount] = gaudiStep.getName()
     return gaudiStep
 
   #############################################################################
-  def __addSoftwarePackages(self,nameVersion):
+  def __addSoftwarePackages( self, nameVersion ):
     """ Internal method to accumulate software packages.
     """
     swPackages = 'SoftwarePackages'
-    description='LHCbSoftwarePackages'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',nameVersion,description)
+    description = 'LHCbSoftwarePackages'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', nameVersion, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
-      apps = apps.split(';')
-      apps.append(nameVersion)
-      apps = uniqueElements(removeEmptyElements(apps))
-      apps = string.join(apps,';')
-      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+      apps = self.workflow.findParameter( swPackages ).getValue()
+      apps = apps.split( ';' )
+      apps.append( nameVersion )
+      apps = uniqueElements( removeEmptyElements( apps ) )
+      apps = string.join( apps, ';' )
+      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
-  def __addBKPassStep(self):
-    """ Internal method to accumulate software packages.
+  def __addBKPassStep( self ):
+    """ Internal method to add BKK parameters
     """
     bkPass = 'BKProcessingPass'
-    description='BKProcessingPassInfo'
-    self._addParameter(self.workflow,bkPass,'dict',self.bkSteps,description)
+    description = 'BKProcessingPassInfo'
+    self._addParameter( self.workflow, bkPass, 'dict', self.bkSteps, description )
 
   #############################################################################
-  def __getGaudiApplicationStep(self,name):
+  def __getGaudiApplicationStep( self, name ):
     """Internal function.
 
       This method controls the definition for a GaudiApplication step.
     """
-    gaudiApp = ModuleDefinition('GaudiApplication')
-    gaudiApp.setDescription('A generic Gaudi Application step.')
-    body = string.replace(self.importLine,'<MODULE>','GaudiApplication')
-    gaudiApp.setBody(body)
 
-    analyseLog = ModuleDefinition('AnalyseLogFile')
-    analyseLog.setDescription('Check LogFile module')
-    body = string.replace(self.importLine,'<MODULE>','AnalyseLogFile')
-    analyseLog.setBody(body)
+    gaudiApp = ModuleDefinition( 'GaudiApplication' )
+    gaudiApp.setDescription( 'A generic Gaudi Application step.' )
+    body = string.replace( self.importLine, '<MODULE>', 'GaudiApplication' )
+    gaudiApp.setBody( body )
 
-    errorLogging = ModuleDefinition('ErrorLogging')
-    errorLogging.setDescription('Error loggging module')
-    body = string.replace(self.importLine,'<MODULE>','ErrorLogging')
-    errorLogging.setBody(body)
+    analyseLog = ModuleDefinition( 'AnalyseLogFile' )
+    analyseLog.setDescription( 'Check LogFile module' )
+    body = string.replace( self.importLine, '<MODULE>', 'AnalyseLogFile' )
+    analyseLog.setBody( body )
 
-    genBKReport = ModuleDefinition('BookkeepingReport')
-    genBKReport.setDescription('Bookkeeping Report module')
-    body = string.replace(self.importLine,'<MODULE>','BookkeepingReport')
-    genBKReport.setBody(body)
-    genBKReport.addParameter(Parameter("STEP_ID","","string","self","STEP_ID",True,False,"StepID"))
+    errorLogging = ModuleDefinition( 'ErrorLogging' )
+    errorLogging.setDescription( 'Error loggging module' )
+    body = string.replace( self.importLine, '<MODULE>', 'ErrorLogging' )
+    errorLogging.setBody( body )
 
-    gaudiAppDefn = StepDefinition('Gaudi_App_Step')
-    gaudiAppDefn.addModule(gaudiApp)
-    gaudiAppDefn.createModuleInstance('GaudiApplication', 'gaudiApp')
-    gaudiAppDefn.addModule(analyseLog)
-    gaudiAppDefn.createModuleInstance('AnalyseLogFile', 'analyseLog')
-    gaudiAppDefn.addModule(errorLogging)
-    gaudiAppDefn.createModuleInstance('ErrorLogging','errorLog')
-    gaudiAppDefn.addModule(genBKReport)
-    gaudiAppDefn.createModuleInstance('BookkeepingReport', 'genBKReport')
-    gaudiAppDefn.addParameterLinked(analyseLog.parameters)
-    gaudiAppDefn.addParameterLinked(gaudiApp.parameters)
+    genBKReport = ModuleDefinition( 'BookkeepingReport' )
+    genBKReport.setDescription( 'Bookkeeping Report module' )
+    body = string.replace( self.importLine, '<MODULE>', 'BookkeepingReport' )
+    genBKReport.setBody( body )
+    genBKReport.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
 
-    self._addParameter(gaudiAppDefn,'inputData','string','','StepInputData')
-    self._addParameter(gaudiAppDefn,'inputDataType','string','','InputDataType')
-    self._addParameter(gaudiAppDefn,'eventType','string','','EventType')
-    self._addParameter(gaudiAppDefn,'outputData','string','','OutputData')
-    self._addParameter(gaudiAppDefn,'generatorName','string','','GeneratorName')
-    self._addParameter(gaudiAppDefn,'applicationName','string','','ApplicationName')
-    self._addParameter(gaudiAppDefn,'applicationVersion','string','','ApplicationVersion')
-    self._addParameter(gaudiAppDefn,'applicationType','string','',"ApplicationType")
-    self._addParameter(gaudiAppDefn,'applicationLog','string','','ApplicationLogFile')
-    self._addParameter(gaudiAppDefn,'optionsFile','string','','OptionsFile')
-    self._addParameter(gaudiAppDefn,'optionsLine','string','','OptionsLines')
-    self._addParameter(gaudiAppDefn,'optionsLinePrev','string','','PreviousOptionsLines')
-    self._addParameter(gaudiAppDefn,'numberOfEvents','string','','NumberOfEvents')
-    self._addParameter(gaudiAppDefn,'numberOfEventsInput','string','','NumberOfEventsInput')
-    self._addParameter(gaudiAppDefn,'numberOfEventsOutput','string','','NumberOfEventsOutput')
-    self._addParameter(gaudiAppDefn,'listoutput','list',[],'StepOutputList')
-    self._addParameter(gaudiAppDefn,'extraPackages','string','','ExtraPackages')
-    self._addParameter(gaudiAppDefn,'firstEventNumber','string','int','FirstEventNumber')
-    self.workflow.addStep(gaudiAppDefn)
-    return self.workflow.createStepInstance('Gaudi_App_Step',name)
+    # FEDERICO
+    stepAccounting = ModuleDefinition( 'StepAccounting' )
+    errorLogging.setDescription( 'Step Accounting module' )
+    body = string.replace( self.importLine, '<MODULE>', 'StepAccounting' )
+    errorLogging.setBody( body )
+    # /FEDERICO
+
+    gaudiAppDefn = StepDefinition( 'Gaudi_App_Step' )
+    gaudiAppDefn.addModule( gaudiApp )
+    gaudiAppDefn.createModuleInstance( 'GaudiApplication', 'gaudiApp' )
+    gaudiAppDefn.addModule( analyseLog )
+    gaudiAppDefn.createModuleInstance( 'AnalyseLogFile', 'analyseLog' )
+    gaudiAppDefn.addModule( errorLogging )
+    gaudiAppDefn.createModuleInstance( 'ErrorLogging', 'errorLog' )
+    gaudiAppDefn.addModule( genBKReport )
+    gaudiAppDefn.createModuleInstance( 'BookkeepingReport', 'genBKReport' )
+    # FEDERICO
+    gaudiAppDefn.addModule( stepAccounting )
+    gaudiAppDefn.createModuleInstance( 'StepAccounting', 'stepAcc' )
+    # /FEDERICO
+    gaudiAppDefn.addParameterLinked( analyseLog.parameters )
+    gaudiAppDefn.addParameterLinked( gaudiApp.parameters )
+
+    self._addParameter( gaudiAppDefn, 'inputData', 'string', '', 'StepInputData' )
+    self._addParameter( gaudiAppDefn, 'inputDataType', 'string', '', 'InputDataType' )
+    self._addParameter( gaudiAppDefn, 'eventType', 'string', '', 'EventType' )
+    self._addParameter( gaudiAppDefn, 'outputData', 'string', '', 'OutputData' )
+    self._addParameter( gaudiAppDefn, 'generatorName', 'string', '', 'GeneratorName' )
+    self._addParameter( gaudiAppDefn, 'applicationName', 'string', '', 'ApplicationName' )
+    self._addParameter( gaudiAppDefn, 'applicationVersion', 'string', '', 'ApplicationVersion' )
+    self._addParameter( gaudiAppDefn, 'applicationType', 'string', '', "ApplicationType" )
+    self._addParameter( gaudiAppDefn, 'applicationLog', 'string', '', 'ApplicationLogFile' )
+    self._addParameter( gaudiAppDefn, 'optionsFile', 'string', '', 'OptionsFile' )
+    self._addParameter( gaudiAppDefn, 'optionsLine', 'string', '', 'OptionsLines' )
+    self._addParameter( gaudiAppDefn, 'optionsLinePrev', 'string', '', 'PreviousOptionsLines' )
+    self._addParameter( gaudiAppDefn, 'numberOfEvents', 'string', '', 'NumberOfEvents' )
+    self._addParameter( gaudiAppDefn, 'numberOfEventsInput', 'string', '', 'NumberOfEventsInput' )
+    self._addParameter( gaudiAppDefn, 'numberOfEventsOutput', 'string', '', 'NumberOfEventsOutput' )
+    self._addParameter( gaudiAppDefn, 'listoutput', 'list', [], 'StepOutputList' )
+    self._addParameter( gaudiAppDefn, 'extraPackages', 'string', '', 'ExtraPackages' )
+    self._addParameter( gaudiAppDefn, 'firstEventNumber', 'string', 'int', 'FirstEventNumber' )
+    self.workflow.addStep( gaudiAppDefn )
+    return self.workflow.createStepInstance( 'Gaudi_App_Step', name )
 
   #############################################################################
-  def addFinalizationStep(self,uploadData=True,uploadLogs=True,
-                          sendFailover=True,removeInputData=False):
+  def addFinalizationStep( self, uploadData = True, uploadLogs = True,
+                          sendFailover = True, removeInputData = False,
+                          outputDataStep = '' ):
     """ Adds the finalization step with enable flags for each module.
     """
-    for param in [uploadData,uploadLogs,sendFailover]:
-      if not type(param)==type(True):
-        raise TypeError,'All arguments to addFinalizationStep must be boolean'
+    for param in [uploadData, uploadLogs, sendFailover]:
+      if not type( param ) == type( True ):
+        raise TypeError, 'All arguments to addFinalizationStep must be boolean'
 
-    dataUpload = ModuleDefinition('UploadOutputData')
-    dataUpload.setDescription('Uploads the output data')
-    self._addParameter(dataUpload,'Enable','bool','True','EnableFlag')
-    body = string.replace(self.importLine,'<MODULE>','UploadOutputData')
-    dataUpload.setBody(body)
-
-    if removeInputData:
-      removeInputs = ModuleDefinition('RemoveInputData')
-      removeInputs.setDescription('Removes input data after merged output data uploaded to an SE')
-      self._addParameter(removeInputs,'Enable','bool','True','EnableFlag')
-      body = string.replace(self.importLine,'<MODULE>','RemoveInputData')
-      removeInputs.setBody(body)
-
-    logUpload = ModuleDefinition('UploadLogFile')
-    logUpload.setDescription('Uploads the log files')
-    self._addParameter(logUpload,'Enable','bool','True','EnableFlag')
-    body = string.replace(self.importLine,'<MODULE>','UploadLogFile')
-    logUpload.setBody(body)
-
-    failoverRequest = ModuleDefinition('FailoverRequest')
-    failoverRequest.setDescription('Sends any failover requests')
-    self._addParameter(failoverRequest,'Enable','bool','True','EnableFlag')
-    body = string.replace(self.importLine,'<MODULE>','FailoverRequest')
-    failoverRequest.setBody(body)
-
-    finalization = StepDefinition('Job_Finalization')
-
-    dataUpload.setLink('Enable','self','UploadEnable')
-    finalization.addModule(dataUpload)
-    finalization.createModuleInstance('UploadOutputData','dataUpload')
-    self._addParameter(finalization,'UploadEnable','bool',str(uploadData),'EnableFlag')
-
-    logUpload.setLink('Enable','self','LogEnable')
-    finalization.addModule(logUpload)
-    finalization.createModuleInstance('UploadLogFile','logUpload')
-    self._addParameter(finalization,'LogEnable','bool',str(uploadLogs),'EnableFlag')
+    dataUpload = ModuleDefinition( 'UploadOutputData' )
+    dataUpload.setDescription( 'Uploads the output data' )
+    self._addParameter( dataUpload, 'Enable', 'bool', 'True', 'EnableFlag' )
+    body = string.replace( self.importLine, '<MODULE>', 'UploadOutputData' )
+    dataUpload.setBody( body )
 
     if removeInputData:
-      removeInputs.setLink('Enable','self','DataRemovalEnable')
-      finalization.addModule(removeInputs)
-      finalization.createModuleInstance('RemoveInputData','removeInputs')
-      self._addParameter(finalization,'DataRemovalEnable','bool',str(removeInputData),'EnableFlag') 
+      removeInputs = ModuleDefinition( 'RemoveInputData' )
+      removeInputs.setDescription( 'Removes input data after merged output data uploaded to an SE' )
+      self._addParameter( removeInputs, 'Enable', 'bool', 'True', 'EnableFlag' )
+      body = string.replace( self.importLine, '<MODULE>', 'RemoveInputData' )
+      removeInputs.setBody( body )
 
-    failoverRequest.setLink('Enable','self','FailoverEnable')
-    finalization.addModule(failoverRequest)
-    finalization.createModuleInstance('FailoverRequest','failoverRequest')
-    self._addParameter(finalization,'FailoverEnable','bool',str(sendFailover),'EnableFlag')
+    logUpload = ModuleDefinition( 'UploadLogFile' )
+    logUpload.setDescription( 'Uploads the log files' )
+    self._addParameter( logUpload, 'Enable', 'bool', 'True', 'EnableFlag' )
+    body = string.replace( self.importLine, '<MODULE>', 'UploadLogFile' )
+    logUpload.setBody( body )
 
-    self.workflow.addStep(finalization)
-    finalizeStep = self.workflow.createStepInstance('Job_Finalization', 'finalization')
-    finalizeStep.setValue('UploadEnable',uploadData)
-    finalizeStep.setValue('LogEnable',uploadLogs)
-    finalizeStep.setValue('FailoverEnable',sendFailover)
+    failoverRequest = ModuleDefinition( 'FailoverRequest' )
+    failoverRequest.setDescription( 'Sends any failover requests' )
+    self._addParameter( failoverRequest, 'Enable', 'bool', 'True', 'EnableFlag' )
+    body = string.replace( self.importLine, '<MODULE>', 'FailoverRequest' )
+    failoverRequest.setBody( body )
+
+    finalization = StepDefinition( 'Job_Finalization' )
+
+    dataUpload.setLink( 'Enable', 'self', 'UploadEnable' )
+    finalization.addModule( dataUpload )
+    finalization.createModuleInstance( 'UploadOutputData', 'dataUpload' )
+    self._addParameter( finalization, 'UploadEnable', 'bool', str( uploadData ), 'EnableFlag' )
+
+    if outputDataStep:
+      if type( outputDataStep ) == type( [] ):
+        outputDataStep = string.join( outputDataStep, ';' )
+      self._addParameter( finalization, 'outputDataStep', 'string', outputDataStep, 'outputDataStep' )
+
+    logUpload.setLink( 'Enable', 'self', 'LogEnable' )
+    finalization.addModule( logUpload )
+    finalization.createModuleInstance( 'UploadLogFile', 'logUpload' )
+    self._addParameter( finalization, 'LogEnable', 'bool', str( uploadLogs ), 'EnableFlag' )
+
+    if removeInputData:
+      removeInputs.setLink( 'Enable', 'self', 'DataRemovalEnable' )
+      finalization.addModule( removeInputs )
+      finalization.createModuleInstance( 'RemoveInputData', 'removeInputs' )
+      self._addParameter( finalization, 'DataRemovalEnable', 'bool', str( removeInputData ), 'EnableFlag' )
+
+    failoverRequest.setLink( 'Enable', 'self', 'FailoverEnable' )
+    finalization.addModule( failoverRequest )
+    finalization.createModuleInstance( 'FailoverRequest', 'failoverRequest' )
+    self._addParameter( finalization, 'FailoverEnable', 'bool', str( sendFailover ), 'EnableFlag' )
+
+    self.workflow.addStep( finalization )
+    finalizeStep = self.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
+    finalizeStep.setValue( 'UploadEnable', uploadData )
+    finalizeStep.setValue( 'LogEnable', uploadLogs )
+    finalizeStep.setValue( 'FailoverEnable', sendFailover )
 
   #############################################################################
-  def createWorkflow(self,name=''):
+  def createWorkflow( self, name = '' ):
     """ Create XML for local testing.
     """
     if not name:
       name = self.name
-    if not re.search('xml$',name):
-      name = '%s.xml' %name
-    if os.path.exists(name):
-      shutil.move(name,'%s.backup' %name)
-    name = name.replace('/','').replace('\\','')    
-    self.workflow.toXMLFile(name)
-    return S_OK(name)
+    if not re.search( 'xml$', name ):
+      name = '%s.xml' % name
+    if os.path.exists( name ):
+      shutil.move( name, '%s.backup' % name )
+    name = name.replace( '/', '' ).replace( '\\', '' )
+    self.workflow.toXMLFile( name )
+    return S_OK( name )
 
   #############################################################################
-  def runLocal(self):
+  def runLocal( self ):
     """ Create XML workflow for local testing then reformulate as a job and run locally.
     """
     name = self.createWorkflow()['Value']
-    j = LHCbJob(name)
+    j = LHCbJob( name )
     d = Dirac()
-    return d.submit(j,mode='local')
+    return d.submit( j, mode = 'local' )
 
   #############################################################################
-  def getDetailedInfo(self,productionID):
+  def getDetailedInfo( self, productionID ):
     """ Return detailed information for a given production.
     """
-    return self.getParameters(int(productionID),'DetailedInfo')
+    return self.getParameters( int( productionID ), 'DetailedInfo' )
 
   #############################################################################
-  def _setProductionParameters(self,prodID,groupDescription='',bkPassInfo={},bkInputQuery={},
-                               derivedProd=0,prodXMLFile='',reqID=0,printOutput=False,
-                               disable=False):
+  def _setProductionParameters( self, prodID, groupDescription = '', bkPassInfo = {}, bkInputQuery = {},
+                               derivedProd = 0, prodXMLFile = '', reqID = 0, printOutput = False,
+                               disable = False ):
     """ This method will publish production parameters.
     """
     if not prodXMLFile: #e.g. setting parameters for old productions
-      prodXMLFile = 'Production%s.xml' %prodID
-      if os.path.exists(prodXMLFile):
-        self.log.verbose('Using %s for production body' %prodXMLFile)
+      prodXMLFile = 'Production%s.xml' % prodID
+      if os.path.exists( prodXMLFile ):
+        self.log.verbose( 'Using %s for production body' % prodXMLFile )
       else:
         prodClient = TransformationClient()
-        result = prodClient.getTransformationParameters(int(prodID),['Body'])
+        result = prodClient.getTransformationParameters( int( prodID ), ['Body'] )
         if not result['OK']:
-          return S_ERROR("Error during command execution: %s" % result['Message'])
+          return S_ERROR( "Error during command execution: %s" % result['Message'] )
         if not result['Value']:
-          return S_ERROR("No body of production %s was found" % prodID)
+          return S_ERROR( "No body of production %s was found" % prodID )
 
         body = result['Value']
         fd = open( prodXMLFile, 'wb' )
-        fd.write(body)
+        fd.write( body )
         fd.close()
 
-    prodWorkflow = Workflow(prodXMLFile)
+    prodWorkflow = Workflow( prodXMLFile )
     if not bkPassInfo:
       try:
-        bkPassInfo = prodWorkflow.findParameter('BKProcessingPass').getValue()
-      except Exception,x:
-        return S_ERROR('Could not determine BKProcessingPass from workflow')
+        bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
+      except Exception:
+        return S_ERROR( 'Could not determine BKProcessingPass from workflow' )
     if not groupDescription:
-      groupDescription = prodWorkflow.findParameter('groupDescription').getValue()
+      groupDescription = prodWorkflow.findParameter( 'groupDescription' ).getValue()
 
     parameters = {}
 
-    parameters['Priority']=prodWorkflow.findParameter('Priority').getValue()
-    parameters['CondDBTag']=prodWorkflow.findParameter('CondDBTag').getValue()
-    parameters['DDDBTag']=prodWorkflow.findParameter('DDDBTag').getValue()
-    parameters['configName']=prodWorkflow.findParameter('configName').getValue()
-    parameters['configVersion']=prodWorkflow.findParameter('configVersion').getValue()
-    parameters['outputDataFileMask']=prodWorkflow.findParameter('outputDataFileMask').getValue()
-    parameters['JobType']=prodWorkflow.findParameter('JobType').getValue()
-    parameters['DataType']=prodWorkflow.findParameter('DataType').getValue()
+    parameters['Priority'] = prodWorkflow.findParameter( 'Priority' ).getValue()
+    parameters['CondDBTag'] = prodWorkflow.findParameter( 'CondDBTag' ).getValue()
+    parameters['DDDBTag'] = prodWorkflow.findParameter( 'DDDBTag' ).getValue()
+    parameters['configName'] = prodWorkflow.findParameter( 'configName' ).getValue()
+    parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
+    parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
+    parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
+    parameters['DataType'] = prodWorkflow.findParameter( 'DataType' ).getValue()
 
-    if parameters['JobType'].lower()=='mcsimulation':
+    if parameters['JobType'].lower() == 'mcsimulation':
       # A.T. EventsPerTask is considered immutable by Andrew
       #if prodWorkflow.findParameter('EventsPerTask'):
       #  parameters['EventsPerTask']=prodWorkflow.findParameter('EventsPerTask').getValue()
-      if prodWorkflow.findParameter('MaxNumberOfTasks'):
-        parameters['MaxNumberOfTasks']=prodWorkflow.findParameter('MaxNumberOfTasks').getValue()
-      
-    if prodWorkflow.findParameter('InputData'): #now only comes from BK query
-      prodWorkflow.findParameter('InputData').setValue('')
-      self.log.verbose('Resetting input data for production to null, this comes from a BK query...')
-      prodXMLFile = self.createWorkflow(prodXMLFile)['Value']
+      if prodWorkflow.findParameter( 'MaxNumberOfTasks' ):
+        parameters['MaxNumberOfTasks'] = prodWorkflow.findParameter( 'MaxNumberOfTasks' ).getValue()
+
+    if prodWorkflow.findParameter( 'InputData' ): #now only comes from BK query
+      prodWorkflow.findParameter( 'InputData' ).setValue( '' )
+      self.log.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
+      prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
       #prodWorkflow.toXMLFile(prodXMLFile)
 
-    if prodWorkflow.findParameter('TransformationFamily'):
-      parameters['TransformationFamily']=prodWorkflow.findParameter('TransformationFamily').getValue()
+    if prodWorkflow.findParameter( 'TransformationFamily' ):
+      parameters['TransformationFamily'] = prodWorkflow.findParameter( 'TransformationFamily' ).getValue()
 
     for i in prodWorkflow.step_instances:
-      if i.findParameter('eventType'):
-        parameters['eventType']=i.findParameter('eventType').getValue()
+      if i.findParameter( 'eventType' ):
+        parameters['eventType'] = i.findParameter( 'eventType' ).getValue()
 
-    if not parameters.has_key('eventType'):
-      return S_ERROR('Could not determine eventType from workflow')
+    if not parameters.has_key( 'eventType' ):
+      return S_ERROR( 'Could not determine eventType from workflow' )
 
-    if prodWorkflow.findParameter('group_size'):
-      parameters['group_size']=prodWorkflow.findParameter('group_size').getValue()
+    if prodWorkflow.findParameter( 'group_size' ):
+      parameters['group_size'] = prodWorkflow.findParameter( 'group_size' ).getValue()
 
-    parameters['BKCondition']=prodWorkflow.findParameter('conditions').getValue()
-    
+    parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
+
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
       prodClient = TransformationClient()
-      res = prodClient.getBookkeepingQueryForTransformation(int(prodID))
+      res = prodClient.getBookkeepingQueryForTransformation( int( prodID ) )
       if not res['OK']:
-        self.log.error(res)
-        return S_ERROR('Could not obtain production info')
+        self.log.error( res )
+        return S_ERROR( 'Could not obtain production info' )
       bkInputQuery = res['Value']
 
-    parameters['BKInputQuery']=bkInputQuery
-    parameters['BKProcessingPass']=bkPassInfo
-    parameters['groupDescription']=groupDescription
-    parameters['RequestID']=reqID
-    parameters['DerivedProduction']=derivedProd
+    parameters['BKInputQuery'] = bkInputQuery
+    parameters['BKProcessingPass'] = bkPassInfo
+    parameters['groupDescription'] = groupDescription
+    parameters['RequestID'] = reqID
+    parameters['DerivedProduction'] = derivedProd
 
     inputDataFile = ''
-    if parameters['BKInputQuery'] and not parameters['DataType'].lower()=='mc':
+    if parameters['BKInputQuery'] and not parameters['DataType'].lower() == 'mc':
       bkDict = parameters['BKInputQuery']
       #To prevent not finding a file remove DQ flag distinction here
-      if bkDict.has_key('DataQualityFlag'):
+      if bkDict.has_key( 'DataQualityFlag' ):
         if not bkDict['DataQualityFlag'].lower() == 'all':
-          self.log.info('Removing DQ flag "%s" just to get a dataset' %(bkDict['DataQualityFlag']))
+          self.log.info( 'Removing DQ flag "%s" just to get a dataset' % ( bkDict['DataQualityFlag'] ) )
           del bkDict['DataQualityFlag']
 
-      for name,value in bkDict.items():
+      for name, value in bkDict.items():
         if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
           if value == 0:
             del bkDict[name]
           else:
-            bkDict[name] = str(value)
-        elif not type(value) == type(' '):
+            bkDict[name] = str( value )
+        elif not type( value ) == type( ' ' ):
           continue
         else:
           if value.lower() == "all":
             del bkDict[name]
 
       bkserver = BookkeepingClient()
-      self.log.verbose('Will attempt to retrieve an input data file for LFN construction from BK query')
-      result = bkserver.getFilesWithGivenDataSets(bkDict)
+      self.log.verbose( 'Will attempt to retrieve an input data file for LFN construction from BK query' )
+      result = bkserver.getFilesWithGivenDataSets( bkDict )
       if not result['OK']:
-        self.log.error('Could not obtain data from input BK query')
-        return S_ERROR('Problem contacting BK for input data sets')
+        self.log.error( 'Could not obtain data from input BK query' )
+        return S_ERROR( 'Problem contacting BK for input data sets' )
 
       if result['Value']:
-       inputDataFile = result['Value'][0]
-       self.log.verbose('Found an input data set from input BK query: %s' %inputDataFile)
+        inputDataFile = result['Value'][0]
+        self.log.verbose( 'Found an input data set from input BK query: %s' % inputDataFile )
       else:
-       self.log.verbose('No input datasets found from BK query: %s' %(bkDict))
-       return S_ERROR('No input datasets found from BK query to set parameters.')
+        self.log.verbose( 'No input datasets found from BK query: %s' % ( bkDict ) )
+        return S_ERROR( 'No input datasets found from BK query to set parameters.' )
 
     dummyProdJobID = '99999999'
-    result = self.getOutputLFNs(prodID,dummyProdJobID,inputDataFile,prodXMLFile)
+    result = self.getOutputLFNs( prodID, dummyProdJobID, inputDataFile, prodXMLFile )
     if not result['OK']:
-      self.log.error('Could not create production LFNs',result)
+      self.log.error( 'Could not create production LFNs', result )
 
     outputLFNs = result['Value']
-    parameters['OutputLFNs']=outputLFNs
+    parameters['OutputLFNs'] = outputLFNs
 
     outputDirectories = []
     del outputLFNs['BookkeepingLFNs'] #since ProductionOutputData uses the file mask
     for i in outputLFNs.values():
       for j in i:
-        outputDir = '%s%s' %(j.split(str(prodID))[0],prodID)
+        outputDir = '%s%s' % ( j.split( str( prodID ) )[0], prodID )
         if not outputDir in outputDirectories:
-          outputDirectories.append(outputDir)
+          outputDirectories.append( outputDir )
 
-    parameters['OutputDirectories']=outputDirectories
+    parameters['OutputDirectories'] = outputDirectories
     #Create detailed information string similar to ELOG entry
     #TODO: put tags per step and include other interesting parameters
     info = []
-    info.append('%s Production %s for event type %s has following parameters:\n' %(parameters['JobType'],prodID,parameters['eventType']))
-    info.append('Production priority: %s' %(parameters['Priority']))
-    info.append('BK Config Name Version: %s %s' %(parameters['configName'],parameters['configVersion']))
-    info.append('BK Processing Pass Name: %s' %(parameters['groupDescription']))
-    info.append('CondDB Tag: %s' %(parameters['CondDBTag']))
-    info.append('DDDB Tag: %s\n' %(parameters['DDDBTag']))
- #   info.append('Number of events: %s' %(parameters['numberOfEvents']))
+    info.append( '%s Production %s for event type %s has following parameters:\n' % ( parameters['JobType'], prodID, parameters['eventType'] ) )
+    info.append( 'Production priority: %s' % ( parameters['Priority'] ) )
+    info.append( 'BK Config Name Version: %s %s' % ( parameters['configName'], parameters['configVersion'] ) )
+    info.append( 'BK Processing Pass Name: %s' % ( parameters['groupDescription'] ) )
+    info.append( 'CondDB Tag: %s' % ( parameters['CondDBTag'] ) )
+    info.append( 'DDDB Tag: %s\n' % ( parameters['DDDBTag'] ) )
+    #info.append('Number of events: %s' %(parameters['numberOfEvents']))
     #Now for the steps of the workflow
     stepKeys = bkPassInfo.keys()
     stepKeys.sort()
     for step in stepKeys:
-      info.append('====> %s %s %s' %(bkPassInfo[step]['ApplicationName'],bkPassInfo[step]['ApplicationVersion'],step))
-      info.append('  %s Option Files:' %(bkPassInfo[step]['ApplicationName']))
-      for opts in bkPassInfo[step]['OptionFiles'].split(';'):
-        info.append('    %s' %opts)
-      info.append('  ExtraPackages: %s' %(bkPassInfo[step]['ExtraPackages']))
+      info.append( '====> %s %s %s' % ( bkPassInfo[step]['ApplicationName'], bkPassInfo[step]['ApplicationVersion'], step ) )
+      info.append( '  %s Option Files:' % ( bkPassInfo[step]['ApplicationName'] ) )
+      for opts in bkPassInfo[step]['OptionFiles'].split( ';' ):
+        info.append( '    %s' % opts )
+      info.append( '  ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
 
     if parameters['BKInputQuery']:
-      info.append('\nBK Input Data Query:')
-      for n,v in parameters['BKInputQuery'].items():
-        info.append('    %s = %s' %(n,v))
+      info.append( '\nBK Input Data Query:' )
+      for n, v in parameters['BKInputQuery'].items():
+        info.append( '    %s = %s' % ( n, v ) )
 
     #BK output directories (very useful)
     bkPaths = []
-    bkOutputPath = '%s/%s/%s/%s/%s' %(parameters['configName'],parameters['configVersion'],parameters['BKCondition'],parameters['groupDescription'],parameters['eventType'])
+    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'], parameters['configVersion'], parameters['BKCondition'], parameters['groupDescription'], parameters['eventType'] )
     fileTypes = parameters['outputDataFileMask']
-    fileTypes = [a.upper() for a in fileTypes.split(';')]
+    fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
     #Annoying that histograms are extension root
     if 'ROOT' in fileTypes:
-      fileTypes.remove('ROOT')
-      fileTypes.append('HIST')
+      fileTypes.remove( 'ROOT' )
+      fileTypes.append( 'HIST' )
 
     for f in fileTypes:
-      bkPaths.append('%s/%s' %(bkOutputPath,f))
-    parameters['BKPaths']=bkPaths
-    info.append('\nBK Browsing Paths:\n%s' %(string.join(bkPaths,'\n')))
-    infoString = string.join(info,'\n')
-    parameters['DetailedInfo']=infoString
+      bkPaths.append( '%s/%s' % ( bkOutputPath, f ) )
+    parameters['BKPaths'] = bkPaths
+    info.append( '\nBK Browsing Paths:\n%s' % ( string.join( bkPaths, '\n' ) ) )
+    infoString = string.join( info, '\n' )
+    parameters['DetailedInfo'] = infoString
 
     if printOutput:
-      for n,v in parameters.items():
-        print '='*len(n),n,'='*len(n)
+      for n, v in parameters.items():
+        print '=' * len( n ), n, '='*len( n )
         print v
 
     if not disable:
-      for n,v in parameters.items():
-        result = self.setProdParameter(prodID,n,v)       
+      for n, v in parameters.items():
+        result = self.setProdParameter( prodID, n, v )
         if not result['OK']:
-          self.log.error(result['Message'])
+          self.log.error( result['Message'] )
 
-    return S_OK(parameters)
+    return S_OK( parameters )
 
   #############################################################################
-  def create(self,publish=True,fileMask='',bkQuery={},groupSize=1,derivedProduction=0,
-                  bkScript=True,wfString='',requestID=0,reqUsed=0,
-                  transformation=True,transReplicas=0,bkProcPassPrepend='',parentRequestID=0):
+  def create( self, publish = True, fileMask = '', bkQuery = {}, groupSize = 1, derivedProduction = 0,
+                  bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
+                  transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0 ):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -999,71 +1018,71 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     #Needs to be revisited in order to disentangle the many operations.
     prodID = self.defaultProdID
     if not parentRequestID:
-      parentRequestID=requestID
+      parentRequestID = requestID
 
-    self.setParentRequest(parentRequestID)
+    self.setParentRequest( parentRequestID )
 
     if wfString:
-      self.workflow = fromXMLString(wfString)
+      self.workflow = fromXMLString( wfString )
       self.name = self.workflow.getName()
 
     try:
       fileName = self.createWorkflow()['Value']
-    except Exception,x:
-      self.log.error(x)
-      return S_ERROR('Could not create workflow')
+    except Exception, x:
+      self.log.error( x )
+      return S_ERROR( 'Could not create workflow' )
 
-    self.log.verbose('Workflow XML file name is: %s' %fileName)
+    self.log.verbose( 'Workflow XML file name is: %s' % fileName )
 
     workflowBody = ''
-    if os.path.exists(fileName):
-      fopen = open(fileName,'r')
+    if os.path.exists( fileName ):
+      fopen = open( fileName, 'r' )
       workflowBody = fopen.read()
       fopen.close()
     else:
-      return S_ERROR('Could not get workflow body')
+      return S_ERROR( 'Could not get workflow body' )
 
-    bkConditions = self.workflow.findParameter('conditions').getValue()
+    bkConditions = self.workflow.findParameter( 'conditions' ).getValue()
 
     bkDict = {}
-    bkSteps = self.workflow.findParameter('BKProcessingPass').getValue()
-    bkDict['Steps']= bkSteps
-    bkDict['GroupDescription']=self.workflow.findParameter('groupDescription').getValue()
+    bkSteps = self.workflow.findParameter( 'BKProcessingPass' ).getValue()
+    bkDict['Steps'] = bkSteps
+    bkDict['GroupDescription'] = self.workflow.findParameter( 'groupDescription' ).getValue()
 
     # After the reorganisation by steps release this stuff can be greatly simplified
     # only the stepID, stepName and stepVisible need to be tracked.
     # In the first instance I am just demonstrating the new functionality without making
     # sweeping changes
-    bkDictStep={} 
+    bkDictStep = {}
 
     bkClient = BookkeepingClient()
     #Add the BK conditions metadata / name
     simConds = bkClient.getSimConditions()
     if not simConds['OK']:
-      self.log.error('Could not retrieve conditions data from BK:\n%s' %simConds)
+      self.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
       return simConds
     simulationDescriptions = []
     for record in simConds['Value']:
-      simulationDescriptions.append(str(record[1]))
+      simulationDescriptions.append( str( record[1] ) )
 
     realDataFlag = False
     if not bkConditions in simulationDescriptions:
-      self.log.verbose('Assuming BK conditions %s are DataTakingConditions' %bkConditions)
-      bkDict['DataTakingConditions']=bkConditions
-      bkDictStep['DataTakingConditions']=bkConditions
+      self.log.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
+      bkDict['DataTakingConditions'] = bkConditions
+      bkDictStep['DataTakingConditions'] = bkConditions
       realDataFlag = True
     else:
-      self.log.verbose('Found simulation conditions for %s' %bkConditions)
-      bkDict['SimulationConditions']=bkConditions
-      bkDictStep['SimulationConditions']=bkConditions
+      self.log.verbose( 'Found simulation conditions for %s' % bkConditions )
+      bkDict['SimulationConditions'] = bkConditions
+      bkDictStep['SimulationConditions'] = bkConditions
 
     #Adding some MC transformation parameters if present
     maxNumberOfTasks = 0
     maxEventsPerTask = 0
-    if self.workflow.findParameter('MaxNumberOfTasks'):
-      maxNumberOfTasks = self.workflow.findParameter('MaxNumberOfTasks').getValue()
-    if self.workflow.findParameter('EventsPerTask'):
-      maxEventsPerTask = self.workflow.findParameter('EventsPerTask').getValue()
+    if self.workflow.findParameter( 'MaxNumberOfTasks' ):
+      maxNumberOfTasks = self.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
+    if self.workflow.findParameter( 'EventsPerTask' ):
+      maxEventsPerTask = self.workflow.findParameter( 'EventsPerTask' ).getValue()
 
     descShort = self.workflow.getDescrShort()
     descLong = self.workflow.getDescription()
@@ -1076,56 +1095,56 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if self.jobFileGroupSize:
         groupSize = self.jobFileGroupSize
       if self.inputBKSelection:
-        bkQuery=self.inputBKSelection
+        bkQuery = self.inputBKSelection
       if self.ancestorProduction:
         derivedProduction = self.ancestorProduction
 
       #This mechanism desperately needs to be reviewed
-      result = prodClient.addTransformation(fileName,descShort,descLong,self.type,self.plugin,'Manual',fileMask,
-                                            transformationGroup=self.prodGroup,groupSize = int(groupSize),
-                                            inheritedFrom = int(derivedProduction),body = workflowBody,
-                                            maxTasks=int(maxNumberOfTasks),eventsPerTask=int(maxEventsPerTask),
-                                            bkQuery=bkQuery)
-        
+      result = prodClient.addTransformation( fileName, descShort, descLong, self.type, self.plugin, 'Manual', fileMask,
+                                            transformationGroup = self.prodGroup, groupSize = int( groupSize ),
+                                            inheritedFrom = int( derivedProduction ), body = workflowBody,
+                                            maxTasks = int( maxNumberOfTasks ), eventsPerTask = int( maxEventsPerTask ),
+                                            bkQuery = bkQuery )
+
       if not result['OK']:
-        self.log.error('Problem creating production:\n%s' %result)
+        self.log.error( 'Problem creating production:\n%s' % result )
         return result
       prodID = result['Value']
-      self.log.info('Production %s successfully created' %prodID)
+      self.log.info( 'Production %s successfully created' % prodID )
     else:
-      self.log.verbose('Publish flag is disabled, using default production ID')
+      self.log.verbose( 'Publish flag is disabled, using default production ID' )
 
-    bkDict['Production']=int(prodID)
-    bkDictStep['Production']=int(prodID)
-    
-    queryProdID=0
-    if bkQuery.has_key('ProductionID'):
-      queryProdID=int(bkQuery['ProductionID'])
-    queryProcPass=''
-    if bkQuery.has_key('ProcessingPass'):
-      if not bkQuery['ProcessingPass']=='All':
-        queryProcPass = bkQuery['ProcessingPass']      
-     
+    bkDict['Production'] = int( prodID )
+    bkDictStep['Production'] = int( prodID )
+
+    queryProdID = 0
+    if bkQuery.has_key( 'ProductionID' ):
+      queryProdID = int( bkQuery['ProductionID'] )
+    queryProcPass = ''
+    if bkQuery.has_key( 'ProcessingPass' ):
+      if not bkQuery['ProcessingPass'] == 'All':
+        queryProcPass = bkQuery['ProcessingPass']
+
     if bkQuery:
       if queryProdID:
-        inputPass = bkClient.getProductionProcessingPass(queryProdID)
+        inputPass = bkClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
-          self.log.error(inputPass)
-          self.log.error('Production %s was created but BK processsing pass for %s was not found' %(prodID,queryProdID))
+          self.log.error( inputPass )
+          self.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID, queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        self.log.info('Setting %s as BK input production for %s with processing pass %s' %(queryProdID,prodID,inputPass))
-        bkDict['InputProductionTotalProcessingPass']= inputPass
-        bkDictStep['InputProductionTotalProcessingPass']=inputPass
+        self.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID, prodID, inputPass ) )
+        bkDict['InputProductionTotalProcessingPass'] = inputPass
+        bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
-        self.log.info('Adding input BK processing pass for production %s from input data query: %s' %(prodID,queryProcPass))
-        bkDict['InputProductionTotalProcessingPass']=queryProcPass
-        bkDictStep['InputProductionTotalProcessingPass']=queryProcPass          
-          
+        self.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID, queryProcPass ) )
+        bkDict['InputProductionTotalProcessingPass'] = queryProcPass
+        bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
+
     if bkProcPassPrepend:
-      self.log.info('The following path will be prepended to the BK processing pass for this production: %s' %(bkProcPassPrepend))
-      bkDict['InputProductionTotalProcessingPass']=bkProcPassPrepend
-      bkDictStep['InputProductionTotalProcessingPass']=bkProcPassPrepend
+      self.log.info( 'The following path will be prepended to the BK processing pass for this production: %s' % ( bkProcPassPrepend ) )
+      bkDict['InputProductionTotalProcessingPass'] = bkProcPassPrepend
+      bkDictStep['InputProductionTotalProcessingPass'] = bkProcPassPrepend
 
     stepList = []
     stepKeys = bkSteps.keys()
@@ -1136,258 +1155,259 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if stepID:
         stepName = bkSteps[step]['StepName']
         stepVisible = bkSteps[step]['StepVisible']
-        stepList.append({'StepId':int(stepID),'StepName':stepName,'Visible':stepVisible})
+        stepList.append( {'StepId':int( stepID ), 'StepName':stepName, 'Visible':stepVisible} )
 
     #This is the last component necessary for the BK publishing (post reorganisation)
-    bkDictStep['Steps']=stepList
+    bkDictStep['Steps'] = stepList
 
     if bkScript:
-      self.log.verbose('Writing BK publish script...')
-      self._publishProductionToBK(bkDictStep,prodID,script=True)
+      self.log.verbose( 'Writing BK publish script...' )
+      self._publishProductionToBK( bkDictStep, prodID, script = True )
     else:
-      for n,v in bkDictStep.items():
-        self.log.verbose('%s BK parameter is: %s' %(n,v))
+      for n, v in bkDictStep.items():
+        self.log.verbose( '%s BK parameter is: %s' % ( n, v ) )
 
     if publish and not bkScript:
-      self._publishProductionToBK(bkDictStep,prodID,script=False)
+      self._publishProductionToBK( bkDictStep, prodID, script = False )
 
     if requestID and publish:
-      reqClient = RPCClient('ProductionManagement/ProductionRequest',timeout=120)
-      reqDict = {'ProductionID':long(prodID),'RequestID':requestID,'Used':reqUsed,'BkEvents':0}
-      result = reqClient.addProductionToRequest(reqDict)
+      reqClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
+      reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
+      result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.log.error('Attempt to add production %s to request %s failed, dictionary below:\n%s' %(prodID,requestID,reqDict))
+        self.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID, requestID, reqDict ) )
       else:
-        self.log.info('Successfully added production %s to request %s with Used flag set to %s' %(prodID,requestID,reqUsed))
- 
+        self.log.info( 'Successfully added production %s to request %s with Used flag set to %s' % ( prodID, requestID, reqUsed ) )
+
     if publish:
       try:
-        self._setProductionParameters(prodID,prodXMLFile=fileName,groupDescription=bkDict['GroupDescription'],
-                                      bkPassInfo=bkDict['Steps'],bkInputQuery=bkQuery,reqID=requestID,
-                                      derivedProd=derivedProduction)
-      except Exception,x:
-        self.log.error('Failed to set production parameters with exception\n%s\nThis can be done later...' %(str(x)))
- 
+        self._setProductionParameters( prodID, prodXMLFile = fileName, groupDescription = bkDict['GroupDescription'],
+                                      bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
+                                      derivedProd = derivedProduction )
+      except Exception, x:
+        self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
+
     if transformation and not bkScript:
-      if not bkQuery.has_key('FileType'):
-        return S_ERROR('BK query does not include FileType!')
+      if not bkQuery.has_key( 'FileType' ):
+        return S_ERROR( 'BK query does not include FileType!' )
       bkFileType = bkQuery['FileType']
-      result = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
-                                          prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
-                                          parentRequestID=parentRequestID)
+      result = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
+                                          prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
+                                          parentRequestID = parentRequestID )
       if not result['OK']:
-        self.log.error('Transformation creation failed with below result, can be done later...\n%s' %(result))
+        self.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
       else:
-        self.log.info('Successfully created transformation %s for production %s' %(result['Value'],prodID))
+        self.log.info( 'Successfully created transformation %s for production %s' % ( result['Value'], prodID ) )
 
       transID = result['Value']
       if transID and prodID:
-        result = self.setProdParameter(prodID,'AssociatedTransformation',transID)
+        result = self.setProdParameter( prodID, 'AssociatedTransformation', transID )
         if not result['OK']:
-          self.log.error('Could not set AssociatedTransformation parameter to %s for %s with result %s' %(transID,prodID,result))
-        
-    elif transformation:
-      if not bkQuery.has_key('FileType'):
-        return S_ERROR('BK query does not include FileType!')
-      bkFileType = bkQuery['FileType']
-      self.log.info('transformation is %s, bkScript generation is %s, writing transformation script' %(transformation,bkScript))
-      transID = self._createTransformation(prodID,bkFileType,transReplicas,reqID=requestID,realData=realDataFlag,
-                                           script=True,prodPlugin=self.plugin,groupDescription=bkDict['GroupDescription'],
-                                           parentRequestID=parentRequestID)                      
-      if not transID['OK']:
-        self.log.error('Problem writing transformation script, result was: %s' %transID)
-      else:
-        self.log.verbose('Successfully created transformation script for prod %s' %prodID)
-    else:
-      self.log.info('transformation is %s, bkScript generation is %s, will not write transformation script' %(transformation,bkScript))
+          self.log.error( 'Could not set AssociatedTransformation parameter to %s for %s with result %s' % ( transID, prodID, result ) )
 
-    return S_OK(prodID)
+    elif transformation:
+      if not bkQuery.has_key( 'FileType' ):
+        return S_ERROR( 'BK query does not include FileType!' )
+      bkFileType = bkQuery['FileType']
+      self.log.info( 'transformation is %s, bkScript generation is %s, writing transformation script' % ( transformation, bkScript ) )
+      transID = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
+                                           script = True, prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
+                                           parentRequestID = parentRequestID )
+      if not transID['OK']:
+        self.log.error( 'Problem writing transformation script, result was: %s' % transID )
+      else:
+        self.log.verbose( 'Successfully created transformation script for prod %s' % prodID )
+    else:
+      self.log.info( 'transformation is %s, bkScript generation is %s, will not write transformation script' % ( transformation, bkScript ) )
+
+    return S_OK( prodID )
 
   #############################################################################
-  def _createTransformation(self,inputProd,fileType,replicas,reqID=0,realData=True,script=False,prodPlugin='',groupDescription='',parentRequestID=0):
+  def _createTransformation( self, inputProd, fileType, replicas, reqID = 0, realData = True, script = False, prodPlugin = '', groupDescription = '', parentRequestID = 0 ):
     """ Create a transformation to distribute the output data for a given production.
     """
     #this was an attempt to control the madness of coping with streams, in practice 
     #it should be cleaned up as this method will only be used for the MC production case
-    streams=False
+    streams = False
 #    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun' or prodPlugin.lower()=='atomicrun':
-    if prodPlugin.lower() in [string.lower(i) for i in self.pluginsTriggeringStreamTypes]:
-      streams=True
-      self.log.info('Found streaming plugin, adding all possible BK file types for query')
-      fileType = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
-      self.log.verbose('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(fileType,', ')))
+    if prodPlugin.lower() in [string.lower( i ) for i in self.pluginsTriggeringStreamTypes]:
+      streams = True
+      self.log.info( 'Found streaming plugin, adding all possible BK file types for query' )
+      fileType = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
+      self.log.verbose( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( fileType, ', ' ) ) )
       tmpTypes = []
       #restrict to '.DST' file types:
       for fType in fileType:
-        if re.search('\.DST$',fType):
-          tmpTypes.append(fType)
+        if re.search( '\.DST$', fType ):
+          tmpTypes.append( fType )
       fileType = tmpTypes
-      fileType.append('DST')
-      self.log.info('Data types for replication will be: %s' %(string.join(fileType,', ')))
+      fileType.append( 'DST' )
+      self.log.info( 'Data types for replication will be: %s' % ( string.join( fileType, ', ' ) ) )
 
-    inputProd = int(inputProd)
-    replicas = int(replicas)
+    inputProd = int( inputProd )
+    replicas = int( replicas )
+    #FIXME: absolutely horrible, this should not be here at all 
     plugin = 'LHCbMCDSTBroadcast'
     if realData:
-     plugin = 'LHCbDSTBroadcast'
-    tName = '%sReplication_Prod%s' %(fileType,inputProd)
+      plugin = 'LHCbDSTBroadcast'
+    tName = '%sReplication_Prod%s' % ( fileType, inputProd )
     if streams:
-      tName = 'StreamsReplication_Prod%s' %(inputProd)
+      tName = 'StreamsReplication_Prod%s' % ( inputProd )
     if reqID:
-      tName = 'Request_%s_%s' %(reqID,tName)
+      tName = 'Request_%s_%s' % ( reqID, tName )
 
     if script:
-      transLines = ['# Transformation publishing script created on %s by' %(time.asctime())]
-      transLines.append('# by %s' %self.prodVersion)
-      transLines.append('from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation')
-      transLines.append('transformation=Transformation()')
-      transLines.append('transformation.setTransformationName("%s")' %(tName))
-      if type(fileType)==type([]):
-        transLines.append("""transformation.setBkQuery({"ProductionID":%s,"FileType":%s})""" %(inputProd,fileType))
+      transLines = ['# Transformation publishing script created on %s by' % ( time.asctime() )]
+      transLines.append( '# by %s' % self.prodVersion )
+      transLines.append( 'from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation' )
+      transLines.append( 'transformation=Transformation()' )
+      transLines.append( 'transformation.setTransformationName("%s")' % ( tName ) )
+      if type( fileType ) == type( [] ):
+        transLines.append( """transformation.setBkQuery({"ProductionID":%s,"FileType":%s})""" % ( inputProd, fileType ) )
       else:
-        transLines.append('transformation.setBkQuery({"ProductionID":%s,"FileType":"%s"})' %(inputProd,fileType))
-      transLines.append('transformation.setDescription("Replication of transformation %s output data")' %(inputProd))
-      transLines.append('transformation.setLongDescription("This transformation is to replicate the output data from transformation %s according to the computing model")' %(inputProd))
-      transLines.append('transformation.setType("Replication")')
-      transLines.append('transformation.setPlugin("%s")' %plugin)
+        transLines.append( 'transformation.setBkQuery({"ProductionID":%s,"FileType":"%s"})' % ( inputProd, fileType ) )
+      transLines.append( 'transformation.setDescription("Replication of transformation %s output data")' % ( inputProd ) )
+      transLines.append( 'transformation.setLongDescription("This transformation is to replicate the output data from transformation %s according to the computing model")' % ( inputProd ) )
+      transLines.append( 'transformation.setType("Replication")' )
+      transLines.append( 'transformation.setPlugin("%s")' % plugin )
       if replicas > 1:
-        transLines.append('transformation.setDestinations(%s)' %replicas)
-      transLines.append('transformation.addTransformation()')
-      transLines.append('transformation.setStatus("Active")')
-      transLines.append('transformation.setAgentType("Automatic")')
-      transLines.append('transformation.setTransformationGroup("%s")' %(groupDescription))
-      transLines.append('print transformation.getTransformationID()')
-      if os.path.exists('%s.py' %tName):
-        shutil.move('%s.py' %tName,'%s.py.backup' %tName)
-      fopen = open('%s.py' %tName,'w')
-      fopen.write(string.join(transLines,'\n')+'\n')
+        transLines.append( 'transformation.setDestinations(%s)' % replicas )
+      transLines.append( 'transformation.addTransformation()' )
+      transLines.append( 'transformation.setStatus("Active")' )
+      transLines.append( 'transformation.setAgentType("Automatic")' )
+      transLines.append( 'transformation.setTransformationGroup("%s")' % ( groupDescription ) )
+      transLines.append( 'print transformation.getTransformationID()' )
+      if os.path.exists( '%s.py' % tName ):
+        shutil.move( '%s.py' % tName, '%s.py.backup' % tName )
+      fopen = open( '%s.py' % tName, 'w' )
+      fopen.write( string.join( transLines, '\n' ) + '\n' )
       fopen.close()
       return S_OK()
 
     transformation = Transformation()
-    transformation.setTransformationName(tName)
-    transformation.setBkQuery({'ProductionID':inputProd,'FileType':fileType})
-    transformation.setDescription('Replication of transformation %s output data' % inputProd)
-    transformation.setLongDescription('This transformation is to replicate the output data from transformation %s according to the computing model' %(inputProd))
-    transformation.setType('Replication')
-    transformation.setPlugin(plugin)
+    transformation.setTransformationName( tName )
+    transformation.setBkQuery( {'ProductionID':inputProd, 'FileType':fileType} )
+    transformation.setDescription( 'Replication of transformation %s output data' % inputProd )
+    transformation.setLongDescription( 'This transformation is to replicate the output data from transformation %s according to the computing model' % ( inputProd ) )
+    transformation.setType( 'Replication' )
+    transformation.setPlugin( plugin )
     if replicas > 1:
-     transformation.setDestinations(replicas)
-    transformation.setTransformationGroup(groupDescription)     
+      transformation.setDestinations( replicas )
+    transformation.setTransformationGroup( groupDescription )
     transformation.addTransformation()
-    transformation.setStatus('Active')
-    transformation.setAgentType('Automatic')
+    transformation.setStatus( 'Active' )
+    transformation.setAgentType( 'Automatic' )
     transResult = transformation.getTransformationID()
     if not transResult['OK']:
       return transResult
 
     transID = transResult['Value']
     if parentRequestID:
-      result = self.setProdParameter(transID,'TransformationFamily',parentRequestID)
+      result = self.setProdParameter( transID, 'TransformationFamily', parentRequestID )
       if not result['OK']:
-        self.log.error('Could not set TransformationFamily parameter to %s for %s with result %s' %(parentRequestID,transID,result))        
-    
+        self.log.error( 'Could not set TransformationFamily parameter to %s for %s with result %s' % ( parentRequestID, transID, result ) )
+
     # Since other prods also have this parameter defined.
-    result = self.setProdParameter(transID,'groupDescription',groupDescription)       
+    result = self.setProdParameter( transID, 'groupDescription', groupDescription )
     if not result['OK']:
-      self.log.error('Could no set groupDescription parameter with result %s' %(result['Message']))
+      self.log.error( 'Could no set groupDescription parameter with result %s' % ( result['Message'] ) )
 
     # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
     infoString = []
-    infoString.append('Replication transformation %s was created for %s\nWith plugin %s' %(transID,groupDescription,plugin))
-    infoString.append('\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' %(inputProd,fileType))
-    infoString = string.join(infoString,'\n')
-    result = self.setProdParameter(transID,'DetailedInfo',infoString)
+    infoString.append( 'Replication transformation %s was created for %s\nWith plugin %s' % ( transID, groupDescription, plugin ) )
+    infoString.append( '\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' % ( inputProd, fileType ) )
+    infoString = string.join( infoString, '\n' )
+    result = self.setProdParameter( transID, 'DetailedInfo', infoString )
     if not result['OK']:
-      self.log.error('Could not set Transformation DetailedInfo parameter for %s with result %s' %(transID,result))        
+      self.log.error( 'Could not set Transformation DetailedInfo parameter for %s with result %s' % ( transID, result ) )
 
     return transResult
 
   #############################################################################
-  def _publishProductionToBK(self,bkDict,prodID,script=False):
+  def _publishProductionToBK( self, bkDict, prodID, script = False ):
     """Publishes the production to the BK or writes a script to do so.
     """
     if script:
-      bkName = 'insertBKPass%s.py' %(prodID)
-      if os.path.exists(bkName):
-        shutil.move(bkName,'%s.backup' %bkName)
-      fopen = open(bkName,'w')
-      bkLines = ['# Bookkeeping publishing script created on %s by' %(time.asctime())]
-      bkLines.append('# by %s' %self.prodVersion)
-      bkLines.append('from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient')
-      bkLines.append('bkClient = BookkeepingClient()')
-      bkLines.append('bkDict = %s' %bkDict)
-      bkLines.append('print bkClient.addProduction(bkDict)')
-      fopen.write(string.join(bkLines,'\n')+'\n')
+      bkName = 'insertBKPass%s.py' % ( prodID )
+      if os.path.exists( bkName ):
+        shutil.move( bkName, '%s.backup' % bkName )
+      fopen = open( bkName, 'w' )
+      bkLines = ['# Bookkeeping publishing script created on %s by' % ( time.asctime() )]
+      bkLines.append( '# by %s' % self.prodVersion )
+      bkLines.append( 'from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient' )
+      bkLines.append( 'bkClient = BookkeepingClient()' )
+      bkLines.append( 'bkDict = %s' % bkDict )
+      bkLines.append( 'print bkClient.addProduction(bkDict)' )
+      fopen.write( string.join( bkLines, '\n' ) + '\n' )
       fopen.close()
-      return S_OK(bkName)
-    self.log.verbose('Attempting to publish production %s to the BK' %(prodID))
-    result = BookkeepingClient().addProduction(bkDict)
+      return S_OK( bkName )
+    self.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
+    result = BookkeepingClient().addProduction( bkDict )
     if not result['OK']:
-      self.log.error(result)
+      self.log.error( result )
     return result
 
   #############################################################################
-  def getOutputLFNs(self,prodID=None,prodJobID=None,inputDataLFN=None,prodXMLFile=''):
+  def getOutputLFNs( self, prodID = None, prodJobID = None, inputDataLFN = None, prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
     if not prodXMLFile:
-      self.log.verbose('Using workflow object to generate XML file')
-      prodXMLFile=self.createWorkflow()
+      self.log.verbose( 'Using workflow object to generate XML file' )
+      prodXMLFile = self.createWorkflow()
     if not prodID:
       prodID = self.defaultProdID
     if not prodJobID:
       prodJobID = self.defaultProdJobID
 
-    job = LHCbJob(prodXMLFile)  
-    result = preSubmissionLFNs(job._getParameters(),job.createCode(),
-                               productionID=prodID,jobID=prodJobID,inputData=inputDataLFN)
+    job = LHCbJob( prodXMLFile )
+    result = preSubmissionLFNs( job._getParameters(), job.createCode(),
+                               productionID = prodID, jobID = prodJobID, inputData = inputDataLFN )
     if not result['OK']:
       return result
     lfns = result['Value']
-    self.log.verbose(lfns)
+    self.log.verbose( lfns )
     return result
 
   #############################################################################
-  def setProdParameter(self,prodID,pname,pvalue):
+  def setProdParameter( self, prodID, pname, pvalue ):
     """Set a production parameter.
     """
-    if type(pvalue)==type([]):
-      pvalue=string.join(pvalue,'\n')
+    if type( pvalue ) == type( [] ):
+      pvalue = string.join( pvalue, '\n' )
 
     prodClient = TransformationClient()
-    if type(pvalue)==type(2):
-      pvalue = str(pvalue)
-    result = prodClient.setTransformationParameter(int(prodID),str(pname),str(pvalue))
+    if type( pvalue ) == type( 2 ):
+      pvalue = str( pvalue )
+    result = prodClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
     if not result['OK']:
-      self.log.error('Problem setting parameter %s for production %s and value: %s' %(pname,prodID,pvalue))
+      self.log.error( 'Problem setting parameter %s for production %s and value: %s' % ( pname, prodID, pvalue ) )
     return result
 
   #############################################################################
-  def getParameters(self,prodID,pname='',printOutput=False):
+  def getParameters( self, prodID, pname = '', printOutput = False ):
     """Get a production parameter or all of them if no parameter name specified.
     """
     prodClient = TransformationClient()
-    result = prodClient.getTransformation(int(prodID),True)
+    result = prodClient.getTransformation( int( prodID ), True )
     if not result['OK']:
-      self.log.error(result)
-      return S_ERROR('Could not retrieve parameters for production %s' %prodID)
+      self.log.error( result )
+      return S_ERROR( 'Could not retrieve parameters for production %s' % prodID )
 
     if not result['Value']:
-      self.log.info(result)
-      return S_ERROR('No additional parameters available for production %s' %prodID)
+      self.log.info( result )
+      return S_ERROR( 'No additional parameters available for production %s' % prodID )
 
     if pname:
-      if result['Value'].has_key(pname):
-        return S_OK(result['Value'][pname])
+      if result['Value'].has_key( pname ):
+        return S_OK( result['Value'][pname] )
       else:
-        self.log.verbose(result)
-        return S_ERROR('Production %s does not have parameter %s' %(prodID,pname))
+        self.log.verbose( result )
+        return S_ERROR( 'Production %s does not have parameter %s' % ( prodID, pname ) )
 
     if printOutput:
-      for n,v in result['Value'].items():
-        if not n.lower()=='body':
-          print '='*len(n),'\n',n,'\n','='*len(n)
+      for n, v in result['Value'].items():
+        if not n.lower() == 'body':
+          print '=' * len( n ), '\n', n, '\n', '='*len( n )
           print v
         else:
           print '*Omitted Body from printout*'
@@ -1395,163 +1415,163 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return result
 
   #############################################################################
-  def setAlignmentDBLFN(self,lfn):
+  def setAlignmentDBLFN( self, lfn ):
     """ Set the input LFN to be used for the alignment conditions database'
     """
-    if not re.search("LFN:",lfn):
+    if not re.search( "LFN:", lfn ):
       lfn = "LFN:%s" % lfn
-    self.log.info('Setting alignment DB LFN to %s' %lfn)
-    self._setParameter('InputSandbox','JDL',lfn,'AlignmentDB')
+    self.log.info( 'Setting alignment DB LFN to %s' % lfn )
+    self._setParameter( 'InputSandbox', 'JDL', lfn, 'AlignmentDB' )
 
   #############################################################################
-  def setWorkflowLib(self,tag):
+  def setWorkflowLib( self, tag ):
     """Set workflow lib version for the production.
     """
     if not tag:
-      tag = gConfig.getValue('%s/WorkflowLibVersion' %(self.csSection),'v9r9')
-      self.log.verbose('Setting workflow library tag to %s' %tag)
+      tag = gConfig.getValue( '%s/WorkflowLibVersion' % ( self.csSection ), 'v9r9' )
+      self.log.verbose( 'Setting workflow library tag to %s' % tag )
 
-    lfn = 'LFN:/lhcb/applications/WorkflowLib-wkf-TAG.tar.gz'.replace('TAG',tag)
-    self.log.info('Setting workflow library LFN to %s' %lfn)
-    self._setParameter('InputSandbox','JDL',lfn,'WorkflowLibVersion')
+    lfn = 'LFN:/lhcb/applications/WorkflowLib-wkf-TAG.tar.gz'.replace( 'TAG', tag )
+    self.log.info( 'Setting workflow library LFN to %s' % lfn )
+    self._setParameter( 'InputSandbox', 'JDL', lfn, 'WorkflowLibVersion' )
 
   #############################################################################
-  def setFileMask(self,fileMask):
+  def setFileMask( self, fileMask ):
     """Output data related parameters.
     """
-    if type(fileMask)==type([]):
-      fileMask = string.join(fileMask,';')
-    self._setParameter('outputDataFileMask','string',fileMask,'outputDataFileMask')
+    if type( fileMask ) == type( [] ):
+      fileMask = string.join( fileMask, ';' )
+    self._setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
   #############################################################################
-  def setWorkflowName(self,name):
+  def setWorkflowName( self, name ):
     """Set workflow name.
     """
-    self.workflow.setName(name)
+    self.workflow.setName( name )
     self.name = name
 
   #############################################################################
-  def setWorkflowDescription(self,desc):
+  def setWorkflowDescription( self, desc ):
     """Set workflow name.
     """
-    self.workflow.setDescription(desc)
+    self.workflow.setDescription( desc )
 
   #############################################################################
-  def setProdType(self,prodType):
+  def setProdType( self, prodType ):
     """Set prod type.
     """
     if not prodType in self.prodTypes:
-      raise TypeError,'Prod must be one of %s' %(string.join(self.prodTypes,', '))
-    self.setType(prodType)
+      raise TypeError, 'Prod must be one of %s' % ( string.join( self.prodTypes, ', ' ) )
+    self.setType( prodType )
 
   #############################################################################
-  def banTier1s(self):
+  def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
-    self.setBannedSites(self.tier1s)
+    self.setBannedSites( self.tier1s )
 
   #############################################################################
-  def setTargetSite(self,site):
+  def setTargetSite( self, site ):
     """ Sets destination for all jobs.
     """
-    self.setDestination(site)
+    self.setDestination( site )
 
   #############################################################################
-  def setOutputMode(self,outputMode):
+  def setOutputMode( self, outputMode ):
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
-    if not outputMode.lower().capitalize() in ('Local','Any'):
-      raise TypeError,'Output mode must be Local or Any'
-    self._setParameter('outputMode','string',outputMode.lower().capitalize(),'SEResolutionPolicy')
+    if not outputMode.lower().capitalize() in ( 'Local', 'Any' ):
+      raise TypeError, 'Output mode must be Local or Any'
+    self._setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
 
   #############################################################################
-  def setBKParameters(self,configName,configVersion,groupDescription,conditions):
+  def setBKParameters( self, configName, configVersion, groupDescription, conditions ):
     """ Sets BK parameters for production.
     """
-    self._setParameter('configName','string',configName,'ConfigName')
-    self._setParameter('configVersion','string',configVersion,'ConfigVersion')
-    self._setParameter('groupDescription','string',groupDescription,'GroupDescription')
-    self._setParameter('conditions','string',conditions,'SimOrDataTakingCondsString')
-    self._setParameter('simDescription','string',conditions,'SimDescription')
+    self._setParameter( 'configName', 'string', configName, 'ConfigName' )
+    self._setParameter( 'configVersion', 'string', configVersion, 'ConfigVersion' )
+    self._setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
+    self._setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
+    self._setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
 
   #############################################################################
-  def setDBTags(self,conditions='sim-20090112',detector='head-20090112'):
+  def setDBTags( self, conditions = 'sim-20090112', detector = 'head-20090112' ):
     """ Sets destination for all jobs.
     """
-    self._setParameter('CondDBTag','string',conditions.replace(' ',''),'CondDBTag')
-    self._setParameter('DDDBTag','string',detector.replace(' ',''),'DetDescTag')
+    self._setParameter( 'CondDBTag', 'string', conditions.replace( ' ', '' ), 'CondDBTag' )
+    self._setParameter( 'DDDBTag', 'string', detector.replace( ' ', '' ), 'DetDescTag' )
 
   #############################################################################
-  def setParentRequest(self,parentID):
+  def setParentRequest( self, parentID ):
     """ Sets the parent request ID for a production.
     """
-    self._setParameter('TransformationFamily','string',str(parentID).replace(' ',''),'ParentRequestID')
+    self._setParameter( 'TransformationFamily', 'string', str( parentID ).replace( ' ', '' ), 'ParentRequestID' )
 
   #############################################################################
-  def setProdPriority(self,priority):
+  def setProdPriority( self, priority ):
     """ Sets destination for all jobs.
     """
-    self._setParameter('Priority','JDL',str(priority),'UserPriority')
+    self._setParameter( 'Priority', 'JDL', str( priority ), 'UserPriority' )
 
   #############################################################################
-  def setProdGroup(self,group):
+  def setProdGroup( self, group ):
     """ Sets a user defined tag for the production as appears on the monitoring page
     """
     self.prodGroup = group
-    self._setParameter('ProcessingType','JDL',str(group),'ProductionGroupOrType')
+    self._setParameter( 'ProcessingType', 'JDL', str( group ), 'ProductionGroupOrType' )
 
   #############################################################################
-  def setProdPlugin(self,plugin):
+  def setProdPlugin( self, plugin ):
     """ Sets the plugin to be used to creating the production jobs
     """
     self.plugin = plugin
 
   #############################################################################
-  def setInputFileMask(self,fileMask):
+  def setInputFileMask( self, fileMask ):
     """ Sets the input data selection when using file mask.
     """
     self.inputFileMask = fileMask
 
   #############################################################################
-  def setInputBKSelection(self,bkQuery):
+  def setInputBKSelection( self, bkQuery ):
     """ Sets the input data selection when using the bookkeeping.
     """
     self.inputBKSelection = bkQuery
 
   #############################################################################
-  def setJobFileGroupSize(self,files):
+  def setJobFileGroupSize( self, files ):
     """ Sets the number of files to be input to each job created.
     """
     self.jobFileGroupSize = files
 
   #############################################################################
-  def setAncestorProduction(self,prod):
+  def setAncestorProduction( self, prod ):
     """ Sets the original production from which this is to be derived
     """
     self.ancestorProduction = prod
 
   #############################################################################
-  def setWorkflowString(self, wfString):
+  def setWorkflowString( self, wfString ):
     """ Uses the supplied string to create the workflow
     """
-    self.workflow = fromXMLString(wfString)
+    self.workflow = fromXMLString( wfString )
     self.name = self.workflow.getName()
 
   #############################################################################
-  def disableCPUCheck(self):
+  def disableCPUCheck( self ):
     """ Uses the supplied string to create the workflow
     """
-    self._setParameter('DisableCPUCheck','JDL','True','DisableWatchdogCPUCheck')
+    self._setParameter( 'DisableCPUCheck', 'JDL', 'True', 'DisableWatchdogCPUCheck' )
 
   #############################################################################  
-  def setSimulationEvents(self,eventsTotal,eventsPerTask):
+  def setSimulationEvents( self, eventsTotal, eventsPerTask ):
     """ In order to set the EventsPerTask and MaxNumberOfTasks parameters for 
         MC simulation productions.
     """
-    if int(eventsTotal) and int(eventsPerTask):
-      self._setParameter('EventsPerTask','string',str(eventsPerTask),'EventsPerTask')
+    if int( eventsTotal ) and int( eventsPerTask ):
+      self._setParameter( 'EventsPerTask', 'string', str( eventsPerTask ), 'EventsPerTask' )
       #Add a 10% buffer
-      maxJobs = int(1.1*int(eventsTotal)/int(eventsPerTask))
-      self._setParameter('MaxNumberOfTasks','string',str(maxJobs),'MaxNumberOfTasks')
+      maxJobs = int( 1.1 * int( eventsTotal ) / int( eventsPerTask ) )
+      self._setParameter( 'MaxNumberOfTasks', 'string', str( maxJobs ), 'MaxNumberOfTasks' )
     else:
-      self.log.warn('Either EventsTotal "%s" or EventsPerTask "%s" were set to null' %(eventsTotal,eventsPerTask))
+      self.log.warn( 'Either EventsTotal "%s" or EventsPerTask "%s" were set to null' % ( eventsTotal, eventsPerTask ) )
