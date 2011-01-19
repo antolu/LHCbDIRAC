@@ -145,6 +145,7 @@ class SoftwareInstallation(ModuleBaseSAM):
         newSharedArea = sharedArea.replace('cern.ch','.cern.ch')
         self.writeToLog('Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' %(sharedArea,newSharedArea))
         sharedArea = newSharedArea
+        os.environ['VO_LHCB_SW_DIR'] = os.environ['VO_LHCB_SW_DIR'].replace('cern.ch','.cern.ch')
 
     if DIRAC.siteName() in ['LCG.IN2P3.fr','LCG.IN2P3-T2.fr']:
       self.log.info('Changing shared area path to writeable volume at IN2P3')
@@ -152,6 +153,7 @@ class SoftwareInstallation(ModuleBaseSAM):
         newSharedArea = sharedArea.replace('in2p3.fr','.in2p3.fr')
         self.writeToLog('Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s' %(sharedArea,newSharedArea))
         sharedArea = newSharedArea
+        os.environ['VO_LHCB_SW_DIR'] = os.environ['VO_LHCB_SW_DIR'].replace('in2p3.fr','.in2p3.fr')
 
     # Purge shared area if requested.
     if self.purgeSharedArea:
