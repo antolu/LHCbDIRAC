@@ -223,4 +223,4 @@ class UserStoragePlotter( BaseReporter ):
             finalData[ k ] = {}
           finalData[ k ][ bt ] = dataDict[ k ][ bt ] / bucketTotals[ bt ]
     return S_OK( { 'data' : finalData, 'graphDataDict' : finalData,
-                   'granularity' : granularity, 'unit' : 'replicas' } )
+                   'granularity' : granularity, 'unit' : 'PFN / LFN' } )
