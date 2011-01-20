@@ -11,7 +11,7 @@ class UserStoragePlotter( BaseReporter ):
 
   ###
 
-  _reportCatalogSpaceName = "Catalog registered space usage"
+  _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -37,7 +37,7 @@ class UserStoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'Space registered as seen by the catalog by %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'LFN space usage by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -47,7 +47,7 @@ class UserStoragePlotter( BaseReporter ):
 
   ###
 
-  _reportCatalogFilesName = "Catalog registered files"
+  _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -73,7 +73,7 @@ class UserStoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'Files registered as seen by the catalog by %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'Number of LFNs by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -83,7 +83,7 @@ class UserStoragePlotter( BaseReporter ):
 
   ###
 
-  _reportPhysicalSpaceName = "Physical registered space usage"
+  _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -107,7 +107,7 @@ class UserStoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'PFN Space registered as seen by the catalog by %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'PFN space usage by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -117,7 +117,7 @@ class UserStoragePlotter( BaseReporter ):
 
   ###
 
-  _reportPhysicalFilesName = "Physical registered files"
+  _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -141,7 +141,7 @@ class UserStoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'PFN files registered as seen by the catalog by %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'Number of PFNs by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -151,14 +151,14 @@ class UserStoragePlotter( BaseReporter ):
 
   ###
 
-  _reportPFNvsLFNFileMultiplicityName = "Replica multiplicity"
+  _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalFiles", "PhysicalFiles" )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'PFN/LFN files %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'Ratio of PFN/LFN files by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -166,14 +166,14 @@ class UserStoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( plotInfo[ 'granularity' ], reportRequest[ 'startTime' ], reportRequest[ 'endTime' ], plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-  _reportPFNvsLFNSizeMultiplicityName = "Size multiplicity"
+  _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalSize", "PhysicalSize" )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : 'PFN/LFN size  %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'Ratio of PFN/LFN space used by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
