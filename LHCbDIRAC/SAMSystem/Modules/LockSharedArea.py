@@ -140,7 +140,7 @@ class LockSharedArea(ModuleBaseSAM):
     # if yes then return Error
       if os.path.exists(os.path.join(sharedArea,'etc','cernvmfs')):
         self.log.info('Software shared area for site %s is using CERNVMFS' %(DIRAC.siteName()))
-        return self.finalize('Could not install (CERNVMFS) for site %s:' %(DIRAC.siteName()),'Read-Only volume','error')
+        return self.finalize('Could not install (CERNVMFS) for site %s:' %(DIRAC.siteName()),'Read-Only volume','warning')
 
 
     #nasty fix but only way to resolve writeable volume at CERN
