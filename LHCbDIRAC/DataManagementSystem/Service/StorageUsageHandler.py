@@ -137,6 +137,12 @@ class StorageUsageHandler( RequestHandler ):
     """
     return storageUsageDB.getUserStorageUsage( userName )
 
+  types_getUserSummaryPerSE = []
+  def export_getUserSummaryPerSE( self, userName = False ):
+    """ Retieve a summary of the user usage per SE
+    """
+    return storageUsageDB.getUserSummaryPerSE( userName )
+
   ####
   # Catalog
   ####
