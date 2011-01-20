@@ -76,9 +76,9 @@ class TransformationManagerHandler(TransformationManagerHandlerBase):
     res = database.getTransformationRunStats(transIDs)
     return self._parseRes(res)
                           
-  types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
-  def export_getTransformationRunsSummaryWeb(self,selectDict,sortList,startItem,maxItems):
-    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],timeStamp='LastUpdate',statusColumn='Status')  
+#  types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
+#  def export_getTransformationRunsSummaryWeb(self,selectDict,sortList,startItem,maxItems):
+#    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],timeStamp='LastUpdate',statusColumn='Status')  
 
   types_addTransformationRunFiles = [[LongType, IntType, StringType], [LongType, IntType],ListType]
   def export_addTransformationRunFiles(self,transName,runID,lfns):
