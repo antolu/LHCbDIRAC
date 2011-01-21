@@ -130,7 +130,7 @@ class CombinedSoftwareInstallation:
       if not result:
         DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area', '%s_%s' % ( app ) )
         if re.search( ':', self.mySiteRoot ):
-          result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
+          result = InstallApplication( app, self.jobConfig, self.localArea )
           if not result:
             DIRAC.gLogger.error( 'Software failed to be installed!' )
             return DIRAC.S_ERROR( 'Software Not Installed' )
