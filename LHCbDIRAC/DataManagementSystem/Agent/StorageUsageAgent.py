@@ -153,14 +153,20 @@ class StorageUsageAgent( AgentModule ):
     # Loop over all the directories and sub-directories
     totalIterTime = 0.0
     numIterations = 0.0
+    iterMaxDirs = 100
     while self.__dirExplorer.isActive():
       startT = time.time()
-      self.__exploreDir( self.__dirExplorer.getNextDir() )
+      d2E = []
+      for i in range( iterMaxDirs ):
+        if not self.__dirExplorer.isActive():
+          break
+        d2E.append( self.__dirExplorer.getNextDir() )
+      self.__exploreDirList( d2E )
       iterTime = time.time() - startT
       totalIterTime += iterTime
-      numIterations += 1
-      gLogger.verbose( "Query took %.2f seconds" % iterTime )
-    gLogger.verbose( "Average iteration time: %2.f seconds" % ( totalIterTime / numIterations ) )
+      numIterations += len( d2E )
+      gLogger.verbose( "Query took %.2f seconds for %s dirs" % ( iterTime, len( d2E ) ) )
+    gLogger.verbose( "Average query time: %2.f secs/dir" % ( totalIterTime / numIterations ) )
 
     #Publish remaining directories
     self.__publishData( background = False )
@@ -183,19 +189,24 @@ class StorageUsageAgent( AgentModule ):
 
     return S_OK()
 
-  def __exploreDir( self, dirPath ):
-    gLogger.notice( "Exploring %s" % dirPath )
+  def __exploreDirList( self, dirList ):
+    gLogger.notice( "Retrieving info for %s dirs" % len( dirList ) )
 
-    res = self.catalog.getCatalogDirectorySize( dirPath )
+    res = self.catalog.getCatalogDirectorySize( dirList )
     if not res['OK']:
-      gLogger.error( "Completely failed to get usage.", "%s %s" % ( dirPath, res['Message'] ) )
+      gLogger.error( "Completely failed to get usage.", "%s %s" % ( dirList, res['Message'] ) )
       return
 
-    if dirPath in res['Value']['Failed']:
-      gLogger.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
-      return
+    for dirPath in dirList:
+      if dirPath in res['Value']['Failed']:
+        gLogger.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
+        continue
+      self.__processDir( dirPath, res['Value']['Successful'][dirPath] )
 
-    directoryMetadata = res['Value']['Successful'][dirPath]
+
+  def __processDir( self, dirPath, directoryMetadata ):
+    gLogger.notice( "Processing %s" % dirPath )
+
     subDirs = directoryMetadata['SubDirs']
     closedDirs = directoryMetadata['ClosedDirs']
 
