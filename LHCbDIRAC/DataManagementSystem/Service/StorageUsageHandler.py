@@ -160,8 +160,8 @@ class StorageUsageHandler( RequestHandler ):
   ####
 
   types_purgeOutdatedEntries = [ StringType, ( IntType, LongType ) ]
-  def export_purgeOutdatedEntries( self, rootDir, outdatedSeconds ):
+  def export_purgeOutdatedEntries( self, rootDir, outdatedSeconds, preserveDirsList = [] ):
     """ Purge entries that haven't been updated in the last outdated seconds
     """
-    return storageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds )
+    return storageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList )
 

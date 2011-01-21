@@ -172,7 +172,7 @@ class StorageUsageDB( DB ):
   # Clean outdated entries
   ################
 
-  def purgeOutdatedEntries( self, rootDir = False, outdatedSeconds = 86400 ):
+  def purgeOutdatedEntries( self, rootDir = False, outdatedSeconds = 86400, preserveDirsList = [] ):
     try:
       outdatedSeconds = max( 1, long( outdatedSeconds ) )
     except ValueError:
@@ -188,6 +188,12 @@ class StorageUsageDB( DB ):
       sqlTables.append( "`su_Directory` as d" )
       sqlCond.append( "d.Path LIKE '%s/%%'" % rootDir )
       sqlCond.append( "d.DID = su.DID" )
+    if preserveDirsList:
+      for ignoreDir in preserveDirsList:
+        ignoreDir = self._escapeString( ignoreDir )[ 'Value' ][1:-1]
+        while ignoreDir[-1] == "/":
+          ignoreDir = ignoreDir[:-1]
+        sqlCond.append( "d.Path NOT LIKE '%s/%%'" % ignoreDir )
     sqlCmd = "SELECT DISTINCT su.DID FROM %s WHERE %s LIMIT %d" % ( ", ".join( sqlTables ), " AND ".join( sqlCond ), sqlLimit )
     cleaned = 0
     while True:

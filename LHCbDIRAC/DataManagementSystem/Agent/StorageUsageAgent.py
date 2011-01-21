@@ -140,6 +140,7 @@ class StorageUsageAgent( AgentModule ):
     self.__dirsToPublish = {}
     self.__baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
     self.__baseDirLabel = "_".join( List.fromChar( self.__baseDir, "/" ) )
+    self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
 
     self.__startExecutionTime = long( time.time() )
     self.__dirExplorer = DirectoryExplorer( reverse = True )
@@ -173,7 +174,9 @@ class StorageUsageAgent( AgentModule ):
     if self.am_getOption( "PurgeOutdatedRecords", True ):
       elapsedTime = time.time() - self.__startExecutionTime
       outdatedSeconds = max( max( self.am_getOption( "PollingTime" ), elapsedTime ) * 2, 86400 )
-      result = self.__storageUsage.purgeOutdatedEntries( self.__baseDir, long( outdatedSeconds ) )
+      result = self.__storageUsage.purgeOutdatedEntries( self.__baseDir,
+                                                         long( outdatedSeconds ),
+                                                         self.__ignoreDirsList )
       if not result[ 'OK' ]:
         return result
       self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
@@ -230,7 +233,7 @@ class StorageUsageAgent( AgentModule ):
     chosenDirs = []
     rightNow = dateTime()
     for subDir in subDirs:
-      if subDir in self.am_getOption( 'Ignore', [] ):
+      if subDir in self.__ignoreDirsList:
         continue
       if self.__activePeriod:
         timeDiff = timeInterval( subDirs[subDir], self.__activePeriod * week )
