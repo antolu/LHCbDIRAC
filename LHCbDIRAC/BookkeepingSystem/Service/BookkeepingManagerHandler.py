@@ -1436,4 +1436,9 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getRunNumber( self, lfns ):
     return dataMGMT_.getRunNumber( lfns )
 
+  #############################################################################
+  types_getRunQuality = [StringType, StringType]
+  def export_getRunQuality(self, procpass, flag):
+    return dataMGMT_.getRunQuality(procpass, flag)
+  
 #-----------------------------------END Event Types------------------------------------------------------------------

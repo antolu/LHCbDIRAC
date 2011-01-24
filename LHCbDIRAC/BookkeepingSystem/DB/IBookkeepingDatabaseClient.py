@@ -607,6 +607,11 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().setFilesInvisible( lfns )
 
   #############################################################################
+  def getRunQuality(self, procpass, flag):
+    return self.getManager().getRunQuality(procpass, flag)
+  
+
+  #############################################################################
   '''
     MONITORING
   '''

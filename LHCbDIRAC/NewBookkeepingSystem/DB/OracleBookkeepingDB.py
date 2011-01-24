@@ -2163,7 +2163,21 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getRunFlag(self, runnb, processing):
      return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId', LongType, [runnb, processing])
-   
+  
+  #############################################################################
+  def getRunQuality(self, procpass, flag='ALL'):
+    retVal = self._getProcessingPassId(procpass.split('/')[1:][0], procpass)
+    if retVal['OK']:
+      processingid = retVal['Value']
+      id = None
+      if flag != 'ALL':
+        retVal = self._getDataQualityId(flag)
+        if retVal['OK']:
+          id = retVal['Value']
+        else:
+          return retVal
+    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getRunByQflagAndProcId', LongType, [processingid, id])     
+  
   #############################################################################
   def setFilesInvisible(self, lfns):
     for i in lfns:

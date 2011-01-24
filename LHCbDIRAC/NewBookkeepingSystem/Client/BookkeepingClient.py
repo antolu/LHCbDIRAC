@@ -652,3 +652,10 @@ class BookkeepingClient:
   def getProductionOutputFiles(self, dict):
     server = self.__getServer()
     return server.getProductionOutputFiles(dict)
+  
+  #############################################################################
+  def getRunQuality(self, procpass, flag='ALL'):
+    server = self.__getServer()
+    return server.getRunQuality(procpass, flag)
+  
+    

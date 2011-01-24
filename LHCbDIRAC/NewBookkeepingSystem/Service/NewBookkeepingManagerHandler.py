@@ -1390,3 +1390,7 @@ class NewBookkeepingManagerHandler(RequestHandler):
     else:
       return S_ERROR('The Production dictionary key is missing!!!')
   
+  #############################################################################
+  types_getRunQuality = [StringType, StringType]
+  def export_getRunQuality(self, procpass, flag='ALL'):
+    return dataMGMT_.getRunQuality(procpass, flag)

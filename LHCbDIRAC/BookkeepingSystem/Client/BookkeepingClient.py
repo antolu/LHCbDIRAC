@@ -911,4 +911,10 @@ class BookkeepingClient:
   def getDataQualityForRuns(self, runs):
     server = self.__getServer()
     return server.getDataQualityForRuns(runs)
+  
+  #############################################################################
+  def getRunQuality(self, procpass, flag):
+    server = self.__getServer()
+    return server.getRunQuality(procpass, flag)
+  
    #----------------------------------- END Event Types------------------------------------------------------------------

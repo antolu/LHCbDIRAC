@@ -454,3 +454,8 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def existsTag(self, name, value):
     return self.getManager().existsTag(name, value)
+  
+  #############################################################################
+  def getRunQuality(self, procpass, flag):
+    return self.getManager().getRunQuality(procpass, flag)
+    

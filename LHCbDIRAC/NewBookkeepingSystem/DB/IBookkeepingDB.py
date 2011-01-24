@@ -459,3 +459,7 @@ class IBookkeepingDB(object):
    #############################################################################
   def existsTag(self, name, value):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def getRunQuality(self, procpass, flag):
+    gLogger.error('This method is not implemented!')

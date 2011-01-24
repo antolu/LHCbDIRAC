@@ -4200,6 +4200,32 @@ and files.qualityid= dataquality.qualityid'
       if not res['OK']:
         return S_ERROR(res['Message'])
     return S_OK('The files are invisible!')
-    
   
-      
+  #############################################################################
+  def getRunQuality(self, procpass, flag='ALL'):
+    totalproc = ''
+    descriptions = procpass.split('+')
+    for desc in descriptions:
+      result = self.getGroupId(desc.strip())
+      if not result['OK']:
+        return S_ERROR(result['Message'])
+      elif len(result['Value']) == 0:
+        return S_ERROR('Data Taking Conditions or Simulation Condition missing in the DB!')
+      val = result['Value'][0][0]
+      totalproc += str(val)+"<"
+    totalproc = totalproc[:-1]
+    cond = ''
+    if flag != 'ALL':
+      cond += " and QualityId='%s'"%(flag)
+    
+    command = "select runnumber from runquality where procpass='%s' %s"%(totalproc,cond)
+    retVal = self.dbR_._query(command)
+    if retVal["OK"]:
+      value = retVal['Value']
+      if len(value) == 0:
+        return S_ERROR('The run is not flagged!')
+      else:
+        return S_OK(value[0][0])
+    else:
+      return S_ERROR(retVal['Message'])
+  
