@@ -374,6 +374,10 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
+  def setFilesVisible(self, lfns):
+    gLogger.error('This method is not implemented!')
+  
+  #############################################################################
   def getTotalProcessingPass(self, prod):
     gLogger.error('This method is not implemented!')
   

@@ -2187,6 +2187,14 @@ and files.qualityid= dataquality.qualityid'
     return S_OK('The files are invisible!')
     
   #############################################################################
+  def setFilesVisible(self, lfns):
+    for i in lfns:
+      res = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.setFileVisible', [i], False)
+      if not res['OK']:
+        return S_ERROR(res['Message'])
+    return S_OK('The files are visible!')
+  
+  #############################################################################
   def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag='Yes'):
     
     configid = None

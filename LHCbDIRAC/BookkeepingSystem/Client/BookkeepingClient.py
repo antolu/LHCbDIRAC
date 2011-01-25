@@ -903,6 +903,16 @@ class BookkeepingClient:
     return result
   
   #############################################################################
+  def setFilesVisible(self, lfns):
+    server = self.__getServer()
+    result = None
+    if type(lfns) == types.StringType:
+      result = server.setFilesVisible([lfns])
+    else:
+      result = server.setFilesVisible(lfns)
+    return result
+  
+  #############################################################################
   def getProductiosWithAGivenRunAndProcessing(self, dict):
     server = self.__getServer()
     return server.getProductiosWithAGivenRunAndProcessing(dict)

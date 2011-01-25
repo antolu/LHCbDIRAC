@@ -1073,6 +1073,11 @@ class NewBookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.setFilesInvisible(lfns)
   
   #############################################################################
+  types_setFilesVisible = [ListType]
+  def export_setFilesVisible(self, lfns):
+    return dataMGMT_.setFilesVisible(lfns)
+  
+  #############################################################################
   types_getRunFlag = [LongType, LongType]
   def export_getRunFlag(self, runnb, processing):
     return dataMGMT_.getRunFlag(runnb, processing)

@@ -368,6 +368,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().setFilesInvisible(lfns)
   
   #############################################################################
+  def setFilesVisible(self, lfns):
+    return self.getManager().setFilesVisible(lfns)
+  
+  #############################################################################
   def getTotalProcessingPass(self, prod):
     return self.getManager().getTotalProcessingPass(prod)
   

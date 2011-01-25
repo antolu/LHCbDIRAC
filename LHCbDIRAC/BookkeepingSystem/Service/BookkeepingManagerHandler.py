@@ -1082,7 +1082,13 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_setFilesInvisible = [ListType]
   def export_setFilesInvisible( self, lfns ):
     return dataMGMT_.setFilesInvisible( lfns )
-
+  
+  #############################################################################
+  types_setFilesVisible = [ListType]
+  def export_setFilesVisible( self, lfns ):
+    return dataMGMT_.setFilesVisible( lfns )
+  
+  
   #############################################################################
 
   '''
