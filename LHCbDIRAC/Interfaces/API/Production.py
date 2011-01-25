@@ -998,7 +998,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def create( self, publish = True, fileMask = '', bkQuery = {}, groupSize = 1, derivedProduction = 0,
                   bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
-                  transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0 ):
+                  transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0, transformationPlugin = '' ):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -1183,7 +1183,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       try:
         self._setProductionParameters( prodID, prodXMLFile = fileName, groupDescription = bkDict['GroupDescription'],
                                       bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
-                                      derivedProd = derivedProduction )
+                                      derivedProd = derivedProduction, transformationPlugin = transformationPlugin )
       except Exception, x:
         self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
 
@@ -1193,7 +1193,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       bkFileType = bkQuery['FileType']
       result = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
                                           prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
-                                          parentRequestID = parentRequestID )
+                                          parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
       if not result['OK']:
         self.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
       else:
@@ -1212,7 +1212,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self.log.info( 'transformation is %s, bkScript generation is %s, writing transformation script' % ( transformation, bkScript ) )
       transID = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
                                            script = True, prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
-                                           parentRequestID = parentRequestID )
+                                           parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
       if not transID['OK']:
         self.log.error( 'Problem writing transformation script, result was: %s' % transID )
       else:
@@ -1223,7 +1223,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK( prodID )
 
   #############################################################################
-  def _createTransformation( self, inputProd, fileType, replicas, reqID = 0, realData = True, script = False, prodPlugin = '', groupDescription = '', parentRequestID = 0 ):
+  def _createTransformation( self, inputProd, fileType, replicas, reqID = 0, realData = True,
+                             script = False, prodPlugin = '', groupDescription = '',
+                             parentRequestID = 0, transformationPlugin = '' ):
     """ Create a transformation to distribute the output data for a given production.
     """
     #this was an attempt to control the madness of coping with streams, in practice 
@@ -1246,10 +1248,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     inputProd = int( inputProd )
     replicas = int( replicas )
-    #FIXME: absolutely horrible, this should not be here at all 
-    plugin = 'LHCbMCDSTBroadcast'
-    if realData:
-      plugin = 'LHCbDSTBroadcast'
+
+    if transformationPlugin:
+      plugin = transformationPlugin
+    else:
+      if realData:
+        plugin = 'LHCbDSTBroadcast'
+      else:
+        plugin = 'LHCbMCDSTBroadcast'
+
     tName = '%sReplication_Prod%s' % ( fileType, inputProd )
     if streams:
       tName = 'StreamsReplication_Prod%s' % ( inputProd )
