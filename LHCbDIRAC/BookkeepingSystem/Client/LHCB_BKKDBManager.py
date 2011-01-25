@@ -1908,7 +1908,7 @@ class LHCB_BKKDBManager(BaseESManager):
       fileType = fileType.split(".")[1]
     except:
       pass
-    poolTypes = ["DST", "RDST", "DIGI", "SIM", "XDST"]
+    poolTypes = ["DST", "RDST", "DIGI", "SIM", "XDST", "MDST"]
     mdfTypes = ["RAW", "MDF"]
     etcTypes = ["SETC", "FETC", "ETC"]
     #lfns = [file['FileName'] for file in files]
