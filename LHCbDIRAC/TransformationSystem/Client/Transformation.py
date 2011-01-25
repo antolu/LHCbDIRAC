@@ -9,7 +9,7 @@ import string, os, shutil, types, pprint
 from DIRAC                                                                import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation                     import Transformation as DIRACTransformation
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient 
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 
 COMPONENT_NAME='Transformation'
 
@@ -19,12 +19,12 @@ class Transformation(DIRACTransformation):
   def __init__(self,transID=0):
     DIRACTransformation.__init__(self,transID=transID,transClient=TransformationClient())
 
-    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbDSTBroadcast','RAWShares','AtomicRun'] 
+    self.supportedPlugins += ['ByRun','ByRunBySize','ByRunCCRC_RAW','CCRC_RAW','LHCbMCDSTBroadcast','LHCbMCDSTBroadcastRandom','LHCbDSTBroadcast','RAWShares','AtomicRun']
     if not  self.paramValues.has_key('BkQuery'):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key('BkQueryID'):
       self.paramValues['BkQueryID'] = 0
-    
+
   def generateBkQuery(self,test=False,printOutput=False):
     parameters = ['SimulationConditions','DataTakingConditions','ProcessingPass','FileType','EventType','ConfigName','ConfigVersion','ProductionID','DataQualityFlag']
     queryDict = {'FileType':'DST'}
@@ -52,7 +52,7 @@ class Transformation(DIRACTransformation):
     gLogger.info('The supplied query returned %d files' % len(res['Value']))
     if printOutput:
       self._prettyPrint(res)
-    return S_OK(res['Value'])  
+    return S_OK(res['Value'])
 
   def setBkQuery(self,queryDict,test=False):
     if test:
@@ -79,7 +79,7 @@ class Transformation(DIRACTransformation):
     self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = res['Value']
     return S_OK(res['Value'])
-    
+
   def deleteTransformationBkQuery(self):
     if not self.paramValues['BkQueryID']:
       gLogger.info("The BK Query is not defined")
@@ -109,7 +109,7 @@ class Transformation(DIRACTransformation):
       res = self.setBkQuery(bkQuery)
       if not res['OK']:
         return self._errorReport(res,'Failed BK query sanity check')
-    
+
     res = self.transClient.addTransformation(self.paramValues['TransformationName'],
                                              self.paramValues['Description'],
                                              self.paramValues['LongDescription'],
@@ -169,5 +169,8 @@ class Transformation(DIRACTransformation):
   def _checkLHCbMCDSTBroadcastPlugin(self):
     return S_OK()
 
-  def _checkLHCbDSTBroadcastPlugin(self):            
-    return S_OK()                            
+  def _checkLHCbDSTBroadcastPlugin(self):
+    return S_OK()
+
+  def _checkLHCbDSTBroadcastRandomPlugin(self):
+    return S_OK()
