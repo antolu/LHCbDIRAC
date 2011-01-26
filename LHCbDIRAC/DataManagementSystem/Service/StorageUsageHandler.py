@@ -143,6 +143,18 @@ class StorageUsageHandler( RequestHandler ):
     """
     return storageUsageDB.getUserSummaryPerSE( userName )
 
+  types_getIDs = []
+  def export_getIDs( self, dirList ):
+    """ Check if the directories exist in the su_Directory table and if yes returns the IDs 
+    """
+    return storageUsageDB.getIDs( dirList )
+
+  types_getAllReplicasInFC = []
+  def export_getAllReplicasInFC(self, path ):
+    """ Export the DB method to query the su_seUsage table to get all the entries relative to a given path registered 
+    in the FC. Returns for every replica the SE, the update, the files and the size  """
+    return storageUsageDB.getAllReplicasInFC( path )
+  
   ####
   # Catalog
   ####
