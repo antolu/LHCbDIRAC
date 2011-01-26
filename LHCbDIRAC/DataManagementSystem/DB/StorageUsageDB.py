@@ -48,7 +48,27 @@ class StorageUsageDB( DB ):
                                        'PrimaryKey' : [ 'DID', 'SEName' ],
                                        'Indexes': { 'SE': [ 'SEName' ] },
                                      }
-
+    
+    self.__tablesDesc[ 'se_Usage' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'SEName' : 'VARCHAR(32) NOT NULL',
+                                                       'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'Updated' : 'DATETIME NOT NULL'
+                                                   },
+                                        'PrimaryKey' : [ 'DID', 'SEName' ],
+                                        }
+    
+    self.__tablesDesc[ 'se_DarkDirectories' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+                                                       'Path' : 'VARCHAR(255) NOT NULL',
+                                                       'SEName' : 'VARCHAR(32) NOT NULL',
+                                                       'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'Updated' : 'DATETIME NOT NULL'
+                                                   },
+                                        'PrimaryKey' : [ 'DID'],
+                                        }
+    
+          
     for tableName in self.__tablesDesc:
       if not tableName in tablesInDB:
         tablesToCreate[ tableName ] = self.__tablesDesc[ tableName ]
@@ -60,7 +80,9 @@ class StorageUsageDB( DB ):
   ################
 
   def publishDirectories( self, directoryDict ):
-    """ Inserts a group of directoires with their usage """
+    """ Inserts a group of directories with their usage """
+    self.log.info( "in publishDirectories: directoryDict is: \n %s" % ( directoryDict ) )
+
     if not directoryDict:
       return S_OK()
     result = self.__getIDs( directoryDict )
@@ -93,6 +115,9 @@ class StorageUsageDB( DB ):
       if not result[ 'OK' ]:
         return result
     return S_OK()
+
+  def getIDs( self, dirList ):
+    return self.__getIDs( dirList )
 
   def __getIDs( self, dirList ):
     dl = []
@@ -318,6 +343,41 @@ class StorageUsageDB( DB ):
       userData[ userName ][ seName ] = { 'Size' : long( row[2] ), 'Files' : long( row[3] ) }
     return S_OK( userData )
 
+  def __getAllReplicasInFC(self, path ):
+    ''' Queries the su_seUsage table to get all the entries relative to a given path registered in the FC. Returns
+     for every replica the SE, the update, the files and the total size '''
+    sqlCmd = "SELECT DID FROM su_Directory where Path like '%s%%'" % (path)
+    result = self._query( sqlCmd )
+    if not result['OK']:
+      return result
+    if not result['Value']: # no replica found 
+      return S_OK(result)
+    
+    for row in result['Value']:
+      did = row[ 0 ]
+      # warning! this has to be corrected! there is no need to make a loop! the query should return only one row
+      # add a check for that. And return an error if it return more than one row
+       
+    sqlCmd = "SELECT Files, Updated, SEName, Size FROM su_SEUsage WHERE DID=%s" % (did)
+    result = self._query( sqlCmd )
+    if not result['OK']:
+      return result
+    replicasData = {}
+    replicasData[ path ] = {}
+    for row in result['Value']:
+      SEName = row[ 2 ]
+      if SEName in replicasData[ path ].keys():
+        return S_ERROR( "there cannot be two replicas on the same SE!")
+      replicasData[ path ][ SEName ] = {}
+      replicasData[ path ][ SEName ][ 'Files' ] = row[0]
+      replicasData[ path ][ SEName ][ 'Updated' ] = row[1]
+      replicasData[ path ][ SEName ][ 'Size' ] = row[3]
+      
+    return S_OK( replicasData )  
+  
+  def getAllReplicasInFC(self, path ):
+    return self.__getAllReplicasInFC( path )
+  
   ######
   # Catalog queries
   ######
