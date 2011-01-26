@@ -172,5 +172,5 @@ class Transformation(DIRACTransformation):
   def _checkLHCbDSTBroadcastPlugin(self):
     return S_OK()
 
-  def _checkLHCbDSTBroadcastRandomPlugin(self):
+  def _checkLHCbMCDSTBroadcastRandomPlugin(self):
     return S_OK()
