@@ -116,6 +116,92 @@ class StorageUsageDB( DB ):
         return result
     return S_OK()
 
+  ####
+  # Insert/update to se_DarkDirectories
+  ####
+  def publishToDarkDir(self, directoryDict ):
+    """ Publish an entry into the dark data directory """
+    for path in directoryDict.keys():
+      SeName = directoryDict[ path ][ 'SEName']
+      files = directoryDict[ path ][ 'Files' ]
+      size = directoryDict[ path ][ 'Size']
+      update = directoryDict[ path ][ 'Updated']
+    # check if the tuple (path,SE) already exists in the table
+      sqlPath = self._escapeString( path )['Value']
+      sqlSeName = self._escapeString( SeName )['Value']
+      sqlUpdate = self._escapeString( update )['Value']
+      sqlCmd = "SELECT DID FROM se_DarkDirectories WHERE Path=%s and SEName=%s" % (sqlPath, sqlSeName)
+      self.log.info("sqlCmd: %s" %sqlCmd)
+      result = self._query( sqlCmd )
+      if not result[ 'OK' ]:
+        self.log.error("Failed to query se_DarkDirectories")
+        return result
+      DID = result['Value']
+      if DID:
+        # there is an entry for (path, SEname), make an update of the row
+        sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=%s WHERE Path = %s and SEName = %s" % (files, size, sqlUpdate, sqlPath, sqlSeName)
+        self.log.info("sqlCmd: %s" %sqlCmd)
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          self.log.error( "Cannot update row (%s, %s) in se_DarkDirectories" %(path, SeName))
+          return result
+      else:
+        # entry is not there, make an insert of a new row
+        sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, %s)" % (sqlPath, sqlSeName, files, size, sqlUpdate)
+        self.log.info("sqlCmd: %s" %sqlCmd)
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          self.log.error( "Cannot insert row (%s, %s) in se_DarkDirectories" %(path, SeName))
+          return result
+    return S_OK()
+  ###
+  # Insert/Update to se_Usage table
+  ### 
+  def publishToSEReplicas(self , directoryDict ):
+    """ Publish an entry to se_Usage table """
+    for path in directoryDict.keys():
+      SeName = directoryDict[ path ][ 'SEName']
+      files = directoryDict[ path ][ 'Files' ]
+      size = directoryDict[ path ][ 'Size']
+      update = directoryDict[ path ][ 'Updated']
+      # check if the tuple (path,SE) already exists in the table
+      sqlPath = self._escapeString( path )['Value']
+      sqlSeName = self._escapeString( SeName )['Value']
+      sqlUpdate = self._escapeString( update )['Value']
+      sqlCmd = "SELECT d.DID FROM su_Directory as d, se_Usage as u where d.DID=u.DID and d.Path=%s and u.SEName=%s" % (sqlPath, sqlSeName)
+      self.log.debug("sqlCmd: %s" %sqlCmd)
+      result = self._query( sqlCmd )
+      if not result[ 'OK' ]:
+        self.log.error("Failed to query se_Usage")
+        return result
+      val = result[ 'Value' ]
+      if val:
+        for row in val:
+          DID = row[ 0 ] # WARNING: not sure this is the correct way to retrieve result of a query (check whether there is a standard way how to unpack the tuple)
+        # there is an entry for (path, SEname), make an update of the row
+        sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=%s WHERE DID=%d AND SEName=%s" % (files, size, sqlUpdate, DID, sqlSeName)
+        self.log.info("sqlCmd: %s" %sqlCmd)
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          self.log.error( "Cannot update row (%s, %s) in se_Usage" %(path, SeName))
+          return result
+      else:
+        # entry is not there, make an insert of a new row
+        # get the DID corresponding to this Path, from su_Directory table:
+        result = self.__getIDs(directoryDict )
+        if not result[ 'OK' ]:
+          self.log.error( "Cannot getIds for directory %s" %(path))
+          return result
+        for dir in result[ 'Value' ].keys():
+          DID = result[ 'Value' ][ dir ]
+        sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, %s)" % (DID, sqlSeName, files, size, sqlUpdate)
+        self.log.info("sqlCmd: %s" %sqlCmd)
+        result = self._update( sqlCmd )
+        if not result[ 'OK' ]:
+          self.log.error( "Cannot insert row (%s, %s) in se_Usage" %(path, SeName))
+          return result
+    return S_OK()   
+    
   def getIDs( self, dirList ):
     return self.__getIDs( dirList )
 
