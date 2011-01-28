@@ -177,3 +177,18 @@ class StorageUsageHandler( RequestHandler ):
     """
     return storageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList )
 
+  ###
+  # methods to deal with DarkData directory: se_DarkDirectories
+  ###
+  types_publishToDarkDir = []
+  def export_publishToDarkDir(self, directoryDict ):
+    """ Export the publishToDarkDir DB method, which inserts/updates row into the  se_DarkDirectories """
+    return storageUsageDB.publishToDarkDir( directoryDict )
+  ###
+  # methods to deal with se_Usage table
+  ###
+  types_publishToSEReplicas = []
+  def export_publishToSEReplicas(self, directoryDict ):
+    """ Export the publishToSEReplicas DB method, which inserts/updates replicas on the SE to the se_Usage table """
+    return storageUsageDB.publishToSEReplicas( directoryDict )
+  
