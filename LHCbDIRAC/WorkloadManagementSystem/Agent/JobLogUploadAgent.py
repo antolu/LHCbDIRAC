@@ -1,12 +1,10 @@
 ########################################################################
 # $HeadURL$
 ########################################################################
-
-__RCSID__ = "$Id$"
-
 """  JobLogUploadAgent uploads log and other auxilliary files of the given job
      to the long term lo storage
 """
+__RCSID__ = "$Id$"
 
 from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                              import AgentModule
@@ -141,8 +139,9 @@ class JobLogUploadAgent( AgentModule, RequestAgentMixIn ):
     sandboxClient = SandboxStoreClient()
     result = sandboxClient.downloadSandboxForJob( jobID, 'Output', workDir )
     if not result['OK']:
-      shutil.rmtree( workDir )
-      return result
+      if result['Message'].find( 'No Output sandbox registered for job' ) == -1:
+        shutil.rmtree( workDir )
+        return result
     if os.path.exists( workDir + '/std.out' ):
       os.rename( workDir + '/std.out', workDir + '/jobstd.out' )
     if os.path.exists( workDir + '/std.err' ):
