@@ -32,7 +32,7 @@
      
 """
 
-__RCSID__ = "$Id: MC_Simulation_run.py 23248 2010-03-18 07:57:40Z paterson $"
+__RCSID__ = "$Id: $"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
@@ -68,7 +68,7 @@ configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#DST}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#slc4_ia32_gcc34}}'
 
 events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
@@ -139,9 +139,9 @@ if not publishFlag:
 
 #In case we want just to test, we publish in the certification/test part of the BKK
 if testFlag:
-  outBkConfigName = 'certification'
-  outBkConfigVersion = 'test'
-  events = '10'
+  configName = 'certification'
+  configVersion = 'test'
+  events = '5'
 
 #The below is in order to choose the right steps in the workflow automatically
 #e.g. each number of steps maps to a unique number
@@ -428,28 +428,29 @@ if sixSteps:
 #                  nor Gauss + Merging for sim or gen. Exiting...' )
 #    DIRAC.exit( 2 )
 #
-#if oneStep and not decided:
-#  prodDescription = 'Assuming one step workflow of Gauss only without merging'
-#  gaussAppType = finalAppType
-#  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-#                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-#                          outputSE = defaultOutputSE, appType = gaussAppType,
-#                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-#  mergingFlag = False
-#  decided = True
-#
-## Finally, in case none of the above were eligible.
-#if not decided:
-#  gLogger.error( 'None of the understood application configurations were understood by this template. Exiting...' )
-#  DIRAC.exit( 2 )
 
+if oneStep and not decided:
+  prodDescription = 'Assuming one step workflow of Gauss only without merging'
+  gaussAppType = finalAppType
+  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
+                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
+                          outputSE = defaultOutputSE, appType = gaussAppType,
+                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
+  mergingFlag = False
+  decided = True
+
+
+# Finally, in case none of the above were eligible.
+if not decided:
+  gLogger.error( 'None of the understood application configurations were understood by this template. Exiting...' )
+  DIRAC.exit( 2 )
 
 
 prodDescription = '%s for BK %s %s event type %s with %s events per job and final\
                    application file type %s.' % ( prodDescription, configName, configVersion, evtType, events, finalAppType )
 gLogger.info( prodDescription )
 production.setWorkflowDescription( prodDescription )
-production.addFinalizationStep()
+production.addFinalizationStep( outputDataStep = outputDataStep )
 production.setCPUTime( cpu )
 production.setProdGroup( '{{pDsc}}' )
 production.setProdPriority( priority )
