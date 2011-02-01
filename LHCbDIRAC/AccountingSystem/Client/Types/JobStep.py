@@ -13,7 +13,6 @@ class JobStep( BaseAccountingType ):
                                 ( 'EventType', 'VARCHAR(32)' ),
                                 ( 'ProcessingType', 'VARCHAR(32)' ),
                                 ( 'ProcessingStep', 'VARCHAR(32)' ),
-                                ( 'ProcessingPass', 'VARCHAR(64)' ),
                                 ( 'Site', 'VARCHAR(32)' ),
                                 ( 'FinalStepState', 'VARCHAR(32)' )
                                 ]
