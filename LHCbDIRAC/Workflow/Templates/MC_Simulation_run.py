@@ -32,7 +32,7 @@
      
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id: $"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
@@ -66,7 +66,7 @@ configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#2010}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
-outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#DST}}'
+outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#slc4_ia32_gcc34}}'
 
@@ -74,7 +74,7 @@ events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
 priority = '{{MCPriority#PROD-MC: Production priority#4}}'
 extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
-finalAppType = '{{MCFinalAppType#PROD-MC: final file type to produce and merge e.g. DST,XDST,GEN,SIM...#DST}}'
+finalAppType = '{{MCFinalAppType#PROD-MC: final file type to produce and merge e.g. DST,XDST,GEN,SIM...#ALLSTREAMS.DST}}'
 
 mergingFlag = '{{MergingEnable#PROD-Merging: enable flag Boolean True/False#True}}' #True/False
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
@@ -231,7 +231,7 @@ if sixSteps:
                           condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
                           stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
   brunelOpts = '{{p4Opt}}'
-  production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
+  production.addBrunelStep( '{{p4Ver}}', 'dst', brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
                            outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
                            stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
   daVinciOpts = '{{p5Opt}}'
@@ -247,8 +247,8 @@ if sixSteps:
   mergingStepVisible = '{{p6Vis}}'
   decided = True
 
-  outputDataStep = '5'
-  finalAppType = 'ALLSTREAMS.DST'
+#  outputDataStep = '5'
+#  finalAppType = 'ALLSTREAMS.DST'
 
 
 
@@ -450,7 +450,8 @@ prodDescription = '%s for BK %s %s event type %s with %s events per job and fina
                    application file type %s.' % ( prodDescription, configName, configVersion, evtType, events, finalAppType )
 gLogger.info( prodDescription )
 production.setWorkflowDescription( prodDescription )
-production.addFinalizationStep( outputDataStep = outputDataStep )
+#production.addFinalizationStep( outputDataStep = outputDataStep )
+production.addFinalizationStep()
 production.setCPUTime( cpu )
 production.setProdGroup( '{{pDsc}}' )
 production.setProdPriority( priority )
