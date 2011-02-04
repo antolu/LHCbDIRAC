@@ -123,10 +123,15 @@ class StorageUsageDB( DB ):
     """ Publish an entry into the dark data directory """
     for path in directoryDict.keys():
       SeName = directoryDict[ path ][ 'SEName']
-      files = directoryDict[ path ][ 'Files' ]
-      size = directoryDict[ path ][ 'Size']
+      try:
+        files = int( directoryDict[ path ][ 'Files' ] )
+        size = int( directoryDict[ path ][ 'Size'] )
+      except  ValueError:
+        return S_ERROR("ERROR: Files and Size have to be integer!") 
       update = directoryDict[ path ][ 'Updated']
     # check if the tuple (path,SE) already exists in the table
+      if path[-1] != "/":
+        path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
       sqlSeName = self._escapeString( SeName )['Value']
       sqlUpdate = self._escapeString( update )['Value']
@@ -161,10 +166,15 @@ class StorageUsageDB( DB ):
     """ Publish an entry to se_Usage table """
     for path in directoryDict.keys():
       SeName = directoryDict[ path ][ 'SEName']
-      files = directoryDict[ path ][ 'Files' ]
-      size = directoryDict[ path ][ 'Size']
+      try:
+        files = int( directoryDict[ path ][ 'Files' ] )
+        size = int( directoryDict[ path ][ 'Size'] )
+      except ValueError:
+        return S_ERROR("ERROR: Files and Size have to be integer!")  
       update = directoryDict[ path ][ 'Updated']
       # check if the tuple (path,SE) already exists in the table
+      if path[-1] != "/":
+        path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
       sqlSeName = self._escapeString( SeName )['Value']
       sqlUpdate = self._escapeString( update )['Value']
@@ -174,10 +184,13 @@ class StorageUsageDB( DB ):
       if not result[ 'OK' ]:
         self.log.error("Failed to query se_Usage")
         return result
-      val = result[ 'Value' ]
-      if val:
-        for row in val:
-          DID = row[ 0 ] # WARNING: not sure this is the correct way to retrieve result of a query (check whether there is a standard way how to unpack the tuple)
+      sqlRes = result['Value']
+      if sqlRes:
+        DID = sqlRes[0][0]
+      #val = result[ 'Value' ]
+      #if val:
+       # for row in val:
+        #  DID = row[ 0 ] # WARNING: not sure this is the correct way to retrieve result of a query (check whether there is a standard way how to unpack the tuple)
         # there is an entry for (path, SEname), make an update of the row
         sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=%s WHERE DID=%d AND SEName=%s" % (files, size, sqlUpdate, DID, sqlSeName)
         self.log.info("sqlCmd: %s" %sqlCmd)
@@ -432,6 +445,8 @@ class StorageUsageDB( DB ):
   def __getAllReplicasInFC(self, path ):
     ''' Queries the su_seUsage table to get all the entries relative to a given path registered in the FC. Returns
      for every replica the SE, the update, the files and the total size '''
+    if path[-1] != "/":
+      path = "%s/" % path  
     sqlCmd = "SELECT DID FROM su_Directory where Path like '%s%%'" % (path)
     result = self._query( sqlCmd )
     if not result['OK']:
@@ -453,7 +468,7 @@ class StorageUsageDB( DB ):
     for row in result['Value']:
       SEName = row[ 2 ]
       if SEName in replicasData[ path ].keys():
-        return S_ERROR( "there cannot be two replicas on the same SE!")
+        return S_ERROR( "There cannot be two replicas on the same SE!")
       replicasData[ path ][ SEName ] = {}
       replicasData[ path ][ SEName ][ 'Files' ] = row[0]
       replicasData[ path ][ SEName ][ 'Updated' ] = row[1]
