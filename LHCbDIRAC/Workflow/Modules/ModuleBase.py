@@ -18,7 +18,7 @@ from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Core.Utilities.Adler import fileAdler
 from DIRAC.TransformationSystem.Client.FileReport import FileReport
 import DIRAC
-import os, string
+import os, string, copy
 
 class ModuleBase( object ):
 
@@ -158,7 +158,7 @@ class ModuleBase( object ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
         
         outputList has the following structure:
-          [ ('outputDataType':'','outputDataSE':'','outputDataName':'') , (...) ] 
+          [ {'outputDataType':'','outputDataSE':'','outputDataName':''} , {...} ] 
           
         outputLFNs is the list of output LFNs for the job
         
@@ -184,49 +184,95 @@ class ModuleBase( object ):
         fileInfo[os.path.basename( lfn )]['lfn'] = lfn
         self.log.verbose( 'Found LFN %s for file %s' % ( lfn, os.path.basename( lfn ) ) )
 
-    #Check that the list of output files were produced
-    for fileName, metadata in fileInfo.items():
-      if not os.path.exists( fileName ):
-        self.log.error( 'Output data file %s does not exist locally' % fileName )
-        return S_ERROR( 'Output Data Not Found' )
+    # check local existance
+    try:
+      self._checkLocalExistance( fileInfo.keys() )
+    except OSError:
+      return S_ERROR( 'Output Data Not Found' )
 
     #Select which files have to be uploaded: in principle all
-    candidateFiles = fileInfo
+    candidateFiles = self._applyMask( fileInfo, fileMask, stepMask )
+
+    #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
+    try:
+      self._checkSanity( candidateFiles )
+    except ValueError:
+      return S_ERROR( 'Missing requested fileName keys' )
+
+    return S_OK( candidateFiles )
+
+  #############################################################################
+
+  def _checkLocalExistance( self, fileList ):
+    """ Check that the list of output files are present locally
+    """
+
+    notPresentFiles = []
+
+    for fileName in fileList:
+      if not os.path.exists( fileName ):
+        notPresentFiles.append( fileName )
+
+    if notPresentFiles:
+      self.log.error( 'Output data file list %s does not exist locally' % notPresentFiles )
+      raise os.error
+
+  #############################################################################
+
+  def _applyMask( self, candidateFilesIn, fileMask, stepMask ):
+    """ Select which files have to be uploaded: in principle all
+    """
+    candidateFiles = copy.deepcopy( candidateFilesIn )
+
+    if type( fileMask ) != type( [] ):
+      fileMask = [fileMask]
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if ( ( metadata['type'].lower() not in fileMask ) and ( fileName.split( '.' )[-1] not in fileMask ) ):
+        if ( ( metadata['type'].lower() not in fileMask ) ):#and ( fileName.split( '.' )[-1] not in fileMask ) ):
           del( candidateFiles[fileName] )
-          self.log.info( 'Output file %s was produced but will not be treated (outputDataFileMask is %s)' % ( fileName, string.join( self.outputDataFileMask, ', ' ) ) )
+          self.log.info( 'Output file %s was produced but will not be treated (fileMask is %s)' % ( fileName, string.join( fileMask, ', ' ) ) )
     else:
       self.log.info( 'No outputDataFileMask provided, the files with all the extensions will be considered' )
 
     if stepMask:
       for fileName, metadata in candidateFiles.items():
-        #FIXME: quite horrible. Should be better to pass the step number into outputList
         if fileName.split( '_' )[-1].split( '.' )[0] not in stepMask:
           del( candidateFiles[fileName] )
-          self.log.info( 'Output file %s was produced but will not be treated (outputDataStep is %s)' % ( fileName, string.join( self.outputDataStep, ', ' ) ) )
+          self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName, string.join( stepMask, ', ' ) ) )
     else:
       self.log.info( 'No outputDataStep provided, the files output of all the steps will be considered' )
 
-    #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
+    return candidateFiles
+
+  #############################################################################
+
+  def _checkSanity( self, candidateFiles ):
+    """ Sanity check all final candidate metadata keys are present
+    """
+
+    notPresentKeys = []
+
     mandatoryKeys = ['type', 'workflowSE', 'lfn'] #filedict is used for requests
     for fileName, metadata in candidateFiles.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
-          return S_ERROR( 'File %s has missing %s' % ( fileName, key ) )
+          notPresentKeys.append( ( fileName, key ) )
 
-    return S_OK( candidateFiles )
+    if notPresentKeys:
+      for fileName_keys in notPresentKeys:
+        self.log.error( 'File %s has missing %s' % ( fileName_keys[0], fileName_keys[1] ) )
+      raise ValueError
 
   #############################################################################
+
   def getFileMetadata( self, candidateFiles ):
-    """Returns the candidate file dictionary with associated metadata.
+    """ Returns the candidate file dictionary with associated metadata.
     
-       The input candidate files dictionary has the structure:
-       {'lfn':'','type':'','workflowSE':''}
+        The input candidate files dictionary has the structure:
+        {'lfn':'','type':'','workflowSE':''}
        
-       this also assumes the files are in the current working directory.
+        this also assumes the files are in the current working directory.
     """
     #Retrieve the POOL File GUID(s) for any final output files
     self.log.info( 'Will search for POOL GUIDs for: %s' % ( string.join( candidateFiles.keys(), ', ' ) ) )
