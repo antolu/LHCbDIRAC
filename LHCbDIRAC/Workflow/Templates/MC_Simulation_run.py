@@ -63,7 +63,7 @@ publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production 
 testFlag = '{{TemplateTest#GENERAL: Testing flag, e.g. for certification True/False#False}}'
 
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
-configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#2010}}'
+configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
@@ -142,6 +142,7 @@ if testFlag:
   configName = 'certification'
   configVersion = 'test'
   events = '5'
+  mergingGroupSize = '1'
 
 #The below is in order to choose the right steps in the workflow automatically
 #e.g. each number of steps maps to a unique number
