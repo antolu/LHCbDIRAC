@@ -141,7 +141,8 @@ class UploadOutputData( ModuleBase ):
     #Determine the final list of possible output files for the
     #workflow and all the parameters needed to upload them.
     self.log.verbose( 'Getting the list of candidate files' )
-    result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs, self.outputDataFileMask )
+    result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
+                                     self.outputDataFileMask, self.outputDataStep )
     if not result['OK']:
       self.setApplicationStatus( result['Message'] )
       return result

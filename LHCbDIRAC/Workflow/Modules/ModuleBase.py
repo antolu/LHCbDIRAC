@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Modules/ModuleBase.py $
 ########################################################################
 
 """ ModuleBase - base class for LHCb workflow modules. Defines several

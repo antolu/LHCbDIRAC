@@ -1,8 +1,8 @@
 ########################################################################
-# $Id: ProtocolAccessTest.py 22010 2010-02-22 16:31:05Z paterson $
+# $Id$
 ########################################################################
 
-__RCSID__ = "$Id: ProtocolAccessTest.py 22010 2010-02-22 16:31:05Z paterson $"
+__RCSID__ = "$Id$"
 
 """ The Protocol Access Test module opens connections to the supplied files for the supplied protocols.
     It measures the times taken to open, close and read events from the files.

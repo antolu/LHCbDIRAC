@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ErrorLogging.py 19442 2009-12-10 14:31:27Z paterson $
+# $Id$
 ########################################################################
 """ The ErrorLogging module is used to perform error analysis using AppConfig
     utilities. This occurs at the end of each workflow step such that the
@@ -9,7 +9,7 @@
     error suite any failures will not be propagated to the workflow.
 """
 
-__RCSID__ = "$Id: ErrorLogging.py 19442 2009-12-10 14:31:27Z paterson $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
