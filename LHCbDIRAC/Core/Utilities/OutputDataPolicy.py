@@ -2,7 +2,7 @@
 
     DIRAC assumes an execute() method will exist during usage.
 """
-__RCSID__ = "$Id: OutputDataPolicy.py 19570 2010-01-07 08:42:02Z joel $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC                                          import gLogger

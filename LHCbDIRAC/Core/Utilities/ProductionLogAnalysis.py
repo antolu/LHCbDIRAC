@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionLogAnalysis.py 24215 2010-04-19 11:21:11Z paterson $
+# $Id$
 ########################################################################
 """ Production log analysis is a utility to simplify the maintenance of log file
     analysis.  The primary client of this is AnalyseLogFile but the aim
@@ -10,7 +10,7 @@
     standalone utility this makes future development a lot easier. 
 """
 
-__RCSID__ = "$Id: ProductionLogAnalysis.py 24215 2010-04-19 11:21:11Z paterson $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 

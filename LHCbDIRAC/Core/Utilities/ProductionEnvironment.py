@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ProductionEnvironment.py 22518 2010-03-08 16:36:37Z paterson $
+# $Id$
 ########################################################################
 """ Production environment is a utility to neatly wrap all LHCb production
     environment settings.  This includes all calls to set up the environment
@@ -7,7 +7,7 @@
     use by workflow modules or client tools.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py 22518 2010-03-08 16:36:37Z paterson $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Os import sourceEnv
 
